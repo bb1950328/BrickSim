@@ -8,6 +8,8 @@ add_executable(BrickSim main.cpp glad.c)
 # On Ubuntu, I had to sudo apt install mesa-utils freeglut3-dev libglfw3-dev
 # and add the files from https://glad.dav1d.de to /usr/include and the project folder
 
+# maybe this is helpful: https://stackoverflow.com/questions/9160335/os-specific-instructions-in-cmake-how-to
+
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS})

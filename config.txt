@@ -1,0 +1,1 @@
+ldraw_parts_library=~/ldraw

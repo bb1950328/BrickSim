@@ -237,7 +237,6 @@ void LdrColorRepository::initialize(){
             colors[col.code] = col;
         }
     }
-    return;
 }
 
 

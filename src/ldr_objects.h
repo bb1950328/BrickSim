@@ -9,6 +9,7 @@ static const int MAX_LDR_FILENAME_LENGTH = 255;
 
 #include <vector>
 #include <map>
+#include <glm/glm.hpp>
 
 class LdrFileElement;
 
@@ -42,9 +43,8 @@ public:
 
     LdrFile() = default;
 
-private:
-
     std::vector<LdrFileElement *> elements;
+private:
 
     static std::ifstream openFile(const std::string &filename);
 };
@@ -128,6 +128,8 @@ public:
     LdrColor() = default;
 
     explicit LdrColor(const std::string &line);
+
+    glm::vec4 asGlmVector();
 
     std::string name;
     int code;

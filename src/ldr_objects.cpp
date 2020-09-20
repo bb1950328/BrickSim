@@ -210,6 +210,9 @@ LdrColor::LdrColor(const std::string& line) {
         }
     }
 }
+glm::vec4 LdrColor::asGlmVector(){
+    return glm::vec4(value.red/255.0f, value.green/255.0f, value.blue/255.0f, 1.0f);
+}
 
 
 LdrColor *LdrColorRepository::get_color(const int colorCode) {

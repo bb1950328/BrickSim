@@ -4,9 +4,11 @@
 
 #include <iostream>
 #include "mesh.h"
+#include <glm/gtx/normal.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 void Mesh::addLdrFile(const LdrFile& file) {
-    addLdrFile(file, glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    addLdrFile(file, glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 }
 
 void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation, glm::vec3 mainColor) {
@@ -20,10 +22,10 @@ void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation, glm::vec3 m
             case 2:
                 break;//todo implement
             case 3:
-                addLdrTriangle(mainColor, reinterpret_cast<LdrTriangle &&>(element), transformation);
+                addLdrTriangle(mainColor, dynamic_cast<LdrTriangle &&>(*element), transformation);
                 break;
             case 4:
-                addLdrQuadrilateral(mainColor, reinterpret_cast<LdrQuadrilateral &&>(element), transformation);
+                addLdrQuadrilateral(mainColor, dynamic_cast<LdrQuadrilateral &&>(*element), transformation);
                 break;
             case 5:
                 break;//todo implement
@@ -41,15 +43,19 @@ void Mesh::addLdrTriangle(const glm::vec3 &mainColor, const LdrTriangle &triangl
 
 void Mesh::addTriangle(const glm::vec3 &color, const glm::mat4 transformation, const glm::vec3 &p1, const glm::vec3 &p2,
                        const glm::vec3 &p3) {
-    auto normal = glm::cross(p1 - p2, p2 - p3);//todo this is not always correct
+    auto normal = glm::triangleNormal(p1, p2, p3);
     addVertex(glm::vec4(p1, 1.0f) * transformation, normal, color);
     addVertex(glm::vec4(p2, 1.0f) * transformation, normal, color);
     addVertex(glm::vec4(p3, 1.0f) * transformation, normal, color);
 }
 
 void Mesh::addVertex(glm::vec4 pos, glm::vec3 normal, glm::vec3 color) {
-    indicies.push_back(vertices.size());//todo reuse vertices if they are equal
-    vertices.emplace_back(pos, normal, color);
+    indices.push_back(vertices.size());//todo reuse vertices if they are equal
+    Vertex vertex{pos, normal, color};
+    /*vertex.position = pos;
+    vertex.normal = normal;
+    vertex.color = color;*/
+    vertices.push_back(vertex);
 }
 
 void Mesh::addLdrSubfileReference(const LdrSubfileReference &castedElement, glm::mat4 transformation) {
@@ -72,20 +78,20 @@ void Mesh::addLdrQuadrilateral(glm::vec3 mainColor, LdrQuadrilateral &&quadrilat
 }
 
 void Mesh::printTriangles() {
-    for (int i = 0; i < indicies.size(); i+=3) {
+    for (int i = 0; i < indices.size(); i+=3) {
         auto v1 = vertices[i];
         auto v2 = vertices[i+1];
         auto v3 = vertices[i+2];
         std::cout << "Triangle " << i/3;
-        std::cout << " color=" << v1.color.x*255 << "," << v1.color.y*255 << "," << v1.color.z*255 << " coords=(";
-        std::cout << v1.position.x << ", " << v1.position.y << ", " << v1.position.z<<")-(";
-        std::cout << v2.position.x << ", " << v2.position.y << ", " << v2.position.z<<")-(";
-        std::cout << v3.position.x << ", " << v3.position.y << ", " << v3.position.z<<")\n";
+        std::cout << " color=" << glm::to_string(v1.color);
+        std::cout << " cords=(" << glm::to_string(v1.position);
+        std::cout << ", " << glm::to_string(v2.position);
+        std::cout << ", " << glm::to_string(v3.position) << "\n";
     }
 }
 
-Vertex::Vertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color) {
-    this->position = 0.00005f*position;
+/*Vertex::Vertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color) {
+    this->position = 0.1f*position;
     this->color = color;
     this->normal = normal;
-}
+}*/

@@ -45,6 +45,7 @@ std::ifstream LdrFile::openFile(const std::string &filename) {
                 util::extend_home_dir(filename),
                 util::pathjoin({parts_lib_location, "parts", filename}),//parts
                 util::pathjoin({parts_lib_location, "p", util::as_lower(filename)}),//primitives
+                util::pathjoin({parts_lib_location, "models", util::as_lower(filename)}),//models
         };
     std::ifstream input;
     for (const auto & loc : locations) {

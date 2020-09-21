@@ -10,7 +10,7 @@
 #include "ldr_objects.h"
 
 struct Vertex {
-    Vertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color);
+    //Vertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color);
 
     glm::vec4 position;
     glm::vec3 normal;
@@ -20,7 +20,7 @@ struct Vertex {
 class Mesh {
 public:
     std::vector<Vertex> vertices;
-    std::vector<unsigned long> indicies;
+    std::vector<unsigned long> indices;
     Mesh()=default;
     void addLdrFile(const LdrFile& file);
     void addLdrFile(const LdrFile& file, glm::mat4 transformation, glm::vec3 mainColor);

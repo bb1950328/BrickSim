@@ -58,6 +58,7 @@ std::ifstream LdrFile::openFile(const std::string &filename) {
 }
 
 LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
+    std::cout << util::trim(line) << "\n"; // todo remove this
     content = line;
 }
 

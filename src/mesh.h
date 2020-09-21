@@ -5,6 +5,8 @@
 #ifndef BRICKSIM_MESH_H
 #define BRICKSIM_MESH_H
 
+static const float SCALE = 1.0f;
+
 #include <glm/glm.hpp>
 #include <vector>
 #include "ldr_objects.h"
@@ -13,7 +15,7 @@ struct Vertex {
     //Vertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color);
 
     glm::vec4 position;
-    glm::vec3 normal;
+    //glm::vec3 normal;//todo reenable
     glm::vec3 color;
 };
 

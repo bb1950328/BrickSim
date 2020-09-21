@@ -34,9 +34,9 @@ void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation, glm::vec3 m
 }
 
 void Mesh::addLdrTriangle(const glm::vec3 &mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation) {
-    auto p1 = glm::vec3(triangleElement.x1, triangleElement.y1, triangleElement.z1);
-    auto p2 = glm::vec3(triangleElement.x2, triangleElement.y2, triangleElement.z2);
-    auto p3 = glm::vec3(triangleElement.x3, triangleElement.y3, triangleElement.z3);
+    auto p1 = glm::vec3(triangleElement.x1, triangleElement.y1, triangleElement.z1) * SCALE;
+    auto p2 = glm::vec3(triangleElement.x2, triangleElement.y2, triangleElement.z2) * SCALE;
+    auto p3 = glm::vec3(triangleElement.x3, triangleElement.y3, triangleElement.z3) * SCALE;
     addTriangle(triangleElement.color->code == 16 ? mainColor : triangleElement.color->asGlmVector(), transformation,
                 p1, p2, p3);
 }
@@ -51,7 +51,7 @@ void Mesh::addTriangle(const glm::vec3 &color, const glm::mat4 transformation, c
 
 void Mesh::addVertex(glm::vec4 pos, glm::vec3 normal, glm::vec3 color) {
     indices.push_back(vertices.size());//todo reuse vertices if they are equal
-    Vertex vertex{pos, normal, color};
+    Vertex vertex{pos, /*normal,*/ color};
     /*vertex.position = pos;
     vertex.normal = normal;
     vertex.color = color;*/
@@ -60,18 +60,18 @@ void Mesh::addVertex(glm::vec4 pos, glm::vec3 normal, glm::vec3 color) {
 
 void Mesh::addLdrSubfileReference(const LdrSubfileReference &castedElement, glm::mat4 transformation) {
     auto sub_transformation = glm::mat4();
-    sub_transformation[0] = glm::vec4(castedElement.a, castedElement.b, castedElement.c, castedElement.x);
-    sub_transformation[1] = glm::vec4(castedElement.d, castedElement.e, castedElement.f, castedElement.y);
-    sub_transformation[2] = glm::vec4(castedElement.g, castedElement.h, castedElement.i, castedElement.z);
+    sub_transformation[0] = glm::vec4(castedElement.a, castedElement.b, castedElement.c, castedElement.x * SCALE);
+    sub_transformation[1] = glm::vec4(castedElement.d, castedElement.e, castedElement.f, castedElement.y * SCALE);
+    sub_transformation[2] = glm::vec4(castedElement.g, castedElement.h, castedElement.i, castedElement.z * SCALE);
     sub_transformation[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     addLdrFile(*castedElement.file, transformation*sub_transformation, castedElement.color->asGlmVector());//todo unsure if i can just multiply these two matrices
 }
 
 void Mesh::addLdrQuadrilateral(glm::vec3 mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation) {
-    auto p1 = glm::vec3(quadrilateral.x1, quadrilateral.y1, quadrilateral.z1);
-    auto p2 = glm::vec3(quadrilateral.x2, quadrilateral.y2, quadrilateral.z2);
-    auto p3 = glm::vec3(quadrilateral.x3, quadrilateral.y3, quadrilateral.z3);
-    auto p4 = glm::vec3(quadrilateral.x4, quadrilateral.y4, quadrilateral.z4);
+    auto p1 = glm::vec3(quadrilateral.x1, quadrilateral.y1, quadrilateral.z1) * SCALE;
+    auto p2 = glm::vec3(quadrilateral.x2, quadrilateral.y2, quadrilateral.z2) * SCALE;
+    auto p3 = glm::vec3(quadrilateral.x3, quadrilateral.y3, quadrilateral.z3) * SCALE;
+    auto p4 = glm::vec3(quadrilateral.x4, quadrilateral.y4, quadrilateral.z4) * SCALE;
     const glm::vec3 &color = quadrilateral.color->code == 16 ? mainColor : quadrilateral.color->asGlmVector();
     addTriangle(color, transformation, p1, p2, p3);
     addTriangle(color, transformation, p3, p4, p1);

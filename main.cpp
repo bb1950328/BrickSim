@@ -24,8 +24,8 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1600;
+const unsigned int SCR_HEIGHT = 900;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -83,7 +83,7 @@ int main() {
 
     auto mesh = Mesh();
     mesh.addLdrFile(*LdrFileRepository::get_file("car.ldr"));
-    mesh.printTriangles();
+    //mesh.printTriangles();
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -152,7 +152,8 @@ int main() {
         // calculate the model matrix for each object and pass it to shader before drawing
         glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
         //float angle = 20.0f * 1;
-        //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
         ourShader.setMat4("model", model);
 
         glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());

@@ -4,7 +4,6 @@
 
 #include <fstream>
 #include <sstream>
-#include <utility>
 #include <algorithm>
 #include <iostream>
 #include "ldr_objects.h"
@@ -212,7 +211,7 @@ LdrColor::LdrColor(const std::string& line) {
         }
     }
 }
-glm::vec4 LdrColor::asGlmVector(){
+glm::vec4 LdrColor::asGlmVector() const {
     return glm::vec4(value.red/255.0f, value.green/255.0f, value.blue/255.0f, 1.0f);
 }
 

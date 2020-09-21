@@ -129,7 +129,7 @@ public:
 
     explicit LdrColor(const std::string &line);
 
-    glm::vec4 asGlmVector();
+    glm::vec4 asGlmVector() const;
 
     std::string name;
     int code;

@@ -82,7 +82,7 @@ int main() {
     // ------------------------------------------------------------------
 
     auto mesh = Mesh();
-    mesh.addLdrFile(*LdrFileRepository::get_file("2-8sphe.dat"));
+    mesh.addLdrFile(*LdrFileRepository::get_file("car.ldr"));
     mesh.printTriangles();
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
@@ -90,6 +90,7 @@ int main() {
 
     glBindVertexArray(VAO);
 
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);//wireframe
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size()*sizeof(Vertex), &mesh.vertices[0], GL_STATIC_DRAW);
 
@@ -154,7 +155,7 @@ int main() {
         //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
         ourShader.setMat4("model", model);
 
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

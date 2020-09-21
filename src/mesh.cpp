@@ -64,7 +64,7 @@ void Mesh::addLdrSubfileReference(const LdrSubfileReference &castedElement, glm:
     sub_transformation[1] = glm::vec4(castedElement.d, castedElement.e, castedElement.f, castedElement.y * SCALE);
     sub_transformation[2] = glm::vec4(castedElement.g, castedElement.h, castedElement.i, castedElement.z * SCALE);
     sub_transformation[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    addLdrFile(*castedElement.file, transformation*sub_transformation, castedElement.color->asGlmVector());//todo unsure if i can just multiply these two matrices
+    addLdrFile(*castedElement.file, sub_transformation*transformation, castedElement.color->asGlmVector());//todo unsure if i can just multiply these two matrices
 }
 
 void Mesh::addLdrQuadrilateral(glm::vec3 mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation) {

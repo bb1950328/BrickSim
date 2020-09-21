@@ -5,7 +5,7 @@
 #ifndef BRICKSIM_MESH_H
 #define BRICKSIM_MESH_H
 
-static const float SCALE = 1.0f;
+static const float SCALE = 0.1f;
 
 #include <glm/glm.hpp>
 #include <vector>

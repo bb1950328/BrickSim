@@ -23,5 +23,7 @@ namespace util {
     std::string trim(const std::string& input);
     std::string pathjoin(const std::list<std::string>& parts);
     std::string as_lower(const std::string& string);
+    bool ends_with(std::string const &fullString, std::string const &ending);
+    bool starts_with(std::string const &fullString, std::string const &start);
 }
 #endif //BRICKSIM_UTIL_H

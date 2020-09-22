@@ -25,17 +25,63 @@ LdrFileElement *LdrFileElement::parse_line(std::string line) {
     }
 }
 
-LdrFile::LdrFile(const std::string& filename) {
+LdrFile* LdrFile::parseFile(const std::string & filename){
+    auto mainFile = new LdrFile();
     std::ifstream input = openFile(filename);
     if (!input.good()) {
         throw std::invalid_argument("can't open file \""+filename+"\"");
     }
-    for (std::string line; getline(input, line);) {
-        auto trimmed = util::trim(line);
+    bool isMpd = util::ends_with(filename, ".mpd");
+    if (isMpd) {
+        std::string currentSubFileName = filename;
+        std::map<std::string, std::list<std::string>> fileLines;
+        bool firstFile = true;
+        for (std::string line; getline(input, line);) {
+            if (util::starts_with(line, "0 FILE")) {
+                if (!firstFile) {
+                    currentSubFileName = util::trim(line.substr(7));
+                } else {
+                    firstFile = false;
+                }
+            } else if (util::starts_with(line, "0 !DATA")) {
+                currentSubFileName = util::trim(line.substr(8));
+            } else {
+                fileLines[currentSubFileName].push_back(line);
+            }
+        }
+        //todo process files with subfile references at the end or compute dependencies
+        for (auto const& entry: fileLines) {
+            LdrFile* currentFile;
+            if (entry.first==filename) {
+                currentFile = mainFile;
+            } else {
+                if (util::starts_with(entry.second.front(), "0 !: ")) {
+                    //todo parse base64 data and store it somewhere
+                    continue;
+                } else {
+                    currentFile = new LdrFile();
+                    LdrFileRepository::add_file(entry.first, currentFile);
+                }
+            }
+            currentFile->elements.reserve(entry.second.size());
+            for (const auto& line : entry.second) {
+                currentFile->addTextLine(line);
+            }
+
+        }
+    } else {
+        for (std::string line; getline(input, line);) {
+            mainFile->addTextLine(line);
+        }
+    }
+    
+    return mainFile;
+}
+void LdrFile::addTextLine(const std::string &line) {
+    auto trimmed = util::trim(line);
         if (!trimmed.empty()) {
             elements.push_back(LdrFileElement::parse_line(trimmed));
         }
-    }
 }
 std::ifstream LdrFile::openFile(const std::string &filename) {
     auto parts_lib_location = util::extend_home_dir(Configuration::getInstance().get_string(config::KEY_LDRAW_PARTS_LIBRARY));
@@ -249,11 +295,14 @@ std::map<std::string, LdrFile> LdrFileRepository::files;
 LdrFile *LdrFileRepository::get_file(const std::string &filename) {
     auto iterator = files.find(filename);
     if (iterator == files.end()) {
-        auto file = new LdrFile(filename);
-        files[filename] = *file;
+        LdrFile* file = LdrFile::parseFile(filename);
+        add_file(filename, file);
         return file;
     }
     return &(iterator->second);
+}
+void LdrFileRepository::add_file(const std::string &filename, const LdrFile *file){
+    files[filename] = *file;
 }
 void LdrFileRepository::clear_cache(){
     files.clear();

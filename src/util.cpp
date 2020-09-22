@@ -24,7 +24,7 @@ namespace util {
 
     std::string pathjoin(const std::list<std::string> &parts) {
         auto result = std::string();
-        for (const auto & part : parts) {
+        for (const auto &part : parts) {
             result.append(part);
             if (result.back() != PATH_SEPARATOR) {
                 result.push_back(PATH_SEPARATOR);
@@ -37,9 +37,21 @@ namespace util {
 
     std::string as_lower(const std::string &string) {
         auto result = std::string();
-        for (const auto & ch: string) {
+        for (const auto &ch: string) {
             result.push_back(std::tolower(ch));
         }
         return result;
+    }
+
+    bool ends_with(std::string const &fullString, std::string const &ending) {
+        if (fullString.length() >= ending.length()) {
+            return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
+        } else {
+            return false;
+        }
+    }
+
+    bool starts_with(std::string const &fullString, std::string const &start) {
+        return fullString.rfind(start, 0) == 0;
     }
 }

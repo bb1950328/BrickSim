@@ -39,7 +39,7 @@ struct LdrColorMaterial {
 
 class LdrFile {
 public:
-    explicit LdrFile(const std::string &filename);
+    static LdrFile* parseFile(const std::string &filename);
 
     LdrFile() = default;
 
@@ -47,6 +47,8 @@ public:
 private:
 
     static std::ifstream openFile(const std::string &filename);
+
+    void addTextLine(const std::string &line);
 };
 
 class LdrFileElement {
@@ -162,6 +164,8 @@ public:
     static LdrFile *get_file(const std::string &filename);
 
     static void clear_cache();
+
+    static void add_file(const std::string &filename, const LdrFile *file);
 };
 
 #endif //BRICKSIM_LDR_OBJECTS_H

@@ -87,32 +87,44 @@ int main() {
     // ------------------------------------------------------------------
 
     auto mesh = Mesh();
-    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/42043_arocs.mpd"/*"car.ldr"*/);
+    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/42043_arocs.mpd"/*"3001.dat"*/);
     //mainFile->printStructure();
     mesh.addLdrFile(*mainFile);
     std::cout << mesh.vertices.size() << "\n";
     //mesh.printTriangles();
-    unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    std::map<LdrColor*, unsigned int> VAOs, VBOs, EBOs;
+    for (const auto& entry: mesh.indices) {
+        LdrColor *color = entry.first;
+        std::vector<unsigned int> *indices = entry.second;
+        std::vector<Vertex> *vertices = mesh.vertices.find(color)->second;
 
-    glBindVertexArray(VAO);
+        unsigned int vao, vbo, ebo;
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);//wireframe
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size()*sizeof(Vertex), &mesh.vertices[0], GL_STATIC_DRAW);
+        //vao
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
 
-    // position attribute
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void *) 0);
-    glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void *) (4 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+        //vbo
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, vertices->size()*sizeof(Vertex), &(*vertices)[0], GL_STATIC_DRAW);
 
-    //index buffer
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*mesh.indices.size(), &mesh.indices[0], GL_STATIC_DRAW);
+        // position attribute
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void *) 0);
+        glEnableVertexAttribArray(0);
+        // normal attribute
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void *) (4 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+
+        //ebo
+        glGenBuffers(1, &ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices->size(), &(*indices)[0], GL_STATIC_DRAW);
+        
+        VAOs[color] = vao;
+        VBOs[color] = vbo;
+        EBOs[color] = ebo;
+    }
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
@@ -160,7 +172,6 @@ int main() {
         ourShader.setMat4("view", view);
 
         // render boxes
-        glBindVertexArray(VAO);
         // calculate the model matrix for each object and pass it to shader before drawing
         glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
         //float angle = 20.0f * 1;
@@ -168,9 +179,20 @@ int main() {
         model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
         ourShader.setMat4("model", model);
 
-        //glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+        for (const auto& entry: mesh.indices) {
+            LdrColor *color = entry.first;
+            std::vector<unsigned int> *indices = entry.second;
+            std::vector<Vertex> *vertices = mesh.vertices.find(color)->second;
+            unsigned int vao=VAOs[color];
+            unsigned int vbo=VBOs[color];
+            unsigned int ebo=EBOs[color];
+            glBindVertexArray(vao);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+            //std::cout << color->name;
+            glDrawElements(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, 0);
+        }
+        //std::cout<<"\n";
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -180,8 +202,15 @@ int main() {
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    for (const auto& entry: mesh.indices) {
+        LdrColor *color = entry.first;
+        unsigned int vao = VAOs[color];
+        unsigned int vbo = VBOs[color];
+        unsigned int ebo = EBOs[color];
+        glDeleteVertexArrays(1, &vao);
+        glDeleteBuffers(1, &vbo);
+        glDeleteBuffers(1, &ebo);
+    }
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------

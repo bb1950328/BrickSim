@@ -13,10 +13,10 @@ struct Vertex {
     //Vertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color);
 
     glm::vec4 position;
-    //glm::vec3 normal;//todo reenable
-    glm::vec3 color;
+    glm::vec3 normal;
+    //glm::vec3 color;
     bool operator==(const Vertex& other) const {
-        return position == other.position && color == other.color;
+        return position == other.position && normal == other.normal;
     }
 };
 
@@ -28,31 +28,36 @@ struct Line {
 
 class Mesh {
 public:
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
+    std::map<LdrColor*, std::vector<Vertex>*> vertices;
+    std::map<LdrColor*, std::vector<unsigned int>*> indices;
     std::vector<Line> lines;
 
     Mesh() = default;
 
     void addLdrFile(const LdrFile &file);
 
-    void addLdrFile(const LdrFile &file, glm::mat4 transformation, glm::vec3 mainColor);
+    void addLdrFile(const LdrFile &file, glm::mat4 transformation, LdrColor *mainColor);
 
-    void addLdrFile(const LdrFile &file, const LdrColor &color);
-
-    void addLdrSubfileReference(const glm::vec3 &mainColor,
+    void addLdrSubfileReference(LdrColor *mainColor,
                                 LdrSubfileReference *sfElement,
                                 glm::mat4 transformation);
 
-    void addVertex(glm::vec4 pos, glm::vec3 normal, glm::vec3 color);
 
-    void addLdrTriangle(const glm::vec3 &mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation);
-
-    void addLdrQuadrilateral(glm::vec3 mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation);
 
     void printTriangles();
 
-    void addLdrLine(const glm::vec3 &mainColor, const LdrLine &lineElement, glm::mat4 transformation);
+    void addVertex(glm::vec4 pos, glm::vec3 normal, LdrColor *color);
+
+    void addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation);
+
+    void addLdrFile(const LdrFile &file, LdrColor *color);
+
+    void addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation);
+
+    void addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation);
+
+    std::vector<unsigned int> *getIndicesList(LdrColor *color);
+    std::vector<Vertex> *getVerticesList(LdrColor *color);
 };
 
 #endif //BRICKSIM_MESH_H

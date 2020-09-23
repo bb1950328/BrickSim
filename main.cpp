@@ -5,6 +5,8 @@
 
 #include "stb_image.h"
 
+#include <GLFW\glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -82,7 +84,7 @@ int main() {
     // ------------------------------------------------------------------
 
     auto mesh = Mesh();
-    mesh.addLdrFile(*LdrFileRepository::get_file("/home/bab21/Downloads/42043_arocs.mpd"));
+    mesh.addLdrFile(*LdrFileRepository::get_file("car.ldr"));
     //mesh.printTriangles();
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);

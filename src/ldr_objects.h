@@ -75,9 +75,13 @@ public:
 
     LdrColor *color;
     double x, y, z, a, b, c, d, e, f, g, h, i;
-    LdrFile *file;
-
+    std::string filename;
     int getType() const override;
+
+    LdrFile *getFile();
+
+private:
+    LdrFile *file = nullptr;
 };
 
 class LdrLine : public LdrFileElement {

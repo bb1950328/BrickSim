@@ -21,7 +21,7 @@ void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation, glm::vec3 m
             case 0:
                 break;
             case 1:
-                addLdrSubfileReference(mainColor, dynamic_cast<LdrSubfileReference &&>(*element), transformation);
+                addLdrSubfileReference(mainColor, dynamic_cast<LdrSubfileReference *>(element), transformation);
                 break;
             case 2:
                 addLdrLine(mainColor, dynamic_cast<LdrLine &&>(*element), transformation);
@@ -63,15 +63,15 @@ void Mesh::addVertex(glm::vec4 pos, glm::vec3 normal, glm::vec3 color) {
     vertices.push_back(vertex);
 }
 
-void Mesh::addLdrSubfileReference(const glm::vec3 &mainColor, const LdrSubfileReference &sfElement,
+void Mesh::addLdrSubfileReference(const glm::vec3 &mainColor, LdrSubfileReference *sfElement,
                                   glm::mat4 transformation) {
     auto sub_transformation = glm::mat4();
-    sub_transformation[0] = glm::vec4(sfElement.a, sfElement.b, sfElement.c, sfElement.x * 1);
-    sub_transformation[1] = glm::vec4(sfElement.d, sfElement.e, sfElement.f, sfElement.y * 1);
-    sub_transformation[2] = glm::vec4(sfElement.g, sfElement.h, sfElement.i, sfElement.z * 1);
+    sub_transformation[0] = glm::vec4(sfElement->a, sfElement->b, sfElement->c, sfElement->x * 1);
+    sub_transformation[1] = glm::vec4(sfElement->d, sfElement->e, sfElement->f, sfElement->y * 1);
+    sub_transformation[2] = glm::vec4(sfElement->g, sfElement->h, sfElement->i, sfElement->z * 1);
     sub_transformation[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    const glm::vec3 &color = sfElement.color->code == 16 ? mainColor : sfElement.color->asGlmVector();
-    addLdrFile(*sfElement.file, sub_transformation * transformation, color);
+    const glm::vec3 &color = sfElement->color->code == 16 ? mainColor : sfElement->color->asGlmVector();
+    addLdrFile(*sfElement->getFile(), sub_transformation * transformation, color);
 }
 
 void Mesh::addLdrQuadrilateral(glm::vec3 mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation) {

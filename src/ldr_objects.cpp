@@ -63,7 +63,8 @@ LdrFile* LdrFile::parseFile(const std::string & filename){
                     LdrFileRepository::add_file(entry.first, currentFile);
                 }
             }
-            currentFile->elements.reserve(entry.second.size());
+            unsigned long lineCount = entry.second.size();
+            currentFile->elements.reserve(lineCount);
             for (const auto& line : entry.second) {
                 currentFile->addTextLine(line);
             }
@@ -103,14 +104,13 @@ std::ifstream LdrFile::openFile(const std::string &filename) {
 }
 
 LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
-    std::cout << util::trim(line) << "\n"; // todo remove this
     content = line;
 }
 
 LdrSubfileReference::LdrSubfileReference(const std::string& line) {
     std::stringstream linestream(line);
     int colorCode;
-    char *filename = new char [MAX_LDR_FILENAME_LENGTH+1];
+    char *filenameTmp = new char [MAX_LDR_FILENAME_LENGTH+1];
 
     linestream >> colorCode;
     linestream >> x;
@@ -125,11 +125,11 @@ LdrSubfileReference::LdrSubfileReference(const std::string& line) {
     linestream >> g;
     linestream >> h;
     linestream >> i;
-    linestream.getline(filename, MAX_LDR_FILENAME_LENGTH+1);
+    linestream.getline(filenameTmp, MAX_LDR_FILENAME_LENGTH+1);
 
     color = LdrColorRepository::getInstance()->get_color(colorCode);
-    file = LdrFileRepository::get_file(util::trim(filename));
-    delete [] filename;
+    filename = util::trim(std::string(filenameTmp));
+    delete [] filenameTmp;
 }
 
 LdrLine::LdrLine(const std::string& line) {
@@ -296,7 +296,7 @@ LdrFile *LdrFileRepository::get_file(const std::string &filename) {
     auto iterator = files.find(filename);
     if (iterator == files.end()) {
         LdrFile* file = LdrFile::parseFile(filename);
-        add_file(filename, file);
+        files[filename] = *file;
         return file;
     }
     return &(iterator->second);
@@ -314,6 +314,12 @@ int LdrCommentOrMetaElement::getType() const{
 
 int LdrSubfileReference::getType() const{
     return 1;
+}
+LdrFile * LdrSubfileReference::getFile() {
+    if (file==nullptr) {
+        file = LdrFileRepository::get_file(filename);
+    }
+    return file;
 }
 int LdrLine::getType() const{
     return 2;

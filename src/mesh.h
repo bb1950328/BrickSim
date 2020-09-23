@@ -38,7 +38,7 @@ public:
     void addLdrFile(const LdrFile &file, const LdrColor &color);
 
     void addLdrSubfileReference(const glm::vec3 &mainColor,
-                                const LdrSubfileReference &sfElement,
+                                LdrSubfileReference *sfElement,
                                 glm::mat4 transformation);
 
     void addVertex(glm::vec4 pos, glm::vec3 normal, glm::vec3 color);

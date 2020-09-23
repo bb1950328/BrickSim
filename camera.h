@@ -131,4 +131,58 @@ private:
         Up    = glm::normalize(glm::cross(Right, Front));
     }
 };
+
+class CadCamera {
+private:
+    float pitch = 0.0f; // up/down angle
+    float yaw = 0.0f; // left/right angle
+    float distance = 3.0f; // distance between target point and camera
+    //float x_target = 0.0f, y_target = 0.0f, z_target = 0.0f;
+    //float x_cam_pos = 0.0f, y_cam_pos = 0.0f, z_cam_pos = 0.0f;
+    glm::vec3 front, target, right, up;
+    glm::vec3 worldUp = glm::vec3(0.0f,  1.0f, 0.0f);
+    float sensitivity = 0.1f;
+    glm::mat4 viewMatrix;
+    void updateVectors() {
+        front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        front.y = sin(glm::radians(pitch));
+        front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        front = glm::normalize(front);
+
+        //target = glm::vec3(x_target, y_target, z_target);
+
+        //cameraPos = glm::vec3(x_cam_pos, y_cam_pos, z_cam_pos);
+
+        //right = glm::normalize(glm::cross(front, worldUp));
+        //up    = glm::normalize(glm::cross(right, front));
+        glm::vec3 cameraPos = front*distance;
+        viewMatrix = glm::lookAt(cameraPos, target, worldUp);
+    }
+public:
+    CadCamera() {
+        target = glm::vec3(0.0f, 0.0f, 0.0f);
+        updateVectors();
+    }
+
+    glm::mat4 getViewMatrix() const {
+        return viewMatrix;
+    }
+
+    void mouseRotate(float x_delta, float y_delta) {
+        yaw += x_delta*sensitivity;
+        pitch -= y_delta*sensitivity;
+        updateVectors();
+        //std::cout << "yaw=" << yaw << ", pitch=" << pitch << "x=" << x_delta << "y=" << y_delta << "\n";
+    }
+    void mousePan(float x_delta, float y_delta) {
+        //todo implement
+    }
+
+    void moveForwardBackward(float delta) {
+        distance-=delta*sensitivity;
+        distance = std::max(1.0f, distance);
+        std::cout << distance << "\n";
+        updateVectors();
+    }
+};
 #endif //BRICKSIM_CAMERA_H

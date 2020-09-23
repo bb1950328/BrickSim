@@ -89,7 +89,7 @@ std::ifstream LdrFile::openFile(const std::string &filename) {
     //todo make parts search case-insensitive https://forums.ldraw.org/thread-13787.html
     auto locations = {
                 util::extend_home_dir(filename),
-                util::pathjoin({parts_lib_location, "parts", filename}),//parts
+                util::pathjoin({parts_lib_location, "parts", util::as_lower(filename)}),//parts
                 util::pathjoin({parts_lib_location, "p", util::as_lower(filename)}),//primitives
                 util::pathjoin({parts_lib_location, "models", util::as_lower(filename)}),//models
         };
@@ -101,6 +101,21 @@ std::ifstream LdrFile::openFile(const std::string &filename) {
         }
     }
     return input;
+}
+void LdrFile::printStructure(int indent) {
+    for (auto elem : elements) {
+        if (elem->getType()==1) {
+            auto *subfileRef = dynamic_cast<LdrSubfileReference *>(elem);
+            for (int i = 0; i < indent; ++i) {
+                std::cout << "\t";
+            }
+            std::cout << subfileRef->filename << "\n";
+            if (util::starts_with(subfileRef->filename, "42043")) {
+                int i = 5;//todo remove
+            }
+            subfileRef->getFile()->printStructure(indent+1);
+        }
+    }
 }
 
 LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
@@ -290,19 +305,19 @@ void LdrColorRepository::initialize(){
 }
 
 
-std::map<std::string, LdrFile> LdrFileRepository::files;
+std::map<std::string, LdrFile*> LdrFileRepository::files;
 
 LdrFile *LdrFileRepository::get_file(const std::string &filename) {
     auto iterator = files.find(filename);
     if (iterator == files.end()) {
         LdrFile* file = LdrFile::parseFile(filename);
-        files[filename] = *file;
+        files[filename] = file;
         return file;
     }
-    return &(iterator->second);
+    return (iterator->second);
 }
-void LdrFileRepository::add_file(const std::string &filename, const LdrFile *file){
-    files[filename] = *file;
+void LdrFileRepository::add_file(const std::string &filename, LdrFile *file){
+    files[filename] = file;
 }
 void LdrFileRepository::clear_cache(){
     files.clear();

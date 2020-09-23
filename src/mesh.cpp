@@ -42,15 +42,7 @@ void Mesh::addLdrTriangle(const glm::vec3 &mainColor, const LdrTriangle &triangl
     auto p1 = glm::vec3(triangleElement.x1, triangleElement.y1, triangleElement.z1);
     auto p2 = glm::vec3(triangleElement.x2, triangleElement.y2, triangleElement.z2);
     auto p3 = glm::vec3(triangleElement.x3, triangleElement.y3, triangleElement.z3);
-    addTriangle(triangleElement.color->code == 16 ? mainColor : triangleElement.color->asGlmVector(), transformation,
-                p1, p2, p3);
-}
-
-void Mesh::addTriangle(const glm::vec3 &color,
-                       const glm::mat4 &transformation,
-                       const glm::vec3 &p1,
-                       const glm::vec3 &p2,
-                       const glm::vec3 &p3) {
+    const glm::vec3 &color = triangleElement.color->code == 16 ? mainColor : triangleElement.color->asGlmVector();
     auto normal = glm::triangleNormal(p1, p2, p3);
     addVertex(glm::vec4(p1, 1.0f) * transformation, normal, color);
     addVertex(glm::vec4(p2, 1.0f) * transformation, normal, color);
@@ -58,8 +50,14 @@ void Mesh::addTriangle(const glm::vec3 &color,
 }
 
 void Mesh::addVertex(glm::vec4 pos, glm::vec3 normal, glm::vec3 color) {
-    indices.push_back(vertices.size());//todo reuse vertices if they are equal
     Vertex vertex{pos, /*normal,*/ color};
+    /*for (int i = vertices.size(); i > vertices.size()-10; --i) {//just check the last 10 because the probability that there's a better vertex farther front is very small
+        if (vertices[i]==vertex) {
+            indices.push_back(i);
+            return;
+        }
+    }*///todo check if this still gives a performance boost after adding normals
+    indices.push_back(vertices.size());
     vertices.push_back(vertex);
 }
 
@@ -75,13 +73,32 @@ void Mesh::addLdrSubfileReference(const glm::vec3 &mainColor, LdrSubfileReferenc
 }
 
 void Mesh::addLdrQuadrilateral(glm::vec3 mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation) {
-    auto p1 = glm::vec3(quadrilateral.x1, quadrilateral.y1, quadrilateral.z1);
-    auto p2 = glm::vec3(quadrilateral.x2, quadrilateral.y2, quadrilateral.z2);
-    auto p3 = glm::vec3(quadrilateral.x3, quadrilateral.y3, quadrilateral.z3);
-    auto p4 = glm::vec3(quadrilateral.x4, quadrilateral.y4, quadrilateral.z4);
+    auto p1 = glm::vec4(quadrilateral.x1, quadrilateral.y1, quadrilateral.z1, 1.0f)*transformation;
+    auto p2 = glm::vec4(quadrilateral.x2, quadrilateral.y2, quadrilateral.z2, 1.0f)*transformation;
+    auto p3 = glm::vec4(quadrilateral.x3, quadrilateral.y3, quadrilateral.z3, 1.0f)*transformation;
+    auto p4 = glm::vec4(quadrilateral.x4, quadrilateral.y4, quadrilateral.z4, 1.0f)*transformation;
     const glm::vec3 &color = quadrilateral.color->code == 16 ? mainColor : quadrilateral.color->asGlmVector();
-    addTriangle(color, transformation, p1, p2, p3);
-    addTriangle(color, transformation, p3, p4, p1);
+    auto normal = glm::triangleNormal(glm::vec3(p1), glm::vec3(p2), glm::vec3(p3));
+
+    Vertex vertex1{p1, /*normal, */color};
+    Vertex vertex2{p2, /*normal, */color};
+    Vertex vertex3{p3, /*normal, */color};
+    Vertex vertex4{p4, /*normal, */color};
+    unsigned int idx = vertices.size();
+    vertices.push_back(vertex1);
+    vertices.push_back(vertex2);
+    vertices.push_back(vertex3);
+    vertices.push_back(vertex4);
+
+    //triangle 1
+    indices.push_back(idx);
+    indices.push_back(idx + 1);
+    indices.push_back(idx + 2);
+
+    //triangle 2
+    indices.push_back(idx + 2);
+    indices.push_back(idx + 3);
+    indices.push_back(idx);
 }
 
 void Mesh::printTriangles() {

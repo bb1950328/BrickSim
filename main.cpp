@@ -5,7 +5,9 @@
 
 #include "stb_image.h"
 
-#include <GLFW\glfw3.h>
+#if defined(_WIN32) || defined(_WIN64)
+#include <GLFW\glfw3.h> // todo check if this is needed on windows
+#endif
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -85,11 +87,15 @@ int main() {
     // ------------------------------------------------------------------
 
     auto mesh = Mesh();
-    mesh.addLdrFile(*LdrFileRepository::get_file(/*"~/Downloads/42043_arocs.mpd"*/"car.ldr"));
+    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/42043_arocs.mpd"/*"car.ldr"*/);
+    //mainFile->printStructure();
+    mesh.addLdrFile(*mainFile);
+    std::cout << mesh.vertices.size() << "\n";
     //mesh.printTriangles();
-    unsigned int VBO, VAO;
+    unsigned int VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
 
@@ -104,6 +110,9 @@ int main() {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void *) (4 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    //index buffer
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*mesh.indices.size(), &mesh.indices[0], GL_STATIC_DRAW);
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
@@ -159,7 +168,9 @@ int main() {
         model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
         ourShader.setMat4("model", model);
 
-        glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());
+        //glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

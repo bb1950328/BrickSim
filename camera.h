@@ -141,7 +141,8 @@ private:
     //float x_cam_pos = 0.0f, y_cam_pos = 0.0f, z_cam_pos = 0.0f;
     glm::vec3 front, target, right, up;
     glm::vec3 worldUp = glm::vec3(0.0f,  1.0f, 0.0f);
-    float sensitivity = 0.1f;
+    float mouseMoveSensitivity = 0.1f;
+    float mouseScrollSensitivity = 0.33f;
     glm::mat4 viewMatrix;
     void updateVectors() {
         front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -169,8 +170,8 @@ public:
     }
 
     void mouseRotate(float x_delta, float y_delta) {
-        yaw += x_delta*sensitivity;
-        pitch -= y_delta*sensitivity;
+        yaw += x_delta * mouseMoveSensitivity;
+        pitch -= y_delta * mouseMoveSensitivity;
         pitch = std::min(89.99f, std::max(-89.99f, pitch));
         updateVectors();
         //std::cout << "yaw=" << yaw << ", pitch=" << pitch << "x=" << x_delta << "y=" << y_delta << "\n";
@@ -180,7 +181,7 @@ public:
     }
 
     void moveForwardBackward(float delta) {
-        distance-=delta*sensitivity;
+        distance-= delta * mouseScrollSensitivity;
         distance = std::max(1.0f, distance);
         std::cout << distance << "\n";
         updateVectors();

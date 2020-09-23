@@ -15,6 +15,9 @@ struct Vertex {
     glm::vec4 position;
     //glm::vec3 normal;//todo reenable
     glm::vec3 color;
+    bool operator==(const Vertex& other) const {
+        return position == other.position && color == other.color;
+    }
 };
 
 struct Line {
@@ -26,7 +29,7 @@ struct Line {
 class Mesh {
 public:
     std::vector<Vertex> vertices;
-    std::vector<unsigned long> indices;
+    std::vector<unsigned int> indices;
     std::vector<Line> lines;
 
     Mesh() = default;
@@ -42,12 +45,6 @@ public:
                                 glm::mat4 transformation);
 
     void addVertex(glm::vec4 pos, glm::vec3 normal, glm::vec3 color);
-
-    void addTriangle(const glm::vec3 &color,
-                     const glm::mat4 &transformation,
-                     const glm::vec3 &p1,
-                     const glm::vec3 &p2,
-                     const glm::vec3 &p3);
 
     void addLdrTriangle(const glm::vec3 &mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation);
 

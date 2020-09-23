@@ -44,6 +44,8 @@ public:
     LdrFile() = default;
 
     std::vector<LdrFileElement *> elements;
+
+    void printStructure(int indent=0);
 private:
 
     static std::ifstream openFile(const std::string &filename);
@@ -163,13 +165,13 @@ public:
 
 class LdrFileRepository {
 private:
-    static std::map<std::string, LdrFile> files;
+    static std::map<std::string, LdrFile*> files;
 public:
     static LdrFile *get_file(const std::string &filename);
 
     static void clear_cache();
 
-    static void add_file(const std::string &filename, const LdrFile *file);
+    static void add_file(const std::string &filename, LdrFile *file);
 };
 
 #endif //BRICKSIM_LDR_OBJECTS_H

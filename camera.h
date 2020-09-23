@@ -171,6 +171,7 @@ public:
     void mouseRotate(float x_delta, float y_delta) {
         yaw += x_delta*sensitivity;
         pitch -= y_delta*sensitivity;
+        pitch = std::min(89.99f, std::max(-89.99f, pitch));
         updateVectors();
         //std::cout << "yaw=" << yaw << ", pitch=" << pitch << "x=" << x_delta << "y=" << y_delta << "\n";
     }

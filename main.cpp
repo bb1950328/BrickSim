@@ -18,6 +18,7 @@
 #include "camera.h"
 
 #include <iostream>
+#include <glm/gtx/string_cast.hpp>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -41,6 +42,8 @@ bool firstMouse = true;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+glm::vec3 lightPos(4.46, 7.32, 6.2);//todo customizable
 
 int main() {
     // glfw: initialize and configure
@@ -92,8 +95,8 @@ int main() {
     mesh.addLdrFile(*mainFile);
     std::cout << mesh.vertices.size() << "\n";
     //mesh.printTriangles();
-    std::map<LdrColor*, unsigned int> VAOs, VBOs, EBOs;
-    for (const auto& entry: mesh.indices) {
+    std::map<LdrColor *, unsigned int> VAOs, VBOs, EBOs;
+    for (const auto &entry: mesh.indices) {
         LdrColor *color = entry.first;
         std::vector<unsigned int> *indices = entry.second;
         std::vector<Vertex> *vertices = mesh.vertices.find(color)->second;
@@ -107,7 +110,7 @@ int main() {
         //vbo
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertices->size()*sizeof(Vertex), &(*vertices)[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices->size() * sizeof(Vertex), &(*vertices)[0], GL_STATIC_DRAW);
 
         // position attribute
         glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void *) 0);
@@ -120,7 +123,7 @@ int main() {
         glGenBuffers(1, &ebo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices->size(), &(*indices)[0], GL_STATIC_DRAW);
-        
+
         VAOs[color] = vao;
         VBOs[color] = vbo;
         EBOs[color] = ebo;
@@ -179,16 +182,67 @@ int main() {
         model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
         ourShader.setMat4("model", model);
 
-        for (const auto& entry: mesh.indices) {
+        for (const auto &entry: mesh.indices) {
             LdrColor *color = entry.first;
             std::vector<unsigned int> *indices = entry.second;
             std::vector<Vertex> *vertices = mesh.vertices.find(color)->second;
-            unsigned int vao=VAOs[color];
-            unsigned int vbo=VBOs[color];
-            unsigned int ebo=EBOs[color];
+            unsigned int vao = VAOs[color];
+            unsigned int vbo = VBOs[color];
+            unsigned int ebo = EBOs[color];
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
+            ourShader.use();
+            //std::cout << glm::to_string(camera.getCameraPos()) << "\n";
+            ourShader.setVec3("light.position", lightPos);
+            ourShader.setVec3("viewPos", camera.getCameraPos());
+
+            // light properties
+            glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+            /*lightColor.x = sin(glfwGetTime() * 2.0f);
+            lightColor.y = sin(glfwGetTime() * 0.7f);
+            lightColor.z = sin(glfwGetTime() * 1.3f);*/
+            glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
+            glm::vec3 ambientColor = diffuseColor * glm::vec3(0.9f); // low influence
+            ourShader.setVec3("light.ambient", ambientColor);
+            ourShader.setVec3("light.diffuse", diffuseColor);
+            ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+            // material properties
+            glm::vec3 diffuse, specular;
+            const glm::vec3 &ambient = color->value.asGlmVector();
+            float shininess = 32.0f;
+
+            switch (color->finish) {
+                case LdrColor::METAL:
+                case LdrColor::CHROME:
+                case LdrColor::PEARLESCENT:
+                    //todo find out what's the difference
+                    shininess *= 2;
+                    diffuse = glm::vec3(1.0, 1.0, 1.0);
+                    specular = glm::vec3(1.0, 1.0, 1.0);
+                    break;
+                case LdrColor::MATTE_METALLIC:
+                    diffuse = glm::vec3(1.0, 1.0, 1.0);
+                    specular = glm::vec3(0.2, 0.2, 0.2);
+                    break;
+                case LdrColor::RUBBER:
+                    diffuse = glm::vec3(0.0, 0.0, 0.0);
+                    specular = glm::vec3(0.0, 0.0, 0.0);
+                    break;
+                default:
+                    diffuse = ambient;
+                    specular = glm::vec3(0.5, 0.5, 0.5);
+                    break;
+            }
+
+            ourShader.setVec3("material.ambient", ambient);
+            ourShader.setVec3("material.diffuse", diffuse);
+            ourShader.setVec3("material.specular",
+                              specular); // specular lighting doesn't have full effect on this object's material
+            ourShader.setFloat("material.shininess", shininess);
+
             //std::cout << color->name;
             glDrawElements(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, 0);
         }
@@ -202,7 +256,7 @@ int main() {
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    for (const auto& entry: mesh.indices) {
+    for (const auto &entry: mesh.indices) {
         LdrColor *color = entry.first;
         unsigned int vao = VAOs[color];
         unsigned int vbo = VBOs[color];

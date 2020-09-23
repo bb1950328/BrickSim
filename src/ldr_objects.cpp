@@ -272,8 +272,8 @@ LdrColor::LdrColor(const std::string& line) {
         }
     }
 }
-glm::vec4 LdrColor::asGlmVector() const {
-    return glm::vec4(value.red/255.0f, value.green/255.0f, value.blue/255.0f, 1.0f);
+glm::vec3 RGB::asGlmVector() const {
+    return glm::vec3(red/255.0f, green/255.0f, blue/255.0f);
 }
 
 

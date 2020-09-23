@@ -21,6 +21,7 @@ struct RGB {
     explicit RGB(std::string htmlCode);
 
     unsigned char red, green, blue;
+    glm::vec3 asGlmVector() const;
 };
 
 struct LdrColorMaterial {
@@ -136,8 +137,6 @@ public:
     LdrColor() = default;
 
     explicit LdrColor(const std::string &line);
-
-    glm::vec4 asGlmVector() const;
 
     std::string name;
     int code;

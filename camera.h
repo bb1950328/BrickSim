@@ -139,7 +139,10 @@ private:
     float distance = 3.0f; // distance between target point and camera
     //float x_target = 0.0f, y_target = 0.0f, z_target = 0.0f;
     //float x_cam_pos = 0.0f, y_cam_pos = 0.0f, z_cam_pos = 0.0f;
-    glm::vec3 front, target, right, up;
+    glm::vec3 front, target, right, up, cameraPos;
+
+
+private:
     glm::vec3 worldUp = glm::vec3(0.0f,  1.0f, 0.0f);
     float mouseMoveSensitivity = 0.1f;
     float mouseScrollSensitivity = 0.33f;
@@ -156,7 +159,8 @@ private:
 
         //right = glm::normalize(glm::cross(front, worldUp));
         //up    = glm::normalize(glm::cross(right, front));
-        glm::vec3 cameraPos = front*distance;
+
+        cameraPos = front * distance;
         viewMatrix = glm::lookAt(cameraPos, target, worldUp);
     }
 public:
@@ -185,6 +189,9 @@ public:
         distance = std::max(1.0f, distance);
         std::cout << distance << "\n";
         updateVectors();
+    }
+    const glm::vec3 &getCameraPos() const {
+        return cameraPos;
     }
 };
 #endif //BRICKSIM_CAMERA_H

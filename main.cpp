@@ -232,7 +232,7 @@ int main() {
                     specular = glm::vec3(0.0, 0.0, 0.0);
                     break;
                 default:
-                    diffuse = ambient;
+                    diffuse = ambient*0.5f;
                     specular = glm::vec3(0.5, 0.5, 0.5);
                     break;
             }
@@ -307,6 +307,9 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     lastY = ypos;
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1)) {
         camera.mouseRotate(xoffset, yoffset);
+    }
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
+        camera.mousePan(xoffset, yoffset);
     }
 }
 

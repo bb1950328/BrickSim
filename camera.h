@@ -139,7 +139,7 @@ private:
     float distance = 3.0f; // distance between target point and camera
     //float x_target = 0.0f, y_target = 0.0f, z_target = 0.0f;
     //float x_cam_pos = 0.0f, y_cam_pos = 0.0f, z_cam_pos = 0.0f;
-    glm::vec3 front, target, right, up, cameraPos;
+    glm::vec3 front, target, cameraPos;
 
 
 private:
@@ -181,7 +181,13 @@ public:
         //std::cout << "yaw=" << yaw << ", pitch=" << pitch << "x=" << x_delta << "y=" << y_delta << "\n";
     }
     void mousePan(float x_delta, float y_delta) {
-        //todo implement
+        auto transform = glm::mat4(1.0f);
+        glm::vec3 right(-front.z, 0, front.x);
+        glm::vec3 up(0, -front.z, front.y);
+        glm::translate(transform, right*(x_delta*mouseMoveSensitivity));
+        glm::translate(transform, up*(y_delta*mouseMoveSensitivity));
+        target = transform*glm::vec4(target, 1.0f);
+        updateVectors();
     }
 
     void moveForwardBackward(float delta) {

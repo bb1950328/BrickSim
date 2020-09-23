@@ -7,16 +7,25 @@ add_executable(BrickSim main.cpp glad.c src/ldr_objects.cpp src/ldr_objects.h sr
 
 # On Ubuntu, I had to sudo apt install mesa-utils freeglut3-dev libglfw3-dev
 # and add the files from https://glad.dav1d.de to /usr/include and the project folder
+# windows libraries and headers installation: https://learnopengl.com/Getting-started/Creating-a-window
 
-# maybe this is helpful: https://stackoverflow.com/questions/9160335/os-specific-instructions-in-cmake-how-to
+IF(MINGW)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    # glfw source folder is sibling of BrickSim folder
+    # https://www.glfw.org/download.html -> click on "Source package"
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../glfw-3.3.2 ${CMAKE_CURRENT_SOURCE_DIR}/../glfw-3.3.2/bin)
+ELSE()
+    find_package(PkgConfig REQUIRED)
+    pkg_search_module(GLFW REQUIRED glfw3)
+ENDIF()
 
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS})
 
 target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glfw)
-find_package(PkgConfig REQUIRED)
-pkg_search_module(GLFW REQUIRED glfw3)
 include_directories(${GLFW_INCLUDE_DIRS})
 target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS})
 

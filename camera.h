@@ -160,14 +160,12 @@ private:
         //right = glm::normalize(glm::cross(front, worldUp));
         //up    = glm::normalize(glm::cross(right, front));
 
-        glm::vec3 up(front.x, -front.z, front.y);
-        auto translation = glm::translate(glm::mat4(1.0f), target);
-        cameraPos = glm::vec4(front * distance, 1.0f)*translation;
-        viewMatrix = glm::lookAt(cameraPos, target, up);
+        cameraPos = front * distance;
+        viewMatrix = glm::lookAt(cameraPos, target, worldUp);
     }
 public:
     CadCamera() {
-        target = glm::vec3(0.0f, 5.0f, 0.0f);
+        target = glm::vec3(0.0f, 0.0f, 0.0f);
         updateVectors();
     }
 
@@ -184,11 +182,10 @@ public:
     }
     void mousePan(float x_delta, float y_delta) {
         auto transform = glm::mat4(1.0f);
-        /*glm::vec3 right(-front.z, front.y, front.x);
-        glm::vec3 up(front.x, -front.z, front.y);
-        transform = glm::translate(transform, right*(x_delta*mouseMoveSensitivity));
-        transform = glm::translate(transform, up*(y_delta*mouseMoveSensitivity));*/
-        transform = glm::translate(transform, glm::vec3(front.x*x_delta, front.y*y_delta, 0));
+        glm::vec3 right(-front.z, 0, front.x);
+        glm::vec3 up(0, -front.z, front.y);
+        glm::translate(transform, right*(x_delta*mouseMoveSensitivity));
+        glm::translate(transform, up*(y_delta*mouseMoveSensitivity));
         target = transform*glm::vec4(target, 1.0f);
         updateVectors();
     }

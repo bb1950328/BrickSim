@@ -80,9 +80,9 @@ LdrFile* LdrFile::parseFile(const std::string & filename){
 }
 void LdrFile::addTextLine(const std::string &line) {
     auto trimmed = util::trim(line);
-        if (!trimmed.empty()) {
-            elements.push_back(LdrFileElement::parse_line(trimmed));
-        }
+    if (!trimmed.empty()) {
+        elements.push_back(LdrFileElement::parse_line(trimmed));
+    }
 }
 std::ifstream LdrFile::openFile(const std::string &filename) {
     auto parts_lib_location = util::extend_home_dir(Configuration::getInstance().get_string(config::KEY_LDRAW_PARTS_LIBRARY));

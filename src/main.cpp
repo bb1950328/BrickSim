@@ -35,9 +35,7 @@ float lastY = SCR_HEIGHT / 2.0f;
 
 glm::vec3 lightPos(4.46, 7.32, 6.2);//todo customizable
 
-int main() {
-    // glfw: initialize and configure
-    // ------------------------------
+GLFWwindow* initialize() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -53,7 +51,7 @@ int main() {
     if (window == nullptr) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
-        return -1;
+        return nullptr;
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -62,18 +60,26 @@ int main() {
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
+        return nullptr;
     }
 
     glEnable(GL_DEPTH_TEST);
+    return window;
+}
 
-    Shader ourShader("src/shaders/shader.vsh", "src/shaders/shader.fsh");
+int main() {
+    auto window = initialize();
+    if (window== nullptr) {
+        return -1;
+    }
 
-
+    Shader triangleShader("src/shaders/shader.vsh", "src/shaders/shader.fsh");
     auto mesh = Mesh();
-    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/42043_arocs.mpd"/*"3001.dat"*/);
+    LdrFile *mainFile = LdrFileRepository::get_file("4-4disc.dat"/*"~/Downloads/42043_arocs.mpd"*//*"3001.dat"*/);
+    mainFile->printStructure();
     mesh.addLdrFile(*mainFile);
     std::cout << mesh.vertices.size() << "\n";
+
     std::map<LdrColor *, unsigned int> VAOs, VBOs, EBOs;
     for (const auto &entry: mesh.indices) {
         LdrColor *color = entry.first;
@@ -109,7 +115,7 @@ int main() {
         EBOs[color] = ebo;
     }
 
-    ourShader.use();
+    triangleShader.use();
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
@@ -117,19 +123,19 @@ int main() {
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        ourShader.use();
+        triangleShader.use();
 
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
-                                                100.0f);
-        ourShader.setMat4("projection", projection);
+        float aspect = (float) SCR_WIDTH / (float) SCR_HEIGHT;
+        glm::mat4 projection = glm::perspective(glm::radians(50.0f), aspect, 0.1f,1000.0f);
+        triangleShader.setMat4("projection", projection);
 
         glm::mat4 view = camera.getViewMatrix();
-        ourShader.setMat4("view", view);
+        triangleShader.setMat4("view", view);
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(model, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
-        ourShader.setMat4("model", model);
+        triangleShader.setMat4("model", model);
 
         for (const auto &entry: mesh.indices) {
             LdrColor *color = entry.first;
@@ -141,17 +147,16 @@ int main() {
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
-            ourShader.use();
             //std::cout << glm::to_string(camera.getCameraPos()) << "\n";
-            ourShader.setVec3("light.position", lightPos);
-            ourShader.setVec3("viewPos", camera.getCameraPos());
+            triangleShader.setVec3("light.position", lightPos);
+            triangleShader.setVec3("viewPos", camera.getCameraPos());
 
             glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
             glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
             glm::vec3 ambientColor = diffuseColor * glm::vec3(0.9f); // low influence
-            ourShader.setVec3("light.ambient", ambientColor);
-            ourShader.setVec3("light.diffuse", diffuseColor);
-            ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+            triangleShader.setVec3("light.ambient", ambientColor);
+            triangleShader.setVec3("light.diffuse", diffuseColor);
+            triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
             glm::vec3 diffuse, specular;
             const glm::vec3 &ambient = color->value.asGlmVector();
@@ -180,10 +185,10 @@ int main() {
                     break;
             }
 
-            ourShader.setVec3("material.ambient", ambient);
-            ourShader.setVec3("material.diffuse", diffuse);
-            ourShader.setVec3("material.specular", specular);
-            ourShader.setFloat("material.shininess", shininess);
+            triangleShader.setVec3("material.ambient", ambient);
+            triangleShader.setVec3("material.diffuse", diffuse);
+            triangleShader.setVec3("material.specular", specular);
+            triangleShader.setFloat("material.shininess", shininess);
 
             glDrawElements(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, 0);
         }

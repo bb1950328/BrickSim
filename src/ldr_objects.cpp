@@ -49,6 +49,7 @@ LdrFile* LdrFile::parseFile(const std::string & filename){
                 fileLines[currentSubFileName].push_back(line);
             }
         }
+        //todo process files with subfile references at the end or compute dependencies
         for (auto const& entry: fileLines) {
             LdrFile* currentFile;
             if (entry.first==filename) {

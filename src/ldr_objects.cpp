@@ -117,11 +117,22 @@ void LdrFile::printStructure(int indent) {
         }
     }
 }
-void LdrFile::preLoadSubfiles(){
-    for (LdrFileElement *elem: elements) {
-        if (elem->getType()==1) {
-            dynamic_cast<LdrSubfileReference *>(elem)->getFile()->preLoadSubfiles();
+void LdrFile::preLoadSubfilesAndEstimateComplexity() {
+    if (!subfiles_preloaded_and_complexity_estimated) {
+        for (LdrFileElement *elem: elements) {
+            if (elem->getType()==1) {
+                LdrFile *subFile = dynamic_cast<LdrSubfileReference *>(elem)->getFile();
+                subFile->preLoadSubfilesAndEstimateComplexity();
+                estimatedComplexity += subFile->estimatedComplexity;
+            } else if (elem->getType()==2) {
+                estimatedComplexity += 1;
+            } else if (elem->getType()==3) {
+                estimatedComplexity += 2;
+            } else if (elem->getType()==4) {
+                estimatedComplexity += 3;
+            }
         }
+        subfiles_preloaded_and_complexity_estimated = true;
     }
 }
 

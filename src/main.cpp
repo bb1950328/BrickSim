@@ -77,8 +77,8 @@ int main() {
     Shader triangleShader("src/shaders/shader.vsh", "src/shaders/shader.fsh");
 
     auto before = std::chrono::high_resolution_clock::now();
-    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/arocs_array.ldr"/*"3001.dat"*/);
-    mainFile->preLoadSubfiles();
+    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/42043_arocs.mpd"/*"3001.dat"*/);
+    mainFile->preLoadSubfilesAndEstimateComplexity();
     //mainFile->printStructure();
     auto between = std::chrono::high_resolution_clock::now();
     auto mesh = TriangleMesh();
@@ -94,6 +94,7 @@ int main() {
         triangle_indices_count += entry.second->size();
     }
     std::cout << "materials count: " << mesh.triangleVertices.size() << "\n";
+    std::cout << "main model estimated complexity: " << mainFile->estimatedComplexity << "\n";
     std::cout << "total triangle vertices count: " << triangle_vertices_count << "\n";
     std::cout << "total triangle indices count: " << triangle_indices_count << "\n";
     std::cout << "every triangle vertex is used " << (float)triangle_indices_count / (float)triangle_vertices_count << "times.\n";
@@ -102,6 +103,12 @@ int main() {
     std::cout << "every line vertex is used " << (float)mesh.lineIndices.size() / (float)mesh.lineVertices.size() << "times.\n";
     std::cout << "ldr file loading time: " << ms_load << "ms.\n";
     std::cout << "meshing time: " << ms_mesh << "ms.\n";
+
+    for (const auto& x: LdrFileRepository::files) {
+        if (x.second->estimatedComplexity>1000) {
+            std::cout << x.first << "\t" << x.second->estimatedComplexity << "\n";
+        }
+    }
 
     std::map<LdrColor *, unsigned int> VAOs, VBOs, EBOs;
     for (const auto &entry: mesh.triangleIndices) {

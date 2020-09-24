@@ -40,6 +40,7 @@ struct LdrColorMaterial {
 
 class LdrFile {
 public:
+    unsigned long long estimatedComplexity = 0;
     static LdrFile* parseFile(const std::string &filename);
 
     LdrFile() = default;
@@ -48,9 +49,9 @@ public:
 
     void printStructure(int indent=0);
 
-    void preLoadSubfiles();
+    void preLoadSubfilesAndEstimateComplexity();
 private:
-
+    bool subfiles_preloaded_and_complexity_estimated = false;
     static std::ifstream openFile(const std::string &filename);
 
     void addTextLine(const std::string &line);
@@ -165,14 +166,14 @@ public:
 };
 
 class LdrFileRepository {
-private:
-    static std::map<std::string, LdrFile*> files;
 public:
     static LdrFile *get_file(const std::string &filename);
 
     static void clear_cache();
 
     static void add_file(const std::string &filename, LdrFile *file);
+
+    static std::map<std::string, LdrFile*> files;
 };
 
 #endif //BRICKSIM_LDR_OBJECTS_H

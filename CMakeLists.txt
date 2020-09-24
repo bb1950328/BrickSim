@@ -3,7 +3,7 @@ project(BrickSim)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(BrickSim main.cpp glad.c src/ldr_objects.cpp src/ldr_objects.h src/config.cpp src/config.h src/test/test_configuration_reader.cpp src/test/test_ldr_file_read.cpp src/util.cpp src/util.h stb_image.h src/mesh.cpp src/mesh.h camera.h)
+add_executable(BrickSim src/main.cpp src/lib/glad.c src/ldr_objects.cpp src/ldr_objects.h src/config.cpp src/config.h src/test/test_configuration_reader.cpp src/test/test_ldr_file_read.cpp src/util.cpp src/util.h src/lib/stb_image.h src/mesh.cpp src/mesh.h src/camera.h src/camera.cpp)
 
 # On Ubuntu, I had to sudo apt install mesa-utils freeglut3-dev libglfw3-dev
 # and add the files from https://glad.dav1d.de to /usr/include and the project folder

@@ -3,19 +3,16 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 
-#include "stb_image.h"
-
-#if defined(_WIN32) || defined(_WIN64)
-#include <GLFW\glfw3.h> // todo check if this is needed on windows
-#endif
+#include "lib/stb_image.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "shader.h"
-#include "src/mesh.h"
+#include "shaders/shader.h"
+#include "mesh.h"
 #include "camera.h"
+#include "config.h"
 
 #include <iostream>
 #include <glm/gtx/string_cast.hpp>
@@ -28,20 +25,13 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 void processInput(GLFWwindow *window);
 
-// settings
-const unsigned int SCR_WIDTH = 1600;
-const unsigned int SCR_HEIGHT = 900;
+const unsigned int SCR_WIDTH = Configuration::getInstance().get_long("screenWidth");
+const unsigned int SCR_HEIGHT = Configuration::getInstance().get_long("screenHeight");
 
-// camera
-//Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 auto camera = CadCamera();
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
-bool firstMouse = true;
 
-// timing
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
 
 glm::vec3 lightPos(4.46, 7.32, 6.2);//todo customizable
 
@@ -57,10 +47,10 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    // glfw window creation
-    // --------------------
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-    if (window == NULL) {
+    //glfwWindowHint(GLFW_DECORATED, false);//removes the title bar
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", nullptr, nullptr);
+    //glfwSetWindowPos(window, 20, 40);
+    if (window == nullptr) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
@@ -70,31 +60,20 @@ int main() {
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
-    // configure global opengl state
-    // -----------------------------
     glEnable(GL_DEPTH_TEST);
 
-    // build and compile our shader zprogram
-    // ------------------------------------
-    Shader ourShader("shader.vsh", "shader.fsh");
+    Shader ourShader("src/shaders/shader.vsh", "src/shaders/shader.fsh");
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
 
     auto mesh = Mesh();
     LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/42043_arocs.mpd"/*"3001.dat"*/);
-    //mainFile->printStructure();
     mesh.addLdrFile(*mainFile);
     std::cout << mesh.vertices.size() << "\n";
-    //mesh.printTriangles();
     std::map<LdrColor *, unsigned int> VAOs, VBOs, EBOs;
     for (const auto &entry: mesh.indices) {
         LdrColor *color = entry.first;
@@ -110,13 +89,14 @@ int main() {
         //vbo
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertices->size() * sizeof(Vertex), &(*vertices)[0], GL_STATIC_DRAW);
+        size_t vertex_size = sizeof(Vertex);
+        glBufferData(GL_ARRAY_BUFFER, vertices->size() * vertex_size, &(*vertices)[0], GL_STATIC_DRAW);
 
         // position attribute
-        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void *) 0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, (void *) nullptr);
         glEnableVertexAttribArray(0);
         // normal attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void *) (4 * sizeof(float)));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(Vertex, normal));
         glEnableVertexAttribArray(1);
 
         //ebo
@@ -129,55 +109,24 @@ int main() {
         EBOs[color] = ebo;
     }
 
-    // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
-    // -------------------------------------------------------------------------------------------
     ourShader.use();
-    //ourShader.setInt("texture1", 0);
-    //ourShader.setInt("texture2", 1);
 
-    // tell GLFW to capture our mouse
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    // render loop
-    // -----------
-    double lastTime = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
-        // per-frame time logic
-        // --------------------
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-
-        // input
-        // -----
         processInput(window);
 
-        // render
-        // ------
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // bind textures on corresponding texture units
-        //glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, texture1);
-        //glActiveTexture(GL_TEXTURE1);
-        //glBindTexture(GL_TEXTURE_2D, texture2);
-
-        // activate shader
         ourShader.use();
 
-        // pass projection matrix to shader (note that in this case it could change every frame)
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
                                                 100.0f);
         ourShader.setMat4("projection", projection);
 
-        // camera/view transformation
         glm::mat4 view = camera.getViewMatrix();
         ourShader.setMat4("view", view);
 
-        // render boxes
-        // calculate the model matrix for each object and pass it to shader before drawing
-        glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        //float angle = 20.0f * 1;
+        glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(model, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
         ourShader.setMat4("model", model);
@@ -185,7 +134,6 @@ int main() {
         for (const auto &entry: mesh.indices) {
             LdrColor *color = entry.first;
             std::vector<unsigned int> *indices = entry.second;
-            std::vector<Vertex> *vertices = mesh.vertices.find(color)->second;
             unsigned int vao = VAOs[color];
             unsigned int vbo = VBOs[color];
             unsigned int ebo = EBOs[color];
@@ -198,18 +146,13 @@ int main() {
             ourShader.setVec3("light.position", lightPos);
             ourShader.setVec3("viewPos", camera.getCameraPos());
 
-            // light properties
             glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-            /*lightColor.x = sin(glfwGetTime() * 2.0f);
-            lightColor.y = sin(glfwGetTime() * 0.7f);
-            lightColor.z = sin(glfwGetTime() * 1.3f);*/
             glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
             glm::vec3 ambientColor = diffuseColor * glm::vec3(0.9f); // low influence
             ourShader.setVec3("light.ambient", ambientColor);
             ourShader.setVec3("light.diffuse", diffuseColor);
             ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
-            // material properties
             glm::vec3 diffuse, specular;
             const glm::vec3 &ambient = color->value.asGlmVector();
             float shininess = 32.0f;
@@ -239,23 +182,15 @@ int main() {
 
             ourShader.setVec3("material.ambient", ambient);
             ourShader.setVec3("material.diffuse", diffuse);
-            ourShader.setVec3("material.specular",
-                              specular); // specular lighting doesn't have full effect on this object's material
+            ourShader.setVec3("material.specular", specular);
             ourShader.setFloat("material.shininess", shininess);
 
-            //std::cout << color->name;
             glDrawElements(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, 0);
         }
-        //std::cout<<"\n";
-
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
     for (const auto &entry: mesh.indices) {
         LdrColor *color = entry.first;
         unsigned int vao = VAOs[color];
@@ -266,52 +201,36 @@ int main() {
         glDeleteBuffers(1, &ebo);
     }
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
     glfwTerminate();
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
-
-    /*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);*/
+    }
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    // make sure the viewport matches the new window dimensions; note that width and
-    // height will be significantly larger than specified on retina displays.
+    //this gets called when the window is resized
     glViewport(0, 0, width, height);
 }
 
 
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+    float yoffset = lastY - ypos;
 
     lastX = xpos;
     lastY = ypos;
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1)) {
         camera.mouseRotate(xoffset, yoffset);
     }
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
+        camera.mousePan(xoffset, yoffset);
+    }
 }
 
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     camera.moveForwardBackward(yoffset);
 }

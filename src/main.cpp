@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <glm/gtx/string_cast.hpp>
+#include <chrono>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -25,8 +26,8 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 void processInput(GLFWwindow *window);
 
-const unsigned int SCR_WIDTH = Configuration::getInstance().get_long("screenWidth");
-const unsigned int SCR_HEIGHT = Configuration::getInstance().get_long("screenHeight");
+const unsigned int SCR_WIDTH = Configuration::getInstance()->get_long("screenWidth");
+const unsigned int SCR_HEIGHT = Configuration::getInstance()->get_long("screenHeight");
 
 auto camera = CadCamera();
 float lastX = SCR_WIDTH / 2.0f;
@@ -74,17 +75,39 @@ int main() {
     }
 
     Shader triangleShader("src/shaders/shader.vsh", "src/shaders/shader.fsh");
-    auto mesh = Mesh();
-    LdrFile *mainFile = LdrFileRepository::get_file("4-4disc.dat"/*"~/Downloads/42043_arocs.mpd"*//*"3001.dat"*/);
-    mainFile->printStructure();
+
+    auto before = std::chrono::high_resolution_clock::now();
+    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/arocs_array.ldr"/*"3001.dat"*/);
+    mainFile->preLoadSubfiles();
+    //mainFile->printStructure();
+    auto between = std::chrono::high_resolution_clock::now();
+    auto mesh = TriangleMesh();
     mesh.addLdrFile(*mainFile);
-    std::cout << mesh.vertices.size() << "\n";
+    auto after = std::chrono::high_resolution_clock::now();
+    long ms_load = std::chrono::duration_cast<std::chrono::milliseconds>(between - before).count();
+    long ms_mesh = std::chrono::duration_cast<std::chrono::milliseconds>(after - between).count();
+    unsigned long triangle_vertices_count = 0, triangle_indices_count = 0;
+    for (const auto &entry: mesh.triangleVertices) {
+        triangle_vertices_count += entry.second->size();
+    }
+    for (const auto &entry: mesh.triangleIndices) {
+        triangle_indices_count += entry.second->size();
+    }
+    std::cout << "materials count: " << mesh.triangleVertices.size() << "\n";
+    std::cout << "total triangle vertices count: " << triangle_vertices_count << "\n";
+    std::cout << "total triangle indices count: " << triangle_indices_count << "\n";
+    std::cout << "every triangle vertex is used " << (float)triangle_indices_count / (float)triangle_vertices_count << "times.\n";
+    std::cout << "total line vertices count: " << mesh.lineVertices.size() << "\n";
+    std::cout << "total line indices count: " << mesh.lineIndices.size() << "\n";
+    std::cout << "every line vertex is used " << (float)mesh.lineIndices.size() / (float)mesh.lineVertices.size() << "times.\n";
+    std::cout << "ldr file loading time: " << ms_load << "ms.\n";
+    std::cout << "meshing time: " << ms_mesh << "ms.\n";
 
     std::map<LdrColor *, unsigned int> VAOs, VBOs, EBOs;
-    for (const auto &entry: mesh.indices) {
+    for (const auto &entry: mesh.triangleIndices) {
         LdrColor *color = entry.first;
         std::vector<unsigned int> *indices = entry.second;
-        std::vector<Vertex> *vertices = mesh.vertices.find(color)->second;
+        std::vector<TriangleVertex> *vertices = mesh.triangleVertices.find(color)->second;
 
         unsigned int vao, vbo, ebo;
 
@@ -95,14 +118,14 @@ int main() {
         //vbo
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        size_t vertex_size = sizeof(Vertex);
+        size_t vertex_size = sizeof(TriangleVertex);
         glBufferData(GL_ARRAY_BUFFER, vertices->size() * vertex_size, &(*vertices)[0], GL_STATIC_DRAW);
 
         // position attribute
         glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, (void *) nullptr);
         glEnableVertexAttribArray(0);
         // normal attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(Vertex, normal));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(TriangleVertex, normal));
         glEnableVertexAttribArray(1);
 
         //ebo
@@ -137,7 +160,7 @@ int main() {
         model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
         triangleShader.setMat4("model", model);
 
-        for (const auto &entry: mesh.indices) {
+        for (const auto &entry: mesh.triangleIndices) {
             LdrColor *color = entry.first;
             std::vector<unsigned int> *indices = entry.second;
             unsigned int vao = VAOs[color];
@@ -196,7 +219,7 @@ int main() {
         glfwPollEvents();
     }
 
-    for (const auto &entry: mesh.indices) {
+    for (const auto &entry: mesh.triangleIndices) {
         LdrColor *color = entry.first;
         unsigned int vao = VAOs[color];
         unsigned int vbo = VBOs[color];

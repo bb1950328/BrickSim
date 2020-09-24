@@ -47,6 +47,8 @@ public:
     std::vector<LdrFileElement *> elements;
 
     void printStructure(int indent=0);
+
+    void preLoadSubfiles();
 private:
 
     static std::ifstream openFile(const std::string &filename);

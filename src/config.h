@@ -9,7 +9,7 @@
 
 class Configuration {
 private:
-    static Configuration instance;
+    static Configuration *instance;
 
 private:
     std::map<std::string, std::string> strings;
@@ -17,7 +17,7 @@ private:
     std::map<std::string, double> doubles;
     Configuration();
 public:
-    static Configuration getInstance();
+    static Configuration* getInstance();
 
     std::string get_string(const std::string &key) const;
 

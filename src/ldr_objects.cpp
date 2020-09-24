@@ -85,7 +85,7 @@ void LdrFile::addTextLine(const std::string &line) {
     }
 }
 std::ifstream LdrFile::openFile(const std::string &filename) {
-    auto parts_lib_location = util::extend_home_dir(Configuration::getInstance().get_string(config::KEY_LDRAW_PARTS_LIBRARY));
+    auto parts_lib_location = util::extend_home_dir(Configuration::getInstance()->get_string(config::KEY_LDRAW_PARTS_LIBRARY));
     //todo make parts search case-insensitive https://forums.ldraw.org/thread-13787.html
     auto locations = {
                 util::extend_home_dir(filename),
@@ -114,6 +114,13 @@ void LdrFile::printStructure(int indent) {
                 int i = 5;//todo remove
             }
             subfileRef->getFile()->printStructure(indent+1);
+        }
+    }
+}
+void LdrFile::preLoadSubfiles(){
+    for (LdrFileElement *elem: elements) {
+        if (elem->getType()==1) {
+            dynamic_cast<LdrSubfileReference *>(elem)->getFile()->preLoadSubfiles();
         }
     }
 }
@@ -293,7 +300,7 @@ LdrColorRepository * LdrColorRepository::getInstance(){
     return instance;
 }
 void LdrColorRepository::initialize(){
-    auto lib_path = util::extend_home_dir(Configuration::getInstance().get_string(config::KEY_LDRAW_PARTS_LIBRARY));
+    auto lib_path = util::extend_home_dir(Configuration::getInstance()->get_string(config::KEY_LDRAW_PARTS_LIBRARY));
     auto input = std::ifstream(util::pathjoin({lib_path, "LDConfig.ldr"}));
     for (std::string line; getline(input, line);) {
         auto trimmed = util::trim(line);

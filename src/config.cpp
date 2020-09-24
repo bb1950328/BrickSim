@@ -5,14 +5,20 @@
 #include <fstream>
 #include "config.h"
 
-Configuration Configuration::instance;
+Configuration* Configuration::instance = nullptr;
 
-Configuration Configuration::getInstance() {
+Configuration *Configuration::getInstance() {
+    if (nullptr==instance) {
+        instance = new Configuration();
+    }
     return instance;
 }
 
 Configuration::Configuration() {
     std::ifstream input("config.txt");
+    if (!input.good()) {
+        throw std::system_error(std::make_error_code(std::errc::no_such_file_or_directory), "can't find config.txt file, should be in cwd!!");
+    }
     for (std::string line; getline(input, line);) {
         if (!line.empty()) {
             auto sep_pos = line.find('=');

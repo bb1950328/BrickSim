@@ -6,6 +6,6 @@
 #include "../config.h"
 
 int mainx() {
-    std::cout << Configuration::getInstance().get_double("test");
+    std::cout << Configuration::getInstance()->get_double("test");
     return 0;
 }

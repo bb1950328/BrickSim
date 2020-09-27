@@ -26,8 +26,8 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 void processInput(GLFWwindow *window);
 
-const unsigned int SCR_WIDTH = Configuration::getInstance()->get_long("screenWidth");
-const unsigned int SCR_HEIGHT = Configuration::getInstance()->get_long("screenHeight");
+const unsigned int SCR_WIDTH = Configuration::getInstance()->get_long(config::KEY_SCREEN_WIDTH);
+const unsigned int SCR_HEIGHT = Configuration::getInstance()->get_long(config::KEY_SCREEN_HEIGHT);
 
 auto camera = CadCamera();
 float lastX = SCR_WIDTH / 2.0f;
@@ -77,11 +77,11 @@ int main() {
     Shader triangleShader("src/shaders/shader.vsh", "src/shaders/shader.fsh");
 
     auto before = std::chrono::high_resolution_clock::now();
-    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/arocs_array.ldr"/*"3001.dat"*/);
+    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/arocs.mpd"/*"3001.dat"*/);
     mainFile->preLoadSubfilesAndEstimateComplexity();
     //mainFile->printStructure();
     auto between = std::chrono::high_resolution_clock::now();
-    auto mesh = TriangleMesh();
+    auto mesh = Mesh(nullptr);
     mesh.addLdrFile(*mainFile);
     auto after = std::chrono::high_resolution_clock::now();
     long ms_load = std::chrono::duration_cast<std::chrono::milliseconds>(between - before).count();
@@ -112,42 +112,17 @@ int main() {
         }
     }
 
-    std::map<LdrColor *, unsigned int> VAOs, VBOs, EBOs;
-    for (const auto &entry: mesh.triangleIndices) {
-        LdrColor *color = entry.first;
-        std::vector<unsigned int> *indices = entry.second;
-        std::vector<TriangleVertex> *vertices = mesh.triangleVertices.find(color)->second;
-
-        unsigned int vao, vbo, ebo;
-
-        //vao
-        glGenVertexArrays(1, &vao);
-        glBindVertexArray(vao);
-
-        //vbo
-        glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        size_t vertex_size = sizeof(TriangleVertex);
-        glBufferData(GL_ARRAY_BUFFER, vertices->size() * vertex_size, &(*vertices)[0], GL_STATIC_DRAW);
-
-        // position attribute
-        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, (void *) nullptr);
-        glEnableVertexAttribArray(0);
-        // normal attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(TriangleVertex, normal));
-        glEnableVertexAttribArray(1);
-
-        //ebo
-        glGenBuffers(1, &ebo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices->size(), &(*indices)[0], GL_STATIC_DRAW);
-
-        VAOs[color] = vao;
-        VBOs[color] = vbo;
-        EBOs[color] = ebo;
-    }
+    mesh.initializeGraphics();
 
     triangleShader.use();
+
+    triangleShader.setVec3("light.position", lightPos);
+    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+    glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
+    glm::vec3 ambientColor = diffuseColor * glm::vec3(0.9f); // low influence
+    triangleShader.setVec3("light.ambient", ambientColor);
+    triangleShader.setVec3("light.diffuse", diffuseColor);
+    triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
@@ -170,76 +145,16 @@ int main() {
         model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
         triangleShader.setMat4("model", model);
 
-        for (const auto &entry: mesh.triangleIndices) {
-            LdrColor *color = entry.first;
-            std::vector<unsigned int> *indices = entry.second;
-            unsigned int vao = VAOs[color];
-            unsigned int vbo = VBOs[color];
-            unsigned int ebo = EBOs[color];
-            glBindVertexArray(vao);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        //std::cout << glm::to_string(camera.getCameraPos()) << "\n";
+        triangleShader.setVec3("viewPos", camera.getCameraPos());
 
-            //std::cout << glm::to_string(camera.getCameraPos()) << "\n";
-            triangleShader.setVec3("light.position", lightPos);
-            triangleShader.setVec3("viewPos", camera.getCameraPos());
-
-            glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-            glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
-            glm::vec3 ambientColor = diffuseColor * glm::vec3(0.9f); // low influence
-            triangleShader.setVec3("light.ambient", ambientColor);
-            triangleShader.setVec3("light.diffuse", diffuseColor);
-            triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-            glm::vec3 diffuse, specular;
-            const glm::vec3 &ambient = color->value.asGlmVector();
-            float shininess = 32.0f;
-
-            switch (color->finish) {
-                case LdrColor::METAL:
-                case LdrColor::CHROME:
-                case LdrColor::PEARLESCENT:
-                    //todo find out what's the difference
-                    shininess *= 2;
-                    diffuse = glm::vec3(1.0, 1.0, 1.0);
-                    specular = glm::vec3(1.0, 1.0, 1.0);
-                    break;
-                case LdrColor::MATTE_METALLIC:
-                    diffuse = glm::vec3(1.0, 1.0, 1.0);
-                    specular = glm::vec3(0.2, 0.2, 0.2);
-                    break;
-                case LdrColor::RUBBER:
-                    diffuse = glm::vec3(0.0, 0.0, 0.0);
-                    specular = glm::vec3(0.0, 0.0, 0.0);
-                    break;
-                default:
-                    diffuse = ambient;
-                    specular = glm::vec3(0.5, 0.5, 0.5);
-                    break;
-            }
-
-            triangleShader.setVec3("material.ambient", ambient);
-            triangleShader.setVec3("material.diffuse", diffuse);
-            triangleShader.setVec3("material.specular", specular);
-            triangleShader.setFloat("material.shininess", shininess);
-
-            glDrawElements(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, 0);
-        }
+        mesh.drawGraphics(&triangleShader, &camera, lightPos);
         double end = glfwGetTime();
         std::cout << "\rtheoretical FPS: " << 1.0/(end-start) << "\n";
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    for (const auto &entry: mesh.triangleIndices) {
-        LdrColor *color = entry.first;
-        unsigned int vao = VAOs[color];
-        unsigned int vbo = VBOs[color];
-        unsigned int ebo = EBOs[color];
-        glDeleteVertexArrays(1, &vao);
-        glDeleteBuffers(1, &vbo);
-        glDeleteBuffers(1, &ebo);
-    }
+    mesh.deallocateGraphics();
 
     glfwTerminate();
     return 0;

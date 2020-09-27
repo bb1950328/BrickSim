@@ -27,7 +27,10 @@ public:
 };
 
 namespace config {
-    const std::string KEY_LDRAW_PARTS_LIBRARY = "ldraw_parts_library";
+    const std::string KEY_LDRAW_PARTS_LIBRARY = "ldrawPartsLibrary";
+    const std::string KEY_SCREEN_WIDTH = "screenWidth";
+    const std::string KEY_SCREEN_HEIGHT = "screenHeight";
+    const std::string KEY_INSTANCED_MIN_COMPLEXITY = "instancedMinComplexity"
 }
 
 #endif //BRICKSIM_CONFIG_H

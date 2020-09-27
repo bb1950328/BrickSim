@@ -2,21 +2,26 @@
 // Created by bab21 on 20.09.20.
 //
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include <iostream>
 #include "mesh.h"
+#include "camera.h"
+#include "config.h"
 #include <glm/gtx/normal.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-void TriangleMesh::addLdrFile(const LdrFile &file) {
+void Mesh::addLdrFile(const LdrFile &file) {
     LdrColor *defaultColor = LdrColorRepository::getInstance()->get_color(1);
     addLdrFile(file, glm::mat4(1.0f), defaultColor);
 }
 
-void TriangleMesh::addLdrFile(const LdrFile &file, LdrColor *color) {
+void Mesh::addLdrFile(const LdrFile &file, LdrColor *color) {
     addLdrFile(file, glm::mat4(1.0f), color);
 }
 
-void TriangleMesh::addLdrFile(const LdrFile &file, glm::mat4 transformation, LdrColor *mainColor) {
+void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation, LdrColor *mainColor) {
     for (auto element : file.elements) {
         switch (element->getType()) {
             case 0:
@@ -39,7 +44,7 @@ void TriangleMesh::addLdrFile(const LdrFile &file, glm::mat4 transformation, Ldr
     }
 }
 
-void TriangleMesh::addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation) {
+void Mesh::addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation) {
     auto p1 = glm::vec3(triangleElement.x1, triangleElement.y1, triangleElement.z1);
     auto p2 = glm::vec3(triangleElement.x2, triangleElement.y2, triangleElement.z2);
     auto p3 = glm::vec3(triangleElement.x3, triangleElement.y3, triangleElement.z3);
@@ -50,7 +55,7 @@ void TriangleMesh::addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triang
     addTriangleVertex(glm::vec4(p3, 1.0f) * transformation, normal, color);
 }
 
-void TriangleMesh::addTriangleVertex(glm::vec4 pos, glm::vec3 normal, LdrColor *color) {
+void Mesh::addTriangleVertex(glm::vec4 pos, glm::vec3 normal, LdrColor *color) {
     TriangleVertex vertex{pos, normal};
     /*for (int i = triangleVertices.size(); i > triangleVertices.size()-10; --i) {//just check the last 10 because the probability that there's a better vertex farther front is very small
         if (triangleVertices[i]==vertex) {
@@ -62,7 +67,11 @@ void TriangleMesh::addTriangleVertex(glm::vec4 pos, glm::vec3 normal, LdrColor *
     getVerticesList(color)->push_back(vertex);
 }
 
-void TriangleMesh::addLdrSubfileReference(LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation) {
+void Mesh::addLdrSubfileReference(LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation) {
+    long instanced_min = Configuration::getInstance()->get_long(config::KEY_INSTANCED_MIN_COMPLEXITY);
+    if (sfElement->getFile()->estimatedComplexity > instanced_min) {
+        collection->addLdrFile(mainColor, sfElement->getFile(), transformation);
+    }
     auto sub_transformation = glm::mat4(
             sfElement->a, sfElement->b, sfElement->c, sfElement->x * 1,
             sfElement->d, sfElement->e, sfElement->f, sfElement->y * 1,
@@ -73,7 +82,7 @@ void TriangleMesh::addLdrSubfileReference(LdrColor *mainColor, LdrSubfileReferen
     addLdrFile(*sfElement->getFile(), sub_transformation * transformation, color);
 }
 
-void TriangleMesh::addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation) {
+void Mesh::addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation) {
     auto p1 = glm::vec4(quadrilateral.x1, quadrilateral.y1, quadrilateral.z1, 1.0f) * transformation;
     auto p2 = glm::vec4(quadrilateral.x2, quadrilateral.y2, quadrilateral.z2, 1.0f) * transformation;
     auto p3 = glm::vec4(quadrilateral.x3, quadrilateral.y3, quadrilateral.z3, 1.0f) * transformation;
@@ -104,7 +113,7 @@ void TriangleMesh::addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&q
     indices_list->push_back(idx);
 }
 
-std::vector<unsigned int> *TriangleMesh::getIndicesList(LdrColor *color) {
+std::vector<unsigned int> *Mesh::getIndicesList(LdrColor *color) {
     auto entry = triangleIndices.find(color);
     if (entry == triangleIndices.end()) {
         auto vec = new std::vector<unsigned int>;
@@ -116,7 +125,7 @@ std::vector<unsigned int> *TriangleMesh::getIndicesList(LdrColor *color) {
 }
 
 
-std::vector<TriangleVertex> *TriangleMesh::getVerticesList(LdrColor *color) {
+std::vector<TriangleVertex> *Mesh::getVerticesList(LdrColor *color) {
     auto entry = triangleVertices.find(color);
     if (entry == triangleVertices.end()) {
         auto vec = new std::vector<TriangleVertex>;
@@ -127,7 +136,7 @@ std::vector<TriangleVertex> *TriangleMesh::getVerticesList(LdrColor *color) {
     return entry->second;
 }
 
-void TriangleMesh::printTriangles() {
+void Mesh::printTriangles() {
     /*for (int i = 0; i < triangleIndices.size(); i += 3) {
         auto v1 = triangleVertices[i];
         auto v2 = triangleVertices[i + 1];
@@ -140,7 +149,7 @@ void TriangleMesh::printTriangles() {
     //todo remove or use
 }
 
-void TriangleMesh::addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation) {
+void Mesh::addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation) {
 
     const glm::vec3 &color =
             lineElement.color->code == 16
@@ -152,7 +161,7 @@ void TriangleMesh::addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, g
     addLineVertex(lv2);
 }
 
-void TriangleMesh::addLineVertex(const LineVertex &vertex) {
+void Mesh::addLineVertex(const LineVertex &vertex) {
     for (int i = lineVertices.size(); i > lineVertices.size()-12; --i) {
         if (vertex.position == lineVertices[i].position && vertex.color == lineVertices[i].color) {
             //std::cout << lineVertices.size()-i << "\n";
@@ -164,9 +173,142 @@ void TriangleMesh::addLineVertex(const LineVertex &vertex) {
     lineVertices.push_back(vertex);
 }
 
+void Mesh::initializeGraphics() {
+    for (const auto &entry: triangleIndices) {
+        LdrColor *color = entry.first;
+        std::vector<unsigned int> *indices = entry.second;
+        std::vector<TriangleVertex> *vertices = triangleVertices.find(color)->second;
+
+        unsigned int vao, vbo, ebo;
+
+        //vao
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
+
+        //vbo
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        size_t vertex_size = sizeof(TriangleVertex);
+        glBufferData(GL_ARRAY_BUFFER, vertices->size() * vertex_size, &(*vertices)[0], GL_STATIC_DRAW);
+
+        // position attribute
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, (void *) nullptr);
+        glEnableVertexAttribArray(0);
+        // normal attribute
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(TriangleVertex, normal));
+        glEnableVertexAttribArray(1);
+
+        //ebo
+        glGenBuffers(1, &ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices->size(), &(*indices)[0], GL_STATIC_DRAW);
+
+        VAOs[color] = vao;
+        VBOs[color] = vbo;
+        EBOs[color] = ebo;
+    }
+}
+
+void Mesh::drawGraphics(const Shader *triangleShader, const CadCamera *camera, glm::vec3 lightPos) {
+    for (const auto &entry: triangleIndices) {
+        LdrColor *color = entry.first;
+        std::vector<unsigned int> *indices = entry.second;
+        bindBuffers(color);
+        if (color->code == 16) {
+            for (std::pair<LdrColor *, std::vector<glm::mat4>> inst: instances) {
+                LdrColor *mainColor = inst.first;
+                changeShaderColor(triangleShader, mainColor);
+                for (auto model: inst.second) {
+                    triangleShader->setMat4("model", model * globalModel);//todo maybe swap the multiplication operands
+                    glDrawElements(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, 0);
+                }
+            }
+        } else {
+            changeShaderColor(triangleShader, color);
+            for (std::pair<LdrColor *, std::vector<glm::mat4>> inst: instances) {
+                for (auto model: inst.second) {
+                    triangleShader->setMat4("model", model * globalModel);//todo maybe swap the multiplication operands
+                    glDrawElements(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, 0);
+                }
+            }
+        }
+    }
+}
+
+void Mesh::bindBuffers(LdrColor *color) {
+    unsigned int vao = VAOs[color];
+    unsigned int vbo = VBOs[color];
+    unsigned int ebo = EBOs[color];
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+}
+
+void Mesh::changeShaderColor(const Shader *triangleShader, const LdrColor *color) const {
+    glm::vec3 diffuse, specular;
+    const glm::vec3 &ambient = color->value.asGlmVector();
+    float shininess = 32.0f;
+
+    switch (color->finish) {
+        case LdrColor::METAL:
+        case LdrColor::CHROME:
+        case LdrColor::PEARLESCENT:
+            //todo find out what's the difference
+            shininess *= 2;
+            diffuse = glm::vec3(1.0, 1.0, 1.0);
+            specular = glm::vec3(1.0, 1.0, 1.0);
+            break;
+        case LdrColor::MATTE_METALLIC:
+            diffuse = glm::vec3(1.0, 1.0, 1.0);
+            specular = glm::vec3(0.2, 0.2, 0.2);
+            break;
+        case LdrColor::RUBBER:
+            diffuse = glm::vec3(0.0, 0.0, 0.0);
+            specular = glm::vec3(0.0, 0.0, 0.0);
+            break;
+        default:
+            diffuse = ambient;
+            specular = glm::vec3(0.5, 0.5, 0.5);
+            break;
+    }
+
+    triangleShader->setVec3("material.ambient", ambient);
+    triangleShader->setVec3("material.diffuse", diffuse);
+    triangleShader->setVec3("material.specular", specular);
+    triangleShader->setFloat("material.shininess", shininess);
+}
+
+void Mesh::deallocateGraphics() {
+    for (const auto &entry: triangleIndices) {
+        LdrColor *color = entry.first;
+        unsigned int vao = VAOs[color];
+        unsigned int vbo = VBOs[color];
+        unsigned int ebo = EBOs[color];
+        glDeleteVertexArrays(1, &vao);
+        glDeleteBuffers(1, &vbo);
+        glDeleteBuffers(1, &ebo);
+    }
+}
+
+Mesh::Mesh(MeshCollection *collection) : collection(collection) {
+    //todo maybe this isn't needed
+    instances[LdrColorRepository::getInstance()->get_color(16)] = {glm::mat4(1.0f)};
+}
+
 
 /*TriangleVertex::TriangleVertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color) {
     this->position = 0.1f*position;
     this->color = color;
     this->normal = normal;
 }*/
+MeshCollection::MeshCollection() {
+    //todo meshes["default"] = std::make_pair()
+}
+
+void MeshCollection::addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 transformation) {
+    auto it = meshes.find(file);
+    if (it != meshes.end()) {
+        it->second.instances[mainColor].push_back(transformation);
+    }
+    //todo otherwise generate new mesh and add one instance
+}

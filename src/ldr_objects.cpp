@@ -119,10 +119,16 @@ void LdrFile::printStructure(int indent) {
 }
 void LdrFile::preLoadSubfilesAndEstimateComplexity() {
     if (!subfiles_preloaded_and_complexity_estimated) {
+        preLoadSubfilesAndEstimateComplexityInternal();
+    }
+}
+void LdrFile::preLoadSubfilesAndEstimateComplexityInternal(){
+    referenceCount++;
+    if (!subfiles_preloaded_and_complexity_estimated) {
         for (LdrFileElement *elem: elements) {
             if (elem->getType()==1) {
                 LdrFile *subFile = dynamic_cast<LdrSubfileReference *>(elem)->getFile();
-                subFile->preLoadSubfilesAndEstimateComplexity();
+                subFile->preLoadSubfilesAndEstimateComplexityInternal();
                 estimatedComplexity += subFile->estimatedComplexity;
             } else if (elem->getType()==2) {
                 estimatedComplexity += 1;
@@ -133,8 +139,7 @@ void LdrFile::preLoadSubfilesAndEstimateComplexity() {
             }
         }
         subfiles_preloaded_and_complexity_estimated = true;
-    }
-}
+    }}
 
 LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
     content = line;

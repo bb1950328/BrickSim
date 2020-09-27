@@ -41,6 +41,7 @@ struct LdrColorMaterial {
 class LdrFile {
 public:
     unsigned long long estimatedComplexity = 0;
+    unsigned int referenceCount = 0;
     static LdrFile* parseFile(const std::string &filename);
 
     LdrFile() = default;
@@ -55,6 +56,8 @@ private:
     static std::ifstream openFile(const std::string &filename);
 
     void addTextLine(const std::string &line);
+
+    void preLoadSubfilesAndEstimateComplexityInternal();
 };
 
 class LdrFileElement {

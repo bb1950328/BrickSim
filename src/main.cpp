@@ -77,7 +77,7 @@ int main() {
     Shader triangleShader("src/shaders/shader.vsh", "src/shaders/shader.fsh");
 
     auto before = std::chrono::high_resolution_clock::now();
-    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/42043_arocs.mpd"/*"3001.dat"*/);
+    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/arocs_array.ldr"/*"3001.dat"*/);
     mainFile->preLoadSubfilesAndEstimateComplexity();
     //mainFile->printStructure();
     auto between = std::chrono::high_resolution_clock::now();
@@ -105,8 +105,10 @@ int main() {
     std::cout << "meshing time: " << ms_mesh << "ms.\n";
 
     for (const auto& x: LdrFileRepository::files) {
-        if (x.second->estimatedComplexity>1000) {
-            std::cout << x.first << "\t" << x.second->estimatedComplexity << "\n";
+        unsigned long long int comp = x.second->estimatedComplexity;
+        unsigned int count = x.second->referenceCount;
+        if (comp*count > 1000) {
+            std::cout << x.first << ";" << comp << ";" << count << ";" << comp * count << "\n";
         }
     }
 
@@ -149,6 +151,7 @@ int main() {
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
+        double start = glfwGetTime();
 
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -222,6 +225,8 @@ int main() {
 
             glDrawElements(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, 0);
         }
+        double end = glfwGetTime();
+        std::cout << "\rtheoretical FPS: " << 1.0/(end-start) << "\n";
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

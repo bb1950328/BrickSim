@@ -48,7 +48,7 @@ public:
 
     void addLdrFile(const LdrFile &file);
 
-    void addLdrFile(const LdrFile &file, LdrColor *color);
+    void addLdrFile(const LdrFile &file, LdrColor *mainColor);
 
     void addLdrFile(const LdrFile &file, glm::mat4 transformation, LdrColor *mainColor);
 
@@ -91,7 +91,7 @@ private:
 
 class MeshCollection {
 public:
-    std::map<LdrFile *, Mesh> meshes;
+    std::map<LdrFile *, Mesh*> meshes;
 
     MeshCollection();
 

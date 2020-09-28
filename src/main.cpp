@@ -81,8 +81,8 @@ int main() {
     mainFile->preLoadSubfilesAndEstimateComplexity();
     //mainFile->printStructure();
     auto between = std::chrono::high_resolution_clock::now();
-    auto mesh = Mesh(nullptr);
-    mesh.addLdrFile(*mainFile);
+    auto meshCollection = MeshCollection();
+    meshCollection.addLdrFile(LdrColorRepository::getInstance()->get_color(4), mainFile, glm::mat4(1.0f));
     auto after = std::chrono::high_resolution_clock::now();
     long ms_load = std::chrono::duration_cast<std::chrono::milliseconds>(between - before).count();
     long ms_mesh = std::chrono::duration_cast<std::chrono::milliseconds>(after - between).count();

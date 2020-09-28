@@ -17,8 +17,8 @@ void Mesh::addLdrFile(const LdrFile &file) {
     addLdrFile(file, glm::mat4(1.0f), defaultColor);
 }
 
-void Mesh::addLdrFile(const LdrFile &file, LdrColor *color) {
-    addLdrFile(file, glm::mat4(1.0f), color);
+void Mesh::addLdrFile(const LdrFile &file, LdrColor *mainColor) {
+    addLdrFile(file, glm::mat4(1.0f), mainColor);
 }
 
 void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation, LdrColor *mainColor) {
@@ -308,7 +308,10 @@ MeshCollection::MeshCollection() {
 void MeshCollection::addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 transformation) {
     auto it = meshes.find(file);
     if (it != meshes.end()) {
-        it->second.instances[mainColor].push_back(transformation);
+        it->second->instances[mainColor].push_back(transformation);
     }
-    //todo otherwise generate new mesh and add one instance
+    auto newMesh = new Mesh(this);
+    meshes[file] = newMesh;
+    newMesh->instances[mainColor].push_back(transformation);
+    newMesh->addLdrFile(*file, mainColor);
 }

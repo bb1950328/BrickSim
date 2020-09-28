@@ -9,6 +9,7 @@
 #include "mesh.h"
 #include "camera.h"
 #include "config.h"
+#include "util.h"
 #include <glm/gtx/normal.hpp>
 #include <glm/gtx/string_cast.hpp>
 
@@ -69,9 +70,6 @@ void Mesh::addTriangleVertex(glm::vec4 pos, glm::vec3 normal, LdrColor *color) {
 
 void Mesh::addLdrSubfileReference(LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation) {
     long instanced_min = Configuration::getInstance()->get_long(config::KEY_INSTANCED_MIN_COMPLEXITY);
-    if (sfElement->getFile()->estimatedComplexity > instanced_min) {
-        collection->addLdrFile(mainColor, sfElement->getFile(), transformation);
-    }
     auto sub_transformation = glm::mat4(
             sfElement->a, sfElement->b, sfElement->c, sfElement->x * 1,
             sfElement->d, sfElement->e, sfElement->f, sfElement->y * 1,
@@ -79,7 +77,11 @@ void Mesh::addLdrSubfileReference(LdrColor *mainColor, LdrSubfileReference *sfEl
             0.0f, 0.0f, 0.0f, 1.0f
     );
     LdrColor *color = sfElement->color->code == 16 ? mainColor : sfElement->color;
-    addLdrFile(*sfElement->getFile(), sub_transformation * transformation, color);
+    if (sfElement->getFile()->estimatedComplexity > instanced_min && sfElement->getFile()->referenceCount > 1) {
+        collection->addLdrFile(color, sfElement->getFile(), sub_transformation * transformation);
+    } else {
+        addLdrFile(*sfElement->getFile(), sub_transformation * transformation, color);
+    }
 }
 
 void Mesh::addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation) {
@@ -162,7 +164,7 @@ void Mesh::addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4
 }
 
 void Mesh::addLineVertex(const LineVertex &vertex) {
-    for (int i = lineVertices.size(); i > lineVertices.size()-12; --i) {
+    for (int i = lineVertices.size(); i > lineVertices.size() - 12; --i) {
         if (vertex.position == lineVertices[i].position && vertex.color == lineVertices[i].color) {
             //std::cout << lineVertices.size()-i << "\n";
             lineIndices.push_back(i);
@@ -209,12 +211,12 @@ void Mesh::initializeGraphics() {
     }
 }
 
-void Mesh::drawGraphics(const Shader *triangleShader, const CadCamera *camera, glm::vec3 lightPos) {
+void Mesh::drawGraphics(const Shader *triangleShader) {
     for (const auto &entry: triangleIndices) {
         LdrColor *color = entry.first;
         std::vector<unsigned int> *indices = entry.second;
         bindBuffers(color);
-        if (color->code == 16) {
+        if (color->code == LdrColorRepository::instDummyColor.code) {
             for (std::pair<LdrColor *, std::vector<glm::mat4>> inst: instances) {
                 LdrColor *mainColor = inst.first;
                 changeShaderColor(triangleShader, mainColor);
@@ -292,7 +294,16 @@ void Mesh::deallocateGraphics() {
 
 Mesh::Mesh(MeshCollection *collection) : collection(collection) {
     //todo maybe this isn't needed
-    instances[LdrColorRepository::getInstance()->get_color(16)] = {glm::mat4(1.0f)};
+    //instances[LdrColorRepository::getInstance()->get_color(16)] = {glm::mat4(1.0f)};
+}
+
+Mesh::~Mesh() {
+    for (const auto &entry: triangleIndices) {
+        delete entry.second;
+    }
+    for (const auto &entry: triangleVertices) {
+        delete entry.second;
+    }
 }
 
 
@@ -309,9 +320,28 @@ void MeshCollection::addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 tr
     auto it = meshes.find(file);
     if (it != meshes.end()) {
         it->second->instances[mainColor].push_back(transformation);
+    } else {
+        auto newMesh = new Mesh(this);
+        meshes[file] = newMesh;
+        newMesh->instances[mainColor].push_back(transformation);
+        newMesh->addLdrFile(*file, &LdrColorRepository::instDummyColor);
     }
-    auto newMesh = new Mesh(this);
-    meshes[file] = newMesh;
-    newMesh->instances[mainColor].push_back(transformation);
-    newMesh->addLdrFile(*file, mainColor);
+}
+
+void MeshCollection::initializeGraphics() {
+    for (const auto &pair: meshes) {
+        pair.second->initializeGraphics();
+    }
+}
+
+void MeshCollection::drawGraphics(Shader *triangleShader) {
+    for (const auto &pair: meshes) {
+        pair.second->drawGraphics(triangleShader);
+    }
+}
+
+void MeshCollection::deallocateGraphics() {
+    for (const auto &pair: meshes) {
+        pair.second->deallocateGraphics();
+    }
 }

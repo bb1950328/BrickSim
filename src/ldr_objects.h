@@ -51,6 +51,8 @@ public:
     void printStructure(int indent=0);
 
     void preLoadSubfilesAndEstimateComplexity();
+
+    std::string getDescription();
 private:
     bool subfiles_preloaded_and_complexity_estimated = false;
     static std::ifstream openFile(const std::string &filename);
@@ -154,6 +156,12 @@ public:
     LdrColorMaterial *material = nullptr;
 };
 
+class LdrInstanceDummyColor : public LdrColor {
+public:
+    LdrInstanceDummyColor();
+    explicit LdrInstanceDummyColor(const std::string &line);
+};
+
 class LdrColorRepository {
 private:
     std::map<int, LdrColor> colors;
@@ -166,6 +174,9 @@ public:
     void initialize();
 
     LdrColor *get_color(int colorCode);
+
+    static LdrInstanceDummyColor instDummyColor;
+
 };
 
 class LdrFileRepository {

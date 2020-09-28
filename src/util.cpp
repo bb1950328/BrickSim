@@ -3,6 +3,9 @@
 //
 
 #include <algorithm>
+#include <glm/glm.hpp>
+#include <iostream>
+#include <glm/gtx/string_cast.hpp>
 #include "util.h"
 
 namespace util {
@@ -53,5 +56,12 @@ namespace util {
 
     bool starts_with(std::string const &fullString, std::string const &start) {
         return fullString.rfind(start, 0) == 0;
+    }
+
+    void cout_mat4(glm::mat4 mat) {
+        std::cout << "⌈" << glm::to_string(mat[0]) << "⌉\n";
+        std::cout << "|" << glm::to_string(mat[1]) << "|\n";
+        std::cout << "|" << glm::to_string(mat[2]) << "|\n";
+        std::cout << "⌊" << glm::to_string(mat[3]) << "⌋\n";
     }
 }

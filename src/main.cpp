@@ -87,32 +87,37 @@ int main() {
     long ms_load = std::chrono::duration_cast<std::chrono::milliseconds>(between - before).count();
     long ms_mesh = std::chrono::duration_cast<std::chrono::milliseconds>(after - between).count();
     unsigned long triangle_vertices_count = 0, triangle_indices_count = 0;
-    for (const auto &entry: mesh.triangleVertices) {
-        triangle_vertices_count += entry.second->size();
+    for (const auto &pair: meshCollection.meshes) {
+        auto mesh = pair.second;
+        for (const auto &entry: mesh->triangleVertices) {
+            triangle_vertices_count += entry.second->size();
+        }
+        for (const auto &entry: mesh->triangleIndices) {
+            triangle_indices_count += entry.second->size();
+        }
     }
-    for (const auto &entry: mesh.triangleIndices) {
-        triangle_indices_count += entry.second->size();
-    }
-    std::cout << "materials count: " << mesh.triangleVertices.size() << "\n";
+    std::cout << "meshes count: " << meshCollection.meshes.size() << "\n";
     std::cout << "main model estimated complexity: " << mainFile->estimatedComplexity << "\n";
     std::cout << "total triangle vertices count: " << triangle_vertices_count << "\n";
     std::cout << "total triangle indices count: " << triangle_indices_count << "\n";
     std::cout << "every triangle vertex is used " << (float)triangle_indices_count / (float)triangle_vertices_count << "times.\n";
-    std::cout << "total line vertices count: " << mesh.lineVertices.size() << "\n";
-    std::cout << "total line indices count: " << mesh.lineIndices.size() << "\n";
-    std::cout << "every line vertex is used " << (float)mesh.lineIndices.size() / (float)mesh.lineVertices.size() << "times.\n";
+    //std::cout << "total line vertices count: " << mesh.lineVertices.size() << "\n";
+    //std::cout << "total line indices count: " << mesh.lineIndices.size() << "\n";
+    //std::cout << "every line vertex is used " << (float)mesh.lineIndices.size() / (float)mesh.lineVertices.size() << "times.\n";
     std::cout << "ldr file loading time: " << ms_load << "ms.\n";
     std::cout << "meshing time: " << ms_mesh << "ms.\n";
 
-    for (const auto& x: LdrFileRepository::files) {
-        unsigned long long int comp = x.second->estimatedComplexity;
-        unsigned int count = x.second->referenceCount;
-        if (comp*count > 1000) {
-            std::cout << x.first << ";" << comp << ";" << count << ";" << comp * count << "\n";
+    for (const auto &meshPair: meshCollection.meshes) {
+        std::cout << meshPair.first->getDescription() << "\n";
+        for (const auto &instancePair: meshPair.second->instances) {
+            std::cout << "\t" << instancePair.second.size() << "*" << instancePair.first->name << "\n";
+            for (const auto &transfMat: instancePair.second) {
+                std::cout << "\t\t" << glm::to_string(transfMat) << "\n";
+            }
         }
     }
 
-    mesh.initializeGraphics();
+    meshCollection.initializeGraphics();
 
     triangleShader.use();
 
@@ -148,13 +153,13 @@ int main() {
         //std::cout << glm::to_string(camera.getCameraPos()) << "\n";
         triangleShader.setVec3("viewPos", camera.getCameraPos());
 
-        mesh.drawGraphics(&triangleShader, &camera, lightPos);
+        meshCollection.drawGraphics(&triangleShader);
         double end = glfwGetTime();
         std::cout << "\rtheoretical FPS: " << 1.0/(end-start) << "\n";
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    mesh.deallocateGraphics();
+    meshCollection.deallocateGraphics();
 
     glfwTerminate();
     return 0;

@@ -74,9 +74,11 @@ public:
 
     void initializeGraphics();
 
-    void drawGraphics(const Shader *triangleShader, const CadCamera *camera, glm::vec3 lightPos);
+    void drawGraphics(const Shader *triangleShader);
 
     void deallocateGraphics();
+
+    virtual ~Mesh();
 
 private:
     //this is the conversion from the ldraw coordinate system to the OpenGL coordinate system
@@ -84,6 +86,7 @@ private:
                         glm::radians(180.0f),//rotate 180° around
                         glm::vec3(1.0f, 0.0f, 0.0f)),// x axis
             glm::vec3(0.01f, 0.01f, 0.01f)); // and make 100 times smaller
+
     void changeShaderColor(const Shader *triangleShader, const LdrColor *color) const;
 
     void bindBuffers(LdrColor *color);
@@ -96,6 +99,12 @@ public:
     MeshCollection();
 
     void addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 transformation);
+
+    void initializeGraphics();
+
+    void drawGraphics(Shader *triangleShader);
+
+    void deallocateGraphics();
 };
 
 #endif //BRICKSIM_MESH_H

@@ -139,7 +139,16 @@ void LdrFile::preLoadSubfilesAndEstimateComplexityInternal(){
             }
         }
         subfiles_preloaded_and_complexity_estimated = true;
-    }}
+    }
+}
+std::string LdrFile::getDescription() {
+    for (auto elem : elements) {
+        if (elem->getType()==0) {
+            return dynamic_cast<LdrCommentOrMetaElement *>(elem)->content;
+        }
+    }
+    return "?";
+}
 
 LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
     content = line;
@@ -308,6 +317,7 @@ LdrColor *LdrColorRepository::get_color(const int colorCode) {
     return &(iterator->second);
 }
 LdrColorRepository *LdrColorRepository::instance = nullptr;
+LdrInstanceDummyColor LdrColorRepository::instDummyColor;
 LdrColorRepository * LdrColorRepository::getInstance(){
     if (instance == nullptr) {
         instance = new LdrColorRepository();
@@ -325,6 +335,7 @@ void LdrColorRepository::initialize(){
             colors[col.code] = col;
         }
     }
+    colors[instDummyColor.code] = instDummyColor;
 }
 
 
@@ -391,4 +402,12 @@ RGB::RGB(std::string htmlCode){
     delete [] redChars;
     delete [] greenChars;
     delete [] blueChars;
+}
+LdrInstanceDummyColor::LdrInstanceDummyColor(const std::string & line): LdrInstanceDummyColor() {
+
+}
+LdrInstanceDummyColor::LdrInstanceDummyColor() {
+    name = "Instance Dummy Color";
+    code = -1;
+    value = edge = RGB("#FFB39B");
 }

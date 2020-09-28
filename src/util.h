@@ -25,5 +25,6 @@ namespace util {
     std::string as_lower(const std::string& string);
     bool ends_with(std::string const &fullString, std::string const &ending);
     bool starts_with(std::string const &fullString, std::string const &start);
+    void cout_mat4(glm::mat4 mat);
 }
 #endif //BRICKSIM_UTIL_H

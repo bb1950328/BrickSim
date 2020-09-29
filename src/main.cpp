@@ -13,10 +13,12 @@
 #include "mesh.h"
 #include "camera.h"
 #include "config.h"
+#include "util.h"
 
 #include <iostream>
 #include <glm/gtx/string_cast.hpp>
 #include <chrono>
+#include <regex>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -110,7 +112,10 @@ int main() {
     for (const auto &meshPair: meshCollection.meshes) {
         std::cout << meshPair.first->getDescription() << "\n";
         for (const auto &instance: meshPair.second->instances) {
-            std::cout << "\t" << instance.first->name << "\t" << glm::to_string(instance.second) << "\n";
+            std::cout << "\t" << instance.first->name  << "\n";
+            auto mat_str = glm::to_string(instance.second);
+            util::replaceAll(mat_str, "), (", "),\n\t\t       (");
+            std::cout << "\t\t" << mat_str << "\n";
         }
     }
 

@@ -207,7 +207,7 @@ void Mesh::initializeGraphics() {
             for (int i = 0; i < instances.size(); ++i) {
                 const auto &instPair = instances[i];
                 Instance inst{};
-                inst.transformation = instPair.second;
+                inst.transformation = instPair.second*globalModel;
                 setInstanceColor(&inst, instPair.first);
                 instancesArray[i] = inst;
             }
@@ -216,14 +216,14 @@ void Mesh::initializeGraphics() {
             setInstanceColor(&inst, color);
             std::fill_n(instancesArray, instance_count, inst);
             for (int i = 0; i < instance_count; ++i) {
-                instancesArray[i].transformation = instances[i].second;
+                instancesArray[i].transformation = instances[i].second*globalModel;
             }
         }
-
-        /*for (int i = 0; i < instance_count; ++i) {
-            glm::vec3 &col = instancesArray[i].diffuseColor;
-            std::cout << glm::to_string(col) << std::endl;
-        }*/
+        std::cout << color->name << std::endl;
+        for (int i = 0; i < instance_count; ++i) {
+            util::cout_mat4(instancesArray[i].transformation);
+        }
+        std::cout << "--------------------------------------------------------\n";
 
         glGenBuffers(1, &instanceVbo);
         glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
@@ -246,6 +246,9 @@ void Mesh::initializeGraphics() {
         glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(Instance, transformation) + 2 * sizeof(glm::vec4)));
         glEnableVertexAttribArray(9);
         glVertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(Instance, transformation) + 3 * sizeof(glm::vec4)));
+
+        /*glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4*4, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(Instance, transformation));*/
 
         for (int i = 2; i < 10; ++i) {
             glVertexAttribDivisor(i, 1);

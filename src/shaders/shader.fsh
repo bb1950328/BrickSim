@@ -7,7 +7,6 @@ in vec3 bDiffuseColor;
 in float bAmbientFactor;
 in float bSpecularBrightness;
 in float bShininess;
-in mat4 bTransformation;
 
 struct Light {
    vec3 position;

@@ -6,6 +6,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iostream>
+#include <glm/gtx/string_cast.hpp>
 #include "ldr_objects.h"
 #include "util.h"
 #include "config.h"

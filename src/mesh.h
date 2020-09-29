@@ -28,6 +28,14 @@ struct LineVertex {
     glm::vec3 color;
 };
 
+struct Instance {
+    glm::vec3 diffuseColor;
+    float ambientFactor;//ambient=diffuseColor*ambientFactor
+    float specularBrightness;//specular=vec4(1.0)*specularBrightness
+    float shininess;
+    glm::mat4 transformation;
+};
+
 class MeshCollection;
 
 class Mesh {
@@ -38,9 +46,9 @@ public:
     std::vector<LineVertex> lineVertices;
     std::vector<unsigned int> lineIndices;
 
-    std::map<LdrColor *, unsigned int> VAOs, VBOs, EBOs;
+    std::map<LdrColor *, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
 
-    std::map<LdrColor *, std::vector<glm::mat4>> instances;
+    std::vector<std::pair<LdrColor *, glm::mat4>> instances;
 
     MeshCollection *collection;
 
@@ -87,7 +95,7 @@ private:
                         glm::vec3(1.0f, 0.0f, 0.0f)),// x axis
             glm::vec3(0.01f, 0.01f, 0.01f)); // and make 100 times smaller
 
-    void changeShaderColor(const Shader *triangleShader, const LdrColor *color) const;
+    void setInstanceColor(Instance *instance, const LdrColor *color) const;
 
     void bindBuffers(LdrColor *color);
 };

@@ -109,13 +109,11 @@ int main() {
 
     for (const auto &meshPair: meshCollection.meshes) {
         std::cout << meshPair.first->getDescription() << "\n";
-        for (const auto &instancePair: meshPair.second->instances) {
-            std::cout << "\t" << instancePair.second.size() << "*" << instancePair.first->name << "\n";
-            for (const auto &transfMat: instancePair.second) {
-                std::cout << "\t\t" << glm::to_string(transfMat) << "\n";
-            }
+        for (const auto &instance: meshPair.second->instances) {
+            std::cout << "\t" << instance.first->name << "\t" << glm::to_string(instance.second) << "\n";
         }
     }
+
 
     meshCollection.initializeGraphics();
 
@@ -155,7 +153,7 @@ int main() {
 
         meshCollection.drawGraphics(&triangleShader);
         double end = glfwGetTime();
-        std::cout << "\rtheoretical FPS: " << 1.0/(end-start) << "\n";
+        std::cout << "theoretical FPS: " << 1.0/(end-start) << "\n";
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

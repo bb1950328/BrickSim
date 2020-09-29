@@ -207,7 +207,7 @@ void Mesh::initializeGraphics() {
             for (int i = 0; i < instances.size(); ++i) {
                 const auto &instPair = instances[i];
                 Instance inst{};
-                inst.transformation = instPair.second*globalModel;
+                inst.transformation = glm::transpose(instPair.second*globalModel);
                 setInstanceColor(&inst, instPair.first);
                 instancesArray[i] = inst;
             }
@@ -216,7 +216,7 @@ void Mesh::initializeGraphics() {
             setInstanceColor(&inst, color);
             std::fill_n(instancesArray, instance_count, inst);
             for (int i = 0; i < instance_count; ++i) {
-                instancesArray[i].transformation = instances[i].second*globalModel;
+                instancesArray[i].transformation = glm::transpose(instances[i].second*globalModel);
             }
         }
         std::cout << color->name << std::endl;
@@ -247,8 +247,6 @@ void Mesh::initializeGraphics() {
         glEnableVertexAttribArray(9);
         glVertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(Instance, transformation) + 3 * sizeof(glm::vec4)));
 
-        /*glEnableVertexAttribArray(6);
-        glVertexAttribPointer(6, 4*4, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(Instance, transformation));*/
 
         for (int i = 2; i < 10; ++i) {
             glVertexAttribDivisor(i, 1);
@@ -278,11 +276,7 @@ void Mesh::drawGraphics(const Shader *triangleShader) {
 
 void Mesh::bindBuffers(LdrColor *color) {
     unsigned int vao = VAOs[color];
-    //unsigned int vbo = vertexVBOs[color];
-    //unsigned int ebo = EBOs[color];
     glBindVertexArray(vao);
-    //glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 }
 
 void Mesh::deallocateGraphics() {
@@ -300,8 +294,6 @@ void Mesh::deallocateGraphics() {
 }
 
 Mesh::Mesh(MeshCollection *collection) : collection(collection) {
-    //todo maybe this isn't needed
-    //instances[LdrColorRepository::getInstance()->get_color(16)] = {glm::mat4(1.0f)};
 }
 
 Mesh::~Mesh() {

@@ -79,7 +79,7 @@ int main() {
     Shader triangleShader("src/shaders/shader.vsh", "src/shaders/shader.fsh");
 
     auto before = std::chrono::high_resolution_clock::now();
-    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/arocs.mpd"/*"3001.dat"*/);
+    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/arocs_array_3d.ldr");
     mainFile->preLoadSubfilesAndEstimateComplexity();
     //mainFile->printStructure();
     auto between = std::chrono::high_resolution_clock::now();
@@ -110,7 +110,7 @@ int main() {
     std::cout << "meshing time: " << ms_mesh << "ms.\n";
 
     for (const auto &meshPair: meshCollection.meshes) {
-        std::cout << meshPair.first->getDescription() << "\n";
+        std::cout << meshPair.first->getDescription() << " Submeshes: " << meshPair.second->subMeshes.size() << "\n";
         for (const auto &instance: meshPair.second->instances) {
             std::cout << "\t" << instance.first->name  << "\n";
             auto mat_str = glm::to_string(instance.second);
@@ -158,7 +158,7 @@ int main() {
 
         meshCollection.drawGraphics(&triangleShader);
         double end = glfwGetTime();
-        std::cout << "theoretical FPS: " << 1.0/(end-start) << "\n";
+        //std::cout << "theoretical FPS: " << 1.0/(end-start) << "\n";
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

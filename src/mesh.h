@@ -7,6 +7,7 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include <set>
 #include "ldr_objects.h"
 #include "shaders/shader.h"
 #include "camera.h"
@@ -49,8 +50,13 @@ public:
     std::map<LdrColor *, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
 
     std::vector<std::pair<LdrColor *, glm::mat4>> instances;
+    std::vector<glm::mat4> parentInstances;
+
+    std::set<Mesh *> subMeshes;
 
     MeshCollection *collection;
+
+    std::string name = "?";
 
     explicit Mesh(MeshCollection *collection);
 
@@ -80,6 +86,10 @@ public:
 
     std::vector<TriangleVertex> *getVerticesList(LdrColor *color);
 
+    void addInstance(LdrColor *color, glm::mat4 transformation);
+    void addParentInstance(glm::mat4 transformation);
+    void addSubMesh(Mesh *newSubMesh);
+
     void initializeGraphics();
 
     void drawGraphics(const Shader *triangleShader);
@@ -95,9 +105,13 @@ private:
                         glm::vec3(1.0f, 0.0f, 0.0f)),// x axis
             glm::vec3(0.01f, 0.01f, 0.01f)); // and make 100 times smaller
 
-    void setInstanceColor(Instance *instance, const LdrColor *color) const;
+    static void setInstanceColor(Instance *instance, const LdrColor *color) ;
 
     void bindBuffers(LdrColor *color);
+
+    size_t getTotalInstanceCount() const;
+
+    Instance * generateInstancesArray(const LdrColor *color);
 };
 
 class MeshCollection {
@@ -107,6 +121,8 @@ public:
     MeshCollection();
 
     void addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 transformation);
+
+    void addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 transformation, Mesh *parentMesh);
 
     void initializeGraphics();
 

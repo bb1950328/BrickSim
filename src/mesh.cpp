@@ -78,7 +78,7 @@ void Mesh::addLdrSubfileReference(LdrColor *mainColor, LdrSubfileReference *sfEl
     );
     LdrColor *color = sfElement->color->code == 16 ? mainColor : sfElement->color;
     if (sfElement->getFile()->estimatedComplexity > instanced_min && sfElement->getFile()->referenceCount > 1) {
-        collection->addLdrFile(color, sfElement->getFile(), sub_transformation * transformation);
+        collection->addLdrFile(color, sfElement->getFile(), sub_transformation * transformation, this);
     } else {
         addLdrFile(*sfElement->getFile(), sub_transformation * transformation, color);
     }
@@ -176,7 +176,8 @@ void Mesh::addLineVertex(const LineVertex &vertex) {
 }
 
 void Mesh::initializeGraphics() {
-    const auto instance_count = instances.size();
+    const auto instance_count = getTotalInstanceCount();
+    std::cout << "Mesh " << name << " Total Instance Count: " << instance_count << std::endl;
     for (const auto &entry: triangleIndices) {
         LdrColor *color = entry.first;
         std::vector<unsigned int> *indices = entry.second;
@@ -202,28 +203,12 @@ void Mesh::initializeGraphics() {
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(TriangleVertex, normal));
 
         //instanceVbo
-        auto instancesArray = new Instance[instance_count];
-        if (color == &LdrColorRepository::instDummyColor) {
-            for (int i = 0; i < instances.size(); ++i) {
-                const auto &instPair = instances[i];
-                Instance inst{};
-                inst.transformation = glm::transpose(instPair.second*globalModel);
-                setInstanceColor(&inst, instPair.first);
-                instancesArray[i] = inst;
-            }
-        } else {
-            Instance inst{};
-            setInstanceColor(&inst, color);
-            std::fill_n(instancesArray, instance_count, inst);
-            for (int i = 0; i < instance_count; ++i) {
-                instancesArray[i].transformation = glm::transpose(instances[i].second*globalModel);
-            }
-        }
-        std::cout << color->name << std::endl;
+        auto instancesArray = generateInstancesArray(color);
+        /*std::cout << color->name << std::endl;
         for (int i = 0; i < instance_count; ++i) {
             util::cout_mat4(instancesArray[i].transformation);
         }
-        std::cout << "--------------------------------------------------------\n";
+        std::cout << "--------------------------------------------------------\n";*/
 
         glGenBuffers(1, &instanceVbo);
         glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
@@ -238,20 +223,16 @@ void Mesh::initializeGraphics() {
         glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(Instance, specularBrightness));
         glEnableVertexAttribArray(5);
         glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(Instance, shininess));
-        glEnableVertexAttribArray(6);
-        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(Instance, transformation));
-        glEnableVertexAttribArray(7);
-        glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(Instance, transformation) + sizeof(glm::vec4)));
-        glEnableVertexAttribArray(8);
-        glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(Instance, transformation) + 2 * sizeof(glm::vec4)));
-        glEnableVertexAttribArray(9);
-        glVertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(Instance, transformation) + 3 * sizeof(glm::vec4)));
-
+        for (int j = 0; j < 4; ++j) {
+            glEnableVertexAttribArray(6 + j);
+            glVertexAttribPointer(6 + j, 4, GL_FLOAT, GL_FALSE, instance_size,
+                                  (void *) (offsetof(Instance, transformation) + 4 * j * sizeof(float)));
+        }
 
         for (int i = 2; i < 10; ++i) {
             glVertexAttribDivisor(i, 1);
         }
-        delete [] instancesArray;
+        delete instancesArray;
 
         //ebo
         glGenBuffers(1, &ebo);
@@ -270,7 +251,7 @@ void Mesh::drawGraphics(const Shader *triangleShader) {
         LdrColor *color = entry.first;
         std::vector<unsigned int> *indices = entry.second;
         bindBuffers(color);
-        glDrawElementsInstanced(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, nullptr, instances.size());
+        glDrawElementsInstanced(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, nullptr, getTotalInstanceCount());
     }
 }
 
@@ -305,7 +286,7 @@ Mesh::~Mesh() {
     }
 }
 
-void Mesh::setInstanceColor(Instance *instance, const LdrColor *color) const {
+void Mesh::setInstanceColor(Instance *instance, const LdrColor *color) {
     instance->diffuseColor = color->value.asGlmVector();
     instance->shininess = 32.0f;
     //useful tool: http://www.cs.toronto.edu/~jacobson/phong-demo/
@@ -333,6 +314,91 @@ void Mesh::setInstanceColor(Instance *instance, const LdrColor *color) const {
     }
 }
 
+size_t Mesh::getTotalInstanceCount() const {
+    if (parentInstances.empty()) {
+        return instances.size();
+    } else {
+        return parentInstances.size() * instances.size();
+    }
+}
+
+Instance *Mesh::generateInstancesArray(const LdrColor *color) {
+    auto instance_count = getTotalInstanceCount();
+    auto *instancesArray = new Instance[instance_count];
+    unsigned int arr_cursor = 0;
+    //todo optimize this method
+    if (parentInstances.empty()) {
+        if (color == &LdrColorRepository::instDummyColor) {
+            for (auto &instPair : instances) {
+                //todo optimize by creating instance here and copy it
+                Instance inst{};
+                inst.transformation = glm::transpose(instPair.second * globalModel);
+                setInstanceColor(&inst, instPair.first);
+                instancesArray[arr_cursor] = inst;
+                arr_cursor++;
+            }
+        } else {
+            Instance inst{};
+            setInstanceColor(&inst, color);
+            std::fill_n(instancesArray, instance_count, inst);
+            for (auto &instance : instances) {
+                instancesArray[arr_cursor].transformation = glm::transpose(instance.second * globalModel);
+                arr_cursor++;
+            }
+        }
+    } else {
+        if (color == &LdrColorRepository::instDummyColor) {
+            for (auto &instPair : instances) {
+                //todo optimize by creating instance here and copy it
+                for (const auto &parentTransf: parentInstances) {
+                    Instance inst{};
+                    inst.transformation = glm::transpose(parentTransf * instPair.second * globalModel);
+                    setInstanceColor(&inst, instPair.first);
+                    instancesArray[arr_cursor] = inst;
+                    arr_cursor++;
+                }
+            }
+        } else {
+            Instance inst{};
+            setInstanceColor(&inst, color);
+            std::fill_n(instancesArray, instance_count, inst);
+            for (auto &instance : instances) {
+                for (const auto &parentTransf: parentInstances) {
+                    instancesArray[arr_cursor].transformation = glm::transpose(
+                            parentTransf * instance.second * globalModel);
+                    arr_cursor++;
+                }
+            }
+        }
+    }
+    return instancesArray;
+}
+
+void Mesh::addInstance(LdrColor *color, glm::mat4 transformation) {
+    instances.emplace_back(color, transformation);
+    for (auto const &subMesh: subMeshes) {
+        subMesh->addParentInstance(transformation);
+    }
+}
+
+void Mesh::addParentInstance(glm::mat4 transformation) {
+    parentInstances.push_back(transformation);
+    for (const auto &inst: instances) {
+        for (const auto &sub: subMeshes) {
+            sub->addParentInstance(transformation * inst.second);
+        }
+    }
+}
+
+void Mesh::addSubMesh(Mesh *newSubMesh) {
+    if (subMeshes.find(newSubMesh) == subMeshes.end()) {
+        subMeshes.insert(newSubMesh);
+        for (const auto &inst: instances) {
+            newSubMesh->addParentInstance(inst.second);
+        }
+    }
+}
+
 
 /*TriangleVertex::TriangleVertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color) {
     this->position = 0.1f*position;
@@ -344,15 +410,24 @@ MeshCollection::MeshCollection() {
 }
 
 void MeshCollection::addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 transformation) {
-    auto pair = std::make_pair(mainColor, transformation);
+    addLdrFile(mainColor, file, transformation, nullptr);
+}
+
+void MeshCollection::addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 transformation, Mesh *parentMesh) {
+    //auto pair = std::make_pair(mainColor, transformation);
     auto it = meshes.find(file);
+    Mesh *mesh;
     if (it != meshes.end()) {
-        it->second->instances.push_back(pair);
+        mesh = it->second;
     } else {
-        auto newMesh = new Mesh(this);
-        meshes[file] = newMesh;
-        newMesh->instances.push_back(pair);
-        newMesh->addLdrFile(*file, &LdrColorRepository::instDummyColor);
+        mesh = new Mesh(this);
+        meshes[file] = mesh;
+        mesh->name = file->getDescription();
+        mesh->addLdrFile(*file, &LdrColorRepository::instDummyColor);
+    }
+    mesh->addInstance(mainColor, transformation);
+    if (nullptr != parentMesh) {
+        parentMesh->addSubMesh(mesh);
     }
 }
 

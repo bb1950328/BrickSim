@@ -79,7 +79,7 @@ int main() {
     Shader triangleShader("src/shaders/shader.vsh", "src/shaders/shader.fsh");
 
     auto before = std::chrono::high_resolution_clock::now();
-    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/arocs_array_3d.ldr");
+    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/arocs_array.ldr");
     mainFile->preLoadSubfilesAndEstimateComplexity();
     //mainFile->printStructure();
     auto between = std::chrono::high_resolution_clock::now();
@@ -110,7 +110,7 @@ int main() {
     std::cout << "meshing time: " << ms_mesh << "ms.\n";
 
     for (const auto &meshPair: meshCollection.meshes) {
-        std::cout << meshPair.first->getDescription() << " Submeshes: " << meshPair.second->subMeshes.size() << "\n";
+        std::cout << meshPair.first->getDescription() << "\n";
         for (const auto &instance: meshPair.second->instances) {
             std::cout << "\t" << instance.first->name  << "\n";
             auto mat_str = glm::to_string(instance.second);

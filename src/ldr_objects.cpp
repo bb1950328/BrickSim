@@ -28,7 +28,7 @@ LdrFileElement *LdrFileElement::parse_line(std::string line) {
 
 LdrFile* LdrFile::parseFile(const std::string & filename){
     auto mainFile = new LdrFile();
-    std::ifstream input = openFile(filename);
+    std::ifstream input(filename);
     if (!input.good()) {
         throw std::invalid_argument("can't open file \""+filename+"\"");
     }
@@ -61,7 +61,7 @@ LdrFile* LdrFile::parseFile(const std::string & filename){
                     continue;
                 } else {
                     currentFile = new LdrFile();
-                    LdrFileRepository::add_file(entry.first, currentFile);
+                    LdrFileRepository::add_file(entry.first, currentFile, SUBPART);
                 }
             }
             unsigned long lineCount = entry.second.size();
@@ -84,24 +84,6 @@ void LdrFile::addTextLine(const std::string &line) {
     if (!trimmed.empty()) {
         elements.push_back(LdrFileElement::parse_line(trimmed));
     }
-}
-std::ifstream LdrFile::openFile(const std::string &filename) {
-    auto parts_lib_location = util::extend_home_dir(Configuration::getInstance()->get_string(config::KEY_LDRAW_PARTS_LIBRARY));
-    //todo make parts search case-insensitive https://forums.ldraw.org/thread-13787.html
-    auto locations = {
-                util::extend_home_dir(filename),
-                util::pathjoin({parts_lib_location, "parts", util::as_lower(filename)}),//parts
-                util::pathjoin({parts_lib_location, "p", util::as_lower(filename)}),//primitives
-                util::pathjoin({parts_lib_location, "models", util::as_lower(filename)}),//models
-        };
-    std::ifstream input;
-    for (const auto & loc : locations) {
-        input = std::ifstream(loc);
-        if (input.good()) {
-            break;
-        }
-    }
-    return input;
 }
 void LdrFile::printStructure(int indent) {
     for (auto elem : elements) {
@@ -340,22 +322,68 @@ void LdrColorRepository::initialize(){
 }
 
 
-std::map<std::string, LdrFile*> LdrFileRepository::files;
+std::map<std::string, std::pair<LdrFileType, LdrFile*>> LdrFileRepository::files;
 
 LdrFile *LdrFileRepository::get_file(const std::string &filename) {
     auto iterator = files.find(filename);
     if (iterator == files.end()) {
-        LdrFile* file = LdrFile::parseFile(filename);
-        files[filename] = file;
+        auto typeNamePair = resolve_file(filename);
+        LdrFile* file = LdrFile::parseFile(typeNamePair.second);
+        files[filename] = std::make_pair(typeNamePair.first, file);
         return file;
     }
-    return (iterator->second);
+    return (iterator->second.second);
 }
-void LdrFileRepository::add_file(const std::string &filename, LdrFile *file){
-    files[filename] = file;
+
+LdrFileType LdrFileRepository::get_file_type(const std::string &filename) {
+    auto iterator = files.find(filename);
+    if (iterator == files.end()) {
+        throw std::invalid_argument("this file is unknown!");
+    }
+    return iterator->second.first;
+}
+
+void LdrFileRepository::add_file(const std::string &filename, LdrFile *file, LdrFileType type){
+    files[filename] = std::make_pair(type, file);
 }
 void LdrFileRepository::clear_cache(){
     files.clear();
+}
+void LdrFileRepository::initializeNames() {
+    if (!namesInitialized) {
+        ldrawPartDirectory = Configuration::getInstance()->get_string(config::KEY_LDRAW_PARTS_LIBRARY);
+        //todo implement using boost::filesystem
+        /*subpartNames.insert("abc123.dat", "aBc123.DaT");
+        partNames.insert("abc123.dat", "AbC123.dAt");
+        primitiveNames.insert("1-4ccyli.dat", "1-4cCyLi.DaT");
+        primitiveNames.insert("8\\1-4ccyli.dat", "8\\1-4cCyLi.DaT");
+        modelNames.insert("car.ldr", "cAr.LdR");*/
+        namesInitialized = true;
+    }
+}
+std::pair<LdrFileType, std::string> LdrFileRepository::resolve_file(const std::string & filename) {
+    //todo more robust method to join paths and case-insensitive map search
+    /*initializeNames();
+    if (util::starts_with(filename, "s\\")) {
+        auto fullPath = ldrawPartDirectory + "/parts/s/" + subpartNames.find(filename*//*.lower*//*)->second;
+        return std::make_pair(LdrFileType::SUBPART, fullPath);
+    }
+    auto itPart = partNames.find(filename*//*.lower*//*);
+    if (partNames.end()!=itPart) {
+        auto fullPath = ldrawPartDirectory + "/parts/" + itPart->second;
+        return std::make_pair(LdrFileType::PART, fullPath);
+    }
+    auto itPrimitive = primitiveNames.find(filename*//*.lower*//*);
+    if (primitiveNames.end() != itPrimitive) {
+        auto fullPath = ldrawPartDirectory + "/p/" + itPrimitive->second;
+        return std::make_pair(LdrFileType::PRIMITIVE, fullPath);
+    }
+    auto itModel = modelNames.find(filename*//*.lower*//*);
+    if (modelNames.end() != itModel) {
+        auto fullPath = ldrawPartDirectory + "/models/" + itModel->second;
+        return std::make_pair(LdrFileType::MODEL, fullPath);
+    }*/
+    return std::make_pair(LdrFileType::MODEL, util::extend_home_dir(filename));
 }
 
 int LdrCommentOrMetaElement::getType() const{
@@ -370,6 +398,14 @@ LdrFile * LdrSubfileReference::getFile() {
         file = LdrFileRepository::get_file(filename);
     }
     return file;
+}
+glm::mat4 LdrSubfileReference::getTransformationMatrix() const {
+    return {
+        a, b, c, x * 1,//todo check if the *1 is necessary
+        d, e, f, y * 1,
+        g, h, i, z * 1,
+        0.0f, 0.0f, 0.0f, 1.0f
+    };
 }
 int LdrLine::getType() const{
     return 2;

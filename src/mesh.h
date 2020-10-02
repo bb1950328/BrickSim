@@ -11,6 +11,7 @@
 #include "ldr_objects.h"
 #include "shaders/shader.h"
 #include "camera.h"
+#include "element_tree.h"
 
 struct TriangleVertex {
     //TriangleVertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color);
@@ -37,8 +38,6 @@ struct Instance {
     glm::mat4 transformation;
 };
 
-class MeshCollection;
-
 class Mesh {
 public:
     std::map<LdrColor *, std::vector<TriangleVertex> *> triangleVertices;
@@ -50,15 +49,10 @@ public:
     std::map<LdrColor *, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
 
     std::vector<std::pair<LdrColor *, glm::mat4>> instances;
-    std::vector<glm::mat4> parentInstances;
-
-    std::set<Mesh *> subMeshes;
-
-    MeshCollection *collection;
 
     std::string name = "?";
 
-    explicit Mesh(MeshCollection *collection);
+    Mesh()=default;
 
     void addLdrFile(const LdrFile &file);
 
@@ -86,10 +80,6 @@ public:
 
     std::vector<TriangleVertex> *getVerticesList(LdrColor *color);
 
-    void addInstance(LdrColor *color, glm::mat4 transformation);
-    void addParentInstance(glm::mat4 transformation);
-    void addSubMesh(Mesh *newSubMesh);
-
     void initializeGraphics();
 
     void drawGraphics(const Shader *triangleShader);
@@ -109,8 +99,6 @@ private:
 
     void bindBuffers(LdrColor *color);
 
-    size_t getTotalInstanceCount() const;
-
     Instance * generateInstancesArray(const LdrColor *color);
 };
 
@@ -118,7 +106,7 @@ class MeshCollection {
 public:
     std::map<LdrFile *, Mesh*> meshes;
 
-    MeshCollection();
+    explicit MeshCollection();
 
     void addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 transformation);
 

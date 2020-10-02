@@ -55,7 +55,6 @@ public:
     std::string getDescription();
 private:
     bool subfiles_preloaded_and_complexity_estimated = false;
-    static std::ifstream openFile(const std::string &filename);
 
     void addTextLine(const std::string &line);
 
@@ -88,7 +87,7 @@ public:
     double x, y, z, a, b, c, d, e, f, g, h, i;
     std::string filename;
     int getType() const override;
-
+    glm::mat4 getTransformationMatrix() const;
     LdrFile *getFile();
 
 private:
@@ -179,15 +178,38 @@ public:
 
 };
 
+enum LdrFileType {
+    MODEL,
+    MPD_SUBFILE,
+    PART,
+    SUBPART,
+    PRIMITIVE
+};
+
 class LdrFileRepository {
 public:
     static LdrFile *get_file(const std::string &filename);
 
+    static LdrFileType get_file_type(const std::string &filename);
+
+    static std::pair<LdrFileType, std::string> resolve_file(const std::string &filename);
+
     static void clear_cache();
 
-    static void add_file(const std::string &filename, LdrFile *file);
+    static std::map<std::string, std::pair<LdrFileType, LdrFile*>> files;
 
-    static std::map<std::string, LdrFile*> files;
+    static void add_file(const std::string &filename, LdrFile *file, LdrFileType type);
+
+private:
+    static void initializeNames();
+    static std::string ldrawPartDirectory;
+    static bool namesInitialized;
+
+    //keys: name as lowercase values: name as original case
+    static std::map<std::string, std::string> primitiveNames;
+    static std::map<std::string, std::string> subpartNames;
+    static std::map<std::string, std::string> partNames;
+    static std::map<std::string, std::string> modelNames;
 };
 
 #endif //BRICKSIM_LDR_OBJECTS_H

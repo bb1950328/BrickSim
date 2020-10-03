@@ -63,7 +63,8 @@ ElementTreeLdrNode::ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor) : l
             auto *subFile = sfElement->getFile();
             if (subFile->isComplexEnoughForOwnMesh()) {
                 childrenWithOwnNode.insert(sfElement);
-                auto *newNode = new ElementTreeLdrNode(subFile, sfElement->color);
+                LdrColor *color = sfElement->color->code==16?ldrColor:sfElement->color;
+                auto *newNode = new ElementTreeLdrNode(subFile, color);
                 newNode->setRelativeTransformation(sfElement->getTransformationMatrix());
                 newNode->parent = this;
                 children.push_back(newNode);

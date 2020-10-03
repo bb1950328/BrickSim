@@ -1,4 +1,4 @@
 ldrawPartsLibrary=~/ldraw
 screenWidth=1600
 screenHeight=900
-instancedMinComplexity=2500
+instancedMinComplexity=6000

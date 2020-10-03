@@ -161,7 +161,6 @@ public:
 class LdrInstanceDummyColor : public LdrColor {
 public:
     LdrInstanceDummyColor();
-    explicit LdrInstanceDummyColor(const std::string &line);
 };
 
 class LdrColorRepository {

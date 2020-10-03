@@ -62,7 +62,7 @@ LdrFile* LdrFile::parseFile(const std::filesystem::path & path){
                     continue;
                 } else {
                     currentFile = new LdrFile();
-                    LdrFileRepository::add_file(entry.first, currentFile, SUBPART);
+                    LdrFileRepository::add_file(entry.first, currentFile, MPD_SUBFILE);
                 }
             }
             unsigned long lineCount = entry.second.size();
@@ -486,9 +486,6 @@ RGB::RGB(std::string htmlCode){
     delete [] redChars;
     delete [] greenChars;
     delete [] blueChars;
-}
-LdrInstanceDummyColor::LdrInstanceDummyColor(const std::string & line): LdrInstanceDummyColor() {
-
 }
 LdrInstanceDummyColor::LdrInstanceDummyColor() {
     name = "Instance Dummy Color";

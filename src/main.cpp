@@ -83,7 +83,7 @@ int main() {
     LdrFileRepository::initializeNames();
     auto before = std::chrono::high_resolution_clock::now();
     ElementTree elementTree;
-    elementTree.loadLdrFile("~/Downloads/arocs.mpd");
+    elementTree.loadLdrFile("~/Downloads/arocs_array_3d.ldr");
     //elementTree.print();
     auto between = std::chrono::high_resolution_clock::now();
     MeshCollection meshCollection(&elementTree);
@@ -162,7 +162,7 @@ int main() {
 
         meshCollection.drawGraphics(&triangleShader);
         double end = glfwGetTime();
-        std::cout << "theoretical FPS: " << 1.0/(end-start) << "\n";
+        //std::cout << "theoretical FPS: " << 1.0/(end-start) << "\n";
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

@@ -15,6 +15,7 @@
 #include "config.h"
 #include "util.h"
 #include "element_tree.h"
+#include "mesh_collection.h"
 
 #include <iostream>
 #include <glm/gtx/string_cast.hpp>
@@ -83,8 +84,9 @@ int main() {
     auto before = std::chrono::high_resolution_clock::now();
     ElementTree elementTree;
     elementTree.loadLdrFile("~/Downloads/arocs.mpd");
+    elementTree.print();
     auto between = std::chrono::high_resolution_clock::now();
-    auto meshCollection = MeshCollection(elementTree);
+    MeshCollection meshCollection(&elementTree);
     meshCollection.readElementTree();
     //meshCollection.addLdrFile(LdrColorRepository::getInstance()->get_color(4), mainFile, glm::mat4(1.0f));
     auto after = std::chrono::high_resolution_clock::now();
@@ -101,7 +103,7 @@ int main() {
         }
     }
     std::cout << "meshes count: " << meshCollection.meshes.size() << "\n";
-    std::cout << "main model estimated complexity: " << mainFile->estimatedComplexity << "\n";
+    //std::cout << "main model estimated complexity: " << mainFile->estimatedComplexity << "\n";
     std::cout << "total triangle vertices count: " << triangle_vertices_count << "\n";
     std::cout << "total triangle indices count: " << triangle_indices_count << "\n";
     std::cout << "every triangle vertex is used " << (float)triangle_indices_count / (float)triangle_vertices_count << "times.\n";

@@ -122,13 +122,16 @@ void LdrFile::preLoadSubfilesAndEstimateComplexityInternal(){
         subfiles_preloaded_and_complexity_estimated = true;
     }
 }
-std::string LdrFile::getDescription() {
+std::string LdrFile::getDescription() const {
     for (auto elem : elements) {
         if (elem->getType()==0) {
             return dynamic_cast<LdrCommentOrMetaElement *>(elem)->content;
         }
     }
     return "?";
+}
+bool LdrFile::isComplexEnoughForOwnMesh() const{
+    return estimatedComplexity * referenceCount > Configuration::getInstance()->get_long(config::KEY_INSTANCED_MIN_COMPLEXITY);
 }
 
 LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
@@ -404,6 +407,7 @@ void LdrFileRepository::initializeNames() {
 }
 std::pair<LdrFileType, std::filesystem::path> LdrFileRepository::resolve_file(const std::string & filename) {
     initializeNames();
+    auto filenameWithPlatformSeparators = util::replaceChar(filename, '\\', std::filesystem::path::preferred_separator);
     if (util::starts_with(filename, "s\\")) {
         auto itSubpart = subpartNames.find(util::as_lower(filename.substr(2)));
         if (itSubpart != subpartNames.end()) {
@@ -411,17 +415,17 @@ std::pair<LdrFileType, std::filesystem::path> LdrFileRepository::resolve_file(co
             return std::make_pair(LdrFileType::SUBPART, fullPath);
         }
     }
-    auto itPart = partNames.find(util::as_lower(filename));
+    auto itPart = partNames.find(util::as_lower(filenameWithPlatformSeparators));
     if (partNames.end()!=itPart) {
         auto fullPath = partsDirectory / itPart->second;
         return std::make_pair(LdrFileType::PART, fullPath);
     }
-    auto itPrimitive = primitiveNames.find(util::as_lower(filename));
+    auto itPrimitive = primitiveNames.find(util::as_lower(filenameWithPlatformSeparators));
     if (primitiveNames.end() != itPrimitive) {
         auto fullPath = primitivesDirectory / itPrimitive->second;
         return std::make_pair(LdrFileType::PRIMITIVE, fullPath);
     }
-    auto itModel = modelNames.find(util::as_lower(filename));
+    auto itModel = modelNames.find(util::as_lower(filenameWithPlatformSeparators));
     if (modelNames.end() != itModel) {
         auto fullPath = modelsDirectory / itModel->second;
         return std::make_pair(LdrFileType::MODEL, fullPath);

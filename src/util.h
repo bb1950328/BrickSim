@@ -28,5 +28,6 @@ namespace util {
     bool starts_with(std::string const &fullString, std::string const &start);
     void cout_mat4(glm::mat4 mat);
     void replaceAll(std::string& str, const std::string& from, const std::string& to);
+    std::string replaceChar(const std::string& str, char from, char to);
 }
 #endif //BRICKSIM_UTIL_H

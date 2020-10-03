@@ -48,20 +48,24 @@ public:
     void addToMesh(Mesh *mesh) override;
     LdrFile *ldrFile;
     LdrColor *ldrColor;
+    std::set<LdrSubfileReference *> childrenWithOwnNode;
     /**
      * @param subfileReference
      * @return true if the SubfileReference should be "inlined" in the mesh
      *         false if it has its own mesh
      */
-    bool isAddSubfileReferenceToMesh(LdrSubfileReference *subfileReference);
     ElementTreeNodeType getType() override;
     ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor);
 };
 
 class ElementTree {
-    ElementTreeRootNode rootNode;
 public:
+    ElementTreeRootNode rootNode;
     void loadLdrFile(const std::string &filename);
+    void print();
+
+private:
+    void printFromNode(int indent, ElementTreeNode *node);
 };
 
 #endif //BRICKSIM_ELEMENT_TREE_H

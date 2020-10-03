@@ -53,7 +53,9 @@ public:
 
     void preLoadSubfilesAndEstimateComplexity();
 
-    std::string getDescription();
+    std::string getDescription() const ;
+
+    bool isComplexEnoughForOwnMesh() const;
 private:
     bool subfiles_preloaded_and_complexity_estimated = false;
 

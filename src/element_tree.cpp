@@ -32,17 +32,6 @@ ElementTreeNodeType ElementTreeNode::getType() {
     return ET_TYPE_OTHER;
 }
 
-bool ElementTreeLdrNode::isAddSubfileReferenceToMesh(LdrSubfileReference *subfileReference) {
-    for (const auto &child: children) {
-        if (child->getType() == ElementTreeNodeType::ET_TYPE_LDRFILE) {
-            if (dynamic_cast<ElementTreeLdrNode *>(child)->ldrFile == subfileReference->getFile()) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
 void ElementTreeLdrNode::addToMesh(Mesh *mesh) {
     for (auto element : ldrFile->elements) {
         switch (element->getType()) {
@@ -50,7 +39,7 @@ void ElementTreeLdrNode::addToMesh(Mesh *mesh) {
                 break;
             case 1: {
                 auto *sfElement = dynamic_cast<LdrSubfileReference *>(element);
-                if (isAddSubfileReferenceToMesh(sfElement)) {
+                if (childrenWithOwnNode.find(sfElement)==childrenWithOwnNode.end()) {
                     mesh->addLdrSubfileReference(ldrColor, sfElement, glm::mat4(1.0f));
                 }
             }
@@ -76,11 +65,12 @@ ElementTreeLdrNode::ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor) : l
         if (element->getType() == 1) {
             auto *sfElement = dynamic_cast<LdrSubfileReference *>(element);
             auto *subFile = sfElement->getFile();
-            unsigned long long int totalComplexity = subFile->estimatedComplexity * subFile->referenceCount;
-            if (totalComplexity > Configuration::getInstance()->get_long(config::KEY_INSTANCED_MIN_COMPLEXITY)) {
+            if (subFile->isComplexEnoughForOwnMesh()) {
+                childrenWithOwnNode.insert(sfElement);
                 auto *newNode = new ElementTreeLdrNode(subFile, sfElement->color);
                 newNode->setRelativeTransformation(sfElement->getTransformationMatrix());
                 newNode->parent = this;
+                children.push_back(newNode);
             }
         }
     }
@@ -93,6 +83,20 @@ ElementTreeNodeType ElementTreeLdrNode::getType() {
 void ElementTree::loadLdrFile(const std::string &filename) {
     auto *newNode = new ElementTreeLdrNode(LdrFileRepository::get_file(filename), LdrColorRepository::getInstance()->get_color(1));
     rootNode.children.push_back(newNode);
+}
+
+void ElementTree::print() {
+    printFromNode(0, &rootNode);
+}
+
+void ElementTree::printFromNode(int indent, ElementTreeNode *node) {
+    for (int i = 0; i < indent; ++i) {
+        std::cout << ' ';
+    }
+    std::cout << node->displayName << std::endl;
+    for (const auto &child: node->children) {
+        printFromNode(indent+2, child);
+    }
 }
 
 ElementTreeNodeType ElementTreeRootNode::getType() {

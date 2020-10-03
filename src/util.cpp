@@ -78,4 +78,16 @@ namespace util {
             start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
         }
     }
+
+    std::string replaceChar(const std::string &str, char from, char to) {
+        std::string result(str);
+        if (from != to) {
+            for (char & i : result) {
+                if (i==from) {
+                    i = to;
+                }
+            }
+        }
+        return result;
+    }
 }

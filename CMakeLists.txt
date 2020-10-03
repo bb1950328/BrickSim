@@ -22,7 +22,7 @@ add_executable(BrickSim
         src/shaders/shader.cpp
         src/element_tree.cpp
         src/element_tree.h
-        )
+        src/mesh_collection.cpp src/mesh_collection.h)
 
 # On Ubuntu, I had to sudo apt install mesa-utils freeglut3-dev libglfw3-dev
 # and add the files from https://glad.dav1d.de to /usr/include and the project folder

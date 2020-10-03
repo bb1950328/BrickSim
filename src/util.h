@@ -20,6 +20,7 @@ namespace util {
 #endif
 
     std::string extend_home_dir(const std::string &input);
+    std::filesystem::path extend_home_dir_path(const std::string &input);
     std::string trim(const std::string& input);
     std::string pathjoin(const std::list<std::string>& parts);
     std::string as_lower(const std::string& string);

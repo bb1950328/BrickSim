@@ -23,7 +23,7 @@ public:
 private:
     glm::mat4 relativeTransformation = glm::mat4(1.0f);
 public:
-    const glm::mat4 &getRelativeTransformation() const;
+    [[nodiscard]] const glm::mat4 &getRelativeTransformation() const;
 
     void setRelativeTransformation(const glm::mat4 &newValue);
 

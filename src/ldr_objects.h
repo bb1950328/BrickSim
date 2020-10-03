@@ -9,6 +9,7 @@ static const int MAX_LDR_FILENAME_LENGTH = 255;
 
 #include <vector>
 #include <map>
+#include <filesystem>
 #include <glm/glm.hpp>
 
 class LdrFileElement;
@@ -21,7 +22,7 @@ struct RGB {
     explicit RGB(std::string htmlCode);
 
     unsigned char red, green, blue;
-    glm::vec3 asGlmVector() const;
+    [[nodiscard]] glm::vec3 asGlmVector() const;
 };
 
 struct LdrColorMaterial {
@@ -42,7 +43,7 @@ class LdrFile {
 public:
     unsigned long long estimatedComplexity = 0;
     unsigned int referenceCount = 0;
-    static LdrFile* parseFile(const std::string &filename);
+    static LdrFile* parseFile(const std::filesystem::path &path);
 
     LdrFile() = default;
 
@@ -65,7 +66,7 @@ class LdrFileElement {
 public:
     static LdrFileElement *parse_line(std::string line);
 
-    virtual int getType() const = 0;
+    [[nodiscard]] virtual int getType() const = 0;
 };
 
 class LdrCommentOrMetaElement : public LdrFileElement {
@@ -75,7 +76,7 @@ public:
 
     std::string content;
 
-    int getType() const override;
+    [[nodiscard]] int getType() const override;
 };
 
 class LdrSubfileReference : public LdrFileElement {
@@ -86,8 +87,8 @@ public:
     LdrColor *color;
     double x, y, z, a, b, c, d, e, f, g, h, i;
     std::string filename;
-    int getType() const override;
-    glm::mat4 getTransformationMatrix() const;
+    [[nodiscard]] int getType() const override;
+    [[nodiscard]] glm::mat4 getTransformationMatrix() const;
     LdrFile *getFile();
 
 private:
@@ -101,7 +102,7 @@ public:
 
     explicit LdrLine(const std::string &line);
 
-    int getType() const override;
+    [[nodiscard]] int getType() const override;
 };
 
 class LdrTriangle : public LdrFileElement {
@@ -111,7 +112,7 @@ public:
 
     explicit LdrTriangle(const std::string &line);
 
-    int getType() const override;
+    [[nodiscard]] int getType() const override;
 };
 
 class LdrQuadrilateral : public LdrFileElement {
@@ -121,7 +122,7 @@ public:
 
     explicit LdrQuadrilateral(const std::string &line);
 
-    int getType() const override;
+    [[nodiscard]] int getType() const override;
 };
 
 class LdrOptionalLine : public LdrFileElement {
@@ -132,7 +133,7 @@ public:
 
     explicit LdrOptionalLine(const std::string &line);
 
-    int getType() const override;
+    [[nodiscard]] int getType() const override;
 };
 
 class LdrColor {
@@ -192,7 +193,7 @@ public:
 
     static LdrFileType get_file_type(const std::string &filename);
 
-    static std::pair<LdrFileType, std::string> resolve_file(const std::string &filename);
+    static std::pair<LdrFileType, std::filesystem::path> resolve_file(const std::string &filename);
 
     static void clear_cache();
 
@@ -200,16 +201,20 @@ public:
 
     static void add_file(const std::string &filename, LdrFile *file, LdrFileType type);
 
-private:
     static void initializeNames();
-    static std::string ldrawPartDirectory;
+private:
+    static std::filesystem::path ldrawDirectory;
+    static std::filesystem::path partsDirectory;
+    static std::filesystem::path subpartsDirectory;
+    static std::filesystem::path primitivesDirectory;
+    static std::filesystem::path modelsDirectory;
     static bool namesInitialized;
 
     //keys: name as lowercase values: name as original case
-    static std::map<std::string, std::string> primitiveNames;
-    static std::map<std::string, std::string> subpartNames;
-    static std::map<std::string, std::string> partNames;
-    static std::map<std::string, std::string> modelNames;
+    static std::map<std::string, std::filesystem::path> primitiveNames;
+    static std::map<std::string, std::filesystem::path> subpartNames;
+    static std::map<std::string, std::filesystem::path> partNames;
+    static std::map<std::string, std::filesystem::path> modelNames;
 };
 
 #endif //BRICKSIM_LDR_OBJECTS_H

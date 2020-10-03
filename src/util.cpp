@@ -5,18 +5,21 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 #include <iostream>
+#include <filesystem>
 #include <glm/gtx/string_cast.hpp>
 #include "util.h"
 
 namespace util {
     std::string extend_home_dir(const std::string &input) {
-        std::string output = std::string(input);
-        auto home_pos = output.find('~');
-        if (home_pos != std::string::npos) {
+        return extend_home_dir_path(input).string();
+    }
 
-            output.replace(home_pos, 1, getenv(USER_ENV_VAR));
+    std::filesystem::path extend_home_dir_path(const std::string &input) {
+        if (input[0]=='~' && (input[1]=='/' || input[1]=='\\')) {
+            return std::filesystem::path(getenv(USER_ENV_VAR)) / std::filesystem::path(input.substr(2));
+        } else {
+            return std::filesystem::path(input);
         }
-        return output;
     }
 
     std::string trim(const std::string &input) {

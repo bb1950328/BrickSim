@@ -6,6 +6,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iostream>
+#include <filesystem>
 #include <glm/gtx/string_cast.hpp>
 #include "ldr_objects.h"
 #include "util.h"
@@ -26,15 +27,15 @@ LdrFileElement *LdrFileElement::parse_line(std::string line) {
     }
 }
 
-LdrFile* LdrFile::parseFile(const std::string & filename){
+LdrFile* LdrFile::parseFile(const std::filesystem::path & path){
     auto mainFile = new LdrFile();
-    std::ifstream input(filename);
+    std::ifstream input(path);
     if (!input.good()) {
-        throw std::invalid_argument("can't open file \""+filename+"\"");
+        throw std::invalid_argument("can't open file \"" + path.string() + "\"");
     }
-    bool isMpd = util::ends_with(filename, ".mpd");
+    bool isMpd = path.extension() == ".mpd";
     if (isMpd) {
-        std::string currentSubFileName = filename;
+        std::string currentSubFileName = path.string();
         std::map<std::string, std::list<std::string>> fileLines;
         bool firstFile = true;
         for (std::string line; getline(input, line);) {
@@ -53,7 +54,7 @@ LdrFile* LdrFile::parseFile(const std::string & filename){
         //todo process files with subfile references at the end or compute dependencies
         for (auto const& entry: fileLines) {
             LdrFile* currentFile;
-            if (entry.first==filename) {
+            if (entry.first == path) {
                 currentFile = mainFile;
             } else {
                 if (util::starts_with(entry.second.front(), "0 !: ")) {
@@ -93,9 +94,6 @@ void LdrFile::printStructure(int indent) {
                 std::cout << "\t";
             }
             std::cout << subfileRef->filename << "\n";
-            if (util::starts_with(subfileRef->filename, "42043")) {
-                int i = 5;//todo remove
-            }
             subfileRef->getFile()->printStructure(indent+1);
         }
     }
@@ -323,12 +321,16 @@ void LdrColorRepository::initialize(){
 
 
 std::map<std::string, std::pair<LdrFileType, LdrFile*>> LdrFileRepository::files;
-std::string LdrFileRepository::ldrawPartDirectory;
+std::filesystem::path LdrFileRepository::ldrawDirectory;
+std::filesystem::path LdrFileRepository::partsDirectory;
+std::filesystem::path LdrFileRepository::subpartsDirectory;
+std::filesystem::path LdrFileRepository::primitivesDirectory;
+std::filesystem::path LdrFileRepository::modelsDirectory;
 bool LdrFileRepository::namesInitialized;
-std::map<std::string, std::string> LdrFileRepository::primitiveNames;
-std::map<std::string, std::string> LdrFileRepository::subpartNames;
-std::map<std::string, std::string> LdrFileRepository::partNames;
-std::map<std::string, std::string> LdrFileRepository::modelNames;
+std::map<std::string, std::filesystem::path> LdrFileRepository::primitiveNames;
+std::map<std::string, std::filesystem::path> LdrFileRepository::subpartNames;
+std::map<std::string, std::filesystem::path> LdrFileRepository::partNames;
+std::map<std::string, std::filesystem::path> LdrFileRepository::modelNames;
 
 LdrFile *LdrFileRepository::get_file(const std::string &filename) {
     auto iterator = files.find(filename);
@@ -357,39 +359,73 @@ void LdrFileRepository::clear_cache(){
 }
 void LdrFileRepository::initializeNames() {
     if (!namesInitialized) {
-        ldrawPartDirectory = Configuration::getInstance()->get_string(config::KEY_LDRAW_PARTS_LIBRARY);
-        //todo implement using boost::filesystem
-        /*subpartNames.insert("abc123.dat", "aBc123.DaT");
-        partNames.insert("abc123.dat", "AbC123.dAt");
-        primitiveNames.insert("1-4ccyli.dat", "1-4cCyLi.DaT");
-        primitiveNames.insert("8\\1-4ccyli.dat", "8\\1-4cCyLi.DaT");
-        modelNames.insert("car.ldr", "cAr.LdR");*/
+        auto before = std::chrono::high_resolution_clock::now();
+        ldrawDirectory = util::extend_home_dir_path(Configuration::getInstance()->get_string(config::KEY_LDRAW_PARTS_LIBRARY));
+        partsDirectory = ldrawDirectory / std::filesystem::path("parts");
+        subpartsDirectory = partsDirectory / std::filesystem::path("s");
+        primitivesDirectory = ldrawDirectory / std::filesystem::path("p");
+        modelsDirectory = ldrawDirectory / std::filesystem::path("models");
+        std::cout << "ldraw dir: " << ldrawDirectory << std::endl;
+        //todo code duplication
+        for (const auto & entry : std::filesystem::directory_iterator(partsDirectory)) {
+            if (entry.is_regular_file()) {
+                auto fname = entry.path().filename();
+                partNames[util::as_lower(fname.string())] = fname;
+            }
+        }
+        for (const auto & entry : std::filesystem::directory_iterator(subpartsDirectory)) {
+            if (entry.is_regular_file()) {
+                auto fname = entry.path().filename();
+                subpartNames[util::as_lower(fname.string())] = fname;
+            }
+        }
+        for (const auto & entry : std::filesystem::recursive_directory_iterator(primitivesDirectory)) {
+            if (entry.is_regular_file()) {
+                const auto& fname = std::filesystem::relative(entry.path(), primitivesDirectory);
+                primitiveNames[util::as_lower(fname.string())] = fname;
+            }
+        }
+        for (const auto & entry : std::filesystem::recursive_directory_iterator(modelsDirectory)) {
+            if (entry.is_regular_file()) {
+                const auto& fname = std::filesystem::relative(entry.path(), modelsDirectory);
+                modelNames[util::as_lower(fname.string())] = fname;
+            }
+        }
         namesInitialized = true;
+        auto after = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(after-before).count();
+        std::cout << "Initialized name lists in " << duration << "ms. found:" << std::endl;
+        std::cout << "\t" << partNames.size() << " parts in " << partsDirectory.string() << "(first is " << partNames.begin()->second << ")" << std::endl;
+        std::cout << "\t" << subpartNames.size() << " subparts in " << subpartsDirectory.string()  << "(first is " << subpartNames.begin()->second << ")"<< std::endl;
+        std::cout << "\t" << primitiveNames.size() << " primitives in " << primitivesDirectory.string()  << "(first is " << primitiveNames.begin()->second << ")"<< std::endl;
+        std::cout << "\t" << modelNames.size() << " files in " << modelsDirectory.string()  << "(first is " << modelNames.begin()->second << ")"<< std::endl;
     }
 }
-std::pair<LdrFileType, std::string> LdrFileRepository::resolve_file(const std::string & filename) {
-    //todo more robust method to join paths and case-insensitive map search
-    /*initializeNames();
+std::pair<LdrFileType, std::filesystem::path> LdrFileRepository::resolve_file(const std::string & filename) {
+    initializeNames();
     if (util::starts_with(filename, "s\\")) {
-        auto fullPath = ldrawPartDirectory + "/parts/s/" + subpartNames.find(filename*//*.lower*//*)->second;
-        return std::make_pair(LdrFileType::SUBPART, fullPath);
+        auto itSubpart = subpartNames.find(util::as_lower(filename.substr(2)));
+        if (itSubpart != subpartNames.end()) {
+            auto fullPath = subpartsDirectory / itSubpart->second;
+            return std::make_pair(LdrFileType::SUBPART, fullPath);
+        }
     }
-    auto itPart = partNames.find(filename*//*.lower*//*);
+    auto itPart = partNames.find(util::as_lower(filename));
     if (partNames.end()!=itPart) {
-        auto fullPath = ldrawPartDirectory + "/parts/" + itPart->second;
+        auto fullPath = partsDirectory / itPart->second;
         return std::make_pair(LdrFileType::PART, fullPath);
     }
-    auto itPrimitive = primitiveNames.find(filename*//*.lower*//*);
+    auto itPrimitive = primitiveNames.find(util::as_lower(filename));
     if (primitiveNames.end() != itPrimitive) {
-        auto fullPath = ldrawPartDirectory + "/p/" + itPrimitive->second;
+        auto fullPath = primitivesDirectory / itPrimitive->second;
         return std::make_pair(LdrFileType::PRIMITIVE, fullPath);
     }
-    auto itModel = modelNames.find(filename*//*.lower*//*);
+    auto itModel = modelNames.find(util::as_lower(filename));
     if (modelNames.end() != itModel) {
-        auto fullPath = ldrawPartDirectory + "/models/" + itModel->second;
+        auto fullPath = modelsDirectory / itModel->second;
         return std::make_pair(LdrFileType::MODEL, fullPath);
-    }*/
-    return std::make_pair(LdrFileType::MODEL, util::extend_home_dir(filename));
+    }
+    return std::make_pair(LdrFileType::MODEL, util::extend_home_dir_path(filename));
 }
 
 int LdrCommentOrMetaElement::getType() const{

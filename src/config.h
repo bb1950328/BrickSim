@@ -19,11 +19,11 @@ private:
 public:
     static Configuration* getInstance();
 
-    std::string get_string(const std::string &key) const;
+    [[nodiscard]] std::string get_string(const std::string &key) const;
 
-    long get_long(const std::string &key) const;
+    [[nodiscard]] long get_long(const std::string &key) const;
 
-    double get_double(const std::string &key) const;
+    [[nodiscard]] double get_double(const std::string &key) const;
 };
 
 namespace config {

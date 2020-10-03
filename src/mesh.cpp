@@ -368,4 +368,4 @@ void MeshCollection::deallocateGraphics() {
     }
 }
 
-MeshCollection::MeshCollection() {}
+MeshCollection::MeshCollection() = default;

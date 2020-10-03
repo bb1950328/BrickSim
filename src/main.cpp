@@ -78,8 +78,9 @@ int main() {
 
     Shader triangleShader("src/shaders/shader.vsh", "src/shaders/shader.fsh");
 
+    LdrFileRepository::initializeNames();
     auto before = std::chrono::high_resolution_clock::now();
-    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/arocs_array.ldr");
+    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/arocs.mpd");
     mainFile->preLoadSubfilesAndEstimateComplexity();
     //mainFile->printStructure();
     auto between = std::chrono::high_resolution_clock::now();

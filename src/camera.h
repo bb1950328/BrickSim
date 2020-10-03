@@ -26,10 +26,10 @@ private:
     void updateVectors();
 public:
     CadCamera();
-    glm::mat4 getViewMatrix() const;
+    [[nodiscard]] glm::mat4 getViewMatrix() const;
     void mouseRotate(float x_delta, float y_delta);
     void mousePan(float x_delta, float y_delta);
     void moveForwardBackward(float delta);
-    const glm::vec3 &getCameraPos() const;
+    [[nodiscard]] const glm::vec3 &getCameraPos() const;
 };
 #endif //BRICKSIM_CAMERA_H

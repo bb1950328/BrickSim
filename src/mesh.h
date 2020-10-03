@@ -11,7 +11,6 @@
 #include "ldr_objects.h"
 #include "shaders/shader.h"
 #include "camera.h"
-#include "element_tree.h"
 
 struct TriangleVertex {
     //TriangleVertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color);

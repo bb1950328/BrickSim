@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(BrickSim)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 add_executable(BrickSim
         src/main.cpp

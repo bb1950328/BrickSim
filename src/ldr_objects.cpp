@@ -323,6 +323,12 @@ void LdrColorRepository::initialize(){
 
 
 std::map<std::string, std::pair<LdrFileType, LdrFile*>> LdrFileRepository::files;
+std::string LdrFileRepository::ldrawPartDirectory;
+bool LdrFileRepository::namesInitialized;
+std::map<std::string, std::string> LdrFileRepository::primitiveNames;
+std::map<std::string, std::string> LdrFileRepository::subpartNames;
+std::map<std::string, std::string> LdrFileRepository::partNames;
+std::map<std::string, std::string> LdrFileRepository::modelNames;
 
 LdrFile *LdrFileRepository::get_file(const std::string &filename) {
     auto iterator = files.find(filename);

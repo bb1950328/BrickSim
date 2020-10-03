@@ -13,10 +13,6 @@ public:
 
     std::map<LdrFile *, Mesh*> meshes;
 
-    void addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 transformation);
-
-    void addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 transformation, Mesh *parentMesh);
-
     void initializeGraphics();
 
     void drawGraphics(Shader *triangleShader);

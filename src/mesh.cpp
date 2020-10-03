@@ -166,7 +166,7 @@ void Mesh::addLineVertex(const LineVertex &vertex) {
 }
 
 void Mesh::initializeGraphics() {
-    std::cout << "Mesh " << name << " Total Instance Count: " << instances.size() << std::endl;
+    //std::cout << "Mesh " << name << " Total Instance Count: " << instances.size() << std::endl;
     for (const auto &entry: triangleIndices) {
         LdrColor *color = entry.first;
         std::vector<unsigned int> *indices = entry.second;

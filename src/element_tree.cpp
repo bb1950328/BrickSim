@@ -18,11 +18,7 @@ void ElementTreeNode::setRelativeTransformation(const glm::mat4 &newValue) {
 
 const glm::mat4 &ElementTreeNode::getAbsoluteTransformation() {
     if (!absoluteTransformationValid) {
-        if (nullptr != parent) {
-            absoluteTransformation = parent->getAbsoluteTransformation() * relativeTransformation;
-        } else {
-            absoluteTransformation = relativeTransformation;
-        }
+        absoluteTransformation =  relativeTransformation * parent->getAbsoluteTransformation();
         absoluteTransformationValid = true;
     }
     return absoluteTransformation;
@@ -83,6 +79,7 @@ ElementTreeNodeType ElementTreeLdrNode::getType() {
 void ElementTree::loadLdrFile(const std::string &filename) {
     auto *newNode = new ElementTreeLdrNode(LdrFileRepository::get_file(filename), LdrColorRepository::getInstance()->get_color(1));
     rootNode.children.push_back(newNode);
+    newNode->parent = &rootNode;
 }
 
 void ElementTree::print() {

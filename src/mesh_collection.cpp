@@ -4,15 +4,6 @@
 
 #include <zconf.h>
 #include "mesh_collection.h"
-void MeshCollection::addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 transformation) {
-    addLdrFile(mainColor, file, transformation, nullptr);
-}
-
-void MeshCollection::addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 transformation, Mesh *parentMesh) {
-    //auto pair = std::make_pair(mainColor, transformation);
-    //todo rewrite this method with elementTree
-
-}
 
 void MeshCollection::initializeGraphics() {
     for (const auto &pair: meshes) {

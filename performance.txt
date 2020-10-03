@@ -1,5 +1,6 @@
 *TEST 1: MIN COMPLEXITY OF SUBMESH*
 Test Model: Lego Technic Arocs Set
+Code Revision: 03.10.2020 15:44 ae9e26a372a00bb83a85298539df9554c77c8ab8
 limit	RAM (MiB)	VRAM (MiB)	FPS	    mesh time (ms)
 --------------------------------------------------------
 100     336	        40	        1000	675

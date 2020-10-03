@@ -338,6 +338,7 @@ LdrFile *LdrFileRepository::get_file(const std::string &filename) {
         auto typeNamePair = resolve_file(filename);
         LdrFile* file = LdrFile::parseFile(typeNamePair.second);
         files[filename] = std::make_pair(typeNamePair.first, file);
+        file->preLoadSubfilesAndEstimateComplexity();
         return file;
     }
     return (iterator->second.second);

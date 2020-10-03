@@ -11,6 +11,7 @@
 #include "ldr_objects.h"
 #include "shaders/shader.h"
 #include "camera.h"
+#include "element_tree.h"
 
 struct TriangleVertex {
     //TriangleVertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color);
@@ -103,9 +104,9 @@ private:
 
 class MeshCollection {
 public:
-    std::map<LdrFile *, Mesh*> meshes;
+    MeshCollection(ElementTree *elementTree);
 
-    explicit MeshCollection();
+    std::map<LdrFile *, Mesh*> meshes;
 
     void addLdrFile(LdrColor *mainColor, LdrFile *file, glm::mat4 transformation);
 
@@ -116,6 +117,10 @@ public:
     void drawGraphics(Shader *triangleShader);
 
     void deallocateGraphics();
+
+    void readElementTree();
+private:
+    ElementTree *elementTree;
 };
 
 #endif //BRICKSIM_MESH_H

@@ -14,6 +14,7 @@
 #include "camera.h"
 #include "config.h"
 #include "util.h"
+#include "element_tree.h"
 
 #include <iostream>
 #include <glm/gtx/string_cast.hpp>
@@ -80,12 +81,12 @@ int main() {
 
     LdrFileRepository::initializeNames();
     auto before = std::chrono::high_resolution_clock::now();
-    LdrFile *mainFile = LdrFileRepository::get_file("~/Downloads/arocs.mpd");
-    mainFile->preLoadSubfilesAndEstimateComplexity();
-    //mainFile->printStructure();
+    ElementTree elementTree;
+    elementTree.loadLdrFile("~/Downloads/arocs.mpd");
     auto between = std::chrono::high_resolution_clock::now();
-    auto meshCollection = MeshCollection();
-    meshCollection.addLdrFile(LdrColorRepository::getInstance()->get_color(4), mainFile, glm::mat4(1.0f));
+    auto meshCollection = MeshCollection(elementTree);
+    meshCollection.readElementTree();
+    //meshCollection.addLdrFile(LdrColorRepository::getInstance()->get_color(4), mainFile, glm::mat4(1.0f));
     auto after = std::chrono::high_resolution_clock::now();
     long ms_load = std::chrono::duration_cast<std::chrono::milliseconds>(between - before).count();
     long ms_mesh = std::chrono::duration_cast<std::chrono::milliseconds>(after - between).count();

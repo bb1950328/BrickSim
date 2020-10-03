@@ -368,4 +368,10 @@ void MeshCollection::deallocateGraphics() {
     }
 }
 
-MeshCollection::MeshCollection() = default;
+void MeshCollection::readElementTree() {
+    //todo implement set all instances
+}
+
+MeshCollection::MeshCollection(ElementTree *elementTree) {
+    this->elementTree = elementTree;
+}

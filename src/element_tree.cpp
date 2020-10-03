@@ -89,3 +89,21 @@ ElementTreeLdrNode::ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor) : l
 ElementTreeNodeType ElementTreeLdrNode::getType() {
     return ET_TYPE_LDRFILE;
 }
+
+void ElementTree::loadLdrFile(const std::string &filename) {
+    auto *newNode = new ElementTreeLdrNode(LdrFileRepository::get_file(filename), LdrColorRepository::getInstance()->get_color(1));
+    rootNode.children.push_back(newNode);
+}
+
+ElementTreeNodeType ElementTreeRootNode::getType() {
+    return ET_TYPE_ROOT;
+}
+
+void ElementTreeRootNode::addToMesh(Mesh *mesh) {
+}
+
+ElementTreeRootNode::ElementTreeRootNode() {
+    displayName = "Root";
+    absoluteTransformation = relativeTransformation;
+    absoluteTransformationValid = true;
+}

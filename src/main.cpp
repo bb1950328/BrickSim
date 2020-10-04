@@ -72,6 +72,11 @@ GLFWwindow* initialize() {
     return window;
 }
 
+void setProjectionMatrix(const Shader &triangleShader, float aspect) {
+    glm::mat4 projection = glm::perspective(glm::radians(50.0f), aspect, 0.1f, 1000.0f);
+    triangleShader.setMat4("projection", projection);
+}
+
 int main() {
     auto window = initialize();
     if (window== nullptr) {
@@ -83,7 +88,7 @@ int main() {
     LdrFileRepository::initializeNames();
     auto before = std::chrono::high_resolution_clock::now();
     ElementTree elementTree;
-    elementTree.loadLdrFile("~/Downloads/arocs_array_3d.ldr");
+    elementTree.loadLdrFile("~/Downloads/arocs_array.ldr");
     //elementTree.print();
     auto between = std::chrono::high_resolution_clock::now();
     MeshCollection meshCollection(&elementTree);
@@ -143,11 +148,8 @@ int main() {
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        triangleShader.use();
-
         float aspect = (float) SCR_WIDTH / (float) SCR_HEIGHT;
-        glm::mat4 projection = glm::perspective(glm::radians(50.0f), aspect, 0.1f,1000.0f);
-        triangleShader.setMat4("projection", projection);
+        setProjectionMatrix(triangleShader, aspect);
 
         glm::mat4 view = camera.getViewMatrix();
         triangleShader.setMat4("view", view);

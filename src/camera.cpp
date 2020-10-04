@@ -39,7 +39,6 @@ void CadCamera::mousePan(float x_delta, float y_delta) {
 void CadCamera::moveForwardBackward(float delta) {
     distance-= delta * mouseScrollSensitivity;
     distance = std::max(1.0f, distance);
-    std::cout << distance << "\n";
     updateVectors();
 }
 

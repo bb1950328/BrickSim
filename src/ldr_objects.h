@@ -53,15 +53,17 @@ public:
 
     void preLoadSubfilesAndEstimateComplexity();
 
-    std::string getDescription() const ;
+    [[nodiscard]] std::string getDescription() const ;
 
-    bool isComplexEnoughForOwnMesh() const;
+    [[nodiscard]] bool isComplexEnoughForOwnMesh() const;
 private:
     bool subfiles_preloaded_and_complexity_estimated = false;
 
     void addTextLine(const std::string &line);
 
     void preLoadSubfilesAndEstimateComplexityInternal();
+
+    static long instancedMinComplexity;
 };
 
 class LdrFileElement {

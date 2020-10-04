@@ -29,6 +29,7 @@ ElementTreeNodeType ElementTreeNode::getType() {
 }
 
 void ElementTreeLdrNode::addToMesh(Mesh *mesh) {
+    LdrInstanceDummyColor *dummyColor = &LdrColorRepository::instDummyColor;
     for (auto element : ldrFile->elements) {
         switch (element->getType()) {
             case 0:
@@ -36,18 +37,18 @@ void ElementTreeLdrNode::addToMesh(Mesh *mesh) {
             case 1: {
                 auto *sfElement = dynamic_cast<LdrSubfileReference *>(element);
                 if (childrenWithOwnNode.find(sfElement)==childrenWithOwnNode.end()) {
-                    mesh->addLdrSubfileReference(ldrColor, sfElement, glm::mat4(1.0f));
+                    mesh->addLdrSubfileReference(dummyColor, sfElement, glm::mat4(1.0f));
                 }
             }
                 break;
             case 2:
-                mesh->addLdrLine(ldrColor, dynamic_cast<LdrLine &&>(*element), glm::mat4(1.0f));
+                mesh->addLdrLine(dummyColor, dynamic_cast<LdrLine &&>(*element), glm::mat4(1.0f));
                 break;
             case 3:
-                mesh->addLdrTriangle(ldrColor, dynamic_cast<LdrTriangle &&>(*element), glm::mat4(1.0f));
+                mesh->addLdrTriangle(dummyColor, dynamic_cast<LdrTriangle &&>(*element), glm::mat4(1.0f));
                 break;
             case 4:
-                mesh->addLdrQuadrilateral(ldrColor, dynamic_cast<LdrQuadrilateral &&>(*element), glm::mat4(1.0f));
+                mesh->addLdrQuadrilateral(dummyColor, dynamic_cast<LdrQuadrilateral &&>(*element), glm::mat4(1.0f));
                 break;
             case 5:
                 break;//todo implement optional lines

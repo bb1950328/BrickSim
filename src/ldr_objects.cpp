@@ -130,8 +130,14 @@ std::string LdrFile::getDescription() const {
     }
     return "?";
 }
-bool LdrFile::isComplexEnoughForOwnMesh() const{
-    return estimatedComplexity * referenceCount > Configuration::getInstance()->get_long(config::KEY_INSTANCED_MIN_COMPLEXITY);
+
+long LdrFile::instancedMinComplexity = -1;
+
+bool LdrFile::isComplexEnoughForOwnMesh() const {
+    if (instancedMinComplexity==-1) {
+        instancedMinComplexity = Configuration::getInstance()->get_long(config::KEY_INSTANCED_MIN_COMPLEXITY);
+    }
+    return estimatedComplexity * referenceCount > instancedMinComplexity;
 }
 
 LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {

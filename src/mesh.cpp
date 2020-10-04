@@ -5,7 +5,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <iostream>
 #include "mesh.h"
 #include "camera.h"
 #include "config.h"
@@ -193,11 +192,6 @@ void Mesh::initializeGraphics() {
 
         //instanceVbo
         auto instancesArray = generateInstancesArray(color);
-        /*std::cout << color->name << std::endl;
-        for (int i = 0; i < instance_count; ++i) {
-            util::cout_mat4(instancesArray[i].transformation);
-        }
-        std::cout << "--------------------------------------------------------\n";*/
 
         glGenBuffers(1, &instanceVbo);
         glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
@@ -306,10 +300,8 @@ Instance *Mesh::generateInstancesArray(const LdrColor *color) {
     //todo optimize this method
     if (color == &LdrColorRepository::instDummyColor) {
         for (auto &instPair : instances) {
-            Instance inst{};
-            inst.transformation = glm::transpose(instPair.second * globalModel);
-            setInstanceColor(&inst, instPair.first);
-            instancesArray[arr_cursor] = inst;
+            instancesArray[arr_cursor].transformation = glm::transpose(instPair.second * globalModel);
+            setInstanceColor(&instancesArray[arr_cursor], instPair.first);
             arr_cursor++;
         }
     } else {
@@ -323,11 +315,4 @@ Instance *Mesh::generateInstancesArray(const LdrColor *color) {
     }
     return instancesArray;
 }
-
-
-/*TriangleVertex::TriangleVertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color) {
-    this->position = 0.1f*position;
-    this->color = color;
-    this->normal = normal;
-}*/
 

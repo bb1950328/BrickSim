@@ -89,7 +89,7 @@ int main() {
     LdrFileRepository::initializeNames();
     auto before = std::chrono::high_resolution_clock::now();
     ElementTree elementTree;
-    elementTree.loadLdrFile("~/Downloads/arocs_array.ldr");
+    elementTree.loadLdrFile("~/Downloads/arocs.mpd");
     //elementTree.print();
     auto between = std::chrono::high_resolution_clock::now();
     MeshCollection meshCollection(&elementTree);
@@ -144,6 +144,8 @@ int main() {
     triangleShader.setVec3("light.diffuse", diffuseColor);
     triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
+    int i_frame = 64;
+    double time_sum = 0.0;
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
         double start = glfwGetTime();
@@ -165,8 +167,14 @@ int main() {
         triangleShader.setVec3("viewPos", camera.getCameraPos());
 
         meshCollection.drawGraphics(&triangleShader);
-        double end = glfwGetTime();
-        //std::cout << "theoretical FPS: " << 1.0/(end-start) << "\n";
+        if (i_frame!=0) {
+            double end = glfwGetTime();
+            time_sum += (end-start);
+            i_frame--;
+            if (i_frame==0) {
+                std::cout << "theoretical FPS: " << 1.0/time_sum*64 << "\n";
+            }
+        }
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

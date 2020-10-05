@@ -135,10 +135,10 @@ std::string LdrFile::getDescription() const {
 long LdrFile::instancedMinComplexity = -1;
 
 bool LdrFile::isComplexEnoughForOwnMesh() const {
-    if (instancedMinComplexity==-1) {
+    /*if (instancedMinComplexity==-1) {
         instancedMinComplexity = Configuration::getInstance()->get_long(config::KEY_INSTANCED_MIN_COMPLEXITY);
-    }
-    return (type!=SUBPART && type!=PRIMITIVE) || estimatedComplexity * referenceCount > instancedMinComplexity;
+    }*/
+    return (type!=SUBPART && type!=PRIMITIVE);// todo spend more time here, I think there's much more potential here
 }
 
 LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {

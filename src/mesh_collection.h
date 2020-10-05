@@ -15,7 +15,7 @@ public:
 
     void initializeGraphics();
 
-    void drawGraphics(Shader *triangleShader);
+    void drawGraphics(Shader *triangleShader, Shader *lineShader);
 
     void deallocateGraphics();
 

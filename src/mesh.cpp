@@ -166,6 +166,11 @@ void Mesh::addLineVertex(const LineVertex &vertex) {
 
 void Mesh::initializeGraphics() {
     //std::cout << "Mesh " << name << " Total Instance Count: " << instances.size() << std::endl;
+    initializeTriangleGraphics();
+    initializeLineGraphics();
+}
+
+void Mesh::initializeTriangleGraphics() {
     for (const auto &entry: triangleIndices) {
         LdrColor *color = entry.first;
         std::vector<unsigned int> *indices = entry.second;
@@ -195,21 +200,21 @@ void Mesh::initializeGraphics() {
 
         glGenBuffers(1, &instanceVbo);
         glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
-        size_t instance_size = sizeof(Instance);
+        size_t instance_size = sizeof(TriangleInstance);
         glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(Instance, diffuseColor));
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TriangleInstance, diffuseColor));
         glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(Instance, ambientFactor));
+        glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TriangleInstance, ambientFactor));
         glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(Instance, specularBrightness));
+        glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TriangleInstance, specularBrightness));
         glEnableVertexAttribArray(5);
-        glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(Instance, shininess));
+        glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TriangleInstance, shininess));
         for (int j = 0; j < 4; ++j) {
             glEnableVertexAttribArray(6 + j);
             glVertexAttribPointer(6 + j, 4, GL_FLOAT, GL_FALSE, instance_size,
-                                  (void *) (offsetof(Instance, transformation) + 4 * j * sizeof(float)));
+                                  (void *) (offsetof(TriangleInstance, transformation) + 4 * j * sizeof(float)));
         }
 
         for (int i = 2; i < 10; ++i) {
@@ -229,7 +234,52 @@ void Mesh::initializeGraphics() {
     }
 }
 
-void Mesh::drawGraphics(const Shader *triangleShader) {
+void Mesh::initializeLineGraphics() {
+
+    //vao
+    glGenVertexArrays(1, &lineVAO);
+    glBindVertexArray(lineVAO);
+
+    //vertexVbo
+    glGenBuffers(1, &lineVertexVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, lineVertexVBO);
+    size_t vertex_size = sizeof(LineVertex);
+    glBufferData(GL_ARRAY_BUFFER, lineVertices.size() * vertex_size, &(lineVertices)[0], GL_STATIC_DRAW);
+
+    // position attribute
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, (void *) nullptr);
+    // color attribute
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(LineVertex, color));
+
+    //instanceVbo
+    auto instancesArray = std::vector<glm::mat4>(instances.size());
+    for (int i = 0; i < instances.size(); ++i) {
+        instancesArray[i] = instances[i].second;
+    }
+
+    glGenBuffers(1, &lineInstanceVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, lineInstanceVBO);
+    size_t instance_size = sizeof(glm::mat4);
+    glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
+
+    for (int j = 0; j < 4; ++j) {
+        glEnableVertexAttribArray(2 + j);
+        glVertexAttribPointer(2 + j, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (4 * j * sizeof(float)));
+    }
+
+    for (int i = 2; i < 6; ++i) {
+        glVertexAttribDivisor(i, 1);
+    }
+
+    //ebo
+    glGenBuffers(1, &lineEBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * lineIndices.size(), &(lineIndices)[0], GL_STATIC_DRAW);
+}
+
+void Mesh::drawTriangleGraphics(const Shader *triangleShader) {
     for (const auto &entry: triangleIndices) {
         LdrColor *color = entry.first;
         std::vector<unsigned int> *indices = entry.second;
@@ -241,6 +291,11 @@ void Mesh::drawGraphics(const Shader *triangleShader) {
 void Mesh::bindBuffers(LdrColor *color) {
     unsigned int vao = VAOs[color];
     glBindVertexArray(vao);
+}
+
+void Mesh::drawLineGraphics(const Shader *lineShader) {
+    glBindVertexArray(lineVAO);
+    glDrawElementsInstanced(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, instances.size());
 }
 
 void Mesh::deallocateGraphics() {
@@ -255,6 +310,10 @@ void Mesh::deallocateGraphics() {
         glDeleteBuffers(1, &instanceVbo);
         glDeleteBuffers(1, &ebo);
     }
+    glDeleteVertexArrays(1, &lineVAO);
+    glDeleteBuffers(1, &lineVertexVBO);
+    glDeleteBuffers(1, &lineInstanceVBO);
+    glDeleteBuffers(1, &lineEBO);
 }
 
 Mesh::~Mesh() {
@@ -266,7 +325,7 @@ Mesh::~Mesh() {
     }
 }
 
-void Mesh::setInstanceColor(Instance *instance, const LdrColor *color) {
+void Mesh::setInstanceColor(TriangleInstance *instance, const LdrColor *color) {
     instance->diffuseColor = color->value.asGlmVector();
     instance->shininess = 32.0f;
     //useful tool: http://www.cs.toronto.edu/~jacobson/phong-demo/
@@ -294,8 +353,8 @@ void Mesh::setInstanceColor(Instance *instance, const LdrColor *color) {
     }
 }
 
-Instance *Mesh::generateInstancesArray(const LdrColor *color) {
-    auto *instancesArray = new Instance[instances.size()];
+TriangleInstance *Mesh::generateInstancesArray(const LdrColor *color) {
+    auto *instancesArray = new TriangleInstance[instances.size()];
     unsigned int arr_cursor = 0;
     //todo optimize this method
     if (color == &LdrColorRepository::instDummyColor) {
@@ -305,7 +364,7 @@ Instance *Mesh::generateInstancesArray(const LdrColor *color) {
             arr_cursor++;
         }
     } else {
-        Instance inst{};
+        TriangleInstance inst{};
         setInstanceColor(&inst, color);
         std::fill_n(instancesArray, instances.size(), inst);
         for (auto &instance : instances) {

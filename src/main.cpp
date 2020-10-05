@@ -73,9 +73,10 @@ GLFWwindow* initialize() {
     return window;
 }
 
-void setProjectionMatrix(const Shader &triangleShader, float aspect) {
+void setProjectionMatrix(const Shader &triangleShader, const Shader &lineShader, float aspect) {
     glm::mat4 projection = glm::perspective(glm::radians(50.0f), aspect, 0.1f, 1000.0f);
     triangleShader.setMat4("projection", projection);
+    lineShader.setMat4("projection", projection);
 }
 
 int main() {
@@ -84,7 +85,8 @@ int main() {
         return -1;
     }
 
-    Shader triangleShader("src/shaders/shader.vsh", "src/shaders/shader.fsh");
+    Shader triangleShader("src/shaders/triangle_shader.vsh", "src/shaders/triangle_shader.fsh");
+    Shader lineShader("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");
 
     LdrFileRepository::initializeNames();
     auto before = std::chrono::high_resolution_clock::now();
@@ -153,20 +155,22 @@ int main() {
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        setProjectionMatrix(triangleShader, (float) SCR_WIDTH / (float) SCR_HEIGHT);
+        setProjectionMatrix(triangleShader, lineShader, (float) SCR_WIDTH / (float) SCR_HEIGHT);
 
         glm::mat4 view = camera.getViewMatrix();
         triangleShader.setMat4("view", view);
+        lineShader.setMat4("view", view);
 
-        glm::mat4 model = glm::mat4(1.0f);
+        /*glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(model, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
         triangleShader.setMat4("model", model);
+        lineShader.setMat4("model", model);*/
 
         //std::cout << glm::to_string(camera.getCameraPos()) << "\n";
         triangleShader.setVec3("viewPos", camera.getCameraPos());
 
-        meshCollection.drawGraphics(&triangleShader);
+        meshCollection.drawGraphics(&triangleShader, &lineShader);
         if (i_frame!=0) {
             double end = glfwGetTime();
             time_sum += (end-start);

@@ -297,7 +297,6 @@ void Mesh::setInstanceColor(Instance *instance, const LdrColor *color) {
 Instance *Mesh::generateInstancesArray(const LdrColor *color) {
     auto *instancesArray = new Instance[instances.size()];
     unsigned int arr_cursor = 0;
-    //todo optimize this method
     if (color == &LdrColorRepository::instDummyColor) {
         for (auto &instPair : instances) {
             instancesArray[arr_cursor].transformation = glm::transpose(instPair.second * globalModel);

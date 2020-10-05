@@ -16,6 +16,14 @@ class LdrFileElement;
 
 class LdrColor;
 
+enum LdrFileType {
+    MODEL,
+    MPD_SUBFILE,
+    PART,
+    SUBPART,
+    PRIMITIVE
+};
+
 struct RGB {
     RGB() = default;
 
@@ -43,7 +51,7 @@ class LdrFile {
 public:
     unsigned long long estimatedComplexity = 0;
     unsigned int referenceCount = 0;
-    static LdrFile* parseFile(const std::filesystem::path &path);
+    static LdrFile *parseFile(LdrFileType fileType, const std::filesystem::path &path);
 
     LdrFile() = default;
 
@@ -56,6 +64,8 @@ public:
     [[nodiscard]] std::string getDescription() const ;
 
     [[nodiscard]] bool isComplexEnoughForOwnMesh() const;
+
+    LdrFileType type;
 private:
     bool subfiles_preloaded_and_complexity_estimated = false;
 
@@ -180,14 +190,6 @@ public:
 
     static LdrInstanceDummyColor instDummyColor;
 
-};
-
-enum LdrFileType {
-    MODEL,
-    MPD_SUBFILE,
-    PART,
-    SUBPART,
-    PRIMITIVE
 };
 
 class LdrFileRepository {

@@ -27,8 +27,9 @@ LdrFileElement *LdrFileElement::parse_line(std::string line) {
     }
 }
 
-LdrFile* LdrFile::parseFile(const std::filesystem::path & path){
+LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &path){
     auto mainFile = new LdrFile();
+    mainFile->type = fileType;
     std::ifstream input(path);
     if (!input.good()) {
         throw std::invalid_argument("can't open file \"" + path.string() + "\"");
@@ -51,7 +52,6 @@ LdrFile* LdrFile::parseFile(const std::filesystem::path & path){
                 fileLines[currentSubFileName].push_back(line);
             }
         }
-        //todo process files with subfile references at the end or compute dependencies
         for (auto const& entry: fileLines) {
             LdrFile* currentFile;
             if (entry.first == path) {
@@ -62,6 +62,7 @@ LdrFile* LdrFile::parseFile(const std::filesystem::path & path){
                     continue;
                 } else {
                     currentFile = new LdrFile();
+                    currentFile->type = MPD_SUBFILE;
                     LdrFileRepository::add_file(entry.first, currentFile, MPD_SUBFILE);
                 }
             }
@@ -137,7 +138,7 @@ bool LdrFile::isComplexEnoughForOwnMesh() const {
     if (instancedMinComplexity==-1) {
         instancedMinComplexity = Configuration::getInstance()->get_long(config::KEY_INSTANCED_MIN_COMPLEXITY);
     }
-    return estimatedComplexity * referenceCount > instancedMinComplexity;
+    return (type!=SUBPART && type!=PRIMITIVE) || estimatedComplexity * referenceCount > instancedMinComplexity;
 }
 
 LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
@@ -345,7 +346,7 @@ LdrFile *LdrFileRepository::get_file(const std::string &filename) {
     auto iterator = files.find(filename);
     if (iterator == files.end()) {
         auto typeNamePair = resolve_file(filename);
-        LdrFile* file = LdrFile::parseFile(typeNamePair.second);
+        LdrFile* file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
         files[filename] = std::make_pair(typeNamePair.first, file);
         file->preLoadSubfilesAndEstimateComplexity();
         return file;

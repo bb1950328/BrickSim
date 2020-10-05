@@ -16,6 +16,7 @@
 #include "util.h"
 #include "element_tree.h"
 #include "mesh_collection.h"
+#include "statistic.h"
 
 #include <iostream>
 #include <glm/gtx/string_cast.hpp>
@@ -118,6 +119,8 @@ int main() {
     std::cout << "ldr file loading time: " << ms_load << "ms.\n";
     std::cout << "meshing time: " << ms_mesh << "ms.\n";
 
+    stats::print();
+
     /*for (const auto &meshPair: meshCollection.meshes) {
         std::cout << meshPair.first->getDescription() << "\n";
         for (const auto &instance: meshPair.second->instances) {
@@ -148,8 +151,7 @@ int main() {
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        float aspect = (float) SCR_WIDTH / (float) SCR_HEIGHT;
-        setProjectionMatrix(triangleShader, aspect);
+        setProjectionMatrix(triangleShader, (float) SCR_WIDTH / (float) SCR_HEIGHT);
 
         glm::mat4 view = camera.getViewMatrix();
         triangleShader.setMat4("view", view);

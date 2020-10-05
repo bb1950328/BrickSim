@@ -4,6 +4,7 @@
 
 #include <zconf.h>
 #include "mesh_collection.h"
+#include "statistic.h"
 
 void MeshCollection::initializeGraphics() {
     for (const auto &pair: meshes) {
@@ -28,12 +29,18 @@ void MeshCollection::readElementTree(ElementTreeNode *node) {
         auto *ldrNode = dynamic_cast<ElementTreeLdrNode *>(node);
         auto it = meshes.find(ldrNode->ldrFile);
         Mesh *mesh;
+        if (ldrNode->ldrFile->type==PART) {
+            stats::Counters::totalBrickCount++;
+        }
         if (it != meshes.end()) {
             mesh = it->second;
         } else {
             mesh = new Mesh();
             meshes[ldrNode->ldrFile] = mesh;
             mesh->name = ldrNode->ldrFile->getDescription();
+            if (ldrNode->ldrFile->type==PART) {
+                stats::Counters::individualBrickCount++;
+            }
             ldrNode->addToMesh(mesh);
         }
         mesh->instances.emplace_back(ldrNode->ldrColor, node->getAbsoluteTransformation());

@@ -7,6 +7,7 @@
 
 #include <string>
 #include <list>
+#include <filesystem>
 
 namespace util {
 #if _WIN32

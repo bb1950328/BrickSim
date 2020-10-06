@@ -2,8 +2,8 @@
 // Created by bb1950328 on 19.09.20.
 //
 
-#ifndef BRICKSIM_LDR_OBJECTS_H
-#define BRICKSIM_LDR_OBJECTS_H
+#ifndef BRICKSIM_LDR_FILES_H
+#define BRICKSIM_LDR_FILES_H
 
 static const int MAX_LDR_FILENAME_LENGTH = 255;
 
@@ -24,28 +24,7 @@ enum LdrFileType {
     PRIMITIVE
 };
 
-struct RGB {
-    RGB() = default;
 
-    explicit RGB(std::string htmlCode);
-
-    unsigned char red, green, blue;
-    [[nodiscard]] glm::vec3 asGlmVector() const;
-};
-
-struct LdrColorMaterial {
-    enum Type {
-        GLITTER, SPECKLE
-    };
-    Type type;
-    RGB value;
-    unsigned char alpha;
-    unsigned char luminance;
-    double fraction, vfraction;
-    int size = 0;
-    int minsize = 0;
-    int maxsize = 0;
-};
 
 class LdrFile {
 public:
@@ -150,76 +129,6 @@ public:
     [[nodiscard]] int getType() const override;
 };
 
-class LdrColor {
-public:
-    enum Finish {
-        NONE, CHROME, PEARLESCENT, RUBBER, MATTE_METALLIC, METAL, MATERIAL
-    };
 
-    LdrColor() = default;
 
-    explicit LdrColor(const std::string &line);
-
-    std::string name;
-    int code;
-    RGB value;
-    RGB edge;
-    unsigned char alpha = 255;
-    unsigned char luminance = 0;
-    Finish finish = NONE;
-    LdrColorMaterial *material = nullptr;
-};
-
-class LdrInstanceDummyColor : public LdrColor {
-public:
-    LdrInstanceDummyColor();
-};
-
-class LdrColorRepository {
-private:
-    std::map<int, LdrColor> colors;
-    static LdrColorRepository *instance;
-public:
-    static LdrColorRepository *getInstance();
-
-public:
-
-    void initialize();
-
-    LdrColor *get_color(int colorCode);
-
-    static LdrInstanceDummyColor instDummyColor;
-
-};
-
-class LdrFileRepository {
-public:
-    static LdrFile *get_file(const std::string &filename);
-
-    static LdrFileType get_file_type(const std::string &filename);
-
-    static std::pair<LdrFileType, std::filesystem::path> resolve_file(const std::string &filename);
-
-    static void clear_cache();
-
-    static std::map<std::string, std::pair<LdrFileType, LdrFile*>> files;
-
-    static void add_file(const std::string &filename, LdrFile *file, LdrFileType type);
-
-    static void initializeNames();
-private:
-    static std::filesystem::path ldrawDirectory;
-    static std::filesystem::path partsDirectory;
-    static std::filesystem::path subpartsDirectory;
-    static std::filesystem::path primitivesDirectory;
-    static std::filesystem::path modelsDirectory;
-    static bool namesInitialized;
-
-    //keys: name as lowercase values: name as original case
-    static std::map<std::string, std::filesystem::path> primitiveNames;
-    static std::map<std::string, std::filesystem::path> subpartNames;
-    static std::map<std::string, std::filesystem::path> partNames;
-    static std::map<std::string, std::filesystem::path> modelNames;
-};
-
-#endif //BRICKSIM_LDR_OBJECTS_H
+#endif //BRICKSIM_LDR_FILES_H

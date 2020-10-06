@@ -7,19 +7,16 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "shaders/shader.h"
-#include "mesh.h"
 #include "camera.h"
 #include "config.h"
-#include "util.h"
 #include "element_tree.h"
 #include "mesh_collection.h"
 #include "statistic.h"
+#include "ldr_file_repository.h"
 
 #include <iostream>
-#include <glm/gtx/string_cast.hpp>
 #include <chrono>
 #include <regex>
 

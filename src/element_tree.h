@@ -7,7 +7,7 @@
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
-#include "ldr_objects.h"
+#include "ldr_files.h"
 #include "mesh.h"
 
 enum ElementTreeNodeType {

@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <set>
-#include "ldr_objects.h"
+#include "ldr_files.h"
 #include "shaders/shader.h"
 #include "camera.h"
 

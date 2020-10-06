@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(BrickSim
         src/main.cpp
         src/lib/glad.c
-        src/ldr_objects.cpp
-        src/ldr_objects.h
+        src/ldr_files.cpp
+        src/ldr_files.h
         src/config.cpp
         src/config.h
         src/test/test_configuration_reader.cpp
@@ -26,6 +26,10 @@ add_executable(BrickSim
         src/mesh_collection.h
         src/statistic.cpp
         src/statistic.h
+        src/ldr_file_repository.cpp
+        src/ldr_file_repository.h
+        src/ldr_colors.cpp
+        src/ldr_colors.h
         )
 
 # On Ubuntu, I had to sudo apt install mesa-utils freeglut3-dev libglfw3-dev

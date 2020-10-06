@@ -8,9 +8,8 @@
 #include "mesh.h"
 #include "camera.h"
 #include "config.h"
-#include "util.h"
+#include "ldr_colors.h"
 #include <glm/gtx/normal.hpp>
-#include <glm/gtx/string_cast.hpp>
 
 void Mesh::addLdrFile(const LdrFile &file) {
     LdrColor *defaultColor = LdrColorRepository::getInstance()->get_color(1);
@@ -220,7 +219,7 @@ void Mesh::initializeTriangleGraphics() {
         for (int i = 2; i < 10; ++i) {
             glVertexAttribDivisor(i, 1);
         }
-        delete instancesArray;
+        delete[] instancesArray;
 
         //ebo
         glGenBuffers(1, &ebo);

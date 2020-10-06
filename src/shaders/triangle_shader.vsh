@@ -14,15 +14,14 @@ out float bAmbientFactor;
 out float bSpecularBrightness;
 out float bShininess;
 
-uniform mat4 view;
-uniform mat4 projection;
+uniform mat4 projectionView;
 
 void main()
 {
    fragPos = vec3(transformation * aPos);
    bNormal = mat3(transpose(inverse(transformation))) * aNormal;
 
-   gl_Position = projection * view * vec4(fragPos, 1.0);
+   gl_Position = projectionView * vec4(fragPos, 1.0);
 
    bDiffuseColor = aDiffuseColor;
    bAmbientFactor = aAmbientFactor;

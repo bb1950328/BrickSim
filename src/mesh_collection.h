@@ -15,16 +15,19 @@ public:
 
     void initializeGraphics();
 
-    void drawGraphics(Shader *triangleShader);
-
     void deallocateGraphics();
 
     void readElementTree(ElementTreeNode *node);
 
     void readElementTree();
 
+    void drawTriangleGraphics(const Shader *triangleShader) const;
+
+    void drawLineGraphics(const Shader *lineShader) const;
+
 private:
 
     ElementTree *elementTree;
+
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

@@ -2,7 +2,6 @@
 // Created by bab21 on 03.10.20.
 //
 
-#include <zconf.h>
 #include "mesh_collection.h"
 #include "statistic.h"
 
@@ -12,9 +11,15 @@ void MeshCollection::initializeGraphics() {
     }
 }
 
-void MeshCollection::drawGraphics(Shader *triangleShader) {
+void MeshCollection::drawLineGraphics(const Shader *lineShader) const {
     for (const auto &pair: meshes) {
-        pair.second->drawGraphics(triangleShader);
+        pair.second->drawLineGraphics(lineShader);
+    }
+}
+
+void MeshCollection::drawTriangleGraphics(const Shader *triangleShader) const {
+    for (const auto &pair: meshes) {
+        pair.second->drawTriangleGraphics(triangleShader);
     }
 }
 

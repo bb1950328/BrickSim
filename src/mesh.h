@@ -29,7 +29,7 @@ struct LineVertex {
     glm::vec3 color;
 };
 
-struct Instance {
+struct TriangleInstance {
     glm::vec3 diffuseColor;
     float ambientFactor;//ambient=diffuseColor*ambientFactor
     float specularBrightness;//specular=vec4(1.0)*specularBrightness
@@ -81,7 +81,8 @@ public:
 
     void initializeGraphics();
 
-    void drawGraphics(const Shader *triangleShader);
+    void drawTriangleGraphics(const Shader *triangleShader);
+    void drawLineGraphics(const Shader *lineShader);
 
     void deallocateGraphics();
 
@@ -94,11 +95,17 @@ private:
                         glm::vec3(1.0f, 0.0f, 0.0f)),// x axis
             glm::vec3(0.01f, 0.01f, 0.01f)); // and make 100 times smaller
 
-    static void setInstanceColor(Instance *instance, const LdrColor *color) ;
+    unsigned int lineVAO, lineVertexVBO, lineInstanceVBO, lineEBO;
+
+    static void setInstanceColor(TriangleInstance *instance, const LdrColor *color) ;
 
     void bindBuffers(LdrColor *color);
 
-    Instance * generateInstancesArray(const LdrColor *color);
+    TriangleInstance * generateInstancesArray(const LdrColor *color);
+
+    void initializeLineGraphics();
+
+    void initializeTriangleGraphics();
 };
 
 #endif //BRICKSIM_MESH_H

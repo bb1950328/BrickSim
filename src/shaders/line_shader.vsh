@@ -5,11 +5,10 @@ layout (location = 2) in mat4 transformation;
 
 out vec3 bColor;
 
-uniform mat4 view;
-uniform mat4 projection;
+uniform mat4 projectionView;
 
 void main()
 {
-   gl_Position = projection * view * transformation * aPos;
+   gl_Position = projectionView * transformation * aPos;
    bColor = aColor;
 }

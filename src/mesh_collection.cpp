@@ -11,14 +11,15 @@ void MeshCollection::initializeGraphics() {
     }
 }
 
-void MeshCollection::drawGraphics(Shader *triangleShader, Shader *lineShader) {
-    triangleShader->use();
-    for (const auto &pair: meshes) {
-        pair.second->drawTriangleGraphics(triangleShader);
-    }
-    lineShader->use();
+void MeshCollection::drawLineGraphics(const Shader *lineShader) const {
     for (const auto &pair: meshes) {
         pair.second->drawLineGraphics(lineShader);
+    }
+}
+
+void MeshCollection::drawTriangleGraphics(const Shader *triangleShader) const {
+    for (const auto &pair: meshes) {
+        pair.second->drawTriangleGraphics(triangleShader);
     }
 }
 

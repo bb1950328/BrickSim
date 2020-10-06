@@ -73,12 +73,6 @@ GLFWwindow* initialize() {
     return window;
 }
 
-void setProjectionMatrix(const Shader &triangleShader, const Shader &lineShader, float aspect) {
-    glm::mat4 projection = glm::perspective(glm::radians(50.0f), aspect, 0.1f, 1000.0f);
-    triangleShader.setMat4("projection", projection);
-    lineShader.setMat4("projection", projection);
-}
-
 int main() {
     auto window = initialize();
     if (window== nullptr) {
@@ -133,6 +127,8 @@ int main() {
         }
     }*/
 
+    glm::mat4 projection = glm::perspective(glm::radians(50.0f), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
+                                            1000.0f);
 
     meshCollection.initializeGraphics();
 
@@ -155,22 +151,17 @@ int main() {
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        setProjectionMatrix(triangleShader, lineShader, (float) SCR_WIDTH / (float) SCR_HEIGHT);
-
         glm::mat4 view = camera.getViewMatrix();
-        triangleShader.setMat4("view", view);
-        lineShader.setMat4("view", view);
+        const glm::mat4 &projectionView = projection * view;
 
-        /*glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
-        triangleShader.setMat4("model", model);
-        lineShader.setMat4("model", model);*/
-
-        //std::cout << glm::to_string(camera.getCameraPos()) << "\n";
+        triangleShader.use();
         triangleShader.setVec3("viewPos", camera.getCameraPos());
+        triangleShader.setMat4("projectionView", projectionView);
+        meshCollection.drawTriangleGraphics(&triangleShader);
+        lineShader.use();
+        lineShader.setMat4("projectionView", projectionView);
+        meshCollection.drawLineGraphics(&lineShader);
 
-        meshCollection.drawGraphics(&triangleShader, &lineShader);
         if (i_frame!=0) {
             double end = glfwGetTime();
             time_sum += (end-start);
@@ -196,7 +187,7 @@ void processInput(GLFWwindow *window) {
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     //this gets called when the window is resized
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, width, height);//todo update projection matrix when aspect ratio changed
 }
 
 

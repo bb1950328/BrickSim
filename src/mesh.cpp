@@ -244,7 +244,7 @@ void Mesh::initializeLineGraphics() {
     glGenBuffers(1, &lineVertexVBO);
     glBindBuffer(GL_ARRAY_BUFFER, lineVertexVBO);
     size_t vertex_size = sizeof(LineVertex);
-    glBufferData(GL_ARRAY_BUFFER, lineVertices.size() * vertex_size, &(lineVertices)[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, lineVertices.size() * vertex_size, &(lineVertices[0]), GL_STATIC_DRAW);
 
     // position attribute
     glEnableVertexAttribArray(0);
@@ -256,13 +256,13 @@ void Mesh::initializeLineGraphics() {
     //instanceVbo
     auto instancesArray = std::vector<glm::mat4>(instances.size());
     for (int i = 0; i < instances.size(); ++i) {
-        instancesArray[i] = instances[i].second;
+        instancesArray[i] = glm::transpose(instances[i].second*globalModel);
     }
 
     glGenBuffers(1, &lineInstanceVBO);
     glBindBuffer(GL_ARRAY_BUFFER, lineInstanceVBO);
     size_t instance_size = sizeof(glm::mat4);
-    glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
 
     for (int j = 0; j < 4; ++j) {
         glEnableVertexAttribArray(2 + j);

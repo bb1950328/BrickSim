@@ -1,5 +1,5 @@
 // mesh_collection.h
-// Created by bab21 on 03.10.20.
+// Created by bb1950328 on 03.10.20.
 //
 
 #ifndef BRICKSIM_MESH_COLLECTION_H

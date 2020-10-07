@@ -1,5 +1,5 @@
 // camera.h
-// Created by bab21 on 20.09.20.
+// Created by bb1950328 on 20.09.20.
 //
 
 #ifndef BRICKSIM_CAMERA_H

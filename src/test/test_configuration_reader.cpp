@@ -1,5 +1,5 @@
 // test_configuration_reader.cpp
-// Created by bab21 on 19.09.20.
+// Created by bb1950328 on 19.09.20.
 //
 
 #include <iostream>

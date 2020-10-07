@@ -18,6 +18,7 @@ enum ElementTreeNodeType {
 
 class ElementTreeNode {
 public:
+    bool visible = true;
     ElementTreeNode *parent;
     std::vector<ElementTreeNode *> children;
     std::string displayName;

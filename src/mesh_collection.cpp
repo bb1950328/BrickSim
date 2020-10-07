@@ -30,28 +30,32 @@ void MeshCollection::deallocateGraphics() {
 }
 
 void MeshCollection::readElementTree(ElementTreeNode *node) {
-    if (node->getType()==ET_TYPE_LDRFILE) {
-        auto *ldrNode = dynamic_cast<ElementTreeLdrNode *>(node);
-        auto it = meshes.find(ldrNode->ldrFile);
-        Mesh *mesh;
-        if (ldrNode->ldrFile->type==PART) {
-            stats::Counters::totalBrickCount++;
-        }
-        if (it != meshes.end()) {
-            mesh = it->second;
-        } else {
-            mesh = new Mesh();
-            meshes[ldrNode->ldrFile] = mesh;
-            mesh->name = ldrNode->ldrFile->getDescription();
-            if (ldrNode->ldrFile->type==PART) {
-                stats::Counters::individualBrickCount++;
+    if (node->visible) {
+        if (node->getType() == ET_TYPE_LDRFILE) {
+            auto *ldrNode = dynamic_cast<ElementTreeLdrNode *>(node);
+            auto it = meshes.find(ldrNode->ldrFile);
+            Mesh *mesh;
+            if (ldrNode->ldrFile->type == PART) {
+                stats::Counters::totalBrickCount++;
             }
-            ldrNode->addToMesh(mesh);
+            if (it != meshes.end()) {
+                mesh = it->second;
+            } else {
+                mesh = new Mesh();
+                meshes[ldrNode->ldrFile] = mesh;
+                mesh->name = ldrNode->ldrFile->getDescription();
+                if (ldrNode->ldrFile->type == PART) {
+                    stats::Counters::individualBrickCount++;
+                }
+                ldrNode->addToMesh(mesh);
+            }
+            mesh->instances.emplace_back(ldrNode->ldrColor, node->getAbsoluteTransformation());
         }
-        mesh->instances.emplace_back(ldrNode->ldrColor, node->getAbsoluteTransformation());
-    }
-    for (const auto &child: node->children) {
-        readElementTree(child);
+        for (const auto &child: node->children) {
+            if (child->visible) {
+                readElementTree(child);
+            }
+        }
     }
 }
 

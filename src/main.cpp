@@ -18,7 +18,6 @@
 
 #include <iostream>
 #include <chrono>
-#include <regex>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -28,120 +27,122 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 void processInput(GLFWwindow *window);
 
-const unsigned int SCR_WIDTH = Configuration::getInstance()->get_long(config::KEY_SCREEN_WIDTH);
-const unsigned int SCR_HEIGHT = Configuration::getInstance()->get_long(config::KEY_SCREEN_HEIGHT);
-
-auto camera = CadCamera();
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
 
 
-glm::vec3 lightPos(4.46, 7.32, 6.2);//todo customizable
+class Renderer {
+public:
 
-GLFWwindow* initialize() {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-    //glfwWindowHint(GLFW_DECORATED, false);//removes the title bar
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", nullptr, nullptr);
-    //glfwSetWindowPos(window, 20, 40);
-    if (window == nullptr) {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return nullptr;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-
-    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return nullptr;
+    static Renderer *instance;
+    static Renderer* getInstance(){
+        if (nullptr==instance) {
+            instance = new Renderer();
+        }
+        return instance;
     }
 
-    glEnable(GL_DEPTH_TEST);
-    return window;
-}
-
-int main() {
-    auto window = initialize();
-    if (window== nullptr) {
-        return -1;
-    }
-
-    Shader triangleShader("src/shaders/triangle_shader.vsh", "src/shaders/triangle_shader.fsh");
-    Shader lineShader("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");
-
-    LdrFileRepository::initializeNames();
-    auto before = std::chrono::high_resolution_clock::now();
+    Shader *triangleShader;
+    Shader *lineShader;
     ElementTree elementTree;
-    elementTree.loadLdrFile("~/Downloads/arocs.mpd");
-    //elementTree.print();
-    auto between = std::chrono::high_resolution_clock::now();
-    MeshCollection meshCollection(&elementTree);
-    meshCollection.readElementTree();
-    //meshCollection.addLdrFile(LdrColorRepository::getInstance()->get_color(4), mainFile, glm::mat4(1.0f));
-    auto after = std::chrono::high_resolution_clock::now();
-    long ms_load = std::chrono::duration_cast<std::chrono::milliseconds>(between - before).count();
-    long ms_mesh = std::chrono::duration_cast<std::chrono::milliseconds>(after - between).count();
-    unsigned long triangle_vertices_count = 0, triangle_indices_count = 0;
-    for (const auto &pair: meshCollection.meshes) {
-        auto mesh = pair.second;
-        for (const auto &entry: mesh->triangleVertices) {
-            triangle_vertices_count += entry.second->size();
-        }
-        for (const auto &entry: mesh->triangleIndices) {
-            triangle_indices_count += entry.second->size();
-        }
-    }
-    std::cout << "meshes count: " << meshCollection.meshes.size() << "\n";
-    //std::cout << "main model estimated complexity: " << mainFile->estimatedComplexity << "\n";
-    std::cout << "total triangle vertices count: " << triangle_vertices_count << "\n";
-    std::cout << "total triangle indices count: " << triangle_indices_count << "\n";
-    std::cout << "every triangle vertex is used " << (float)triangle_indices_count / (float)triangle_vertices_count << "times.\n";
-    //std::cout << "total line vertices count: " << mesh.lineVertices.size() << "\n";
-    //std::cout << "total line indices count: " << mesh.lineIndices.size() << "\n";
-    //std::cout << "every line vertex is used " << (float)mesh.lineIndices.size() / (float)mesh.lineVertices.size() << "times.\n";
-    std::cout << "ldr file loading time: " << ms_load << "ms.\n";
-    std::cout << "meshing time: " << ms_mesh << "ms.\n";
+    MeshCollection meshCollection;
+    unsigned int windowWidth = Configuration::getInstance()->get_long(config::KEY_SCREEN_WIDTH);
+    unsigned int windowHeight = Configuration::getInstance()->get_long(config::KEY_SCREEN_HEIGHT);
 
-    stats::print();
-
-    /*for (const auto &meshPair: meshCollection.meshes) {
-        std::cout << meshPair.first->getDescription() << "\n";
-        for (const auto &instance: meshPair.second->instances) {
-            std::cout << "\t" << instance.first->name  << "\n";
-            auto mat_str = glm::to_string(instance.second);
-            util::replaceAll(mat_str, "), (", "),\n\t\t       (");
-            std::cout << "\t\t" << mat_str << "\n";
-        }
-    }*/
-
-    glm::mat4 projection = glm::perspective(glm::radians(50.0f), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
-                                            1000.0f);
-
-    meshCollection.initializeGraphics();
-
-    triangleShader.use();
-
-    triangleShader.setVec3("light.position", lightPos);
-    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-    glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
-    glm::vec3 ambientColor = diffuseColor * glm::vec3(0.9f); // low influence
-    triangleShader.setVec3("light.ambient", ambientColor);
-    triangleShader.setVec3("light.diffuse", diffuseColor);
-    triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+    CadCamera camera;
+    float lastX = windowWidth / 2.0f;
+    float lastY = windowHeight / 2.0f;
 
     int i_frame = 64;
     double time_sum = 0.0;
-    while (!glfwWindowShouldClose(window)) {
+
+    glm::vec3 lightPos = glm::vec3(4.46, 7.32, 6.2);//todo customizable
+    glm::mat4 projection{};
+    GLFWwindow *window;
+
+    bool setup(){
+        if (setupCalled) {
+            return true;
+        }
+
+        if (!initialize()) {
+            return false;
+        }
+
+        triangleShader = new Shader("src/shaders/triangle_shader.vsh", "src/shaders/triangle_shader.fsh");
+        lineShader = new Shader("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");
+
+        LdrFileRepository::initializeNames();
+        auto before = std::chrono::high_resolution_clock::now();
+
+        elementTree.loadLdrFile("~/Downloads/arocs.mpd");
+        //elementTree.print();
+        auto between = std::chrono::high_resolution_clock::now();
+
+        meshCollection.elementTree = &elementTree;
+        meshCollection.readElementTree();
+        //meshCollection.addLdrFile(LdrColorRepository::getInstance()->get_color(4), mainFile, glm::mat4(1.0f));
+        auto after = std::chrono::high_resolution_clock::now();
+        long ms_load = std::chrono::duration_cast<std::chrono::milliseconds>(between - before).count();
+        long ms_mesh = std::chrono::duration_cast<std::chrono::milliseconds>(after - between).count();
+        unsigned long triangle_vertices_count = 0, triangle_indices_count = 0;
+        for (const auto &pair: meshCollection.meshes) {
+            auto mesh = pair.second;
+            for (const auto &entry: mesh->triangleVertices) {
+                triangle_vertices_count += entry.second->size();
+            }
+            for (const auto &entry: mesh->triangleIndices) {
+                triangle_indices_count += entry.second->size();
+            }
+        }
+        std::cout << "meshes count: " << meshCollection.meshes.size() << "\n";
+        //std::cout << "main model estimated complexity: " << mainFile->estimatedComplexity << "\n";
+        std::cout << "total triangle vertices count: " << triangle_vertices_count << "\n";
+        std::cout << "total triangle indices count: " << triangle_indices_count << "\n";
+        std::cout << "every triangle vertex is used " << (float)triangle_indices_count / (float)triangle_vertices_count << "times.\n";
+        //std::cout << "total line vertices count: " << mesh.lineVertices.size() << "\n";
+        //std::cout << "total line indices count: " << mesh.lineIndices.size() << "\n";
+        //std::cout << "every line vertex is used " << (float)mesh.lineIndices.size() / (float)mesh.lineVertices.size() << "times.\n";
+        std::cout << "ldr file loading time: " << ms_load << "ms.\n";
+        std::cout << "meshing time: " << ms_mesh << "ms.\n";
+
+        stats::print();
+
+        /*for (const auto &meshPair: meshCollection.meshes) {
+            std::cout << meshPair.first->getDescription() << "\n";
+            for (const auto &instance: meshPair.second->instances) {
+                std::cout << "\t" << instance.first->name  << "\n";
+                auto mat_str = glm::to_string(instance.second);
+                util::replaceAll(mat_str, "), (", "),\n\t\t       (");
+                std::cout << "\t\t" << mat_str << "\n";
+            }
+        }*/
+
+        updateProjectionMatrix();
+
+        meshCollection.initializeGraphics();
+
+        triangleShader->use();
+
+        triangleShader->setVec3("light.position", lightPos);
+        glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
+        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.9f); // low influence
+        triangleShader->setVec3("light.ambient", ambientColor);
+        triangleShader->setVec3("light.diffuse", diffuseColor);
+        triangleShader->setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+        
+
+        setupCalled = true;
+        return true;
+    }
+
+    void updateProjectionMatrix() { projection = glm::perspective(glm::radians(50.0f), (float) windowWidth / (float) windowHeight, 0.1f, 1000.0f); }
+
+    bool loop(){
+        if (!setupCalled) {
+            throw std::bad_function_call();
+        }
         processInput(window);
         double start = glfwGetTime();
 
@@ -151,13 +152,13 @@ int main() {
         glm::mat4 view = camera.getViewMatrix();
         const glm::mat4 &projectionView = projection * view;
 
-        triangleShader.use();
-        triangleShader.setVec3("viewPos", camera.getCameraPos());
-        triangleShader.setMat4("projectionView", projectionView);
-        meshCollection.drawTriangleGraphics(&triangleShader);
-        lineShader.use();
-        lineShader.setMat4("projectionView", projectionView);
-        meshCollection.drawLineGraphics(&lineShader);
+        triangleShader->use();
+        triangleShader->setVec3("viewPos", camera.getCameraPos());
+        triangleShader->setMat4("projectionView", projectionView);
+        meshCollection.drawTriangleGraphics(triangleShader);
+        lineShader->use();
+        lineShader->setMat4("projectionView", projectionView);
+        meshCollection.drawLineGraphics(lineShader);
 
         if (i_frame!=0) {
             double end = glfwGetTime();
@@ -169,10 +170,68 @@ int main() {
         }
         glfwSwapBuffers(window);
         glfwPollEvents();
+        return true;
     }
-    meshCollection.deallocateGraphics();
 
-    glfwTerminate();
+    bool cleanup() {
+        meshCollection.deallocateGraphics();
+
+        glfwTerminate();
+        return true;
+    }
+
+private:
+
+    Renderer() :
+        meshCollection(&elementTree) {
+        triangleShader = nullptr;
+        lineShader = nullptr;
+        window = nullptr;
+    }
+
+    bool setupCalled = false;
+    bool initialize() {
+        glfwInit();
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+        //glfwWindowHint(GLFW_DECORATED, false);//removes the title bar
+        window = glfwCreateWindow(windowWidth, windowHeight, "BrickSim", nullptr, nullptr);
+        //glfwSetWindowPos(window, 20, 40);
+        if (window == nullptr) {
+            std::cout << "Failed to create GLFW window" << std::endl;
+            glfwTerminate();
+            return false;
+        }
+        glfwMakeContextCurrent(window);
+        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+        glfwSetCursorPosCallback(window, mouse_callback);
+        glfwSetScrollCallback(window, scroll_callback);
+
+        if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
+            std::cout << "Failed to initialize GLAD" << std::endl;
+            return false;
+        }
+
+        glEnable(GL_DEPTH_TEST);
+        return true;
+    }
+};
+
+Renderer *Renderer::instance = nullptr;
+
+int main() {
+    Renderer *renderer = Renderer::getInstance();
+    renderer->setup();
+    while (!glfwWindowShouldClose(renderer->window)) {
+        renderer->loop();
+    }
+    renderer->cleanup();
     return 0;
 }
 
@@ -184,24 +243,29 @@ void processInput(GLFWwindow *window) {
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     //this gets called when the window is resized
-    glViewport(0, 0, width, height);//todo update projection matrix when aspect ratio changed
+    glViewport(0, 0, width, height);
+    auto *renderer = Renderer::getInstance();
+    renderer->windowWidth = width;
+    renderer->windowHeight = height;
+    renderer->updateProjectionMatrix();
 }
 
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
+    auto *renderer = Renderer::getInstance();
+    float xoffset = xpos - renderer->lastX;
+    float yoffset = renderer->lastY - ypos;
 
-    lastX = xpos;
-    lastY = ypos;
+    renderer->lastX = xpos;
+    renderer->lastY = ypos;
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1)) {
-        camera.mouseRotate(xoffset, yoffset);
+        renderer->camera.mouseRotate(xoffset, yoffset);
     }
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
-        camera.mousePan(xoffset, yoffset);
+        renderer->camera.mousePan(xoffset, yoffset);
     }
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    camera.moveForwardBackward(yoffset);
+    Renderer::getInstance()->camera.moveForwardBackward(yoffset);
 }

@@ -2,3 +2,4 @@ ldrawPartsLibrary=~/ldraw
 screenWidth=1600
 screenHeight=900
 instancedMinComplexity=6000
+msaaSamples=4

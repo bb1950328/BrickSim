@@ -30,7 +30,7 @@ add_executable(BrickSim
         src/ldr_file_repository.h
         src/ldr_colors.cpp
         src/ldr_colors.h
-        )
+        src/renderer.cpp src/renderer.h)
 
 # On Ubuntu, I had to sudo apt install mesa-utils freeglut3-dev libglfw3-dev
 # and add the files from https://glad.dav1d.de to /usr/include and the project folder

@@ -26,10 +26,11 @@ LdrFileElement *LdrFileElement::parse_line(std::string line) {
         //@formatter:off
     }
 }
+LdrFileElement::~LdrFileElement()= default;
 
 LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &path){
     auto mainFile = new LdrFile();
-    mainFile->type = fileType;
+    mainFile->metaInfo.type = fileType;
     std::ifstream input(path);
     if (!input.good()) {
         throw std::invalid_argument("can't open file \"" + path.string() + "\"");
@@ -62,7 +63,7 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
                     continue;
                 } else {
                     currentFile = new LdrFile();
-                    currentFile->type = MPD_SUBFILE;
+                    currentFile->metaInfo.type = MPD_SUBFILE;
                     LdrFileRepository::add_file(entry.first, currentFile, MPD_SUBFILE);
                 }
             }
@@ -83,8 +84,23 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
 }
 void LdrFile::addTextLine(const std::string &line) {
     auto trimmed = util::trim(line);
+    unsigned int currentStep = (*elements.end())->step;
     if (!trimmed.empty()) {
-        elements.push_back(LdrFileElement::parse_line(trimmed));
+        LdrFileElement *element = LdrFileElement::parse_line(trimmed);
+        if (element->getType()==0) {
+            auto *metaElement = dynamic_cast<LdrCommentOrMetaElement *>(element);
+            if (metaInfo.add_line(metaElement->content)) {
+                delete element;
+                element = nullptr;
+            }
+            if (metaElement->content=="STEP") {
+                currentStep++;
+            }
+        }
+        if (element!=nullptr) {
+            element->step = currentStep;
+            elements.push_back(element);
+        }
     }
 }
 void LdrFile::printStructure(int indent) {
@@ -138,7 +154,7 @@ bool LdrFile::isComplexEnoughForOwnMesh() const {
     /*if (instancedMinComplexity==-1) {
         instancedMinComplexity = Configuration::getInstance()->get_long(config::KEY_INSTANCED_MIN_COMPLEXITY);
     }*/
-    return (type!=SUBPART && type!=PRIMITIVE);// todo spend more time here, I think there's much more potential here
+    return (metaInfo.type!=SUBPART && metaInfo.type!=PRIMITIVE);// todo spend more time here, I think there's much more potential here
 }
 
 LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
@@ -237,11 +253,6 @@ LdrOptionalLine::LdrOptionalLine(const std::string& line) {
     color = LdrColorRepository::getInstance()->get_color(colorCode);
 }
 
-
-
-
-
-
 int LdrCommentOrMetaElement::getType() const{
     return 0;
 }
@@ -276,3 +287,82 @@ int LdrOptionalLine::getType() const{
     return 5;
 }
 
+bool LdrFileMetaInfo::add_line(std::string line){
+    static bool first = true;
+    if (first) {
+        title = util::trim(line);
+        first = false;
+    } else if (util::starts_with(line, "Name:")) {
+        name = util::trim(line.substr(5));
+    } else if (util::starts_with(line, "Author:")) {
+        author = util::trim(line.substr(7));
+    } else if (util::starts_with(line, "!CATEGORY")) {
+        category = util::trim(line.substr(9));
+    } else if (util::starts_with(line, "!KEYWORDS")) {
+        int i = 9;
+        while (true) {
+            int next = line.find(',', i);
+            if (next==-1) {
+                break;
+            }
+            keywords.insert(util::trim(line.substr(i, next)));
+        }
+    } else if (util::starts_with(line, "!HISTORY")) {
+        history.push_back(util::trim(line.substr(8)));
+    } else if (util::starts_with(line, "!LICENSE")) {
+        license = line.substr(8);
+    } else if (util::starts_with(line, "!THEME")) {
+        theme = line.substr(6);
+    } else {
+        return false;
+    }
+    return true;
+}
+std::ostream & operator<<(std::ostream & os, const LdrFileMetaInfo & info) {
+    if (!info.title.empty()) {
+        os << "0 " << info.title << std::endl;
+    }
+    if (!info.name.empty()) {
+        os << "0 Name: " << info.name << std::endl;
+    }
+    if (!info.author.empty()) {
+        os << "0 Author: " << info.author << std::endl;
+    }
+    if (!info.category.empty()) {
+        os << "0 !CATEGORY " << info.category << std::endl;
+    }
+    if (!info.keywords.empty()) {
+        os << "0 !KEYWORDS ";
+        size_t lineWidth = 13;
+        bool first = true;
+        for (const auto &kw : info.keywords) {
+            if (!first) {
+                lineWidth += 2;
+            }
+            lineWidth += kw.size();
+            if (lineWidth > 80) {
+                os << std::endl << "0 !KEYWORDS ";
+                lineWidth = 13 + kw.size();
+                first = true;
+            }
+            if (!first) {
+                os << ", ";
+            }
+            os << kw;
+            first = false;
+        }
+        os << std::endl;
+    }
+    if (!info.history.empty()) {
+        for (const auto &historyElement : info.history) {
+            os << "0 !HISTORY " << historyElement << std::endl;
+        }
+    }
+    if (!info.license.empty()) {
+        os << "0 !LICENSE " << info.license << std::endl;
+    }
+    if (!info.theme.empty()) {
+        os << "0 !THEME " << info.theme << std::endl;
+    }
+    return os;
+}

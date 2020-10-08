@@ -11,6 +11,8 @@ static const int MAX_LDR_FILENAME_LENGTH = 255;
 #include <map>
 #include <filesystem>
 #include <glm/glm.hpp>
+#include <set>
+#include <ostream>
 
 class LdrFileElement;
 
@@ -24,7 +26,22 @@ enum LdrFileType {
     PRIMITIVE
 };
 
+class LdrFileMetaInfo {
+public:
+    std::string title;//usually the first line in the file
+    std::string name;//0 Name: xxxxx
+    std::string author;//0 Author: xxxxx
+    std::string category;//0 !CATEGORY xxxx
+    std::set<std::string> keywords;//0 !KEYWORDS xxx, yyyy, zzzz
+    std::vector<std::string> history;//0 !HISTORY xxxx
+    std::string license;//0 !LICENSE xxxx
+    std::string theme;//0 !THEME
+    LdrFileType type;
 
+    friend std::ostream &operator<<(std::ostream &os, const LdrFileMetaInfo &info);
+
+    bool add_line(std::string line);
+};
 
 class LdrFile {
 public:
@@ -44,7 +61,7 @@ public:
 
     [[nodiscard]] bool isComplexEnoughForOwnMesh() const;
 
-    LdrFileType type;
+    LdrFileMetaInfo metaInfo;
 private:
     bool subfiles_preloaded_and_complexity_estimated = false;
 
@@ -60,6 +77,10 @@ public:
     static LdrFileElement *parse_line(std::string line);
 
     [[nodiscard]] virtual int getType() const = 0;
+
+    virtual ~LdrFileElement();
+
+    unsigned int step = 0;//0 is before the first "0 STEP" line
 };
 
 class LdrCommentOrMetaElement : public LdrFileElement {

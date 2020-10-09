@@ -99,7 +99,7 @@ void Renderer::updateProjectionMatrix() {
 
 bool Renderer::loop() {
     if (!setupCalled) {
-        throw std::bad_function_call();
+        throw std::invalid_argument("call setup first!");
     }
     processInput(window);
     double start = glfwGetTime();

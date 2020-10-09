@@ -32,6 +32,8 @@ namespace config {
     const std::string KEY_SCREEN_HEIGHT = "screenHeight";
     const std::string KEY_INSTANCED_MIN_COMPLEXITY = "instancedMinComplexity";
     const std::string KEY_MSAA_SAMPLES = "msaaSamples";
+    const std::string KEY_GUI_SCALE = "guiScale";
+    const std::string KEY_GUI_STYLE = "guiStyle";
 }
 
 #endif //BRICKSIM_CONFIG_H

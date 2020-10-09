@@ -11,7 +11,7 @@ if (UNIX)# todo check if this is necessary
     endif()
 endif()
 
-set(imgui_sources
+set(imgui_sources # if cmake doesn't find these files, run `git submodule update --init`
         imgui/imconfig.h
         imgui/imgui_demo.cpp
         imgui/imgui_draw.cpp

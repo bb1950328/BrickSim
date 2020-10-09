@@ -5,19 +5,42 @@
 #include <imgui.h>
 #include <examples/imgui_impl_glfw.h>
 #include <examples/imgui_impl_opengl3.h>
+#include <iostream>
 #include "gui.h"
+#include "config.h"
 
 void initGui(GLFWwindow* window) {
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
+    float xscale, yscale;
+    glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+    std::cout << "xscale: " << xscale << "\tyscale: " << yscale << std::endl;
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    auto scaleFactor = (float)(Configuration::getInstance()->get_double(config::KEY_GUI_SCALE));
+    if (xscale>1 || yscale>1) {
+        scaleFactor = (xscale+yscale)/2.0f;
+        ImGuiStyle &style = ImGui::GetStyle();
+        style.ScaleAllSizes(scaleFactor);
+        glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+    }
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.Fonts->AddFontFromFileTTF("FreeSans.ttf", 13.0f * scaleFactor, nullptr, nullptr);
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
     // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
+    auto guiStyle = Configuration::getInstance()->get_string(config::KEY_GUI_STYLE);
+    if (guiStyle=="light") {
+        ImGui::StyleColorsLight();
+    } else if (guiStyle=="classic") {
+        ImGui::StyleColorsClassic();
+    } else if (guiStyle=="dark") {
+        ImGui::StyleColorsDark();
+    } else {
+        std::cout << "WARNING: please set "<<config::KEY_GUI_STYLE << "to light, classic or dark" << std::endl;
+    }
 }
 
 void loopGui(GLFWwindow* window) {
@@ -28,7 +51,6 @@ void loopGui(GLFWwindow* window) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
     if (showDemoWindow) {
         ImGui::ShowDemoWindow(&showDemoWindow);
     }

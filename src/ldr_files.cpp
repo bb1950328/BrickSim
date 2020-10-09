@@ -84,7 +84,7 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
 }
 void LdrFile::addTextLine(const std::string &line) {
     auto trimmed = util::trim(line);
-    unsigned int currentStep = (*elements.end())->step;
+    unsigned int currentStep = elements.empty()?0:elements.back()->step;
     if (!trimmed.empty()) {
         LdrFileElement *element = LdrFileElement::parse_line(trimmed);
         if (element->getType()==0) {

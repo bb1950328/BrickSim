@@ -35,7 +35,7 @@ void MeshCollection::readElementTree(ElementTreeNode *node) {
             auto *ldrNode = dynamic_cast<ElementTreeLdrNode *>(node);
             auto it = meshes.find(ldrNode->ldrFile);
             Mesh *mesh;
-            if (ldrNode->ldrFile->type == PART) {
+            if (ldrNode->ldrFile->metaInfo.type == PART) {
                 stats::Counters::totalBrickCount++;
             }
             if (it != meshes.end()) {
@@ -44,7 +44,7 @@ void MeshCollection::readElementTree(ElementTreeNode *node) {
                 mesh = new Mesh();
                 meshes[ldrNode->ldrFile] = mesh;
                 mesh->name = ldrNode->ldrFile->getDescription();
-                if (ldrNode->ldrFile->type == PART) {
+                if (ldrNode->ldrFile->metaInfo.type == PART) {
                     stats::Counters::individualBrickCount++;
                 }
                 ldrNode->addToMesh(mesh);

@@ -3,7 +3,32 @@ project(BrickSim)
 
 set(CMAKE_CXX_STANDARD 17)
 
+if (UNIX)# todo check if this is necessary
+    if (NOT APPLE)
+        find_package(Threads REQUIRED)
+        find_package(X11 REQUIRED)
+    endif()
+endif()
+
+set(imgui_sources
+        imgui/imconfig.h
+        imgui/imgui_demo.cpp
+        imgui/imgui_draw.cpp
+        imgui/examples/imgui_impl_glfw.cpp
+        imgui/examples/imgui_impl_glfw.h
+        imgui/examples/imgui_impl_opengl3.cpp
+        imgui/examples/imgui_impl_opengl3.h
+        imgui/imgui_internal.h
+        imgui/imgui_widgets.cpp
+        imgui/imgui.cpp
+        imgui/imgui.h
+        imgui/imstb_rectpack.h
+        imgui/imstb_textedit.h
+        imgui/imstb_truetype.h
+        )
+
 add_executable(BrickSim
+        ${imgui_sources}
         src/main.cpp
         src/lib/glad.c
         src/ldr_files.cpp
@@ -30,7 +55,9 @@ add_executable(BrickSim
         src/ldr_file_repository.h
         src/ldr_colors.cpp
         src/ldr_colors.h
-        src/renderer.cpp src/renderer.h)
+        src/renderer.cpp
+        src/renderer.h
+        )
 
 # On Ubuntu, I had to sudo apt install mesa-utils freeglut3-dev libglfw3-dev
 # and add the files from https://glad.dav1d.de to /usr/include and the project folder
@@ -50,11 +77,28 @@ ENDIF()
 
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS})
+include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} imgui)
 
 target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glfw)
 include_directories(${GLFW_INCLUDE_DIRS})
+
 target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS})
+if (UNIX)#todo check if this is needed
+    if (APPLE)
+        target_link_libraries(${CMAKE_PROJECT_NAME}
+                "-framework Cocoa"
+                "-framework IOKit"
+                "-framework CoreVideo"
+                )
+    else()
+        target_link_libraries(${CMAKE_PROJECT_NAME}
+                ${CMAKE_THREAD_LIBS_INIT}
+                ${X11_LIBRARIES}
+                ${CMAKE_DL_LIBS}
+                )
+    endif()
+endif()
+
 
 target_include_directories(BrickSim PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>

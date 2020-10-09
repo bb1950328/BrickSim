@@ -3,6 +3,7 @@
 //
 
 #include "renderer.h"
+#include "gui.h"
 
 Renderer *Renderer::instance = nullptr;
 
@@ -124,6 +125,9 @@ bool Renderer::loop() {
             std::cout << "theoretical FPS: " << 1.0/time_sum*64 << "\n";
         }
     }
+
+    loopGui(window);
+
     glfwSwapBuffers(window);
     glfwPollEvents();
     return true;

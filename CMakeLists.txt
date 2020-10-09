@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(BrickSim)
 
 set(CMAKE_CXX_STANDARD 17)
+#set(CMAKE_BUILD_TYPE "Release")
 
 if (UNIX)# todo check if this is necessary
     if (NOT APPLE)
@@ -27,8 +28,7 @@ set(imgui_sources
         imgui/imstb_truetype.h
         )
 
-add_executable(BrickSim
-        ${imgui_sources}
+set(bricksim_sources
         src/main.cpp
         src/lib/glad.c
         src/ldr_files.cpp
@@ -57,6 +57,13 @@ add_executable(BrickSim
         src/ldr_colors.h
         src/renderer.cpp
         src/renderer.h
+        src/gui.cpp
+        src/gui.h
+        )
+
+add_executable(BrickSim
+        ${imgui_sources}
+        ${bricksim_sources}
         )
 
 # On Ubuntu, I had to sudo apt install mesa-utils freeglut3-dev libglfw3-dev

@@ -20,10 +20,13 @@ public:
     static Configuration* getInstance();
 
     [[nodiscard]] std::string get_string(const std::string &key) const;
-
     [[nodiscard]] long get_long(const std::string &key) const;
-
     [[nodiscard]] double get_double(const std::string &key) const;
+
+    void set_string(const std::string &key, const std::string &value);
+    void set_long(const std::string &key, long value);
+    void set_double(const std::string &key, double value);
+    bool save();
 };
 
 namespace config {

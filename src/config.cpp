@@ -60,3 +60,32 @@ double Configuration::get_double(const std::string& key) const {
     return doubles.find(key)->second;
 }
 
+void Configuration::set_string(const std::string &key, const std::string &value) {
+    strings[key] = value;
+}
+
+void Configuration::set_long(const std::string &key, long value) {
+    doubles[key] = value;
+}
+
+void Configuration::set_double(const std::string &key, double value) {
+    doubles[key] = value;
+}
+
+bool Configuration::save() {
+    std::ofstream file("config.txt");
+    if (!file.good()) {
+        return false;
+    }
+    for (const auto &entry : strings) {
+        file << entry.first << "=" << entry.second << std::endl;
+    }
+    for (const auto &entry : longs) {
+        file << entry.first << "=" << entry.second << std::endl;
+    }
+    for (const auto &entry : doubles) {
+        file << entry.first << "=" << entry.second << std::endl;
+    }
+    return true;
+}
+

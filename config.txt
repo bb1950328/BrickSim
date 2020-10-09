@@ -1,7 +1,9 @@
+guiStyle=dark
 ldrawPartsLibrary=~/ldraw
-screenWidth=1600
-screenHeight=900
 instancedMinComplexity=6000
 msaaSamples=4
-guiScale=1.25
-guiStyle=dark
+screenHeight=900
+screenWidth=1600
+guiScale=1.5
+screenHeight=900
+screenWidth=1600

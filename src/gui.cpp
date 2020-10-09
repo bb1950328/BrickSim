@@ -99,7 +99,33 @@ void Gui::loop() {
 
     if (showSettingsWindow) {
         ImGui::Begin("Settings", &showSettingsWindow);
-        ImGui::Text("TODO");//todo implement
+        auto conf = Configuration::getInstance();
+        static auto guiScale = (float)(conf->get_double(config::KEY_GUI_SCALE));
+        static int initialWindowSize[2]{
+            static_cast<int>(conf->get_long(config::KEY_SCREEN_WIDTH)),
+            static_cast<int>(conf->get_long(config::KEY_SCREEN_HEIGHT))
+        };
+        static auto ldrawDirString = conf->get_string(config::KEY_LDRAW_PARTS_LIBRARY);
+        static auto ldrawDir = ldrawDirString.c_str();
+        static auto guiStyleString = conf->get_string(config::KEY_GUI_STYLE);
+        static auto guiStyle = guiStyleString=="light"?0:(guiStyleString=="classic"?1:2);
+        ImGui::SliderFloat("UI Scale", &guiScale, 0.25, 8, "%.2f");
+        ImGui::InputInt2("Initial Window Size", initialWindowSize);
+        ImGui::InputText("Ldraw path", const_cast<char *>(ldrawDir), 256);
+        ImGui::Combo("Output", &guiStyle, "Light\0Classic\0Dark\0");
+        if(ImGui::Button("Save")) {
+            conf->set_double(config::KEY_GUI_SCALE, guiScale);
+            conf->set_long(config::KEY_SCREEN_WIDTH, initialWindowSize[0]);
+            conf->set_long(config::KEY_SCREEN_HEIGHT, initialWindowSize[1]);
+            conf->set_string(config::KEY_LDRAW_PARTS_LIBRARY, ldrawDir);
+            switch (guiStyle) {
+                //todo make this work
+                case 0: conf->set_string(config::KEY_GUI_STYLE, "light");
+                case 1: conf->set_string(config::KEY_GUI_STYLE, "classic");
+                default: conf->set_string(config::KEY_GUI_STYLE, "dark");
+            }
+            conf->save();//todo show message when failed
+        }
         ImGui::End();
     }
 

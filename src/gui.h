@@ -7,8 +7,13 @@
 
 #include <GLFW/glfw3.h>
 
-void initGui(GLFWwindow* window);
-void loopGui(GLFWwindow* window);
-void cleanupGui();
+class Gui {
+public:
+    GLFWwindow *window;
+    Gui() = default;
+    void setup();
+    void loop();
+    void cleanup();
+};
 
 #endif //BRICKSIM_GUI_H

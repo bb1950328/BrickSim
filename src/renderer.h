@@ -35,15 +35,13 @@ void processInput(GLFWwindow *window);
 
 class Renderer {
 public:
-    static Renderer *instance;
-    static Renderer* getInstance();
-
     Shader *triangleShader;
     Shader *lineShader;
-    ElementTree elementTree;
+    ElementTree *elementTree;
     MeshCollection meshCollection;
-    unsigned int windowWidth = Configuration::getInstance()->get_long(config::KEY_SCREEN_WIDTH);
-    unsigned int windowHeight = Configuration::getInstance()->get_long(config::KEY_SCREEN_HEIGHT);
+
+    unsigned int windowWidth = 0;
+    unsigned int windowHeight = 0;
 
     CadCamera camera;
     float lastX = windowWidth / 2.0f;
@@ -64,12 +62,13 @@ public:
 
     bool cleanup();
 
+    explicit Renderer(ElementTree *elementTree);
+
+    void setWindowSize(unsigned int width, unsigned int height);
+
 private:
 
-    Renderer();
-
     bool setupCalled = false;
-    bool initialize();
 };
 
 #endif //BRICKSIM_RENDERER_H

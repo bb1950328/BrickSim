@@ -59,6 +59,8 @@ set(bricksim_sources
         src/renderer.h
         src/gui.cpp
         src/gui.h
+        src/controller.cpp
+        src/controller.h
         )
 
 add_executable(BrickSim

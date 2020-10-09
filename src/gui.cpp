@@ -9,7 +9,7 @@
 #include "gui.h"
 #include "config.h"
 
-void initGui(GLFWwindow* window) {
+void Gui::setup() {
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
     float xscale, yscale;
     glfwGetMonitorContentScale(monitor, &xscale, &yscale);
@@ -43,7 +43,7 @@ void initGui(GLFWwindow* window) {
     }
 }
 
-void loopGui(GLFWwindow* window) {
+void Gui::loop() {
     static bool showDemoWindow = true;
     static bool showOtherWindow = true;
     static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.6f, 1.0f);
@@ -93,8 +93,7 @@ void loopGui(GLFWwindow* window) {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void cleanupGui() {
-    // Cleanup
+void Gui::cleanup() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();

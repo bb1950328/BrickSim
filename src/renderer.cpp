@@ -5,23 +5,11 @@
 #include <imgui.h>
 #include "renderer.h"
 #include "gui.h"
-
-Renderer *Renderer::instance = nullptr;
-
-Renderer *Renderer::getInstance() {
-    if (nullptr==instance) {
-        instance = new Renderer();
-    }
-    return instance;
-}
+#include "controller.h"
 
 bool Renderer::setup() {
     if (setupCalled) {
         return true;
-    }
-
-    if (!initialize()) {
-        return false;
     }
 
     triangleShader = new Shader("src/shaders/triangle_shader.vsh", "src/shaders/triangle_shader.fsh");
@@ -30,7 +18,7 @@ bool Renderer::setup() {
     LdrFileRepository::initializeNames();
     auto before = std::chrono::high_resolution_clock::now();
 
-    elementTree.loadLdrFile("3001.dat");
+    elementTree->loadLdrFile("3001.dat");
     //elementTree.print();
     auto between = std::chrono::high_resolution_clock::now();
 
@@ -87,8 +75,6 @@ bool Renderer::setup() {
     triangleShader->setVec3("light.diffuse", diffuseColor);
     triangleShader->setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
-
-
     setupCalled = true;
     return true;
 }
@@ -127,57 +113,25 @@ bool Renderer::loop() {
         }
     }
 
-    loopGui(window);
-
-    glfwSwapBuffers(window);
-    glfwPollEvents();
     return true;
 }
 
 bool Renderer::cleanup() {
     meshCollection.deallocateGraphics();
-
     glfwTerminate();
     return true;
 }
 
-Renderer::Renderer() : meshCollection(&elementTree) {
+Renderer::Renderer(ElementTree *elementTree) : meshCollection(elementTree) {
+    this->elementTree = elementTree;
     triangleShader = nullptr;
     lineShader = nullptr;
-    window = nullptr;
 }
 
-bool Renderer::initialize() {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_SAMPLES, Configuration::getInstance()->get_long(config::KEY_MSAA_SAMPLES));
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-    //glfwWindowHint(GLFW_DECORATED, false);//removes the title bar
-    window = glfwCreateWindow(windowWidth, windowHeight, "BrickSim", nullptr, nullptr);
-    //glfwSetWindowPos(window, 20, 40);
-    if (window == nullptr) {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return false;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-
-    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return false;
-    }
-
-    glEnable(GL_DEPTH_TEST);
-    return true;
+void Renderer::setWindowSize(unsigned int width, unsigned int height) {
+    windowWidth = width;
+    windowHeight = height;
+    updateProjectionMatrix();
 }
 
 void processInput(GLFWwindow *window) {
@@ -189,10 +143,7 @@ void processInput(GLFWwindow *window) {
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     //this gets called when the window is resized
     glViewport(0, 0, width, height);
-    auto *renderer = Renderer::getInstance();
-    renderer->windowWidth = width;
-    renderer->windowHeight = height;
-    renderer->updateProjectionMatrix();
+    Controller::getInstance()->setWindowSize(width, height);
 }
 
 
@@ -200,7 +151,7 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
-    auto *renderer = Renderer::getInstance();
+    auto *renderer = &Controller::getInstance()->renderer;
     float xoffset = xpos - renderer->lastX;
     float yoffset = renderer->lastY - ypos;
 
@@ -218,5 +169,5 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
-    Renderer::getInstance()->camera.moveForwardBackward(yoffset);
+    Controller::getInstance()->renderer.camera.moveForwardBackward(yoffset);
 }

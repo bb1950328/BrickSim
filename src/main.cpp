@@ -1,14 +1,5 @@
-#include "renderer.h"
-#include "gui.h"
+#include "controller.h"
 
 int main() {
-    Renderer *renderer = Renderer::getInstance();
-    renderer->setup();
-    initGui(renderer->window);
-    while (!glfwWindowShouldClose(renderer->window)) {
-        renderer->loop();
-    }
-    cleanupGui();
-    renderer->cleanup();
-    return 0;
+    return Controller::getInstance()->run();
 }

@@ -47,9 +47,6 @@ public:
     float lastX = windowWidth / 2.0f;
     float lastY = windowHeight / 2.0f;
 
-    int i_frame = 64;
-    double time_sum = 0.0;
-
     glm::vec3 lightPos = glm::vec3(4.46, 7.32, 6.2);//todo customizable
     glm::mat4 projection{};
     GLFWwindow *window;

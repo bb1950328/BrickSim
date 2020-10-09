@@ -8,6 +8,7 @@
 #include <iostream>
 #include "gui.h"
 #include "config.h"
+#include "controller.h"
 
 void Gui::setup() {
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
@@ -44,48 +45,73 @@ void Gui::setup() {
 }
 
 void Gui::loop() {
+    static bool showElementTreeWindow = true;
+    static bool showSettingsWindow = true;
     static bool showDemoWindow = true;
-    static bool showOtherWindow = true;
+    static bool showDebugWindow = true;
     static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.6f, 1.0f);
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("Open", "CTRL+O")) {
+                //todo open file dialog
+            }
+            if (ImGui::MenuItem("Exit", "CTRL+W")) {
+                //todo exit
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Edit"))
+        {
+            //todo implement these functions
+            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}
+            ImGui::Separator();
+            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("View"))
+        {
+            ImGui::MenuItem("Element Tree", "ALT+T", &showElementTreeWindow);
+            ImGui::MenuItem("Settings", "ALT+S", &showSettingsWindow);
+            ImGui::Separator();
+            ImGui::MenuItem("Demo", "", &showDemoWindow);
+            ImGui::MenuItem("Debug", "ALT+D", &showDebugWindow);
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+
+    if (showElementTreeWindow) {
+        ImGui::Begin("Element Tree", &showElementTreeWindow);
+        ImGui::Text("TODO");//todo implement
+        ImGui::End();
+    }
+
+    if (showSettingsWindow) {
+        ImGui::Begin("Settings", &showSettingsWindow);
+        ImGui::Text("TODO");//todo implement
+        ImGui::End();
+    }
+
+    if (showDebugWindow) {
+        ImGui::Begin("Debug Information", &showDebugWindow);
+        long lastFrameTime = Controller::getInstance()->lastFrameTime;
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", lastFrameTime/1000.0, 1000000.0/lastFrameTime);
+        ImGui::End();
+    }
+
     if (showDemoWindow) {
         ImGui::ShowDemoWindow(&showDemoWindow);
-    }
-
-    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-    {
-        static float f = 0.0f;
-        static int counter = 0;
-
-        ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-        ImGui::Checkbox("Demo Window", &showDemoWindow);      // Edit bools storing our window open/close state
-        ImGui::Checkbox("Another Window", &showOtherWindow);
-
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-        ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-        if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-            counter++;
-        ImGui::SameLine();
-        ImGui::Text("counter = %d", counter);
-
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        ImGui::End();
-    }
-
-    // 3. Show another simple window.
-    if (showOtherWindow)
-    {
-        ImGui::Begin("Another Window", &showOtherWindow);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::Text("Hello from another window!");
-        if (ImGui::Button("Close Me"))
-            showOtherWindow = false;
-        ImGui::End();
     }
 
     // Rendering

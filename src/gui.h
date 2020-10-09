@@ -5,8 +5,6 @@
 #ifndef BRICKSIM_GUI_H
 #define BRICKSIM_GUI_H
 
-#include <GLFW/glfw3.h>
-
 class Gui {
 public:
     GLFWwindow *window;

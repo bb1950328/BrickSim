@@ -17,6 +17,7 @@ public:
     Gui gui;
     unsigned int windowWidth = Configuration::getInstance()->get_long(config::KEY_SCREEN_WIDTH);
     unsigned int windowHeight = Configuration::getInstance()->get_long(config::KEY_SCREEN_HEIGHT);
+    long lastFrameTime = 0;//in µs
     int run();
     static Controller* getInstance();
     void setWindowSize(unsigned int width, unsigned int height);

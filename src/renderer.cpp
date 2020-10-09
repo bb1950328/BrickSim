@@ -88,7 +88,6 @@ bool Renderer::loop() {
         throw std::invalid_argument("call setup first!");
     }
     processInput(window);
-    double start = glfwGetTime();
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -103,15 +102,6 @@ bool Renderer::loop() {
     lineShader->use();
     lineShader->setMat4("projectionView", projectionView);
     meshCollection.drawLineGraphics(lineShader);
-
-    if (i_frame!=0) {
-        double end = glfwGetTime();
-        time_sum += (end-start);
-        i_frame--;
-        if (i_frame==0) {
-            std::cout << "theoretical FPS: " << 1.0/time_sum*64 << "\n";
-        }
-    }
 
     return true;
 }

@@ -16,8 +16,11 @@ int Controller::run() {
     renderer.setup();
     gui.setup();
     while (!glfwWindowShouldClose(window)) {
+        auto before = std::chrono::high_resolution_clock::now();
         renderer.loop();
         gui.loop();
+        auto after = std::chrono::high_resolution_clock::now();
+        lastFrameTime = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

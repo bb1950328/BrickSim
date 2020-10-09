@@ -34,3 +34,4 @@
 # CMake
 /cmake-build-debug/
 /glfw-3.3.2/
+/imgui.ini

@@ -2,7 +2,9 @@
 // Created by bb1950328 on 07.10.2020.
 //
 
+#include <imgui.h>
 #include "renderer.h"
+#include "gui.h"
 
 Renderer *Renderer::instance = nullptr;
 
@@ -28,7 +30,7 @@ bool Renderer::setup() {
     LdrFileRepository::initializeNames();
     auto before = std::chrono::high_resolution_clock::now();
 
-    elementTree.loadLdrFile("~/Downloads/arocs.mpd");
+    elementTree.loadLdrFile("3001.dat");
     //elementTree.print();
     auto between = std::chrono::high_resolution_clock::now();
 
@@ -124,6 +126,9 @@ bool Renderer::loop() {
             std::cout << "theoretical FPS: " << 1.0/time_sum*64 << "\n";
         }
     }
+
+    loopGui(window);
+
     glfwSwapBuffers(window);
     glfwPollEvents();
     return true;
@@ -192,6 +197,9 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
+    if (ImGui::GetIO().WantCaptureMouse) {
+        return;
+    }
     auto *renderer = Renderer::getInstance();
     float xoffset = xpos - renderer->lastX;
     float yoffset = renderer->lastY - ypos;
@@ -207,5 +215,8 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+    if (ImGui::GetIO().WantCaptureMouse) {
+        return;
+    }
     Renderer::getInstance()->camera.moveForwardBackward(yoffset);
 }

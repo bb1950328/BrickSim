@@ -45,6 +45,7 @@ void Gui::setup() {
 }
 
 void Gui::loop() {
+    static bool show3dWindow = true;
     static bool showElementTreeWindow = true;
     static bool showSettingsWindow = true;
     static bool showDemoWindow = true;
@@ -54,6 +55,9 @@ void Gui::loop() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     if (ImGui::BeginMainMenuBar())
     {
@@ -80,6 +84,7 @@ void Gui::loop() {
         }
         if (ImGui::BeginMenu("View"))
         {
+            ImGui::MenuItem("3D View", "ALT+V", &show3dWindow);
             ImGui::MenuItem("Element Tree", "ALT+T", &showElementTreeWindow);
             ImGui::MenuItem("Settings", "ALT+S", &showSettingsWindow);
             ImGui::Separator();
@@ -89,6 +94,19 @@ void Gui::loop() {
         }
 
         ImGui::EndMainMenuBar();
+    }
+
+    auto *controller = Controller::getInstance();
+    if (show3dWindow) {
+        ImGui::Begin("3D View", &show3dWindow);
+        {
+            ImGui::BeginChild("3DRender");
+            ImVec2 wsize = ImGui::GetWindowSize();
+            controller->set3dViewSize((unsigned int) wsize.x, (unsigned int) wsize.y);
+            ImGui::Image((ImTextureID) controller->renderer.textureColorbuffer, wsize, ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::EndChild();
+        }
+        ImGui::End();
     }
 
     if (showElementTreeWindow) {
@@ -131,7 +149,7 @@ void Gui::loop() {
 
     if (showDebugWindow) {
         ImGui::Begin("Debug Information", &showDebugWindow);
-        long lastFrameTime = Controller::getInstance()->lastFrameTime;
+        long lastFrameTime = controller->lastFrameTime;
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", lastFrameTime/1000.0, 1000000.0/lastFrameTime);
         ImGui::End();
     }

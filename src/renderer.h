@@ -51,6 +51,10 @@ public:
     glm::mat4 projection{};
     GLFWwindow *window;
 
+    unsigned int framebuffer;
+    unsigned int textureColorbuffer;
+    unsigned int renderBufferObject;
+
     bool setup();
 
     void updateProjectionMatrix();
@@ -66,6 +70,8 @@ public:
 private:
 
     bool setupCalled = false;
+
+    void createFramebuffer();
 };
 
 #endif //BRICKSIM_RENDERER_H

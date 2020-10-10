@@ -75,8 +75,34 @@ bool Renderer::setup() {
     triangleShader->setVec3("light.diffuse", diffuseColor);
     triangleShader->setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
+    createFramebuffer();
+
     setupCalled = true;
     return true;
+}
+
+void Renderer::createFramebuffer() {
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    // create a color attachment texture
+
+    glGenTextures(1, &textureColorbuffer);
+    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowWidth, windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+    // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+
+    glGenRenderbuffers(1, &renderBufferObject);
+    glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, windowWidth, windowHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject); // now actually attach it
+// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Renderer::updateProjectionMatrix() {
@@ -89,6 +115,8 @@ bool Renderer::loop() {
     }
     processInput(window);
 
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glEnable(GL_DEPTH_TEST); // todo check if this is needed
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -102,6 +130,8 @@ bool Renderer::loop() {
     lineShader->use();
     lineShader->setMat4("projectionView", projectionView);
     meshCollection.drawLineGraphics(lineShader);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     return true;
 }
@@ -119,9 +149,12 @@ Renderer::Renderer(ElementTree *elementTree) : meshCollection(elementTree) {
 }
 
 void Renderer::setWindowSize(unsigned int width, unsigned int height) {
-    windowWidth = width;
-    windowHeight = height;
-    updateProjectionMatrix();
+    if (windowWidth != width || windowHeight!=height) {
+        windowWidth = width;
+        windowHeight = height;
+        updateProjectionMatrix();
+        createFramebuffer();
+    }
 }
 
 void processInput(GLFWwindow *window) {
@@ -133,7 +166,7 @@ void processInput(GLFWwindow *window) {
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     //this gets called when the window is resized
     glViewport(0, 0, width, height);
-    Controller::getInstance()->setWindowSize(width, height);
+    //Controller::getInstance()->set3dViewSize(width, height);
 }
 
 

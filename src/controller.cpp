@@ -12,7 +12,7 @@ int Controller::run() {
     }
     renderer.window = window;
     gui.window = window;
-    renderer.setWindowSize(windowWidth, windowHeight);
+    renderer.setWindowSize(view3dWidth, view3dHeight);
     renderer.setup();
     gui.setup();
     while (!glfwWindowShouldClose(window)) {
@@ -71,8 +71,8 @@ bool Controller::initializeGL() {
     return true;
 }
 
-void Controller::setWindowSize(unsigned int width, unsigned int height) {
-    windowWidth = width;
-    windowHeight = height;
+void Controller::set3dViewSize(unsigned int width, unsigned int height) {
+    view3dWidth = width;
+    view3dHeight = height;
     renderer.setWindowSize(width, height);
 }

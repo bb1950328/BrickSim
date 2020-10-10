@@ -18,7 +18,7 @@ bool Renderer::setup() {
     LdrFileRepository::initializeNames();
     auto before = std::chrono::high_resolution_clock::now();
 
-    elementTree->loadLdrFile("3001.dat");
+    elementTree->loadLdrFile("~/Downloads/arocs.mpd");
     //elementTree.print();
     auto between = std::chrono::high_resolution_clock::now();
 

@@ -92,8 +92,7 @@ void LdrFile::addTextLine(const std::string &line) {
             if (metaInfo.add_line(metaElement->content)) {
                 delete element;
                 element = nullptr;
-            }
-            if (metaElement->content=="STEP") {
+            } else if (metaElement->content=="STEP") {
                 currentStep++;
             }
         }
@@ -299,13 +298,15 @@ bool LdrFileMetaInfo::add_line(std::string line){
     } else if (util::starts_with(line, "!CATEGORY")) {
         category = util::trim(line.substr(9));
     } else if (util::starts_with(line, "!KEYWORDS")) {
-        int i = 9;
+        size_t i = 9;
         while (true) {
-            int next = line.find(',', i);
-            if (next==-1) {
+            size_t next = line.find(',', i);
+            if (next==std::string::npos) {
+                keywords.insert(util::trim(line.substr(i)));
                 break;
             }
-            keywords.insert(util::trim(line.substr(i, next)));
+            keywords.insert(util::trim(line.substr(i, next-i)));
+            i = next+1;
         }
     } else if (util::starts_with(line, "!HISTORY")) {
         history.push_back(util::trim(line.substr(8)));

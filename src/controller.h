@@ -24,6 +24,8 @@ public:
     static Controller* getInstance();
     void set3dViewSize(unsigned int width, unsigned int height);
 
+    void set3dViewPos(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2);
+
 private:
     Controller();
     //todo google how to make singleton

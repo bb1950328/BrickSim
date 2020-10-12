@@ -76,3 +76,7 @@ void Controller::set3dViewSize(unsigned int width, unsigned int height) {
     view3dHeight = height;
     renderer.setWindowSize(width, height);
 }
+
+void Controller::set3dViewPos(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2) {
+    renderer.setWindowPos(x1, y1, x2, y2);
+}

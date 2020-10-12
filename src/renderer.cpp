@@ -157,17 +157,6 @@ void Renderer::setWindowSize(unsigned int width, unsigned int height) {
     }
 }
 
-void Renderer::setWindowPos(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2) {
-    this->windowPosX1 = x1;
-    this->windowPosY1 = y1;
-    this->windowPosX2 = x2;
-    this->windowPosY2 = y2;
-}
-
-bool Renderer::isInWindow(double x, double y) {
-    return windowPosX1 <= x && x <= windowPosX2 && windowPosY1 <= y && y <= windowPosY2;
-}
-
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
@@ -182,10 +171,10 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-    auto *renderer = &Controller::getInstance()->renderer;
-    if (ImGui::GetIO().WantCaptureMouse && !renderer->isInWindow(xpos, ypos)) {
+    if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
+    auto *renderer = &Controller::getInstance()->renderer;
     float xoffset = xpos - renderer->lastX;
     float yoffset = renderer->lastY - ypos;
 
@@ -200,9 +189,7 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    const ImVec2 &mousePos = ImGui::GetMousePos();
-    auto *renderer = &Controller::getInstance()->renderer;
-    if (ImGui::GetIO().WantCaptureMouse && !renderer->isInWindow(mousePos.x, mousePos.y)) {
+    if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
     Controller::getInstance()->renderer.camera.moveForwardBackward(yoffset);

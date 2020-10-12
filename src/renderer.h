@@ -43,11 +43,6 @@ public:
     unsigned int windowWidth = 0;
     unsigned int windowHeight = 0;
 
-    unsigned int windowPosX1;
-    unsigned int windowPosY1;
-    unsigned int windowPosX2;
-    unsigned int windowPosY2;
-
     CadCamera camera;
     float lastX = windowWidth / 2.0f;
     float lastY = windowHeight / 2.0f;
@@ -72,16 +67,11 @@ public:
 
     void setWindowSize(unsigned int width, unsigned int height);
 
-    void setWindowPos(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2);
-
-    bool isInWindow(double x, double y);
-
 private:
 
     bool setupCalled = false;
 
     void createFramebuffer();
-
 };
 
 #endif //BRICKSIM_RENDERER_H

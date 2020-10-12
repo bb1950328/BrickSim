@@ -152,6 +152,7 @@ void Renderer::setWindowSize(unsigned int width, unsigned int height) {
     if (windowWidth != width || windowHeight!=height) {
         windowWidth = width;
         windowHeight = height;
+        glViewport(0, 0, width, height);
         updateProjectionMatrix();
         createFramebuffer();
     }
@@ -165,7 +166,7 @@ void processInput(GLFWwindow *window) {
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     //this gets called when the window is resized
-    glViewport(0, 0, width, height);
+    //glViewport(0, 0, width, height);
     //Controller::getInstance()->set3dViewSize(width, height);
 }
 

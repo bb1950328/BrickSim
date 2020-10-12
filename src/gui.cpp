@@ -11,16 +11,16 @@
 #include "controller.h"
 
 void Gui::setup() {
-    GLFWmonitor* monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
+    GLFWmonitor *monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
     float xscale, yscale;
     glfwGetMonitorContentScale(monitor, &xscale, &yscale);
     std::cout << "xscale: " << xscale << "\tyscale: " << yscale << std::endl;
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    auto scaleFactor = (float)(Configuration::getInstance()->get_double(config::KEY_GUI_SCALE));
-    if (xscale>1 || yscale>1) {
-        scaleFactor = (xscale+yscale)/2.0f;
+    auto scaleFactor = (float) (Configuration::getInstance()->get_double(config::KEY_GUI_SCALE));
+    if (xscale > 1 || yscale > 1) {
+        scaleFactor = (xscale + yscale) / 2.0f;
         ImGuiStyle &style = ImGui::GetStyle();
         style.ScaleAllSizes(scaleFactor);
         glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
@@ -33,14 +33,14 @@ void Gui::setup() {
     ImGui_ImplOpenGL3_Init("#version 330");
     // Setup Dear ImGui style
     auto guiStyle = Configuration::getInstance()->get_string(config::KEY_GUI_STYLE);
-    if (guiStyle=="light") {
+    if (guiStyle == "light") {
         ImGui::StyleColorsLight();
-    } else if (guiStyle=="classic") {
+    } else if (guiStyle == "classic") {
         ImGui::StyleColorsClassic();
-    } else if (guiStyle=="dark") {
+    } else if (guiStyle == "dark") {
         ImGui::StyleColorsDark();
     } else {
-        std::cout << "WARNING: please set "<<config::KEY_GUI_STYLE << "to light, classic or dark" << std::endl;
+        std::cout << "WARNING: please set " << config::KEY_GUI_STYLE << "to light, classic or dark" << std::endl;
     }
 }
 
@@ -59,10 +59,8 @@ void Gui::loop() {
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    if (ImGui::BeginMainMenuBar())
-    {
-        if (ImGui::BeginMenu("File"))
-        {
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Open", "CTRL+O")) {
                 //todo open file dialog
             }
@@ -71,8 +69,7 @@ void Gui::loop() {
             }
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("Edit"))
-        {
+        if (ImGui::BeginMenu("Edit")) {
             //todo implement these functions
             if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
             if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}
@@ -82,8 +79,7 @@ void Gui::loop() {
             if (ImGui::MenuItem("Paste", "CTRL+V")) {}
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("View"))
-        {
+        if (ImGui::BeginMenu("View")) {
             ImGui::MenuItem("3D View", "ALT+V", &show3dWindow);
             ImGui::MenuItem("Element Tree", "ALT+T", &showElementTreeWindow);
             ImGui::MenuItem("Settings", "ALT+S", &showSettingsWindow);
@@ -98,12 +94,42 @@ void Gui::loop() {
 
     auto *controller = Controller::getInstance();
     if (show3dWindow) {
-        ImGui::Begin("3D View", &show3dWindow);
+        ImGui::Begin("3D View", &show3dWindow, ImGuiWindowFlags_NoScrollWithMouse);
         {
             ImGui::BeginChild("3DRender");
-            ImVec2 wsize = ImGui::GetWindowSize();
+            ImVec2 wsize = ImGui::GetContentRegionAvail();
             controller->set3dViewSize((unsigned int) wsize.x, (unsigned int) wsize.y);
-            ImGui::Image((ImTextureID) controller->renderer.textureColorbuffer, wsize, ImVec2(0, 1), ImVec2(1, 0));
+            const ImVec2 &windowPos = ImGui::GetWindowPos();
+            const ImVec2 &regionMin = ImGui::GetWindowContentRegionMin();
+            const ImVec2 &mousePos = ImGui::GetMousePos();
+            const ImVec2 &regionMax = ImGui::GetWindowContentRegionMax();
+            bool isInWindow = (windowPos.x+regionMin.x <= mousePos.x
+                               && mousePos.x <= windowPos.x+regionMax.x
+                               && windowPos.y+regionMin.y <= mousePos.y
+                               && mousePos.y <= windowPos.y+regionMax.y);
+            static float lastDeltaXleft = 0, lastDeltaYleft = 0;
+            static float lastDeltaXright = 0, lastDeltaYright = 0;
+            //std::cout << ImGui::GetScrollX() << "\t" << ImGui::GetScrollY() << std::endl;
+            if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && isInWindow && ImGui::IsWindowFocused()) {
+                const ImVec2 &leftBtnDrag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+                controller->renderer.camera.mouseRotate(leftBtnDrag.x - lastDeltaXleft, (leftBtnDrag.y - lastDeltaYleft) * -1);
+                lastDeltaXleft = leftBtnDrag.x;
+                lastDeltaYleft = leftBtnDrag.y;
+            } else {
+                lastDeltaXleft = 0;
+                lastDeltaYleft = 0;
+            }
+            if (ImGui::IsMouseDragging(ImGuiMouseButton_Right) && isInWindow && ImGui::IsWindowFocused()) {
+                const ImVec2 &rightBtnDrag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+                controller->renderer.camera.mousePan(rightBtnDrag.x - lastDeltaXright, (rightBtnDrag.y - lastDeltaYright) * -1);
+                lastDeltaXright = rightBtnDrag.x;
+                lastDeltaYright = rightBtnDrag.y;
+            } else {
+                lastDeltaXright = 0;
+                lastDeltaYright = 0;
+            }
+            auto texture3dView = (ImTextureID) controller->renderer.textureColorbuffer;
+            ImGui::ImageButton(texture3dView, wsize, ImVec2(0, 1), ImVec2(1, 0), 0);
             ImGui::EndChild();
         }
         ImGui::End();
@@ -118,29 +144,32 @@ void Gui::loop() {
     if (showSettingsWindow) {
         ImGui::Begin("Settings", &showSettingsWindow);
         auto conf = Configuration::getInstance();
-        static auto guiScale = (float)(conf->get_double(config::KEY_GUI_SCALE));
+        static auto guiScale = (float) (conf->get_double(config::KEY_GUI_SCALE));
         static int initialWindowSize[2]{
-            static_cast<int>(conf->get_long(config::KEY_SCREEN_WIDTH)),
-            static_cast<int>(conf->get_long(config::KEY_SCREEN_HEIGHT))
+                static_cast<int>(conf->get_long(config::KEY_SCREEN_WIDTH)),
+                static_cast<int>(conf->get_long(config::KEY_SCREEN_HEIGHT))
         };
         static auto ldrawDirString = conf->get_string(config::KEY_LDRAW_PARTS_LIBRARY);
         static auto ldrawDir = ldrawDirString.c_str();
         static auto guiStyleString = conf->get_string(config::KEY_GUI_STYLE);
-        static auto guiStyle = guiStyleString=="light"?0:(guiStyleString=="classic"?1:2);
+        static auto guiStyle = guiStyleString == "light" ? 0 : (guiStyleString == "classic" ? 1 : 2);
         ImGui::SliderFloat("UI Scale", &guiScale, 0.25, 8, "%.2f");
         ImGui::InputInt2("Initial Window Size", initialWindowSize);
         ImGui::InputText("Ldraw path", const_cast<char *>(ldrawDir), 256);
         ImGui::Combo("Output", &guiStyle, "Light\0Classic\0Dark\0");
-        if(ImGui::Button("Save")) {
+        if (ImGui::Button("Save")) {
             conf->set_double(config::KEY_GUI_SCALE, guiScale);
             conf->set_long(config::KEY_SCREEN_WIDTH, initialWindowSize[0]);
             conf->set_long(config::KEY_SCREEN_HEIGHT, initialWindowSize[1]);
             conf->set_string(config::KEY_LDRAW_PARTS_LIBRARY, ldrawDir);
             switch (guiStyle) {
                 //todo make this work
-                case 0: conf->set_string(config::KEY_GUI_STYLE, "light");
-                case 1: conf->set_string(config::KEY_GUI_STYLE, "classic");
-                default: conf->set_string(config::KEY_GUI_STYLE, "dark");
+                case 0:
+                    conf->set_string(config::KEY_GUI_STYLE, "light");
+                case 1:
+                    conf->set_string(config::KEY_GUI_STYLE, "classic");
+                default:
+                    conf->set_string(config::KEY_GUI_STYLE, "dark");
             }
             conf->save();//todo show message when failed
         }
@@ -150,7 +179,7 @@ void Gui::loop() {
     if (showDebugWindow) {
         ImGui::Begin("Debug Information", &showDebugWindow);
         long lastFrameTime = controller->lastFrameTime;
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", lastFrameTime/1000.0, 1000000.0/lastFrameTime);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", lastFrameTime / 1000.0, 1000000.0 / lastFrameTime);
         ImGui::End();
     }
 

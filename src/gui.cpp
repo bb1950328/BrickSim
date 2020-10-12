@@ -9,6 +9,7 @@
 #include "gui.h"
 #include "config.h"
 #include "controller.h"
+#include "ldr_colors.h"
 
 void Gui::setup() {
     GLFWmonitor *monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
@@ -163,25 +164,54 @@ void Gui::loop() {
         static auto ldrawDir = ldrawDirString.c_str();
         static auto guiStyleString = conf->get_string(config::KEY_GUI_STYLE);
         static auto guiStyle = guiStyleString == "light" ? 0 : (guiStyleString == "classic" ? 1 : 2);
+        static int msaaSamples = (int)(conf->get_long(config::KEY_MSAA_SAMPLES));
+        static glm::vec3 backgroundColor = RGB(conf->get_string(config::KEY_BACKGROUND_COLOR)).asGlmVector();
         ImGui::SliderFloat("UI Scale", &guiScale, 0.25, 8, "%.2f");
         ImGui::InputInt2("Initial Window Size", initialWindowSize);
         ImGui::InputText("Ldraw path", const_cast<char *>(ldrawDir), 256);
-        ImGui::Combo("Output", &guiStyle, "Light\0Classic\0Dark\0");
+        ImGui::Combo("GUI Theme", &guiStyle, "Light\0Classic\0Dark\0");
+        static int msaaElem = std::log2(msaaSamples);
+        ImGui::SliderInt("MSAA Samples", &msaaElem, 0, 4, std::to_string((int)std::pow(2, msaaElem)).c_str());
+        ImGui::ColorEdit3("Background Color", &backgroundColor.x);
+        static bool saveFailed = false;
         if (ImGui::Button("Save")) {
             conf->set_double(config::KEY_GUI_SCALE, guiScale);
             conf->set_long(config::KEY_SCREEN_WIDTH, initialWindowSize[0]);
             conf->set_long(config::KEY_SCREEN_HEIGHT, initialWindowSize[1]);
             conf->set_string(config::KEY_LDRAW_PARTS_LIBRARY, ldrawDir);
             switch (guiStyle) {
-                //todo make this work
                 case 0:
                     conf->set_string(config::KEY_GUI_STYLE, "light");
+                    break;
                 case 1:
                     conf->set_string(config::KEY_GUI_STYLE, "classic");
+                    break;
                 default:
                     conf->set_string(config::KEY_GUI_STYLE, "dark");
+                    break;
             }
-            conf->save();//todo show message when failed
+            conf->set_long(config::KEY_MSAA_SAMPLES, (int)std::pow(2, msaaElem));
+            //conf->set_string(config::KEY_BACKGROUND_COLOR, "");//todo implement
+            saveFailed = !conf->save();
+        }
+        if (saveFailed) {
+            ImGui::OpenPopup("Error##saveFailed");
+        }
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        if (ImGui::BeginPopupModal("Error##saveFailed", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Text("Failed to save settings. ");
+            ImGui::Text("Please check if you have write access to the config file location");
+            ImGui::Separator();
+
+            if (ImGui::Button("OK")) {
+                saveFailed = false;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::EndPopup();
         }
         ImGui::End();
     }

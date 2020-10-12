@@ -119,6 +119,15 @@ RGB::RGB(std::string htmlCode){
     delete [] greenChars;
     delete [] blueChars;
 }
+
+std::string RGB::asHtmlCode() const {
+    auto buffer = new char[7];
+    snprintf(buffer, 7, "#%0d%0d%0d", red, blue, green);//todo check if this works
+    auto result = std::string(buffer);
+    delete [] buffer;
+    return result;
+}
+
 LdrInstanceDummyColor::LdrInstanceDummyColor() {
     name = "Instance Dummy Color";
     code = -1;

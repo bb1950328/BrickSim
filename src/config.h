@@ -37,6 +37,7 @@ namespace config {
     const std::string KEY_MSAA_SAMPLES = "msaaSamples";
     const std::string KEY_GUI_SCALE = "guiScale";
     const std::string KEY_GUI_STYLE = "guiStyle";
+    const std::string KEY_BACKGROUND_COLOR = "backgroundColor";
 }
 
 #endif //BRICKSIM_CONFIG_H

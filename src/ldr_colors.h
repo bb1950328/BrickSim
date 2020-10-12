@@ -15,6 +15,7 @@ struct RGB {
 
     unsigned char red, green, blue;
     [[nodiscard]] glm::vec3 asGlmVector() const;
+    [[nodiscard]] std::string asHtmlCode() const;
 };
 
 struct LdrColorMaterial {

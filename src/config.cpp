@@ -49,15 +49,27 @@ Configuration::Configuration() {
 }
 
 std::string Configuration::get_string(const std::string& key) const {
-    return strings.find(key)->second;
+    auto it = strings.find(key);
+    if (it==strings.end()) {
+        return "";
+    }
+    return it->second;
 }
 
 long Configuration::get_long(const std::string& key) const {
-    return longs.find(key)->second;
+    auto it = longs.find(key);
+    if (it==longs.end()) {
+        return 0;
+    }
+    return it->second;
 }
 
 double Configuration::get_double(const std::string& key) const {
-    return doubles.find(key)->second;
+    auto it = doubles.find(key);
+    if (it==doubles.end()) {
+        return 0.0;
+    }
+    return it->second;
 }
 
 void Configuration::set_string(const std::string &key, const std::string &value) {
@@ -65,7 +77,7 @@ void Configuration::set_string(const std::string &key, const std::string &value)
 }
 
 void Configuration::set_long(const std::string &key, long value) {
-    doubles[key] = value;
+    longs[key] = value;
 }
 
 void Configuration::set_double(const std::string &key, double value) {

@@ -24,10 +24,6 @@
 #include <iostream>
 #include <chrono>
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-
-void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 void processInput(GLFWwindow *window);
@@ -44,8 +40,8 @@ public:
     unsigned int windowHeight = 0;
 
     CadCamera camera;
-    float lastX = windowWidth / 2.0f;
-    float lastY = windowHeight / 2.0f;
+
+    bool unrenderedChanges = true;
 
     glm::vec3 lightPos = glm::vec3(4.46, 7.32, 6.2);//todo customizable
     glm::mat4 projection{};

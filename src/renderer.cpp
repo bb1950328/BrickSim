@@ -4,7 +4,6 @@
 
 #include <imgui.h>
 #include "renderer.h"
-#include "gui.h"
 #include "controller.h"
 
 bool Renderer::setup() {
@@ -107,6 +106,7 @@ void Renderer::createFramebuffer() {
 
 void Renderer::updateProjectionMatrix() {
     projection = glm::perspective(glm::radians(50.0f), (float) windowWidth / (float) windowHeight, 0.1f, 1000.0f);
+    unrenderedChanges = true;
 }
 
 bool Renderer::loop() {
@@ -115,24 +115,26 @@ bool Renderer::loop() {
     }
     processInput(window);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glEnable(GL_DEPTH_TEST); // todo check if this is needed
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (unrenderedChanges) {
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glEnable(GL_DEPTH_TEST); // todo check if this is needed
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 view = camera.getViewMatrix();
-    const glm::mat4 &projectionView = projection * view;
+        glm::mat4 view = camera.getViewMatrix();
+        const glm::mat4 &projectionView = projection * view;
 
-    triangleShader->use();
-    triangleShader->setVec3("viewPos", camera.getCameraPos());
-    triangleShader->setMat4("projectionView", projectionView);
-    meshCollection.drawTriangleGraphics(triangleShader);
-    lineShader->use();
-    lineShader->setMat4("projectionView", projectionView);
-    meshCollection.drawLineGraphics(lineShader);
+        triangleShader->use();
+        triangleShader->setVec3("viewPos", camera.getCameraPos());
+        triangleShader->setMat4("projectionView", projectionView);
+        meshCollection.drawTriangleGraphics(triangleShader);
+        lineShader->use();
+        lineShader->setMat4("projectionView", projectionView);
+        meshCollection.drawLineGraphics(lineShader);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        unrenderedChanges = false;
+    }
     return true;
 }
 
@@ -155,6 +157,7 @@ void Renderer::setWindowSize(unsigned int width, unsigned int height) {
         glViewport(0, 0, width, height);
         updateProjectionMatrix();
         createFramebuffer();
+        unrenderedChanges = true;
     }
 }
 
@@ -164,34 +167,11 @@ void processInput(GLFWwindow *window) {
     }
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    //this gets called when the window is resized
-    //glViewport(0, 0, width, height);
-    //Controller::getInstance()->set3dViewSize(width, height);
-}
-
-
-void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-    if (ImGui::GetIO().WantCaptureMouse) {
-        return;
-    }
-    auto *renderer = &Controller::getInstance()->renderer;
-    float xoffset = xpos - renderer->lastX;
-    float yoffset = renderer->lastY - ypos;
-
-    renderer->lastX = xpos;
-    renderer->lastY = ypos;
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1)) {
-        renderer->camera.mouseRotate(xoffset, yoffset);
-    }
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
-        renderer->camera.mousePan(xoffset, yoffset);
-    }
-}
-
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+    Controller::getInstance()->gui.lastScrollDeltaY = yoffset;
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
     Controller::getInstance()->renderer.camera.moveForwardBackward(yoffset);
+    Controller::getInstance()->renderer.unrenderedChanges = true;
 }

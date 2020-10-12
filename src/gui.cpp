@@ -110,23 +110,33 @@ void Gui::loop() {
             static float lastDeltaXleft = 0, lastDeltaYleft = 0;
             static float lastDeltaXright = 0, lastDeltaYright = 0;
             //std::cout << ImGui::GetScrollX() << "\t" << ImGui::GetScrollY() << std::endl;
-            if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && isInWindow && ImGui::IsWindowFocused()) {
-                const ImVec2 &leftBtnDrag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
-                controller->renderer.camera.mouseRotate(leftBtnDrag.x - lastDeltaXleft, (leftBtnDrag.y - lastDeltaYleft) * -1);
-                lastDeltaXleft = leftBtnDrag.x;
-                lastDeltaYleft = leftBtnDrag.y;
-            } else {
-                lastDeltaXleft = 0;
-                lastDeltaYleft = 0;
-            }
-            if (ImGui::IsMouseDragging(ImGuiMouseButton_Right) && isInWindow && ImGui::IsWindowFocused()) {
-                const ImVec2 &rightBtnDrag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
-                controller->renderer.camera.mousePan(rightBtnDrag.x - lastDeltaXright, (rightBtnDrag.y - lastDeltaYright) * -1);
-                lastDeltaXright = rightBtnDrag.x;
-                lastDeltaYright = rightBtnDrag.y;
-            } else {
-                lastDeltaXright = 0;
-                lastDeltaYright = 0;
+            if (isInWindow && ImGui::IsWindowFocused()) {
+                if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+                    const ImVec2 &leftBtnDrag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+                    controller->renderer.camera.mouseRotate(leftBtnDrag.x - lastDeltaXleft,
+                                                            (leftBtnDrag.y - lastDeltaYleft) * -1);
+                    controller->renderer.unrenderedChanges = true;
+                    lastDeltaXleft = leftBtnDrag.x;
+                    lastDeltaYleft = leftBtnDrag.y;
+                } else {
+                    lastDeltaXleft = 0;
+                    lastDeltaYleft = 0;
+                }
+                if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
+                    const ImVec2 &rightBtnDrag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+                    controller->renderer.camera.mousePan(rightBtnDrag.x - lastDeltaXright,
+                                                         (rightBtnDrag.y - lastDeltaYright) * -1);
+                    controller->renderer.unrenderedChanges = true;
+                    lastDeltaXright = rightBtnDrag.x;
+                    lastDeltaYright = rightBtnDrag.y;
+                } else {
+                    lastDeltaXright = 0;
+                    lastDeltaYright = 0;
+                }
+                if (std::abs(lastScrollDeltaY)>0.01) {
+                    controller->renderer.camera.moveForwardBackward((float)lastScrollDeltaY);
+                    Controller::getInstance()->renderer.unrenderedChanges = true;
+                }
             }
             auto texture3dView = (ImTextureID) controller->renderer.textureColorbuffer;
             ImGui::ImageButton(texture3dView, wsize, ImVec2(0, 1), ImVec2(1, 0), 0);
@@ -190,6 +200,7 @@ void Gui::loop() {
     // Rendering
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    lastScrollDeltaY = 0.0f;
 }
 
 void Gui::cleanup() {

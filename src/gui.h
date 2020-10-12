@@ -12,6 +12,8 @@ public:
     void setup();
     void loop();
     void cleanup();
+
+    double lastScrollDeltaY;
 };
 
 #endif //BRICKSIM_GUI_H

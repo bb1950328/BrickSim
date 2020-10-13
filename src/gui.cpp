@@ -191,7 +191,7 @@ void Gui::loop() {
                     break;
             }
             conf->set_long(config::KEY_MSAA_SAMPLES, (int)std::pow(2, msaaElem));
-            //conf->set_string(config::KEY_BACKGROUND_COLOR, "");//todo implement
+            conf->set_string(config::KEY_BACKGROUND_COLOR, RGB(backgroundColor).asHtmlCode());
             saveFailed = !conf->save();
         }
         if (saveFailed) {

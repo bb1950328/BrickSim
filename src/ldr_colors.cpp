@@ -99,33 +99,21 @@ void LdrColorRepository::initialize(){
     colors[instDummyColor.code] = instDummyColor;
 }
 
-RGB::RGB(std::string htmlCode){
-    auto redChars = new char[2];
-    auto greenChars = new char[2];
-    auto blueChars = new char[2];
-
-    redChars[0] = htmlCode[1];
-    redChars[1] = htmlCode[2];
-    greenChars[0] = htmlCode[3];
-    greenChars[1] = htmlCode[4];
-    blueChars[0] = htmlCode[5];
-    blueChars[1] = htmlCode[6];
-
-    red = std::stoi(redChars,nullptr,16);
-    green = std::stoi(greenChars,nullptr,16);
-    blue = std::stoi(blueChars,nullptr,16);
-
-    delete [] redChars;
-    delete [] greenChars;
-    delete [] blueChars;
+RGB::RGB(const std::string& htmlCode){
+    std::sscanf(htmlCode.c_str(), "#%2hx%2hx%2hx", &red, &green, &blue);
 }
 
 std::string RGB::asHtmlCode() const {
-    auto buffer = new char[7];
-    snprintf(buffer, 7, "#%0d%0d%0d", red, blue, green);//todo check if this works
+    char buffer[8];
+    snprintf(buffer, 8, "#%02x%02x%02x", red, green, blue);
     auto result = std::string(buffer);
-    delete [] buffer;
     return result;
+}
+
+RGB::RGB(glm::vec3 vector) {
+    red = vector.x*255;
+    green = vector.y*255;
+    blue = vector.z*255;
 }
 
 LdrInstanceDummyColor::LdrInstanceDummyColor() {

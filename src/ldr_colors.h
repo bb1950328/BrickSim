@@ -11,9 +11,10 @@
 struct RGB {
     RGB() = default;
 
-    explicit RGB(std::string htmlCode);
+    explicit RGB(const std::string& htmlCode);
+    explicit RGB(glm::vec3 vector);
 
-    unsigned char red, green, blue;
+    unsigned short red, green, blue;
     [[nodiscard]] glm::vec3 asGlmVector() const;
     [[nodiscard]] std::string asHtmlCode() const;
 };

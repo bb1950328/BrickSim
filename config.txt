@@ -1,3 +1,4 @@
+backgroundColor=#643219
 guiStyle=dark
 ldrawPartsLibrary=~/ldraw
 instancedMinComplexity=6000
@@ -5,4 +6,3 @@ msaaSamples=1
 screenHeight=900
 screenWidth=1600
 guiScale=1.5
-backgroundColor=#181818

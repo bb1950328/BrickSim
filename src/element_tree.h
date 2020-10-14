@@ -22,6 +22,7 @@ public:
     ElementTreeNode *parent;
     std::vector<ElementTreeNode *> children;
     std::string displayName;
+    bool selected = false;
     [[nodiscard]] const glm::mat4 &getRelativeTransformation() const;
     void setRelativeTransformation(const glm::mat4 &newValue);
 

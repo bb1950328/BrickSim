@@ -46,6 +46,38 @@ void Gui::setup() {
     }
 }
 
+void draw_element_tree_node(ElementTreeNode* node) {
+    bool itemClicked = false;
+    if (node->children.empty()) {
+        auto flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+        if (node->selected) {
+            flags |= ImGuiTreeNodeFlags_Selected;
+        }
+        ImGui::TreeNodeEx(node->displayName.c_str(), flags);
+        itemClicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
+        //todo add context menu
+    } else {
+        auto flags = node->selected?ImGuiTreeNodeFlags_Selected:ImGuiTreeNodeFlags_None;
+        if (ImGui::TreeNodeEx(node->displayName.c_str(), flags)) {
+            itemClicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
+            for (const auto& child: node->children) {
+                draw_element_tree_node(child);
+            }
+            ImGui::TreePop();
+        }
+    }
+    if (itemClicked) {
+        auto controller = Controller::getInstance();
+        if (ImGui::GetIO().KeyCtrl) {
+            controller->nodeSelectAddRemove(node);
+        } else if (ImGui::GetIO().KeyShift) {
+            controller->nodeSelectUntil(node);
+        } else {
+            controller->nodeSelectSet(node);
+        }
+    }
+}
+
 void Gui::loop() {
     static bool show3dWindow = true;
     static bool showElementTreeWindow = true;
@@ -159,7 +191,7 @@ void Gui::loop() {
 
     if (showElementTreeWindow) {
         ImGui::Begin("Element Tree", &showElementTreeWindow);
-        ImGui::Text("TODO");//todo implement
+        draw_element_tree_node(&controller->elementTree.rootNode);
         ImGui::End();
     }
 

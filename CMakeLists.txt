@@ -35,7 +35,6 @@ set(bricksim_sources
         src/ldr_files.h
         src/config.cpp
         src/config.h
-        src/test/test_configuration_reader.cpp
         src/test/test_ldr_file_read.cpp
         src/util.cpp
         src/util.h

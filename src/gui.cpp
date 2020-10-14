@@ -19,7 +19,7 @@ void Gui::setup() {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    auto scaleFactor = (float) (Configuration::getInstance()->get_double(config::KEY_GUI_SCALE));
+    auto scaleFactor = (float) (config::get_double(config::KEY_GUI_SCALE));
     if (xscale > 1 || yscale > 1) {
         scaleFactor = (xscale + yscale) / 2.0f;
         ImGuiStyle &style = ImGui::GetStyle();
@@ -33,7 +33,7 @@ void Gui::setup() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
     // Setup Dear ImGui style
-    auto guiStyle = Configuration::getInstance()->get_string(config::KEY_GUI_STYLE);
+    auto guiStyle = config::get_string(config::KEY_GUI_STYLE);
     if (guiStyle == "light") {
         ImGui::StyleColorsLight();
     } else if (guiStyle == "classic") {
@@ -154,18 +154,17 @@ void Gui::loop() {
 
     if (showSettingsWindow) {
         ImGui::Begin("Settings", &showSettingsWindow);
-        auto conf = Configuration::getInstance();
-        static auto guiScale = (float) (conf->get_double(config::KEY_GUI_SCALE));
+        static auto guiScale = (float) (config::get_double(config::KEY_GUI_SCALE));
         static int initialWindowSize[2]{
-                static_cast<int>(conf->get_long(config::KEY_SCREEN_WIDTH)),
-                static_cast<int>(conf->get_long(config::KEY_SCREEN_HEIGHT))
+                static_cast<int>(config::get_long(config::KEY_SCREEN_WIDTH)),
+                static_cast<int>(config::get_long(config::KEY_SCREEN_HEIGHT))
         };
-        static auto ldrawDirString = conf->get_string(config::KEY_LDRAW_PARTS_LIBRARY);
+        static auto ldrawDirString = config::get_string(config::KEY_LDRAW_PARTS_LIBRARY);
         static auto ldrawDir = ldrawDirString.c_str();
-        static auto guiStyleString = conf->get_string(config::KEY_GUI_STYLE);
+        static auto guiStyleString = config::get_string(config::KEY_GUI_STYLE);
         static auto guiStyle = guiStyleString == "light" ? 0 : (guiStyleString == "classic" ? 1 : 2);
-        static int msaaSamples = (int)(conf->get_long(config::KEY_MSAA_SAMPLES));
-        static glm::vec3 backgroundColor = RGB(conf->get_string(config::KEY_BACKGROUND_COLOR)).asGlmVector();
+        static int msaaSamples = (int)(config::get_long(config::KEY_MSAA_SAMPLES));
+        static glm::vec3 backgroundColor = RGB(config::get_string(config::KEY_BACKGROUND_COLOR)).asGlmVector();
         ImGui::SliderFloat("UI Scale", &guiScale, 0.25, 8, "%.2f");
         ImGui::InputInt2("Initial Window Size", initialWindowSize);
         ImGui::InputText("Ldraw path", const_cast<char *>(ldrawDir), 256);
@@ -175,24 +174,24 @@ void Gui::loop() {
         ImGui::ColorEdit3("Background Color", &backgroundColor.x);
         static bool saveFailed = false;
         if (ImGui::Button("Save")) {
-            conf->set_double(config::KEY_GUI_SCALE, guiScale);
-            conf->set_long(config::KEY_SCREEN_WIDTH, initialWindowSize[0]);
-            conf->set_long(config::KEY_SCREEN_HEIGHT, initialWindowSize[1]);
-            conf->set_string(config::KEY_LDRAW_PARTS_LIBRARY, ldrawDir);
+            config::set_double(config::KEY_GUI_SCALE, guiScale);
+            config::set_long(config::KEY_SCREEN_WIDTH, initialWindowSize[0]);
+            config::set_long(config::KEY_SCREEN_HEIGHT, initialWindowSize[1]);
+            config::set_string(config::KEY_LDRAW_PARTS_LIBRARY, ldrawDir);
             switch (guiStyle) {
                 case 0:
-                    conf->set_string(config::KEY_GUI_STYLE, "light");
+                    config::set_string(config::KEY_GUI_STYLE, "light");
                     break;
                 case 1:
-                    conf->set_string(config::KEY_GUI_STYLE, "classic");
+                    config::set_string(config::KEY_GUI_STYLE, "classic");
                     break;
                 default:
-                    conf->set_string(config::KEY_GUI_STYLE, "dark");
+                    config::set_string(config::KEY_GUI_STYLE, "dark");
                     break;
             }
-            conf->set_long(config::KEY_MSAA_SAMPLES, (int)std::pow(2, msaaElem));
-            conf->set_string(config::KEY_BACKGROUND_COLOR, RGB(backgroundColor).asHtmlCode());
-            saveFailed = !conf->save();
+            config::set_long(config::KEY_MSAA_SAMPLES, (int)std::pow(2, msaaElem));
+            config::set_string(config::KEY_BACKGROUND_COLOR, RGB(backgroundColor).asHtmlCode());
+            saveFailed = !config::save();
         }
         if (saveFailed) {
             ImGui::OpenPopup("Error##saveFailed");

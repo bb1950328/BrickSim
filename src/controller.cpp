@@ -25,9 +25,9 @@ int Controller::run() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    Configuration::getInstance()->set_long(config::KEY_SCREEN_WIDTH, windowWidth);
-    Configuration::getInstance()->set_long(config::KEY_SCREEN_HEIGHT, windowHeight);
-    Configuration::getInstance()->save();
+    config::set_long(config::KEY_SCREEN_WIDTH, windowWidth);
+    config::set_long(config::KEY_SCREEN_HEIGHT, windowHeight);
+    config::save();
     gui.cleanup();
     renderer.cleanup();
     return 0;
@@ -46,8 +46,7 @@ bool Controller::initializeGL() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    auto conf = Configuration::getInstance();
-    glfwWindowHint(GLFW_SAMPLES, (int)(conf->get_long(config::KEY_MSAA_SAMPLES)));
+    glfwWindowHint(GLFW_SAMPLES, (int)(config::get_long(config::KEY_MSAA_SAMPLES)));
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
@@ -88,8 +87,5 @@ void Controller::setWindowSize(unsigned int width, unsigned int height) {
 }
 
 void window_size_callback(GLFWwindow *window, int width, int height) {
-    //this gets called when the window is resized
-    //glViewport(0, 0, width, height);
     Controller::getInstance()->setWindowSize(width, height);
-    //Controller::getInstance()->set3dViewSize(width, height);
 }

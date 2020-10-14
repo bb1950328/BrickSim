@@ -87,7 +87,7 @@ LdrColorRepository * LdrColorRepository::getInstance(){
     return instance;
 }
 void LdrColorRepository::initialize(){
-    auto lib_path = util::extend_home_dir(Configuration::getInstance()->get_string(config::KEY_LDRAW_PARTS_LIBRARY));
+    auto lib_path = util::extend_home_dir(config::get_string(config::KEY_LDRAW_PARTS_LIBRARY));
     auto input = std::ifstream(util::pathjoin({lib_path, "LDConfig.ldr"}));
     for (std::string line; getline(input, line);) {
         auto trimmed = util::trim(line);

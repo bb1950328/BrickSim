@@ -17,8 +17,8 @@ public:
     Gui gui;
     unsigned int view3dWidth = 800;//todo customizable
     unsigned int view3dHeight = 600;
-    unsigned int windowWidth = Configuration::getInstance()->get_long(config::KEY_SCREEN_WIDTH);
-    unsigned int windowHeight = Configuration::getInstance()->get_long(config::KEY_SCREEN_HEIGHT);
+    unsigned int windowWidth = config::get_long(config::KEY_SCREEN_WIDTH);
+    unsigned int windowHeight = config::get_long(config::KEY_SCREEN_HEIGHT);
     long lastFrameTime = 0;//in µs
     int run();
     static Controller* getInstance();

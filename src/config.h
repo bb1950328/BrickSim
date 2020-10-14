@@ -7,29 +7,22 @@
 
 #include <map>
 
-class Configuration {
-private:
-    static Configuration *instance;
+namespace config {
+    extern std::map<std::string, std::string> strings;
+    extern std::map<std::string, long> longs;
+    extern std::map<std::string, double> doubles;
 
-private:
-    std::map<std::string, std::string> strings;
-    std::map<std::string, long> longs;
-    std::map<std::string, double> doubles;
-    Configuration();
-public:
-    static Configuration* getInstance();
-
-    [[nodiscard]] std::string get_string(const std::string &key) const;
-    [[nodiscard]] long get_long(const std::string &key) const;
-    [[nodiscard]] double get_double(const std::string &key) const;
+    [[nodiscard]] std::string get_string(const std::string &key);
+    [[nodiscard]] long get_long(const std::string &key);
+    [[nodiscard]] double get_double(const std::string &key);
 
     void set_string(const std::string &key, const std::string &value);
     void set_long(const std::string &key, long value);
     void set_double(const std::string &key, double value);
-    bool save();
-};
 
-namespace config {
+    bool save();
+    void _ensure_settings_loaded();
+
     const std::string KEY_LDRAW_PARTS_LIBRARY = "ldrawPartsLibrary";
     const std::string KEY_SCREEN_WIDTH = "screenWidth";
     const std::string KEY_SCREEN_HEIGHT = "screenHeight";

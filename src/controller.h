@@ -23,6 +23,7 @@ public:
     int run();
     static Controller* getInstance();
     void set3dViewSize(unsigned int width, unsigned int height);
+    void setWindowSize(unsigned int width, unsigned int height);
 
 private:
     Controller();

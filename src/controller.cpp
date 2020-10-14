@@ -3,7 +3,8 @@
 //
 
 #include "controller.h"
-#include "renderer.h"
+
+void window_size_callback(GLFWwindow *window, int width, int height);
 
 int Controller::run() {
     if (!initializeGL()) {
@@ -24,6 +25,9 @@ int Controller::run() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+    Configuration::getInstance()->set_long(config::KEY_SCREEN_WIDTH, windowWidth);
+    Configuration::getInstance()->set_long(config::KEY_SCREEN_HEIGHT, windowHeight);
+    Configuration::getInstance()->save();
     gui.cleanup();
     renderer.cleanup();
     return 0;
@@ -42,7 +46,8 @@ bool Controller::initializeGL() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_SAMPLES, (int)(Configuration::getInstance()->get_long(config::KEY_MSAA_SAMPLES)));
+    auto conf = Configuration::getInstance();
+    glfwWindowHint(GLFW_SAMPLES, (int)(conf->get_long(config::KEY_MSAA_SAMPLES)));
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
@@ -58,7 +63,7 @@ bool Controller::initializeGL() {
         return false;
     }
     glfwMakeContextCurrent(window);
-    //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetFramebufferSizeCallback(window, window_size_callback);
     //glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
@@ -75,4 +80,16 @@ void Controller::set3dViewSize(unsigned int width, unsigned int height) {
     view3dWidth = width;
     view3dHeight = height;
     renderer.setWindowSize(width, height);
+}
+
+void Controller::setWindowSize(unsigned int width, unsigned int height) {
+    windowWidth = width;
+    windowHeight = height;
+}
+
+void window_size_callback(GLFWwindow *window, int width, int height) {
+    //this gets called when the window is resized
+    //glViewport(0, 0, width, height);
+    Controller::getInstance()->setWindowSize(width, height);
+    //Controller::getInstance()->set3dViewSize(width, height);
 }

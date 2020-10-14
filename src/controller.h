@@ -35,6 +35,8 @@ public:
     void nodeSelectAll();
     void nodeSelectNone();
 
+    void setStandard3dView(int i);
+
 private:
     Controller();
     //todo google how to make singleton

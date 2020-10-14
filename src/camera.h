@@ -31,5 +31,7 @@ public:
     void mousePan(float x_delta, float y_delta);
     void moveForwardBackward(float delta);
     [[nodiscard]] const glm::vec3 &getCameraPos() const;
+
+    void setStandardView(int i);
 };
 #endif //BRICKSIM_CAMERA_H

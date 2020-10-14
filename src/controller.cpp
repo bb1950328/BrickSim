@@ -145,6 +145,11 @@ void Controller::nodeSelectNone() {
     selectedNodes.clear();
 }
 
+void Controller::setStandard3dView(int i) {
+    renderer.camera.setStandardView(i);
+    renderer.unrenderedChanges = true;
+}
+
 void window_size_callback(GLFWwindow *window, int width, int height) {
     Controller::getInstance()->setWindowSize(width, height);
 }

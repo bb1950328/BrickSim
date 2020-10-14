@@ -45,3 +45,16 @@ void CadCamera::moveForwardBackward(float delta) {
 const glm::vec3 &CadCamera::getCameraPos() const {
     return cameraPos;
 }
+
+void CadCamera::setStandardView(int i) {
+    switch (i) {
+        case 1: yaw = 0.0f; pitch = 0.0f; break; //Front
+        case 2: yaw = 180.0f; pitch = 90.0f; break; //Top
+        case 3: yaw = -90.0f; pitch = 0.0f; break; //Right
+        case 4: yaw = 180.0f; pitch = 0.0f; break; //Rear
+        case 5: yaw = 180.0f; pitch = -90.0f; break; //Bottom
+        case 6: yaw = 90.0f; pitch = 0.0f; break; //Left
+        default: throw std::invalid_argument("1...6 only");
+    }
+    updateVectors();
+}

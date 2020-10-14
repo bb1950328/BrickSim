@@ -143,6 +143,15 @@ void Gui::loop() {
             ImGui::TextDisabled("%lu Elements currently selected", controller->selectedNodes.size());
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("3D")) {
+            if (ImGui::MenuItem("Front", "ALT+1"))  controller->setStandard3dView(1);
+            if (ImGui::MenuItem("Top", "ALT+2"))    controller->setStandard3dView(2);
+            if (ImGui::MenuItem("Right", "ALT+3"))  controller->setStandard3dView(3);
+            if (ImGui::MenuItem("Rear", "ALT+4"))   controller->setStandard3dView(4);
+            if (ImGui::MenuItem("Bottom", "ALT+5")) controller->setStandard3dView(5);
+            if (ImGui::MenuItem("Left", "ALT+6"))   controller->setStandard3dView(6);
+            ImGui::EndMenu();
+        }
 
         ImGui::EndMainMenuBar();
     }

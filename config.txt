@@ -1,4 +1,4 @@
-backgroundColor=#643219
+backgroundColor=#444444
 guiStyle=dark
 ldrawPartsLibrary=~/ldraw
 instancedMinComplexity=6000

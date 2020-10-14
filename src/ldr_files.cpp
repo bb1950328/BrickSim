@@ -151,7 +151,7 @@ long LdrFile::instancedMinComplexity = -1;
 
 bool LdrFile::isComplexEnoughForOwnMesh() const {
     /*if (instancedMinComplexity==-1) {
-        instancedMinComplexity = config::get_long(config::KEY_INSTANCED_MIN_COMPLEXITY);
+        instancedMinComplexity = config::get_long(config::INSTANCED_MIN_COMPLEXITY);
     }*/
     return (metaInfo.type!=SUBPART && metaInfo.type!=PRIMITIVE);// todo spend more time here, I think there's much more potential here
 }

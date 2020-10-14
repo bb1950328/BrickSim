@@ -48,7 +48,7 @@ void LdrFileRepository::clear_cache(){
 void LdrFileRepository::initializeNames() {
     if (!namesInitialized) {
         auto before = std::chrono::high_resolution_clock::now();
-        ldrawDirectory = util::extend_home_dir_path(config::get_string(config::KEY_LDRAW_PARTS_LIBRARY));
+        ldrawDirectory = util::extend_home_dir_path(config::get_string(config::LDRAW_PARTS_LIBRARY));
         partsDirectory = ldrawDirectory / std::filesystem::path("parts");
         subpartsDirectory = partsDirectory / std::filesystem::path("s");
         primitivesDirectory = ldrawDirectory / std::filesystem::path("p");

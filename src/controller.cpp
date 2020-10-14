@@ -25,8 +25,8 @@ int Controller::run() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    config::set_long(config::KEY_SCREEN_WIDTH, windowWidth);
-    config::set_long(config::KEY_SCREEN_HEIGHT, windowHeight);
+    config::set_long(config::SCREEN_WIDTH, windowWidth);
+    config::set_long(config::SCREEN_HEIGHT, windowHeight);
     config::save();
     gui.cleanup();
     renderer.cleanup();
@@ -46,7 +46,7 @@ bool Controller::initializeGL() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_SAMPLES, (int)(config::get_long(config::KEY_MSAA_SAMPLES)));
+    glfwWindowHint(GLFW_SAMPLES, (int)(config::get_long(config::MSAA_SAMPLES)));
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__

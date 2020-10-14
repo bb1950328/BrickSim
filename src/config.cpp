@@ -48,46 +48,46 @@ namespace config {
         }
     }
 
-    std::string get_string(const std::string& key) {
+    std::string get_string(const Key& key) {
         _ensure_settings_loaded();
-        auto it = strings.find(key);
+        auto it = strings.find(key.name);
         if (it==strings.end()) {
             return "";
         }
         return it->second;
     }
 
-    long get_long(const std::string& key) {
+    long get_long(const Key& key) {
         _ensure_settings_loaded();
-        auto it = longs.find(key);
+        auto it = longs.find(key.name);
         if (it==longs.end()) {
             return 0;
         }
         return it->second;
     }
 
-    double get_double(const std::string& key) {
+    double get_double(const Key& key) {
         _ensure_settings_loaded();
-        auto it = doubles.find(key);
+        auto it = doubles.find(key.name);
         if (it==doubles.end()) {
             return 0.0;
         }
         return it->second;
     }
 
-    void set_string(const std::string &key, const std::string &value) {
+    void set_string(const Key& key, const std::string &value) {
         _ensure_settings_loaded();
-        strings[key] = value;
+        strings[key.name] = value;
     }
 
-    void set_long(const std::string &key, long value) {
+    void set_long(const Key& key, long value) {
         _ensure_settings_loaded();
-        longs[key] = value;
+        longs[key.name] = value;
     }
 
-    void set_double(const std::string &key, double value) {
+    void set_double(const Key& key, double value) {
         _ensure_settings_loaded();
-        doubles[key] = value;
+        doubles[key.name] = value;
     }
 
     bool save() {

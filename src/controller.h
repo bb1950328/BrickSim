@@ -32,6 +32,8 @@ public:
     void nodeSelectAddRemove(ElementTreeNode *node);
     void nodeSelectUntil(ElementTreeNode *node);
     void nodeSelectSet(ElementTreeNode *node);
+    void nodeSelectAll();
+    void nodeSelectNone();
 
 private:
     Controller();

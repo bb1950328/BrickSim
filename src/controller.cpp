@@ -131,6 +131,20 @@ void Controller::nodeSelectUntil(ElementTreeNode *node) {
     }
 }
 
+void Controller::nodeSelectAll() {
+    //todo think about recursive selection
+    nodeSelectNone();
+    elementTree.rootNode.selected = true;
+    selectedNodes.insert(&elementTree.rootNode);
+}
+
+void Controller::nodeSelectNone() {
+    for (const auto &node : selectedNodes) {
+        node->selected = false;
+    }
+    selectedNodes.clear();
+}
+
 void window_size_callback(GLFWwindow *window, int width, int height) {
     Controller::getInstance()->setWindowSize(width, height);
 }

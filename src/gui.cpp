@@ -133,6 +133,16 @@ void Gui::loop() {
             ImGui::MenuItem("Debug", "ALT+D", &showDebugWindow);
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("Selection")) {
+            if (ImGui::MenuItem("Select All", "CTRL+A")) {
+                controller->nodeSelectAll();
+            }
+            if (ImGui::MenuItem("Select Nothing", "CTRL+U")) {
+                controller->nodeSelectNone();
+            }
+            ImGui::TextDisabled("%lu Elements currently selected", controller->selectedNodes.size());
+            ImGui::EndMenu();
+        }
 
         ImGui::EndMainMenuBar();
     }

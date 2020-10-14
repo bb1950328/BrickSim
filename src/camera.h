@@ -17,11 +17,12 @@ private:
     float pitch = 0.0f; // up/down angle
     float yaw = 0.0f; // left/right angle
     float distance = 3.0f; // distance between target point and camera
-    glm::vec3 front, target, right, up, cameraPos;
+    glm::vec3 front, target, cameraPos;
 private:
     glm::vec3 worldUp = glm::vec3(0.0f,  1.0f, 0.0f);
     float mouseMoveSensitivity = 0.1f;
     float mouseScrollSensitivity = 0.33f;
+    float mousePanSensitivity = 0.33f;
     glm::mat4 viewMatrix;
     void updateVectors();
 public:

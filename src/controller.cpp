@@ -16,7 +16,7 @@ int Controller::run() {
     renderer.setWindowSize(view3dWidth, view3dHeight);
     renderer.setup();
     gui.setup();
-    while (!glfwWindowShouldClose(window)) {
+    while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
         auto before = std::chrono::high_resolution_clock::now();
         renderer.loop();
         gui.loop();
@@ -84,6 +84,11 @@ void Controller::set3dViewSize(unsigned int width, unsigned int height) {
 void Controller::setWindowSize(unsigned int width, unsigned int height) {
     windowWidth = width;
     windowHeight = height;
+}
+
+void Controller::openFile(const std::string& path) {
+    elementTree.loadLdrFile(path);
+    renderer.elementTreeChanged();
 }
 
 void window_size_callback(GLFWwindow *window, int width, int height) {

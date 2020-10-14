@@ -18,47 +18,12 @@ bool Renderer::setup() {
     auto before = std::chrono::high_resolution_clock::now();
 
     elementTree->loadLdrFile("~/Downloads/arocs.mpd");
-    //elementTree.print();
+
     auto between = std::chrono::high_resolution_clock::now();
 
-    //meshCollection.elementTree = &elementTree;
-    meshCollection.readElementTree();
-    //meshCollection.addLdrFile(LdrColorRepository::getInstance()->get_color(4), mainFile, glm::mat4(1.0f));
-    auto after = std::chrono::high_resolution_clock::now();
-    long ms_load = std::chrono::duration_cast<std::chrono::milliseconds>(between - before).count();
-    long ms_mesh = std::chrono::duration_cast<std::chrono::milliseconds>(after - between).count();
-    unsigned long triangle_vertices_count = 0, triangle_indices_count = 0;
-    for (const auto &pair: meshCollection.meshes) {
-        auto mesh = pair.second;
-        for (const auto &entry: mesh->triangleVertices) {
-            triangle_vertices_count += entry.second->size();
-        }
-        for (const auto &entry: mesh->triangleIndices) {
-            triangle_indices_count += entry.second->size();
-        }
-    }
-    std::cout << "meshes count: " << meshCollection.meshes.size() << "\n";
-    //std::cout << "main model estimated complexity: " << mainFile->estimatedComplexity << "\n";
-    std::cout << "total triangle vertices count: " << triangle_vertices_count << "\n";
-    std::cout << "total triangle indices count: " << triangle_indices_count << "\n";
-    std::cout << "every triangle vertex is used " << (float)triangle_indices_count / (float)triangle_vertices_count << "times.\n";
-    //std::cout << "total line vertices count: " << mesh.lineVertices.size() << "\n";
-    //std::cout << "total line indices count: " << mesh.lineIndices.size() << "\n";
-    //std::cout << "every line vertex is used " << (float)mesh.lineIndices.size() / (float)mesh.lineVertices.size() << "times.\n";
-    std::cout << "ldr file loading time: " << ms_load << "ms.\n";
-    std::cout << "meshing time: " << ms_mesh << "ms.\n";
+    meshCollection.rereadElementTree();
 
     stats::print();
-
-    /*for (const auto &meshPair: meshCollection.meshes) {
-        std::cout << meshPair.first->getDescription() << "\n";
-        for (const auto &instance: meshPair.second->instances) {
-            std::cout << "\t" << instance.first->name  << "\n";
-            auto mat_str = glm::to_string(instance.second);
-            util::replaceAll(mat_str, "), (", "),\n\t\t       (");
-            std::cout << "\t\t" << mat_str << "\n";
-        }
-    }*/
 
     updateProjectionMatrix();
 
@@ -159,6 +124,11 @@ void Renderer::setWindowSize(unsigned int width, unsigned int height) {
         createFramebuffer();
         unrenderedChanges = true;
     }
+}
+
+void Renderer::elementTreeChanged() {
+    meshCollection.rereadElementTree();
+    //todo meshCollections.<updateInstanceBuffers> or something like this
 }
 
 void processInput(GLFWwindow *window) {

@@ -164,6 +164,7 @@ void Mesh::addLineVertex(const LineVertex &vertex) {
 }
 
 void Mesh::initializeGraphics() {
+    //todo reallocate instance VBOs when instances changed in size or modify it if instances just changed in value
     //std::cout << "Mesh " << name << " Total Instance Count: " << instances.size() << std::endl;
     initializeTriangleGraphics();
     initializeLineGraphics();

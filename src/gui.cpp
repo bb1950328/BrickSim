@@ -10,6 +10,7 @@
 #include "config.h"
 #include "controller.h"
 #include "ldr_colors.h"
+#include "lib/tinyfiledialogs.h"
 
 void Gui::setup() {
     GLFWmonitor *monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
@@ -60,13 +61,24 @@ void Gui::loop() {
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    auto *controller = Controller::getInstance();
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Open", "CTRL+O")) {
-                //todo open file dialog
+                char* fileNameChars = tinyfd_openFileDialog(
+                        "Open File",
+                        "",
+                        3,
+                        lFilterPatterns,
+                        nullptr,
+                        0);
+                if (fileNameChars!= nullptr) {
+                    std::string fileName(fileNameChars);
+                    controller->openFile(fileName);
+                }
             }
             if (ImGui::MenuItem("Exit", "CTRL+W")) {
-                //todo exit
+                controller->userWantsToExit = true;
             }
             ImGui::EndMenu();
         }
@@ -93,7 +105,6 @@ void Gui::loop() {
         ImGui::EndMainMenuBar();
     }
 
-    auto *controller = Controller::getInstance();
     if (show3dWindow) {
         ImGui::Begin("3D View", &show3dWindow, ImGuiWindowFlags_NoScrollWithMouse);
         {

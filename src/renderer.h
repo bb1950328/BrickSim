@@ -63,6 +63,8 @@ public:
 
     void setWindowSize(unsigned int width, unsigned int height);
 
+    void elementTreeChanged();
+
 private:
 
     bool setupCalled = false;

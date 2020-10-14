@@ -63,6 +63,9 @@ MeshCollection::MeshCollection(ElementTree *elementTree) {
     this->elementTree = elementTree;
 }
 
-void MeshCollection::readElementTree() {
+void MeshCollection::rereadElementTree() {
+    for (const auto& mesh: meshes) {
+        mesh.second->instances.clear();
+    }
     readElementTree(&elementTree->rootNode);
 }

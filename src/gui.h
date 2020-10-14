@@ -5,6 +5,7 @@
 #ifndef BRICKSIM_GUI_H
 #define BRICKSIM_GUI_H
 
+
 class Gui {
 public:
     GLFWwindow *window;
@@ -14,6 +15,8 @@ public:
     void cleanup();
 
     double lastScrollDeltaY;
+private:
+    char const * lFilterPatterns[3] = { "*.ldr", "*.dat", "*.mpd"};
 };
 
 #endif //BRICKSIM_GUI_H

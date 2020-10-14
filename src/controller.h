@@ -20,10 +20,13 @@ public:
     unsigned int windowWidth = config::get_long(config::KEY_SCREEN_WIDTH);
     unsigned int windowHeight = config::get_long(config::KEY_SCREEN_HEIGHT);
     long lastFrameTime = 0;//in µs
+    bool userWantsToExit = false;
     int run();
     static Controller* getInstance();
     void set3dViewSize(unsigned int width, unsigned int height);
     void setWindowSize(unsigned int width, unsigned int height);
+
+    void openFile(const std::string& path);
 
 private:
     Controller();

@@ -19,7 +19,7 @@ public:
 
     void readElementTree(ElementTreeNode *node);
 
-    void readElementTree();
+    void rereadElementTree();
 
     void drawTriangleGraphics(const Shader *triangleShader) const;
 

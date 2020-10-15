@@ -68,4 +68,7 @@ void MeshCollection::rereadElementTree() {
         mesh.second->instances.clear();
     }
     readElementTree(&elementTree->rootNode);
+    for (const auto &mesh : meshes) {
+        mesh.second->writeInstanceBuffers();
+    }
 }

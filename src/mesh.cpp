@@ -176,7 +176,7 @@ void Mesh::initializeTriangleGraphics() {
         std::vector<unsigned int> *indices = entry.second;
         std::vector<TriangleVertex> *vertices = triangleVertices.find(color)->second;
 
-        unsigned int vao, vertexVbo, instanceVbo, ebo;
+        unsigned int vao, vertexVbo, ebo;
 
         //vao
         glGenVertexArrays(1, &vao);
@@ -188,6 +188,11 @@ void Mesh::initializeTriangleGraphics() {
         size_t vertex_size = sizeof(TriangleVertex);
         glBufferData(GL_ARRAY_BUFFER, vertices->size() * vertex_size, &(*vertices)[0], GL_STATIC_DRAW);
 
+        //ebo
+        glGenBuffers(1, &ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices->size(), &(*indices)[0], GL_STATIC_DRAW);
+
         // position attribute
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, (void *) nullptr);
@@ -195,9 +200,25 @@ void Mesh::initializeTriangleGraphics() {
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(TriangleVertex, normal));
 
+        VAOs[color] = vao;
+        vertexVBOs[color] = vertexVbo;
+        EBOs[color] = ebo;
+
+    }
+    writeTriangleInstanceBuffers();
+}
+
+void Mesh::writeTriangleInstanceBuffers() {
+    deleteTriangleInstanceBuffers();
+    for (const auto &entry: triangleIndices) {
+        LdrColor *color = entry.first;
+
         //instanceVbo
         auto instancesArray = generateInstancesArray(color);
 
+        glBindVertexArray(VAOs[color]);
+
+        unsigned int instanceVbo;
         glGenBuffers(1, &instanceVbo);
         glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
         size_t instance_size = sizeof(TriangleInstance);
@@ -221,16 +242,7 @@ void Mesh::initializeTriangleGraphics() {
             glVertexAttribDivisor(i, 1);
         }
         delete[] instancesArray;
-
-        //ebo
-        glGenBuffers(1, &ebo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices->size(), &(*indices)[0], GL_STATIC_DRAW);
-
-        VAOs[color] = vao;
-        vertexVBOs[color] = vertexVbo;
         instanceVBOs[color] = instanceVbo;
-        EBOs[color] = ebo;
     }
 }
 
@@ -254,9 +266,19 @@ void Mesh::initializeLineGraphics() {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(LineVertex, color));
 
     //instanceVbo
+    writeLineInstanceBuffer();
+
+    //ebo
+    glGenBuffers(1, &lineEBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * lineIndices.size(), &(lineIndices)[0], GL_STATIC_DRAW);
+}
+
+void Mesh::writeLineInstanceBuffer() {
+    deleteLineInstanceBuffer();
     auto instancesArray = std::vector<glm::mat4>(instances.size());
     for (int i = 0; i < instances.size(); ++i) {
-        instancesArray[i] = glm::transpose(instances[i].second*globalModel);
+        instancesArray[i] = glm::transpose(instances[i].second * globalModel);
     }
 
     glGenBuffers(1, &lineInstanceVBO);
@@ -272,11 +294,6 @@ void Mesh::initializeLineGraphics() {
     for (int i = 2; i < 6; ++i) {
         glVertexAttribDivisor(i, 1);
     }
-
-    //ebo
-    glGenBuffers(1, &lineEBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * lineIndices.size(), &(lineIndices)[0], GL_STATIC_DRAW);
 }
 
 void Mesh::drawTriangleGraphics(const Shader *triangleShader) {
@@ -303,17 +320,28 @@ void Mesh::deallocateGraphics() {
         LdrColor *color = entry.first;
         unsigned int vao = VAOs[color];
         unsigned int vertexVbo = vertexVBOs[color];
-        unsigned int instanceVbo = instanceVBOs[color];
         unsigned int ebo = EBOs[color];
         glDeleteVertexArrays(1, &vao);
         glDeleteBuffers(1, &vertexVbo);
-        glDeleteBuffers(1, &instanceVbo);
         glDeleteBuffers(1, &ebo);
     }
     glDeleteVertexArrays(1, &lineVAO);
     glDeleteBuffers(1, &lineVertexVBO);
-    glDeleteBuffers(1, &lineInstanceVBO);
     glDeleteBuffers(1, &lineEBO);
+
+    deleteLineInstanceBuffer();
+    deleteTriangleInstanceBuffers();
+}
+
+void Mesh::deleteLineInstanceBuffer() const {
+    glDeleteBuffers(1, &lineInstanceVBO);
+}
+
+void Mesh::deleteTriangleInstanceBuffers() {
+    for (const auto &entry: instanceVBOs) {
+        unsigned int instanceVbo = entry.second;
+        glDeleteBuffers(1, &instanceVbo);
+    }
 }
 
 Mesh::~Mesh() {
@@ -372,5 +400,11 @@ TriangleInstance *Mesh::generateInstancesArray(const LdrColor *color) {
         }
     }
     return instancesArray;
+}
+
+void Mesh::writeInstanceBuffers() {
+    std::cout << name << ".writeInstanceBuffers()" << std::endl;
+    writeTriangleInstanceBuffers();
+    writeLineInstanceBuffer();
 }
 

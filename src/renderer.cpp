@@ -130,7 +130,6 @@ void Renderer::setWindowSize(unsigned int width, unsigned int height) {
 
 void Renderer::elementTreeChanged() {
     meshCollection.rereadElementTree();
-    //todo meshCollections.<updateInstanceBuffers> or something like this
 }
 
 void processInput(GLFWwindow *window) {

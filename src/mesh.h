@@ -84,8 +84,6 @@ public:
     void drawTriangleGraphics(const Shader *triangleShader);
     void drawLineGraphics(const Shader *lineShader);
 
-    void writeInstanceBuffers();
-
     void deallocateGraphics();
 
     virtual ~Mesh();
@@ -108,14 +106,6 @@ private:
     void initializeLineGraphics();
 
     void initializeTriangleGraphics();
-
-    void deleteTriangleInstanceBuffers();
-
-    void writeTriangleInstanceBuffers();
-
-    void deleteLineInstanceBuffer() const;
-
-    void writeLineInstanceBuffer();
 };
 
 #endif //BRICKSIM_MESH_H

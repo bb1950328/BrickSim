@@ -3,7 +3,6 @@
 //
 
 #include <algorithm>
-#include <glm/glm.hpp>
 #include <iostream>
 #include <filesystem>
 #include <glm/gtx/string_cast.hpp>
@@ -15,7 +14,7 @@ namespace util {
     }
 
     std::filesystem::path extend_home_dir_path(const std::string &input) {
-        if (input[0]=='~' && (input[1]=='/' || input[1]=='\\')) {
+        if (input[0] == '~' && (input[1] == '/' || input[1] == '\\')) {
             return std::filesystem::path(getenv(USER_ENV_VAR)) / std::filesystem::path(input.substr(2));
         } else {
             return std::filesystem::path(input);
@@ -70,10 +69,10 @@ namespace util {
 
     void replaceAll(std::string &str, const std::string &from, const std::string &to) {
         //https://stackoverflow.com/a/3418285/8733066
-        if(from.empty())
+        if (from.empty())
             return;
         size_t start_pos = 0;
-        while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
             str.replace(start_pos, from.length(), to);
             start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
         }
@@ -82,12 +81,187 @@ namespace util {
     std::string replaceChar(const std::string &str, char from, char to) {
         std::string result(str);
         if (from != to) {
-            for (char & i : result) {
-                if (i==from) {
+            for (char &i : result) {
+                if (i == from) {
                     i = to;
                 }
             }
         }
         return result;
+    }
+
+    unsigned long gcd(unsigned long a, unsigned long b) {
+        //from https://www.geeksforgeeks.org/steins-algorithm-for-finding-gcd/
+        if (a == 0)
+            return b;
+        if (b == 0)
+            return a;
+
+        unsigned long k;
+        for (k = 0; (a | b) != 0 == 0; ++k) {
+            a >>= 1u;
+            b >>= 1u;
+        }
+
+        while ((a > 1) == 0) {
+            a >>= 1u;
+        }
+
+        do {
+            while ((b > 1) == 0) {
+                b >>= 1u;
+            }
+
+            if (a > b) {
+                std::swap(a, b);
+            }
+
+            b = (b - a);
+        } while (b != 0);
+
+        return a << k;
+    }
+
+    unsigned long lcm(unsigned long a, unsigned long b) {
+        return a / gcd(a, b) * b;//https://stackoverflow.com/a/3154503/8733066
+    }
+
+    Fraction::Fraction(long a, long b) : a(a), b(b) {
+        checkBnot0();
+        simplify();
+    }
+
+    Fraction::Fraction(const Fraction &copyFrom) : a(copyFrom.a), b(copyFrom.b) {
+    }
+
+    void Fraction::checkBnot0() const {
+        if (0 == b) {
+            throw std::invalid_argument("b must not be 0");
+        }
+    }
+
+    void Fraction::simplify() {
+        auto gcd_ = gcd(std::abs(a), std::abs(b));
+        a /= gcd_;
+        b /= gcd_;
+    }
+
+    Fraction Fraction::operator+(const Fraction &other) const {
+        return Fraction(a * other.b + other.a * b, b * other.b);
+    }
+
+    Fraction Fraction::operator-(const Fraction &other) const {
+        return Fraction(a * other.b - other.a * b, b * other.b);
+    }
+
+    Fraction Fraction::operator*(const Fraction &other) const {
+        return Fraction(a * other.a, b * other.b);
+    }
+
+    Fraction Fraction::operator/(const Fraction &other) const {
+        return Fraction(a * other.b, b * other.a);
+    }
+
+    Fraction Fraction::operator+=(const Fraction &other) {
+        auto tmpA = a * other.b + other.a * b;
+        auto tmpB = b * other.b;
+        a = tmpA;
+        b = tmpB;
+        return Fraction(*this);
+    }
+
+    Fraction Fraction::operator-=(const Fraction &other) {
+        auto tmpA = a * other.b - other.a * b;
+        auto tmpB = b * other.b;
+        a = tmpA;
+        b = tmpB;
+        return Fraction(*this);
+    }
+
+    Fraction Fraction::operator*=(const Fraction &other) {
+        a = a * other.a;
+        b = b * other.b;
+        return Fraction(*this);
+    }
+
+    Fraction Fraction::operator/=(const Fraction &other) {
+        a = a * other.b;
+        b = b * other.a;
+        return Fraction(*this);
+    }
+
+    Fraction Fraction::operator+(long other) const {
+        return Fraction(a + other * b, b);
+    }
+
+    Fraction Fraction::operator-(long other) const {
+        return Fraction(a - other * b, b);
+    }
+
+    Fraction Fraction::operator*(long other) const {
+        return Fraction(a * other, b);
+    }
+
+    Fraction Fraction::operator/(long other) const {
+        return Fraction(a, b * other);
+    }
+
+    Fraction Fraction::operator+=(long other) {
+        a = a + other * b;
+        return Fraction(*this);
+    }
+
+    Fraction Fraction::operator-=(long other) {
+        a = a - other * b;
+        return Fraction(*this);
+    }
+
+    Fraction Fraction::operator*=(long other) {
+        a = a * other;
+        return Fraction(*this);
+    }
+
+    Fraction Fraction::operator/=(long other) {
+        b = b * other;
+        return Fraction(*this);
+    }
+
+    bool Fraction::operator==(const Fraction &other) const {
+        return a == other.a && b == other.b;
+    }
+
+    bool Fraction::operator!=(const Fraction &other) const {
+        return a != other.a || b != other.b;
+    }
+
+    bool Fraction::operator>(const Fraction &other) const {
+        return a * other.b > other.a * b;
+    }
+
+    bool Fraction::operator<(const Fraction &other) const {
+        return a * other.b < other.a * b;
+    }
+
+    bool Fraction::operator>=(const Fraction &other) const {
+        return (a == other.a && b == other.b) || a * other.b > other.a * b;
+    }
+
+    bool Fraction::operator<=(const Fraction &other) const {
+        return (a == other.a && b == other.b) || a * other.b < other.a * b;
+    }
+
+    std::ostream &operator<<(std::ostream &os, const Fraction &fraction) {
+        os << "(" << fraction.a << " / " << fraction.b << ")";
+        return os;
+    }
+
+    std::string Fraction::to_string() const {
+        return std::string("(") + std::to_string(a) + " / " + std::to_string(b) + ")";
+    }
+
+    std::string Fraction::to_multiline_string() const {
+        auto strA = std::to_string(a);
+        auto strB = std::to_string(b);
+        return strA + "\n" + std::string(std::max(strA.size(), strB.size()), '-') + "\n" + strB;
     }
 }

@@ -62,6 +62,8 @@ set(bricksim_sources
         src/controller.h
         src/lib/tinyfiledialogs.h
         src/lib/tinyfiledialogs.c
+        src/tools/gears.cpp
+        src/tools/gears.h
         )
 
 add_executable(BrickSim

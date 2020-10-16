@@ -8,6 +8,8 @@
 #include <string>
 #include <list>
 #include <filesystem>
+#include <ostream>
+#include <glm/glm.hpp>
 
 namespace util {
 #if _WIN32
@@ -30,5 +32,47 @@ namespace util {
     void cout_mat4(glm::mat4 mat);
     void replaceAll(std::string& str, const std::string& from, const std::string& to);
     std::string replaceChar(const std::string& str, char from, char to);
+    unsigned long gcd(unsigned long a, unsigned long b);
+    unsigned long lcm(unsigned long a, unsigned long b);
+
+    class Fraction {
+        long a;
+        long b;
+        void checkBnot0() const;
+        void simplify();
+    public:
+        Fraction(long a, long b);
+        Fraction(const Fraction& copyFrom);
+        Fraction operator+(const Fraction& other) const;
+        Fraction operator-(const Fraction& other) const;
+        Fraction operator*(const Fraction& other) const;
+        Fraction operator/(const Fraction& other) const;
+
+        Fraction operator+=(const Fraction& other);
+        Fraction operator-=(const Fraction& other);
+        Fraction operator*=(const Fraction& other);
+        Fraction operator/=(const Fraction& other);
+
+        Fraction operator+(long other) const;
+        Fraction operator-(long other) const;
+        Fraction operator*(long other) const;
+        Fraction operator/(long other) const;
+
+        Fraction operator+=(long other);
+        Fraction operator-=(long other);
+        Fraction operator*=(long other);
+        Fraction operator/=(long other);
+
+        bool operator==(const Fraction& other) const;
+        bool operator!=(const Fraction& other) const;
+        bool operator>(const Fraction& other) const;
+        bool operator<(const Fraction& other) const;
+        bool operator>=(const Fraction& other) const;
+        bool operator<=(const Fraction& other) const;
+
+        [[nodiscard]] std::string to_string() const;
+        [[nodiscard]] std::string to_multiline_string() const;
+        friend std::ostream &operator<<(std::ostream &os, const Fraction &fraction);
+    };
 }
 #endif //BRICKSIM_UTIL_H

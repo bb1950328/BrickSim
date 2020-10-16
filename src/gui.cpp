@@ -81,6 +81,7 @@ void draw_element_tree_node(ElementTreeNode* node) {
 void Gui::loop() {
     static bool show3dWindow = true;
     static bool showElementTreeWindow = true;
+    static bool showElementPropertiesWindow = true;
     static bool showSettingsWindow = true;
     static bool showDemoWindow = true;
     static bool showDebugWindow = true;
@@ -127,6 +128,7 @@ void Gui::loop() {
         if (ImGui::BeginMenu("View")) {
             ImGui::MenuItem("3D View", "ALT+V", &show3dWindow);
             ImGui::MenuItem("Element Tree", "ALT+T", &showElementTreeWindow);
+            ImGui::MenuItem("Element Properties", "ALT+P", &showElementPropertiesWindow);
             ImGui::MenuItem("Settings", "ALT+S", &showSettingsWindow);
             ImGui::Separator();
             ImGui::MenuItem("Demo", "", &showDemoWindow);
@@ -210,7 +212,22 @@ void Gui::loop() {
 
     if (showElementTreeWindow) {
         ImGui::Begin("Element Tree", &showElementTreeWindow);
-        draw_element_tree_node(&controller->elementTree.rootNode);
+        for (auto *rootChild : controller->elementTree.rootNode.children) {
+            draw_element_tree_node(rootChild);
+        }
+        ImGui::End();
+    }
+
+    if (showElementPropertiesWindow) {
+        ImGui::Begin("Element Properties", &showElementPropertiesWindow);
+        if (controller->selectedNodes.empty()) {
+            ImGui::Text("Select an element to view its properties here");
+        } else if (controller->selectedNodes.size()==1) {
+            auto node = *controller->selectedNodes.begin();
+            ImGui::InputText("Name", const_cast<char *>(node->displayName.c_str()), 3);//todo
+        } else {
+            ImGui::Text("Multi-select currently not supported here");
+        }
         ImGui::End();
     }
 

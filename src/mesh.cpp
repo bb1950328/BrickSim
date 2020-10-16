@@ -238,18 +238,21 @@ void Mesh::initializeTriangleGraphics() {
 }
 
 void Mesh::rewriteInstanceBuffer() {
-    for (const auto &entry: triangleIndices) {
-        LdrColor *color = entry.first;
-        auto instanceVbo = instanceVBOs[color];
-        auto instancesArray = generateInstancesArray(color);
-        size_t instance_size = sizeof(TriangleInstance);
-        glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
-        glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
+    if (instancesHaveChanged) {
+        for (const auto &entry: triangleIndices) {
+            LdrColor *color = entry.first;
+            auto instanceVbo = instanceVBOs[color];
+            auto instancesArray = generateInstancesArray(color);
+            size_t instance_size = sizeof(TriangleInstance);
+            glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
+            glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
+        }
+        auto instancesArray = std::vector<glm::mat4>(instances.size());
+        size_t instance_size = sizeof(glm::mat4);
+        glBindBuffer(GL_ARRAY_BUFFER, lineInstanceVBO);
+        glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
+        instancesHaveChanged = false;
     }
-    auto instancesArray = std::vector<glm::mat4>(instances.size());
-    size_t instance_size = sizeof(glm::mat4);
-    glBindBuffer(GL_ARRAY_BUFFER, lineInstanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
 }
 
 void Mesh::initializeLineGraphics() {

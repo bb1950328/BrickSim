@@ -11,9 +11,10 @@
 #include "mesh.h"
 
 enum ElementTreeNodeType {
-    ET_TYPE_OTHER,
-    ET_TYPE_LDRFILE,
-    ET_TYPE_ROOT
+    ET_TYPE_OTHER = 0,
+    ET_TYPE_MESH = 1u << 0u,
+    ET_TYPE_LDRFILE = (1u << 1u)|ET_TYPE_MESH,
+    ET_TYPE_ROOT = 1u << 2u
 };
 
 class ElementTreeNode {
@@ -30,32 +31,36 @@ public:
 
     virtual ElementTreeNodeType getType();
 
-    virtual void addToMesh(Mesh *mesh) = 0;
-
 protected:
     glm::mat4 relativeTransformation = glm::mat4(1.0f);
     glm::mat4 absoluteTransformation;
     bool absoluteTransformationValid = false;
+
+    void invalidateAbsoluteTransformation();
 };
 
 class ElementTreeRootNode : public ElementTreeNode {
 public:
     ElementTreeRootNode();
     ElementTreeNodeType getType() override;
-    void addToMesh(Mesh *mesh) override;
 };
 
-class ElementTreeLdrNode : public ElementTreeNode {
+class ElementTreeMeshNode : public ElementTreeNode {
 public:
+    virtual void* getMeshIdentifier() = 0;
+    virtual void addToMesh(Mesh *mesh) = 0;
+    virtual std::string getDescription() = 0;
+    LdrColor *color;
+    std::optional<size_t> instanceIndex;
+};
+
+class ElementTreeLdrNode : public ElementTreeMeshNode {
+public:
+    void* getMeshIdentifier() override;
     void addToMesh(Mesh *mesh) override;
+    std::string getDescription() override;
     LdrFile *ldrFile;
-    LdrColor *ldrColor;
     std::set<LdrSubfileReference *> childrenWithOwnNode;
-    /**
-     * @param subfileReference
-     * @return true if the SubfileReference should be "inlined" in the mesh
-     *         false if it has its own mesh
-     */
     ElementTreeNodeType getType() override;
     ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor);
 };

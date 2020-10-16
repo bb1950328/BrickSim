@@ -79,7 +79,7 @@ public:
 
     std::vector<TriangleVertex> *getVerticesList(LdrColor *color);
 
-    void initializeGraphics();
+    void writeGraphicsData();
 
     void drawTriangleGraphics(const Shader *triangleShader);
     void drawLineGraphics(const Shader *lineShader);
@@ -96,6 +96,7 @@ private:
             glm::vec3(0.01f, 0.01f, 0.01f)); // and make 100 times smaller
 
     unsigned int lineVAO, lineVertexVBO, lineInstanceVBO, lineEBO;
+    bool already_initialized = false;
 
     static void setInstanceColor(TriangleInstance *instance, const LdrColor *color) ;
 
@@ -106,6 +107,8 @@ private:
     void initializeLineGraphics();
 
     void initializeTriangleGraphics();
+
+    void rewriteInstanceBuffer();
 };
 
 #endif //BRICKSIM_MESH_H

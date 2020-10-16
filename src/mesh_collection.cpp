@@ -7,7 +7,7 @@
 
 void MeshCollection::initializeGraphics() {
     for (const auto &pair: meshes) {
-        pair.second->initializeGraphics();
+        pair.second->writeGraphicsData();
     }
 }
 
@@ -64,8 +64,15 @@ MeshCollection::MeshCollection(ElementTree *elementTree) {
 }
 
 void MeshCollection::rereadElementTree() {
+    auto before = std::chrono::high_resolution_clock::now();
     for (const auto& mesh: meshes) {
         mesh.second->instances.clear();
     }
     readElementTree(&elementTree->rootNode);
+    for (const auto& mesh: meshes) {
+        mesh.second->writeGraphicsData();
+    }
+    auto after = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
+    std::cout << "rereadElementTree() in " << duration/1000.0f << "ms" << std::endl;
 }

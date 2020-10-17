@@ -34,6 +34,9 @@ namespace util {
     std::string replaceChar(const std::string& str, char from, char to);
     unsigned long gcd(unsigned long a, unsigned long b);
     unsigned long lcm(unsigned long a, unsigned long b);
+    float biggest_value(glm::vec2 vector);
+    float biggest_value(glm::vec3 vector);
+    float biggest_value(glm::vec4 vector);
 
     class Fraction {
         long a;

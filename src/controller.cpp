@@ -18,6 +18,10 @@ int Controller::run() {
     gui.setup();
     while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
         auto before = std::chrono::high_resolution_clock::now();
+        if (elementTreeChanged) {
+            renderer.elementTreeChanged();
+            elementTreeChanged = false;
+        }
         renderer.loop();
         gui.loop();
         auto after = std::chrono::high_resolution_clock::now();
@@ -88,7 +92,7 @@ void Controller::setWindowSize(unsigned int width, unsigned int height) {
 
 void Controller::openFile(const std::string& path) {
     elementTree.loadLdrFile(path);
-    renderer.elementTreeChanged();
+    elementTreeChanged = true;
 }
 
 void Controller::nodeSelectAddRemove(ElementTreeNode *node) {

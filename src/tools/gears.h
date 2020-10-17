@@ -7,6 +7,7 @@
 
 #include <string>
 #include <set>
+#include <vector>
 #include "../util.h"
 
 namespace gears {

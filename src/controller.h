@@ -13,6 +13,7 @@ class Controller {
 public:
     GLFWwindow *window;
     ElementTree elementTree;
+    bool elementTreeChanged = false;
     Renderer renderer;
     Gui gui;
     unsigned int view3dWidth = 800;

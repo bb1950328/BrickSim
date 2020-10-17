@@ -13,6 +13,7 @@
 #include "lib/tinyfiledialogs.h"
 #include "util.h"
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>
 
 void Gui::setup() {
@@ -49,7 +50,7 @@ void Gui::setup() {
     }
 }
 
-void draw_element_tree_node(ElementTreeNode* node) {
+void draw_element_tree_node(ElementTreeNode *node) {
     bool itemClicked = false;
     if (node->children.empty()) {
         auto flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
@@ -60,10 +61,10 @@ void draw_element_tree_node(ElementTreeNode* node) {
         itemClicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
         //todo add context menu
     } else {
-        auto flags = node->selected?ImGuiTreeNodeFlags_Selected:ImGuiTreeNodeFlags_None;
+        auto flags = node->selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None;
         if (ImGui::TreeNodeEx(node->displayName.c_str(), flags)) {
             itemClicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
-            for (const auto& child: node->children) {
+            for (const auto &child: node->children) {
                 draw_element_tree_node(child);
             }
             ImGui::TreePop();
@@ -101,14 +102,14 @@ void Gui::loop() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Open", "CTRL+O")) {
-                char* fileNameChars = tinyfd_openFileDialog(
+                char *fileNameChars = tinyfd_openFileDialog(
                         "Open File",
                         "",
                         3,
                         lFilterPatterns,
                         nullptr,
                         0);
-                if (fileNameChars!= nullptr) {
+                if (fileNameChars != nullptr) {
                     std::string fileName(fileNameChars);
                     controller->openFile(fileName);
                 }
@@ -149,12 +150,12 @@ void Gui::loop() {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("3D")) {
-            if (ImGui::MenuItem("Front", "ALT+1"))  controller->setStandard3dView(1);
-            if (ImGui::MenuItem("Top", "ALT+2"))    controller->setStandard3dView(2);
-            if (ImGui::MenuItem("Right", "ALT+3"))  controller->setStandard3dView(3);
-            if (ImGui::MenuItem("Rear", "ALT+4"))   controller->setStandard3dView(4);
+            if (ImGui::MenuItem("Front", "ALT+1")) controller->setStandard3dView(1);
+            if (ImGui::MenuItem("Top", "ALT+2")) controller->setStandard3dView(2);
+            if (ImGui::MenuItem("Right", "ALT+3")) controller->setStandard3dView(3);
+            if (ImGui::MenuItem("Rear", "ALT+4")) controller->setStandard3dView(4);
             if (ImGui::MenuItem("Bottom", "ALT+5")) controller->setStandard3dView(5);
-            if (ImGui::MenuItem("Left", "ALT+6"))   controller->setStandard3dView(6);
+            if (ImGui::MenuItem("Left", "ALT+6")) controller->setStandard3dView(6);
             ImGui::EndMenu();
         }
 
@@ -171,10 +172,10 @@ void Gui::loop() {
             const ImVec2 &regionMin = ImGui::GetWindowContentRegionMin();
             const ImVec2 &mousePos = ImGui::GetMousePos();
             const ImVec2 &regionMax = ImGui::GetWindowContentRegionMax();
-            bool isInWindow = (windowPos.x+regionMin.x <= mousePos.x
-                               && mousePos.x <= windowPos.x+regionMax.x
-                               && windowPos.y+regionMin.y <= mousePos.y
-                               && mousePos.y <= windowPos.y+regionMax.y);
+            bool isInWindow = (windowPos.x + regionMin.x <= mousePos.x
+                               && mousePos.x <= windowPos.x + regionMax.x
+                               && windowPos.y + regionMin.y <= mousePos.y
+                               && mousePos.y <= windowPos.y + regionMax.y);
             static float lastDeltaXleft = 0, lastDeltaYleft = 0;
             static float lastDeltaXright = 0, lastDeltaYright = 0;
             //std::cout << ImGui::GetScrollX() << "\t" << ImGui::GetScrollY() << std::endl;
@@ -201,8 +202,8 @@ void Gui::loop() {
                     lastDeltaXright = 0;
                     lastDeltaYright = 0;
                 }
-                if (std::abs(lastScrollDeltaY)>0.01) {
-                    controller->renderer.camera.moveForwardBackward((float)lastScrollDeltaY);
+                if (std::abs(lastScrollDeltaY) > 0.01) {
+                    controller->renderer.camera.moveForwardBackward((float) lastScrollDeltaY);
                     Controller::getInstance()->renderer.unrenderedChanges = true;
                 }
             }
@@ -225,18 +226,18 @@ void Gui::loop() {
         ImGui::Begin("Element Properties", &showElementPropertiesWindow);
         if (controller->selectedNodes.empty()) {
             ImGui::Text("Select an element to view its properties here");
-        } else if (controller->selectedNodes.size()==1) {
+        } else if (controller->selectedNodes.size() == 1) {
             auto node = *controller->selectedNodes.begin();
 
             static char displayNameBuf[255];
-            static ElementTreeNode* lastNode = nullptr;
+            static ElementTreeNode *lastNode = nullptr;
             if (nullptr != lastNode) {
                 lastNode->displayName = std::string(displayNameBuf);
             }
-            lastNode = node;
             strcpy(displayNameBuf, node->displayName.data());
             const auto displayNameEditable = node->isDisplayNameUserEditable();
-            ImGui::InputText("Name", displayNameBuf, 255, displayNameEditable ? ImGuiInputTextFlags_None : ImGuiInputTextFlags_ReadOnly);
+            ImGui::InputText("Name", displayNameBuf, 255,
+                             displayNameEditable ? ImGuiInputTextFlags_None : ImGuiInputTextFlags_ReadOnly);
             if (!displayNameEditable && ImGui::IsItemHovered()) {
                 ImGui::BeginTooltip();
                 ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
@@ -245,20 +246,56 @@ void Gui::loop() {
                 ImGui::EndTooltip();
             }
 
-            static glm::vec3 eulerAngles;
-            auto relTransf = node->getRelativeTransformation();
-            static glm::vec3 translation;
-            translation = glm::vec3(relTransf[0][3], relTransf[1][3], relTransf[2][3]);
-            //util::cout_mat4(translation);
-            std::cout << relTransf[0][0] << "," << relTransf[0][1] << "," << relTransf[0][2] << "," << relTransf[0][3] << std::endl;
-            std::cout << relTransf[1][0] << "," << relTransf[1][1] << "," << relTransf[1][2] << "," << relTransf[1][3] << std::endl;
-            std::cout << relTransf[2][0] << "," << relTransf[2][1] << "," << relTransf[2][2] << "," << relTransf[2][3] << std::endl;
-            std::cout << relTransf[3][0] << "," << relTransf[3][1] << "," << relTransf[3][2] << "," << relTransf[3][3] << std::endl;
-            std::cout << glm::to_string(translation) << std::endl;
-            glm::extractEulerAngleXYZ(relTransf, eulerAngles[0], eulerAngles[1], eulerAngles[2]);
-            eulerAngles*=(180/M_PI);
-            ImGui::DragFloat3("Rotation", &eulerAngles[0], 1.0f, -180, 180, "%.1f°");
-            ImGui::DragFloat3("Position", &translation[0], 1.0f, -1e9, 1e9, "%.0fLDU");
+            auto treeRelTransf = node->getRelativeTransformation();
+            auto treeOrientation = glm::quat();
+            auto treeSkew = glm::vec3();
+            auto treePerspective = glm::vec4();
+            glm::vec3 treePosition;
+            glm::vec3 treeScale;
+            glm::vec3 treeEulerAnglesRad;
+            glm::decompose(treeRelTransf, treeScale, treeOrientation, treePosition, treeSkew, treePerspective);
+            treePosition = glm::vec3(treeRelTransf[0][3], treeRelTransf[1][3], treeRelTransf[2][3]);
+            glm::extractEulerAngleXYZ(treeRelTransf, treeEulerAnglesRad[0], treeEulerAnglesRad[1],treeEulerAnglesRad[2]);
+            //util::cout_mat4(treeRelTransf);
+            //std::cout << std::endl;
+
+            static glm::vec3 inputEulerAnglesDeg;
+            static glm::vec3 inputPosition;
+            static glm::vec3 inputScalePercent;
+            if (lastNode != node) {
+                inputEulerAnglesDeg = treeEulerAnglesRad * (float) (180.0f / M_PI);
+                inputPosition = treePosition;
+                inputScalePercent = treeScale*100.0f;
+            }
+            glm::vec3 inputEulerAnglesRad = inputEulerAnglesDeg * (float) (M_PI / 180.0f);
+
+            bool changed = false;
+            if (util::biggest_value(glm::abs(treePosition - inputPosition)) > 0.01) {
+                changed = true;
+            }
+            if (util::biggest_value(glm::abs(inputEulerAnglesRad - treeEulerAnglesRad)) > 0.0001) {
+                changed = true;
+            }
+            if (changed) {
+                std::cout << "inputEulerAnglesRad: " << glm::to_string(inputEulerAnglesRad) << std::endl;
+                std::cout << "treeEulerAnglesRad: " << glm::to_string(treeEulerAnglesRad) << std::endl;
+                std::cout << "treePosition: " << glm::to_string(treePosition) << std::endl;
+                std::cout << "inputPosition: " << glm::to_string(inputPosition) << std::endl;
+
+                glm::mat4 newTransf = glm::eulerAngleYXZ(inputEulerAnglesRad.x, inputEulerAnglesRad.y,
+                                                         inputEulerAnglesRad.z);
+                newTransf = glm::translate(newTransf, inputPosition);
+                newTransf = glm::scale(newTransf, inputScalePercent/100.0f);
+                node->setRelativeTransformation(glm::transpose(newTransf));
+                controller->elementTreeChanged = true;
+            }
+
+            //inputEulerAnglesDeg *= (180 / M_PI);
+            ImGui::DragFloat3("Rotation", &inputEulerAnglesDeg[0], 1.0f, -180, 180, "%.1f°");
+            ImGui::DragFloat3("Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
+            ImGui::DragFloat3("Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
+
+            lastNode = node;
         } else {
             ImGui::Text("Multi-select currently not supported here");
         }
@@ -276,14 +313,14 @@ void Gui::loop() {
         static auto ldrawDir = ldrawDirString.c_str();
         static auto guiStyleString = config::get_string(config::GUI_STYLE);
         static auto guiStyle = guiStyleString == "light" ? 0 : (guiStyleString == "classic" ? 1 : 2);
-        static int msaaSamples = (int)(config::get_long(config::MSAA_SAMPLES));
+        static int msaaSamples = (int) (config::get_long(config::MSAA_SAMPLES));
         static glm::vec3 backgroundColor = RGB(config::get_string(config::BACKGROUND_COLOR)).asGlmVector();
         ImGui::SliderFloat("UI Scale", &guiScale, 0.25, 8, "%.2f");
         ImGui::InputInt2("Initial Window Size", initialWindowSize);
         ImGui::InputText("Ldraw path", const_cast<char *>(ldrawDir), 256);
         ImGui::Combo("GUI Theme", &guiStyle, "Light\0Classic\0Dark\0");
         static int msaaElem = std::log2(msaaSamples);
-        ImGui::SliderInt("MSAA Samples", &msaaElem, 0, 4, std::to_string((int)std::pow(2, msaaElem)).c_str());
+        ImGui::SliderInt("MSAA Samples", &msaaElem, 0, 4, std::to_string((int) std::pow(2, msaaElem)).c_str());
         ImGui::ColorEdit3("Background Color", &backgroundColor.x);
         static bool saveFailed = false;
         if (ImGui::Button("Save")) {
@@ -302,7 +339,7 @@ void Gui::loop() {
                     config::set_string(config::GUI_STYLE, "dark");
                     break;
             }
-            config::set_long(config::MSAA_SAMPLES, (int)std::pow(2, msaaElem));
+            config::set_long(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));
             config::set_string(config::BACKGROUND_COLOR, RGB(backgroundColor).asHtmlCode());
             saveFailed = !config::save();
         }
@@ -312,8 +349,7 @@ void Gui::loop() {
         ImVec2 center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-        if (ImGui::BeginPopupModal("Error##saveFailed", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-        {
+        if (ImGui::BeginPopupModal("Error##saveFailed", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::Text("Failed to save settings. ");
             ImGui::Text("Please check if you have write access to the config file location");
             ImGui::Separator();

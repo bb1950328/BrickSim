@@ -284,6 +284,44 @@ void Gui::loop() {
             ImGui::DragFloat3("Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
             ImGui::DragFloat3("Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
 
+            if ((node->getType()&ElementTreeNodeType::ET_TYPE_LDRFILE)>0) {
+                auto* ldrNode = dynamic_cast<ElementTreeLdrNode *>(node);
+                if (ImGui::TreeNodeEx("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    const auto buttonWidth = ImGui::GetFontSize() * 1.5f;
+                    const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
+                    const int columnCount = std::floor(ImGui::GetContentRegionAvailWidth() / (buttonWidth+ImGui::GetStyle().ItemSpacing.x));
+                    int i = 0;
+                    for (const auto &colorPair : LdrColorRepository::getInstance()->colors) {
+                        if (colorPair.first == LdrColorRepository::instDummyColor.code || colorPair.first==16 || colorPair.first==24) {
+                            continue;
+                        }
+                        const auto& color = colorPair.second;
+                        if (i%columnCount>0){
+                            ImGui::SameLine();
+                        }
+                        ImGui::PushID(color.code);
+                        const ImColor imColor = ImColor(color.value.red, color.value.green, color.value.blue);
+                        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)imColor);
+                        /*ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
+                        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));*/
+                        if (ImGui::Button(ldrNode->color->code == color.code ? "#" : "", buttonSize)) {
+                            ldrNode->color = LdrColorRepository::getInstance()->get_color(color.code);
+                            controller->elementTreeChanged = true;
+                        }
+                        ImGui::PopStyleColor(/*3*/1);
+                        ImGui::PopID();
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::Text("%s", color.name.c_str());
+                            ImGui::EndTooltip();
+                        }
+                        ++i;
+                    }
+                    ImGui::TreePop();
+                }
+            }
+
             lastNode = node;
         } else {
             ImGui::Text("Multi-select currently not supported here");

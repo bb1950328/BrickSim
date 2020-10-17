@@ -60,9 +60,9 @@ public:
 
 class LdrColorRepository {
 private:
-    std::map<int, LdrColor> colors;
     static LdrColorRepository *instance;
 public:
+    std::map<int, LdrColor> colors;
     static LdrColorRepository *getInstance();
 
 public:

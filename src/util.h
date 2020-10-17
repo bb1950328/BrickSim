@@ -48,45 +48,5 @@ namespace util {
         [[nodiscard]] glm::vec3 asGlmVector() const;
         [[nodiscard]] std::string asHtmlCode() const;
     };
-
-    class Fraction {
-        long a;
-        long b;
-        void checkBnot0() const;
-        void simplify();
-    public:
-        Fraction(long a, long b);
-        Fraction(const Fraction& copyFrom);
-        Fraction operator+(const Fraction& other) const;
-        Fraction operator-(const Fraction& other) const;
-        Fraction operator*(const Fraction& other) const;
-        Fraction operator/(const Fraction& other) const;
-
-        Fraction operator+=(const Fraction& other);
-        Fraction operator-=(const Fraction& other);
-        Fraction operator*=(const Fraction& other);
-        Fraction operator/=(const Fraction& other);
-
-        Fraction operator+(long other) const;
-        Fraction operator-(long other) const;
-        Fraction operator*(long other) const;
-        Fraction operator/(long other) const;
-
-        Fraction operator+=(long other);
-        Fraction operator-=(long other);
-        Fraction operator*=(long other);
-        Fraction operator/=(long other);
-
-        bool operator==(const Fraction& other) const;
-        bool operator!=(const Fraction& other) const;
-        bool operator>(const Fraction& other) const;
-        bool operator<(const Fraction& other) const;
-        bool operator>=(const Fraction& other) const;
-        bool operator<=(const Fraction& other) const;
-
-        [[nodiscard]] std::string to_string() const;
-        [[nodiscard]] std::string to_multiline_string() const;
-        friend std::ostream &operator<<(std::ostream &os, const Fraction &fraction);
-    };
 }
 #endif //BRICKSIM_UTIL_H

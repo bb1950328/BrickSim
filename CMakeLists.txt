@@ -64,7 +64,10 @@ set(bricksim_sources
         src/lib/tinyfiledialogs.c
         src/tools/gears.cpp
         src/tools/gears.h
-        src/constants.h)
+        src/constants.h
+        src/fraction.cpp
+        src/fraction.h
+        )
 
 add_executable(BrickSim
         ${imgui_sources}

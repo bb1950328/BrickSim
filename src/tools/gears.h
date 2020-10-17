@@ -9,6 +9,7 @@
 #include <set>
 #include <vector>
 #include "../util.h"
+#include "../fraction.h"
 
 namespace gears {
     enum class GearType {
@@ -44,7 +45,7 @@ namespace gears {
     public:
         GearPair(const Gear &driver, const Gear &follower);
 
-        util::Fraction getRatio();
+        Fraction getRatio();
 
         [[nodiscard]] bool is_valid() const;
         [[nodiscard]] bool is_possible_on_liftbeam() const;

@@ -17,8 +17,8 @@ namespace gears {
 
     }
 
-    util::Fraction GearPair::getRatio() {
-        return util::Fraction(driver.numTeeth, follower.numTeeth);
+    Fraction GearPair::getRatio() {
+        return Fraction(driver.numTeeth, follower.numTeeth);
     }
 
     GearPair::GearPair(const Gear &driver, const Gear &follower) : driver(driver), follower(follower) {

@@ -106,7 +106,7 @@ bool ElementTreeLdrNode::isDisplayNameUserEditable() const {
 }
 
 void ElementTree::loadLdrFile(const std::string &filename) {
-    auto *newNode = new ElementTreeLdrNode(LdrFileRepository::get_file(filename), LdrColorRepository::getInstance()->get_color(1));
+    auto *newNode = new ElementTreeLdrNode(LdrFileRepository::get_file(filename, false), LdrColorRepository::getInstance()->get_color(1));
     rootNode.children.push_back(newNode);
     newNode->parent = &rootNode;
 }

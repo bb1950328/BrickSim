@@ -26,6 +26,18 @@ enum LdrFileType {
     PRIMITIVE
 };
 
+enum WindingOrder {
+    CW, CCW
+};
+
+WindingOrder inverseWindingOrder(WindingOrder order);
+
+struct BfcState {
+    bool active = false;
+    bool invertNext = false;
+    WindingOrder windingOrder=CCW;
+};
+
 class LdrFileMetaInfo {
 public:
     std::string title;//usually the first line in the file
@@ -47,7 +59,7 @@ class LdrFile {
 public:
     unsigned long long estimatedComplexity = 0;
     unsigned int referenceCount = 0;
-    static LdrFile *parseFile(LdrFileType fileType, const std::filesystem::path &path);
+    static LdrFile *parseFile(LdrFileType fileType, const std::filesystem::path &path, bool bfcInverted = false);
 
     LdrFile() = default;
 
@@ -65,16 +77,17 @@ public:
 private:
     bool subfiles_preloaded_and_complexity_estimated = false;
 
-    void addTextLine(const std::string &line);
+    void addTextLine(const std::string &line, bool bfcInverted);
 
     void preLoadSubfilesAndEstimateComplexityInternal();
 
     static long instancedMinComplexity;
+    BfcState bfcState;
 };
 
 class LdrFileElement {
 public:
-    static LdrFileElement *parse_line(std::string line);
+    static LdrFileElement *parse_line(std::string line, BfcState bfcState);
 
     [[nodiscard]] virtual int getType() const = 0;
 
@@ -96,8 +109,8 @@ public:
 class LdrSubfileReference : public LdrFileElement {
 
 public:
-    explicit LdrSubfileReference(const std::string &line);
-
+    explicit LdrSubfileReference(const std::string &line, bool bfcInverted);
+    bool bfcInverted;
     LdrColor *color;
     double x, y, z, a, b, c, d, e, f, g, h, i;
     std::string filename;
@@ -124,7 +137,7 @@ public:
     LdrColor *color;
     double x1, y1, z1, x2, y2, z2, x3, y3, z3;
 
-    explicit LdrTriangle(const std::string &line);
+    explicit LdrTriangle(const std::string &line, WindingOrder order);
 
     [[nodiscard]] int getType() const override;
 };
@@ -134,7 +147,7 @@ public:
     LdrColor *color;
     double x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
 
-    explicit LdrQuadrilateral(const std::string &line);
+    explicit LdrQuadrilateral(const std::string &line, WindingOrder order);
 
     [[nodiscard]] int getType() const override;
 };

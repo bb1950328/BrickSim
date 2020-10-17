@@ -23,6 +23,7 @@ void main()
 
    gl_Position = projectionView * vec4(fragPos, 1.0);
 
+   //bDiffuseColor = bNormal;
    bDiffuseColor = aDiffuseColor;
    bAmbientFactor = aAmbientFactor;
    bSpecularBrightness = aSpecularBrightness;

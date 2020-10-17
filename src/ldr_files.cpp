@@ -12,15 +12,19 @@
 #include "ldr_file_repository.h"
 #include "ldr_colors.h"
 
-LdrFileElement *LdrFileElement::parse_line(std::string line) {
+WindingOrder inverseWindingOrder(WindingOrder order) {
+    return order==CW?CCW:CW;
+}
+
+LdrFileElement *LdrFileElement::parse_line(std::string line, BfcState bfcState) {
     std::string line_content = line.length() > 2 ? line.substr(2) : "";
     switch (line[0] - '0') {
         //@formatter:off
         case 0: return new LdrCommentOrMetaElement(line_content);
-        case 1: return new LdrSubfileReference(line_content);
+        case 1: return new LdrSubfileReference(line_content, bfcState.invertNext);
         case 2: return new LdrLine(line_content);
-        case 3: return new LdrTriangle(line_content);
-        case 4: return new LdrQuadrilateral(line_content);
+        case 3: return new LdrTriangle(line_content, bfcState.windingOrder);
+        case 4: return new LdrQuadrilateral(line_content, bfcState.windingOrder);
         case 5: return new LdrOptionalLine(line_content);
         default: throw std::invalid_argument("The line is not valid: \"" + line + "\"");
         //@formatter:off
@@ -28,7 +32,7 @@ LdrFileElement *LdrFileElement::parse_line(std::string line) {
 }
 LdrFileElement::~LdrFileElement()= default;
 
-LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &path){
+LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &path, bool bfcInverted){
     auto mainFile = new LdrFile();
     mainFile->metaInfo.type = fileType;
     std::ifstream input(path);
@@ -64,29 +68,38 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
                 } else {
                     currentFile = new LdrFile();
                     currentFile->metaInfo.type = MPD_SUBFILE;
-                    LdrFileRepository::add_file(entry.first, currentFile, MPD_SUBFILE);
+                    LdrFileRepository::add_file(entry.first, bfcInverted, currentFile, MPD_SUBFILE);
                 }
             }
             unsigned long lineCount = entry.second.size();
             currentFile->elements.reserve(lineCount);
             for (const auto& line : entry.second) {
-                currentFile->addTextLine(line);
+                currentFile->addTextLine(line, bfcInverted);
             }
 
         }
     } else {
         for (std::string line; getline(input, line);) {
-            mainFile->addTextLine(line);
+            mainFile->addTextLine(line, bfcInverted);
         }
     }
     
     return mainFile;
 }
-void LdrFile::addTextLine(const std::string &line) {
+
+void LdrFile::addTextLine(const std::string &line, bool bfcInverted) {
     auto trimmed = util::trim(line);
     unsigned int currentStep = elements.empty()?0:elements.back()->step;
     if (!trimmed.empty()) {
-        LdrFileElement *element = LdrFileElement::parse_line(trimmed);
+        BfcState subState = bfcState;
+        if (subState.invertNext) {
+            subState.windingOrder=inverseWindingOrder(subState.windingOrder);
+            bfcState.invertNext = false;
+        }
+        if (bfcInverted) {
+            subState.windingOrder = inverseWindingOrder(subState.windingOrder);
+        }
+        LdrFileElement *element = LdrFileElement::parse_line(trimmed, subState);
         if (element->getType()==0) {
             auto *metaElement = dynamic_cast<LdrCommentOrMetaElement *>(element);
             if (metaInfo.add_line(metaElement->content)) {
@@ -94,6 +107,31 @@ void LdrFile::addTextLine(const std::string &line) {
                 element = nullptr;
             } else if (metaElement->content=="STEP") {
                 currentStep++;
+            } else if (util::starts_with(metaElement->content, "BFC")) {
+                std::string bfcCommand = util::trim(metaElement->content.substr(3));
+                if (util::starts_with(bfcCommand, "CERTIFY")) {
+                    std::string order = util::trim(bfcCommand.substr(7));
+                    bfcState.windingOrder = order=="CW"?CW:CCW;
+                    bfcState.active = true;
+                } else if (util::starts_with(bfcCommand, "CLIP")) {
+                    std::string order = util::trim(bfcCommand.substr(4));
+                    if (order == "CW") {
+                        bfcState.windingOrder = CW;
+                    } else if (order == "CCW") {
+                        bfcState.windingOrder = CCW;
+                    }
+                    bfcState.active = true;
+                } else if (bfcCommand=="CW") {
+                    bfcState.windingOrder=CW;
+                    bfcState.active = true;//todo this is never explicitly stated in the standard
+                } else if (bfcCommand=="CCW") {
+                    bfcState.windingOrder=CCW;
+                    bfcState.active = true;//todo this is never explicitly stated in the standard
+                } else if (bfcCommand=="NOCLIP") {
+                    bfcState.active = false;
+                } else if (bfcCommand=="INVERTNEXT") {
+                    bfcState.invertNext = true;
+                }
             }
         }
         if (element!=nullptr) {
@@ -160,7 +198,7 @@ LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
     content = line;
 }
 
-LdrSubfileReference::LdrSubfileReference(const std::string& line) {
+LdrSubfileReference::LdrSubfileReference(const std::string& line, bool bfcInverted) : bfcInverted(bfcInverted) {
     std::stringstream linestream(line);
     int colorCode;
     char *filenameTmp = new char [MAX_LDR_FILENAME_LENGTH+1];
@@ -198,38 +236,59 @@ LdrLine::LdrLine(const std::string& line) {
     color = LdrColorRepository::getInstance()->get_color(colorCode);
 }
 
-LdrTriangle::LdrTriangle(const std::string& line) {
+LdrTriangle::LdrTriangle(const std::string &line, WindingOrder order) {
     std::stringstream linestream(line);
     int colorCode;
     linestream >> colorCode;
     linestream >> x1;
     linestream >> y1;
     linestream >> z1;
-    linestream >> x2;
-    linestream >> y2;
-    linestream >> z2;
-    linestream >> x3;
-    linestream >> y3;
-    linestream >> z3;
+    if (order==CCW) {
+        linestream >> x2;
+        linestream >> y2;
+        linestream >> z2;
+        linestream >> x3;
+        linestream >> y3;
+        linestream >> z3;
+    } else {
+        linestream >> x3;
+        linestream >> y3;
+        linestream >> z3;
+        linestream >> x2;
+        linestream >> y2;
+        linestream >> z2;
+    }
     color = LdrColorRepository::getInstance()->get_color(colorCode);
 }
 
-LdrQuadrilateral::LdrQuadrilateral(const std::string& line) {
+LdrQuadrilateral::LdrQuadrilateral(const std::string &line, WindingOrder order) {
     std::stringstream linestream(line);
     int colorCode;
     linestream >> colorCode;
     linestream >> x1;
     linestream >> y1;
     linestream >> z1;
-    linestream >> x2;
-    linestream >> y2;
-    linestream >> z2;
-    linestream >> x3;
-    linestream >> y3;
-    linestream >> z3;
-    linestream >> x4;
-    linestream >> y4;
-    linestream >> z4;
+    if (order==CCW) {
+        linestream >> x2;
+        linestream >> y2;
+        linestream >> z2;
+        linestream >> x3;
+        linestream >> y3;
+        linestream >> z3;
+        linestream >> x4;
+        linestream >> y4;
+        linestream >> z4;
+    } else {
+        linestream >> x4;
+        linestream >> y4;
+        linestream >> z4;
+        linestream >> x3;
+        linestream >> y3;
+        linestream >> z3;
+        linestream >> x2;
+        linestream >> y2;
+        linestream >> z2;
+    }
     color = LdrColorRepository::getInstance()->get_color(colorCode);
 }
 
@@ -261,7 +320,7 @@ int LdrSubfileReference::getType() const{
 }
 LdrFile * LdrSubfileReference::getFile() {
     if (file==nullptr) {
-        file = LdrFileRepository::get_file(filename);
+        file = LdrFileRepository::get_file(filename, bfcInverted);
     }
     return file;
 }

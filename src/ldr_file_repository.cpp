@@ -7,7 +7,7 @@
 #include "util.h"
 #include "config.h"
 
-std::map<std::string, std::pair<LdrFileType, LdrFile*>> LdrFileRepository::files;
+std::map<std::pair<std::string, bool>, std::pair<LdrFileType, LdrFile*>> LdrFileRepository::files;
 std::filesystem::path LdrFileRepository::ldrawDirectory;
 std::filesystem::path LdrFileRepository::partsDirectory;
 std::filesystem::path LdrFileRepository::subpartsDirectory;
@@ -19,28 +19,29 @@ std::map<std::string, std::filesystem::path> LdrFileRepository::subpartNames;
 std::map<std::string, std::filesystem::path> LdrFileRepository::partNames;
 std::map<std::string, std::filesystem::path> LdrFileRepository::modelNames;
 
-LdrFile *LdrFileRepository::get_file(const std::string &filename) {
-    auto iterator = files.find(filename);
+LdrFile *LdrFileRepository::get_file(const std::string &filename, bool bfcInverted) {
+    auto pair = std::make_pair(filename, bfcInverted);
+    auto iterator = files.find(pair);
     if (iterator == files.end()) {
         auto typeNamePair = resolve_file(filename);
-        LdrFile* file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
-        files[filename] = std::make_pair(typeNamePair.first, file);
+        LdrFile* file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second, bfcInverted);
+        files[pair] = std::make_pair(typeNamePair.first, file);
         file->preLoadSubfilesAndEstimateComplexity();
         return file;
     }
     return (iterator->second.second);
 }
 
-LdrFileType LdrFileRepository::get_file_type(const std::string &filename) {
-    auto iterator = files.find(filename);
+LdrFileType LdrFileRepository::get_file_type(const std::string &filename, bool bfcInverted) {
+    auto iterator = files.find(std::make_pair(filename, bfcInverted));
     if (iterator == files.end()) {
         throw std::invalid_argument("this file is unknown!");
     }
     return iterator->second.first;
 }
 
-void LdrFileRepository::add_file(const std::string &filename, LdrFile *file, LdrFileType type){
-    files[filename] = std::make_pair(type, file);
+void LdrFileRepository::add_file(const std::string &filename, bool bfcInverted, LdrFile *file, LdrFileType type) {
+    files[std::make_pair(filename, bfcInverted)] = std::make_pair(type, file);
 }
 void LdrFileRepository::clear_cache(){
     files.clear();

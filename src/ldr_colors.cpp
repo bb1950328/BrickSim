@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 #include "ldr_colors.h"
 #include "util.h"
 #include "config.h"
@@ -24,6 +25,8 @@ LdrColor::LdrColor(const std::string& line) {
             std::string edgeCode;
             linestream>>edgeCode;
             edge = util::RGB(edgeCode);
+        } else if (keyword=="ALPHA") {
+            linestream>>alpha;
         } else if (keyword=="CHROME") {
             finish = CHROME;
         } else if (keyword=="PEARLESCENT") {
@@ -66,8 +69,22 @@ LdrColor::LdrColor(const std::string& line) {
         }
     }
 }
-glm::vec3 util::RGB::asGlmVector() const {
-    return glm::vec3(red/255.0f, green/255.0f, blue/255.0f);
+
+std::string LdrColor::getGroupDisplayName() const {
+    switch (finish) {
+        case NONE:
+            if (alpha == 255) {
+                return "Solid";
+            } else {
+                return "Transparent";
+            }
+        case CHROME: return "Chrome";
+        case PEARLESCENT: return "Pearlescent";
+        case RUBBER: return "Rubber";
+        case MATTE_METALLIC: return "Matte-metallic";
+        case METAL: return "Metal";
+        case MATERIAL: return "Special Material";
+    }
 }
 
 LdrColor *LdrColorRepository::get_color(const int colorCode) {
@@ -97,6 +114,27 @@ void LdrColorRepository::initialize(){
         }
     }
     colors[instDummyColor.code] = instDummyColor;
+    for (const auto &colorPair : colors) {
+        const auto &color = colorPair.second;
+        printf("|%12s|%4d\n", color.name.c_str(), color.alpha);
+    }
+}
+
+std::map<std::string, std::vector<const LdrColor *>> LdrColorRepository::getAllColorsGroupedAndSortedByHue() {
+    std::map<std::string, std::vector<const LdrColor *>> result;
+    for (const auto &colorPair : colors) {
+        if (colorPair.first != LdrColorRepository::instDummyColor.code && colorPair.first != 16 &&
+            colorPair.first != 24) {
+            result[colorPair.second.getGroupDisplayName()].push_back(&colorPair.second);
+        }
+    }
+    /*for (const auto &entry : result) {
+        std::sort(entry.second.begin(), entry.second.end(),
+                  [](const LdrColor * a, const LdrColor * b){//todo check if this works
+            return util::HSV(a->value).hue > util::HSV(b->value).hue;
+        });
+    }*/
+    return result;
 }
 
 LdrInstanceDummyColor::LdrInstanceDummyColor() {

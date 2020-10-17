@@ -158,4 +158,90 @@ namespace util {
         green = vector.y*255;
         blue = vector.z*255;
     }
+    glm::vec3 RGB::asGlmVector() const {
+        return glm::vec3(red/255.0f, green/255.0f, blue/255.0f);
+    }
+
+    RGB::RGB(HSV hsv) {
+        if (hsv.saturation == 0) {
+            red = hsv.value;
+            green = hsv.value;
+            blue = hsv.value;
+        } else {
+            float h = hsv.hue/255.0f;
+            float s = hsv.saturation/255.0f;
+            float v = hsv.value/255.0f;
+            auto i = (int)std::floor(h*6);
+            auto f = h*6 - i;
+            auto p = v*(1.0f-s);
+            auto q = v*(1.0f-s*f);
+            auto t = v*(1.0f-s*(1.0f-f));
+            switch (i%6) {
+                case 0:
+                    red = v*255;
+                    green = t*255;
+                    blue = p*255;
+                    break;
+                case 1:
+                    red = q*255;
+                    green = v*255;
+                    blue = p*255;
+                    break;
+                case 2:
+                    red = p*255;
+                    green = v*255;
+                    blue = t*255;
+                    break;
+                case 3:
+                    red = p*255;
+                    green = q*255;
+                    blue = v*255;
+                    break;
+                case 4:
+                    red = t*255;
+                    green = p*255;
+                    blue = v*255;
+                    break;
+                case 5:
+                    red = v*255;
+                    green = p*255;
+                    blue = q*255;
+                    break;
+                default:
+                    break;//shouldn't get here
+            }
+        }
+    }
+
+    HSV::HSV(glm::vec3 vector) {
+        hue = vector.x*255;
+        saturation = vector.y*255;
+        value = vector.z*255;
+    }
+
+    glm::vec3 HSV::asGlmVector() const {
+        return glm::vec3(hue/255.0f, saturation/255.0f, value/255.0f);
+    }
+
+    HSV::HSV(RGB rgb) {
+        auto maxc = std::max(std::max(rgb.red, rgb.green), rgb.blue);
+        auto minc = std::min(std::min(rgb.red, rgb.green), rgb.blue);
+        value = maxc;
+        if (maxc!=minc) {
+            const auto maxmindiff = maxc - minc;
+            saturation = maxmindiff * 1.0f / maxc;
+            auto rc = (maxc-rgb.red) * 1.0f / maxmindiff;
+            auto gc = (maxc-rgb.green) * 1.0f / maxmindiff;
+            auto bc = (maxc-rgb.blue) * 1.0f / maxmindiff;
+            float h;
+            if (rgb.red == maxc) {
+                h = bc-gc;
+            } else if (rgb.green == maxc) {
+                h = 2.0f+rc-bc;
+            } else {
+                h = 4.0f+gc-rc;
+            }
+            hue = (((h/255/6.0f)-(int)(h/255/6.0f))*255.0f);
+        }
+    }
 }

@@ -38,15 +38,28 @@ namespace util {
     float biggest_value(glm::vec3 vector);
     float biggest_value(glm::vec4 vector);
 
-    struct RGB {
+    class HSV;
+    class RGB {
+    public:
         RGB() = default;
 
         explicit RGB(const std::string& htmlCode);
         explicit RGB(glm::vec3 vector);
+        explicit RGB(HSV hsv);
 
         unsigned short red, green, blue;
         [[nodiscard]] glm::vec3 asGlmVector() const;
         [[nodiscard]] std::string asHtmlCode() const;
+    };
+
+    class HSV {
+    public:
+        HSV() = default;
+        explicit HSV(glm::vec3 vector);
+        explicit HSV(RGB rgb);
+
+        unsigned short hue, saturation, value;
+        [[nodiscard]] glm::vec3 asGlmVector() const;
     };
 }
 #endif //BRICKSIM_UTIL_H

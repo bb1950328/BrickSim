@@ -7,6 +7,7 @@
 
 #include <map>
 #include <glm/glm.hpp>
+#include <vector>
 #include "util.h"
 
 
@@ -29,6 +30,8 @@ public:
     enum Finish {
         NONE, CHROME, PEARLESCENT, RUBBER, MATTE_METALLIC, METAL, MATERIAL
     };
+
+    std::string getGroupDisplayName() const;
 
     LdrColor() = default;
 
@@ -63,6 +66,8 @@ public:
     LdrColor *get_color(int colorCode);
 
     static LdrInstanceDummyColor instDummyColor;
+
+    std::map<std::string, std::vector<const LdrColor *>> getAllColorsGroupedAndSortedByHue();
 
 };
 #endif //BRICKSIM_LDR_COLORS_H

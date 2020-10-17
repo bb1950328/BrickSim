@@ -7,7 +7,7 @@
 
 void MeshCollection::initializeGraphics() {
     for (const auto &pair: meshes) {
-        pair.second->initializeGraphics();
+        pair.second->writeGraphicsData();
     }
 }
 
@@ -31,25 +31,30 @@ void MeshCollection::deallocateGraphics() {
 
 void MeshCollection::readElementTree(ElementTreeNode *node) {
     if (node->visible) {
-        if (node->getType() == ET_TYPE_LDRFILE) {
-            auto *ldrNode = dynamic_cast<ElementTreeLdrNode *>(node);
-            auto it = meshes.find(ldrNode->ldrFile);
+        if ((node->getType() & ET_TYPE_MESH) > 0) { // todo google if there's something like instanceof in C++
+            auto *meshNode = dynamic_cast<ElementTreeMeshNode *>(node);
+            void *identifier = meshNode->getMeshIdentifier();
+            auto it = meshes.find(identifier);
             Mesh *mesh;
-            if (ldrNode->ldrFile->metaInfo.type == PART) {
-                stats::Counters::totalBrickCount++;
-            }
             if (it != meshes.end()) {
                 mesh = it->second;
             } else {
                 mesh = new Mesh();
-                meshes[ldrNode->ldrFile] = mesh;
-                mesh->name = ldrNode->ldrFile->getDescription();
-                if (ldrNode->ldrFile->metaInfo.type == PART) {
-                    stats::Counters::individualBrickCount++;
-                }
-                ldrNode->addToMesh(mesh);
+                meshes[identifier] = mesh;
+                mesh->name = meshNode->getDescription();
+                meshNode->addToMesh(mesh);
             }
-            mesh->instances.emplace_back(ldrNode->ldrColor, node->getAbsoluteTransformation());
+            auto newPair = std::make_pair(meshNode->color, node->getAbsoluteTransformation());
+            if (meshNode->instanceIndex.has_value()) {
+                if (mesh->instances[meshNode->instanceIndex.value()] != newPair) {
+                    mesh->instances[meshNode->instanceIndex.value()] = newPair;
+                    mesh->instancesHaveChanged = true;
+                }
+            } else {
+                meshNode->instanceIndex = std::make_optional(mesh->instances.size());
+                mesh->instances.push_back(newPair);
+                mesh->instancesHaveChanged = true;
+            }
         }
         for (const auto &child: node->children) {
             if (child->visible) {
@@ -64,8 +69,12 @@ MeshCollection::MeshCollection(ElementTree *elementTree) {
 }
 
 void MeshCollection::rereadElementTree() {
-    for (const auto& mesh: meshes) {
-        mesh.second->instances.clear();
-    }
+    auto before = std::chrono::high_resolution_clock::now();
     readElementTree(&elementTree->rootNode);
+    for (const auto &mesh: meshes) {
+        mesh.second->writeGraphicsData();
+    }
+    auto after = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
+    std::cout << "rereadElementTree() in " << duration / 1000.0f << "ms" << std::endl;
 }

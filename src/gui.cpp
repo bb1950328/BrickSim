@@ -46,9 +46,42 @@ void Gui::setup() {
     }
 }
 
+void draw_element_tree_node(ElementTreeNode* node) {
+    bool itemClicked = false;
+    if (node->children.empty()) {
+        auto flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+        if (node->selected) {
+            flags |= ImGuiTreeNodeFlags_Selected;
+        }
+        ImGui::TreeNodeEx(node->displayName.c_str(), flags);
+        itemClicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
+        //todo add context menu
+    } else {
+        auto flags = node->selected?ImGuiTreeNodeFlags_Selected:ImGuiTreeNodeFlags_None;
+        if (ImGui::TreeNodeEx(node->displayName.c_str(), flags)) {
+            itemClicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
+            for (const auto& child: node->children) {
+                draw_element_tree_node(child);
+            }
+            ImGui::TreePop();
+        }
+    }
+    if (itemClicked) {
+        auto controller = Controller::getInstance();
+        if (ImGui::GetIO().KeyCtrl) {
+            controller->nodeSelectAddRemove(node);
+        } else if (ImGui::GetIO().KeyShift) {
+            controller->nodeSelectUntil(node);
+        } else {
+            controller->nodeSelectSet(node);
+        }
+    }
+}
+
 void Gui::loop() {
     static bool show3dWindow = true;
     static bool showElementTreeWindow = true;
+    static bool showElementPropertiesWindow = true;
     static bool showSettingsWindow = true;
     static bool showDemoWindow = true;
     static bool showDebugWindow = true;
@@ -95,10 +128,30 @@ void Gui::loop() {
         if (ImGui::BeginMenu("View")) {
             ImGui::MenuItem("3D View", "ALT+V", &show3dWindow);
             ImGui::MenuItem("Element Tree", "ALT+T", &showElementTreeWindow);
+            ImGui::MenuItem("Element Properties", "ALT+P", &showElementPropertiesWindow);
             ImGui::MenuItem("Settings", "ALT+S", &showSettingsWindow);
             ImGui::Separator();
             ImGui::MenuItem("Demo", "", &showDemoWindow);
             ImGui::MenuItem("Debug", "ALT+D", &showDebugWindow);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Selection")) {
+            if (ImGui::MenuItem("Select All", "CTRL+A")) {
+                controller->nodeSelectAll();
+            }
+            if (ImGui::MenuItem("Select Nothing", "CTRL+U")) {
+                controller->nodeSelectNone();
+            }
+            ImGui::TextDisabled("%lu Elements currently selected", controller->selectedNodes.size());
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("3D")) {
+            if (ImGui::MenuItem("Front", "ALT+1"))  controller->setStandard3dView(1);
+            if (ImGui::MenuItem("Top", "ALT+2"))    controller->setStandard3dView(2);
+            if (ImGui::MenuItem("Right", "ALT+3"))  controller->setStandard3dView(3);
+            if (ImGui::MenuItem("Rear", "ALT+4"))   controller->setStandard3dView(4);
+            if (ImGui::MenuItem("Bottom", "ALT+5")) controller->setStandard3dView(5);
+            if (ImGui::MenuItem("Left", "ALT+6"))   controller->setStandard3dView(6);
             ImGui::EndMenu();
         }
 
@@ -159,7 +212,22 @@ void Gui::loop() {
 
     if (showElementTreeWindow) {
         ImGui::Begin("Element Tree", &showElementTreeWindow);
-        ImGui::Text("TODO");//todo implement
+        for (auto *rootChild : controller->elementTree.rootNode.children) {
+            draw_element_tree_node(rootChild);
+        }
+        ImGui::End();
+    }
+
+    if (showElementPropertiesWindow) {
+        ImGui::Begin("Element Properties", &showElementPropertiesWindow);
+        if (controller->selectedNodes.empty()) {
+            ImGui::Text("Select an element to view its properties here");
+        } else if (controller->selectedNodes.size()==1) {
+            auto node = *controller->selectedNodes.begin();
+            ImGui::InputText("Name", const_cast<char *>(node->displayName.c_str()), 3);//todo
+        } else {
+            ImGui::Text("Multi-select currently not supported here");
+        }
         ImGui::End();
     }
 

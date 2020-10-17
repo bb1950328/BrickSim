@@ -91,6 +91,65 @@ void Controller::openFile(const std::string& path) {
     renderer.elementTreeChanged();
 }
 
+void Controller::nodeSelectAddRemove(ElementTreeNode *node) {
+    auto iterator = selectedNodes.find(node);
+    node->selected = iterator == selectedNodes.end();
+    if (node->selected) {
+        selectedNodes.insert(node);
+    } else {
+        selectedNodes.erase(iterator);
+    }
+}
+
+void Controller::nodeSelectSet(ElementTreeNode *node) {
+    for (const auto &selectedNode : selectedNodes) {
+        selectedNode->selected = false;
+    }
+    selectedNodes.clear();
+    node->selected = true;
+    selectedNodes.insert(node);
+}
+
+void Controller::nodeSelectUntil(ElementTreeNode *node) {
+    auto rangeActive = false;
+    auto keepGoing = true;
+    for (auto iterator = node->parent->children.rbegin();
+         iterator!=node->parent->children.rend() && keepGoing;
+         iterator++) {
+        ElementTreeNode *itNode = *iterator;
+        if (itNode==node || itNode->selected) {
+            if (rangeActive) {
+                keepGoing = false;
+            } else {
+                rangeActive = true;
+            }
+        }
+        if (rangeActive) {
+            itNode->selected = true;
+            selectedNodes.insert(itNode);
+        }
+    }
+}
+
+void Controller::nodeSelectAll() {
+    //todo think about recursive selection
+    nodeSelectNone();
+    elementTree.rootNode.selected = true;
+    selectedNodes.insert(&elementTree.rootNode);
+}
+
+void Controller::nodeSelectNone() {
+    for (const auto &node : selectedNodes) {
+        node->selected = false;
+    }
+    selectedNodes.clear();
+}
+
+void Controller::setStandard3dView(int i) {
+    renderer.camera.setStandardView(i);
+    renderer.unrenderedChanges = true;
+}
+
 void window_size_callback(GLFWwindow *window, int width, int height) {
     Controller::getInstance()->setWindowSize(width, height);
 }

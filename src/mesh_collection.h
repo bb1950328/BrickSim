@@ -9,9 +9,9 @@
 
 class MeshCollection {
 public:
-    MeshCollection(ElementTree *elementTree);
+    explicit MeshCollection(ElementTree *elementTree);
 
-    std::map<LdrFile *, Mesh*> meshes;
+    std::map<void *, Mesh*> meshes;
 
     void initializeGraphics();
 
@@ -28,6 +28,5 @@ public:
 private:
 
     ElementTree *elementTree;
-
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

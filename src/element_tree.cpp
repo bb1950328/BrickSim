@@ -13,8 +13,13 @@ const glm::mat4 &ElementTreeNode::getRelativeTransformation() const {
 
 void ElementTreeNode::setRelativeTransformation(const glm::mat4 &newValue) {
     ElementTreeNode::relativeTransformation = newValue;
+    invalidateAbsoluteTransformation();
+}
+
+void ElementTreeNode::invalidateAbsoluteTransformation() {
+    absoluteTransformationValid = false;
     for (const auto &child: children) {
-        child->absoluteTransformationValid = false;
+        child->invalidateAbsoluteTransformation();
     }
 }
 
@@ -58,7 +63,8 @@ void ElementTreeLdrNode::addToMesh(Mesh *mesh) {
     }
 }
 
-ElementTreeLdrNode::ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor) : ldrFile(ldrFile), ldrColor(ldrColor) {
+ElementTreeLdrNode::ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor) : ldrFile(ldrFile) {
+    this->color = ldrColor;
     displayName = ldrFile->getDescription();
     for (const auto &element: ldrFile->elements) {
         if (element->getType() == 1) {
@@ -78,6 +84,14 @@ ElementTreeLdrNode::ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor) : l
 
 ElementTreeNodeType ElementTreeLdrNode::getType() {
     return ET_TYPE_LDRFILE;
+}
+
+void* ElementTreeLdrNode::getMeshIdentifier() {
+    return reinterpret_cast<void*>(ldrFile);
+}
+
+std::string ElementTreeLdrNode::getDescription() {
+    return ldrFile->getDescription();
 }
 
 void ElementTree::loadLdrFile(const std::string &filename) {
@@ -102,9 +116,6 @@ void ElementTree::printFromNode(int indent, ElementTreeNode *node) {
 
 ElementTreeNodeType ElementTreeRootNode::getType() {
     return ET_TYPE_ROOT;
-}
-
-void ElementTreeRootNode::addToMesh(Mesh *mesh) {
 }
 
 ElementTreeRootNode::ElementTreeRootNode() {

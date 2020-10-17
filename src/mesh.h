@@ -48,6 +48,7 @@ public:
     std::map<LdrColor *, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
 
     std::vector<std::pair<LdrColor *, glm::mat4>> instances;
+    bool instancesHaveChanged = false;
 
     std::string name = "?";
 
@@ -79,23 +80,24 @@ public:
 
     std::vector<TriangleVertex> *getVerticesList(LdrColor *color);
 
-    void initializeGraphics();
-
+    void writeGraphicsData();
     void drawTriangleGraphics(const Shader *triangleShader);
+
     void drawLineGraphics(const Shader *lineShader);
 
     void deallocateGraphics();
 
     virtual ~Mesh();
-
 private:
+
     //this is the conversion from the ldraw coordinate system to the OpenGL coordinate system
     glm::mat4 globalModel = glm::scale(glm::rotate(glm::mat4(1.0f),//base
                         glm::radians(180.0f),//rotate 180° around
                         glm::vec3(1.0f, 0.0f, 0.0f)),// x axis
             glm::vec3(0.01f, 0.01f, 0.01f)); // and make 100 times smaller
-
     unsigned int lineVAO, lineVertexVBO, lineInstanceVBO, lineEBO;
+
+    bool already_initialized = false;
 
     static void setInstanceColor(TriangleInstance *instance, const LdrColor *color) ;
 
@@ -106,6 +108,8 @@ private:
     void initializeLineGraphics();
 
     void initializeTriangleGraphics();
+
+    void rewriteInstanceBuffer();
 };
 
 #endif //BRICKSIM_MESH_H

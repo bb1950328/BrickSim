@@ -163,11 +163,14 @@ void Mesh::addLineVertex(const LineVertex &vertex) {
     lineVertices.push_back(vertex);
 }
 
-void Mesh::initializeGraphics() {
-    //todo reallocate instance VBOs when instances changed in size or modify it if instances just changed in value
-    //std::cout << "Mesh " << name << " Total Instance Count: " << instances.size() << std::endl;
-    initializeTriangleGraphics();
-    initializeLineGraphics();
+void Mesh::writeGraphicsData() {
+    if (!already_initialized) {
+        initializeTriangleGraphics();
+        initializeLineGraphics();
+        already_initialized = true;
+    } else {
+        rewriteInstanceBuffer();
+    }
 }
 
 void Mesh::initializeTriangleGraphics() {
@@ -231,6 +234,24 @@ void Mesh::initializeTriangleGraphics() {
         vertexVBOs[color] = vertexVbo;
         instanceVBOs[color] = instanceVbo;
         EBOs[color] = ebo;
+    }
+}
+
+void Mesh::rewriteInstanceBuffer() {
+    if (instancesHaveChanged) {
+        for (const auto &entry: triangleIndices) {
+            LdrColor *color = entry.first;
+            auto instanceVbo = instanceVBOs[color];
+            auto instancesArray = generateInstancesArray(color);
+            size_t instance_size = sizeof(TriangleInstance);
+            glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
+            glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
+        }
+        auto instancesArray = std::vector<glm::mat4>(instances.size());
+        size_t instance_size = sizeof(glm::mat4);
+        glBindBuffer(GL_ARRAY_BUFFER, lineInstanceVBO);
+        glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
+        instancesHaveChanged = false;
     }
 }
 

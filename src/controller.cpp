@@ -67,7 +67,6 @@ bool Controller::initializeGL() {
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, window_size_callback);
-    //glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {

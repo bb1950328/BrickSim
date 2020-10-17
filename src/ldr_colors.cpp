@@ -19,11 +19,11 @@ LdrColor::LdrColor(const std::string& line) {
         } else if (keyword=="VALUE") {
             std::string valueCode;
             linestream>>valueCode;
-            value = RGB(valueCode);
+            value = util::RGB(valueCode);
         } else if (keyword=="EDGE") {
             std::string edgeCode;
             linestream>>edgeCode;
-            edge = RGB(edgeCode);
+            edge = util::RGB(edgeCode);
         } else if (keyword=="CHROME") {
             finish = CHROME;
         } else if (keyword=="PEARLESCENT") {
@@ -45,7 +45,7 @@ LdrColor::LdrColor(const std::string& line) {
                 if (keyword=="VALUE") {
                     std::string valueCode;
                     linestream>>valueCode;
-                    material->value = RGB(valueCode);
+                    material->value = util::RGB(valueCode);
                 } else if (keyword=="ALPHA") {
                     linestream>>material->alpha;
                 } else if (keyword=="LUMINANCE") {
@@ -66,7 +66,7 @@ LdrColor::LdrColor(const std::string& line) {
         }
     }
 }
-glm::vec3 RGB::asGlmVector() const {
+glm::vec3 util::RGB::asGlmVector() const {
     return glm::vec3(red/255.0f, green/255.0f, blue/255.0f);
 }
 
@@ -99,25 +99,8 @@ void LdrColorRepository::initialize(){
     colors[instDummyColor.code] = instDummyColor;
 }
 
-RGB::RGB(const std::string& htmlCode){
-    std::sscanf(htmlCode.c_str(), "#%2hx%2hx%2hx", &red, &green, &blue);
-}
-
-std::string RGB::asHtmlCode() const {
-    char buffer[8];
-    snprintf(buffer, 8, "#%02x%02x%02x", red, green, blue);
-    auto result = std::string(buffer);
-    return result;
-}
-
-RGB::RGB(glm::vec3 vector) {
-    red = vector.x*255;
-    green = vector.y*255;
-    blue = vector.z*255;
-}
-
 LdrInstanceDummyColor::LdrInstanceDummyColor() {
     name = "Instance Dummy Color";
     code = -1;
-    value = edge = RGB("#FFB39B");
+    value = edge = util::RGB("#FFB39B");
 }

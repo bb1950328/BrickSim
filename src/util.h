@@ -38,6 +38,17 @@ namespace util {
     float biggest_value(glm::vec3 vector);
     float biggest_value(glm::vec4 vector);
 
+    struct RGB {
+        RGB() = default;
+
+        explicit RGB(const std::string& htmlCode);
+        explicit RGB(glm::vec3 vector);
+
+        unsigned short red, green, blue;
+        [[nodiscard]] glm::vec3 asGlmVector() const;
+        [[nodiscard]] std::string asHtmlCode() const;
+    };
+
     class Fraction {
         long a;
         long b;

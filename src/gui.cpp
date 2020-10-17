@@ -341,7 +341,7 @@ void Gui::loop() {
         static auto guiStyleString = config::get_string(config::GUI_STYLE);
         static auto guiStyle = guiStyleString == "light" ? 0 : (guiStyleString == "classic" ? 1 : 2);
         static int msaaSamples = (int) (config::get_long(config::MSAA_SAMPLES));
-        static glm::vec3 backgroundColor = RGB(config::get_string(config::BACKGROUND_COLOR)).asGlmVector();
+        static glm::vec3 backgroundColor = util::RGB(config::get_string(config::BACKGROUND_COLOR)).asGlmVector();
         ImGui::SliderFloat("UI Scale", &guiScale, 0.25, 8, "%.2f");
         ImGui::InputInt2("Initial Window Size", initialWindowSize);
         ImGui::InputText("Ldraw path", const_cast<char *>(ldrawDir), 256);
@@ -367,7 +367,7 @@ void Gui::loop() {
                     break;
             }
             config::set_long(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));
-            config::set_string(config::BACKGROUND_COLOR, RGB(backgroundColor).asHtmlCode());
+            config::set_string(config::BACKGROUND_COLOR, util::RGB(backgroundColor).asHtmlCode());
             saveFailed = !config::save();
         }
         if (saveFailed) {

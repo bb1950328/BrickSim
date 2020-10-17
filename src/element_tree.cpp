@@ -100,9 +100,7 @@ bool ElementTreeLdrNode::isDisplayNameUserEditable() const {
         case MODEL:
         case MPD_SUBFILE:
             return true;
-        case PART:
-        case SUBPART:
-        case PRIMITIVE:
+        default:
             return false;
     }
 }

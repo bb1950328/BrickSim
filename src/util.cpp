@@ -142,6 +142,23 @@ namespace util {
         return a / gcd(a, b) * b;//https://stackoverflow.com/a/3154503/8733066
     }
 
+    RGB::RGB(const std::string& htmlCode){
+        std::sscanf(htmlCode.c_str(), "#%2hx%2hx%2hx", &red, &green, &blue);
+    }
+
+    std::string RGB::asHtmlCode() const {
+        char buffer[8];
+        snprintf(buffer, 8, "#%02x%02x%02x", red, green, blue);
+        auto result = std::string(buffer);
+        return result;
+    }
+
+    RGB::RGB(glm::vec3 vector) {
+        red = vector.x*255;
+        green = vector.y*255;
+        blue = vector.z*255;
+    }
+
     Fraction::Fraction(long a, long b) : a(a), b(b) {
         checkBnot0();
         simplify();

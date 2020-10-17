@@ -7,24 +7,15 @@
 
 #include <map>
 #include <glm/glm.hpp>
+#include "util.h"
 
-struct RGB {
-    RGB() = default;
-
-    explicit RGB(const std::string& htmlCode);
-    explicit RGB(glm::vec3 vector);
-
-    unsigned short red, green, blue;
-    [[nodiscard]] glm::vec3 asGlmVector() const;
-    [[nodiscard]] std::string asHtmlCode() const;
-};
 
 struct LdrColorMaterial {
     enum Type {
         GLITTER, SPECKLE
     };
     Type type;
-    RGB value;
+    util::RGB value;
     unsigned char alpha;
     unsigned char luminance;
     double fraction, vfraction;
@@ -45,8 +36,8 @@ public:
 
     std::string name;
     int code;
-    RGB value;
-    RGB edge;
+    util::RGB value;
+    util::RGB edge;
     unsigned char alpha = 255;
     unsigned char luminance = 0;
     Finish finish = NONE;

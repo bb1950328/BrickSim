@@ -15,10 +15,10 @@ set(imgui_sources # if cmake doesn't find these files, run `git submodule update
         imgui/imconfig.h
         imgui/imgui_demo.cpp
         imgui/imgui_draw.cpp
-        imgui/examples/imgui_impl_glfw.cpp
-        imgui/examples/imgui_impl_glfw.h
-        imgui/examples/imgui_impl_opengl3.cpp
-        imgui/examples/imgui_impl_opengl3.h
+        imgui/backends/imgui_impl_glfw.cpp
+        imgui/backends/imgui_impl_glfw.h
+        imgui/backends/imgui_impl_opengl3.cpp
+        imgui/backends/imgui_impl_opengl3.h
         imgui/imgui_internal.h
         imgui/imgui_widgets.cpp
         imgui/imgui.cpp
@@ -64,7 +64,7 @@ set(bricksim_sources
         src/lib/tinyfiledialogs.c
         src/tools/gears.cpp
         src/tools/gears.h
-        )
+        src/constants.h)
 
 add_executable(BrickSim
         ${imgui_sources}

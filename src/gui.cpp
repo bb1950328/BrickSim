@@ -1,16 +1,19 @@
 //
-// Created by Bader on 09.10.2020.
+// Created by bb1950328 on 09.10.2020.
 //
 
 #include <imgui.h>
-#include <examples/imgui_impl_glfw.h>
-#include <examples/imgui_impl_opengl3.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
 #include <iostream>
 #include "gui.h"
 #include "config.h"
 #include "controller.h"
 #include "ldr_colors.h"
 #include "lib/tinyfiledialogs.h"
+#include "util.h"
+#include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 void Gui::setup() {
     GLFWmonitor *monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
@@ -224,7 +227,38 @@ void Gui::loop() {
             ImGui::Text("Select an element to view its properties here");
         } else if (controller->selectedNodes.size()==1) {
             auto node = *controller->selectedNodes.begin();
-            ImGui::InputText("Name", const_cast<char *>(node->displayName.c_str()), 3);//todo
+
+            static char displayNameBuf[255];
+            static ElementTreeNode* lastNode = nullptr;
+            if (nullptr != lastNode) {
+                lastNode->displayName = std::string(displayNameBuf);
+            }
+            lastNode = node;
+            strcpy(displayNameBuf, node->displayName.data());
+            const auto displayNameEditable = node->isDisplayNameUserEditable();
+            ImGui::InputText("Name", displayNameBuf, 255, displayNameEditable ? ImGuiInputTextFlags_None : ImGuiInputTextFlags_ReadOnly);
+            if (!displayNameEditable && ImGui::IsItemHovered()) {
+                ImGui::BeginTooltip();
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                ImGui::TextUnformatted("Changing the name of an element of this type is not possible.");
+                ImGui::PopTextWrapPos();
+                ImGui::EndTooltip();
+            }
+
+            static glm::vec3 eulerAngles;
+            auto relTransf = node->getRelativeTransformation();
+            static glm::vec3 translation;
+            translation = glm::vec3(relTransf[0][3], relTransf[1][3], relTransf[2][3]);
+            //util::cout_mat4(translation);
+            std::cout << relTransf[0][0] << "," << relTransf[0][1] << "," << relTransf[0][2] << "," << relTransf[0][3] << std::endl;
+            std::cout << relTransf[1][0] << "," << relTransf[1][1] << "," << relTransf[1][2] << "," << relTransf[1][3] << std::endl;
+            std::cout << relTransf[2][0] << "," << relTransf[2][1] << "," << relTransf[2][2] << "," << relTransf[2][3] << std::endl;
+            std::cout << relTransf[3][0] << "," << relTransf[3][1] << "," << relTransf[3][2] << "," << relTransf[3][3] << std::endl;
+            std::cout << glm::to_string(translation) << std::endl;
+            glm::extractEulerAngleXYZ(relTransf, eulerAngles[0], eulerAngles[1], eulerAngles[2]);
+            eulerAngles*=(180/M_PI);
+            ImGui::DragFloat3("Rotation", &eulerAngles[0], 1.0f, -180, 180, "%.1f°");
+            ImGui::DragFloat3("Position", &translation[0], 1.0f, -1e9, 1e9, "%.0fLDU");
         } else {
             ImGui::Text("Multi-select currently not supported here");
         }

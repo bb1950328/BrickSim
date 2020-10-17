@@ -34,6 +34,8 @@ namespace gears {
         const std::set<std::string> ldrParts;
     };
 
+    std::vector<const Gear *> get_all_gears();
+
     class GearPair {
     private:
         const Gear& driver;

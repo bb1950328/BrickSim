@@ -11,6 +11,7 @@
 #include "ldr_files.h"
 #include "shaders/shader.h"
 #include "camera.h"
+#include "constants.h"
 
 struct TriangleVertex {
     //TriangleVertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color);
@@ -94,7 +95,7 @@ private:
     glm::mat4 globalModel = glm::scale(glm::rotate(glm::mat4(1.0f),//base
                         glm::radians(180.0f),//rotate 180° around
                         glm::vec3(1.0f, 0.0f, 0.0f)),// x axis
-            glm::vec3(0.01f, 0.01f, 0.01f)); // and make 100 times smaller
+            glm::vec3(constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL)); // and make 100 times smaller
     unsigned int lineVAO, lineVertexVBO, lineInstanceVBO, lineEBO;
 
     bool already_initialized = false;

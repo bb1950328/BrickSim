@@ -94,6 +94,18 @@ std::string ElementTreeLdrNode::getDescription() {
     return ldrFile->getDescription();
 }
 
+bool ElementTreeLdrNode::isDisplayNameUserEditable() const {
+    switch (ldrFile->metaInfo.type) {
+        case MODEL:
+        case MPD_SUBFILE:
+            return true;
+        case PART:
+        case SUBPART:
+        case PRIMITIVE:
+            return false;
+    }
+}
+
 void ElementTree::loadLdrFile(const std::string &filename) {
     auto *newNode = new ElementTreeLdrNode(LdrFileRepository::get_file(filename), LdrColorRepository::getInstance()->get_color(1));
     rootNode.children.push_back(newNode);
@@ -122,4 +134,8 @@ ElementTreeRootNode::ElementTreeRootNode() {
     displayName = "Root";
     absoluteTransformation = relativeTransformation;
     absoluteTransformationValid = true;
+}
+
+bool ElementTreeRootNode::isDisplayNameUserEditable() const {
+    return false;
 }

@@ -31,6 +31,8 @@ public:
 
     virtual ElementTreeNodeType getType();
 
+    [[nodiscard]] virtual bool isDisplayNameUserEditable() const = 0;
+
 protected:
     glm::mat4 relativeTransformation = glm::mat4(1.0f);
     glm::mat4 absoluteTransformation;
@@ -43,6 +45,8 @@ class ElementTreeRootNode : public ElementTreeNode {
 public:
     ElementTreeRootNode();
     ElementTreeNodeType getType() override;
+
+    [[nodiscard]] bool isDisplayNameUserEditable() const override;
 };
 
 class ElementTreeMeshNode : public ElementTreeNode {
@@ -63,6 +67,8 @@ public:
     std::set<LdrSubfileReference *> childrenWithOwnNode;
     ElementTreeNodeType getType() override;
     ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor);
+
+    [[nodiscard]] bool isDisplayNameUserEditable() const override;
 };
 
 class ElementTree {

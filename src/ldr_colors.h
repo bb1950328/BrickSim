@@ -57,6 +57,7 @@ private:
     static LdrColorRepository *instance;
 public:
     std::map<int, LdrColor> colors;
+    std::vector<int> hueSortedCodes;
     static LdrColorRepository *getInstance();
 
 public:

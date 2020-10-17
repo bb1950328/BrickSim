@@ -6,6 +6,7 @@
 #include <iostream>
 #include <filesystem>
 #include <glm/gtx/string_cast.hpp>
+#include <imgui.h>
 #include "util.h"
 
 namespace util {

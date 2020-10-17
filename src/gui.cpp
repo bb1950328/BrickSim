@@ -50,6 +50,40 @@ void Gui::setup() {
     }
 }
 
+void drawColorGroup(Controller *controller,
+                    ElementTreeLdrNode *ldrNode,
+                    const ImVec2 &buttonSize,
+                    const int columnCount,
+                    const std::pair<const std::string, std::vector<const LdrColor *>> &colorGroup) {
+    //todo make palette look prettier
+    //todo show only colors which are available for this part (get the data somewhere)
+    if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+        int i = 0;
+        for (const auto *color : colorGroup.second) {
+            if (i%columnCount>0){
+                ImGui::SameLine();
+            }
+            ImGui::PushID(color->code);
+            const ImColor imColor = ImColor(color->value.red, color->value.green, color->value.blue);
+            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)imColor);
+            if (ImGui::Button(ldrNode->color->code == color->code ? "#" : "", buttonSize)) {
+                ldrNode->color = LdrColorRepository::getInstance()->get_color(color->code);
+                controller->elementTreeChanged = true;
+            }
+            ImGui::PopStyleColor(/*3*/1);
+            ImGui::PopID();
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("%s", color->name.c_str());
+                ImGui::EndTooltip();
+            }
+            ++i;
+        }
+        ImGui::TreePop();
+    }
+}
+
 void draw_element_tree_node(ElementTreeNode *node) {
     bool itemClicked = false;
     if (node->children.empty()) {
@@ -290,34 +324,23 @@ void Gui::loop() {
                     const auto buttonWidth = ImGui::GetFontSize() * 1.5f;
                     const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
                     const int columnCount = std::floor(ImGui::GetContentRegionAvailWidth() / (buttonWidth+ImGui::GetStyle().ItemSpacing.x));
-                    for (const auto &colorGroup : LdrColorRepository::getInstance()->getAllColorsGroupedAndSortedByHue()) {
-                        if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-                            int i = 0;
-                            for (const auto *color : colorGroup.second) {
-
-                                if (i%columnCount>0){
-                                    ImGui::SameLine();
-                                }
-                                ImGui::PushID(color->code);
-                                const ImColor imColor = ImColor(color->value.red, color->value.green, color->value.blue);
-                                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)imColor);
-                                /*ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-                                ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));*/
-                                if (ImGui::Button(ldrNode->color->code == color->code ? "#" : "", buttonSize)) {
-                                    ldrNode->color = LdrColorRepository::getInstance()->get_color(color->code);
-                                    controller->elementTreeChanged = true;
-                                }
-                                ImGui::PopStyleColor(/*3*/1);
-                                ImGui::PopID();
-                                if (ImGui::IsItemHovered())
-                                {
-                                    ImGui::BeginTooltip();
-                                    ImGui::Text("%s", color->name.c_str());
-                                    ImGui::EndTooltip();
-                                }
-                                ++i;
+                    const auto &groupedAndSortedByHue = LdrColorRepository::getInstance()->getAllColorsGroupedAndSortedByHue();
+                    const static std::vector<std::string> fixed_pos = {"Solid", "Transparent", "Rubber"};
+                    for (const auto &colorName : fixed_pos) {
+                        const auto &colorGroup = std::make_pair(colorName, groupedAndSortedByHue.find(colorName)->second);
+                        drawColorGroup(controller, ldrNode, buttonSize, columnCount, colorGroup);
+                    }
+                    for (const auto &colorGroup : groupedAndSortedByHue) {
+                        bool alreadyDrawn = false;//todo google how to vector.contains()
+                        for (const auto &groupName : fixed_pos) {
+                            if (groupName==colorGroup.first) {
+                                alreadyDrawn = true;
+                                break;
                             }
-                            ImGui::TreePop();
+                        }
+
+                        if (!alreadyDrawn) {
+                            drawColorGroup(controller, ldrNode, buttonSize, columnCount, colorGroup);
                         }
                     }
                     ImGui::TreePop();

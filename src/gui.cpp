@@ -236,8 +236,8 @@ void Gui::loop() {
             }
             strcpy(displayNameBuf, node->displayName.data());
             const auto displayNameEditable = node->isDisplayNameUserEditable();
-            ImGui::InputText("Name", displayNameBuf, 255,
-                             displayNameEditable ? ImGuiInputTextFlags_None : ImGuiInputTextFlags_ReadOnly);
+            auto flags = displayNameEditable ? ImGuiInputTextFlags_None : ImGuiInputTextFlags_ReadOnly;
+            ImGui::InputText("Name", displayNameBuf, 255, flags);
             if (!displayNameEditable && ImGui::IsItemHovered()) {
                 ImGui::BeginTooltip();
                 ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
@@ -246,18 +246,15 @@ void Gui::loop() {
                 ImGui::EndTooltip();
             }
 
-            auto treeRelTransf = node->getRelativeTransformation();
-            auto treeOrientation = glm::quat();
-            auto treeSkew = glm::vec3();
-            auto treePerspective = glm::vec4();
+            auto treeRelTransf = glm::transpose(node->getRelativeTransformation());
+            glm::quat treeOrientation;
+            glm::vec3 treeSkew;
+            glm::vec4 treePerspective;
             glm::vec3 treePosition;
             glm::vec3 treeScale;
             glm::vec3 treeEulerAnglesRad;
             glm::decompose(treeRelTransf, treeScale, treeOrientation, treePosition, treeSkew, treePerspective);
-            treePosition = glm::vec3(treeRelTransf[0][3], treeRelTransf[1][3], treeRelTransf[2][3]);
-            glm::extractEulerAngleXYZ(treeRelTransf, treeEulerAnglesRad[0], treeEulerAnglesRad[1],treeEulerAnglesRad[2]);
-            //util::cout_mat4(treeRelTransf);
-            //std::cout << std::endl;
+            treeEulerAnglesRad = glm::eulerAngles(treeOrientation);
 
             static glm::vec3 inputEulerAnglesDeg;
             static glm::vec3 inputPosition;
@@ -265,32 +262,24 @@ void Gui::loop() {
             if (lastNode != node) {
                 inputEulerAnglesDeg = treeEulerAnglesRad * (float) (180.0f / M_PI);
                 inputPosition = treePosition;
-                inputScalePercent = treeScale*100.0f;
+                inputScalePercent = treeScale * 100.0f;
             }
             glm::vec3 inputEulerAnglesRad = inputEulerAnglesDeg * (float) (M_PI / 180.0f);
 
-            bool changed = false;
-            if (util::biggest_value(glm::abs(treePosition - inputPosition)) > 0.01) {
-                changed = true;
-            }
-            if (util::biggest_value(glm::abs(inputEulerAnglesRad - treeEulerAnglesRad)) > 0.0001) {
-                changed = true;
-            }
-            if (changed) {
-                std::cout << "inputEulerAnglesRad: " << glm::to_string(inputEulerAnglesRad) << std::endl;
-                std::cout << "treeEulerAnglesRad: " << glm::to_string(treeEulerAnglesRad) << std::endl;
-                std::cout << "treePosition: " << glm::to_string(treePosition) << std::endl;
-                std::cout << "inputPosition: " << glm::to_string(inputPosition) << std::endl;
-
-                glm::mat4 newTransf = glm::eulerAngleYXZ(inputEulerAnglesRad.x, inputEulerAnglesRad.y,
-                                                         inputEulerAnglesRad.z);
-                newTransf = glm::translate(newTransf, inputPosition);
-                newTransf = glm::scale(newTransf, inputScalePercent/100.0f);
-                node->setRelativeTransformation(glm::transpose(newTransf));
-                controller->elementTreeChanged = true;
+            if ((util::biggest_value(glm::abs(treePosition - inputPosition)) > 0.01)
+                || (util::biggest_value(glm::abs(inputEulerAnglesRad - treeEulerAnglesRad)) > 0.0001)
+                || (util::biggest_value(glm::abs(inputScalePercent / 100.0f - treeScale)) > 0.001)) {
+                auto newRotation = glm::eulerAngleXYZ(inputEulerAnglesRad.x, inputEulerAnglesRad.y,
+                                                      inputEulerAnglesRad.z);
+                auto newTranslation = glm::translate(glm::mat4(1.0f), inputPosition);
+                auto newScale = glm::scale(glm::mat4(1.0f), inputScalePercent / 100.0f);
+                auto newTransformation = newTranslation * newRotation * newScale;
+                if (treeRelTransf != newTransformation) {
+                    node->setRelativeTransformation(glm::transpose(newTransformation));
+                    controller->elementTreeChanged = true;
+                }
             }
 
-            //inputEulerAnglesDeg *= (180 / M_PI);
             ImGui::DragFloat3("Rotation", &inputEulerAnglesDeg[0], 1.0f, -180, 180, "%.1f°");
             ImGui::DragFloat3("Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
             ImGui::DragFloat3("Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");

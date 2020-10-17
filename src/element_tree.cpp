@@ -13,8 +13,7 @@ const glm::mat4 &ElementTreeNode::getRelativeTransformation() const {
 }
 
 void ElementTreeNode::setRelativeTransformation(const glm::mat4 &newValue) {
-    ElementTreeNode::relativeTransformation = newValue;
-    util::cout_mat4(newValue);
+    relativeTransformation = newValue;
     invalidateAbsoluteTransformation();
 }
 

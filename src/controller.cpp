@@ -16,6 +16,9 @@ int Controller::run() {
     renderer.setWindowSize(view3dWidth, view3dHeight);
     renderer.setup();
     gui.setup();
+//    openFile("~/Downloads/arocs.mpd");
+    openFile("32019.dat");
+//    openFile("86652.dat");
     while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
         auto before = std::chrono::high_resolution_clock::now();
         if (elementTreeChanged) {

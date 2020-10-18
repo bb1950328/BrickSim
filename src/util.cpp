@@ -143,6 +143,15 @@ namespace util {
         return a / gcd(a, b) * b;//https://stackoverflow.com/a/3154503/8733066
     }
 
+    glm::vec3 triangleCentroid(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3) {
+        return (p1+p2+p3)/3.0f;//todo check if this is mathematically correct
+    }
+
+    glm::vec3
+    quadrilateralCentroid(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3, const glm::vec3 &p4) {
+        return (p1+p2+p3+p4)/4.0f;//todo check if this is mathematically correct
+    }
+
     RGB::RGB(const std::string& htmlCode){
         std::sscanf(htmlCode.c_str(), "#%2hx%2hx%2hx", &red, &green, &blue);
     }

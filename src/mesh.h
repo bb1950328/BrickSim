@@ -67,8 +67,6 @@ public:
 
     void printTriangles();
 
-    void addTriangleVertex(glm::vec4 pos, glm::vec3 normal, LdrColor *color);
-
     void addLineVertex(const LineVertex &vertex);
 
     void addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation);

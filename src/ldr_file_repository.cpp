@@ -20,6 +20,7 @@ std::map<std::string, std::filesystem::path> LdrFileRepository::partNames;
 std::map<std::string, std::filesystem::path> LdrFileRepository::modelNames;
 
 LdrFile *LdrFileRepository::get_file(const std::string &filename, bool bfcInverted) {
+    std::cout << filename << ", " << bfcInverted << std::endl;
     auto pair = std::make_pair(filename, bfcInverted);
     auto iterator = files.find(pair);
     if (iterator == files.end()) {

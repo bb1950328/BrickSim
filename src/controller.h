@@ -42,6 +42,10 @@ private:
     Controller();
     //todo google how to make singleton
     bool initializeGL();
+
+    void runNormal();
+
+    bool doesUserWantToExit() const;
 };
 
 #endif //BRICKSIM_CONTROLLER_H

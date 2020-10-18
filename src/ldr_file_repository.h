@@ -23,7 +23,7 @@ public:
 
     static void add_file(const std::string &filename, LdrFile *file, LdrFileType type);
 
-    static void initializeNames();
+    static bool initializeNames();
 private:
     static std::filesystem::path ldrawDirectory;
     static std::filesystem::path partsDirectory;

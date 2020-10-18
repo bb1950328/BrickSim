@@ -7,7 +7,7 @@
 #include "util.h"
 #include "config.h"
 
-std::map<std::string, std::pair<LdrFileType, LdrFile*>> LdrFileRepository::files;
+std::map<std::string, std::pair<LdrFileType, LdrFile *>> LdrFileRepository::files;
 std::filesystem::path LdrFileRepository::ldrawDirectory;
 std::filesystem::path LdrFileRepository::partsDirectory;
 std::filesystem::path LdrFileRepository::subpartsDirectory;
@@ -23,7 +23,7 @@ LdrFile *LdrFileRepository::get_file(const std::string &filename) {
     auto iterator = files.find(filename);
     if (iterator == files.end()) {
         auto typeNamePair = resolve_file(filename);
-        LdrFile* file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
+        LdrFile *file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
         files[filename] = std::make_pair(typeNamePair.first, file);
         file->preLoadSubfilesAndEstimateComplexity();
         return file;
@@ -39,57 +39,69 @@ LdrFileType LdrFileRepository::get_file_type(const std::string &filename) {
     return iterator->second.first;
 }
 
-void LdrFileRepository::add_file(const std::string &filename, LdrFile *file, LdrFileType type){
+void LdrFileRepository::add_file(const std::string &filename, LdrFile *file, LdrFileType type) {
     files[filename] = std::make_pair(type, file);
 }
-void LdrFileRepository::clear_cache(){
+
+void LdrFileRepository::clear_cache() {
     files.clear();
 }
-void LdrFileRepository::initializeNames() {
+
+bool LdrFileRepository::initializeNames() {
     if (!namesInitialized) {
-        auto before = std::chrono::high_resolution_clock::now();
         ldrawDirectory = util::extend_home_dir_path(config::get_string(config::LDRAW_PARTS_LIBRARY));
-        partsDirectory = ldrawDirectory / std::filesystem::path("parts");
-        subpartsDirectory = partsDirectory / std::filesystem::path("s");
-        primitivesDirectory = ldrawDirectory / std::filesystem::path("p");
-        modelsDirectory = ldrawDirectory / std::filesystem::path("models");
         std::cout << "ldraw dir: " << ldrawDirectory << std::endl;
-        //todo code duplication
-        for (const auto & entry : std::filesystem::directory_iterator(partsDirectory)) {
-            if (entry.is_regular_file()) {
-                auto fname = entry.path().filename();
-                partNames[util::as_lower(fname.string())] = fname;
+        if (std::filesystem::exists(ldrawDirectory) && std::filesystem::is_directory(ldrawDirectory)) {
+            auto before = std::chrono::high_resolution_clock::now();
+            partsDirectory = ldrawDirectory / std::filesystem::path("parts");
+            subpartsDirectory = partsDirectory / std::filesystem::path("s");
+            primitivesDirectory = ldrawDirectory / std::filesystem::path("p");
+            modelsDirectory = ldrawDirectory / std::filesystem::path("models");
+
+            if (std::filesystem::exists(partsDirectory)
+                && std::filesystem::exists(subpartsDirectory)
+                && std::filesystem::exists(primitivesDirectory)
+                && std::filesystem::exists(modelsDirectory)) {
+                //todo code duplication
+                for (const auto &entry : std::filesystem::directory_iterator(partsDirectory)) {
+                    if (entry.is_regular_file()) {
+                        auto fname = entry.path().filename();
+                        partNames[util::as_lower(fname.string())] = fname;
+                    }
+                }
+                for (const auto &entry : std::filesystem::directory_iterator(subpartsDirectory)) {
+                    if (entry.is_regular_file()) {
+                        auto fname = entry.path().filename();
+                        subpartNames[util::as_lower(fname.string())] = fname;
+                    }
+                }
+                for (const auto &entry : std::filesystem::recursive_directory_iterator(primitivesDirectory)) {
+                    if (entry.is_regular_file()) {
+                        const auto &fname = std::filesystem::relative(entry.path(), primitivesDirectory);
+                        primitiveNames[util::as_lower(fname.string())] = fname;
+                    }
+                }
+                for (const auto &entry : std::filesystem::recursive_directory_iterator(modelsDirectory)) {
+                    if (entry.is_regular_file()) {
+                        const auto &fname = std::filesystem::relative(entry.path(), modelsDirectory);
+                        modelNames[util::as_lower(fname.string())] = fname;
+                    }
+                }
+                namesInitialized = true;
+                auto after = std::chrono::high_resolution_clock::now();
+                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count();
+                std::cout << "Initialized name lists in " << duration << "ms. found:" << std::endl;
+                std::cout << "\t" << partNames.size() << " parts in " << partsDirectory.string() << "(first is " << partNames.begin()->second << ")"<< std::endl;
+                std::cout << "\t" << subpartNames.size() << " subparts in " << subpartsDirectory.string() << "(first is " << subpartNames.begin()->second << ")"<< std::endl;
+                std::cout << "\t" << primitiveNames.size() << " primitives in " << primitivesDirectory.string() << "(first is "<< primitiveNames.begin()->second << ")" << std::endl;
+                std::cout << "\t" << modelNames.size() << " files in " << modelsDirectory.string() << "(first is " << modelNames.begin()->second << ")"<< std::endl;
             }
         }
-        for (const auto & entry : std::filesystem::directory_iterator(subpartsDirectory)) {
-            if (entry.is_regular_file()) {
-                auto fname = entry.path().filename();
-                subpartNames[util::as_lower(fname.string())] = fname;
-            }
-        }
-        for (const auto & entry : std::filesystem::recursive_directory_iterator(primitivesDirectory)) {
-            if (entry.is_regular_file()) {
-                const auto& fname = std::filesystem::relative(entry.path(), primitivesDirectory);
-                primitiveNames[util::as_lower(fname.string())] = fname;
-            }
-        }
-        for (const auto & entry : std::filesystem::recursive_directory_iterator(modelsDirectory)) {
-            if (entry.is_regular_file()) {
-                const auto& fname = std::filesystem::relative(entry.path(), modelsDirectory);
-                modelNames[util::as_lower(fname.string())] = fname;
-            }
-        }
-        namesInitialized = true;
-        auto after = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(after-before).count();
-        std::cout << "Initialized name lists in " << duration << "ms. found:" << std::endl;
-        std::cout << "\t" << partNames.size() << " parts in " << partsDirectory.string() << "(first is " << partNames.begin()->second << ")" << std::endl;
-        std::cout << "\t" << subpartNames.size() << " subparts in " << subpartsDirectory.string()  << "(first is " << subpartNames.begin()->second << ")"<< std::endl;
-        std::cout << "\t" << primitiveNames.size() << " primitives in " << primitivesDirectory.string()  << "(first is " << primitiveNames.begin()->second << ")"<< std::endl;
-        std::cout << "\t" << modelNames.size() << " files in " << modelsDirectory.string()  << "(first is " << modelNames.begin()->second << ")"<< std::endl;
     }
+    return namesInitialized;
 }
-std::pair<LdrFileType, std::filesystem::path> LdrFileRepository::resolve_file(const std::string & filename) {
+
+std::pair<LdrFileType, std::filesystem::path> LdrFileRepository::resolve_file(const std::string &filename) {
     initializeNames();
     auto filenameWithPlatformSeparators = util::replaceChar(filename, '\\', std::filesystem::path::preferred_separator);
     if (util::starts_with(filename, "s\\")) {
@@ -100,7 +112,7 @@ std::pair<LdrFileType, std::filesystem::path> LdrFileRepository::resolve_file(co
         }
     }
     auto itPart = partNames.find(util::as_lower(filenameWithPlatformSeparators));
-    if (partNames.end()!=itPart) {
+    if (partNames.end() != itPart) {
         auto fullPath = partsDirectory / itPart->second;
         return std::make_pair(LdrFileType::PART, fullPath);
     }

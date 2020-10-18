@@ -13,9 +13,33 @@ int Controller::run() {
     }
     renderer.window = window;
     gui.window = window;
+
+    gui.setup();
+    bool partsLibraryFound = false;
+    while (!partsLibraryFound && !doesUserWantToExit()) {
+        partsLibraryFound = LdrFileRepository::initializeNames();
+        while (!partsLibraryFound && !doesUserWantToExit()) {
+            bool installFinished = gui.loopPartsLibraryInstallationScreen();
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+            if (installFinished) {
+                break;
+            }
+        }
+    }
+    if (partsLibraryFound) {
+        runNormal();
+    }
+    gui.cleanup();
+    glfwTerminate();
+    return 0;
+}
+
+bool Controller::doesUserWantToExit() const { return glfwWindowShouldClose(window) || userWantsToExit; }
+
+void Controller::runNormal() {
     renderer.setWindowSize(view3dWidth, view3dHeight);
     renderer.setup();
-    gui.setup();
     while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
         auto before = std::chrono::high_resolution_clock::now();
         if (elementTreeChanged) {
@@ -32,9 +56,7 @@ int Controller::run() {
     config::set_long(config::SCREEN_WIDTH, windowWidth);
     config::set_long(config::SCREEN_HEIGHT, windowHeight);
     config::save();
-    gui.cleanup();
     renderer.cleanup();
-    return 0;
 }
 
 Controller *Controller::getInstance() {

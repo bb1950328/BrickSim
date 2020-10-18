@@ -67,6 +67,8 @@ set(bricksim_sources
         src/constants.h
         src/fraction.cpp
         src/fraction.h
+        #src/file_downloader.cpp
+        #src/file_downloader.h
         )
 
 add_executable(BrickSim
@@ -90,14 +92,22 @@ ELSE()
     pkg_search_module(GLFW REQUIRED glfw3)
 ENDIF()
 
+#Installation on MinGW:
+#1. download https://curl.haxx.se/download/curl-7.73.0.zip
+#2. unzip curl-7.73.0.zip and execute 'mingw32-make mingw32' inside the folder.
+#3. copy curl-7.73.0/lib/libcurl.dll to MinGW/lib/libcurl.dll
+#4 copy curl-7.73.0/include/curl/* to MinGW/include/curl/* (whole folder)
+set(CURL_LIBRARY "-lcurl")
+find_package(CURL REQUIRED)
+
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} imgui)
+include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} imgui)
 
 target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glfw)
 include_directories(${GLFW_INCLUDE_DIRS})
 
-target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS})
+target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES})
 if (UNIX)#todo check if this is needed
     if (APPLE)
         target_link_libraries(${CMAKE_PROJECT_NAME}
@@ -114,6 +124,7 @@ if (UNIX)#todo check if this is needed
     endif()
 endif()
 
+add_compile_options("-lphread")
 
 target_include_directories(BrickSim PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>

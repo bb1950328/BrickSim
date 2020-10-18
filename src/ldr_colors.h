@@ -16,7 +16,7 @@ struct LdrColorMaterial {
         GLITTER, SPECKLE
     };
     Type type;
-    util::RGB value;
+    util::RGBcolor value;
     unsigned char alpha;
     unsigned char luminance;
     double fraction, vfraction;
@@ -39,8 +39,8 @@ public:
 
     std::string name;
     int code;
-    util::RGB value;
-    util::RGB edge;
+    util::RGBcolor value;
+    util::RGBcolor edge;
     unsigned char alpha = 255;
     unsigned char luminance = 0;
     Finish finish = NONE;

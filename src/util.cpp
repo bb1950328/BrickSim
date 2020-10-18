@@ -6,8 +6,12 @@
 #include <iostream>
 #include <filesystem>
 #include <glm/gtx/string_cast.hpp>
-#include <imgui.h>
 #include "util.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#include <stdlib.h>
 
 namespace util {
     std::string extend_home_dir(const std::string &input) {
@@ -143,27 +147,41 @@ namespace util {
         return a / gcd(a, b) * b;//https://stackoverflow.com/a/3154503/8733066
     }
 
-    RGB::RGB(const std::string& htmlCode){
+    void open_default_browser(const std::string& link) {
+#ifdef _WIN32
+        ShellExecute(nullptr, "open", link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+#endif
+#ifdef __APPLE__
+        std::string command = std::string("open ") + link;//todo testing
+        system(command);
+#endif
+#ifdef __APPLE__
+        std::string command = std::string("xdg-open ") + link;//todo testing
+        system(command);
+#endif
+    }
+
+    RGBcolor::RGBcolor(const std::string& htmlCode){
         std::sscanf(htmlCode.c_str(), "#%2hx%2hx%2hx", &red, &green, &blue);
     }
 
-    std::string RGB::asHtmlCode() const {
+    std::string RGBcolor::asHtmlCode() const {
         char buffer[8];
         snprintf(buffer, 8, "#%02x%02x%02x", red, green, blue);
         auto result = std::string(buffer);
         return result;
     }
 
-    RGB::RGB(glm::vec3 vector) {
+    RGBcolor::RGBcolor(glm::vec3 vector) {
         red = vector.x*255;
         green = vector.y*255;
         blue = vector.z*255;
     }
-    glm::vec3 RGB::asGlmVector() const {
+    glm::vec3 RGBcolor::asGlmVector() const {
         return glm::vec3(red/255.0f, green/255.0f, blue/255.0f);
     }
 
-    RGB::RGB(HSV hsv) {
+    RGBcolor::RGBcolor(HSVcolor hsv) {
         if (hsv.saturation == 0) {
             red = hsv.value;
             green = hsv.value;
@@ -214,17 +232,17 @@ namespace util {
         }
     }
 
-    HSV::HSV(glm::vec3 vector) {
+    HSVcolor::HSVcolor(glm::vec3 vector) {
         hue = vector.x*255;
         saturation = vector.y*255;
         value = vector.z*255;
     }
 
-    glm::vec3 HSV::asGlmVector() const {
+    glm::vec3 HSVcolor::asGlmVector() const {
         return glm::vec3(hue/255.0f, saturation/255.0f, value/255.0f);
     }
 
-    HSV::HSV(RGB rgb) {
+    HSVcolor::HSVcolor(RGBcolor rgb) {
         auto maxc = std::max(std::max(rgb.red, rgb.green), rgb.blue);
         auto minc = std::min(std::min(rgb.red, rgb.green), rgb.blue);
         value = maxc;

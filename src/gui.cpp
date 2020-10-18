@@ -15,6 +15,8 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <atomic>
+#include <thread>
 
 void Gui::setup() {
     GLFWmonitor *monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
@@ -113,6 +115,12 @@ void draw_element_tree_node(ElementTreeNode *node) {
         } else {
             controller->nodeSelectSet(node);
         }
+    }
+}
+
+void draw_hyperlink_button(const std::string& url) {
+    if (ImGui::Button(url.c_str())) {
+        util::open_default_browser(url);
     }
 }
 
@@ -366,7 +374,7 @@ void Gui::loop() {
         static auto guiStyleString = config::get_string(config::GUI_STYLE);
         static auto guiStyle = guiStyleString == "light" ? 0 : (guiStyleString == "classic" ? 1 : 2);
         static int msaaSamples = (int) (config::get_long(config::MSAA_SAMPLES));
-        static glm::vec3 backgroundColor = util::RGB(config::get_string(config::BACKGROUND_COLOR)).asGlmVector();
+        static glm::vec3 backgroundColor = util::RGBcolor(config::get_string(config::BACKGROUND_COLOR)).asGlmVector();
         ImGui::SliderFloat("UI Scale", &guiScale, 0.25, 8, "%.2f");
         ImGui::InputInt2("Initial Window Size", initialWindowSize);
         ImGui::InputText("Ldraw path", const_cast<char *>(ldrawDir), 256);
@@ -392,7 +400,7 @@ void Gui::loop() {
                     break;
             }
             config::set_long(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));
-            config::set_string(config::BACKGROUND_COLOR, util::RGB(backgroundColor).asHtmlCode());
+            config::set_string(config::BACKGROUND_COLOR, util::RGBcolor(backgroundColor).asHtmlCode());
             saveFailed = !config::save();
         }
         if (saveFailed) {
@@ -437,4 +445,80 @@ void Gui::cleanup() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+}
+
+bool Gui::loopPartsLibraryInstallationScreen() {
+    static char state = 'A';
+    /** States:
+     * A show info
+     * B Change path
+     * D Download in progress
+     * Z Finished
+     */
+    static std::atomic<float> downlaodPercent;
+    static std::atomic<long long int> downloadBytes;
+    //static std::thread downloadThread;//todo make this work
+    static char pathBuffer[255];
+    if (state=='A') {
+        if (ImGui::BeginPopupModal("ldraw library not found.", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Text("Currently, the path for the ldraw parts library is set to");
+            auto parts_lib_raw = config::get_string(config::LDRAW_PARTS_LIBRARY);
+            auto parts_lib_extended = util::extend_home_dir(parts_lib_raw);
+            ImGui::Text("'%s'", parts_lib_raw.c_str());
+            if (parts_lib_extended!=parts_lib_raw) {
+                ImGui::Text("'~' is the users home directory, which currently is : '%s'", util::extend_home_dir("~").c_str());
+            }
+            ImGui::Text("");
+            ImGui::Text("But this directory isn't recognized as a valid ldraw parts library.");
+            ImGui::Text("Your options are:");
+            ImGui::BulletText("");
+            ImGui::SameLine();
+            if (ImGui::Button("Change the path manually to point to your ldraw directory")) {
+                state='B';
+                strcpy(pathBuffer, parts_lib_raw.c_str());
+            }
+            ImGui::BulletText("Move the ldraw parts directory to the path above");
+            ImGui::SameLine();
+            if (ImGui::Button("Done##1")) {
+                state='Z';
+            }
+            ImGui::BulletText("Download");
+            ImGui::SameLine();
+            draw_hyperlink_button("http://www.ldraw.org/library/updates/complete.zip");
+            ImGui::SameLine();
+            ImGui::Text("and unzip it to the path above");
+            ImGui::SameLine();
+            if (ImGui::Button("Done##2")) {
+                state='Z';
+            }
+            ImGui::BulletText("Automatically download the parts library");
+            ImGui::SameLine();
+            if (ImGui::Button("Start")) {
+                state='D';
+            }
+            ImGui::EndPopup();
+        }
+    } else if (state=='B') {
+        ImGui::InputText("ldraw parts directory path", pathBuffer, 255);
+        ImGui::Text("'~' will be replaced with '%s' (the current home directory)", util::extend_home_dir("~").c_str());
+        if (std::filesystem::exists(std::filesystem::path(pathBuffer))) {
+            ImGui::TextColored(ImVec4(0, 1, 0, 1), "Good! Path exists.");
+        } else {
+            ImGui::TextColored(ImVec4(1, 0, 0, 1), "No! This path doesn't exist.");
+        }
+        if (ImGui::Button("Cancel")) {
+            state = 'A';
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("OK")) {
+            state = 'Z';
+            config::set_string(config::LDRAW_PARTS_LIBRARY, std::string(pathBuffer));
+        }
+    } else if (state=='D') {
+        //todo implement (start thread somehow)
+    }
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    return state=='Z';
 }

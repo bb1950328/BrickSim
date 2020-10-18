@@ -15,6 +15,9 @@ public:
     void cleanup();
 
     double lastScrollDeltaY;
+
+    bool loopPartsLibraryInstallationScreen();//returns true when finished
+
 private:
     char const * lFilterPatterns[3] = { "*.ldr", "*.dat", "*.mpd"};
 };

@@ -37,26 +37,27 @@ namespace util {
     float biggest_value(glm::vec2 vector);
     float biggest_value(glm::vec3 vector);
     float biggest_value(glm::vec4 vector);
+    void open_default_browser(const std::string& link);
 
-    class HSV;
-    class RGB {
+    class HSVcolor;
+    class RGBcolor {
     public:
-        RGB() = default;
+        RGBcolor() = default;
 
-        explicit RGB(const std::string& htmlCode);
-        explicit RGB(glm::vec3 vector);
-        explicit RGB(HSV hsv);
+        explicit RGBcolor(const std::string& htmlCode);
+        explicit RGBcolor(glm::vec3 vector);
+        explicit RGBcolor(HSVcolor hsv);
 
         unsigned short red, green, blue;
         [[nodiscard]] glm::vec3 asGlmVector() const;
         [[nodiscard]] std::string asHtmlCode() const;
     };
 
-    class HSV {
+    class HSVcolor {
     public:
-        HSV() = default;
-        explicit HSV(glm::vec3 vector);
-        explicit HSV(RGB rgb);
+        HSVcolor() = default;
+        explicit HSVcolor(glm::vec3 vector);
+        explicit HSVcolor(RGBcolor rgb);
 
         unsigned short hue, saturation, value;
         [[nodiscard]] glm::vec3 asGlmVector() const;

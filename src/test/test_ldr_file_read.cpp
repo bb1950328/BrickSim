@@ -12,7 +12,7 @@ static const int run_count = 100;
 int mainldr() {
     auto before = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < run_count; ++i) {
-        LdrFile *pyramid = LdrFileRepository::get_file("~/ldraw/models/car.ldr", false);
+        LdrFile *pyramid = LdrFileRepository::get_file("~/ldraw/models/car.ldr");
         LdrFileRepository::clear_cache();
     }
     auto after = std::chrono::high_resolution_clock::now();

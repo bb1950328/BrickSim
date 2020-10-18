@@ -11,7 +11,7 @@ class MeshCollection {
 public:
     explicit MeshCollection(ElementTree *elementTree);
 
-    std::map<void *, Mesh*> meshes;
+    std::map<std::pair<void *, bool>, Mesh*> meshes;
 
     void initializeGraphics();
 

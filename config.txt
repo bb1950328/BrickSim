@@ -1,7 +1,7 @@
 backgroundColor=#444444
 guiStyle=dark
 ldrawPartsLibrary=~/ldraw
-showNormals=true
+showNormals=false
 instancedMinComplexity=6000
 msaaSamples=1
 screenHeight=2032

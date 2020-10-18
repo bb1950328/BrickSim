@@ -11,17 +11,17 @@
 
 class LdrFileRepository {
 public:
-    static LdrFile *get_file(const std::string& filename, bool bfcInverted = false);
+    static LdrFile *get_file(const std::string& filename);
 
-    static LdrFileType get_file_type(const std::string &filename, bool bfcInverted);
+    static LdrFileType get_file_type(const std::string &filename);
 
     static std::pair<LdrFileType, std::filesystem::path> resolve_file(const std::string &filename);
 
     static void clear_cache();
 
-    static std::map<std::pair<std::string, bool>, std::pair<LdrFileType, LdrFile*>> files;
+    static std::map<std::string, std::pair<LdrFileType, LdrFile*>> files;
 
-    static void add_file(const std::string &filename, bool bfcInverted, LdrFile *file, LdrFileType type);
+    static void add_file(const std::string &filename, LdrFile *file, LdrFileType type);
 
     static void initializeNames();
 private:

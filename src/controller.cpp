@@ -16,9 +16,9 @@ int Controller::run() {
     renderer.setWindowSize(view3dWidth, view3dHeight);
     renderer.setup();
     gui.setup();
-//    openFile("~/Downloads/arocs.mpd");
-    openFile("32019.dat");
-//    openFile("86652.dat");
+    openFile("~/Downloads/arocs.mpd");
+    //openFile("32019.dat");
+    //openFile("86652.dat");
     while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
         auto before = std::chrono::high_resolution_clock::now();
         if (elementTreeChanged) {
@@ -74,7 +74,7 @@ bool Controller::initializeGL() {
     glfwSetScrollCallback(window, scroll_callback);
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        std::cerr << "Failed to initialize GLAD" << std::endl;
         return false;
     }
 

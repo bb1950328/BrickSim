@@ -32,7 +32,7 @@ LdrFileElement *LdrFileElement::parse_line(std::string line, BfcState bfcState) 
 }
 LdrFileElement::~LdrFileElement()= default;
 
-LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &path, bool bfcInverted){
+LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &path){
     auto mainFile = new LdrFile();
     mainFile->metaInfo.type = fileType;
     std::ifstream input(path);
@@ -48,6 +48,7 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
             if (util::starts_with(line, "0 FILE")) {
                 if (!firstFile) {
                     currentSubFileName = util::trim(line.substr(7));
+                    std::cout << currentSubFileName << std::endl;
                 } else {
                     firstFile = false;
                 }
@@ -68,38 +69,31 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
                 } else {
                     currentFile = new LdrFile();
                     currentFile->metaInfo.type = MPD_SUBFILE;
-                    LdrFileRepository::add_file(entry.first, bfcInverted, currentFile, MPD_SUBFILE);
+                    LdrFileRepository::add_file(entry.first, currentFile, MPD_SUBFILE);
                 }
             }
             unsigned long lineCount = entry.second.size();
             currentFile->elements.reserve(lineCount);
             for (const auto& line : entry.second) {
-                currentFile->addTextLine(line, bfcInverted);
+                currentFile->addTextLine(line);
             }
 
         }
     } else {
         for (std::string line; getline(input, line);) {
-            mainFile->addTextLine(line, bfcInverted);
+            mainFile->addTextLine(line);
         }
     }
     
     return mainFile;
 }
 
-void LdrFile::addTextLine(const std::string &line, bool bfcInverted) {
+void LdrFile::addTextLine(const std::string &line) {
     auto trimmed = util::trim(line);
     unsigned int currentStep = elements.empty()?0:elements.back()->step;
     if (!trimmed.empty()) {
-        BfcState subState = bfcState;
-        if (subState.invertNext) {
-            subState.windingOrder=inverseWindingOrder(subState.windingOrder);
-            bfcState.invertNext = false;
-        }
-        if (bfcInverted) {
-            subState.windingOrder = inverseWindingOrder(subState.windingOrder);
-        }
-        LdrFileElement *element = LdrFileElement::parse_line(trimmed, subState);
+        LdrFileElement *element = LdrFileElement::parse_line(trimmed, bfcState);
+        bfcState.invertNext = false;
         if (element->getType()==0) {
             auto *metaElement = dynamic_cast<LdrCommentOrMetaElement *>(element);
             if (metaInfo.add_line(metaElement->content)) {
@@ -320,7 +314,7 @@ int LdrSubfileReference::getType() const{
 }
 LdrFile * LdrSubfileReference::getFile() {
     if (file==nullptr) {
-        file = LdrFileRepository::get_file(filename, bfcInverted);
+        file = LdrFileRepository::get_file(filename);
     }
     return file;
 }

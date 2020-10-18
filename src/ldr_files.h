@@ -59,7 +59,7 @@ class LdrFile {
 public:
     unsigned long long estimatedComplexity = 0;
     unsigned int referenceCount = 0;
-    static LdrFile *parseFile(LdrFileType fileType, const std::filesystem::path &path, bool bfcInverted = false);
+    static LdrFile *parseFile(LdrFileType fileType, const std::filesystem::path &path);
 
     LdrFile() = default;
 
@@ -77,7 +77,7 @@ public:
 private:
     bool subfiles_preloaded_and_complexity_estimated = false;
 
-    void addTextLine(const std::string &line, bool bfcInverted);
+    void addTextLine(const std::string &line);
 
     void preLoadSubfilesAndEstimateComplexityInternal();
 

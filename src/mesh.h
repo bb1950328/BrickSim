@@ -55,15 +55,9 @@ public:
 
     Mesh()=default;
 
-    void addLdrFile(const LdrFile &file);
+    void addLdrFile(const LdrFile &file, glm::mat4 transformation, LdrColor *mainColor, bool bfcInverted);
 
-    void addLdrFile(const LdrFile &file, LdrColor *mainColor);
-
-    void addLdrFile(const LdrFile &file, glm::mat4 transformation, LdrColor *mainColor);
-
-    void addLdrSubfileReference(LdrColor *mainColor,
-                                LdrSubfileReference *sfElement,
-                                glm::mat4 transformation);
+    void addLdrSubfileReference(LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation, bool bfcInverted);
 
     void printTriangles();
 
@@ -71,29 +65,29 @@ public:
 
     void addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation);
 
-    void addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation);
+    void addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted);
 
-    void addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation);
+    void addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted);
 
     std::vector<unsigned int> *getIndicesList(LdrColor *color);
 
     std::vector<TriangleVertex> *getVerticesList(LdrColor *color);
-
     void writeGraphicsData();
+
     void drawTriangleGraphics(const Shader *triangleShader);
 
     void drawLineGraphics(const Shader *lineShader);
 
     void deallocateGraphics();
-
     virtual ~Mesh();
-private:
 
+private:
     //this is the conversion from the ldraw coordinate system to the OpenGL coordinate system
     glm::mat4 globalModel = glm::scale(glm::rotate(glm::mat4(1.0f),//base
                         glm::radians(180.0f),//rotate 180° around
                         glm::vec3(1.0f, 0.0f, 0.0f)),// x axis
             glm::vec3(constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL)); // and make 100 times smaller
+
     unsigned int lineVAO, lineVertexVBO, lineInstanceVBO, lineEBO;
 
     bool already_initialized = false;

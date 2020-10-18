@@ -36,7 +36,7 @@ ElementTreeNodeType ElementTreeNode::getType() {
     return ET_TYPE_OTHER;
 }
 
-void ElementTreeLdrNode::addToMesh(Mesh *mesh) {
+void ElementTreeLdrNode::addToMesh(Mesh *mesh, bool windingInversed) {
     LdrInstanceDummyColor *dummyColor = &LdrColorRepository::instDummyColor;
     for (auto element : ldrFile->elements) {
         switch (element->getType()) {
@@ -45,7 +45,7 @@ void ElementTreeLdrNode::addToMesh(Mesh *mesh) {
             case 1: {
                 auto *sfElement = dynamic_cast<LdrSubfileReference *>(element);
                 if (childrenWithOwnNode.find(sfElement)==childrenWithOwnNode.end()) {
-                    mesh->addLdrSubfileReference(dummyColor, sfElement, glm::mat4(1.0f));
+                    mesh->addLdrSubfileReference(dummyColor, sfElement, glm::mat4(1.0f), windingInversed);
                 }
             }
                 break;
@@ -53,10 +53,10 @@ void ElementTreeLdrNode::addToMesh(Mesh *mesh) {
                 mesh->addLdrLine(dummyColor, dynamic_cast<LdrLine &&>(*element), glm::mat4(1.0f));
                 break;
             case 3:
-                mesh->addLdrTriangle(dummyColor, dynamic_cast<LdrTriangle &&>(*element), glm::mat4(1.0f));
+                mesh->addLdrTriangle(dummyColor, dynamic_cast<LdrTriangle &&>(*element), glm::mat4(1.0f), windingInversed);
                 break;
             case 4:
-                mesh->addLdrQuadrilateral(dummyColor, dynamic_cast<LdrQuadrilateral &&>(*element), glm::mat4(1.0f));
+                mesh->addLdrQuadrilateral(dummyColor, dynamic_cast<LdrQuadrilateral &&>(*element), glm::mat4(1.0f), windingInversed);
                 break;
             case 5:
                 break;//todo implement optional lines
@@ -106,7 +106,7 @@ bool ElementTreeLdrNode::isDisplayNameUserEditable() const {
 }
 
 void ElementTree::loadLdrFile(const std::string &filename) {
-    auto *newNode = new ElementTreeLdrNode(LdrFileRepository::get_file(filename, false), LdrColorRepository::getInstance()->get_color(1));
+    auto *newNode = new ElementTreeLdrNode(LdrFileRepository::get_file(filename), LdrColorRepository::getInstance()->get_color(1));
     rootNode.children.push_back(newNode);
     newNode->parent = &rootNode;
 }

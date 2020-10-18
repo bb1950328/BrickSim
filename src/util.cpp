@@ -152,6 +152,14 @@ namespace util {
         return (p1+p2+p3+p4)/4.0f;//todo check if this is mathematically correct
     }
 
+    bool doesTransformationInverseWindingOrder(const glm::mat4 &transformation) {
+        glm::vec3 vec1 = transformation[0];
+        glm::vec3 vec2 = transformation[1];
+        glm::vec3 vec3 = transformation[2];
+        glm::vec3 cross = glm::cross(vec1, vec2);
+        return glm::dot(cross, vec3)<0.0f;
+    }
+
     RGB::RGB(const std::string& htmlCode){
         std::sscanf(htmlCode.c_str(), "#%2hx%2hx%2hx", &red, &green, &blue);
     }

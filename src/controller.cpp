@@ -26,6 +26,7 @@ int Controller::run() {
             elementTreeChanged = false;
         }
         renderer.loop();
+        renderer.getSelectionPixel(50, 50);
         gui.loop();
         auto after = std::chrono::high_resolution_clock::now();
         lastFrameTime = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();

@@ -35,7 +35,16 @@ struct TriangleInstance {
     float ambientFactor;//ambient=diffuseColor*ambientFactor
     float specularBrightness;//specular=vec4(1.0)*specularBrightness
     float shininess;
+    glm::vec3 idColor;
     glm::mat4 transformation;
+};
+
+struct MeshInstance {
+    LdrColor * color;
+    glm::mat4 transformation;
+    unsigned int elementId;
+    bool operator==(const MeshInstance& other) const;
+    bool operator!=(const MeshInstance& other) const;
 };
 
 class Mesh {
@@ -48,7 +57,7 @@ public:
 
     std::map<LdrColor *, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
 
-    std::vector<std::pair<LdrColor *, glm::mat4>> instances;
+    std::vector<MeshInstance> instances;
     bool instancesHaveChanged = false;
 
     std::string name = "?";
@@ -74,9 +83,9 @@ public:
     std::vector<TriangleVertex> *getVerticesList(LdrColor *color);
     void writeGraphicsData();
 
-    void drawTriangleGraphics(const Shader *triangleShader);
+    void drawTriangleGraphics();
 
-    void drawLineGraphics(const Shader *lineShader);
+    void drawLineGraphics();
 
     void deallocateGraphics();
     virtual ~Mesh();

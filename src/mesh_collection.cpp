@@ -12,15 +12,15 @@ void MeshCollection::initializeGraphics() {
     }
 }
 
-void MeshCollection::drawLineGraphics(const Shader *lineShader) const {
+void MeshCollection::drawLineGraphics() const {
     for (const auto &pair: meshes) {
-        pair.second->drawLineGraphics(lineShader);
+        pair.second->drawLineGraphics();
     }
 }
 
-void MeshCollection::drawTriangleGraphics(const Shader *triangleShader) const {
+void MeshCollection::drawTriangleGraphics() const {
     for (const auto &pair: meshes) {
-        pair.second->drawTriangleGraphics(triangleShader);
+        pair.second->drawTriangleGraphics();
     }
 }
 
@@ -47,15 +47,16 @@ void MeshCollection::readElementTree(ElementTreeNode *node) {
                 mesh->name = meshNode->getDescription();
                 meshNode->addToMesh(mesh, windingInversed);
             }
-            auto newPair = std::make_pair(meshNode->color, absoluteTransformation);
+            MeshInstance newInstance{meshNode->color, absoluteTransformation, currentElementId};
+            currentElementId++;
             if (meshNode->instanceIndex.has_value()) {
-                if (mesh->instances[meshNode->instanceIndex.value()] != newPair) {
-                    mesh->instances[meshNode->instanceIndex.value()] = newPair;
+                if (mesh->instances[meshNode->instanceIndex.value()] != newInstance) {
+                    mesh->instances[meshNode->instanceIndex.value()] = newInstance;
                     mesh->instancesHaveChanged = true;
                 }
             } else {
                 meshNode->instanceIndex = std::make_optional(mesh->instances.size());
-                mesh->instances.push_back(newPair);
+                mesh->instances.push_back(newInstance);
                 mesh->instancesHaveChanged = true;
             }
         }
@@ -72,6 +73,7 @@ MeshCollection::MeshCollection(ElementTree *elementTree) {
 }
 
 void MeshCollection::rereadElementTree() {
+    currentElementId = 1;
     auto before = std::chrono::high_resolution_clock::now();
     readElementTree(&elementTree->rootNode);
     for (const auto &mesh: meshes) {

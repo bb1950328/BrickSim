@@ -233,13 +233,15 @@ void Mesh::initializeTriangleGraphics() {
         glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TriangleInstance, specularBrightness));
         glEnableVertexAttribArray(5);
         glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TriangleInstance, shininess));
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TriangleInstance, idColor));
         for (int j = 0; j < 4; ++j) {
-            glEnableVertexAttribArray(6 + j);
-            glVertexAttribPointer(6 + j, 4, GL_FLOAT, GL_FALSE, instance_size,
+            glEnableVertexAttribArray(7 + j);
+            glVertexAttribPointer(7 + j, 4, GL_FLOAT, GL_FALSE, instance_size,
                                   (void *) (offsetof(TriangleInstance, transformation) + 4 * j * sizeof(float)));
         }
 
-        for (int i = 2; i < 10; ++i) {
+        for (int i = 2; i < 11; ++i) {
             glVertexAttribDivisor(i, 1);
         }
         delete[] instancesArray;
@@ -296,7 +298,7 @@ void Mesh::initializeLineGraphics() {
     //instanceVbo
     auto instancesArray = std::vector<glm::mat4>(instances.size());
     for (int i = 0; i < instances.size(); ++i) {
-        instancesArray[i] = glm::transpose(instances[i].second*globalModel);
+        instancesArray[i] = glm::transpose(instances[i].transformation*globalModel);
     }
 
     glGenBuffers(1, &lineInstanceVBO);
@@ -319,7 +321,7 @@ void Mesh::initializeLineGraphics() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * lineIndices.size(), &(lineIndices)[0], GL_STATIC_DRAW);
 }
 
-void Mesh::drawTriangleGraphics(const Shader *triangleShader) {
+void Mesh::drawTriangleGraphics() {
     for (const auto &entry: triangleIndices) {
         LdrColor *color = entry.first;
         std::vector<unsigned int> *indices = entry.second;
@@ -333,7 +335,7 @@ void Mesh::bindBuffers(LdrColor *color) {
     glBindVertexArray(vao);
 }
 
-void Mesh::drawLineGraphics(const Shader *lineShader) {
+void Mesh::drawLineGraphics() {
     glBindVertexArray(lineVAO);
     glDrawElementsInstanced(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, instances.size());
 }
@@ -397,9 +399,10 @@ TriangleInstance *Mesh::generateInstancesArray(const LdrColor *color) {
     auto *instancesArray = new TriangleInstance[instances.size()];
     unsigned int arr_cursor = 0;
     if (color == &LdrColorRepository::instDummyColor) {
-        for (auto &instPair : instances) {
-            instancesArray[arr_cursor].transformation = glm::transpose(instPair.second * globalModel);
-            setInstanceColor(&instancesArray[arr_cursor], instPair.first);
+        for (auto &instance : instances) {
+            instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * globalModel);
+            setInstanceColor(&instancesArray[arr_cursor], instance.color);
+            instancesArray[arr_cursor].idColor = util::convertIntToColorVec3(instance.elementId);
             arr_cursor++;
         }
     } else {
@@ -407,10 +410,18 @@ TriangleInstance *Mesh::generateInstancesArray(const LdrColor *color) {
         setInstanceColor(&inst, color);
         std::fill_n(instancesArray, instances.size(), inst);
         for (auto &instance : instances) {
-            instancesArray[arr_cursor].transformation = glm::transpose(instance.second * globalModel);
+            instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * globalModel);
+            instancesArray[arr_cursor].idColor = util::convertIntToColorVec3(instance.elementId);
             arr_cursor++;
         }
     }
     return instancesArray;
 }
 
+bool MeshInstance::operator==(const MeshInstance& other) const {
+    return transformation==other.transformation&&color==other.color&&elementId==other.elementId;
+}
+
+bool MeshInstance::operator!=(const MeshInstance &other) const {
+    return transformation!=other.transformation||color!=other.color||elementId!=other.elementId;
+}

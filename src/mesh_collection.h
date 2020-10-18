@@ -21,12 +21,13 @@ public:
 
     void rereadElementTree();
 
-    void drawTriangleGraphics(const Shader *triangleShader) const;
+    void drawTriangleGraphics() const;
 
-    void drawLineGraphics(const Shader *lineShader) const;
+    void drawLineGraphics() const;
 
 private:
 
     ElementTree *elementTree;
+    unsigned int currentElementId;
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

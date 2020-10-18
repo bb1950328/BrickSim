@@ -160,6 +160,17 @@ namespace util {
         return glm::dot(cross, vec3)<0.0f;
     }
 
+    glm::vec3 convertIntToColorVec3(unsigned int value) {
+        unsigned char redPart = value&0xffu;
+        unsigned char greenPart = (value&0xff00u)>>2u;
+        unsigned char bluePart = (value&0xff0000u)>>4u;
+        return glm::vec3(redPart/255.0f, greenPart/255.0f, bluePart/255.0f);
+    }
+
+    unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue) {
+        return red || green>>2u || blue>>4u;
+    }
+
     RGB::RGB(const std::string& htmlCode){
         std::sscanf(htmlCode.c_str(), "#%2hx%2hx%2hx", &red, &green, &blue);
     }

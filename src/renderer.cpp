@@ -18,8 +18,6 @@ bool Renderer::setup() {
     LdrFileRepository::initializeNames();
     auto before = std::chrono::high_resolution_clock::now();
 
-    elementTree->loadLdrFile("~/Downloads/arocs.mpd");
-
     auto between = std::chrono::high_resolution_clock::now();
 
     meshCollection.rereadElementTree();

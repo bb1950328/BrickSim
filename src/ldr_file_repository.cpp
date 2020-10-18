@@ -39,7 +39,7 @@ LdrFileType LdrFileRepository::get_file_type(const std::string &filename) {
     return iterator->second.first;
 }
 
-void LdrFileRepository::add_file(const std::string &filename, LdrFile *file, LdrFileType type){
+void LdrFileRepository::add_file(const std::string &filename, LdrFile *file, LdrFileType type) {
     files[filename] = std::make_pair(type, file);
 }
 void LdrFileRepository::clear_cache(){
@@ -64,7 +64,7 @@ void LdrFileRepository::initializeNames() {
         for (const auto & entry : std::filesystem::directory_iterator(subpartsDirectory)) {
             if (entry.is_regular_file()) {
                 auto fname = entry.path().filename();
-                subpartNames[util::as_lower(fname.string())] = fname;
+                subpartNames[util::as_lower(std::string("s\\")+fname.string())] = fname;
             }
         }
         for (const auto & entry : std::filesystem::recursive_directory_iterator(primitivesDirectory)) {
@@ -92,12 +92,10 @@ void LdrFileRepository::initializeNames() {
 std::pair<LdrFileType, std::filesystem::path> LdrFileRepository::resolve_file(const std::string & filename) {
     initializeNames();
     auto filenameWithPlatformSeparators = util::replaceChar(filename, '\\', std::filesystem::path::preferred_separator);
-    if (util::starts_with(filename, "s\\")) {
-        auto itSubpart = subpartNames.find(util::as_lower(filename.substr(2)));
-        if (itSubpart != subpartNames.end()) {
-            auto fullPath = subpartsDirectory / itSubpart->second;
-            return std::make_pair(LdrFileType::SUBPART, fullPath);
-        }
+    auto itSubpart = subpartNames.find(util::as_lower(filename));
+    if (itSubpart != subpartNames.end()) {
+        auto fullPath = subpartsDirectory / itSubpart->second;
+        return std::make_pair(LdrFileType::SUBPART, fullPath);
     }
     auto itPart = partNames.find(util::as_lower(filenameWithPlatformSeparators));
     if (partNames.end()!=itPart) {

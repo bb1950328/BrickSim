@@ -90,6 +90,8 @@ std::string LdrColor::getGroupDisplayName() const {
             return "Metal";
         case MATERIAL:
             return "Special Material";
+        default:
+            return "Other";
     }
 }
 

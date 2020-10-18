@@ -11,31 +11,22 @@
 #include "ldr_colors.h"
 #include <glm/gtx/normal.hpp>
 
-void Mesh::addLdrFile(const LdrFile &file) {
-    LdrColor *defaultColor = LdrColorRepository::getInstance()->get_color(1);
-    addLdrFile(file, glm::mat4(1.0f), defaultColor);
-}
-
-void Mesh::addLdrFile(const LdrFile &file, LdrColor *mainColor) {
-    addLdrFile(file, glm::mat4(1.0f), mainColor);
-}
-
-void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation, LdrColor *mainColor) {
+void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation=glm::mat4(1.0f), LdrColor *mainColor= nullptr, bool bfcInverted=false) {
     for (auto element : file.elements) {
         switch (element->getType()) {
             case 0:
                 break;
             case 1:
-                addLdrSubfileReference(mainColor, dynamic_cast<LdrSubfileReference *>(element), transformation);
+                addLdrSubfileReference(mainColor, dynamic_cast<LdrSubfileReference *>(element), transformation, bfcInverted);
                 break;
             case 2:
                 addLdrLine(mainColor, dynamic_cast<LdrLine &&>(*element), transformation);
                 break;
             case 3:
-                addLdrTriangle(mainColor, dynamic_cast<LdrTriangle &&>(*element), transformation);
+                addLdrTriangle(mainColor, dynamic_cast<LdrTriangle &&>(*element), transformation, bfcInverted);
                 break;
             case 4:
-                addLdrQuadrilateral(mainColor, dynamic_cast<LdrQuadrilateral &&>(*element), transformation);
+                addLdrQuadrilateral(mainColor, dynamic_cast<LdrQuadrilateral &&>(*element), transformation, bfcInverted);
                 break;
             case 5:
                 break;//todo implement
@@ -43,47 +34,66 @@ void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation, LdrColor *m
     }
 }
 
-void Mesh::addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation) {
+void Mesh::addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted) {
+    LdrColor *color = triangleElement.color->code == 16 ? mainColor : triangleElement.color;
+    auto *verticesList = getVerticesList(color);
+    auto *indicesList = getIndicesList(color);
     auto p1 = glm::vec3(triangleElement.x1, triangleElement.y1, triangleElement.z1);
     auto p2 = glm::vec3(triangleElement.x2, triangleElement.y2, triangleElement.z2);
     auto p3 = glm::vec3(triangleElement.x3, triangleElement.y3, triangleElement.z3);
-    LdrColor *color = triangleElement.color->code == 16 ? mainColor : triangleElement.color;
     auto normal = glm::triangleNormal(p1, p2, p3);
-    addTriangleVertex(glm::vec4(p1, 1.0f) * transformation, normal, color);
-    addTriangleVertex(glm::vec4(p2, 1.0f) * transformation, normal, color);
-    addTriangleVertex(glm::vec4(p3, 1.0f) * transformation, normal, color);
+    auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f) * transformation);
+    TriangleVertex vertex1{glm::vec4(p1, 1.0f) * transformation, transformedNormal};
+    TriangleVertex vertex2{glm::vec4(p2, 1.0f) * transformation, transformedNormal};
+    TriangleVertex vertex3{glm::vec4(p3, 1.0f) * transformation, transformedNormal};
+
+    if (util::doesTransformationInverseWindingOrder(transformation)^bfcInverted) {
+        std::swap(vertex2, vertex3);
+    }
+
+    auto idx1 = verticesList->size();
+    verticesList->push_back(vertex1);
+    verticesList->push_back(vertex2);
+    verticesList->push_back(vertex3);
+    indicesList->push_back(idx1);
+    indicesList->push_back(idx1+1);
+    indicesList->push_back(idx1+2);
+
+    if (config::get_string(config::SHOW_NORMALS)=="true") {
+        auto lp1 = glm::vec4(util::triangleCentroid(p1, p2, p3), 1.0f)*transformation;
+        auto lp2 = lp1 + (transformedNormal * 5.0f);
+        LineVertex lv1{lp1, transformedNormal};
+        LineVertex lv2{lp2, transformedNormal};
+        addLineVertex(lv1);
+        addLineVertex(lv2);
+    }
 }
 
-void Mesh::addTriangleVertex(glm::vec4 pos, glm::vec3 normal, LdrColor *color) {
-    TriangleVertex vertex{pos, normal};
-    /*for (int i = triangleVertices.size(); i > triangleVertices.size()-10; --i) {//just check the last 10 because the probability that there's a better vertex farther front is very small
-        if (triangleVertices[i]==vertex) {
-            triangleIndices.push_back(i);
-            return;
-        }
-    }*///todo check if this still gives a performance boost after adding normals
-    getIndicesList(color)->push_back(triangleVertices.size());
-    getVerticesList(color)->push_back(vertex);
-}
-
-void Mesh::addLdrSubfileReference(LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation) {
+void
+Mesh::addLdrSubfileReference(LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation, bool bfcInverted) {
     auto sub_transformation = sfElement->getTransformationMatrix();
     LdrColor *color = sfElement->color->code == 16 ? mainColor : sfElement->color;
-    addLdrFile(*sfElement->getFile(), sub_transformation * transformation, color);
+    addLdrFile(*sfElement->getFile(), sub_transformation * transformation, color, sfElement->bfcInverted^bfcInverted);
 }
 
-void Mesh::addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation) {
-    auto p1 = glm::vec4(quadrilateral.x1, quadrilateral.y1, quadrilateral.z1, 1.0f) * transformation;
-    auto p2 = glm::vec4(quadrilateral.x2, quadrilateral.y2, quadrilateral.z2, 1.0f) * transformation;
-    auto p3 = glm::vec4(quadrilateral.x3, quadrilateral.y3, quadrilateral.z3, 1.0f) * transformation;
-    auto p4 = glm::vec4(quadrilateral.x4, quadrilateral.y4, quadrilateral.z4, 1.0f) * transformation;
+void Mesh::addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted) {
+    auto p1 = glm::vec3(quadrilateral.x1, quadrilateral.y1, quadrilateral.z1);
+    auto p2 = glm::vec3(quadrilateral.x2, quadrilateral.y2, quadrilateral.z2);
+    auto p3 = glm::vec3(quadrilateral.x3, quadrilateral.y3, quadrilateral.z3);
+    auto p4 = glm::vec3(quadrilateral.x4, quadrilateral.y4, quadrilateral.z4);
     LdrColor *color = quadrilateral.color->code == 16 ? mainColor : quadrilateral.color;
-    auto normal = glm::triangleNormal(glm::vec3(p1), glm::vec3(p2), glm::vec3(p3));
+    auto normal = glm::triangleNormal(p1, p2, p3);
+    auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f) * transformation);
 
-    TriangleVertex vertex1{p1, normal};
-    TriangleVertex vertex2{p2, normal};
-    TriangleVertex vertex3{p3, normal};
-    TriangleVertex vertex4{p4, normal};
+    TriangleVertex vertex1{glm::vec4(p1, 1.0f) * transformation, transformedNormal};
+    TriangleVertex vertex2{glm::vec4(p2, 1.0f) * transformation, transformedNormal};
+    TriangleVertex vertex3{glm::vec4(p3, 1.0f) * transformation, transformedNormal};
+    TriangleVertex vertex4{glm::vec4(p4, 1.0f) * transformation, transformedNormal};
+
+    if (util::doesTransformationInverseWindingOrder(transformation)^bfcInverted) {
+        std::swap(vertex2, vertex4);
+    }
+
     auto vertices_list = getVerticesList(color);
     unsigned int idx = vertices_list->size();
     vertices_list->push_back(vertex1);
@@ -101,6 +111,15 @@ void Mesh::addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilat
     indices_list->push_back(idx + 2);
     indices_list->push_back(idx + 3);
     indices_list->push_back(idx);
+
+    if (config::get_string(config::SHOW_NORMALS) == "true") {
+        auto lp1 = glm::vec4(util::quadrilateralCentroid(p1, p2, p3, p4), 1.0f)*transformation;
+        auto lp2 = lp1 + (transformedNormal * 5.0f);
+        LineVertex lv1{lp1, transformedNormal};
+        LineVertex lv2{lp2, transformedNormal};
+        addLineVertex(lv1);
+        addLineVertex(lv2);
+    }
 }
 
 std::vector<unsigned int> *Mesh::getIndicesList(LdrColor *color) {

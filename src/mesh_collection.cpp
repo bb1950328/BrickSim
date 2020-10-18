@@ -4,6 +4,7 @@
 
 #include "mesh_collection.h"
 #include "statistic.h"
+#include "util.h"
 
 void MeshCollection::initializeGraphics() {
     for (const auto &pair: meshes) {
@@ -34,17 +35,19 @@ void MeshCollection::readElementTree(ElementTreeNode *node) {
         if ((node->getType() & ET_TYPE_MESH) > 0) { // todo google if there's something like instanceof in C++
             auto *meshNode = dynamic_cast<ElementTreeMeshNode *>(node);
             void *identifier = meshNode->getMeshIdentifier();
-            auto it = meshes.find(identifier);
+            const glm::mat4 &absoluteTransformation = node->getAbsoluteTransformation();
+            bool windingInversed = util::doesTransformationInverseWindingOrder(absoluteTransformation);
+            auto it = meshes.find(std::make_pair(identifier, windingInversed));
             Mesh *mesh;
             if (it != meshes.end()) {
                 mesh = it->second;
             } else {
                 mesh = new Mesh();
-                meshes[identifier] = mesh;
+                meshes[std::make_pair(identifier, windingInversed)] = mesh;
                 mesh->name = meshNode->getDescription();
-                meshNode->addToMesh(mesh);
+                meshNode->addToMesh(mesh, windingInversed);
             }
-            auto newPair = std::make_pair(meshNode->color, node->getAbsoluteTransformation());
+            auto newPair = std::make_pair(meshNode->color, absoluteTransformation);
             if (meshNode->instanceIndex.has_value()) {
                 if (mesh->instances[meshNode->instanceIndex.value()] != newPair) {
                     mesh->instances[meshNode->instanceIndex.value()] = newPair;

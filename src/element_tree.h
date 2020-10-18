@@ -52,7 +52,7 @@ public:
 class ElementTreeMeshNode : public ElementTreeNode {
 public:
     virtual void* getMeshIdentifier() = 0;
-    virtual void addToMesh(Mesh *mesh) = 0;
+    virtual void addToMesh(Mesh *mesh, bool windingInversed) = 0;
     virtual std::string getDescription() = 0;
     LdrColor *color;
     std::optional<size_t> instanceIndex;
@@ -61,7 +61,7 @@ public:
 class ElementTreeLdrNode : public ElementTreeMeshNode {
 public:
     void* getMeshIdentifier() override;
-    void addToMesh(Mesh *mesh) override;
+    void addToMesh(Mesh *mesh, bool windingInversed) override;
     std::string getDescription() override;
     LdrFile *ldrFile;
     std::set<LdrSubfileReference *> childrenWithOwnNode;

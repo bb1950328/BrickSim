@@ -11,7 +11,7 @@
 
 class LdrFileRepository {
 public:
-    static LdrFile *get_file(const std::string &filename);
+    static LdrFile *get_file(const std::string& filename);
 
     static LdrFileType get_file_type(const std::string &filename);
 

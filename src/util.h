@@ -37,6 +37,9 @@ namespace util {
     float biggest_value(glm::vec2 vector);
     float biggest_value(glm::vec3 vector);
     float biggest_value(glm::vec4 vector);
+    glm::vec3 triangleCentroid(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3);
+    glm::vec3 quadrilateralCentroid(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec3& p4);
+    bool doesTransformationInverseWindingOrder(const glm::mat4& transformation);
 
     class HSV;
     class RGB {

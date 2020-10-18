@@ -35,6 +35,7 @@ namespace config {
     const Key GUI_SCALE{"guiScale"};
     const Key GUI_STYLE{"guiStyle"};
     const Key BACKGROUND_COLOR{"backgroundColor"};
+    const Key SHOW_NORMALS{"showNormals"};
 }
 
 #endif //BRICKSIM_CONFIG_H

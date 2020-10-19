@@ -1,5 +1,5 @@
 // fraction.cpp
-// Created by bab21 on 17.10.20.
+// Created by bb1950328 on 17.10.20.
 //
 
 #include <stdexcept>

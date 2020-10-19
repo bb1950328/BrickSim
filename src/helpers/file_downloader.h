@@ -1,5 +1,5 @@
 //
-// Created by Bader on 18.10.2020.
+// Created by bb1950328 on 18.10.2020.
 //
 
 #ifndef BRICKSIM_FILE_DOWNLOADER_H

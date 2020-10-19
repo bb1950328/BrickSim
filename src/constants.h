@@ -1,5 +1,5 @@
 //
-// Created by Bader on 17.10.2020.
+// Created by bb1950328 on 17.10.2020.
 //
 
 #ifndef BRICKSIM_CONSTANTS_H

@@ -73,6 +73,8 @@ public:
 
     void elementTreeChanged();
 
+    void saveImage(const std::string& path);
+
 private:
 
     bool setupCalled = false;

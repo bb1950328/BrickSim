@@ -6,6 +6,10 @@
 #include "renderer.h"
 #include "controller.h"
 #include "ldr_colors.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "lib/stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "lib/stb_image_write.h"
 
 bool Renderer::setup() {
     if (setupCalled) {
@@ -153,12 +157,11 @@ unsigned int Renderer::getSelectionPixel(unsigned int x, unsigned int y) {
     triangleShader->use();
     triangleShader->setInt("drawSelection", 1);
     meshCollection.drawTriangleGraphics();
-    GLubyte  pixel[3];
-    glReadPixels(x, y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+
+    GLubyte  middlePixel[3];
+    glReadPixels(x, (currentSelectionBuffersHeight - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    unsigned int result = (pixel[0] << 4u) | (pixel[1] << 2u) | pixel[2];
-    std::cout << result << std::endl;
-    return result;
+    return util::getIntFromColor(middlePixel[0], middlePixel[1], middlePixel[2]);
 }
 
 void Renderer::deleteFramebuffer(unsigned int *framebufferIdLocation,
@@ -170,6 +173,18 @@ void Renderer::deleteFramebuffer(unsigned int *framebufferIdLocation,
     *framebufferIdLocation = 0;
     *textureColorbufferIdLocation = 0;
     *renderBufferObjectIdLocation = 0;
+}
+
+void Renderer::saveImage(const std::string& path) {//todo make button in UI to use this
+    const int channels = 3;
+
+    GLubyte  pixel[windowWidth][windowHeight][channels];
+    glReadPixels(0, 0, windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //unsigned int result = (pixel[0] << 4u) | (pixel[1] << 2u) | pixel[2];
+    //std::cout << result << std::endl;
+
+    stbi_write_png(path.c_str(), windowWidth, windowHeight, channels, pixel, windowWidth*channels);
 }
 
 void processInput(GLFWwindow *window) {

@@ -251,8 +251,27 @@ void Gui::loop() {
                 }
                 if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)&&lastDeltaXleft==0&&lastDeltaYleft==0) {
                     //released without drag
-                    ImGui::GetCursorPos();
-                    controller->renderer.getSelectionPixel()
+                    auto relCursorPosX = ImGui::GetMousePos().x-ImGui::GetWindowPos().x-ImGui::GetWindowContentRegionMin().x;
+                    auto relCursorPosY = ImGui::GetMousePos().y-ImGui::GetWindowPos().y-ImGui::GetWindowContentRegionMin().y;
+                    std::cout << "relCursorPos: " << relCursorPosX << ", " << relCursorPosY << std::endl;
+                    std::cout << "GetWindowPos: " << ImGui::GetWindowPos().x << ", " << ImGui::GetWindowPos().y << std::endl;
+                    std::cout << "GetMousePos: " << ImGui::GetMousePos().x << ", " << ImGui::GetMousePos().y << std::endl << std::endl;
+                    const auto elementIdUnderMouse = controller->renderer.getSelectionPixel(relCursorPosX, relCursorPosY);
+                    if (elementIdUnderMouse == 0) {
+                        controller->nodeSelectNone();
+                    } else {
+                        auto* clickedNode = controller->renderer.meshCollection.getElementById(elementIdUnderMouse);
+                        if (clickedNode!= nullptr) {
+                            if (ImGui::GetIO().KeyCtrl) {
+                                controller->nodeSelectAddRemove(clickedNode);
+                            } else if (ImGui::GetIO().KeyShift) {
+                                controller->nodeSelectUntil(clickedNode);
+                            } else {
+                                controller->nodeSelectSet(clickedNode);
+                            }
+                            std::cout << clickedNode->displayName << std::endl;
+                        }
+                    }
                 }
                 if (std::abs(lastScrollDeltaY) > 0.01) {
                     controller->renderer.camera.moveForwardBackward((float) lastScrollDeltaY);
@@ -260,8 +279,8 @@ void Gui::loop() {
                 }
             }
             auto texture3dView = (ImTextureID) (config::get_string(config::DISPLAY_SELECTION_BUFFER)=="true"
-                    ?controller->renderer.selectionTextureColorbuffer
-                    :controller->renderer.imageTextureColorbuffer);
+                                                ?controller->renderer.selectionTextureColorbuffer
+                                                :controller->renderer.imageTextureColorbuffer);
             ImGui::ImageButton(texture3dView, wsize, ImVec2(0, 1), ImVec2(1, 0), 0);
             ImGui::EndChild();
         }
@@ -481,10 +500,10 @@ bool Gui::loopPartsLibraryInstallationScreen() {
             if (parts_lib_extended!=parts_lib_raw) {
                 ImGui::Text("'~' is the users home directory, which currently is : '%s'", util::extend_home_dir("~").c_str());
             }
-            ImGui::Text("");
+            ImGui::Text(" ");
             ImGui::Text("But this directory isn't recognized as a valid ldraw parts library.");
             ImGui::Text("Your options are:");
-            ImGui::BulletText("");
+            ImGui::BulletText(" ");
             ImGui::SameLine();
             if (ImGui::Button("Change the path manually to point to your ldraw directory")) {
                 state='B';

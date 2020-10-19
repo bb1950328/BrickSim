@@ -47,7 +47,8 @@ void MeshCollection::readElementTree(ElementTreeNode *node) {
                 mesh->name = meshNode->getDescription();
                 meshNode->addToMesh(mesh, windingInversed);
             }
-            MeshInstance newInstance{meshNode->color, absoluteTransformation, elementsSortedById.size()};
+            const auto elementId = static_cast<unsigned int>(elementsSortedById.size());
+            MeshInstance newInstance{meshNode->color, absoluteTransformation, elementId};
             elementsSortedById.push_back(node);
             if (meshNode->instanceIndex.has_value()) {
                 if (mesh->instances[meshNode->instanceIndex.value()] != newInstance) {
@@ -75,7 +76,7 @@ MeshCollection::MeshCollection(ElementTree *elementTree) {
 void MeshCollection::rereadElementTree() {
     size_t sizeBefore = elementsSortedById.size();
     elementsSortedById.clear();
-    elementsSortedById.resize(sizeBefore);//todo check if this is necessary
+    //elementsSortedById.resize(sizeBefore);//todo check if this is necessary
     elementsSortedById.push_back(nullptr);
     auto before = std::chrono::high_resolution_clock::now();
     readElementTree(&elementTree->rootNode);
@@ -88,5 +89,8 @@ void MeshCollection::rereadElementTree() {
 }
 
 ElementTreeNode *MeshCollection::getElementById(unsigned int id) {
-    return elementsSortedById[id];
+    if (elementsSortedById.size()>id) {
+        return elementsSortedById[id];
+    }
+    return nullptr;
 }

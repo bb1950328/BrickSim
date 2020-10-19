@@ -182,14 +182,17 @@ namespace util {
     }
 
     glm::vec3 convertIntToColorVec3(unsigned int value) {
+        unsigned char bluePart = value&0xffu;//blue first is intended
+        value >>= 8u;
+        unsigned char greenPart = value&0xffu;
+        value >>= 8u;
         unsigned char redPart = value&0xffu;
-        unsigned char greenPart = (value&0xff00u)>>2u;
-        unsigned char bluePart = (value&0xff0000u)>>4u;
         return glm::vec3(redPart/255.0f, greenPart/255.0f, bluePart/255.0f);
     }
 
     unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue) {
-        return red || green>>2u || blue>>4u;
+        unsigned int result = ((unsigned int)red) << 16u | ((unsigned int)green) << 8u | blue;
+        return result;
     }
 
     std::string RGBcolor::asHtmlCode() const {
@@ -287,7 +290,7 @@ namespace util {
             } else {
                 h = 4.0f+gc-rc;
             }
-            hue = (((h/255/6.0f)-(int)(h/255/6.0f))*255.0f);
+            hue = (((h/255/6.0f) - (int)(h/255/6.0f)) * 255.0f);
         }
     }
 }

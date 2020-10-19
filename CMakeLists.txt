@@ -27,10 +27,16 @@ set(imgui_sources # if cmake doesn't find these files, run `git submodule update
         imgui/imstb_textedit.h
         imgui/imstb_truetype.h
         )
+set(bricksim_libs
+        src/lib/glad.c
+        src/lib/stb_image.h
+        src/lib/tinyfiledialogs.h
+        src/lib/tinyfiledialogs.c
+        src/lib/stb_image_write.h
+        )
 
 set(bricksim_sources
         src/main.cpp
-        src/lib/glad.c
         src/ldr_files.cpp
         src/ldr_files.h
         src/config.cpp
@@ -38,7 +44,6 @@ set(bricksim_sources
         src/test/test_ldr_file_read.cpp
         src/util.cpp
         src/util.h
-        src/lib/stb_image.h
         src/mesh.cpp
         src/mesh.h
         src/camera.h
@@ -60,8 +65,6 @@ set(bricksim_sources
         src/gui.h
         src/controller.cpp
         src/controller.h
-        src/lib/tinyfiledialogs.h
-        src/lib/tinyfiledialogs.c
         src/tools/gears.cpp
         src/tools/gears.h
         src/constants.h
@@ -73,10 +76,11 @@ set(bricksim_sources
 
 add_executable(BrickSim
         ${imgui_sources}
+        ${bricksim_libs}
         ${bricksim_sources}
         )
 
-# On Ubuntu, I had to sudo apt install mesa-utils freeglut3-dev libglfw3-dev
+# On Ubuntu, I had to sudo apt install mesa-utils freeglut3-dev libglfw3-dev libcurl4-openssl-dev
 # and add the files from https://glad.dav1d.de to /usr/include and the project folder
 # windows libraries and headers installation: https://learnopengl.com/Getting-started/Creating-a-window
 

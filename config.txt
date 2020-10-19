@@ -1,9 +1,10 @@
 backgroundColor=#444444
+displaySelectionBuffer=false
 guiStyle=dark
 ldrawPartsLibrary=~/ldraw
 showNormals=false
 instancedMinComplexity=6000
 msaaSamples=16
-screenHeight=1505
-screenWidth=2796
+screenHeight=2032
+screenWidth=3728
 guiScale=1.5

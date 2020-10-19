@@ -18,24 +18,29 @@ struct Light {
 
 uniform vec3 viewPos;
 uniform Light light;
+uniform int drawSelection;
 
 void main()
 {
-   // ambient
-   vec3 ambient = light.ambient * bDiffuseColor*bAmbientFactor;
+   if (drawSelection>0) {
+      FragColor = vec4(bDiffuseColor, 1.0);
+   } else {
+      // ambient
+      vec3 ambient = light.ambient * bDiffuseColor*bAmbientFactor;
 
-   // diffuse
-   vec3 norm = normalize(bNormal);
-   vec3 lightDir = normalize(light.position - fragPos);
-   float diff = max(dot(norm, lightDir), 0.0);
-   vec3 diffuse = light.diffuse * (diff * bDiffuseColor);
+      // diffuse
+      vec3 norm = normalize(bNormal);
+      vec3 lightDir = normalize(light.position - fragPos);
+      float diff = max(dot(norm, lightDir), 0.0);
+      vec3 diffuse = light.diffuse * (diff * bDiffuseColor);
 
-   // specular
-   vec3 viewDir = normalize(viewPos - fragPos);
-   vec3 reflectDir = reflect(-lightDir, norm);
-   float spec = pow(max(dot(viewDir, reflectDir), 0.0), bShininess);
-   vec3 specular = light.specular * (spec * vec3(1.0)*bSpecularBrightness);
+      // specular
+      vec3 viewDir = normalize(viewPos - fragPos);
+      vec3 reflectDir = reflect(-lightDir, norm);
+      float spec = pow(max(dot(viewDir, reflectDir), 0.0), bShininess);
+      vec3 specular = light.specular * (spec * vec3(1.0)*bSpecularBrightness);
 
-   vec3 result = ambient + diffuse + specular;
-   FragColor = vec4(result, 1.0);
+      vec3 result = ambient + diffuse + specular;
+      FragColor = vec4(result, 1.0);
+   }
 }

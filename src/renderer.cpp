@@ -14,7 +14,6 @@ bool Renderer::setup() {
 
     triangleShader = new Shader("src/shaders/triangle_shader.vsh", "src/shaders/triangle_shader.fsh");
     lineShader = new Shader("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");
-    selectionShader = new Shader("src/shaders/selection_shader.vsh", "src/shaders/selection_shader.fsh");
 
     LdrFileRepository::initializeNames();
     auto before = std::chrono::high_resolution_clock::now();
@@ -95,6 +94,7 @@ bool Renderer::loop() {
         triangleShader->use();
         triangleShader->setVec3("viewPos", camera.getCameraPos());
         triangleShader->setMat4("projectionView", projectionView);
+        triangleShader->setInt("drawSelection", 0);
         meshCollection.drawTriangleGraphics();
         lineShader->use();
         lineShader->setMat4("projectionView", projectionView);
@@ -124,6 +124,7 @@ void Renderer::setWindowSize(unsigned int width, unsigned int height) {
         windowHeight = height;
         glViewport(0, 0, width, height);
         updateProjectionMatrix();
+        deleteFramebuffer(&imageFramebuffer, &imageTextureColorbuffer, &imageRenderBufferObject);
         createFramebuffer(&imageFramebuffer, &imageTextureColorbuffer, &imageRenderBufferObject);
         unrenderedChanges = true;
     }
@@ -135,8 +136,13 @@ void Renderer::elementTreeChanged() {
 }
 
 unsigned int Renderer::getSelectionPixel(unsigned int x, unsigned int y) {
-    if (currendSelectionBuffersWidth != windowWidth || currendSelectionBuffersHeight != windowHeight) {
+    if (currentSelectionBuffersWidth != windowWidth || currentSelectionBuffersHeight != windowHeight) {
+        if (currentSelectionBuffersWidth != 0 || currentSelectionBuffersHeight != 0) {
+            deleteFramebuffer(&selectionFramebuffer, &selectionTextureColorbuffer, &selectionRenderBufferObject);
+        }
         createFramebuffer(&selectionFramebuffer, &selectionTextureColorbuffer, &selectionRenderBufferObject);
+        currentSelectionBuffersWidth = windowWidth;
+        currentSelectionBuffersHeight = windowHeight;
     }
     glBindFramebuffer(GL_FRAMEBUFFER, selectionFramebuffer);
     glEnable(GL_DEPTH_TEST); // todo check if this is needed
@@ -146,15 +152,25 @@ unsigned int Renderer::getSelectionPixel(unsigned int x, unsigned int y) {
     glm::mat4 view = camera.getViewMatrix();
     const glm::mat4 &projectionView = projection * view;
 
-    selectionShader->use();
-    selectionShader->setVec3("viewPos", camera.getCameraPos());
-    selectionShader->setMat4("projectionView", projectionView);
+    triangleShader->use();
+    triangleShader->setInt("drawSelection", 1);
     meshCollection.drawTriangleGraphics();
     unsigned int result;
-    glReadPixels(x, y, 1, 1, GL_RGB_INTEGER, GL_UNSIGNED_INT, &result);//todo this doesn't work :(
+    glReadPixels(x, y, 1, 1, GL_BLUE_INTEGER, GL_UNSIGNED_INT, &result);//todo this doesn't work :(
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     std::cout << result << std::endl;
     return result;
+}
+
+void Renderer::deleteFramebuffer(unsigned int *framebufferIdLocation,
+                                 unsigned int *textureColorbufferIdLocation,
+                                 unsigned int *renderBufferObjectIdLocation) {
+    glDeleteRenderbuffers(1, renderBufferObjectIdLocation);
+    glDeleteTextures(1, textureColorbufferIdLocation);
+    glDeleteFramebuffers(1, framebufferIdLocation);
+    *framebufferIdLocation = 0;
+    *textureColorbufferIdLocation = 0;
+    *renderBufferObjectIdLocation = 0;
 }
 
 void processInput(GLFWwindow *window) {

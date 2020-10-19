@@ -36,6 +36,7 @@ namespace config {
     const Key GUI_STYLE{"guiStyle"};
     const Key BACKGROUND_COLOR{"backgroundColor"};
     const Key SHOW_NORMALS{"showNormals"};
+    const Key DISPLAY_SELECTION_BUFFER{"displaySelectionBuffer"};
 }
 
 #endif //BRICKSIM_CONFIG_H

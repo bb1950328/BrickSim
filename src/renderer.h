@@ -33,7 +33,6 @@ class Renderer {
 public:
     Shader *triangleShader;
     Shader *lineShader;
-    Shader *selectionShader;
     ElementTree *elementTree;
     MeshCollection meshCollection;
 
@@ -55,8 +54,8 @@ public:
     unsigned int selectionFramebuffer;
     unsigned int selectionTextureColorbuffer;
     unsigned int selectionRenderBufferObject;
-    unsigned int currendSelectionBuffersWidth = 0;
-    unsigned int currendSelectionBuffersHeight = 0;
+    unsigned int currentSelectionBuffersWidth = 0;
+    unsigned int currentSelectionBuffersHeight = 0;
 
     bool setup();
 
@@ -79,6 +78,10 @@ private:
     bool setupCalled = false;
 
     void createFramebuffer(unsigned int* framebufferIdLocation,
+                           unsigned int* textureColorbufferIdLocation,
+                           unsigned int* renderBufferObjectIdLocation);
+
+    static void deleteFramebuffer(unsigned int* framebufferIdLocation,
                            unsigned int* textureColorbufferIdLocation,
                            unsigned int* renderBufferObjectIdLocation);
 };

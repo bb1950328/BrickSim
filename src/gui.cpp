@@ -241,7 +241,9 @@ void Gui::loop() {
                     Controller::getInstance()->renderer.unrenderedChanges = true;
                 }
             }
-            auto texture3dView = (ImTextureID) controller->renderer.imageTextureColorbuffer;
+            auto texture3dView = (ImTextureID) (config::get_string(config::DISPLAY_SELECTION_BUFFER)=="true"
+                    ?controller->renderer.selectionTextureColorbuffer
+                    :controller->renderer.imageTextureColorbuffer);
             ImGui::ImageButton(texture3dView, wsize, ImVec2(0, 1), ImVec2(1, 0), 0);
             ImGui::EndChild();
         }

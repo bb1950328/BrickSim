@@ -5,7 +5,8 @@ layout (location = 2) in vec3 aDiffuseColor;
 layout (location = 3) in float aAmbientFactor;
 layout (location = 4) in float aSpecularBrightness;
 layout (location = 5) in float aShininess;
-layout (location = 6) in mat4 transformation;
+layout (location = 6) in vec3 aIdColor;
+layout (location = 7) in mat4 transformation;
 
 out vec3 fragPos;
 out vec3 bNormal;
@@ -15,6 +16,7 @@ out float bSpecularBrightness;
 out float bShininess;
 
 uniform mat4 projectionView;
+uniform int drawSelection;
 
 void main()
 {
@@ -23,7 +25,11 @@ void main()
 
    gl_Position = projectionView * vec4(fragPos, 1.0);
 
-   bDiffuseColor = aDiffuseColor;
+   if (drawSelection>0) {
+      bDiffuseColor = aIdColor;
+   } else {
+      bDiffuseColor = aDiffuseColor;
+   }
    bAmbientFactor = aAmbientFactor;
    bSpecularBrightness = aSpecularBrightness;
    bShininess = aShininess;

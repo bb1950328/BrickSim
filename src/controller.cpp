@@ -13,7 +13,7 @@ int Controller::run() {
     }
     renderer.window = window;
     gui.window = window;
-
+    openFile("~/Downloads/arocs.mpd");
     gui.setup();
     bool partsLibraryFound = false;
     while (!partsLibraryFound && !doesUserWantToExit()) {
@@ -40,6 +40,7 @@ bool Controller::doesUserWantToExit() const { return glfwWindowShouldClose(windo
 void Controller::runNormal() {
     renderer.setWindowSize(view3dWidth, view3dHeight);
     renderer.setup();
+    gui.setup();
     while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
         auto before = std::chrono::high_resolution_clock::now();
         if (elementTreeChanged) {
@@ -47,6 +48,7 @@ void Controller::runNormal() {
             elementTreeChanged = false;
         }
         renderer.loop();
+        renderer.getSelectionPixel(renderer.windowWidth/2, renderer.windowHeight/2);
         gui.loop();
         auto after = std::chrono::high_resolution_clock::now();
         lastFrameTime = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
@@ -92,11 +94,13 @@ bool Controller::initializeGL() {
     glfwSetScrollCallback(window, scroll_callback);
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        std::cerr << "Failed to initialize GLAD" << std::endl;
         return false;
     }
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
     return true;
 }
 

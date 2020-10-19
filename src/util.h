@@ -38,6 +38,11 @@ namespace util {
     float biggest_value(glm::vec3 vector);
     float biggest_value(glm::vec4 vector);
     void open_default_browser(const std::string& link);
+    glm::vec3 triangleCentroid(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3);
+    glm::vec3 quadrilateralCentroid(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec3& p4);
+    bool doesTransformationInverseWindingOrder(const glm::mat4& transformation);
+    glm::vec3 convertIntToColorVec3(unsigned int value);
+    unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue);
 
     class HSVcolor;
     class RGBcolor {

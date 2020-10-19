@@ -35,7 +35,16 @@ struct TriangleInstance {
     float ambientFactor;//ambient=diffuseColor*ambientFactor
     float specularBrightness;//specular=vec4(1.0)*specularBrightness
     float shininess;
+    glm::vec3 idColor;
     glm::mat4 transformation;
+};
+
+struct MeshInstance {
+    LdrColor * color;
+    glm::mat4 transformation;
+    unsigned int elementId;
+    bool operator==(const MeshInstance& other) const;
+    bool operator!=(const MeshInstance& other) const;
 };
 
 class Mesh {
@@ -48,54 +57,46 @@ public:
 
     std::map<LdrColor *, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
 
-    std::vector<std::pair<LdrColor *, glm::mat4>> instances;
+    std::vector<MeshInstance> instances;
     bool instancesHaveChanged = false;
 
     std::string name = "?";
 
     Mesh()=default;
 
-    void addLdrFile(const LdrFile &file);
+    void addLdrFile(const LdrFile &file, glm::mat4 transformation, LdrColor *mainColor, bool bfcInverted);
 
-    void addLdrFile(const LdrFile &file, LdrColor *mainColor);
-
-    void addLdrFile(const LdrFile &file, glm::mat4 transformation, LdrColor *mainColor);
-
-    void addLdrSubfileReference(LdrColor *mainColor,
-                                LdrSubfileReference *sfElement,
-                                glm::mat4 transformation);
+    void addLdrSubfileReference(LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation, bool bfcInverted);
 
     void printTriangles();
-
-    void addTriangleVertex(glm::vec4 pos, glm::vec3 normal, LdrColor *color);
 
     void addLineVertex(const LineVertex &vertex);
 
     void addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation);
 
-    void addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation);
+    void addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted);
 
-    void addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation);
+    void addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted);
 
     std::vector<unsigned int> *getIndicesList(LdrColor *color);
 
     std::vector<TriangleVertex> *getVerticesList(LdrColor *color);
-
     void writeGraphicsData();
-    void drawTriangleGraphics(const Shader *triangleShader);
 
-    void drawLineGraphics(const Shader *lineShader);
+    void drawTriangleGraphics();
+
+    void drawLineGraphics();
 
     void deallocateGraphics();
-
     virtual ~Mesh();
-private:
 
+private:
     //this is the conversion from the ldraw coordinate system to the OpenGL coordinate system
     glm::mat4 globalModel = glm::scale(glm::rotate(glm::mat4(1.0f),//base
                         glm::radians(180.0f),//rotate 180° around
                         glm::vec3(1.0f, 0.0f, 0.0f)),// x axis
             glm::vec3(constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL)); // and make 100 times smaller
+
     unsigned int lineVAO, lineVertexVBO, lineInstanceVBO, lineEBO;
 
     bool already_initialized = false;

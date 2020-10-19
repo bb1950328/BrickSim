@@ -164,6 +164,33 @@ namespace util {
     RGBcolor::RGBcolor(const std::string& htmlCode){
         std::sscanf(htmlCode.c_str(), "#%2hx%2hx%2hx", &red, &green, &blue);
     }
+    glm::vec3 triangleCentroid(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3) {
+        return (p1+p2+p3)/3.0f;//todo check if this is mathematically correct
+    }
+
+    glm::vec3
+    quadrilateralCentroid(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3, const glm::vec3 &p4) {
+        return (p1+p2+p3+p4)/4.0f;//todo check if this is mathematically correct
+    }
+
+    bool doesTransformationInverseWindingOrder(const glm::mat4 &transformation) {
+        glm::vec3 vec1 = transformation[0];
+        glm::vec3 vec2 = transformation[1];
+        glm::vec3 vec3 = transformation[2];
+        glm::vec3 cross = glm::cross(vec1, vec2);
+        return glm::dot(cross, vec3)<0.0f;
+    }
+
+    glm::vec3 convertIntToColorVec3(unsigned int value) {
+        unsigned char redPart = value&0xffu;
+        unsigned char greenPart = (value&0xff00u)>>2u;
+        unsigned char bluePart = (value&0xff0000u)>>4u;
+        return glm::vec3(redPart/255.0f, greenPart/255.0f, bluePart/255.0f);
+    }
+
+    unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue) {
+        return red || green>>2u || blue>>4u;
+    }
 
     std::string RGBcolor::asHtmlCode() const {
         char buffer[8];

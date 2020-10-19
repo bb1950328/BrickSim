@@ -17,8 +17,6 @@ bool Renderer::setup() {
 
     auto before = std::chrono::high_resolution_clock::now();
 
-    elementTree->loadLdrFile("~/Downloads/arocs.mpd");
-
     auto between = std::chrono::high_resolution_clock::now();
 
     meshCollection.rereadElementTree();
@@ -39,29 +37,31 @@ bool Renderer::setup() {
     triangleShader->setVec3("light.diffuse", diffuseColor);
     triangleShader->setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
-    createFramebuffer();
+    createFramebuffer(&imageFramebuffer, &imageTextureColorbuffer, &imageRenderBufferObject);
 
     setupCalled = true;
     return true;
 }
 
-void Renderer::createFramebuffer() {
-    glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+void Renderer::createFramebuffer(unsigned int* framebufferIdLocation,
+                                 unsigned int* textureColorbufferIdLocation,
+                                 unsigned int* renderBufferObjectIdLocation) {
+    glGenFramebuffers(1, framebufferIdLocation);
+    glBindFramebuffer(GL_FRAMEBUFFER, *framebufferIdLocation);
     // create a color attachment texture
 
-    glGenTextures(1, &textureColorbuffer);
-    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+    glGenTextures(1, textureColorbufferIdLocation);
+    glBindTexture(GL_TEXTURE_2D, *textureColorbufferIdLocation);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowWidth, windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *textureColorbufferIdLocation, 0);
     // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
 
-    glGenRenderbuffers(1, &renderBufferObject);
-    glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
+    glGenRenderbuffers(1, renderBufferObjectIdLocation);
+    glBindRenderbuffer(GL_RENDERBUFFER, *renderBufferObjectIdLocation);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, windowWidth, windowHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject); // now actually attach it
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, *renderBufferObjectIdLocation); // now actually attach it
 // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
@@ -81,7 +81,7 @@ bool Renderer::loop() {
     processInput(window);
 
     if (unrenderedChanges) {
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, imageFramebuffer);
         glEnable(GL_DEPTH_TEST); // todo check if this is needed
         const util::RGBcolor &bgColor = util::RGBcolor(config::get_string(config::BACKGROUND_COLOR));
         glClearColor(bgColor.red/255.0f, bgColor.green/255.0f, bgColor.blue/255.0f, 1.0f);
@@ -93,10 +93,11 @@ bool Renderer::loop() {
         triangleShader->use();
         triangleShader->setVec3("viewPos", camera.getCameraPos());
         triangleShader->setMat4("projectionView", projectionView);
-        meshCollection.drawTriangleGraphics(triangleShader);
+        triangleShader->setInt("drawSelection", 0);
+        meshCollection.drawTriangleGraphics();
         lineShader->use();
         lineShader->setMat4("projectionView", projectionView);
-        meshCollection.drawLineGraphics(lineShader);
+        meshCollection.drawLineGraphics();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         unrenderedChanges = false;
@@ -121,7 +122,8 @@ void Renderer::setWindowSize(unsigned int width, unsigned int height) {
         windowHeight = height;
         glViewport(0, 0, width, height);
         updateProjectionMatrix();
-        createFramebuffer();
+        deleteFramebuffer(&imageFramebuffer, &imageTextureColorbuffer, &imageRenderBufferObject);
+        createFramebuffer(&imageFramebuffer, &imageTextureColorbuffer, &imageRenderBufferObject);
         unrenderedChanges = true;
     }
 }
@@ -129,6 +131,44 @@ void Renderer::setWindowSize(unsigned int width, unsigned int height) {
 void Renderer::elementTreeChanged() {
     meshCollection.rereadElementTree();
     unrenderedChanges = true;
+}
+
+unsigned int Renderer::getSelectionPixel(unsigned int x, unsigned int y) {
+    if (currentSelectionBuffersWidth != windowWidth || currentSelectionBuffersHeight != windowHeight) {
+        if (currentSelectionBuffersWidth != 0 || currentSelectionBuffersHeight != 0) {
+            deleteFramebuffer(&selectionFramebuffer, &selectionTextureColorbuffer, &selectionRenderBufferObject);
+        }
+        createFramebuffer(&selectionFramebuffer, &selectionTextureColorbuffer, &selectionRenderBufferObject);
+        currentSelectionBuffersWidth = windowWidth;
+        currentSelectionBuffersHeight = windowHeight;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, selectionFramebuffer);
+    glEnable(GL_DEPTH_TEST); // todo check if this is needed
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glm::mat4 view = camera.getViewMatrix();
+    const glm::mat4 &projectionView = projection * view;
+
+    triangleShader->use();
+    triangleShader->setInt("drawSelection", 1);
+    meshCollection.drawTriangleGraphics();
+    unsigned int result;
+    glReadPixels(x, y, 1, 1, GL_BLUE_INTEGER, GL_UNSIGNED_INT, &result);//todo this doesn't work :(
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    std::cout << result << std::endl;
+    return result;
+}
+
+void Renderer::deleteFramebuffer(unsigned int *framebufferIdLocation,
+                                 unsigned int *textureColorbufferIdLocation,
+                                 unsigned int *renderBufferObjectIdLocation) {
+    glDeleteRenderbuffers(1, renderBufferObjectIdLocation);
+    glDeleteTextures(1, textureColorbufferIdLocation);
+    glDeleteFramebuffers(1, framebufferIdLocation);
+    *framebufferIdLocation = 0;
+    *textureColorbufferIdLocation = 0;
+    *renderBufferObjectIdLocation = 0;
 }
 
 void processInput(GLFWwindow *window) {

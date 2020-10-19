@@ -47,15 +47,23 @@ public:
     glm::mat4 projection{};
     GLFWwindow *window;
 
-    unsigned int framebuffer;
-    unsigned int textureColorbuffer;
-    unsigned int renderBufferObject;
+    unsigned int imageFramebuffer;
+    unsigned int imageTextureColorbuffer;
+    unsigned int imageRenderBufferObject;
+
+    unsigned int selectionFramebuffer;
+    unsigned int selectionTextureColorbuffer;
+    unsigned int selectionRenderBufferObject;
+    unsigned int currentSelectionBuffersWidth = 0;
+    unsigned int currentSelectionBuffersHeight = 0;
 
     bool setup();
 
     void updateProjectionMatrix();
 
     bool loop();
+
+    unsigned int getSelectionPixel(unsigned int x, unsigned int y);
 
     bool cleanup();
 
@@ -69,7 +77,13 @@ private:
 
     bool setupCalled = false;
 
-    void createFramebuffer();
+    void createFramebuffer(unsigned int* framebufferIdLocation,
+                           unsigned int* textureColorbufferIdLocation,
+                           unsigned int* renderBufferObjectIdLocation);
+
+    static void deleteFramebuffer(unsigned int* framebufferIdLocation,
+                           unsigned int* textureColorbufferIdLocation,
+                           unsigned int* renderBufferObjectIdLocation);
 };
 
 #endif //BRICKSIM_RENDERER_H

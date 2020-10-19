@@ -11,7 +11,7 @@ class MeshCollection {
 public:
     explicit MeshCollection(ElementTree *elementTree);
 
-    std::map<void *, Mesh*> meshes;
+    std::map<std::pair<void *, bool>, Mesh*> meshes;
 
     void initializeGraphics();
 
@@ -21,12 +21,13 @@ public:
 
     void rereadElementTree();
 
-    void drawTriangleGraphics(const Shader *triangleShader) const;
+    void drawTriangleGraphics() const;
 
-    void drawLineGraphics(const Shader *lineShader) const;
+    void drawLineGraphics() const;
 
 private:
 
     ElementTree *elementTree;
+    unsigned int currentElementId;
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

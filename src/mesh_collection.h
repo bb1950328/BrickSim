@@ -25,9 +25,10 @@ public:
 
     void drawLineGraphics() const;
 
-private:
+    ElementTreeNode* getElementById(unsigned int id);
 
+private:
+    std::vector<ElementTreeNode*> elementsSortedById;
     ElementTree *elementTree;
-    unsigned int currentElementId;
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

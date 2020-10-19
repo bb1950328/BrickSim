@@ -47,8 +47,8 @@ void MeshCollection::readElementTree(ElementTreeNode *node) {
                 mesh->name = meshNode->getDescription();
                 meshNode->addToMesh(mesh, windingInversed);
             }
-            MeshInstance newInstance{meshNode->color, absoluteTransformation, currentElementId};
-            currentElementId++;
+            MeshInstance newInstance{meshNode->color, absoluteTransformation, elementsSortedById.size()};
+            elementsSortedById.push_back(node);
             if (meshNode->instanceIndex.has_value()) {
                 if (mesh->instances[meshNode->instanceIndex.value()] != newInstance) {
                     mesh->instances[meshNode->instanceIndex.value()] = newInstance;
@@ -73,7 +73,10 @@ MeshCollection::MeshCollection(ElementTree *elementTree) {
 }
 
 void MeshCollection::rereadElementTree() {
-    currentElementId = 1;
+    size_t sizeBefore = elementsSortedById.size();
+    elementsSortedById.clear();
+    elementsSortedById.resize(sizeBefore);//todo check if this is necessary
+    elementsSortedById.push_back(nullptr);
     auto before = std::chrono::high_resolution_clock::now();
     readElementTree(&elementTree->rootNode);
     for (const auto &mesh: meshes) {
@@ -82,4 +85,8 @@ void MeshCollection::rereadElementTree() {
     auto after = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
     std::cout << "rereadElementTree() in " << duration / 1000.0f << "ms" << std::endl;
+}
+
+ElementTreeNode *MeshCollection::getElementById(unsigned int id) {
+    return elementsSortedById[id];
 }

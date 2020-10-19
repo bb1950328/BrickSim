@@ -249,6 +249,11 @@ void Gui::loop() {
                     lastDeltaXright = 0;
                     lastDeltaYright = 0;
                 }
+                if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)&&lastDeltaXleft==0&&lastDeltaYleft==0) {
+                    //released without drag
+                    ImGui::GetCursorPos();
+                    controller->renderer.getSelectionPixel()
+                }
                 if (std::abs(lastScrollDeltaY) > 0.01) {
                     controller->renderer.camera.moveForwardBackward((float) lastScrollDeltaY);
                     Controller::getInstance()->renderer.unrenderedChanges = true;

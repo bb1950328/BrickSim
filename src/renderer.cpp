@@ -153,8 +153,8 @@ unsigned int Renderer::getSelectionPixel(unsigned int x, unsigned int y) {
     triangleShader->use();
     triangleShader->setInt("drawSelection", 1);
     meshCollection.drawTriangleGraphics();
-    unsigned int result;
-    glReadPixels(x, y, 1, 1, GL_BLUE_INTEGER, GL_UNSIGNED_INT, &result);//todo this doesn't work :(
+    unsigned int result = -1;
+    //glReadPixels(x, y, 1, 1, GL_BLUE_INTEGER, GL_UNSIGNED_INT, &result);//todo this doesn't work :(
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     std::cout << result << std::endl;
     return result;

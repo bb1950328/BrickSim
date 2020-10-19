@@ -19,36 +19,41 @@
 #include <thread>
 
 void Gui::setup() {
-    GLFWmonitor *monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
-    float xscale, yscale;
-    glfwGetMonitorContentScale(monitor, &xscale, &yscale);
-    std::cout << "xscale: " << xscale << "\tyscale: " << yscale << std::endl;
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    auto scaleFactor = (float) (config::get_double(config::GUI_SCALE));
-    if (xscale > 1 || yscale > 1) {
-        scaleFactor = (xscale + yscale) / 2.0f;
-        ImGuiStyle &style = ImGui::GetStyle();
-        style.ScaleAllSizes(scaleFactor);
-        glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
-    }
-    ImGuiIO &io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.Fonts->AddFontFromFileTTF("RobotoMono-Regular.ttf", 13.0f * scaleFactor, nullptr, nullptr);
-    // Setup Platform/Renderer bindings
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
-    // Setup Dear ImGui style
-    auto guiStyle = config::get_string(config::GUI_STYLE);
-    if (guiStyle == "light") {
-        ImGui::StyleColorsLight();
-    } else if (guiStyle == "classic") {
-        ImGui::StyleColorsClassic();
-    } else if (guiStyle == "dark") {
-        ImGui::StyleColorsDark();
+    if (!setupDone) {
+        GLFWmonitor *monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
+        float xscale, yscale;
+        glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+        std::cout << "xscale: " << xscale << "\tyscale: " << yscale << std::endl;
+        // Setup Dear ImGui context
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        auto scaleFactor = (float) (config::get_double(config::GUI_SCALE));
+        if (xscale > 1 || yscale > 1) {
+            scaleFactor = (xscale + yscale) / 2.0f;
+            ImGuiStyle &style = ImGui::GetStyle();
+            style.ScaleAllSizes(scaleFactor);
+            glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+        }
+        ImGuiIO &io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.Fonts->AddFontFromFileTTF("RobotoMono-Regular.ttf", 13.0f * scaleFactor, nullptr, nullptr);
+        // Setup Platform/Renderer bindings
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init("#version 330");
+        // Setup Dear ImGui style
+        auto guiStyle = config::get_string(config::GUI_STYLE);
+        if (guiStyle == "light") {
+            ImGui::StyleColorsLight();
+        } else if (guiStyle == "classic") {
+            ImGui::StyleColorsClassic();
+        } else if (guiStyle == "dark") {
+            ImGui::StyleColorsDark();
+        } else {
+            std::cout << "WARNING: please set " << config::GUI_STYLE.name << "to light, classic or dark" << std::endl;
+        }
+        setupDone = true;
     } else {
-        std::cout << "WARNING: please set " << config::GUI_STYLE.name << "to light, classic or dark" << std::endl;
+        throw std::invalid_argument("setup called twice");
     }
 }
 
@@ -522,5 +527,9 @@ bool Gui::loopPartsLibraryInstallationScreen() {
     }
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    return state=='Z';
+    const auto finished = state == 'Z';
+    if (finished) {
+        state = 'A';
+    }
+    return finished;
 }

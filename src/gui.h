@@ -20,6 +20,7 @@ public:
 
 private:
     char const * lFilterPatterns[3] = { "*.ldr", "*.dat", "*.mpd"};
+    bool setupDone = false;
 };
 
 #endif //BRICKSIM_GUI_H

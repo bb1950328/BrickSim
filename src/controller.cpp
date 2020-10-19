@@ -40,7 +40,6 @@ bool Controller::doesUserWantToExit() const { return glfwWindowShouldClose(windo
 void Controller::runNormal() {
     renderer.setWindowSize(view3dWidth, view3dHeight);
     renderer.setup();
-    gui.setup();
     while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
         auto before = std::chrono::high_resolution_clock::now();
         if (elementTreeChanged) {

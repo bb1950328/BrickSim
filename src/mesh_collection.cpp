@@ -4,7 +4,7 @@
 
 #include "mesh_collection.h"
 #include "statistic.h"
-#include "util.h"
+#include "helpers/util.h"
 
 void MeshCollection::initializeGraphics() {
     for (const auto &pair: meshes) {

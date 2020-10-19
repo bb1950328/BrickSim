@@ -42,12 +42,12 @@ set(bricksim_sources
         src/config.cpp
         src/config.h
         src/test/test_ldr_file_read.cpp
-        src/util.cpp
-        src/util.h
+        src/helpers/util.cpp
+        src/helpers/util.h
         src/mesh.cpp
         src/mesh.h
-        src/camera.h
-        src/camera.cpp
+        src/helpers/camera.h
+        src/helpers/camera.cpp
         src/shaders/shader.cpp
         src/element_tree.cpp
         src/element_tree.h
@@ -68,8 +68,8 @@ set(bricksim_sources
         src/tools/gears.cpp
         src/tools/gears.h
         src/constants.h
-        src/fraction.cpp
-        src/fraction.h
+        src/helpers/fraction.cpp
+        src/helpers/fraction.h
         #src/file_downloader.cpp
         #src/file_downloader.h
         )

@@ -14,7 +14,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "shaders/shader.h"
-#include "camera.h"
+#include "helpers/camera.h"
 #include "config.h"
 #include "element_tree.h"
 #include "mesh_collection.h"

@@ -6,7 +6,7 @@
 #include "config.h"
 #include "ldr_file_repository.h"
 #include "ldr_colors.h"
-#include "util.h"
+#include "helpers/util.h"
 
 const glm::mat4 &ElementTreeNode::getRelativeTransformation() const {
     return relativeTransformation;

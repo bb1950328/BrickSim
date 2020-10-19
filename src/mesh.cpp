@@ -6,7 +6,7 @@
 #include <GLFW/glfw3.h>
 
 #include "mesh.h"
-#include "camera.h"
+#include "helpers/camera.h"
 #include "config.h"
 #include "ldr_colors.h"
 #include <glm/gtx/normal.hpp>

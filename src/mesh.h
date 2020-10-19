@@ -10,7 +10,7 @@
 #include <set>
 #include "ldr_files.h"
 #include "shaders/shader.h"
-#include "camera.h"
+#include "helpers/camera.h"
 #include "constants.h"
 
 struct TriangleVertex {

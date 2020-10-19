@@ -8,8 +8,8 @@
 #include <string>
 #include <set>
 #include <vector>
-#include "../util.h"
-#include "../fraction.h"
+#include "../helpers/util.h"
+#include "../helpers/fraction.h"
 
 namespace gears {
     enum class GearType {

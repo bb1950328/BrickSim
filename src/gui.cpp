@@ -11,7 +11,7 @@
 #include "controller.h"
 #include "ldr_colors.h"
 #include "lib/tinyfiledialogs.h"
-#include "util.h"
+#include "helpers/util.h"
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>

@@ -6,7 +6,7 @@
 #include <sstream>
 #include <algorithm>
 #include "ldr_colors.h"
-#include "util.h"
+#include "helpers/util.h"
 #include "config.h"
 
 LdrColor::LdrColor(const std::string &line) {

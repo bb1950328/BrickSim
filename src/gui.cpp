@@ -136,6 +136,7 @@ void Gui::loop() {
     static bool showSettingsWindow = true;
     static bool showDemoWindow = true;
     static bool showDebugWindow = true;
+    static bool showAboutWindow = false;
     static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.6f, 1.0f);
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -164,6 +165,7 @@ void Gui::loop() {
             if (ImGui::MenuItem("Exit", "CTRL+W")) {
                 controller->userWantsToExit = true;
             }
+            ImGui::MenuItem("About", "", &showAboutWindow);
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Edit")) {
@@ -466,6 +468,39 @@ void Gui::loop() {
             ImGui::EndPopup();
         }
         ImGui::End();
+    }
+
+    if (showAboutWindow) {
+        if (ImGui::Begin("About", &showAboutWindow, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::TextWrapped("BrickSim is a program which should help you build digital brick models.");
+            ImGui::TextWrapped("LEGO(R), the brick configuration, and the minifigure are trademarks of the LEGO Group, which does not sponsor, authorize or endorse this program.");
+            ImGui::TextWrapped("This program comes without any warranty. Neihter the developers nor any other person shall have any liability to any person or entity with respect to any loss or damage caused or alleged to be caused directly or indirectly by this program.");
+            ImGui::Separator();
+            ImGui::Text("This program is open source. It's hosted on GitHub and you can find it under the following link:");
+            draw_hyperlink_button("https://www.github.com/bb1950328/BrickSim");
+            ImGui::TextWrapped("If you got this program from a source which is not listed on GitHub, please uninstall it and report is on GitHub (Create a Issue)");
+            ImGui::TextWrapped("If find a bug, create a issue on GitHub where you describe the steps to reproduce as exact as possible so the developers can fix it.");
+            ImGui::TextWrapped("You can also create an issue when you miss a feature or if you have an idea for improvement.");
+            ImGui::TextWrapped("If you are a developer, contributing is very appreciated. You will find more information in the README.md");
+            ImGui::TextWrapped("If you have a question or if you think you can contribute in another way (like writing manuals, designing icons or something like that), don't hesistate to create an issue");
+            ImGui::Separator();
+            ImGui::TextWrapped("This program wouldn't be possible without the LDraw Parts library. The shapes of all the parts in this programm come from the LDraw project. You will find more information on:");
+            draw_hyperlink_button("https://www.ldraw.org");//todo check if the link is correct
+            ImGui::TextWrapped("The graphical user interface is implemented using Dear ImGUI. More info at: ");
+            draw_hyperlink_button("https://github.com/ocornut/imgui");
+            ImGui::Separator();
+
+            ImGui::Text("Build info:");
+            ImGui::Text("Dear ImGUI version: %s", IMGUI_VERSION);
+            ImGui::Text("Compiled on: ");
+            //todo get compiler info
+            ImGui::Text("With:");
+            ImGui::Text("%s", GLM_VERSION_MESSAGE);
+            if (ImGui::Button("Close")) {
+                showAboutWindow = false;
+            }
+            ImGui::End();
+        }
     }
 
     if (showDebugWindow) {

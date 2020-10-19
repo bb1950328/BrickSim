@@ -149,15 +149,16 @@ namespace util {
 
     void open_default_browser(const std::string& link) {
 #ifdef _WIN32
-        ShellExecute(nullptr, "open", link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+        ShellExecute(nullptr, "open", link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);//todo testing
 #endif
 #ifdef __APPLE__
         std::string command = std::string("open ") + link;//todo testing
-        system(command);
-#endif
-#ifdef __APPLE__
-        std::string command = std::string("xdg-open ") + link;//todo testing
-        system(command);
+        std::cout << command << std::endl;
+        system(command.c_str());
+#elif __linux
+        std::string command = std::string("xdg-open ") + link;
+        std::cout << command << std::endl;
+        system(command.c_str());
 #endif
     }
 

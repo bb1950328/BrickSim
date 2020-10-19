@@ -175,16 +175,34 @@ void Renderer::deleteFramebuffer(unsigned int *framebufferIdLocation,
     *renderBufferObjectIdLocation = 0;
 }
 
-void Renderer::saveImage(const std::string& path) {//todo make button in UI to use this
+bool Renderer::saveImage(const std::string& path) {
+    std::cout << path << std::endl;
     const int channels = 3;
 
-    GLubyte  pixel[windowWidth][windowHeight][channels];
-    glReadPixels(0, 0, windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+    auto pixels = new GLubyte[windowWidth*windowHeight*channels];
+    glBindFramebuffer(GL_FRAMEBUFFER, imageFramebuffer);
+    glReadPixels(0, 0, windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, pixels);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //unsigned int result = (pixel[0] << 4u) | (pixel[1] << 2u) | pixel[2];
     //std::cout << result << std::endl;
 
-    stbi_write_png(path.c_str(), windowWidth, windowHeight, channels, pixel, windowWidth*channels);
+    //todo make this work (png and bmp are split in half diagonally, jpg and tga cause crash)
+    auto path_lower = util::as_lower(path);
+    bool success;
+    if (util::ends_with(path, ".png")) {
+        success=stbi_write_png(path.c_str(), windowWidth, windowHeight, channels, pixels, windowWidth * channels)!=0;
+    } else if (util::ends_with(path, ".jpg") || util::ends_with(path, ".jpeg")) {
+        const int quality = std::min(100, std::max(5, (int)config::get_long(config::JPG_SCREENSHOT_QUALITY)));
+        success = stbi_write_jpg(path.c_str(), windowWidth, windowHeight, channels, pixels, quality)!=0;
+    } else if (util::ends_with(path_lower, ".bmp")) {
+        success = stbi_write_bmp(path.c_str(), windowWidth, windowHeight, channels, pixels)!=0;
+    } else if (util::ends_with(path_lower, ".tga")) {
+        success = stbi_write_tga(path.c_str(), windowWidth, windowHeight, channels, pixels)!=0;
+    } else {
+        success = false;
+    }
+    delete[] pixels;//todo this creates a memory leak if an exception is thrown
+    return success;
 }
 
 void processInput(GLFWwindow *window) {

@@ -4,6 +4,7 @@ guiStyle=dark
 ldrawPartsLibrary=~/ldraw
 showNormals=false
 instancedMinComplexity=6000
+jpgScreenshotQuality=90
 msaaSamples=16
 screenHeight=1282
 screenWidth=1932

@@ -73,7 +73,7 @@ public:
 
     void elementTreeChanged();
 
-    void saveImage(const std::string& path);
+    bool saveImage(const std::string& path);
 
 private:
 

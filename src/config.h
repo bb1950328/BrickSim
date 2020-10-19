@@ -37,6 +37,7 @@ namespace config {
     const Key BACKGROUND_COLOR{"backgroundColor"};
     const Key SHOW_NORMALS{"showNormals"};
     const Key DISPLAY_SELECTION_BUFFER{"displaySelectionBuffer"};
+    const Key JPG_SCREENSHOT_QUALITY{"jpgScreenshotQuality"};
 }
 
 #endif //BRICKSIM_CONFIG_H

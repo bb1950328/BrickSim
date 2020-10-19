@@ -6,6 +6,10 @@
 #define BRICKSIM_GUI_H
 
 
+static const int NUM_LDR_FILTER_PATTERNS = 3;
+
+static const int NUM_IMAGE_FILTER_PATTERNS = 4;
+
 class Gui {
 public:
     GLFWwindow *window;
@@ -19,7 +23,8 @@ public:
     bool loopPartsLibraryInstallationScreen();//returns true when finished
 
 private:
-    char const * lFilterPatterns[3] = { "*.ldr", "*.dat", "*.mpd"};
+    char const * lFilterPatterns[NUM_LDR_FILTER_PATTERNS] = {"*.ldr", "*.dat", "*.mpd"};
+    char const * imageFilterPatterns[NUM_IMAGE_FILTER_PATTERNS] = {"*.png", "*.jpg", "*.bmp", "*.tga"};
     bool setupDone = false;
 };
 

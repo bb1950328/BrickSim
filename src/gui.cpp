@@ -152,7 +152,7 @@ void Gui::loop() {
                 char *fileNameChars = tinyfd_openFileDialog(
                         "Open File",
                         "",
-                        3,
+                        NUM_LDR_FILTER_PATTERNS,
                         lFilterPatterns,
                         nullptr,
                         0);
@@ -203,6 +203,19 @@ void Gui::loop() {
             if (ImGui::MenuItem("Rear", "ALT+4")) controller->setStandard3dView(4);
             if (ImGui::MenuItem("Bottom", "ALT+5")) controller->setStandard3dView(5);
             if (ImGui::MenuItem("Left", "ALT+6")) controller->setStandard3dView(6);
+            ImGui::Separator();
+            if (ImGui::MenuItem("Screenshot", "CTRL+P")) {
+                char *fileNameChars = tinyfd_saveFileDialog(
+                        "Save Screenshot",
+                        "",
+                        NUM_IMAGE_FILTER_PATTERNS,
+                        imageFilterPatterns,
+                        nullptr);
+                if (fileNameChars != nullptr) {
+                    std::string fileNameString(fileNameChars);
+                    controller->renderer.saveImage(fileNameString);
+                }
+            }
             ImGui::EndMenu();
         }
 

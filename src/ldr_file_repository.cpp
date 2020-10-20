@@ -22,8 +22,15 @@ std::map<std::string, std::filesystem::path> LdrFileRepository::modelNames;
 LdrFile *LdrFileRepository::get_file(const std::string &filename) {
     auto iterator = files.find(filename);
     if (iterator == files.end()) {
-        auto typeNamePair = resolve_file(filename);
-        LdrFile *file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
+        LdrFile *file;
+        std::pair<LdrFileType, std::filesystem::path> typeNamePair;
+        typeNamePair = resolve_file(filename);
+        file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
+        while (util::starts_with(util::trim(file->metaInfo.title), "~Moved to ")) {
+            std::cout << filename << file->metaInfo.title << std::endl;
+            typeNamePair = resolve_file(util::trim(file->metaInfo.title).substr(10)+".dat");
+            file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
+        }
         files[filename] = std::make_pair(typeNamePair.first, file);
         file->preLoadSubfilesAndEstimateComplexity();
         return file;

@@ -52,7 +52,9 @@ public:
 
     friend std::ostream &operator<<(std::ostream &os, const LdrFileMetaInfo &info);
 
-    bool add_line(std::string line);
+    bool add_line(const std::string& line);
+private:
+    bool firstLine=true;
 };
 
 class LdrFile {

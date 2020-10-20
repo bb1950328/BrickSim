@@ -171,10 +171,10 @@ void LdrFile::preLoadSubfilesAndEstimateComplexityInternal(){
     }
 }
 std::string LdrFile::getDescription() const {
-    for (auto elem : elements) {
-        if (elem->getType()==0) {
-            return dynamic_cast<LdrCommentOrMetaElement *>(elem)->content;
-        }
+    if (!metaInfo.title.empty()) {
+        return metaInfo.title;
+    } else if (!metaInfo.name.empty()) {
+        return metaInfo.name;
     }
     return "?";
 }
@@ -335,15 +335,14 @@ int LdrTriangle::getType() const{
 int LdrQuadrilateral::getType() const{
     return 4;
 }
-int LdrOptionalLine::getType() const{
+int LdrOptionalLine::getType() const {
     return 5;
 }
 
-bool LdrFileMetaInfo::add_line(std::string line){
-    static bool first = true;
-    if (first) {
+bool LdrFileMetaInfo::add_line(const std::string& line){
+    if (firstLine) {
         title = util::trim(line);
-        first = false;
+        firstLine = false;
     } else if (util::starts_with(line, "Name:")) {
         name = util::trim(line.substr(5));
     } else if (util::starts_with(line, "Author:")) {

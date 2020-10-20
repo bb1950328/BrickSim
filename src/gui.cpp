@@ -240,9 +240,11 @@ void Gui::loop() {
                                && mousePos.y <= windowPos.y + regionMax.y);
             static float lastDeltaXleft = 0, lastDeltaYleft = 0;
             static float lastDeltaXright = 0, lastDeltaYright = 0;
+            static bool leftMouseDragging = false;
             //std::cout << ImGui::GetScrollX() << "\t" << ImGui::GetScrollY() << std::endl;
             if (isInWindow && ImGui::IsWindowFocused()) {
                 if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+                    leftMouseDragging = true;
                     const ImVec2 &leftBtnDrag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
                     controller->renderer.camera.mouseRotate(leftBtnDrag.x - lastDeltaXleft,
                                                             (leftBtnDrag.y - lastDeltaYleft) * -1);
@@ -265,28 +267,30 @@ void Gui::loop() {
                     lastDeltaYright = 0;
                 }
                 if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)&&lastDeltaXleft==0&&lastDeltaYleft==0) {
-                    //released without drag
-                    auto relCursorPosX = ImGui::GetMousePos().x-ImGui::GetWindowPos().x-ImGui::GetWindowContentRegionMin().x;
-                    auto relCursorPosY = ImGui::GetMousePos().y-ImGui::GetWindowPos().y-ImGui::GetWindowContentRegionMin().y;
-                    std::cout << "relCursorPos: " << relCursorPosX << ", " << relCursorPosY << std::endl;
-                    std::cout << "GetWindowPos: " << ImGui::GetWindowPos().x << ", " << ImGui::GetWindowPos().y << std::endl;
-                    std::cout << "GetMousePos: " << ImGui::GetMousePos().x << ", " << ImGui::GetMousePos().y << std::endl << std::endl;
-                    const auto elementIdUnderMouse = controller->renderer.getSelectionPixel(relCursorPosX, relCursorPosY);
-                    if (elementIdUnderMouse == 0) {
-                        controller->nodeSelectNone();
-                    } else {
-                        auto* clickedNode = controller->renderer.meshCollection.getElementById(elementIdUnderMouse);
-                        if (clickedNode!= nullptr) {
-                            if (ImGui::GetIO().KeyCtrl) {
-                                controller->nodeSelectAddRemove(clickedNode);
-                            } else if (ImGui::GetIO().KeyShift) {
-                                controller->nodeSelectUntil(clickedNode);
-                            } else {
-                                controller->nodeSelectSet(clickedNode);
+                    if (!leftMouseDragging) {
+                        auto relCursorPosX = ImGui::GetMousePos().x - ImGui::GetWindowPos().x - ImGui::GetWindowContentRegionMin().x;
+                        auto relCursorPosY = ImGui::GetMousePos().y - ImGui::GetWindowPos().y - ImGui::GetWindowContentRegionMin().y;
+                        std::cout << "relCursorPos: " << relCursorPosX << ", " << relCursorPosY << std::endl;
+                        std::cout << "GetWindowPos: " << ImGui::GetWindowPos().x << ", " << ImGui::GetWindowPos().y << std::endl;
+                        std::cout << "GetMousePos: " << ImGui::GetMousePos().x << ", " << ImGui::GetMousePos().y << std::endl << std::endl;
+                        const auto elementIdUnderMouse = controller->renderer.getSelectionPixel(relCursorPosX, relCursorPosY);
+                        if (elementIdUnderMouse == 0) {
+                            controller->nodeSelectNone();
+                        } else {
+                            auto *clickedNode = controller->renderer.meshCollection.getElementById(elementIdUnderMouse);
+                            if (clickedNode != nullptr) {
+                                if (ImGui::GetIO().KeyCtrl) {
+                                    controller->nodeSelectAddRemove(clickedNode);
+                                } else if (ImGui::GetIO().KeyShift) {
+                                    controller->nodeSelectUntil(clickedNode);
+                                } else {
+                                    controller->nodeSelectSet(clickedNode);
+                                }
+                                std::cout << clickedNode->displayName << std::endl;
                             }
-                            std::cout << clickedNode->displayName << std::endl;
                         }
                     }
+                    leftMouseDragging = false;
                 }
                 if (std::abs(lastScrollDeltaY) > 0.01) {
                     controller->renderer.camera.moveForwardBackward((float) lastScrollDeltaY);

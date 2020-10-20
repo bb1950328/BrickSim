@@ -6,6 +6,7 @@
 #define BRICKSIM_UTIL_H
 
 #include <string>
+#include <vector>
 #include <list>
 #include <filesystem>
 #include <ostream>
@@ -67,5 +68,7 @@ namespace util {
         unsigned short hue, saturation, value;
         [[nodiscard]] glm::vec3 asGlmVector() const;
     };
+
+    std::vector<std::string> getSystemInfo();
 }
 #endif //BRICKSIM_UTIL_H

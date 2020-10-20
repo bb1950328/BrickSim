@@ -137,6 +137,7 @@ void Gui::loop() {
     static bool showDemoWindow = true;
     static bool showDebugWindow = true;
     static bool showAboutWindow = false;
+    static bool showSysInfoWindow = false;
     static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.6f, 1.0f);
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -166,6 +167,7 @@ void Gui::loop() {
                 controller->userWantsToExit = true;
             }
             ImGui::MenuItem("About", "", &showAboutWindow);
+            ImGui::MenuItem("System Info", "", &showSysInfoWindow);
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Edit")) {
@@ -505,6 +507,27 @@ void Gui::loop() {
             }
             ImGui::End();
         }
+    }
+
+    if (showSysInfoWindow) {
+        if (ImGui::Begin("System info", &showSysInfoWindow, ImGuiWindowFlags_AlwaysAutoResize)) {
+            static const auto vector = util::getSystemInfo();
+            for (const auto &line: vector) {
+                ImGui::Text("%s", line.c_str());
+            }
+            if (ImGui::Button("Copy to clipboard")) {
+                std::stringstream result;
+                for (const auto &line: vector) {
+                    result << line << std::endl;
+                }
+                glfwSetClipboardString(window, result.str().data());
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Close")) {
+                showSysInfoWindow = false;
+            }
+        }
+        ImGui::End();
     }
 
     if (showDebugWindow) {

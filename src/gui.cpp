@@ -10,6 +10,7 @@
 #include "config.h"
 #include "controller.h"
 #include "ldr_colors.h"
+#include "git_stats.h"
 #include "lib/tinyfiledialogs.h"
 #include "helpers/util.h"
 #include <glm/gtx/euler_angles.hpp>
@@ -495,8 +496,9 @@ void Gui::loop() {
             ImGui::TextWrapped("The graphical user interface is implemented using Dear ImGUI. More info at: ");
             draw_hyperlink_button("https://github.com/ocornut/imgui");
             ImGui::Separator();
-
+            //todo add more git stats here
             ImGui::Text("Build info:");
+            ImGui::Text("BrickSim git hash: %s", git_stats::lastCommitHash);
             ImGui::Text("Dear ImGUI version: %s", IMGUI_VERSION);
             ImGui::Text("Compiled on: ");
             //todo get compiler info

@@ -6,6 +6,7 @@
 #define BRICKSIM_CONFIG_H
 
 #include <map>
+#include "helpers/util.h"
 
 namespace config {
     struct Key {
@@ -19,11 +20,13 @@ namespace config {
     [[nodiscard]] std::string get_string(const Key& key);
     [[nodiscard]] long get_long(const Key& key);
     [[nodiscard]] double get_double(const Key& key);
-    
+    [[nodiscard]] util::RGBcolor get_color(const Key& key);
+
     void set_string(const Key& key, const std::string &value);
     void set_long(const Key& key, long value);
     void set_double(const Key& key, double value);
-    
+    void set_color(const Key& key, util::RGBcolor value);
+
     bool save();
     void _ensure_settings_loaded();
     
@@ -38,6 +41,11 @@ namespace config {
     const Key SHOW_NORMALS{"showNormals"};
     const Key DISPLAY_SELECTION_BUFFER{"displaySelectionBuffer"};
     const Key JPG_SCREENSHOT_QUALITY{"jpgScreenshotQuality"};
+    const Key COLOR_MULTI_PART_DOCUMENT{"colorMultiPartDocument"};//todo
+    const Key COLOR_MPD_SUBFILE{"colorMpdSubfile"};
+    const Key COLOR_MPD_SUBFILE_INSTANCE{"colorMpdSubfileInstance"};
+    const Key COLOR_OFFICAL_PART{"colorOfficalPart"};
+    const Key COLOR_UNOFFICAL_PART{"colorUnofficalPart"};
 }
 
 #endif //BRICKSIM_CONFIG_H

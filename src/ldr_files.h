@@ -66,6 +66,7 @@ public:
     LdrFile() = default;
 
     std::vector<LdrFileElement *> elements;
+    std::set<LdrFile*> mpdSubFiles;
 
     void printStructure(int indent=0);
 

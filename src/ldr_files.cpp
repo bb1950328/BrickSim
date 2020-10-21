@@ -69,6 +69,7 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
                 } else {
                     currentFile = new LdrFile();
                     currentFile->metaInfo.type = MPD_SUBFILE;
+                    mainFile->mpdSubFiles.insert(currentFile);
                     LdrFileRepository::add_file(entry.first, currentFile, MPD_SUBFILE);
                 }
             }

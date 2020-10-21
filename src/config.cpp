@@ -75,6 +75,10 @@ namespace config {
         return it->second;
     }
 
+    util::RGBcolor get_color(const Key &key) {
+        return util::RGBcolor(get_string(key));
+    }
+
     void set_string(const Key& key, const std::string &value) {
         _ensure_settings_loaded();
         strings[key.name] = value;
@@ -88,6 +92,10 @@ namespace config {
     void set_double(const Key& key, double value) {
         _ensure_settings_loaded();
         doubles[key.name] = value;
+    }
+
+    void set_color(const Key &key, util::RGBcolor value) {
+        set_string(key, value.asHtmlCode());
     }
 
     bool save() {

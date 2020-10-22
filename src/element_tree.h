@@ -12,13 +12,18 @@
 
 enum ElementTreeNodeType {
     ET_TYPE_OTHER = 0,
-    ET_TYPE_MESH = 1u << 0u,
-    ET_TYPE_LDRFILE = (1u << 1u)|ET_TYPE_MESH,
-    ET_TYPE_ROOT = 1u << 2u
+    ET_TYPE_ROOT = 1u << 0u,
+    ET_TYPE_MESH = 1u << 1u,
+        ET_TYPE_MPD_SUBFILE_INSTANCE=(1u<<2u)|ET_TYPE_MESH,
+        ET_TYPE_LDRFILE = (1u << 3u)|ET_TYPE_MESH,
+            ET_TYPE_MPD_SUBFILE = (1u<<4u)|ET_TYPE_LDRFILE,
+            ET_TYPE_MULTI_PART_DOCUMENT=(1u<<5u)|ET_TYPE_LDRFILE,
+            ET_TYPE_PART=(1u<<6u)|ET_TYPE_LDRFILE,
 };
 
 class ElementTreeNode {
 public:
+    explicit ElementTreeNode(ElementTreeNode* parent);
     bool visible = true;
     ElementTreeNode *parent;
     std::vector<ElementTreeNode *> children;
@@ -51,6 +56,7 @@ public:
 
 class ElementTreeMeshNode : public ElementTreeNode {
 public:
+    ElementTreeMeshNode(LdrColor *color, ElementTreeNode *parent);
     virtual void* getMeshIdentifier() = 0;
     virtual void addToMesh(Mesh *mesh, bool windingInversed) = 0;
     virtual std::string getDescription() = 0;
@@ -65,8 +71,46 @@ public:
     std::string getDescription() override;
     LdrFile *ldrFile;
     std::set<LdrSubfileReference *> childrenWithOwnNode;
+    ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent);
+
+    [[nodiscard]] bool isDisplayNameUserEditable() const override;
+};
+
+class ElementTreeMpdSubfileNode;
+
+class ElementTreeMpdSubfileInstanceNode : public ElementTreeMeshNode {
+public:
+    ElementTreeMpdSubfileInstanceNode(ElementTreeMpdSubfileNode *mpdSubfileNode, LdrColor* color, ElementTreeNode* parent);
+
+    ElementTreeMpdSubfileNode* mpdSubfileNode;
+    void *getMeshIdentifier() override;
+    void addToMesh(Mesh *mesh, bool windingInversed) override;
+    std::string getDescription() override;
     ElementTreeNodeType getType() override;
-    ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor);
+    [[nodiscard]] bool isDisplayNameUserEditable() const override;
+};
+
+class ElementTreeMpdNode : public ElementTreeLdrNode {
+public:
+    ElementTreeMpdNode(LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent);
+
+    ElementTreeNodeType getType() override;
+    [[nodiscard]] bool isDisplayNameUserEditable() const override;
+};
+
+class ElementTreeMpdSubfileNode : public ElementTreeLdrNode {
+public:
+    ElementTreeMpdSubfileNode(LdrFile *ldrFile, LdrColor *color);
+
+    ElementTreeNodeType getType() override;
+    [[nodiscard]] bool isDisplayNameUserEditable() const override;
+};
+
+class ElementTreePartNode : public ElementTreeLdrNode {
+public:
+    ElementTreePartNode(LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent);
+
+    ElementTreeNodeType getType() override;
 
     [[nodiscard]] bool isDisplayNameUserEditable() const override;
 };

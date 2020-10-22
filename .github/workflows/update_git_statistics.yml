@@ -27,6 +27,7 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Commit the changes
         run: |
+          git config --global user.name "GitHub Actions bot"
           git add src/git_stats.h
           git commit -m "GitHub Actions: updated git_stats.h"
           git push

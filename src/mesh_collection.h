@@ -17,7 +17,7 @@ public:
 
     void deallocateGraphics();
 
-    void readElementTree(ElementTreeNode *node);
+    void readElementTree(ElementTreeNode *node, const glm::mat4 &parentAbsoluteTransformation);
 
     void rereadElementTree();
 
@@ -30,5 +30,7 @@ public:
 private:
     std::vector<ElementTreeNode*> elementsSortedById;
     ElementTree *elementTree;
+    std::set<ElementTreeNode*> nodesWithChildrenAlreadyVisited;
+    std::map<std::pair<ElementTreeMeshNode*, bool>, size_t> meshInstanceIndices;
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

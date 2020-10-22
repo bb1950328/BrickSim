@@ -1,0 +1,21 @@
+0 FILE mpd_test.mpd
+0 File to test MPD functionality
+0 Name: mpd_test.mpd
+0 Author: bb1950328
+0 !LDRAW_ORG Model
+0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
+
+0 !THEME Technic
+
+1 16 0 0 0 1 0 0 0 1 0 0 0 1 subfile1.dat
+1 5 60 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+
+
+0 FILE subfile1.dat
+0 a subfile
+0 Author: bb1950328
+0 Name: subfile1.dat
+0 !LDRAW_ORG Model
+0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
+0 !THEME Technic
+1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat

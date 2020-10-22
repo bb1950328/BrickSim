@@ -14,6 +14,7 @@ int Controller::run() {
     renderer.window = window;
     gui.window = window;
     openFile("~/Downloads/arocs.mpd");
+    //openFile("test_files/mpd_test.mpd");
     gui.setup();
     bool partsLibraryFound = false;
     while (!partsLibraryFound && !doesUserWantToExit()) {
@@ -140,8 +141,8 @@ void Controller::nodeSelectSet(ElementTreeNode *node) {
 void Controller::nodeSelectUntil(ElementTreeNode *node) {
     auto rangeActive = false;
     auto keepGoing = true;
-    for (auto iterator = node->parent->children.rbegin();
-         iterator!=node->parent->children.rend() && keepGoing;
+    for (auto iterator = node->parent->getChildren().rbegin();
+         iterator!=node->parent->getChildren().rend() && keepGoing;
          iterator++) {
         ElementTreeNode *itNode = *iterator;
         if (itNode==node || itNode->selected) {

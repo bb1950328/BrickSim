@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include "ldr_files.h"
 #include "mesh.h"
+#include "helpers/util.h"
 
 enum ElementTreeNodeType {
     ET_TYPE_OTHER = 0,
@@ -21,12 +22,14 @@ enum ElementTreeNodeType {
             ET_TYPE_PART=(1u<<6u)|ET_TYPE_LDRFILE,
 };
 
+const char* getDisplayNameOfType(const ElementTreeNodeType& type);
+util::RGBcolor getColorOfType(const ElementTreeNodeType& type);
+
 class ElementTreeNode {
 public:
-    explicit ElementTreeNode(ElementTreeNode* parent);
+    explicit ElementTreeNode(ElementTreeNode *parent);
     bool visible = true;
     ElementTreeNode *parent;
-    std::vector<ElementTreeNode *> children;
     std::string displayName;
     bool selected = false;
     ElementTreeNodeType type = ET_TYPE_OTHER;
@@ -40,6 +43,14 @@ public:
     [[nodiscard]] virtual bool isDisplayNameUserEditable() const = 0;
 
     virtual std::string getDescription();
+    [[nodiscard]] virtual bool isTransformationUserEditable() const;
+
+    [[nodiscard]] const std::vector<ElementTreeNode *> &getChildren() const;
+
+    void addChild(ElementTreeNode *newChild);
+
+protected:
+    std::vector<ElementTreeNode *> children;
 
 protected:
     glm::mat4 relativeTransformation = glm::mat4(1.0f);
@@ -62,7 +73,7 @@ public:
     virtual void* getMeshIdentifier() = 0;
     virtual void addToMesh(Mesh *mesh, bool windingInversed) = 0;
     LdrColor *color;
-    std::optional<size_t> instanceIndex;
+    [[nodiscard]] virtual bool isColorUserEditable() const;
 };
 
 class ElementTreeLdrNode : public ElementTreeMeshNode {
@@ -103,6 +114,8 @@ public:
     ElementTreeMpdSubfileNode(LdrFile *ldrFile, LdrColor *color, ElementTreeNode *parent);
 
     [[nodiscard]] bool isDisplayNameUserEditable() const override;
+    [[nodiscard]] bool isTransformationUserEditable() const override;
+    [[nodiscard]] bool isColorUserEditable() const override;
 };
 
 class ElementTreePartNode : public ElementTreeLdrNode {

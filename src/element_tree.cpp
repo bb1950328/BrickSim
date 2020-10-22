@@ -6,7 +6,6 @@
 #include "config.h"
 #include "ldr_file_repository.h"
 #include "ldr_colors.h"
-#include "helpers/util.h"
 
 const glm::mat4 &ElementTreeNode::getRelativeTransformation() const {
     return relativeTransformation;
@@ -45,6 +44,22 @@ std::string ElementTreeNode::getDescription() {
     return displayName;
 }
 
+bool ElementTreeNode::isTransformationUserEditable() const {
+    return true;
+}
+
+const std::vector<ElementTreeNode *> &ElementTreeNode::getChildren() const {
+    return children;
+}
+
+void ElementTreeNode::addChild(ElementTreeNode *newChild) {
+    children.push_back(newChild);
+}
+
+bool ElementTreeMeshNode::isColorUserEditable() const {
+    return true;
+}
+
 void ElementTreeLdrNode::addToMesh(Mesh *mesh, bool windingInversed) {
     LdrInstanceDummyColor *dummyColor = &LdrColorRepository::instDummyColor;
     for (auto element : ldrFile->elements) {
@@ -76,7 +91,7 @@ void ElementTreeLdrNode::addToMesh(Mesh *mesh, bool windingInversed) {
 ElementTreeMpdSubfileNode *findMpdNodeAndAddSubfileNode(LdrFile *ldrFile, LdrColor* ldrColor, ElementTreeNode* actualNode) {
     if (actualNode->getType()==ET_TYPE_MULTI_PART_DOCUMENT) {
         //check if the subfileNode already exists
-        for (const auto &child : actualNode->children) {
+        for (const auto &child : actualNode->getChildren()) {
             if (child->getType() == ET_TYPE_MPD_SUBFILE) {
                 auto mpdSubfileChild = dynamic_cast<ElementTreeMpdSubfileNode *>(child);
                 if (ldrFile == mpdSubfileChild->ldrFile) {
@@ -86,7 +101,7 @@ ElementTreeMpdSubfileNode *findMpdNodeAndAddSubfileNode(LdrFile *ldrFile, LdrCol
         }
         //the node doesn't exist, we have to create it
         auto *addedNode = new ElementTreeMpdSubfileNode(ldrFile, ldrColor, actualNode);
-        actualNode->children.push_back(addedNode);
+        actualNode->addChild(addedNode);
         return addedNode;
     } else if (actualNode->parent == nullptr) {
         return nullptr;
@@ -104,19 +119,21 @@ ElementTreeLdrNode::ElementTreeLdrNode(ElementTreeNodeType nodeType, LdrFile *ld
         if (element->getType() == 1) {
             auto *sfElement = dynamic_cast<LdrSubfileReference *>(element);
             auto *subFile = sfElement->getFile();
+            ElementTreeNode *newNode = nullptr;
             if (subFile->metaInfo.type==MPD_SUBFILE) {
                 auto* subFileNode = findMpdNodeAndAddSubfileNode(subFile, sfElement->color, this);
-                auto* subFileInstanceNode = new ElementTreeMpdSubfileInstanceNode(subFileNode,
-                                                                                  sfElement->color->code==16?ldrColor:sfElement->color,
-                                                                                  this);
-                children.push_back(subFileInstanceNode);
+                newNode = new ElementTreeMpdSubfileInstanceNode(subFileNode,
+                                                                sfElement->color->code==16?ldrColor:sfElement->color,
+                                                                this);
                 childrenWithOwnNode.insert(sfElement);
             } else if (subFile->metaInfo.type==PART) {
                 childrenWithOwnNode.insert(sfElement);
                 LdrColor *color = sfElement->color->code==16?ldrColor:sfElement->color;//todo make that changes from parent are passed down
-                auto *newNode = new ElementTreePartNode(subFile, color, this);
-                newNode->setRelativeTransformation(sfElement->getTransformationMatrix());
+                newNode = new ElementTreePartNode(subFile, color, this);
+            }
+            if (nullptr!=newNode) {
                 children.push_back(newNode);
+                newNode->setRelativeTransformation(sfElement->getTransformationMatrix());
             }
         }
     }
@@ -142,7 +159,7 @@ bool ElementTreeLdrNode::isDisplayNameUserEditable() const {
 
 void ElementTree::loadLdrFile(const std::string &filename) {
     auto *newNode = new ElementTreeMpdNode(LdrFileRepository::get_file(filename), LdrColorRepository::getInstance()->get_color(1), &rootNode);
-    rootNode.children.push_back(newNode);
+    rootNode.addChild(newNode);
 }
 
 void ElementTree::print() {
@@ -154,7 +171,7 @@ void ElementTree::printFromNode(int indent, ElementTreeNode *node) {
         std::cout << ' ';
     }
     std::cout << node->displayName << std::endl;
-    for (const auto &child: node->children) {
+    for (const auto &child: node->getChildren()) {
         printFromNode(indent+2, child);
     }
 }
@@ -194,6 +211,14 @@ ElementTreeMpdSubfileInstanceNode::ElementTreeMpdSubfileInstanceNode(ElementTree
     this->displayName=mpdSubfileNode->displayName;
 }
 
+bool ElementTreeMpdSubfileNode::isTransformationUserEditable() const {
+    return false;
+}
+
+bool ElementTreeMpdSubfileNode::isColorUserEditable() const {
+    return false;
+}
+
 bool ElementTreeMpdNode::isDisplayNameUserEditable() const {
     return true;
 }
@@ -221,4 +246,38 @@ ElementTreePartNode::ElementTreePartNode(LdrFile *ldrFile, LdrColor *ldrColor, E
 ElementTreeMeshNode::ElementTreeMeshNode(LdrColor *color, ElementTreeNode *parent) : ElementTreeNode(parent) {
     this->color = color;
     type=ET_TYPE_MESH;
+}
+
+
+const char *getDisplayNameOfType(const ElementTreeNodeType &type) {
+    switch (type) {
+        case ET_TYPE_ROOT: return "Root";
+        case ET_TYPE_MESH: return "Mesh";
+        case ET_TYPE_MPD_SUBFILE_INSTANCE: return "MPD subfile Instance";
+        case ET_TYPE_LDRFILE: return "LDraw file";
+        case ET_TYPE_MPD_SUBFILE: return "MPD subfile";
+        case ET_TYPE_MULTI_PART_DOCUMENT: return "MPD file";
+        case ET_TYPE_PART: return "Part";
+        case ET_TYPE_OTHER:
+        default: return "Other";
+    }
+}
+
+util::RGBcolor getColorOfType(const ElementTreeNodeType &type) {
+    switch (type) {
+        case ET_TYPE_MPD_SUBFILE_INSTANCE:
+            return config::get_color(config::COLOR_MPD_SUBFILE_INSTANCE);
+        case ET_TYPE_MPD_SUBFILE:
+            return config::get_color(config::COLOR_MPD_SUBFILE);
+        case ET_TYPE_MULTI_PART_DOCUMENT:
+            return config::get_color(config::COLOR_MULTI_PART_DOCUMENT);
+        case ET_TYPE_PART:
+            return config::get_color(config::COLOR_OFFICAL_PART);//todo unoffical part
+        case ET_TYPE_OTHER:
+        case ET_TYPE_ROOT:
+        case ET_TYPE_MESH:
+        case ET_TYPE_LDRFILE:
+        default:
+            return util::RGBcolor(255, 255, 255);
+    }
 }

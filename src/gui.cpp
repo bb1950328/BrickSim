@@ -59,7 +59,7 @@ void Gui::setup() {
 }
 
 void drawColorGroup(Controller *controller,
-                    ElementTreeLdrNode *ldrNode,
+                    ElementTreeMeshNode *ldrNode,
                     const ImVec2 &buttonSize,
                     const int columnCount,
                     const std::pair<const std::string, std::vector<const LdrColor *>> &colorGroup) {
@@ -93,32 +93,11 @@ void drawColorGroup(Controller *controller,
 }
 
 void draw_element_tree_node(ElementTreeNode *node) {
-    util::RGBcolor txtColor;
-    switch (node->getType()) {
-        case ET_TYPE_OTHER:
-        case ET_TYPE_ROOT:
-        case ET_TYPE_MESH:
-        case ET_TYPE_LDRFILE:
-            txtColor=util::RGBcolor(255, 255, 255);
-            break;
-        case ET_TYPE_MPD_SUBFILE_INSTANCE:
-            txtColor=config::get_color(config::COLOR_MPD_SUBFILE_INSTANCE);
-            break;
-        case ET_TYPE_MPD_SUBFILE:
-            txtColor=config::get_color(config::COLOR_MPD_SUBFILE);
-            break;
-        case ET_TYPE_MULTI_PART_DOCUMENT:
-            txtColor=config::get_color(config::COLOR_MULTI_PART_DOCUMENT);
-            break;
-        case ET_TYPE_PART:
-            txtColor=config::get_color(config::COLOR_OFFICAL_PART);//todo unoffical part
-            break;
-    }
-    auto colorVec = glm::vec4(txtColor.asGlmVector(), 1.0);
+    auto colorVec = glm::vec4(getColorOfType(node->getType()).asGlmVector(), 1.0);
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(colorVec.x, colorVec.y, colorVec.z, colorVec.w));
 
     bool itemClicked = false;
-    if (node->children.empty()) {
+    if (node->getChildren().empty()) {
         auto flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
         if (node->selected) {
             flags |= ImGuiTreeNodeFlags_Selected;
@@ -130,7 +109,7 @@ void draw_element_tree_node(ElementTreeNode *node) {
         auto flags = node->selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None;
         if (ImGui::TreeNodeEx(node->displayName.c_str(), flags)) {
             itemClicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
-            for (const auto &child: node->children) {
+            for (const auto &child: node->getChildren()) {
                 draw_element_tree_node(child);
             }
             ImGui::TreePop();
@@ -336,7 +315,7 @@ void Gui::loop() {
 
     if (showElementTreeWindow) {
         ImGui::Begin("Element Tree", &showElementTreeWindow);
-        for (auto *rootChild : controller->elementTree.rootNode.children) {
+        for (auto *rootChild : controller->elementTree.rootNode.getChildren()) {
             draw_element_tree_node(rootChild);
         }
         ImGui::End();
@@ -365,48 +344,62 @@ void Gui::loop() {
                 ImGui::PopTextWrapPos();
                 ImGui::EndTooltip();
             }
-
-            auto treeRelTransf = glm::transpose(node->getRelativeTransformation());
-            glm::quat treeOrientation;
-            glm::vec3 treeSkew;
-            glm::vec4 treePerspective;
-            glm::vec3 treePosition;
-            glm::vec3 treeScale;
-            glm::vec3 treeEulerAnglesRad;
-            glm::decompose(treeRelTransf, treeScale, treeOrientation, treePosition, treeSkew, treePerspective);
-            treeEulerAnglesRad = glm::eulerAngles(treeOrientation);
-
-            static glm::vec3 inputEulerAnglesDeg;
-            static glm::vec3 inputPosition;
-            static glm::vec3 inputScalePercent;
-            if (lastNode != node) {
-                inputEulerAnglesDeg = treeEulerAnglesRad * (float) (180.0f / M_PI);
-                inputPosition = treePosition;
-                inputScalePercent = treeScale * 100.0f;
+            auto typeColor = getColorOfType(node->getType()).asGlmVector();
+            //ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(typeColor.x, typeColor.y, typeColor.z, 1.0));//todo make this affect only text but not label
+            static char typeBuffer[255];
+            strcpy(typeBuffer, getDisplayNameOfType(node->getType()));
+            ImGui::InputText("Type", typeBuffer, 255, ImGuiInputTextFlags_ReadOnly);
+            //ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered()) {
+                ImGui::BeginTooltip();
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                ImGui::TextUnformatted("Type is not mutable");
+                ImGui::PopTextWrapPos();
+                ImGui::EndTooltip();
             }
-            glm::vec3 inputEulerAnglesRad = inputEulerAnglesDeg * (float) (M_PI / 180.0f);
 
-            if ((util::biggest_value(glm::abs(treePosition - inputPosition)) > 0.01)
-                || (util::biggest_value(glm::abs(inputEulerAnglesRad - treeEulerAnglesRad)) > 0.0001)
-                || (util::biggest_value(glm::abs(inputScalePercent / 100.0f - treeScale)) > 0.001)) {
-                auto newRotation = glm::eulerAngleXYZ(inputEulerAnglesRad.x, inputEulerAnglesRad.y,
-                                                      inputEulerAnglesRad.z);
-                auto newTranslation = glm::translate(glm::mat4(1.0f), inputPosition);
-                auto newScale = glm::scale(glm::mat4(1.0f), inputScalePercent / 100.0f);
-                auto newTransformation = newTranslation * newRotation * newScale;
-                if (treeRelTransf != newTransformation) {
-                    node->setRelativeTransformation(glm::transpose(newTransformation));
-                    controller->elementTreeChanged = true;
+            if (node->isTransformationUserEditable()) {
+                auto treeRelTransf = glm::transpose(node->getRelativeTransformation());
+                glm::quat treeOrientation;
+                glm::vec3 treeSkew;
+                glm::vec4 treePerspective;
+                glm::vec3 treePosition;
+                glm::vec3 treeScale;
+                glm::vec3 treeEulerAnglesRad;
+                glm::decompose(treeRelTransf, treeScale, treeOrientation, treePosition, treeSkew, treePerspective);
+                treeEulerAnglesRad = glm::eulerAngles(treeOrientation);
+
+                static glm::vec3 inputEulerAnglesDeg;
+                static glm::vec3 inputPosition;
+                static glm::vec3 inputScalePercent;
+                if (lastNode != node) {
+                    inputEulerAnglesDeg = treeEulerAnglesRad * (float) (180.0f / M_PI);
+                    inputPosition = treePosition;
+                    inputScalePercent = treeScale * 100.0f;
                 }
+                glm::vec3 inputEulerAnglesRad = inputEulerAnglesDeg * (float) (M_PI / 180.0f);
+
+                if ((util::biggest_value(glm::abs(treePosition - inputPosition)) > 0.01)
+                    || (util::biggest_value(glm::abs(inputEulerAnglesRad - treeEulerAnglesRad)) > 0.0001)
+                    || (util::biggest_value(glm::abs(inputScalePercent / 100.0f - treeScale)) > 0.001)) {
+                    auto newRotation = glm::eulerAngleXYZ(inputEulerAnglesRad.x, inputEulerAnglesRad.y,
+                                                          inputEulerAnglesRad.z);
+                    auto newTranslation = glm::translate(glm::mat4(1.0f), inputPosition);
+                    auto newScale = glm::scale(glm::mat4(1.0f), inputScalePercent / 100.0f);
+                    auto newTransformation = newTranslation * newRotation * newScale;
+                    if (treeRelTransf != newTransformation) {
+                        node->setRelativeTransformation(glm::transpose(newTransformation));
+                        controller->elementTreeChanged = true;
+                    }
+                }
+
+                ImGui::DragFloat3("Rotation", &inputEulerAnglesDeg[0], 1.0f, -180, 180, "%.1f°");
+                ImGui::DragFloat3("Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
+                ImGui::DragFloat3("Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
             }
-
-            ImGui::DragFloat3("Rotation", &inputEulerAnglesDeg[0], 1.0f, -180, 180, "%.1f°");
-            ImGui::DragFloat3("Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
-            ImGui::DragFloat3("Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
-
-            if ((node->getType()&ElementTreeNodeType::ET_TYPE_LDRFILE)>0) {
-                auto* ldrNode = dynamic_cast<ElementTreeLdrNode *>(node);
-                if (ImGui::TreeNodeEx("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if ((node->getType()&ElementTreeNodeType::ET_TYPE_MESH)>0) {
+                auto* meshNode = dynamic_cast<ElementTreeMeshNode *>(node);
+                if (meshNode->isColorUserEditable()&&ImGui::TreeNodeEx("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
                     const auto buttonWidth = ImGui::GetFontSize() * 1.5f;
                     const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
                     const int columnCount = std::floor(ImGui::GetContentRegionAvailWidth() / (buttonWidth+ImGui::GetStyle().ItemSpacing.x));
@@ -414,7 +407,7 @@ void Gui::loop() {
                     const static std::vector<std::string> fixed_pos = {"Solid", "Transparent", "Rubber"};
                     for (const auto &colorName : fixed_pos) {
                         const auto &colorGroup = std::make_pair(colorName, groupedAndSortedByHue.find(colorName)->second);
-                        drawColorGroup(controller, ldrNode, buttonSize, columnCount, colorGroup);
+                        drawColorGroup(controller, meshNode, buttonSize, columnCount, colorGroup);
                     }
                     for (const auto &colorGroup : groupedAndSortedByHue) {
                         bool alreadyDrawn = false;//todo google how to vector.contains()
@@ -426,7 +419,7 @@ void Gui::loop() {
                         }
 
                         if (!alreadyDrawn) {
-                            drawColorGroup(controller, ldrNode, buttonSize, columnCount, colorGroup);
+                            drawColorGroup(controller, meshNode, buttonSize, columnCount, colorGroup);
                         }
                     }
                     ImGui::TreePop();

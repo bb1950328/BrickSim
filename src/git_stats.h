@@ -3,10 +3,10 @@
 #define GIT_STATS_H
 namespace git_stats {
     const char * contributor_loc = 
-    "  23924 bb1950328\n"
-    "      7 Not Committed Yet\n";
-    float total_hours = 74.650000;
-    unsigned int commit_count = 132;
-    const char* lastCommitHash = "dcac9d71b3753b0d98ff83a5fa2eae970fe26ba5";
+    "  24210 bb1950328\n"
+    "      1 Not Committed Yet\n";
+    float total_hours = 0.000000;
+    unsigned int commit_count = 1;
+    const char* lastCommitHash = "d17fd24566390e6f3a4d631dbccf9b0eabdd9c19";
 }
 #endif //GIT_STATS_H

@@ -54,6 +54,8 @@ namespace util {
         explicit RGBcolor(glm::vec3 vector);
         explicit RGBcolor(HSVcolor hsv);
 
+        RGBcolor(unsigned short red, unsigned short green, unsigned short blue);
+
         unsigned short red, green, blue;
         [[nodiscard]] glm::vec3 asGlmVector() const;
         [[nodiscard]] std::string asHtmlCode() const;

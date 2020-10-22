@@ -279,6 +279,10 @@ namespace util {
         }
     }
 
+    RGBcolor::RGBcolor(unsigned short red, unsigned short green, unsigned short blue) : red(red), green(green), blue(blue) {
+
+    }
+
     HSVcolor::HSVcolor(glm::vec3 vector) {
         hue = vector.x*255;
         saturation = vector.y*255;

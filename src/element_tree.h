@@ -29,14 +29,17 @@ public:
     std::vector<ElementTreeNode *> children;
     std::string displayName;
     bool selected = false;
+    ElementTreeNodeType type = ET_TYPE_OTHER;
     [[nodiscard]] const glm::mat4 &getRelativeTransformation() const;
     void setRelativeTransformation(const glm::mat4 &newValue);
 
     const glm::mat4 &getAbsoluteTransformation();
 
-    virtual ElementTreeNodeType getType();
+    ElementTreeNodeType getType();
 
     [[nodiscard]] virtual bool isDisplayNameUserEditable() const = 0;
+
+    virtual std::string getDescription();
 
 protected:
     glm::mat4 relativeTransformation = glm::mat4(1.0f);
@@ -49,7 +52,6 @@ protected:
 class ElementTreeRootNode : public ElementTreeNode {
 public:
     ElementTreeRootNode();
-    ElementTreeNodeType getType() override;
 
     [[nodiscard]] bool isDisplayNameUserEditable() const override;
 };
@@ -59,19 +61,19 @@ public:
     ElementTreeMeshNode(LdrColor *color, ElementTreeNode *parent);
     virtual void* getMeshIdentifier() = 0;
     virtual void addToMesh(Mesh *mesh, bool windingInversed) = 0;
-    virtual std::string getDescription() = 0;
     LdrColor *color;
     std::optional<size_t> instanceIndex;
 };
 
 class ElementTreeLdrNode : public ElementTreeMeshNode {
 public:
+    ElementTreeLdrNode(ElementTreeNodeType nodeType, LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent);
+
     void* getMeshIdentifier() override;
     void addToMesh(Mesh *mesh, bool windingInversed) override;
     std::string getDescription() override;
     LdrFile *ldrFile;
     std::set<LdrSubfileReference *> childrenWithOwnNode;
-    ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent);
 
     [[nodiscard]] bool isDisplayNameUserEditable() const override;
 };
@@ -86,7 +88,6 @@ public:
     void *getMeshIdentifier() override;
     void addToMesh(Mesh *mesh, bool windingInversed) override;
     std::string getDescription() override;
-    ElementTreeNodeType getType() override;
     [[nodiscard]] bool isDisplayNameUserEditable() const override;
 };
 
@@ -94,23 +95,19 @@ class ElementTreeMpdNode : public ElementTreeLdrNode {
 public:
     ElementTreeMpdNode(LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent);
 
-    ElementTreeNodeType getType() override;
     [[nodiscard]] bool isDisplayNameUserEditable() const override;
 };
 
 class ElementTreeMpdSubfileNode : public ElementTreeLdrNode {
 public:
-    ElementTreeMpdSubfileNode(LdrFile *ldrFile, LdrColor *color);
+    ElementTreeMpdSubfileNode(LdrFile *ldrFile, LdrColor *color, ElementTreeNode *parent);
 
-    ElementTreeNodeType getType() override;
     [[nodiscard]] bool isDisplayNameUserEditable() const override;
 };
 
 class ElementTreePartNode : public ElementTreeLdrNode {
 public:
     ElementTreePartNode(LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent);
-
-    ElementTreeNodeType getType() override;
 
     [[nodiscard]] bool isDisplayNameUserEditable() const override;
 };

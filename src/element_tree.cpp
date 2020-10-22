@@ -33,11 +33,16 @@ const glm::mat4 &ElementTreeNode::getAbsoluteTransformation() {
 }
 
 ElementTreeNodeType ElementTreeNode::getType() {
-    return ET_TYPE_OTHER;
+    return type;
 }
 
 ElementTreeNode::ElementTreeNode(ElementTreeNode *parent) {
     this->parent = parent;
+    type=ET_TYPE_OTHER;
+}
+
+std::string ElementTreeNode::getDescription() {
+    return displayName;
 }
 
 void ElementTreeLdrNode::addToMesh(Mesh *mesh, bool windingInversed) {
@@ -69,10 +74,10 @@ void ElementTreeLdrNode::addToMesh(Mesh *mesh, bool windingInversed) {
 }
 
 ElementTreeMpdSubfileNode *findMpdNodeAndAddSubfileNode(LdrFile *ldrFile, LdrColor* ldrColor, ElementTreeNode* actualNode) {
-    if ((actualNode->getType()&ET_TYPE_MULTI_PART_DOCUMENT)>0) {
+    if (actualNode->getType()==ET_TYPE_MULTI_PART_DOCUMENT) {
         //check if the subfileNode already exists
         for (const auto &child : actualNode->children) {
-            if ((child->getType() & ET_TYPE_MPD_SUBFILE) > 0) {
+            if (child->getType() == ET_TYPE_MPD_SUBFILE) {
                 auto mpdSubfileChild = dynamic_cast<ElementTreeMpdSubfileNode *>(child);
                 if (ldrFile == mpdSubfileChild->ldrFile) {
                     return mpdSubfileChild;
@@ -80,7 +85,7 @@ ElementTreeMpdSubfileNode *findMpdNodeAndAddSubfileNode(LdrFile *ldrFile, LdrCol
             }
         }
         //the node doesn't exist, we have to create it
-        auto *addedNode = new ElementTreeMpdSubfileNode(ldrFile, ldrColor);
+        auto *addedNode = new ElementTreeMpdSubfileNode(ldrFile, ldrColor, actualNode);
         actualNode->children.push_back(addedNode);
         return addedNode;
     } else if (actualNode->parent == nullptr) {
@@ -90,7 +95,8 @@ ElementTreeMpdSubfileNode *findMpdNodeAndAddSubfileNode(LdrFile *ldrFile, LdrCol
     }
 }
 
-ElementTreeLdrNode::ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent) : ElementTreeMeshNode(ldrColor, parent), ldrFile(ldrFile){
+ElementTreeLdrNode::ElementTreeLdrNode(ElementTreeNodeType nodeType, LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent) : ElementTreeMeshNode(ldrColor, parent), ldrFile(ldrFile){
+    type=nodeType;
     this->parent = parent;
     this->color = ldrColor;
     displayName = ldrFile->getDescription();
@@ -107,8 +113,8 @@ ElementTreeLdrNode::ElementTreeLdrNode(LdrFile *ldrFile, LdrColor *ldrColor, Ele
                 childrenWithOwnNode.insert(sfElement);
             } else if (subFile->metaInfo.type==PART) {
                 childrenWithOwnNode.insert(sfElement);
-                LdrColor *color = sfElement->color->code==16?ldrColor:sfElement->color;
-                auto *newNode = new ElementTreeLdrNode(subFile, color, this);
+                LdrColor *color = sfElement->color->code==16?ldrColor:sfElement->color;//todo make that changes from parent are passed down
+                auto *newNode = new ElementTreePartNode(subFile, color, this);
                 newNode->setRelativeTransformation(sfElement->getTransformationMatrix());
                 children.push_back(newNode);
             }
@@ -153,11 +159,8 @@ void ElementTree::printFromNode(int indent, ElementTreeNode *node) {
     }
 }
 
-ElementTreeNodeType ElementTreeRootNode::getType() {
-    return ET_TYPE_ROOT;
-}
-
 ElementTreeRootNode::ElementTreeRootNode() : ElementTreeNode(nullptr) {
+    type = ET_TYPE_ROOT;
     displayName = "Root";
     absoluteTransformation = relativeTransformation;
     absoluteTransformationValid = true;
@@ -179,10 +182,6 @@ std::string ElementTreeMpdSubfileInstanceNode::getDescription() {
     return mpdSubfileNode->getDescription();
 }
 
-ElementTreeNodeType ElementTreeMpdSubfileInstanceNode::getType() {
-    return ET_TYPE_MPD_SUBFILE_INSTANCE;
-}
-
 bool ElementTreeMpdSubfileInstanceNode::isDisplayNameUserEditable() const {
     return false;
 }
@@ -191,11 +190,8 @@ ElementTreeMpdSubfileInstanceNode::ElementTreeMpdSubfileInstanceNode(ElementTree
                                                                      LdrColor* color,
                                                                      ElementTreeNode* parent)
                                                                      : mpdSubfileNode(mpdSubfileNode), ElementTreeMeshNode(color, parent) {
-
-}
-
-ElementTreeNodeType ElementTreeMpdNode::getType() {
-    return ET_TYPE_MULTI_PART_DOCUMENT;
+    type=ET_TYPE_MPD_SUBFILE_INSTANCE;
+    this->displayName=mpdSubfileNode->displayName;
 }
 
 bool ElementTreeMpdNode::isDisplayNameUserEditable() const {
@@ -203,24 +199,15 @@ bool ElementTreeMpdNode::isDisplayNameUserEditable() const {
 }
 
 ElementTreeMpdNode::ElementTreeMpdNode(LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent)
-: ElementTreeLdrNode(ldrFile, ldrColor, parent) {
-
-}
-
-ElementTreeNodeType ElementTreeMpdSubfileNode::getType() {
-    return ET_TYPE_MPD_SUBFILE;
+: ElementTreeLdrNode(ET_TYPE_MULTI_PART_DOCUMENT, ldrFile, ldrColor, parent) {
 }
 
 bool ElementTreeMpdSubfileNode::isDisplayNameUserEditable() const {
     return true;
 }
 
-ElementTreeMpdSubfileNode::ElementTreeMpdSubfileNode(LdrFile *ldrFile, LdrColor *color) : ElementTreeLdrNode(ldrFile, color, parent) {
-
-}
-
-ElementTreeNodeType ElementTreePartNode::getType() {
-    return ET_TYPE_PART;
+ElementTreeMpdSubfileNode::ElementTreeMpdSubfileNode(LdrFile *ldrFile, LdrColor *color, ElementTreeNode* parent) : ElementTreeLdrNode(ET_TYPE_MPD_SUBFILE,  ldrFile, color, parent) {
+    visible= false;
 }
 
 bool ElementTreePartNode::isDisplayNameUserEditable() const {
@@ -228,10 +215,10 @@ bool ElementTreePartNode::isDisplayNameUserEditable() const {
 }
 
 ElementTreePartNode::ElementTreePartNode(LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent)
-: ElementTreeLdrNode(ldrFile, ldrColor, parent) {
-
+: ElementTreeLdrNode(ET_TYPE_PART,  ldrFile, ldrColor, parent) {
 }
 
 ElementTreeMeshNode::ElementTreeMeshNode(LdrColor *color, ElementTreeNode *parent) : ElementTreeNode(parent) {
     this->color = color;
+    type=ET_TYPE_MESH;
 }

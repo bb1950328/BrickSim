@@ -93,13 +93,37 @@ void drawColorGroup(Controller *controller,
 }
 
 void draw_element_tree_node(ElementTreeNode *node) {
+    util::RGBcolor txtColor;
+    switch (node->getType()) {
+        case ET_TYPE_OTHER:
+        case ET_TYPE_ROOT:
+        case ET_TYPE_MESH:
+        case ET_TYPE_LDRFILE:
+            txtColor=util::RGBcolor(255, 255, 255);
+            break;
+        case ET_TYPE_MPD_SUBFILE_INSTANCE:
+            txtColor=config::get_color(config::COLOR_MPD_SUBFILE_INSTANCE);
+            break;
+        case ET_TYPE_MPD_SUBFILE:
+            txtColor=config::get_color(config::COLOR_MPD_SUBFILE);
+            break;
+        case ET_TYPE_MULTI_PART_DOCUMENT:
+            txtColor=config::get_color(config::COLOR_MULTI_PART_DOCUMENT);
+            break;
+        case ET_TYPE_PART:
+            txtColor=config::get_color(config::COLOR_OFFICAL_PART);//todo unoffical part
+            break;
+    }
+    auto colorVec = glm::vec4(txtColor.asGlmVector(), 1.0);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(colorVec.x, colorVec.y, colorVec.z, colorVec.w));
+
     bool itemClicked = false;
     if (node->children.empty()) {
         auto flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
         if (node->selected) {
             flags |= ImGuiTreeNodeFlags_Selected;
         }
-        ImGui::TreeNodeEx(node->displayName.c_str(), flags);
+        ImGui::TreeNodeEx(node->getDescription().c_str(), flags);
         itemClicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
         //todo add context menu
     } else {
@@ -112,6 +136,7 @@ void draw_element_tree_node(ElementTreeNode *node) {
             ImGui::TreePop();
         }
     }
+    ImGui::PopStyleColor();
     if (itemClicked) {
         auto controller = Controller::getInstance();
         if (ImGui::GetIO().KeyCtrl) {

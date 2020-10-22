@@ -72,6 +72,7 @@ set(bricksim_sources
         src/helpers/fraction.h
         #src/file_downloader.cpp
         #src/file_downloader.h
+        src/git_stats.h
         )
 
 add_executable(BrickSim

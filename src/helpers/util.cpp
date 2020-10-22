@@ -12,6 +12,7 @@
 #include <windows.h>
 #endif
 #include <stdlib.h>
+#include <GL/gl.h>
 
 namespace util {
     std::string extend_home_dir(const std::string &input) {
@@ -193,6 +194,21 @@ namespace util {
 
     unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue) {
         unsigned int result = ((unsigned int)red) << 16u | ((unsigned int)green) << 8u | blue;
+        return result;
+    }
+
+    std::vector<std::string> getSystemInfo() {
+        std::vector<std::string> result;
+        const GLubyte* vendor = glGetString(GL_VENDOR);
+        const GLubyte* renderer = glGetString(GL_RENDERER);
+        result.push_back(std::string("sizeof(void*):\t")+std::to_string(sizeof(void *))+" Bytes or "+std::to_string(sizeof(void *)*8)+" Bits");
+        result.push_back(std::string("sizeof(char):\t")+std::to_string(sizeof(char))+" Bytes or "+std::to_string(sizeof(char)*8)+" Bits");
+        result.push_back(std::string("sizeof(int):\t")+std::to_string(sizeof(int))+" Bytes or "+std::to_string(sizeof(int)*8)+" Bits");
+        result.push_back(std::string("sizeof(long):\t")+std::to_string(sizeof(long))+" Bytes or "+std::to_string(sizeof(long)*8)+" Bits");
+        result.push_back(std::string("sizeof(float):\t")+std::to_string(sizeof(float))+" Bytes or "+std::to_string(sizeof(float)*8)+" Bits");
+        result.push_back(std::string("sizeof(double):\t")+std::to_string(sizeof(double))+" Bytes or "+std::to_string(sizeof(double)*8)+" Bits");
+        result.push_back(std::string("GPU Vendor:\t")+std::string(reinterpret_cast<const char *>(vendor)));
+        result.push_back(std::string("GPU Renderer:\t")+std::string(reinterpret_cast<const char *>(renderer)));
         return result;
     }
 

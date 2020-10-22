@@ -10,6 +10,7 @@
 #include "config.h"
 #include "controller.h"
 #include "ldr_colors.h"
+#include "git_stats.h"
 #include "lib/tinyfiledialogs.h"
 #include "helpers/util.h"
 #include <glm/gtx/euler_angles.hpp>
@@ -137,6 +138,7 @@ void Gui::loop() {
     static bool showDemoWindow = true;
     static bool showDebugWindow = true;
     static bool showAboutWindow = false;
+    static bool showSysInfoWindow = false;
     static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.6f, 1.0f);
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -166,6 +168,7 @@ void Gui::loop() {
                 controller->userWantsToExit = true;
             }
             ImGui::MenuItem("About", "", &showAboutWindow);
+            ImGui::MenuItem("System Info", "", &showSysInfoWindow);
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Edit")) {
@@ -493,8 +496,9 @@ void Gui::loop() {
             ImGui::TextWrapped("The graphical user interface is implemented using Dear ImGUI. More info at: ");
             draw_hyperlink_button("https://github.com/ocornut/imgui");
             ImGui::Separator();
-
+            //todo add more git stats here
             ImGui::Text("Build info:");
+            ImGui::Text("BrickSim git hash: %s", git_stats::lastCommitHash);
             ImGui::Text("Dear ImGUI version: %s", IMGUI_VERSION);
             ImGui::Text("Compiled on: ");
             //todo get compiler info
@@ -505,6 +509,27 @@ void Gui::loop() {
             }
             ImGui::End();
         }
+    }
+
+    if (showSysInfoWindow) {
+        if (ImGui::Begin("System info", &showSysInfoWindow, ImGuiWindowFlags_AlwaysAutoResize)) {
+            static const auto vector = util::getSystemInfo();
+            for (const auto &line: vector) {
+                ImGui::Text("%s", line.c_str());
+            }
+            if (ImGui::Button("Copy to clipboard")) {
+                std::stringstream result;
+                for (const auto &line: vector) {
+                    result << line << std::endl;
+                }
+                glfwSetClipboardString(window, result.str().data());
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Close")) {
+                showSysInfoWindow = false;
+            }
+        }
+        ImGui::End();
     }
 
     if (showDebugWindow) {

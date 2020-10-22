@@ -30,21 +30,21 @@ void MeshCollection::deallocateGraphics() {
     }
 }
 
-void MeshCollection::readElementTree(ElementTreeNode *node, const glm::mat4 &parentAbsoluteTransformation) {
-    ElementTreeNode* nodeToParseChildren = node;
+void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation) {
+    etree::Node* nodeToParseChildren = node;
     glm::mat4 absoluteTransformation = parentAbsoluteTransformation;
     if (node->visible) {
-        if ((node->getType() & ET_TYPE_MESH) > 0) {
-            ElementTreeMeshNode *meshNode;
+        if ((node->getType() & etree::TYPE_MESH) > 0) {
+            etree::MeshNode *meshNode;
             LdrColor *color;
-            if (node->getType()==ET_TYPE_MPD_SUBFILE_INSTANCE) {
-                const auto instanceNode = dynamic_cast<ElementTreeMpdSubfileInstanceNode *>(node);
+            if (node->getType()==etree::TYPE_MPD_SUBFILE_INSTANCE) {
+                const auto instanceNode = dynamic_cast<etree::MpdSubfileInstanceNode *>(node);
                 meshNode = instanceNode->mpdSubfileNode;
                 absoluteTransformation = instanceNode->getRelativeTransformation()*parentAbsoluteTransformation;
                 color = instanceNode->color;
                 nodeToParseChildren = meshNode;
             } else {
-                meshNode = dynamic_cast<ElementTreeMeshNode *>(node);
+                meshNode = dynamic_cast<etree::MeshNode *>(node);
                 absoluteTransformation = node->getRelativeTransformation() * parentAbsoluteTransformation;
                 color = meshNode->color;
             }
@@ -87,7 +87,7 @@ void MeshCollection::readElementTree(ElementTreeNode *node, const glm::mat4 &par
     }
 }
 
-MeshCollection::MeshCollection(ElementTree *elementTree) {
+MeshCollection::MeshCollection(etree::ElementTree *elementTree) {
     this->elementTree = elementTree;
 }
 
@@ -103,13 +103,9 @@ void MeshCollection::rereadElementTree() {
     auto after = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
     std::cout << "rereadElementTree() in " << duration / 1000.0f << "ms" << std::endl;
-    std::cout << meshes.size() << " meshes: " << std::endl;
-    for (const auto &mesh : meshes) {
-        std::cout << "\t" << mesh.second->name << ": " << mesh.second->instances.size() << " instances, " << mesh.second->triangleIndices.size()/3 << " triangles" << std::endl;
-    }
 }
 
-ElementTreeNode *MeshCollection::getElementById(unsigned int id) {
+etree::Node *MeshCollection::getElementById(unsigned int id) {
     if (elementsSortedById.size()>id) {
         return elementsSortedById[id];
     }

@@ -114,7 +114,7 @@ bool Renderer::cleanup() {
     return true;
 }
 
-Renderer::Renderer(ElementTree *elementTree) : meshCollection(elementTree) {
+Renderer::Renderer(etree::ElementTree *elementTree) : meshCollection(elementTree) {
     this->elementTree = elementTree;
     triangleShader = nullptr;
     lineShader = nullptr;

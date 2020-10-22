@@ -33,7 +33,7 @@ class Renderer {
 public:
     Shader *triangleShader;
     Shader *lineShader;
-    ElementTree *elementTree;
+    etree::ElementTree *elementTree;
     MeshCollection meshCollection;
 
     unsigned int windowWidth = 0;
@@ -67,7 +67,7 @@ public:
 
     bool cleanup();
 
-    explicit Renderer(ElementTree *elementTree);
+    explicit Renderer(etree::ElementTree *elementTree);
 
     void setWindowSize(unsigned int width, unsigned int height);
 

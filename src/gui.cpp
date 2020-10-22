@@ -59,7 +59,7 @@ void Gui::setup() {
 }
 
 void drawColorGroup(Controller *controller,
-                    ElementTreeMeshNode *ldrNode,
+                    etree::MeshNode *ldrNode,
                     const ImVec2 &buttonSize,
                     const int columnCount,
                     const std::pair<const std::string, std::vector<const LdrColor *>> &colorGroup) {
@@ -92,7 +92,7 @@ void drawColorGroup(Controller *controller,
     }
 }
 
-void draw_element_tree_node(ElementTreeNode *node) {
+void draw_element_tree_node(etree::Node *node) {
     auto colorVec = glm::vec4(getColorOfType(node->getType()).asGlmVector(), 1.0);
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(colorVec.x, colorVec.y, colorVec.z, colorVec.w));
 
@@ -329,7 +329,7 @@ void Gui::loop() {
             auto node = *controller->selectedNodes.begin();
 
             static char displayNameBuf[255];
-            static ElementTreeNode *lastNode = nullptr;
+            static etree::Node *lastNode = nullptr;
             if (nullptr != lastNode) {
                 lastNode->displayName = std::string(displayNameBuf);
             }
@@ -397,8 +397,8 @@ void Gui::loop() {
                 ImGui::DragFloat3("Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
                 ImGui::DragFloat3("Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
             }
-            if ((node->getType()&ElementTreeNodeType::ET_TYPE_MESH)>0) {
-                auto* meshNode = dynamic_cast<ElementTreeMeshNode *>(node);
+            if ((node->getType()&etree::NodeType::TYPE_MESH)>0) {
+                auto* meshNode = dynamic_cast<etree::MeshNode *>(node);
                 if (meshNode->isColorUserEditable()&&ImGui::TreeNodeEx("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
                     const auto buttonWidth = ImGui::GetFontSize() * 1.5f;
                     const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);

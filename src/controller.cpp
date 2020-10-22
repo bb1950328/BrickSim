@@ -119,7 +119,7 @@ void Controller::openFile(const std::string& path) {
     elementTreeChanged = true;
 }
 
-void Controller::nodeSelectAddRemove(ElementTreeNode *node) {
+void Controller::nodeSelectAddRemove(etree::Node *node) {
     auto iterator = selectedNodes.find(node);
     node->selected = iterator == selectedNodes.end();
     if (node->selected) {
@@ -129,7 +129,7 @@ void Controller::nodeSelectAddRemove(ElementTreeNode *node) {
     }
 }
 
-void Controller::nodeSelectSet(ElementTreeNode *node) {
+void Controller::nodeSelectSet(etree::Node *node) {
     for (const auto &selectedNode : selectedNodes) {
         selectedNode->selected = false;
     }
@@ -138,13 +138,13 @@ void Controller::nodeSelectSet(ElementTreeNode *node) {
     selectedNodes.insert(node);
 }
 
-void Controller::nodeSelectUntil(ElementTreeNode *node) {
+void Controller::nodeSelectUntil(etree::Node *node) {
     auto rangeActive = false;
     auto keepGoing = true;
     for (auto iterator = node->parent->getChildren().rbegin();
          iterator!=node->parent->getChildren().rend() && keepGoing;
          iterator++) {
-        ElementTreeNode *itNode = *iterator;
+        etree::Node *itNode = *iterator;
         if (itNode==node || itNode->selected) {
             if (rangeActive) {
                 keepGoing = false;

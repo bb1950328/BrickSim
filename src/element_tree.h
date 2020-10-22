@@ -11,128 +11,131 @@
 #include "mesh.h"
 #include "helpers/util.h"
 
-enum ElementTreeNodeType {
-    ET_TYPE_OTHER = 0,
-    ET_TYPE_ROOT = 1u << 0u,
-    ET_TYPE_MESH = 1u << 1u,
-        ET_TYPE_MPD_SUBFILE_INSTANCE=(1u<<2u)|ET_TYPE_MESH,
-        ET_TYPE_LDRFILE = (1u << 3u)|ET_TYPE_MESH,
-            ET_TYPE_MPD_SUBFILE = (1u<<4u)|ET_TYPE_LDRFILE,
-            ET_TYPE_MULTI_PART_DOCUMENT=(1u<<5u)|ET_TYPE_LDRFILE,
-            ET_TYPE_PART=(1u<<6u)|ET_TYPE_LDRFILE,
-};
+namespace etree {
+    enum NodeType {
+        TYPE_OTHER = 0,
+        TYPE_ROOT = 1u << 0u,
+        TYPE_MESH = 1u << 1u,
+        TYPE_MPD_SUBFILE_INSTANCE= (1u << 2u) | TYPE_MESH,
+        TYPE_LDRFILE = (1u << 3u) | TYPE_MESH,
+        TYPE_MPD_SUBFILE = (1u << 4u) | TYPE_LDRFILE,
+        TYPE_MULTI_PART_DOCUMENT= (1u << 5u) | TYPE_LDRFILE,
+        TYPE_PART= (1u << 6u) | TYPE_LDRFILE,
+    };
 
-const char* getDisplayNameOfType(const ElementTreeNodeType& type);
-util::RGBcolor getColorOfType(const ElementTreeNodeType& type);
+    const char* getDisplayNameOfType(const NodeType& type);
+    util::RGBcolor getColorOfType(const NodeType& type);
 
-class ElementTreeNode {
-public:
-    explicit ElementTreeNode(ElementTreeNode *parent);
-    bool visible = true;
-    ElementTreeNode *parent;
-    std::string displayName;
-    bool selected = false;
-    ElementTreeNodeType type = ET_TYPE_OTHER;
-    [[nodiscard]] const glm::mat4 &getRelativeTransformation() const;
-    void setRelativeTransformation(const glm::mat4 &newValue);
+    class Node {
+    public:
+        explicit Node(Node *parent);
+        bool visible = true;
+        Node *parent;
+        std::string displayName;
+        bool selected = false;
+        NodeType type = TYPE_OTHER;
+        [[nodiscard]] const glm::mat4 &getRelativeTransformation() const;
+        void setRelativeTransformation(const glm::mat4 &newValue);
 
-    const glm::mat4 &getAbsoluteTransformation();
+        const glm::mat4 &getAbsoluteTransformation();
 
-    ElementTreeNodeType getType();
+        NodeType getType();
 
-    [[nodiscard]] virtual bool isDisplayNameUserEditable() const = 0;
+        [[nodiscard]] virtual bool isDisplayNameUserEditable() const = 0;
 
-    virtual std::string getDescription();
-    [[nodiscard]] virtual bool isTransformationUserEditable() const;
+        virtual std::string getDescription();
+        [[nodiscard]] virtual bool isTransformationUserEditable() const;
 
-    [[nodiscard]] const std::vector<ElementTreeNode *> &getChildren() const;
+        [[nodiscard]] const std::vector<Node *> &getChildren() const;
 
-    void addChild(ElementTreeNode *newChild);
+        void addChild(Node *newChild);
 
-protected:
-    std::vector<ElementTreeNode *> children;
+    protected:
+        std::vector<Node *> children;
 
-protected:
-    glm::mat4 relativeTransformation = glm::mat4(1.0f);
-    glm::mat4 absoluteTransformation;
-    bool absoluteTransformationValid = false;
+    protected:
+        glm::mat4 relativeTransformation = glm::mat4(1.0f);
+        glm::mat4 absoluteTransformation;
+        bool absoluteTransformationValid = false;
 
-    void invalidateAbsoluteTransformation();
-};
+        void invalidateAbsoluteTransformation();
+    };
 
-class ElementTreeRootNode : public ElementTreeNode {
-public:
-    ElementTreeRootNode();
+    class RootNode : public Node {
+    public:
+        RootNode();
 
-    [[nodiscard]] bool isDisplayNameUserEditable() const override;
-};
+        [[nodiscard]] bool isDisplayNameUserEditable() const override;
+    };
 
-class ElementTreeMeshNode : public ElementTreeNode {
-public:
-    ElementTreeMeshNode(LdrColor *color, ElementTreeNode *parent);
-    virtual void* getMeshIdentifier() = 0;
-    virtual void addToMesh(Mesh *mesh, bool windingInversed) = 0;
-    LdrColor *color;
-    [[nodiscard]] virtual bool isColorUserEditable() const;
-};
+    class MeshNode : public Node {
+    public:
+        MeshNode(LdrColor *color, Node *parent);
+        virtual void* getMeshIdentifier() = 0;
+        virtual void addToMesh(Mesh *mesh, bool windingInversed) = 0;
+        LdrColor *color;
+        [[nodiscard]] virtual bool isColorUserEditable() const;
+    };
 
-class ElementTreeLdrNode : public ElementTreeMeshNode {
-public:
-    ElementTreeLdrNode(ElementTreeNodeType nodeType, LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent);
+    class LdrNode : public MeshNode {
+    public:
+        LdrNode(NodeType nodeType, LdrFile *ldrFile, LdrColor *ldrColor, Node *parent);
 
-    void* getMeshIdentifier() override;
-    void addToMesh(Mesh *mesh, bool windingInversed) override;
-    std::string getDescription() override;
-    LdrFile *ldrFile;
-    std::set<LdrSubfileReference *> childrenWithOwnNode;
+        void* getMeshIdentifier() override;
+        void addToMesh(Mesh *mesh, bool windingInversed) override;
+        std::string getDescription() override;
+        LdrFile *ldrFile;
+        std::set<LdrSubfileReference *> childrenWithOwnNode;
 
-    [[nodiscard]] bool isDisplayNameUserEditable() const override;
-};
+        [[nodiscard]] bool isDisplayNameUserEditable() const override;
+    };
 
-class ElementTreeMpdSubfileNode;
+    class MpdSubfileNode;
 
-class ElementTreeMpdSubfileInstanceNode : public ElementTreeMeshNode {
-public:
-    ElementTreeMpdSubfileInstanceNode(ElementTreeMpdSubfileNode *mpdSubfileNode, LdrColor* color, ElementTreeNode* parent);
+    class MpdSubfileInstanceNode : public MeshNode {
+    public:
+        MpdSubfileInstanceNode(MpdSubfileNode *mpdSubfileNode, LdrColor* color, Node* parent);
 
-    ElementTreeMpdSubfileNode* mpdSubfileNode;
-    void *getMeshIdentifier() override;
-    void addToMesh(Mesh *mesh, bool windingInversed) override;
-    std::string getDescription() override;
-    [[nodiscard]] bool isDisplayNameUserEditable() const override;
-};
+        MpdSubfileNode* mpdSubfileNode;
+        void *getMeshIdentifier() override;
+        void addToMesh(Mesh *mesh, bool windingInversed) override;
+        std::string getDescription() override;
+        [[nodiscard]] bool isDisplayNameUserEditable() const override;
+    };
 
-class ElementTreeMpdNode : public ElementTreeLdrNode {
-public:
-    ElementTreeMpdNode(LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent);
+    class MpdNode : public LdrNode {
+    public:
+        MpdNode(LdrFile *ldrFile, LdrColor *ldrColor, Node *parent);
 
-    [[nodiscard]] bool isDisplayNameUserEditable() const override;
-};
+        [[nodiscard]] bool isDisplayNameUserEditable() const override;
+    };
 
-class ElementTreeMpdSubfileNode : public ElementTreeLdrNode {
-public:
-    ElementTreeMpdSubfileNode(LdrFile *ldrFile, LdrColor *color, ElementTreeNode *parent);
+    class MpdSubfileNode : public LdrNode {
+    public:
+        MpdSubfileNode(LdrFile *ldrFile, LdrColor *color, Node *parent);
 
-    [[nodiscard]] bool isDisplayNameUserEditable() const override;
-    [[nodiscard]] bool isTransformationUserEditable() const override;
-    [[nodiscard]] bool isColorUserEditable() const override;
-};
+        [[nodiscard]] bool isDisplayNameUserEditable() const override;
+        [[nodiscard]] bool isTransformationUserEditable() const override;
+        [[nodiscard]] bool isColorUserEditable() const override;
+    };
 
-class ElementTreePartNode : public ElementTreeLdrNode {
-public:
-    ElementTreePartNode(LdrFile *ldrFile, LdrColor *ldrColor, ElementTreeNode *parent);
+    class PartNode : public LdrNode {
+    public:
+        PartNode(LdrFile *ldrFile, LdrColor *ldrColor, Node *parent);
 
-    [[nodiscard]] bool isDisplayNameUserEditable() const override;
-};
+        [[nodiscard]] bool isDisplayNameUserEditable() const override;
+    };
 
-class ElementTree {
-public:
-    ElementTreeRootNode rootNode;
-    void loadLdrFile(const std::string &filename);
-    void print();
+    class ElementTree {
+    public:
+        RootNode rootNode;
+        void loadLdrFile(const std::string &filename);
+        void print();
 
-private:
-    void printFromNode(int indent, ElementTreeNode *node);
-};
+    private:
+        void printFromNode(int indent, Node *node);
+    };
+}
+
 
 #endif //BRICKSIM_ELEMENT_TREE_H

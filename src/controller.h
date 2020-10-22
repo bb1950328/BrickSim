@@ -12,7 +12,7 @@
 class Controller {
 public:
     GLFWwindow *window;
-    ElementTree elementTree;
+    etree::ElementTree elementTree;
     bool elementTreeChanged = false;
     Renderer renderer;
     Gui gui;
@@ -22,7 +22,7 @@ public:
     unsigned int windowHeight = config::get_long(config::SCREEN_HEIGHT);
     long lastFrameTime = 0;//in µs
     bool userWantsToExit = false;
-    std::set<ElementTreeNode *> selectedNodes;
+    std::set<etree::Node *> selectedNodes;
     int run();
     static Controller* getInstance();
     void set3dViewSize(unsigned int width, unsigned int height);
@@ -30,9 +30,9 @@ public:
 
     void openFile(const std::string& path);
 
-    void nodeSelectAddRemove(ElementTreeNode *node);
-    void nodeSelectUntil(ElementTreeNode *node);
-    void nodeSelectSet(ElementTreeNode *node);
+    void nodeSelectAddRemove(etree::Node *node);
+    void nodeSelectUntil(etree::Node *node);
+    void nodeSelectSet(etree::Node *node);
     void nodeSelectAll();
     void nodeSelectNone();
 
@@ -45,7 +45,7 @@ private:
 
     void runNormal();
 
-    bool doesUserWantToExit() const;
+    [[nodiscard]] bool doesUserWantToExit() const;
 };
 
 #endif //BRICKSIM_CONTROLLER_H

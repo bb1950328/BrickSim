@@ -9,7 +9,7 @@
 
 class MeshCollection {
 public:
-    explicit MeshCollection(ElementTree *elementTree);
+    explicit MeshCollection(etree::ElementTree *elementTree);
 
     std::map<std::pair<void *, bool>, Mesh*> meshes;
 
@@ -17,7 +17,7 @@ public:
 
     void deallocateGraphics();
 
-    void readElementTree(ElementTreeNode *node, const glm::mat4 &parentAbsoluteTransformation);
+    void readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation);
 
     void rereadElementTree();
 
@@ -25,12 +25,12 @@ public:
 
     void drawLineGraphics() const;
 
-    ElementTreeNode* getElementById(unsigned int id);
+    etree::Node* getElementById(unsigned int id);
 
 private:
-    std::vector<ElementTreeNode*> elementsSortedById;
-    ElementTree *elementTree;
-    std::set<ElementTreeNode*> nodesWithChildrenAlreadyVisited;
-    std::map<std::pair<ElementTreeMeshNode*, bool>, size_t> meshInstanceIndices;
+    std::vector<etree::Node*> elementsSortedById;
+    etree::ElementTree *elementTree;
+    std::set<etree::Node*> nodesWithChildrenAlreadyVisited;
+    std::map<std::pair<etree::MeshNode*, bool>, size_t> meshInstanceIndices;
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

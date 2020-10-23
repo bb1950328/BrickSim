@@ -50,40 +50,25 @@ void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentA
             }
             void *identifier = meshNode->getMeshIdentifier();
             bool windingInversed = util::doesTransformationInverseWindingOrder(absoluteTransformation);
-            auto it = meshes.find(std::make_pair(identifier, windingInversed));
-            Mesh *mesh;
-            if (it != meshes.end()) {
-                mesh = it->second;
-            } else {
-                mesh = new Mesh();
-                meshes[std::make_pair(identifier, windingInversed)] = mesh;
+            auto meshesKey = std::make_pair(identifier, windingInversed);
+            auto it = meshes.find(meshesKey);
+            if (it == meshes.end()) {
+                Mesh *mesh = new Mesh();
+                meshes[meshesKey] = mesh;
                 mesh->name = meshNode->getDescription();
                 meshNode->addToMesh(mesh, windingInversed);
             }
             const auto elementId = static_cast<unsigned int>(elementsSortedById.size());
             MeshInstance newInstance{color, absoluteTransformation, elementId};
             elementsSortedById.push_back(node);
-            auto instIdxKeyPair = std::make_pair(meshNode, windingInversed);
-            auto instIdxIterator = meshInstanceIndices.find(instIdxKeyPair);
-            if (instIdxIterator!=meshInstanceIndices.end()) {
-                if (mesh->instances[instIdxIterator->second] != newInstance) {
-                    mesh->instances[instIdxIterator->second] = newInstance;
-                    mesh->instancesHaveChanged = true;
-                }
-            } else {
-                meshInstanceIndices[instIdxKeyPair] = mesh->instances.size();
-                mesh->instances.push_back(newInstance);
-                mesh->instancesHaveChanged = true;
+            newMeshInstances[meshesKey].push_back(newInstance);
+        }
+        for (const auto &child: nodeToParseChildren->getChildren()) {
+            if (child->visible) {
+                readElementTree(child, absoluteTransformation);
             }
         }
-        if (nodesWithChildrenAlreadyVisited.find(nodeToParseChildren)==nodesWithChildrenAlreadyVisited.end()) {
-            for (const auto &child: nodeToParseChildren->getChildren()) {
-                if (child->visible) {
-                    readElementTree(child, absoluteTransformation);
-                }
-            }
-            nodesWithChildrenAlreadyVisited.insert(nodeToParseChildren);
-        }
+        nodesWithChildrenAlreadyVisited.insert(nodeToParseChildren);
     }
 }
 
@@ -96,6 +81,7 @@ void MeshCollection::rereadElementTree() {
     elementsSortedById.push_back(nullptr);
     auto before = std::chrono::high_resolution_clock::now();
     readElementTree(&elementTree->rootNode, glm::mat4(1.0f));
+    updateMeshInstances();
     nodesWithChildrenAlreadyVisited.clear();
     for (const auto &mesh: meshes) {
         mesh.second->writeGraphicsData();
@@ -103,6 +89,19 @@ void MeshCollection::rereadElementTree() {
     auto after = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
     std::cout << "rereadElementTree() in " << duration / 1000.0f << "ms" << std::endl;
+}
+
+void MeshCollection::updateMeshInstances() {
+    for (const auto &pair : newMeshInstances) {
+        auto meshKey = pair.first;
+        auto newVector = pair.second;
+        auto mesh = meshes[meshKey];
+        if (mesh->instances != newVector) {
+            mesh->instances = newVector;
+            mesh->instancesHaveChanged = true;
+        }
+    }
+    newMeshInstances.clear();
 }
 
 etree::Node *MeshCollection::getElementById(unsigned int id) {

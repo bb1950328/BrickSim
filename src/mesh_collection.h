@@ -31,6 +31,8 @@ private:
     std::vector<etree::Node*> elementsSortedById;
     etree::ElementTree *elementTree;
     std::set<etree::Node*> nodesWithChildrenAlreadyVisited;
-    std::map<std::pair<etree::MeshNode*, bool>, size_t> meshInstanceIndices;
+    std::map<std::pair<void *, bool>, std::vector<MeshInstance>> newMeshInstances;
+
+    void updateMeshInstances();
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

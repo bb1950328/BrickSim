@@ -46,6 +46,8 @@ namespace config {
     const Key COLOR_MPD_SUBFILE_INSTANCE{"colorMpdSubfileInstance"};
     const Key COLOR_OFFICAL_PART{"colorOfficalPart"};
     const Key COLOR_UNOFFICAL_PART{"colorUnofficalPart"};
+    const Key THUMBNAIL_SIZE{"thumbnailSize"};
+    const Key THUMBNAIL_CACHE_SIZE_BYTES{"thumbnailCacheSizeBytes"};
 }
 
 #endif //BRICKSIM_CONFIG_H

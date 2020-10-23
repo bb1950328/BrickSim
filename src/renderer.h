@@ -33,7 +33,6 @@ class Renderer {
 public:
     Shader *triangleShader;
     Shader *lineShader;
-    etree::ElementTree *elementTree;
     MeshCollection meshCollection;
 
     unsigned int windowWidth = 0;
@@ -75,17 +74,23 @@ public:
 
     bool saveImage(const std::string& path);
 
-private:
-
-    bool setupCalled = false;
-
     void createFramebuffer(unsigned int* framebufferIdLocation,
                            unsigned int* textureColorbufferIdLocation,
                            unsigned int* renderBufferObjectIdLocation);
 
+    void createFramebuffer(unsigned int *framebufferIdLocation,
+                           unsigned int *textureColorbufferIdLocation,
+                           unsigned int *renderBufferObjectIdLocation,
+                           unsigned int width,
+                           unsigned int height);
+
     static void deleteFramebuffer(unsigned int* framebufferIdLocation,
-                           unsigned int* textureColorbufferIdLocation,
-                           unsigned int* renderBufferObjectIdLocation);
+                                  unsigned int* textureColorbufferIdLocation,
+                                  unsigned int* renderBufferObjectIdLocation);
+
+private:
+
+    bool setupCalled = false;
 };
 
 #endif //BRICKSIM_RENDERER_H

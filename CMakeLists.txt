@@ -73,6 +73,8 @@ set(bricksim_sources
         #src/file_downloader.cpp
         #src/file_downloader.h
         src/git_stats.h
+        src/thumbnail_generator.cpp
+        src/thumbnail_generator.h
         )
 
 add_executable(BrickSim

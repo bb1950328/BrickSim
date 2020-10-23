@@ -14,3 +14,5 @@ msaaSamples=16
 screenHeight=1279
 screenWidth=1930
 guiScale=1.5
+thumbnailCacheSizeBytes=1048576
+thumbnailSize=48

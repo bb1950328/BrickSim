@@ -65,7 +65,7 @@ Controller *Controller::getInstance() {
     return &instance;
 }
 
-Controller::Controller() : renderer(&elementTree) {
+Controller::Controller() : renderer(&elementTree), thumbnailGenerator(&renderer) {
 
 }
 

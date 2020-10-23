@@ -138,11 +138,12 @@ void Gui::loop() {
     static bool show3dWindow = true;
     static bool showElementTreeWindow = true;
     static bool showElementPropertiesWindow = true;
-    static bool showSettingsWindow = true;
+    static bool showSettingsWindow = false;
     static bool showDemoWindow = true;
     static bool showDebugWindow = true;
     static bool showAboutWindow = false;
     static bool showSysInfoWindow = false;
+    static bool showPartPaletteWindow = true;
     static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.6f, 1.0f);
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -189,6 +190,7 @@ void Gui::loop() {
             ImGui::MenuItem("3D View", "ALT+V", &show3dWindow);
             ImGui::MenuItem("Element Tree", "ALT+T", &showElementTreeWindow);
             ImGui::MenuItem("Element Properties", "ALT+P", &showElementPropertiesWindow);
+            ImGui::MenuItem("Part Palette", "ALT+N", &showPartPaletteWindow);
             ImGui::MenuItem("Settings", "ALT+S", &showSettingsWindow);
             ImGui::Separator();
             ImGui::MenuItem("Demo", "", &showDemoWindow);
@@ -430,6 +432,16 @@ void Gui::loop() {
         } else {
             ImGui::Text("Multi-select currently not supported here");
         }
+        ImGui::End();
+    }
+
+    if (showPartPaletteWindow) {
+        ImGui::Begin("Part palette", &showPartPaletteWindow);
+        float availWidth = ImGui::GetContentRegionAvailWidth();
+        int thumbSize= controller->thumbnailGenerator.thumbnailSize;
+        int columns = std::floor(availWidth / thumbSize);
+        auto texId = (ImTextureID) controller->thumbnailGenerator.getThumbnail(LdrFileRepository::get_file("3001.dat"));
+        ImGui::ImageButton(texId, ImVec2(thumbSize, thumbSize), ImVec2(0, 1), ImVec2(1, 0), 0);
         ImGui::End();
     }
 

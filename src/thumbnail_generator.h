@@ -13,18 +13,19 @@
 
 class ThumbnailGenerator {
 private:
-    std::map<const LdrFile*, GLbyte*> images;
+    std::map<const LdrFile*, unsigned int> images;
+    std::map<const Mesh*, std::vector<float>> meshDimensions;
     std::list<const LdrFile*> lastAccessed;
     MeshCollection* meshCollection;
     Renderer* renderer;
     glm::mat4 projection;
-    int thumbnailSize;
     int maxCachedThumbnails;
-
     unsigned int framebuffer, textureBuffer, renderBuffer;
+    int framebufferSize = 0;
     void discardOldestImages(int reserve_space_for=1);
 public:
-    GLbyte *getThumbnail(const LdrFile* ldrFile);
+    int thumbnailSize;
+    unsigned int getThumbnail(const LdrFile* ldrFile);
     void cleanup();
 
     ThumbnailGenerator(Renderer *renderer);

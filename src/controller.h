@@ -8,6 +8,7 @@
 #include "element_tree.h"
 #include "renderer.h"
 #include "gui.h"
+#include "thumbnail_generator.h"
 
 class Controller {
 public:
@@ -16,6 +17,7 @@ public:
     bool elementTreeChanged = false;
     Renderer renderer;
     Gui gui;
+    ThumbnailGenerator thumbnailGenerator;
     unsigned int view3dWidth = 800;
     unsigned int view3dHeight = 600;
     unsigned int windowWidth = config::get_long(config::SCREEN_WIDTH);

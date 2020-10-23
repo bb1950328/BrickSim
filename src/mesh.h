@@ -90,12 +90,12 @@ public:
     void deallocateGraphics();
     virtual ~Mesh();
 
-private:
     //this is the conversion from the ldraw coordinate system to the OpenGL coordinate system
     glm::mat4 globalModel = glm::scale(glm::rotate(glm::mat4(1.0f),//base
-                        glm::radians(180.0f),//rotate 180° around
-                        glm::vec3(1.0f, 0.0f, 0.0f)),// x axis
-            glm::vec3(constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL)); // and make 100 times smaller
+                                                   glm::radians(180.0f),//rotate 180° around
+                                                   glm::vec3(1.0f, 0.0f, 0.0f)),// x axis
+                                       glm::vec3(constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL)); // and make 100 times smaller
+private:
 
     unsigned int lineVAO, lineVertexVBO, lineInstanceVBO, lineEBO;
 

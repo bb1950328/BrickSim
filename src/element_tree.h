@@ -73,8 +73,14 @@ namespace etree {
         MeshNode(LdrColor *color, Node *parent);
         virtual void* getMeshIdentifier() = 0;
         virtual void addToMesh(Mesh *mesh, bool windingInversed) = 0;
-        LdrColor *color;
         [[nodiscard]] virtual bool isColorUserEditable() const;
+
+        [[nodiscard]] LdrColor *getColor() const;
+
+        void setColor(LdrColor *newColor);
+
+    private:
+        LdrColor *color;
     };
 
     class LdrNode : public MeshNode {

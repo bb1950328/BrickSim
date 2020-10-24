@@ -120,7 +120,7 @@ namespace etree {
                                                            ldrFile(ldrFile) {
         type = nodeType;
         this->parent = parent;
-        this->color = ldrColor;
+        this->setColor(ldrColor);
         displayName = ldrFile->getDescription();
         for (const auto &element: ldrFile->elements) {
             if (element->getType() == 1) {
@@ -259,6 +259,17 @@ namespace etree {
         type = TYPE_MESH;
     }
 
+    LdrColor *MeshNode::getColor() const {
+        if (color->code == LdrColor::MAIN_COLOR_CODE && (parent->getType()&TYPE_MESH)>0) {
+            return dynamic_cast<MeshNode*>(parent)->getColor();
+        } else {
+            return color;
+        }
+    }
+
+    void MeshNode::setColor(LdrColor *newColor) {
+        MeshNode::color = newColor;
+    }
 
     const char *getDisplayNameOfType(const NodeType &type) {
         switch (type) {

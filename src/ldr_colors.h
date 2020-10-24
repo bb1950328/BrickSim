@@ -45,6 +45,7 @@ public:
     unsigned char luminance = 0;
     Finish finish = NONE;
     LdrColorMaterial *material = nullptr;
+    const static int MAIN_COLOR_CODE = 16;
 };
 
 class LdrInstanceDummyColor : public LdrColor {

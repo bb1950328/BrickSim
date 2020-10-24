@@ -17,7 +17,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <atomic>
-#include <thread>
+#include <GLFW/glfw3.h>
 
 void Gui::setup() {
     if (!setupDone) {
@@ -65,6 +65,7 @@ void drawColorGroup(Controller *controller,
                     const std::pair<const std::string, std::vector<const LdrColor *>> &colorGroup) {
     //todo make palette look prettier
     //todo show only colors which are available for this part (get the data somewhere)
+    //todo show entry for color 16
     if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
         int i = 0;
         for (const auto *color : colorGroup.second) {
@@ -74,8 +75,8 @@ void drawColorGroup(Controller *controller,
             ImGui::PushID(color->code);
             const ImColor imColor = ImColor(color->value.red, color->value.green, color->value.blue);
             ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)imColor);
-            if (ImGui::Button(ldrNode->color->code == color->code ? "#" : "", buttonSize)) {
-                ldrNode->color = LdrColorRepository::getInstance()->get_color(color->code);
+            if (ImGui::Button(ldrNode->getColor()->code == color->code ? "#" : "", buttonSize)) {
+                ldrNode->setColor(LdrColorRepository::getInstance()->get_color(color->code));
                 controller->elementTreeChanged = true;
             }
             ImGui::PopStyleColor(/*3*/1);

@@ -41,12 +41,12 @@ void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentA
                 const auto instanceNode = dynamic_cast<etree::MpdSubfileInstanceNode *>(node);
                 meshNode = instanceNode->mpdSubfileNode;
                 absoluteTransformation = instanceNode->getRelativeTransformation()*parentAbsoluteTransformation;
-                color = instanceNode->color;
+                color = instanceNode->getColor();
                 nodeToParseChildren = meshNode;
             } else {
                 meshNode = dynamic_cast<etree::MeshNode *>(node);
                 absoluteTransformation = node->getRelativeTransformation() * parentAbsoluteTransformation;
-                color = meshNode->color;
+                color = meshNode->getColor();
             }
             void *identifier = meshNode->getMeshIdentifier();
             bool windingInversed = util::doesTransformationInverseWindingOrder(absoluteTransformation);

@@ -103,8 +103,6 @@ private:
 
     static void setInstanceColor(TriangleInstance *instance, const LdrColor *color) ;
 
-    void bindBuffers(LdrColor *color);
-
     TriangleInstance * generateInstancesArray(const LdrColor *color);
 
     void initializeLineGraphics();

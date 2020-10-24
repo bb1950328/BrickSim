@@ -7,7 +7,6 @@
 #include <GLFW/glfw3.h>
 
 #include "mesh.h"
-#include "helpers/camera.h"
 #include "config.h"
 #include "ldr_colors.h"
 #include <glm/gtx/normal.hpp>
@@ -219,7 +218,7 @@ void Mesh::initializeTriangleGraphics() {
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(TriangleVertex, normal));
 
         //instanceVbo
-        auto instancesArray = generateInstancesArray(color);
+        TriangleInstance *instancesArray = generateInstancesArray(color);
 
         glGenBuffers(1, &instanceVbo);
         glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
@@ -326,14 +325,9 @@ void Mesh::drawTriangleGraphics() {
     for (const auto &entry: triangleIndices) {
         LdrColor *color = entry.first;
         std::vector<unsigned int> *indices = entry.second;
-        bindBuffers(color);
+        glBindVertexArray(VAOs[color]);
         glDrawElementsInstanced(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, nullptr, instances.size());
     }
-}
-
-void Mesh::bindBuffers(LdrColor *color) {
-    unsigned int vao = VAOs[color];
-    glBindVertexArray(vao);
 }
 
 void Mesh::drawLineGraphics() {

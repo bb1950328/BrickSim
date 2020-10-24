@@ -13,8 +13,9 @@ int Controller::run() {
     }
     renderer.window = window;
     gui.window = window;
-    openFile("~/Downloads/arocs.mpd");
+    //openFile("~/Downloads/arocs.mpd");
     //openFile("test_files/mpd_test.mpd");
+    openFile("3001.dat");
     gui.setup();
     bool partsLibraryFound = false;
     while (!partsLibraryFound && !doesUserWantToExit()) {
@@ -71,7 +72,7 @@ Controller::Controller() : renderer(&elementTree), thumbnailGenerator(&renderer)
 
 bool Controller::initializeGL() {
     glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_SAMPLES, (int)(config::get_long(config::MSAA_SAMPLES)));
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);

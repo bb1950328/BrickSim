@@ -107,6 +107,7 @@ bool Renderer::loop() {
         triangleShader->setMat4("projectionView", projectionView);
         triangleShader->setInt("drawSelection", 0);
         meshCollection.drawTriangleGraphics();
+
         lineShader->use();
         lineShader->setMat4("projectionView", projectionView);
         meshCollection.drawLineGraphics();

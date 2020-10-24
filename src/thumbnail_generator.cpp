@@ -2,6 +2,7 @@
 // Created by bab21 on 23.10.20.
 //
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 #include "thumbnail_generator.h"
 #include "config.h"

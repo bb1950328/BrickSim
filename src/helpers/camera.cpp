@@ -1,7 +1,7 @@
 //
 // Created by bb1950328 on 24.09.2020.
 //
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include <iostream>
 #include <glm/gtx/normal.hpp>
 #include "camera.h"

@@ -533,7 +533,7 @@ void Gui::loop() {
             ImGui::Text("Compiled on: ");
             //todo get compiler info
             ImGui::Text("With:");
-            ImGui::Text("%s", GLM_VERSION_MESSAGE);
+            //ImGui::Text("%s", GLM_VERSION_MESSAGE);//todo
             if (ImGui::Button("Close")) {
                 showAboutWindow = false;
             }

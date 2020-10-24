@@ -30,24 +30,35 @@ void MeshCollection::deallocateGraphics() {
     }
 }
 
-void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation) {
+void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation, LdrColor *parentColor) {
     etree::Node* nodeToParseChildren = node;
     glm::mat4 absoluteTransformation = parentAbsoluteTransformation;
     if (node->visible) {
         if ((node->getType() & etree::TYPE_MESH) > 0) {
             etree::MeshNode *meshNode;
             LdrColor *color;
+            etree::MeshNode* nodeToGetColorFrom;
             if (node->getType()==etree::TYPE_MPD_SUBFILE_INSTANCE) {
                 const auto instanceNode = dynamic_cast<etree::MpdSubfileInstanceNode *>(node);
                 meshNode = instanceNode->mpdSubfileNode;
                 absoluteTransformation = instanceNode->getRelativeTransformation()*parentAbsoluteTransformation;
-                color = instanceNode->getColor();
+                nodeToGetColorFrom = instanceNode;
                 nodeToParseChildren = meshNode;
             } else {
                 meshNode = dynamic_cast<etree::MeshNode *>(node);
                 absoluteTransformation = node->getRelativeTransformation() * parentAbsoluteTransformation;
-                color = meshNode->getColor();
+                nodeToGetColorFrom=meshNode;
             }
+            if (nodeToGetColorFrom->getElementColor()->code==LdrColor::MAIN_COLOR_CODE && parentColor!= nullptr) {
+                color=parentColor;
+            } else {
+                color=nodeToGetColorFrom->getDisplayColor();
+            }
+
+            if (node->getType()==etree::TYPE_MPD_SUBFILE_INSTANCE) {
+                parentColor=color;
+            }
+
             void *identifier = meshNode->getMeshIdentifier();
             bool windingInversed = util::doesTransformationInverseWindingOrder(absoluteTransformation);
             auto meshesKey = std::make_pair(identifier, windingInversed);
@@ -65,7 +76,7 @@ void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentA
         }
         for (const auto &child: nodeToParseChildren->getChildren()) {
             if (child->visible) {
-                readElementTree(child, absoluteTransformation);
+                readElementTree(child, absoluteTransformation, parentColor);
             }
         }
         nodesWithChildrenAlreadyVisited.insert(nodeToParseChildren);
@@ -80,7 +91,7 @@ void MeshCollection::rereadElementTree() {
     elementsSortedById.clear();
     elementsSortedById.push_back(nullptr);
     auto before = std::chrono::high_resolution_clock::now();
-    readElementTree(&elementTree->rootNode, glm::mat4(1.0f));
+    readElementTree(&elementTree->rootNode, glm::mat4(1.0f), nullptr);
     updateMeshInstances();
     nodesWithChildrenAlreadyVisited.clear();
     for (const auto &mesh: meshes) {

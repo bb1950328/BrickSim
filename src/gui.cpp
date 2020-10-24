@@ -75,7 +75,7 @@ void drawColorGroup(Controller *controller,
             ImGui::PushID(color->code);
             const ImColor imColor = ImColor(color->value.red, color->value.green, color->value.blue);
             ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)imColor);
-            if (ImGui::Button(ldrNode->getColor()->code == color->code ? "#" : "", buttonSize)) {
+            if (ImGui::Button(ldrNode->getDisplayColor()->code == color->code ? "#" : "", buttonSize)) {
                 ldrNode->setColor(LdrColorRepository::getInstance()->get_color(color->code));
                 controller->elementTreeChanged = true;
             }
@@ -403,26 +403,40 @@ void Gui::loop() {
             if ((node->getType()&etree::NodeType::TYPE_MESH)>0) {
                 auto* meshNode = dynamic_cast<etree::MeshNode *>(node);
                 if (meshNode->isColorUserEditable()&&ImGui::TreeNodeEx("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    const auto buttonWidth = ImGui::GetFontSize() * 1.5f;
-                    const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
-                    const int columnCount = std::floor(ImGui::GetContentRegionAvailWidth() / (buttonWidth+ImGui::GetStyle().ItemSpacing.x));
-                    const auto &groupedAndSortedByHue = LdrColorRepository::getInstance()->getAllColorsGroupedAndSortedByHue();
-                    const static std::vector<std::string> fixed_pos = {"Solid", "Transparent", "Rubber"};
-                    for (const auto &colorName : fixed_pos) {
-                        const auto &colorGroup = std::make_pair(colorName, groupedAndSortedByHue.find(colorName)->second);
-                        drawColorGroup(controller, meshNode, buttonSize, columnCount, colorGroup);
-                    }
-                    for (const auto &colorGroup : groupedAndSortedByHue) {
-                        bool alreadyDrawn = false;//todo google how to vector.contains()
-                        for (const auto &groupName : fixed_pos) {
-                            if (groupName==colorGroup.first) {
-                                alreadyDrawn = true;
-                                break;
-                            }
+                    static bool isColor16, savedIsColor16;
+                    if (lastNode==node && isColor16!=savedIsColor16) {
+                        if (isColor16) {
+                            meshNode->setColor(LdrColorRepository::getInstance()->get_color(LdrColor::MAIN_COLOR_CODE));
+                        } else {
+                            meshNode->setColor(meshNode->getDisplayColor());
                         }
-
-                        if (!alreadyDrawn) {
+                    }
+                    isColor16 = savedIsColor16 = meshNode->getElementColor()->code==LdrColor::MAIN_COLOR_CODE;
+                    ImGui::Checkbox("Take color from parent element", &isColor16);
+                    if (!isColor16) {
+                        const auto buttonWidth = ImGui::GetFontSize() * 1.5f;
+                        const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
+                        const int columnCount = std::floor(
+                                ImGui::GetContentRegionAvailWidth() / (buttonWidth + ImGui::GetStyle().ItemSpacing.x));
+                        const auto &groupedAndSortedByHue = LdrColorRepository::getInstance()->getAllColorsGroupedAndSortedByHue();
+                        const static std::vector<std::string> fixed_pos = {"Solid", "Transparent", "Rubber"};
+                        for (const auto &colorName : fixed_pos) {
+                            const auto &colorGroup = std::make_pair(colorName,
+                                                                    groupedAndSortedByHue.find(colorName)->second);
                             drawColorGroup(controller, meshNode, buttonSize, columnCount, colorGroup);
+                        }
+                        for (const auto &colorGroup : groupedAndSortedByHue) {
+                            bool alreadyDrawn = false;//todo google how to vector.contains()
+                            for (const auto &groupName : fixed_pos) {
+                                if (groupName == colorGroup.first) {
+                                    alreadyDrawn = true;
+                                    break;
+                                }
+                            }
+
+                            if (!alreadyDrawn) {
+                                drawColorGroup(controller, meshNode, buttonSize, columnCount, colorGroup);
+                            }
                         }
                     }
                     ImGui::TreePop();
@@ -441,8 +455,8 @@ void Gui::loop() {
         float availWidth = ImGui::GetContentRegionAvailWidth();
         int thumbSize= controller->thumbnailGenerator.thumbnailSize;
         int columns = std::floor(availWidth / thumbSize);
-        auto texId = (ImTextureID) controller->thumbnailGenerator.getThumbnail(LdrFileRepository::get_file("3001.dat"));
-        ImGui::ImageButton(texId, ImVec2(thumbSize, thumbSize), ImVec2(0, 1), ImVec2(1, 0), 0);
+        //auto texId = (ImTextureID) controller->thumbnailGenerator.getThumbnail(LdrFileRepository::get_file("3001.dat"));
+        //ImGui::ImageButton(texId, ImVec2(thumbSize, thumbSize), ImVec2(0, 1), ImVec2(1, 0), 0);
         ImGui::End();
     }
 

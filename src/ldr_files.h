@@ -13,10 +13,9 @@ static const int MAX_LDR_FILENAME_LENGTH = 255;
 #include <glm/glm.hpp>
 #include <set>
 #include <ostream>
+#include "ldr_colors.h"
 
 class LdrFileElement;
-
-class LdrColor;
 
 enum LdrFileType {
     MODEL,

@@ -17,7 +17,8 @@ public:
 
     void deallocateGraphics();
 
-    void readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation);
+    void readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation,
+                         LdrColor *parentColor);
 
     void rereadElementTree();
 

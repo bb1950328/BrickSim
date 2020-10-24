@@ -129,16 +129,11 @@ namespace etree {
                 Node *newNode = nullptr;
                 if (subFile->metaInfo.type == MPD_SUBFILE) {
                     auto *subFileNode = findMpdNodeAndAddSubfileNode(subFile, sfElement->color, this);
-                    newNode = new MpdSubfileInstanceNode(subFileNode,
-                                                                    sfElement->color->code == 16 ? ldrColor
-                                                                                                 : sfElement->color,
-                                                         this);
+                    newNode = new MpdSubfileInstanceNode(subFileNode, sfElement->color,this);
                     childrenWithOwnNode.insert(sfElement);
                 } else if (subFile->metaInfo.type == PART) {
                     childrenWithOwnNode.insert(sfElement);
-                    LdrColor *color = sfElement->color->code == 16 ? ldrColor
-                                                                   : sfElement->color;//todo make that changes from parent are passed down
-                    newNode = new PartNode(subFile, color, this);
+                    newNode = new PartNode(subFile, sfElement->color, this);
                 }
                 if (nullptr != newNode) {
                     children.push_back(newNode);
@@ -168,7 +163,7 @@ namespace etree {
 
     void ElementTree::loadLdrFile(const std::string &filename) {
         auto *newNode = new MpdNode(LdrFileRepository::get_file(filename),
-                                    LdrColorRepository::getInstance()->get_color(1), &rootNode);
+                                    LdrColorRepository::getInstance()->get_color(2), &rootNode);
         rootNode.addChild(newNode);
     }
 
@@ -259,9 +254,9 @@ namespace etree {
         type = TYPE_MESH;
     }
 
-    LdrColor *MeshNode::getColor() const {
-        if (color->code == LdrColor::MAIN_COLOR_CODE && (parent->getType()&TYPE_MESH)>0) {
-            return dynamic_cast<MeshNode*>(parent)->getColor();
+    LdrColor *MeshNode::getDisplayColor() const {
+        if (color->code == LdrColor::MAIN_COLOR_CODE && parent!= nullptr && (parent->getType()&TYPE_MESH)>0) {
+            return dynamic_cast<MeshNode *>(parent)->getDisplayColor();
         } else {
             return color;
         }
@@ -269,6 +264,10 @@ namespace etree {
 
     void MeshNode::setColor(LdrColor *newColor) {
         MeshNode::color = newColor;
+    }
+
+    LdrColor *MeshNode::getElementColor() const {
+        return color;
     }
 
     const char *getDisplayNameOfType(const NodeType &type) {

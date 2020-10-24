@@ -2,6 +2,7 @@
 // Created by bb1950328 on 20.09.20.
 //
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 

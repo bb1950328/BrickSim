@@ -21,7 +21,7 @@ jobs:
       uses: textbook/git-checkout-submodule-action@master
     
     - name: Install packages
-      run: sudo apt-get install mesa-utils freeglut3-dev libglfw3-dev libglew-dev libcurl4-openssl-dev
+      run: sudo apt-get install mesa-utils freeglut3-dev libglfw3-dev libglew-dev libcurl4-openssl-dev libglm-dev
     
     - name: Add glad includes
       run: sudo unzip -o glad.zip "include/*" -d "/usr"

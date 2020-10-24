@@ -160,10 +160,11 @@ void Mesh::printTriangles() {
 
 void Mesh::addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation) {
 
-    const glm::vec3 &color =
+    /*const glm::vec3 &color =
             lineElement.color->code == 16
             ? mainColor->edge.asGlmVector()
-            : lineElement.color->edge.asGlmVector();
+            : lineElement.color->edge.asGlmVector();*/
+    glm::vec3 color(1.0f, 0.0f, 0.0f);
     LineVertex lv1{glm::vec4(lineElement.x1, lineElement.y1, lineElement.z1, 1.0f) * transformation, color};
     LineVertex lv2{glm::vec4(lineElement.x2, lineElement.y2, lineElement.z2, 1.0f) * transformation, color};
     addLineVertex(lv1);
@@ -296,15 +297,16 @@ void Mesh::initializeLineGraphics() {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(LineVertex, color));
 
     //instanceVbo
-    auto instancesArray = std::vector<glm::mat4>(instances.size());
+    auto* instancesArray = new glm::mat4[instances.size()];
     for (int i = 0; i < instances.size(); ++i) {
         instancesArray[i] = glm::transpose(instances[i].transformation*globalModel);
     }
+    util::cout_mat4(instancesArray[0]);
 
     glGenBuffers(1, &lineInstanceVBO);
     glBindBuffer(GL_ARRAY_BUFFER, lineInstanceVBO);
     size_t instance_size = sizeof(glm::mat4);
-    glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
 
     for (int j = 0; j < 4; ++j) {
         glEnableVertexAttribArray(2 + j);
@@ -319,6 +321,8 @@ void Mesh::initializeLineGraphics() {
     glGenBuffers(1, &lineEBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * lineIndices.size(), &(lineIndices)[0], GL_STATIC_DRAW);
+
+    delete [] instancesArray;
 }
 
 void Mesh::drawTriangleGraphics() {
@@ -333,6 +337,7 @@ void Mesh::drawTriangleGraphics() {
 void Mesh::drawLineGraphics() {
     glBindVertexArray(lineVAO);
     glDrawElementsInstanced(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, instances.size());
+    //glDrawElements(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr);
 }
 
 void Mesh::deallocateGraphics() {

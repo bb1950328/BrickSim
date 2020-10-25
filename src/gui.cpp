@@ -409,14 +409,18 @@ void Gui::loop() {
                 auto* meshNode = dynamic_cast<etree::MeshNode *>(node);
                 if (meshNode->isColorUserEditable()&&ImGui::TreeNodeEx("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
                     static bool isColor16, savedIsColor16;
-                    if (lastNode==node && isColor16!=savedIsColor16) {
-                        if (isColor16) {
-                            meshNode->setColor(LdrColorRepository::getInstance()->get_color(LdrColor::MAIN_COLOR_CODE));
-                        } else {
-                            meshNode->setColor(meshNode->getDisplayColor());
-                        }
+                    if (lastNode==node) {
+                       if (isColor16!=savedIsColor16) {
+                           if (isColor16) {
+                               meshNode->setColor(LdrColorRepository::getInstance()->get_color(LdrColor::MAIN_COLOR_CODE));
+                           } else {
+                               meshNode->setColor(meshNode->getDisplayColor());
+                           }
+                           savedIsColor16 = isColor16;
+                       }
+                    } else {
+                        savedIsColor16 = isColor16 = meshNode->getElementColor()->code==LdrColor::MAIN_COLOR_CODE;
                     }
-                    isColor16 = savedIsColor16 = meshNode->getElementColor()->code==LdrColor::MAIN_COLOR_CODE;
                     ImGui::Checkbox("Take color from parent element", &isColor16);
                     if (!isColor16) {
                         const auto buttonWidth = ImGui::GetFontSize() * 1.5f;

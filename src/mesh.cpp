@@ -160,11 +160,10 @@ void Mesh::printTriangles() {
 
 void Mesh::addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation) {
 
-    /*const glm::vec3 &color =
+    const glm::vec3 &color =
             lineElement.color->code == 16
             ? mainColor->edge.asGlmVector()
-            : lineElement.color->edge.asGlmVector();*/
-    glm::vec3 color(1.0f, 0.0f, 0.0f);
+            : lineElement.color->edge.asGlmVector();
     LineVertex lv1{glm::vec4(lineElement.x1, lineElement.y1, lineElement.z1, 1.0f) * transformation, color};
     LineVertex lv2{glm::vec4(lineElement.x2, lineElement.y2, lineElement.z2, 1.0f) * transformation, color};
     addLineVertex(lv1);
@@ -269,7 +268,10 @@ void Mesh::rewriteInstanceBuffer() {
             glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
             glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
         }
-        auto instancesArray = std::vector<glm::mat4>(instances.size());
+        glm::mat4 instancesArray[instances.size()];
+        for (int i = 0; i < instances.size(); ++i) {
+            instancesArray[i] = glm::transpose(instances[i].transformation*globalModel);
+        }
         size_t instance_size = sizeof(glm::mat4);
         glBindBuffer(GL_ARRAY_BUFFER, lineInstanceVBO);
         glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
@@ -301,7 +303,6 @@ void Mesh::initializeLineGraphics() {
     for (int i = 0; i < instances.size(); ++i) {
         instancesArray[i] = glm::transpose(instances[i].transformation*globalModel);
     }
-    util::cout_mat4(instancesArray[0]);
 
     glGenBuffers(1, &lineInstanceVBO);
     glBindBuffer(GL_ARRAY_BUFFER, lineInstanceVBO);
@@ -334,7 +335,6 @@ void Mesh::drawTriangleGraphics() {
 void Mesh::drawLineGraphics() {
     glBindVertexArray(lineVAO);
     glDrawElementsInstanced(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, instances.size());
-    //glDrawElements(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr);
 }
 
 void Mesh::deallocateGraphics() {

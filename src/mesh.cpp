@@ -308,13 +308,10 @@ void Mesh::initializeLineGraphics() {
     size_t instance_size = sizeof(glm::mat4);
     glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
 
-    for (int j = 0; j < 4; ++j) {
-        glEnableVertexAttribArray(2 + j);
-        glVertexAttribPointer(2 + j, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (4 * j * sizeof(float)));
-    }
-
-    for (int i = 2; i < 6; ++i) {
-        glVertexAttribDivisor(i, 1);
+    for (int j = 2; j < 6; ++j) {
+        glEnableVertexAttribArray(j);
+        glVertexAttribPointer(j, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (4 * (j-2) * sizeof(float)));
+        glVertexAttribDivisor(j, 1);
     }
 
     //ebo

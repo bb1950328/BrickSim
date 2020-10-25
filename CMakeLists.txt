@@ -87,17 +87,11 @@ add_executable(BrickSim
 # and add the files from https://glad.dav1d.de to /usr/include and the project folder
 # windows libraries and headers installation: https://learnopengl.com/Getting-started/Creating-a-window
 
-IF(MINGW)
-    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-    # glfw source folder is sibling of BrickSim folder
-    # https://www.glfw.org/download.html -> click on "Source package"
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../glfw-3.3.2 ${CMAKE_CURRENT_SOURCE_DIR}/../glfw-3.3.2/bin)
-ELSE()
-    find_package(PkgConfig REQUIRED)
-    pkg_search_module(GLFW REQUIRED glfw3)
-ENDIF()
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+# glfw source folder is a git submodule
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw ${CMAKE_CURRENT_SOURCE_DIR}/glfw/bin)
 
 #Installation on MinGW:
 #1. download https://curl.haxx.se/download/curl-7.73.0.zip

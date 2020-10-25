@@ -95,6 +95,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw ${CMAKE_CURRENT_SOURCE_DIR}/gl
 
 # unzip glew-2.1.0.zip to /glew
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glew/build/cmake)
+add_compile_definitions(GLEW_STATIC)
 
 #Installation on MinGW:
 #1. download https://curl.haxx.se/download/curl-7.73.0.zip

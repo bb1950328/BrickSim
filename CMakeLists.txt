@@ -95,7 +95,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw ${CMAKE_CURRENT_SOURCE_DIR}/gl
 
 # unzip glew-2.1.0.zip to /glew
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glew/build/cmake)
-add_compile_definitions(GLEW_STATIC)
 
 #Installation on MinGW:
 #1. download https://curl.haxx.se/download/curl-7.73.0.zip
@@ -107,10 +106,10 @@ find_package(CURL REQUIRED)
 
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
-#find_package(GLEW REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS} imgui)
 
 target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glew glfw)
+target_compile_definitions(glew PUBLIC GLEW_STATIC)
 
 target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES})
 if (UNIX)#todo check if this is needed

@@ -19,10 +19,15 @@
 #include <atomic>
 #include <GLFW/glfw3.h>
 
+#define XSTR(x) STR(x)
+#define STR(x) #x
+
 void Gui::setup() {
     if (!setupDone) {
         GLFWmonitor *monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
         float xscale, yscale;
+#pragma message "glfw version major: " XSTR(GLFW_VERSION_MAJOR)
+#pragma message "glfw version minor: " XSTR(GLFW_VERSION_MINOR)
         glfwGetMonitorContentScale(monitor, &xscale, &yscale);
         std::cout << "xscale: " << xscale << "\tyscale: " << yscale << std::endl;
         // Setup Dear ImGui context

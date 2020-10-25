@@ -46,6 +46,7 @@ public:
     Finish finish = NONE;
     LdrColorMaterial *material = nullptr;
     const static int MAIN_COLOR_CODE = 16;
+    const static int LINE_COLOR_CODE = 24;
 };
 
 class LdrInstanceDummyColor : public LdrColor {

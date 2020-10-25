@@ -3,6 +3,7 @@
 //
 
 #define GLM_ENABLE_EXPERIMENTAL
+
 #include <algorithm>
 #include <iostream>
 #include <filesystem>
@@ -10,8 +11,11 @@
 #include "util.h"
 
 #ifdef _WIN32
+
 #include <windows.h>
+
 #endif
+
 #include <stdlib.h>
 #include <GL/gl.h>
 
@@ -72,10 +76,10 @@ namespace util {
         std::cout << "|" << glm::to_string(mat[1]) << "|\n";
         std::cout << "|" << glm::to_string(mat[2]) << "|\n";
         std::cout << "⌊" << glm::to_string(mat[3]) << "⌋\n";*/
-        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][0], mat[0][1], mat[0][2] ,mat[0][3]);
-        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[1][0], mat[1][1], mat[1][2] ,mat[1][3]);
-        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[2][0], mat[2][1], mat[2][2] ,mat[2][3]);
-        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[3][0], mat[3][1], mat[3][2] ,mat[3][3]);
+        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
+        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
+        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
+        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
     }
 
     void replaceAll(std::string &str, const std::string &from, const std::string &to) {
@@ -149,7 +153,7 @@ namespace util {
         return a / gcd(a, b) * b;//https://stackoverflow.com/a/3154503/8733066
     }
 
-    void open_default_browser(const std::string& link) {
+    void open_default_browser(const std::string &link) {
 #ifdef _WIN32
         ShellExecute(nullptr, "open", link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);//todo testing
 #endif
@@ -164,16 +168,17 @@ namespace util {
 #endif
     }
 
-    RGBcolor::RGBcolor(const std::string& htmlCode){
+    RGBcolor::RGBcolor(const std::string &htmlCode) {
         std::sscanf(htmlCode.c_str(), "#%2hx%2hx%2hx", &red, &green, &blue);
     }
+
     glm::vec3 triangleCentroid(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3) {
-        return (p1+p2+p3)/3.0f;//todo check if this is mathematically correct
+        return (p1 + p2 + p3) / 3.0f;//todo check if this is mathematically correct
     }
 
     glm::vec3
     quadrilateralCentroid(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3, const glm::vec3 &p4) {
-        return (p1+p2+p3+p4)/4.0f;//todo check if this is mathematically correct
+        return (p1 + p2 + p3 + p4) / 4.0f;//todo check if this is mathematically correct
     }
 
     bool doesTransformationInverseWindingOrder(const glm::mat4 &transformation) {
@@ -181,36 +186,48 @@ namespace util {
         glm::vec3 vec2 = transformation[1];
         glm::vec3 vec3 = transformation[2];
         glm::vec3 cross = glm::cross(vec1, vec2);
-        return glm::dot(cross, vec3)<0.0f;
+        return glm::dot(cross, vec3) < 0.0f;
     }
 
     glm::vec3 convertIntToColorVec3(unsigned int value) {
-        unsigned char bluePart = value&0xffu;//blue first is intended
+        unsigned char bluePart = value & 0xffu;//blue first is intended
         value >>= 8u;
-        unsigned char greenPart = value&0xffu;
+        unsigned char greenPart = value & 0xffu;
         value >>= 8u;
-        unsigned char redPart = value&0xffu;
-        return glm::vec3(redPart/255.0f, greenPart/255.0f, bluePart/255.0f);
+        unsigned char redPart = value & 0xffu;
+        return glm::vec3(redPart / 255.0f, greenPart / 255.0f, bluePart / 255.0f);
     }
 
     unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue) {
-        unsigned int result = ((unsigned int)red) << 16u | ((unsigned int)green) << 8u | blue;
+        unsigned int result = ((unsigned int) red) << 16u | ((unsigned int) green) << 8u | blue;
         return result;
     }
 
     std::vector<std::string> getSystemInfo() {
         std::vector<std::string> result;
-        const GLubyte* vendor = glGetString(GL_VENDOR);
-        const GLubyte* renderer = glGetString(GL_RENDERER);
-        result.push_back(std::string("sizeof(void*):\t")+std::to_string(sizeof(void *))+" Bytes or "+std::to_string(sizeof(void *)*8)+" Bits");
-        result.push_back(std::string("sizeof(char):\t")+std::to_string(sizeof(char))+" Bytes or "+std::to_string(sizeof(char)*8)+" Bits");
-        result.push_back(std::string("sizeof(int):\t")+std::to_string(sizeof(int))+" Bytes or "+std::to_string(sizeof(int)*8)+" Bits");
-        result.push_back(std::string("sizeof(long):\t")+std::to_string(sizeof(long))+" Bytes or "+std::to_string(sizeof(long)*8)+" Bits");
-        result.push_back(std::string("sizeof(float):\t")+std::to_string(sizeof(float))+" Bytes or "+std::to_string(sizeof(float)*8)+" Bits");
-        result.push_back(std::string("sizeof(double):\t")+std::to_string(sizeof(double))+" Bytes or "+std::to_string(sizeof(double)*8)+" Bits");
-        result.push_back(std::string("GPU Vendor:\t")+std::string(reinterpret_cast<const char *>(vendor)));
-        result.push_back(std::string("GPU Renderer:\t")+std::string(reinterpret_cast<const char *>(renderer)));
+        const GLubyte *vendor = glGetString(GL_VENDOR);
+        const GLubyte *renderer = glGetString(GL_RENDERER);
+        result.push_back(std::string("sizeof(void*):\t") + std::to_string(sizeof(void *)) + " Bytes or " + std::to_string(sizeof(void *) * 8) + " Bits");
+        result.push_back(std::string("sizeof(char):\t") + std::to_string(sizeof(char)) + " Bytes or " + std::to_string(sizeof(char) * 8) + " Bits");
+        result.push_back(std::string("sizeof(int):\t") + std::to_string(sizeof(int)) + " Bytes or " + std::to_string(sizeof(int) * 8) + " Bits");
+        result.push_back(std::string("sizeof(long):\t") + std::to_string(sizeof(long)) + " Bytes or " + std::to_string(sizeof(long) * 8) + " Bits");
+        result.push_back(std::string("sizeof(float):\t") + std::to_string(sizeof(float)) + " Bytes or " + std::to_string(sizeof(float) * 8) + " Bits");
+        result.push_back(std::string("sizeof(double):\t") + std::to_string(sizeof(double)) + " Bytes or " + std::to_string(sizeof(double) * 8) + " Bits");
+        result.push_back(std::string("GPU Vendor:\t") + std::string(reinterpret_cast<const char *>(vendor)));
+        result.push_back(std::string("GPU Renderer:\t") + std::string(reinterpret_cast<const char *>(renderer)));
         return result;
+    }
+
+    float vector_sum(glm::vec2 vector) {
+        return vector.x + vector.y;
+    }
+
+    float vector_sum(glm::vec3 vector) {
+        return vector.x + vector.y + vector.z;
+    }
+
+    float vector_sum(glm::vec4 vector) {
+        return vector.x + vector.y + vector.z + vector.w;
     }
 
     std::string RGBcolor::asHtmlCode() const {
@@ -221,12 +238,13 @@ namespace util {
     }
 
     RGBcolor::RGBcolor(glm::vec3 vector) {
-        red = vector.x*255;
-        green = vector.y*255;
-        blue = vector.z*255;
+        red = vector.x * 255;
+        green = vector.y * 255;
+        blue = vector.z * 255;
     }
+
     glm::vec3 RGBcolor::asGlmVector() const {
-        return glm::vec3(red/255.0f, green/255.0f, blue/255.0f);
+        return glm::vec3(red / 255.0f, green / 255.0f, blue / 255.0f);
     }
 
     RGBcolor::RGBcolor(HSVcolor hsv) {
@@ -235,44 +253,44 @@ namespace util {
             green = hsv.value;
             blue = hsv.value;
         } else {
-            float h = hsv.hue/255.0f;
-            float s = hsv.saturation/255.0f;
-            float v = hsv.value/255.0f;
-            auto i = (int)std::floor(h*6);
-            auto f = h*6 - i;
-            auto p = v*(1.0f-s);
-            auto q = v*(1.0f-s*f);
-            auto t = v*(1.0f-s*(1.0f-f));
-            switch (i%6) {
+            float h = hsv.hue / 255.0f;
+            float s = hsv.saturation / 255.0f;
+            float v = hsv.value / 255.0f;
+            auto i = (int) std::floor(h * 6);
+            auto f = h * 6 - i;
+            auto p = v * (1.0f - s);
+            auto q = v * (1.0f - s * f);
+            auto t = v * (1.0f - s * (1.0f - f));
+            switch (i % 6) {
                 case 0:
-                    red = v*255;
-                    green = t*255;
-                    blue = p*255;
+                    red = v * 255;
+                    green = t * 255;
+                    blue = p * 255;
                     break;
                 case 1:
-                    red = q*255;
-                    green = v*255;
-                    blue = p*255;
+                    red = q * 255;
+                    green = v * 255;
+                    blue = p * 255;
                     break;
                 case 2:
-                    red = p*255;
-                    green = v*255;
-                    blue = t*255;
+                    red = p * 255;
+                    green = v * 255;
+                    blue = t * 255;
                     break;
                 case 3:
-                    red = p*255;
-                    green = q*255;
-                    blue = v*255;
+                    red = p * 255;
+                    green = q * 255;
+                    blue = v * 255;
                     break;
                 case 4:
-                    red = t*255;
-                    green = p*255;
-                    blue = v*255;
+                    red = t * 255;
+                    green = p * 255;
+                    blue = v * 255;
                     break;
                 case 5:
-                    red = v*255;
-                    green = p*255;
-                    blue = q*255;
+                    red = v * 255;
+                    green = p * 255;
+                    blue = q * 255;
                     break;
                 default:
                     break;//shouldn't get here
@@ -285,34 +303,34 @@ namespace util {
     }
 
     HSVcolor::HSVcolor(glm::vec3 vector) {
-        hue = vector.x*255;
-        saturation = vector.y*255;
-        value = vector.z*255;
+        hue = vector.x * 255;
+        saturation = vector.y * 255;
+        value = vector.z * 255;
     }
 
     glm::vec3 HSVcolor::asGlmVector() const {
-        return glm::vec3(hue/255.0f, saturation/255.0f, value/255.0f);
+        return glm::vec3(hue / 255.0f, saturation / 255.0f, value / 255.0f);
     }
 
     HSVcolor::HSVcolor(RGBcolor rgb) {
         auto maxc = std::max(std::max(rgb.red, rgb.green), rgb.blue);
         auto minc = std::min(std::min(rgb.red, rgb.green), rgb.blue);
         value = maxc;
-        if (maxc!=minc) {
+        if (maxc != minc) {
             const auto maxmindiff = maxc - minc;
             saturation = maxmindiff * 1.0f / maxc;
-            auto rc = (maxc-rgb.red) * 1.0f / maxmindiff;
-            auto gc = (maxc-rgb.green) * 1.0f / maxmindiff;
-            auto bc = (maxc-rgb.blue) * 1.0f / maxmindiff;
+            auto rc = (maxc - rgb.red) * 1.0f / maxmindiff;
+            auto gc = (maxc - rgb.green) * 1.0f / maxmindiff;
+            auto bc = (maxc - rgb.blue) * 1.0f / maxmindiff;
             float h;
             if (rgb.red == maxc) {
-                h = bc-gc;
+                h = bc - gc;
             } else if (rgb.green == maxc) {
-                h = 2.0f+rc-bc;
+                h = 2.0f + rc - bc;
             } else {
-                h = 4.0f+gc-rc;
+                h = 4.0f + gc - rc;
             }
-            hue = (((h/255/6.0f) - (int)(h/255/6.0f)) * 255.0f);
+            hue = (((h / 255 / 6.0f) - (int) (h / 255 / 6.0f)) * 255.0f);
         }
     }
 }

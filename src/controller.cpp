@@ -13,9 +13,9 @@ int Controller::run() {
     }
     renderer.window = window;
     gui.window = window;
-    openFile("~/Downloads/arocs.mpd");
+    //openFile("~/Downloads/arocs.mpd");
     //openFile("test_files/mpd_test.mpd");
-    //openFile("3001.dat");
+    openFile("3001.dat");
     gui.setup();
     bool partsLibraryFound = false;
     while (!partsLibraryFound && !doesUserWantToExit()) {

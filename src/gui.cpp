@@ -70,7 +70,6 @@ void drawColorGroup(Controller *controller,
                     const std::pair<const std::string, std::vector<const LdrColor *>> &colorGroup) {
     //todo make palette look prettier
     //todo show only colors which are available for this part (get the data somewhere)
-    //todo show entry for color 16
     if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
         int i = 0;
         for (const auto *color : colorGroup.second) {

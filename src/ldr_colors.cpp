@@ -141,8 +141,8 @@ std::map<std::string, std::vector<const LdrColor *>> LdrColorRepository::getAllC
     std::map<std::string, std::vector<const LdrColor *>> result;
     for (const auto &colorPair : colors) {
         if (colorPair.first != LdrColorRepository::instDummyColor.code
-            && colorPair.first != 16
-            && colorPair.first != 24) {
+            && colorPair.first != LdrColor::MAIN_COLOR_CODE
+            && colorPair.first != LdrColor::LINE_COLOR_CODE) {
             result[colorPair.second.getGroupDisplayName()].push_back(&colorPair.second);
         }
     }

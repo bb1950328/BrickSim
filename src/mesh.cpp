@@ -35,7 +35,7 @@ void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation=glm::mat4(1.
 }
 
 void Mesh::addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted) {
-    LdrColor *color = triangleElement.color->code == 16 ? mainColor : triangleElement.color;
+    LdrColor *color = triangleElement.color->code == LdrColor::MAIN_COLOR_CODE ? mainColor : triangleElement.color;
     auto *verticesList = getVerticesList(color);
     auto *indicesList = getIndicesList(color);
     auto p1 = glm::vec3(triangleElement.x1, triangleElement.y1, triangleElement.z1);
@@ -72,7 +72,7 @@ void Mesh::addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElemen
 void
 Mesh::addLdrSubfileReference(LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation, bool bfcInverted) {
     auto sub_transformation = sfElement->getTransformationMatrix();
-    LdrColor *color = sfElement->color->code == 16 ? mainColor : sfElement->color;
+    LdrColor *color = sfElement->color->code == LdrColor::MAIN_COLOR_CODE ? mainColor : sfElement->color;
     addLdrFile(*sfElement->getFile(), sub_transformation * transformation, color, sfElement->bfcInverted^bfcInverted);
 }
 
@@ -81,7 +81,7 @@ void Mesh::addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilat
     auto p2 = glm::vec3(quadrilateral.x2, quadrilateral.y2, quadrilateral.z2);
     auto p3 = glm::vec3(quadrilateral.x3, quadrilateral.y3, quadrilateral.z3);
     auto p4 = glm::vec3(quadrilateral.x4, quadrilateral.y4, quadrilateral.z4);
-    LdrColor *color = quadrilateral.color->code == 16 ? mainColor : quadrilateral.color;
+    LdrColor *color = quadrilateral.color->code == LdrColor::MAIN_COLOR_CODE ? mainColor : quadrilateral.color;
     auto normal = glm::triangleNormal(p1, p2, p3);
     auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f) * transformation);
 
@@ -159,11 +159,14 @@ void Mesh::printTriangles() {
 }
 
 void Mesh::addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation) {
-
-    const glm::vec3 &color =
-            lineElement.color->code == 16
-            ? mainColor->edge.asGlmVector()
-            : lineElement.color->edge.asGlmVector();
+    glm::vec3 color;
+    if (lineElement.color->code == LdrColor::MAIN_COLOR_CODE) {
+        color = mainColor->edge.asGlmVector();
+    } else if (lineElement.color->code == LdrColor::LINE_COLOR_CODE) {
+        color = glm::vec3(1-util::vector_sum(mainColor->value.asGlmVector())/3);//todo look up specification
+    } else {
+        color = lineElement.color->edge.asGlmVector();
+    }
     LineVertex lv1{glm::vec4(lineElement.x1, lineElement.y1, lineElement.z1, 1.0f) * transformation, color};
     LineVertex lv2{glm::vec4(lineElement.x2, lineElement.y2, lineElement.z2, 1.0f) * transformation, color};
     addLineVertex(lv1);
@@ -173,7 +176,6 @@ void Mesh::addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4
 void Mesh::addLineVertex(const LineVertex &vertex) {
     for (int i = lineVertices.size(); i > lineVertices.size() - 12; --i) {
         if (vertex.position == lineVertices[i].position && vertex.color == lineVertices[i].color) {
-            //std::cout << lineVertices.size()-i << "\n";
             lineIndices.push_back(i);
             return;
         }

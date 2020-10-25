@@ -1,4 +1,4 @@
-name: CMake
+name: CMake Linux Build
 
 on: [push]
 
@@ -73,5 +73,5 @@ jobs:
     - name: Upload Binary
       uses: actions/upload-artifact@v2
       with:
-        name: BrickSim
+        name: BrickSimLinux
         path: ${{runner.workspace}}/build/BrickSim

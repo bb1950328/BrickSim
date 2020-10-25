@@ -93,6 +93,9 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 # glfw source folder is a git submodule
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw ${CMAKE_CURRENT_SOURCE_DIR}/glfw/bin)
 
+# unzip glew-2.1.0.zip to /glew
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glew/build/cmake)
+
 #Installation on MinGW:
 #1. download https://curl.haxx.se/download/curl-7.73.0.zip
 #2. unzip curl-7.73.0.zip and execute 'mingw32-make mingw32' inside the folder.
@@ -103,10 +106,10 @@ find_package(CURL REQUIRED)
 
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} imgui)
+#find_package(GLEW REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS} imgui)
 
-target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glfw)
-include_directories(${GLFW_INCLUDE_DIRS})
+target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glew glfw)
 
 target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES})
 if (UNIX)#todo check if this is needed

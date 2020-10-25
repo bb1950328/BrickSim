@@ -285,9 +285,9 @@ void Gui::loop() {
                     if (!leftMouseDragging) {
                         auto relCursorPosX = ImGui::GetMousePos().x - ImGui::GetWindowPos().x - ImGui::GetWindowContentRegionMin().x;
                         auto relCursorPosY = ImGui::GetMousePos().y - ImGui::GetWindowPos().y - ImGui::GetWindowContentRegionMin().y;
-                        std::cout << "relCursorPos: " << relCursorPosX << ", " << relCursorPosY << std::endl;
-                        std::cout << "GetWindowPos: " << ImGui::GetWindowPos().x << ", " << ImGui::GetWindowPos().y << std::endl;
-                        std::cout << "GetMousePos: " << ImGui::GetMousePos().x << ", " << ImGui::GetMousePos().y << std::endl << std::endl;
+                        //std::cout << "relCursorPos: " << relCursorPosX << ", " << relCursorPosY << std::endl;
+                        //std::cout << "GetWindowPos: " << ImGui::GetWindowPos().x << ", " << ImGui::GetWindowPos().y << std::endl;
+                        //std::cout << "GetMousePos: " << ImGui::GetMousePos().x << ", " << ImGui::GetMousePos().y << std::endl << std::endl;
                         const auto elementIdUnderMouse = controller->renderer.getSelectionPixel(relCursorPosX, relCursorPosY);
                         if (elementIdUnderMouse == 0) {
                             controller->nodeSelectNone();
@@ -301,7 +301,7 @@ void Gui::loop() {
                                 } else {
                                     controller->nodeSelectSet(clickedNode);
                                 }
-                                std::cout << clickedNode->displayName << std::endl;
+                                //std::cout << clickedNode->displayName << std::endl;
                             }
                         }
                     }

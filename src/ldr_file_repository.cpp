@@ -27,7 +27,6 @@ LdrFile *LdrFileRepository::get_file(const std::string &filename) {
         typeNamePair = resolve_file(filename);
         file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
         while (util::starts_with(util::trim(file->metaInfo.title), "~Moved to ")) {
-            std::cout << filename << file->metaInfo.title << std::endl;
             typeNamePair = resolve_file(util::trim(file->metaInfo.title).substr(10)+".dat");
             file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
         }

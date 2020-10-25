@@ -48,7 +48,6 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
             if (util::starts_with(line, "0 FILE")) {
                 if (!firstFile) {
                     currentSubFileName = util::trim(line.substr(7));
-                    std::cout << currentSubFileName << std::endl;
                 } else {
                     firstFile = false;
                 }

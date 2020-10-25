@@ -74,4 +74,5 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: BrickSimLinux
+        # todo include config.txt and README.md
         path: ${{runner.workspace}}/build/BrickSim

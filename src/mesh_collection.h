@@ -23,8 +23,8 @@ public:
     void rereadElementTree();
 
     void drawTriangleGraphics() const;
-
     void drawLineGraphics() const;
+    void drawOptionalLineGraphics() const;
 
     etree::Node* getElementById(unsigned int id);
 

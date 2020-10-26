@@ -33,6 +33,7 @@ class Renderer {
 public:
     Shader *triangleShader;
     Shader *lineShader;
+    Shader *optionalLineShader;
     MeshCollection meshCollection;
 
     unsigned int windowWidth = 0;

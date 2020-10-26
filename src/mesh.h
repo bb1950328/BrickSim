@@ -55,6 +55,8 @@ public:
     std::vector<LineVertex> lineVertices;
     std::vector<unsigned int> lineIndices;
 
+    std::vector<LineVertex> optionalLineVertices;
+
     std::map<LdrColor *, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
 
     std::vector<MeshInstance> instances;
@@ -78,14 +80,16 @@ public:
 
     void addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted);
 
-    std::vector<unsigned int> *getIndicesList(LdrColor *color);
+    void addLdrOptionalLine(LdrColor *mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation);
 
+    std::vector<unsigned int> *getIndicesList(LdrColor *color);
     std::vector<TriangleVertex> *getVerticesList(LdrColor *color);
+
     void writeGraphicsData();
 
     void drawTriangleGraphics();
-
     void drawLineGraphics();
+    void drawOptionalLineGraphics();
 
     void deallocateGraphics();
     virtual ~Mesh();
@@ -95,9 +99,11 @@ public:
                                                    glm::radians(180.0f),//rotate 180° around
                                                    glm::vec3(1.0f, 0.0f, 0.0f)),// x axis
                                        glm::vec3(constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL)); // and make 100 times smaller
-private:
 
+private:
     unsigned int lineVAO, lineVertexVBO, lineInstanceVBO, lineEBO;
+
+    unsigned int optionalLineVAO, optionalLineVertexVBO, optionalLineInstanceVBO;
 
     bool already_initialized = false;
 
@@ -105,9 +111,11 @@ private:
 
     TriangleInstance * generateInstancesArray(const LdrColor *color);
 
+    void initializeTriangleGraphics();
+
     void initializeLineGraphics();
 
-    void initializeTriangleGraphics();
+    void initializeOptionalLineGraphics();
 
     void rewriteInstanceBuffer();
 };

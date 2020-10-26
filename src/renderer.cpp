@@ -18,6 +18,7 @@ bool Renderer::setup() {
 
     triangleShader = new Shader("src/shaders/triangle_shader.vsh", "src/shaders/triangle_shader.fsh");
     lineShader = new Shader("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");
+    optionalLineShader = new Shader("src/shaders/optional_line_shader.vsh", "src/shaders/line_shader.fsh", "src/shaders/optional_line_shader.gsh");
 
     auto before = std::chrono::high_resolution_clock::now();
 
@@ -111,6 +112,10 @@ bool Renderer::loop() {
         lineShader->use();
         lineShader->setMat4("projectionView", projectionView);
         meshCollection.drawLineGraphics();
+
+        optionalLineShader->use();
+        optionalLineShader->setMat4("projectionView", projectionView);
+        meshCollection.drawOptionalLineGraphics();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         unrenderedChanges = false;

@@ -18,6 +18,12 @@ void MeshCollection::drawLineGraphics() const {
     }
 }
 
+void MeshCollection::drawOptionalLineGraphics() const {
+    for (const auto &pair: meshes) {
+        pair.second->drawOptionalLineGraphics();
+    }
+}
+
 void MeshCollection::drawTriangleGraphics() const {
     for (const auto &pair: meshes) {
         pair.second->drawTriangleGraphics();

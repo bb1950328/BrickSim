@@ -564,8 +564,11 @@ void Gui::loop() {
             ImGui::TextWrapped("LEGO(R), the brick configuration, and the minifigure are trademarks of the LEGO Group, which does not sponsor, authorize or endorse this program.");
             ImGui::TextWrapped("This program comes without any warranty. Neihter the developers nor any other person shall have any liability to any person or entity with respect to any loss or damage caused or alleged to be caused directly or indirectly by this program.");
             ImGui::Separator();
-            ImGui::Text("This program is open source. It's hosted on GitHub and you can find it under the following link:");
+            ImGui::Text("This program is open source. It's source code is available on GitHub under the following link:");
             draw_hyperlink_button("https://www.github.com/bb1950328/BrickSim");
+            ImGui::TextWrapped("It's direct contributors have spent %.1f hours for this program. The following users have contributed:", git_stats::total_hours);
+            ImGui::TextWrapped("%s", git_stats::contributor_loc);
+            ImGui::Text("The numbers are the lines of code each contributer has committed. (Bigger number doesn't neccessarily mean more effort)");
             ImGui::TextWrapped("If you got this program from a source which is not listed on GitHub, please uninstall it and report is on GitHub (Create a Issue)");
             ImGui::TextWrapped("If find a bug, create a issue on GitHub where you describe the steps to reproduce as exact as possible so the developers can fix it.");
             ImGui::TextWrapped("You can also create an issue when you miss a feature or if you have an idea for improvement.");
@@ -577,7 +580,6 @@ void Gui::loop() {
             ImGui::TextWrapped("The graphical user interface is implemented using Dear ImGUI. More info at: ");
             draw_hyperlink_button("https://github.com/ocornut/imgui");
             ImGui::Separator();
-            //todo add more git stats here
 
             if (ImGui::Button("Close")) {
                 showAboutWindow = false;

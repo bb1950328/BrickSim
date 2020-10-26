@@ -26,8 +26,6 @@ void Gui::setup() {
     if (!setupDone) {
         GLFWmonitor *monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
         float xscale, yscale;
-#pragma message "glfw version major: " XSTR(GLFW_VERSION_MAJOR)
-#pragma message "glfw version minor: " XSTR(GLFW_VERSION_MINOR)
         glfwGetMonitorContentScale(monitor, &xscale, &yscale);
         std::cout << "xscale: " << xscale << "\tyscale: " << yscale << std::endl;
         // Setup Dear ImGui context
@@ -580,13 +578,7 @@ void Gui::loop() {
             draw_hyperlink_button("https://github.com/ocornut/imgui");
             ImGui::Separator();
             //todo add more git stats here
-            ImGui::Text("Build info:");
-            ImGui::Text("BrickSim git hash: %s", git_stats::lastCommitHash);
-            ImGui::Text("Dear ImGUI version: %s", IMGUI_VERSION);
-            ImGui::Text("Compiled on: ");
-            //todo get compiler info
-            ImGui::Text("With:");
-            //ImGui::Text("%s", GLM_VERSION_MESSAGE);//todo
+
             if (ImGui::Button("Close")) {
                 showAboutWindow = false;
             }
@@ -596,13 +588,13 @@ void Gui::loop() {
 
     if (showSysInfoWindow) {
         if (ImGui::Begin("System info", &showSysInfoWindow, ImGuiWindowFlags_AlwaysAutoResize)) {
-            static const auto vector = util::getSystemInfo();
-            for (const auto &line: vector) {
+            static const auto infoLines = util::getSystemInfo();
+            for (const auto &line: infoLines) {
                 ImGui::Text("%s", line.c_str());
             }
             if (ImGui::Button("Copy to clipboard")) {
                 std::stringstream result;
-                for (const auto &line: vector) {
+                for (const auto &line: infoLines) {
                     result << line << std::endl;
                 }
                 glfwSetClipboardString(window, result.str().data());

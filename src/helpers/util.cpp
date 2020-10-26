@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <glm/gtx/string_cast.hpp>
 #include "util.h"
+#include "../git_stats.h"
 
 #ifdef _WIN32
 
@@ -18,6 +19,8 @@
 
 #include <stdlib.h>
 #include <GL/gl.h>
+#include <imgui.h>
+#include <GLFW/glfw3.h>
 
 namespace util {
     std::string extend_home_dir(const std::string &input) {
@@ -215,6 +218,10 @@ namespace util {
         result.push_back(std::string("sizeof(double):\t") + std::to_string(sizeof(double)) + " Bytes or " + std::to_string(sizeof(double) * 8) + " Bits");
         result.push_back(std::string("GPU Vendor:\t") + std::string(reinterpret_cast<const char *>(vendor)));
         result.push_back(std::string("GPU Renderer:\t") + std::string(reinterpret_cast<const char *>(renderer)));
+        result.push_back(std::string("Git Commit Hash:\t")+git_stats::lastCommitHash);
+        result.push_back(std::string("Dear ImGUI Version:\t")+IMGUI_VERSION);
+        result.push_back(std::string("GLM Version:\t")+GLM_VERSION_MESSAGE);
+        result.push_back(std::string("GLFW Version:\t")+std::to_string(GLFW_VERSION_MAJOR)+"."+std::to_string(GLFW_VERSION_MINOR)+"."+std::to_string(GLFW_VERSION_REVISION));
         return result;
     }
 

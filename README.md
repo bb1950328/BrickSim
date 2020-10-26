@@ -15,9 +15,9 @@ currently, the only way to run BrickSim on OS X is to build it from source, beca
 
 
 ## TODO
+- render arrows to translate and rotate object
+- add save functionality
 - draw conditional lines
-- add automated build
-- select object on mouse click
+- add automated build for windows
 - add camera pan
 - make ldraw directory listing faster on windows
-- customizable dpi / dpi detection

@@ -6,7 +6,7 @@ name: Update Git Statistic
 # events but only for the master branch
 on:
   push:
-    branches: [ master ]
+    branches: [ master stable ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -30,6 +30,6 @@ jobs:
       - name: Commit the changes
         run: |
           git config --global user.name "GitHub Actions bot"
-          git add src/git_stats.h
+          git add src/git_stats.cpp
           git commit -m "GitHub Actions: updated git_stats.h"
           git push

@@ -161,7 +161,6 @@ void Controller::nodeSelectUntil(etree::Node *node) {
 }
 
 void Controller::nodeSelectAll() {
-    //todo think about recursive selection
     nodeSelectNone();
     elementTree.rootNode.selected = true;
     selectedNodes.insert(&elementTree.rootNode);

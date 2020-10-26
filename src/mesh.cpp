@@ -146,19 +146,6 @@ std::vector<TriangleVertex> *Mesh::getVerticesList(LdrColor *color) {
     return entry->second;
 }
 
-void Mesh::printTriangles() {
-    /*for (int i = 0; i < triangleIndices.size(); i += 3) {
-        auto v1 = triangleVertices[i];
-        auto v2 = triangleVertices[i + 1];
-        auto v3 = triangleVertices[i + 2];
-        std::cout << "Triangle " << i / 3;
-        std::cout << " cords=(" << glm::to_string(v1.position);
-        std::cout << ", " << glm::to_string(v2.position);
-        std::cout << ", " << glm::to_string(v3.position) << "\n";
-    }*/
-    //todo remove or use
-}
-
 void Mesh::addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation) {
     glm::vec3 color;
     if (lineElement.color->code == LdrColor::MAIN_COLOR_CODE) {

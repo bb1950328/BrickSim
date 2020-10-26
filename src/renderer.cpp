@@ -95,7 +95,6 @@ bool Renderer::loop() {
 
     if (unrenderedChanges) {
         glBindFramebuffer(GL_FRAMEBUFFER, imageFramebuffer);
-        glEnable(GL_DEPTH_TEST); // todo check if this is needed
         const util::RGBcolor &bgColor = util::RGBcolor(config::get_string(config::BACKGROUND_COLOR));
         glClearColor(bgColor.red/255.0f, bgColor.green/255.0f, bgColor.blue/255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -160,7 +159,6 @@ unsigned int Renderer::getSelectionPixel(unsigned int x, unsigned int y) {
         currentSelectionBuffersHeight = windowHeight;
     }
     glBindFramebuffer(GL_FRAMEBUFFER, selectionFramebuffer);
-    glEnable(GL_DEPTH_TEST); // todo check if this is needed
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

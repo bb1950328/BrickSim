@@ -480,14 +480,37 @@ void Gui::loop() {
         static auto guiStyleString = config::get_string(config::GUI_STYLE);
         static auto guiStyle = guiStyleString == "light" ? 0 : (guiStyleString == "classic" ? 1 : 2);
         static int msaaSamples = (int) (config::get_long(config::MSAA_SAMPLES));
-        static glm::vec3 backgroundColor = util::RGBcolor(config::get_string(config::BACKGROUND_COLOR)).asGlmVector();
-        ImGui::SliderFloat("UI Scale", &guiScale, 0.25, 8, "%.2f");
-        ImGui::InputInt2("Initial Window Size", initialWindowSize);
-        ImGui::InputText("Ldraw path", const_cast<char *>(ldrawDir), 256);
-        ImGui::Combo("GUI Theme", &guiStyle, "Light\0Classic\0Dark\0");
         static int msaaElem = std::log2(msaaSamples);
-        ImGui::SliderInt("MSAA Samples", &msaaElem, 0, 4, std::to_string((int) std::pow(2, msaaElem)).c_str());
-        ImGui::ColorEdit3("Background Color", &backgroundColor.x);
+        static glm::vec3 backgroundColor = config::get_color(config::BACKGROUND_COLOR).asGlmVector();
+        static glm::vec3 multiPartDocumentColor = config::get_color(config::COLOR_MULTI_PART_DOCUMENT).asGlmVector();
+        static glm::vec3 mpdSubfileColor = config::get_color(config::COLOR_MPD_SUBFILE).asGlmVector();
+        static glm::vec3 mpdSubfileInstanceColor = config::get_color(config::COLOR_MPD_SUBFILE_INSTANCE).asGlmVector();
+        static glm::vec3 officalPartColor = config::get_color(config::COLOR_OFFICAL_PART).asGlmVector();
+        static glm::vec3 unofficalPartColor = config::get_color(config::COLOR_UNOFFICAL_PART).asGlmVector();
+        static bool displaySelectionBuffer = config::get_bool(config::DISPLAY_SELECTION_BUFFER);
+        static bool showNormals = config::get_bool(config::SHOW_NORMALS);
+        if (ImGui::TreeNode("General Settings")) {
+            ImGui::SliderFloat("UI Scale", &guiScale, 0.25, 8, "%.2f");
+            ImGui::InputInt2("Initial Window Size", initialWindowSize);
+            ImGui::InputText("Ldraw path", const_cast<char *>(ldrawDir), 256);
+            ImGui::Combo("GUI Theme", &guiStyle, "Light\0Classic\0Dark\0");
+            ImGui::SliderInt("MSAA Samples", &msaaElem, 0, 4, std::to_string((int) std::pow(2, msaaElem)).c_str());
+            ImGui::ColorEdit3("Background Color", &backgroundColor.x);
+            ImGui::TreePop();
+        }
+        if (ImGui::TreeNodeEx("Element Tree Settings")) {
+            ImGui::ColorEdit3("Multi-Part Document Color", &multiPartDocumentColor.x);
+            ImGui::ColorEdit3("MPD Subfile Color", &mpdSubfileColor.x);
+            ImGui::ColorEdit3("MPD Subfile Instance Color", &mpdSubfileInstanceColor.x);
+            ImGui::ColorEdit3("Offical Part Color", &officalPartColor.x);
+            ImGui::ColorEdit3("Unoffical Part Color", &unofficalPartColor.x);
+            ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("Debug Settings"))  {
+            ImGui::Checkbox("Display Selection Buffer", &displaySelectionBuffer);
+            ImGui::Checkbox("Show Normals", &showNormals);
+            ImGui::TreePop();
+        }
         static bool saveFailed = false;
         if (ImGui::Button("Save")) {
             config::set_double(config::GUI_SCALE, guiScale);
@@ -506,7 +529,14 @@ void Gui::loop() {
                     break;
             }
             config::set_long(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));
-            config::set_string(config::BACKGROUND_COLOR, util::RGBcolor(backgroundColor).asHtmlCode());
+            config::set_color(config::BACKGROUND_COLOR, util::RGBcolor(backgroundColor));
+            config::set_color(config::COLOR_MULTI_PART_DOCUMENT, util::RGBcolor(multiPartDocumentColor));
+            config::set_color(config::COLOR_MPD_SUBFILE, util::RGBcolor(mpdSubfileColor));
+            config::set_color(config::COLOR_MPD_SUBFILE_INSTANCE, util::RGBcolor(mpdSubfileInstanceColor));
+            config::set_color(config::COLOR_OFFICAL_PART, util::RGBcolor(officalPartColor));
+            config::set_color(config::COLOR_UNOFFICAL_PART, util::RGBcolor(unofficalPartColor));
+            config::set_bool(config::DISPLAY_SELECTION_BUFFER, displaySelectionBuffer);
+            config::set_bool(config::SHOW_NORMALS, showNormals);
             saveFailed = !config::save();
         }
         if (saveFailed) {

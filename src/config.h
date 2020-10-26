@@ -21,11 +21,13 @@ namespace config {
     [[nodiscard]] long get_long(const Key& key);
     [[nodiscard]] double get_double(const Key& key);
     [[nodiscard]] util::RGBcolor get_color(const Key& key);
+    [[nodiscard]] bool get_bool(const Key& key);
 
     void set_string(const Key& key, const std::string &value);
     void set_long(const Key& key, long value);
     void set_double(const Key& key, double value);
     void set_color(const Key& key, util::RGBcolor value);
+    void set_bool(const Key& key, bool value);
 
     bool save();
     void _ensure_settings_loaded();

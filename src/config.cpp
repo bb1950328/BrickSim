@@ -76,7 +76,13 @@ namespace config {
     }
 
     util::RGBcolor get_color(const Key &key) {
+        _ensure_settings_loaded();
         return util::RGBcolor(get_string(key));
+    }
+
+    bool get_bool(const Key &key) {
+        _ensure_settings_loaded();
+        return get_string(key)=="true";
     }
 
     void set_string(const Key& key, const std::string &value) {
@@ -95,7 +101,13 @@ namespace config {
     }
 
     void set_color(const Key &key, util::RGBcolor value) {
+        _ensure_settings_loaded();
         set_string(key, value.asHtmlCode());
+    }
+
+    void set_bool(const Key &key, bool value) {
+        _ensure_settings_loaded();
+        set_string(key, value?"true":"false");
     }
 
     bool save() {

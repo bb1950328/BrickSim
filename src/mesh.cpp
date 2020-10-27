@@ -29,7 +29,8 @@ void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation=glm::mat4(1.
                 addLdrQuadrilateral(mainColor, dynamic_cast<LdrQuadrilateral &&>(*element), transformation, bfcInverted);
                 break;
             case 5:
-                break;//todo implement
+                addLdrOptionalLine(mainColor, dynamic_cast<LdrOptionalLine &&>(*element), transformation);
+                break;
         }
     }
 }
@@ -145,19 +146,6 @@ std::vector<TriangleVertex> *Mesh::getVerticesList(LdrColor *color) {
     return entry->second;
 }
 
-void Mesh::printTriangles() {
-    /*for (int i = 0; i < triangleIndices.size(); i += 3) {
-        auto v1 = triangleVertices[i];
-        auto v2 = triangleVertices[i + 1];
-        auto v3 = triangleVertices[i + 2];
-        std::cout << "Triangle " << i / 3;
-        std::cout << " cords=(" << glm::to_string(v1.position);
-        std::cout << ", " << glm::to_string(v2.position);
-        std::cout << ", " << glm::to_string(v3.position) << "\n";
-    }*/
-    //todo remove or use
-}
-
 void Mesh::addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation) {
     glm::vec3 color;
     if (lineElement.color->code == LdrColor::MAIN_COLOR_CODE) {
@@ -171,6 +159,25 @@ void Mesh::addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4
     LineVertex lv2{glm::vec4(lineElement.x2, lineElement.y2, lineElement.z2, 1.0f) * transformation, color};
     addLineVertex(lv1);
     addLineVertex(lv2);
+}
+
+void Mesh::addLdrOptionalLine(LdrColor *mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation) {
+    glm::vec3 color;
+    if (optionalLineElement.color->code == LdrColor::MAIN_COLOR_CODE) {
+        color = mainColor->edge.asGlmVector();
+    } else if (optionalLineElement.color->code == LdrColor::LINE_COLOR_CODE) {
+        color = glm::vec3(1-util::vector_sum(mainColor->value.asGlmVector())/3);//todo look up specification
+    } else {
+        color = optionalLineElement.color->edge.asGlmVector();
+    }
+    LineVertex cv1{glm::vec4(optionalLineElement.control_x1, optionalLineElement.control_y1, optionalLineElement.control_z1, 1.0f) * transformation, color};
+    LineVertex lv1{glm::vec4(optionalLineElement.x1, optionalLineElement.y1, optionalLineElement.z1, 1.0f) * transformation, color};
+    LineVertex lv2{glm::vec4(optionalLineElement.x2, optionalLineElement.y2, optionalLineElement.z2, 1.0f) * transformation, color};
+    LineVertex cv2{glm::vec4(optionalLineElement.control_x2, optionalLineElement.control_y2, optionalLineElement.control_z2, 1.0f) * transformation, color};
+    optionalLineVertices.push_back(cv1);
+    optionalLineVertices.push_back(lv1);
+    optionalLineVertices.push_back(lv2);
+    optionalLineVertices.push_back(cv2);
 }
 
 void Mesh::addLineVertex(const LineVertex &vertex) {
@@ -188,6 +195,7 @@ void Mesh::writeGraphicsData() {
     if (!already_initialized) {
         initializeTriangleGraphics();
         initializeLineGraphics();
+        initializeOptionalLineGraphics();
         already_initialized = true;
     } else {
         rewriteInstanceBuffer();
@@ -277,6 +285,9 @@ void Mesh::rewriteInstanceBuffer() {
         size_t instance_size = sizeof(glm::mat4);
         glBindBuffer(GL_ARRAY_BUFFER, lineInstanceVBO);
         glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ARRAY_BUFFER, optionalLineInstanceVBO);
+        glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
         instancesHaveChanged = false;
     }
 }
@@ -324,6 +335,49 @@ void Mesh::initializeLineGraphics() {
 
     delete [] instancesArray;
 }
+void Mesh::initializeOptionalLineGraphics() {
+
+    //vao
+    glGenVertexArrays(1, &optionalLineVAO);
+    glBindVertexArray(optionalLineVAO);
+
+    //vertexVbo
+    glGenBuffers(1, &optionalLineVertexVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, optionalLineVertexVBO);
+    size_t vertex_size = sizeof(LineVertex);
+    glBufferData(GL_ARRAY_BUFFER, optionalLineVertices.size() * vertex_size, &(optionalLineVertices[0]), GL_STATIC_DRAW);
+
+    // position attribute
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, (void *) nullptr);
+    // color attribute
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(LineVertex, color));
+
+    //instanceVbo
+    auto* instancesArray = new glm::mat4[instances.size()];
+    for (int i = 0; i < instances.size(); ++i) {
+        instancesArray[i] = glm::transpose(instances[i].transformation*globalModel);
+    }
+
+    glGenBuffers(1, &optionalLineInstanceVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, optionalLineInstanceVBO);
+    size_t instance_size = sizeof(glm::mat4);
+    glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
+
+    for (int j = 2; j < 6; ++j) {
+        glEnableVertexAttribArray(j);
+        glVertexAttribPointer(j, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (4 * (j-2) * sizeof(float)));
+        glVertexAttribDivisor(j, 1);
+    }
+
+/*    //ebo
+    glGenBuffers(1, &lineEBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * lineIndices.size(), &(lineIndices)[0], GL_STATIC_DRAW);*/
+
+    delete [] instancesArray;
+}
 
 void Mesh::drawTriangleGraphics() {
     for (const auto &entry: triangleIndices) {
@@ -337,6 +391,11 @@ void Mesh::drawTriangleGraphics() {
 void Mesh::drawLineGraphics() {
     glBindVertexArray(lineVAO);
     glDrawElementsInstanced(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, instances.size());
+}
+
+void Mesh::drawOptionalLineGraphics() {
+    glBindVertexArray(optionalLineVAO);
+    glDrawArraysInstanced(GL_LINES_ADJACENCY, 0, optionalLineVertices.size(), instances.size());
 }
 
 void Mesh::deallocateGraphics() {

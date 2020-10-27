@@ -320,9 +320,9 @@ LdrFile * LdrSubfileReference::getFile() {
 }
 glm::mat4 LdrSubfileReference::getTransformationMatrix() const {
     return {
-        a, b, c, x * 1,//todo check if the *1 is necessary
-        d, e, f, y * 1,
-        g, h, i, z * 1,
+        a, b, c, x,
+        d, e, f, y,
+        g, h, i, z,
         0.0f, 0.0f, 0.0f, 1.0f
     };
 }

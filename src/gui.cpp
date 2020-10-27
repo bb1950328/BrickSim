@@ -576,7 +576,7 @@ void Gui::loop() {
             ImGui::TextWrapped("If you have a question or if you think you can contribute in another way (like writing manuals, designing icons or something like that), don't hesistate to create an issue");
             ImGui::Separator();
             ImGui::TextWrapped("This program wouldn't be possible without the LDraw Parts library. The shapes of all the parts in this programm come from the LDraw project. You will find more information on:");
-            draw_hyperlink_button("https://www.ldraw.org");//todo check if the link is correct
+            draw_hyperlink_button("https://www.ldraw.org");
             ImGui::TextWrapped("The graphical user interface is implemented using Dear ImGUI. More info at: ");
             draw_hyperlink_button("https://github.com/ocornut/imgui");
             ImGui::Separator();

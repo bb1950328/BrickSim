@@ -18,6 +18,7 @@ bool Renderer::setup() {
 
     triangleShader = new Shader("src/shaders/triangle_shader.vsh", "src/shaders/triangle_shader.fsh");
     lineShader = new Shader("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");
+    optionalLineShader = new Shader("src/shaders/optional_line_shader.vsh", "src/shaders/line_shader.fsh", "src/shaders/optional_line_shader.gsh");
 
     auto before = std::chrono::high_resolution_clock::now();
 
@@ -94,7 +95,6 @@ bool Renderer::loop() {
 
     if (unrenderedChanges) {
         glBindFramebuffer(GL_FRAMEBUFFER, imageFramebuffer);
-        glEnable(GL_DEPTH_TEST); // todo check if this is needed
         const util::RGBcolor &bgColor = util::RGBcolor(config::get_string(config::BACKGROUND_COLOR));
         glClearColor(bgColor.red/255.0f, bgColor.green/255.0f, bgColor.blue/255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -111,6 +111,10 @@ bool Renderer::loop() {
         lineShader->use();
         lineShader->setMat4("projectionView", projectionView);
         meshCollection.drawLineGraphics();
+
+        optionalLineShader->use();
+        optionalLineShader->setMat4("projectionView", projectionView);
+        meshCollection.drawOptionalLineGraphics();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         unrenderedChanges = false;
@@ -155,7 +159,6 @@ unsigned int Renderer::getSelectionPixel(unsigned int x, unsigned int y) {
         currentSelectionBuffersHeight = windowHeight;
     }
     glBindFramebuffer(GL_FRAMEBUFFER, selectionFramebuffer);
-    glEnable(GL_DEPTH_TEST); // todo check if this is needed
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

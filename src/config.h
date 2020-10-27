@@ -43,7 +43,7 @@ namespace config {
     const Key SHOW_NORMALS{"showNormals"};
     const Key DISPLAY_SELECTION_BUFFER{"displaySelectionBuffer"};
     const Key JPG_SCREENSHOT_QUALITY{"jpgScreenshotQuality"};
-    const Key COLOR_MULTI_PART_DOCUMENT{"colorMultiPartDocument"};//todo
+    const Key COLOR_MULTI_PART_DOCUMENT{"colorMultiPartDocument"};
     const Key COLOR_MPD_SUBFILE{"colorMpdSubfile"};
     const Key COLOR_MPD_SUBFILE_INSTANCE{"colorMpdSubfileInstance"};
     const Key COLOR_OFFICAL_PART{"colorOfficalPart"};

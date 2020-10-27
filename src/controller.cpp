@@ -13,9 +13,9 @@ int Controller::run() {
     }
     renderer.window = window;
     gui.window = window;
-    //openFile("~/Downloads/arocs.mpd");
     //openFile("test_files/mpd_test.mpd");
-    openFile("3001.dat");
+    openFile("~/Downloads/arocs.mpd");
+    //openFile("3001.dat");
     gui.setup();
     bool partsLibraryFound = false;
     while (!partsLibraryFound && !doesUserWantToExit()) {
@@ -161,7 +161,6 @@ void Controller::nodeSelectUntil(etree::Node *node) {
 }
 
 void Controller::nodeSelectAll() {
-    //todo think about recursive selection
     nodeSelectNone();
     elementTree.rootNode.selected = true;
     selectedNodes.insert(&elementTree.rootNode);

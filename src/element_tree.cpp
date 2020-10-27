@@ -87,7 +87,8 @@ namespace etree {
                                               windingInversed);
                     break;
                 case 5:
-                    break;//todo implement optional lines
+                    mesh->addLdrOptionalLine(dummyColor, dynamic_cast<LdrOptionalLine &&>(*element), glm::mat4(1.0f));
+                    break;
             }
         }
     }

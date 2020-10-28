@@ -59,14 +59,16 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
 
         glm::vec3 minPos = mesh->globalModel*glm::vec4(xMin, yMin, zMin, 1.0f);
         glm::vec3 maxPos = mesh->globalModel*glm::vec4(xMax, yMax, zMax, 1.0f);
+        glm::vec3 middlePos = (minPos+maxPos)/2.0f;
         MeshInstance tmpInstance{
                 LdrColorRepository::getInstance()->get_color(1),
-                glm::mat4(1.0f),
+                glm::translate(glm::mat4(1.0f), middlePos),
                 0
         };
         mesh->instances.push_back(tmpInstance);
         mesh->instancesHaveChanged = true;
         mesh->writeGraphicsData();
+        glViewport(0, 0, thumbnailSize, thumbnailSize);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glEnable(GL_DEPTH_TEST); // todo check if this is needed
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -77,7 +79,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
         auto meshDiameter = glm::distance(minPos, maxPos)*1.3;
         std::cout << meshDiameter << std::endl;
         auto viewPos = (glm::vec4(meshDiameter, 0, 0, 1))+center;//todo make mesh centered on framebuffer
-        auto view = glm::lookAt(glm::vec3(viewPos), glm::vec3(/*center*/0, 0, 0), glm::vec3(0.0f, 1.0f, 0.0f));
+        auto view = glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(/*center*/0, 0, 0), glm::vec3(0.0f, 1.0f, 0.0f));
         const glm::mat4 &projectionView = projection * view;
         renderer->triangleShader->use();
         renderer->triangleShader->setVec3("viewPos", viewPos);
@@ -101,6 +103,8 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
         images[ldrFile] = textureId;
         mesh->instances = instanceBackup;
         mesh->instancesHaveChanged = true;
+
+        glViewport(0, 0, renderer->windowWidth, renderer->windowHeight);
     }
     lastAccessed.remove(ldrFile);
     lastAccessed.push_back(ldrFile);

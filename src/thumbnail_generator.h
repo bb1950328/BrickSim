@@ -20,10 +20,10 @@ private:
     Renderer* renderer;
     glm::mat4 projection;
     int maxCachedThumbnails;
-    unsigned int framebuffer, textureBuffer, renderBuffer;
     int framebufferSize = 0;
     void discardOldestImages(int reserve_space_for=1);
 public:
+    unsigned int framebuffer, textureBuffer, renderBuffer;
     int thumbnailSize;
     unsigned int getThumbnail(const LdrFile* ldrFile);
     void cleanup();

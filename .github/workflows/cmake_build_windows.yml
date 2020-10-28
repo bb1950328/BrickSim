@@ -15,22 +15,16 @@ jobs:
 
     defaults:
       run:
-        shell: msys2 {0}
+        shell: msys2
 
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
-
-    - name: Install msys2
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem: ${{ matrix.msystem }}
-        install: git base-devel mingw-w64-${{ matrix.arch }}-toolchain
-        update: true
+    - run: find / -maxdepth 3 -type d -exec ls -ld "{}" \;
 
     - name: Add glad includes
-      run: sudo unzip -o glad.zip "include/*" -d "/usr"
+      run: unzip -o glad.zip "include/*" -d "/usr"
 
     - name: Unzip glew sources
       run: |

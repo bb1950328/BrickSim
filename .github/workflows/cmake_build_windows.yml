@@ -82,9 +82,9 @@ jobs:
     - name: Build
       #working-directory: ${{runner.workspace}}/build
       shell: bash
-#      env:
-#        CC: gcc-10
-#        CXX: g++-10
+      env:
+        CC: /C/msys64/usr/bin/gcc.exe
+        CXX: /C/msys64/usr/bin/g++.exe
       run: |
         cmake -G "MinGW Makefiles" .
         cmake --build . --config Release

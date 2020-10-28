@@ -48,8 +48,10 @@ jobs:
 
     - name: Add glad includes
       run: |
-        unzip -o glad.zip "include/*" -d "/C/msys64/mingw32"
-        unzip -o glad.zip "include/*" -d "/C/msys64/mingw64"
+        unzip glad.zip
+        cp  -R glad/include/. /C/msys64/mingw32/include
+        cp  -R glad/include/. /C/msys64/mingw64/include
+        rm -rf glad
 
     - name: Unzip glew sources
       run: |

@@ -50,7 +50,7 @@ jobs:
       #working-directory: ${{runner.workspace}}/build
       shell: bash
       run: |
-        cmake -G "MinGW Makefiles" -A win64 .
+        cmake -G "MinGW Makefiles" .
         cmake --build . --config Release
 
     - name: Test

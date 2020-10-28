@@ -30,27 +30,28 @@ jobs:
         unzip glew-2.1.0.zip
         mv glew-2.1.0 glew
 
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{runner.workspace}}/build
-
-    - name: Configure CMake
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-      env:
-        CC: gcc-10
-        CXX: g++-10
-
-    - name: get infos
-      run: |
-        gcc --version
-        whereis gcc
+#    - name: Create Build Environment
+#      run: cmake -E make_directory ${{runner.workspace}}/build
+#
+#    - name: Configure CMake
+#      shell: bash
+#      working-directory: ${{runner.workspace}}/build
+#      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release
+#      env:
+#        CC: gcc-10
+#        CXX: g++-10
+#
+#    - name: get infos
+#      run: |
+#        gcc --version
+#        whereis gcc
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
       shell: bash
-
-      run: cmake --build . --config $BUILD_TYPE
+      run: |
+        cmake -G "Visual Studio 16 2019 Win64" .
+        cmake --build . --config $BUILD_TYPE
 
     - name: Test
       working-directory: ${{runner.workspace}}/build

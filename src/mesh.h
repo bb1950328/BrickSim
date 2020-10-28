@@ -106,6 +106,7 @@ private:
     unsigned int optionalLineVAO, optionalLineVertexVBO, optionalLineInstanceVBO;
 
     bool already_initialized = false;
+    size_t lastInstanceBufferSize = 0;
 
     static void setInstanceColor(TriangleInstance *instance, const LdrColor *color) ;
 

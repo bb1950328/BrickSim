@@ -47,6 +47,7 @@ namespace util {
     bool doesTransformationInverseWindingOrder(const glm::mat4& transformation);
     glm::vec3 convertIntToColorVec3(unsigned int value);
     unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue);
+    std::string formatBytesValue(size_t bytes);
 
     class HSVcolor;
     class RGBcolor {

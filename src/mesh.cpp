@@ -10,6 +10,7 @@
 #include "config.h"
 #include "ldr_colors.h"
 #include <glm/gtx/normal.hpp>
+#include "statistic.h"
 
 void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation=glm::mat4(1.0f), LdrColor *mainColor= nullptr, bool bfcInverted=false) {
     for (auto element : file.elements) {
@@ -219,6 +220,7 @@ void Mesh::initializeTriangleGraphics() {
         glBindBuffer(GL_ARRAY_BUFFER, vertexVbo);
         size_t vertex_size = sizeof(TriangleVertex);
         glBufferData(GL_ARRAY_BUFFER, vertices->size() * vertex_size, &(*vertices)[0], GL_STATIC_DRAW);
+        stats::Counters::vramUsageBytes += vertices->size()*vertex_size;
 
         // position attribute
         glEnableVertexAttribArray(0);
@@ -260,6 +262,7 @@ void Mesh::initializeTriangleGraphics() {
         glGenBuffers(1, &ebo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices->size(), &(*indices)[0], GL_STATIC_DRAW);
+        stats::Counters::vramUsageBytes += sizeof(unsigned int) * indices->size();
 
         VAOs[color] = vao;
         vertexVBOs[color] = vertexVbo;
@@ -270,6 +273,10 @@ void Mesh::initializeTriangleGraphics() {
 
 void Mesh::rewriteInstanceBuffer() {
     if (instancesHaveChanged) {
+        size_t newBufferSize = (sizeof(TriangleInstance)*triangleIndices.size()+2*sizeof(glm::mat4))*instances.size();
+        stats::Counters::vramUsageBytes -= this->lastInstanceBufferSize;
+        stats::Counters::vramUsageBytes += newBufferSize;
+        lastInstanceBufferSize = newBufferSize;
         for (const auto &entry: triangleIndices) {
             LdrColor *color = entry.first;
             auto instanceVbo = instanceVBOs[color];
@@ -303,6 +310,7 @@ void Mesh::initializeLineGraphics() {
     glBindBuffer(GL_ARRAY_BUFFER, lineVertexVBO);
     size_t vertex_size = sizeof(LineVertex);
     glBufferData(GL_ARRAY_BUFFER, lineVertices.size() * vertex_size, &(lineVertices[0]), GL_STATIC_DRAW);
+    stats::Counters::vramUsageBytes += lineVertices.size() * vertex_size;
 
     // position attribute
     glEnableVertexAttribArray(0);
@@ -332,6 +340,7 @@ void Mesh::initializeLineGraphics() {
     glGenBuffers(1, &lineEBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * lineIndices.size(), &(lineIndices)[0], GL_STATIC_DRAW);
+    stats::Counters::vramUsageBytes += sizeof(unsigned int) * lineIndices.size();
 
     delete [] instancesArray;
 }
@@ -346,6 +355,7 @@ void Mesh::initializeOptionalLineGraphics() {
     glBindBuffer(GL_ARRAY_BUFFER, optionalLineVertexVBO);
     size_t vertex_size = sizeof(LineVertex);
     glBufferData(GL_ARRAY_BUFFER, optionalLineVertices.size() * vertex_size, &(optionalLineVertices[0]), GL_STATIC_DRAW);
+    stats::Counters::vramUsageBytes += optionalLineVertices.size() * vertex_size;
 
     // position attribute
     glEnableVertexAttribArray(0);
@@ -374,7 +384,9 @@ void Mesh::initializeOptionalLineGraphics() {
 /*    //ebo
     glGenBuffers(1, &lineEBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * lineIndices.size(), &(lineIndices)[0], GL_STATIC_DRAW);*/
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * lineIndices.size(), &(lineIndices)[0], GL_STATIC_DRAW);
+    stats::Counters::vramUsageBytes += sizeof(unsigned int) * lineIndices.size();
+    */
 
     delete [] instancesArray;
 }

@@ -237,6 +237,19 @@ namespace util {
         return vector.x + vector.y + vector.z + vector.w;
     }
 
+    std::string formatBytesValue(size_t bytes) {
+        double doubleBytes = bytes;
+        static std::string bytePrefixes[] = {"B", "KB", "MB", "GB", "TB"};
+        size_t prefixIndex = 0;
+        while (doubleBytes > 1024) {
+            prefixIndex++;
+            doubleBytes /= 1024;
+        }
+        std::stringstream resultStream;
+        resultStream << /*resultStream.precision(3) <<*/ doubleBytes << bytePrefixes[prefixIndex];
+        return resultStream.str();
+    }
+
     std::string RGBcolor::asHtmlCode() const {
         char buffer[8];
         snprintf(buffer, 8, "#%02x%02x%02x", red, green, blue);

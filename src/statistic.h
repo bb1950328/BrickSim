@@ -10,6 +10,7 @@ namespace stats {
     public:
         static long totalBrickCount;
         static long individualBrickCount;
+        static size_t vramUsageBytes;
     };
 
     void print();

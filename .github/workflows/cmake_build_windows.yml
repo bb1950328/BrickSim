@@ -22,8 +22,7 @@ jobs:
       with:
         submodules: recursive
     - run: echo "::add-path::C:\msys64"
-      with:
-        shell: cmd
+      shell: cmd
     - run: find / -maxdepth 3 -type d -exec ls -ld "{}" \;
 
     - name: Add glad includes

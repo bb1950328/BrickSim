@@ -46,6 +46,11 @@ jobs:
 
     - run: find /C/msys64 -maxdepth 3 -type d -exec ls -ld "{}" \;
 
+    - name: Add glad includes
+      run: |
+        sudo unzip -o glad.zip "include/*" -d "/C/msys64/mingw32"
+        sudo unzip -o glad.zip "include/*" -d "/C/msys64/mingw64"
+
     - name: Unzip glew sources
       run: |
         unzip glew-2.1.0.zip

@@ -31,7 +31,7 @@ jobs:
         mv glew-2.1.0 glew
 
     - name: Create Build Environment
-        run: cmake -E make_directory ${{runner.workspace}}/build
+      run: cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Configure CMake
       shell: bash

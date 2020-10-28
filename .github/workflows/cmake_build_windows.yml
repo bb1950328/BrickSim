@@ -49,6 +49,9 @@ jobs:
     - name: Build
       #working-directory: ${{runner.workspace}}/build
       shell: bash
+      env:
+        CC: gcc-10
+        CXX: g++-10
       run: |
         cmake -G "MinGW Makefiles" .
         cmake --build . --config Release

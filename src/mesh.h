@@ -28,6 +28,9 @@ struct TriangleVertex {
 struct LineVertex {
     glm::vec4 position;
     glm::vec3 color;
+    bool operator==(const LineVertex &other) const {
+        return position == other.position && color == other.color;
+    }
 };
 
 struct TriangleInstance {
@@ -56,6 +59,7 @@ public:
     std::vector<unsigned int> lineIndices;
 
     std::vector<LineVertex> optionalLineVertices;
+    std::vector<unsigned int> optionalLineIndices;
 
     std::map<LdrColor *, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
 
@@ -103,7 +107,7 @@ public:
 private:
     unsigned int lineVAO, lineVertexVBO, lineInstanceVBO, lineEBO;
 
-    unsigned int optionalLineVAO, optionalLineVertexVBO, optionalLineInstanceVBO;
+    unsigned int optionalLineVAO, optionalLineVertexVBO, optionalLineInstanceVBO, optionalLineEBO;
 
     bool already_initialized = false;
     size_t lastInstanceBufferSize = 0;
@@ -119,6 +123,8 @@ private:
     void initializeOptionalLineGraphics();
 
     void rewriteInstanceBuffer();
+
+    void addOptionalLineVertex(const LineVertex &vertex);
 };
 
 #endif //BRICKSIM_MESH_H

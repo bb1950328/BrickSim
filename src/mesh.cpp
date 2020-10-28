@@ -175,10 +175,25 @@ void Mesh::addLdrOptionalLine(LdrColor *mainColor, const LdrOptionalLine &option
     LineVertex lv1{glm::vec4(optionalLineElement.x1, optionalLineElement.y1, optionalLineElement.z1, 1.0f) * transformation, color};
     LineVertex lv2{glm::vec4(optionalLineElement.x2, optionalLineElement.y2, optionalLineElement.z2, 1.0f) * transformation, color};
     LineVertex cv2{glm::vec4(optionalLineElement.control_x2, optionalLineElement.control_y2, optionalLineElement.control_z2, 1.0f) * transformation, color};
-    optionalLineVertices.push_back(cv1);
-    optionalLineVertices.push_back(lv1);
-    optionalLineVertices.push_back(lv2);
-    optionalLineVertices.push_back(cv2);
+    addOptionalLineVertex(cv1);
+    addOptionalLineVertex(lv1);
+    addOptionalLineVertex(lv2);
+    addOptionalLineVertex(cv2);
+}
+
+void Mesh::addOptionalLineVertex(const LineVertex &vertex) {
+    if (!optionalLineVertices.empty()) {
+        const auto stop = optionalLineVertices.size() >= 8 ? 8 : optionalLineVertices.size();
+        for (size_t i = 0; i < stop; ++i) {
+            size_t index = optionalLineVertices.size()-i;
+            if (optionalLineVertices[index] == vertex) {
+                optionalLineIndices.push_back(index);
+                return;
+            }
+        }
+    }
+    optionalLineIndices.push_back(optionalLineVertices.size());
+    optionalLineVertices.push_back(vertex);
 }
 
 void Mesh::addLineVertex(const LineVertex &vertex) {
@@ -381,12 +396,11 @@ void Mesh::initializeOptionalLineGraphics() {
         glVertexAttribDivisor(j, 1);
     }
 
-/*    //ebo
-    glGenBuffers(1, &lineEBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * lineIndices.size(), &(lineIndices)[0], GL_STATIC_DRAW);
-    stats::Counters::vramUsageBytes += sizeof(unsigned int) * lineIndices.size();
-    */
+    //ebo
+    glGenBuffers(1, &optionalLineEBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, optionalLineEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * optionalLineIndices.size(), &(optionalLineIndices)[0], GL_STATIC_DRAW);
+    stats::Counters::vramUsageBytes += sizeof(unsigned int) * optionalLineIndices.size();
 
     delete [] instancesArray;
 }
@@ -407,7 +421,7 @@ void Mesh::drawLineGraphics() {
 
 void Mesh::drawOptionalLineGraphics() {
     glBindVertexArray(optionalLineVAO);
-    glDrawArraysInstanced(GL_LINES_ADJACENCY, 0, optionalLineVertices.size(), instances.size());
+    glDrawElementsInstanced(GL_LINES_ADJACENCY, optionalLineIndices.size(), GL_UNSIGNED_INT, nullptr, instances.size());
 }
 
 void Mesh::deallocateGraphics() {

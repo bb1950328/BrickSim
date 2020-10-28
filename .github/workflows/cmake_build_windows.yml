@@ -78,7 +78,7 @@ jobs:
 #      run: |
 #        gcc --version
 #        whereis gcc
-
+    - run: find /C/msys64/ -name 'gcc*'
     - name: Build
       #working-directory: ${{runner.workspace}}/build
       shell: bash

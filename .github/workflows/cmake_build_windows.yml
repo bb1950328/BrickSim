@@ -44,7 +44,7 @@ jobs:
       run: |
         uname
 
-    - run: find . -maxdepth 3 -type d -exec ls -ld "{}" \;
+    - run: find C:\msys64 -maxdepth 3 -type d -exec ls -ld "{}" \;
 
     - name: Unzip glew sources
       run: |

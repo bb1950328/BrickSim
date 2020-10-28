@@ -47,7 +47,7 @@ jobs:
 
     - name: Add glad includes
       run: |
-             unzip glad.zip -d glad
+        unzip glad.zip -d glad
         mkdir /C/msys64/mingw32/include/glad /C/msys64/mingw64/include/glad
         cp  -R glad/include/. /C/msys64/mingw32/include/glad
         cp  -R glad/include/. /C/msys64/mingw64/include/glad

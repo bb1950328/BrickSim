@@ -23,7 +23,7 @@ jobs:
         submodules: recursive
 #    - run: echo "::add-path::C:\msys64"
 #      shell: cmd
-    - run: find / -maxdepth 3 -type d -exec ls -ld "{}" \;
+    - run: find . -maxdepth 3 -type d -exec ls -ld "{}" \;
 
     - name: Unzip glew sources
       run: |
@@ -47,7 +47,7 @@ jobs:
 #        whereis gcc
 
     - name: Build
-      working-directory: ${{runner.workspace}}/build
+      #working-directory: ${{runner.workspace}}/build
       shell: bash
       run: |
         cmake -G "Visual Studio 16 2019 Win64" .

@@ -50,7 +50,7 @@ jobs:
       #working-directory: ${{runner.workspace}}/build
       shell: bash
       run: |
-        cmake -G "Visual Studio 16 2019 Win64" .
+        cmake -G "Visual Studio 16 2019" -A Win64 .
         cmake --build . --config $BUILD_TYPE
 
     - name: Test

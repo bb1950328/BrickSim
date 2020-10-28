@@ -53,6 +53,7 @@ jobs:
 
 #    - run: pacman -Syu --noconfirm
     - run: pacman -S libcurl-devel --noconfirm
+    - run: pacman -S $(pacman -Ssq freeglut) --noconfirm
 
 #    - name: Create Build Environment
 #      run: cmake -E make_directory ${{runner.workspace}}/build

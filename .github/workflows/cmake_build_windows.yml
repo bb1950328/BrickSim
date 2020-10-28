@@ -51,7 +51,7 @@ jobs:
         unzip glew-2.1.0.zip
         mv glew-2.1.0 glew
 
-    - run: pacman -Syu
+    - run: pacman -Syu --noconfirm
 
 #    - name: Create Build Environment
 #      run: cmake -E make_directory ${{runner.workspace}}/build

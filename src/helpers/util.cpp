@@ -220,7 +220,7 @@ namespace util {
         result.push_back(std::string("GPU Renderer:\t") + std::string(reinterpret_cast<const char *>(renderer)));
         result.push_back(std::string("Git Commit Hash:\t")+git_stats::lastCommitHash);
         result.push_back(std::string("Dear ImGUI Version:\t")+IMGUI_VERSION);
-        result.push_back(std::string("GLM Version:\t")+GLM_VERSION_MESSAGE);
+        //result.push_back(std::string("GLM Version:\t")+GLM_VERSION_MESSAGE);//todo
         result.push_back(std::string("GLFW Version:\t")+std::to_string(GLFW_VERSION_MAJOR)+"."+std::to_string(GLFW_VERSION_MINOR)+"."+std::to_string(GLFW_VERSION_REVISION));
         return result;
     }

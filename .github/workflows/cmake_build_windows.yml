@@ -51,6 +51,7 @@ jobs:
         unzip glew-2.1.0.zip
         mv glew-2.1.0 glew
 
+    - run: pacman -Syu
 
 #    - name: Create Build Environment
 #      run: cmake -E make_directory ${{runner.workspace}}/build
@@ -71,9 +72,9 @@ jobs:
     - name: Build
       #working-directory: ${{runner.workspace}}/build
       shell: bash
-      env:
-        CC: gcc-10
-        CXX: g++-10
+#      env:
+#        CC: gcc-10
+#        CXX: g++-10
       run: |
         cmake -G "MinGW Makefiles" .
         cmake --build . --config Release

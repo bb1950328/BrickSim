@@ -1,0 +1,73 @@
+name: CMake Windows Build
+on: [push]
+env:
+  BUILD_TYPE: Release
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { msystem: MINGW64, arch: x86_64 },
+          { msystem: MINGW32, arch: i686 }
+        ]
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Checkout submodules
+      uses: textbook/git-checkout-submodule-action@master
+
+    - name: Install msys2
+      uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.msystem }}
+          install: git base-devel mingw-w64-${{ matrix.arch }}-toolchain
+          update: true
+
+    - name: Add glad includes
+      run: sudo unzip -o glad.zip "include/*" -d "/usr"
+
+    - name: Unzip glew sources
+      run: |
+        unzip glew-2.1.0.zip
+        mv glew-2.1.0 glew
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      env:
+        CC: gcc-10
+        CXX: g++-10
+
+    - name: get infos
+      run: |
+        gcc --version
+        whereis gcc
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+
+      run: cmake --build . --config $BUILD_TYPE
+
+    - name: Test
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: ctest -C $BUILD_TYPE
+
+    - name: Upload Binary
+      uses: actions/upload-artifact@v2
+      with:
+        name: BrickSimWindows
+        # todo include config.txt and README.md
+        path: ${{runner.workspace}}/build/BrickSim

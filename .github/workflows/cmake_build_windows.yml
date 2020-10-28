@@ -12,10 +12,23 @@ jobs:
 #          { msystem: MINGW64, arch: x86_64 },
 #          { msystem: MINGW32, arch: i686 }
 #        ]
+    strategy:
+      matrix:
+        mingw: [ "MINGW32", "MINGW64" ]
+        include:
+          - mingw: "MINGW32"
+            package: "mingw-w64-i686"
+          - mingw: "MINGW64"
+            package: "mingw-w64-x86_64"
 
     defaults:
       run:
-        shell: bash
+        shell: bash.exe --login -eo pipefail "{0}"
+
+    env:
+      MSYSTEM: ${{ matrix.mingw }}
+      CHERE_INVOKING: 1
+      name: MSYS2 ${{ matrix.mingw }}
 
     steps:
     - uses: actions/checkout@v2
@@ -23,7 +36,14 @@ jobs:
         submodules: recursive
 #    - run: echo "::add-path::C:\msys64"
 #      shell: cmd
-    - run: echo "C:\msys64" >> $GITHUB_PATH
+
+    - name: Set up shell
+        run: echo ::add-path::C:\msys64\usr\bin\
+        shell: pwsh
+          - name: Print system version
+            run: |
+              uname
+
     - run: find . -maxdepth 3 -type d -exec ls -ld "{}" \;
 
     - name: Unzip glew sources
@@ -31,7 +51,6 @@ jobs:
         unzip glew-2.1.0.zip
         mv glew-2.1.0 glew
 
-    - run: pacman -Qi gcc
 
 #    - name: Create Build Environment
 #      run: cmake -E make_directory ${{runner.workspace}}/build

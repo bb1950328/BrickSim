@@ -44,13 +44,14 @@ jobs:
       run: |
         uname
 
-    - run: find /C/msys64 -maxdepth 3 -type d -exec ls -ld "{}" \;
+    #- run: find /C/msys64 -maxdepth 3 -type d -exec ls -ld "{}" \;
 
     - name: Add glad includes
       run: |
         unzip glad.zip -d glad
-        cp  -R glad/include/. /C/msys64/mingw32/include
-        cp  -R glad/include/. /C/msys64/mingw64/include
+        mkdir /C/msys64/mingw32/include/glad /C/msys64/mingw64/include/glad
+        cp  -R glad/include/. /C/msys64/mingw32/include/glad
+        cp  -R glad/include/. /C/msys64/mingw64/include/glad
         rm -rf glad
 
     - name: Unzip glew sources

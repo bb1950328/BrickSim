@@ -50,7 +50,7 @@ jobs:
       #working-directory: ${{runner.workspace}}/build
       shell: bash
       run: |
-        cmake -G "Visual Studio 16 2019" -A win64 .
+        cmake -G "MinGW Makefiles" -A win64 .
         cmake --build . --config Release
 
     - name: Test

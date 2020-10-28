@@ -30,7 +30,7 @@ jobs:
         unzip glew-2.1.0.zip
         mv glew-2.1.0 glew
 
-    - run: whereis gcc
+    - run: find / -name 'gcc*'
 
 #    - name: Create Build Environment
 #      run: cmake -E make_directory ${{runner.workspace}}/build

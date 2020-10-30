@@ -66,6 +66,7 @@ jobs:
     - run: pacman -S libcurl-devel --noconfirm
     - run: pacman -S $(pacman -Ssq freeglut) --noconfirm
 #    - run: choco uninstall mingw
+    - run: rm -rf /C/ProgramData/chocolatey
 
 #    - name: Create Build Environment
 #      run: cmake -E make_directory ${{runner.workspace}}/build

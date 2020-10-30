@@ -67,6 +67,7 @@ jobs:
     - run: pacman -S $(pacman -Ssq freeglut) --noconfirm
 #    - run: choco uninstall mingw
     - run: rm -rf /C/Strawberry
+    - run: rm -rf /C/ProgramData/chocolatey
     - run: ls -l /C/msys64
 
 #    - name: Create Build Environment

@@ -85,7 +85,7 @@ jobs:
 #      run: |
 #        gcc --version
 #        whereis gcc
-    ##- run: find /C/msys64/ -name 'gcc*'
+    - run: find /C/msys64/ -name 'make'
     #- run: g++ -v -c src/gui.cpp 2>&1 | sed ':1;s,/[^/.][^/]*/\.\./,/,;t 1'
     - name: Build
       #working-directory: ${{runner.workspace}}/build

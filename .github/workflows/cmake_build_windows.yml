@@ -68,6 +68,7 @@ jobs:
     - run: pacman -S $(pacman -Ssq freeglut) --noconfirm
 #    - run: choco uninstall mingw
     - run: rm -rf /C/ProgramData/chocolatey
+    - run: ls -l /C/msys64/bin
 
 #    - name: Create Build Environment
 #      run: cmake -E make_directory ${{runner.workspace}}/build

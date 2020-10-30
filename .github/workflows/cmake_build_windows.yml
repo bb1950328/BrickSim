@@ -38,7 +38,7 @@ jobs:
       with:
         submodules: recursive
 #    - run: echo "::add-path::C:\msys64"
-#      shell: cmd
+#       shell: cmd
 
     - name: Set up shell
       run: echo ::add-path::C:\msys64\usr\bin\
@@ -93,7 +93,7 @@ jobs:
         CC: ${{ matrix.directory }}/bin/gcc.exe
         CXX: ${{ matrix.directory }}/bin/g++.exe
       run: |
-        cmake -G "MinGW Makefiles" .
+        cmake -G "MSYS Makefiles" .
         cmake --build . --config Release
 
     - name: Test

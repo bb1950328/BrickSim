@@ -90,9 +90,9 @@ jobs:
     - name: Build
       #working-directory: ${{runner.workspace}}/build
       shell: bash
-      #env:
-      #  CC: ${{ matrix.directory }}/bin/gcc.exe
-      #  CXX: ${{ matrix.directory }}/bin/g++.exe
+      env:
+        CC: ${{ matrix.directory }}/bin/gcc.exe
+        CXX: ${{ matrix.directory }}/bin/g++.exe
       run: |
         cmake -G "MSYS Makefiles" .
         cmake --build . --config Release

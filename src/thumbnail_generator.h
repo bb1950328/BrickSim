@@ -22,13 +22,16 @@ private:
     int maxCachedThumbnails;
     int framebufferSize = 0;
     void discardOldestImages(int reserve_space_for=1);
+    [[nodiscard]] unsigned int copyFramebufferToTexture() const;
 public:
     unsigned int framebuffer, textureBuffer, renderBuffer;
-    int thumbnailSize;
+    int size;
+    glm::vec3 rotationDegrees;
     unsigned int getThumbnail(const LdrFile* ldrFile);
+
     void cleanup();
 
-    ThumbnailGenerator(Renderer *renderer);
+    explicit ThumbnailGenerator(Renderer *renderer);
 };
 
 #endif //BRICKSIM_THUMBNAIL_GENERATOR_H

@@ -461,7 +461,7 @@ void Gui::loop() {
     if (showPartPaletteWindow) {
         ImGui::Begin("Part palette", &showPartPaletteWindow);
         float availWidth = ImGui::GetContentRegionAvailWidth();
-        int thumbSize= controller->thumbnailGenerator.thumbnailSize;
+        int thumbSize= controller->thumbnailGenerator.size;
         int columns = std::floor(availWidth / thumbSize);
         auto texId = (ImTextureID) controller->thumbnailGenerator.getThumbnail(LdrFileRepository::get_file("3001.dat"));
         ImGui::ImageButton(texId, ImVec2(thumbSize, thumbSize), ImVec2(0, 1), ImVec2(1, 0), 0);

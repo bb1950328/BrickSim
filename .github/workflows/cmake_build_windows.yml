@@ -31,6 +31,7 @@ jobs:
       MSYSTEM: ${{ matrix.mingw }}
       CHERE_INVOKING: 1
       name: MSYS2 ${{ matrix.mingw }}
+      CMAKE_MAKE_PROGRAM: /C/msys64/bin/mingw32-make.exe
 
     steps:
     - uses: actions/checkout@v2

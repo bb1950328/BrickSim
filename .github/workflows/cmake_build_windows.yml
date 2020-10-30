@@ -66,7 +66,7 @@ jobs:
     - run: pacman -S libcurl-devel --noconfirm
     - run: pacman -S $(pacman -Ssq freeglut) --noconfirm
 #    - run: choco uninstall mingw
-    - run: rm -rf /C/ProgramData/chocolatey
+    - run: rm -rf /C/Strawberry
     - run: ls -l /C/msys64
 
 #    - name: Create Build Environment

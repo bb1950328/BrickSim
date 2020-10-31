@@ -26,7 +26,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
         if (it != meshCollection->meshes.end()) {
             mesh = it->second;
             instanceBackup = mesh->instances;
-
+            mesh->instances.clear();
         } else {
             mesh = new Mesh();
             meshCollection->meshes[meshKey] = mesh;
@@ -35,26 +35,25 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
             mesh->addLdrFile(*ldrFile, glm::mat4(1.0f), LdrColorRepository::getInstance()->get_color(1), false);
         }
         const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
-        glm::vec3 center = glm::vec4(minimalEnclosingBall.first, 1.0f)*mesh->globalModel;
+        glm::vec3 center = glm::vec4(minimalEnclosingBall.first, 1.0f);
         //std::cout << glm::to_string(minPos) << " ... " << glm::to_string(center) << " ... " << glm::to_string(maxPos) << std::endl;
         auto meshDiameter = minimalEnclosingBall.second*constants::LDU_TO_OPENGL;
         //std::cout << "meshDiameter: " << meshDiameter << std::endl;
 
-        auto viewPos = glm::vec3(meshDiameter*3, 0, 0);//todo make mesh centered on framebuffer
-        auto view = glm::lookAt(viewPos,
-                                glm::vec3(0, 0, 0),//centering is achieved through the instance matrix
-                                glm::vec3(0.0f, 1.0f, 0.0f));
-        const glm::mat4 &projectionView = projection * view;
         auto transformation = glm::eulerAngleYZX(
                 (float)(rotationDegrees.x/180*M_PI),
                 (float)(rotationDegrees.y/180*M_PI),
                 (float)(rotationDegrees.z/180*M_PI)
-                );
-        transformation = glm::mat4(1.0f);
+        );
         transformation = glm::translate(transformation, -center);
+        glm::vec3 viewPos = glm::vec4(meshDiameter*3, 0, 0, 1)*transformation;//todo make mesh centered on framebuffer
+        auto view = glm::lookAt(viewPos,
+                                glm::vec3(0, 0, 0),//centering is achieved through the instance matrix
+                                glm::vec3(0.0f, 1.0f, 0.0f));
+        const glm::mat4 &projectionView = projection * view;
         MeshInstance tmpInstance{
                 LdrColorRepository::getInstance()->get_color(1),
-                transformation,
+                glm::mat4(1.0f),
                 0
         };
         mesh->instances.push_back(tmpInstance);
@@ -62,7 +61,6 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
         mesh->writeGraphicsData();
         glViewport(0, 0, size, size);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        glEnable(GL_DEPTH_TEST); // todo check if this is needed
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -71,13 +69,15 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
         renderer->triangleShader->setMat4("projectionView", projectionView);
         renderer->triangleShader->setInt("drawSelection", 0);
         mesh->drawTriangleGraphics();
-        //renderer->lineShader->use();
-        //renderer->lineShader->setMat4("projectionView", projectionView);
-        //mesh->drawLineGraphics();//todo make this work
+        renderer->lineShader->use();
+        renderer->lineShader->setMat4("projectionView", projectionView);
+        mesh->drawLineGraphics();
+        renderer->optionalLineShader->use();
+        renderer->optionalLineShader->setMat4("projectionView", projectionView);
+        mesh->drawOptionalLineGraphics();
 
         const auto totalBufferSize = size * size * 3;
         statistic::Counters::thumbnailBufferUsageBytes += totalBufferSize;
-        //GLbyte buffer[totalBufferSize];
         auto buffer = std::make_unique<GLbyte[]>(totalBufferSize);
         glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -91,6 +91,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
         images[ldrFile] = textureId;
         mesh->instances = instanceBackup;
         mesh->instancesHaveChanged = true;
+        mesh->writeGraphicsData();
 
         glViewport(0, 0, renderer->windowWidth, renderer->windowHeight);
     }

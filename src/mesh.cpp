@@ -505,19 +505,23 @@ TriangleInstance *Mesh::generateInstancesArray(const LdrColor *color) {
 
 std::pair<glm::vec3, float> Mesh::getMinimalEnclosingBall() {
     if (!minimalEnclosingBall.has_value()) {
-        std::list<std::vector<float> > lp;
-        for (const auto &entry : triangleVertices) {
-            for (const auto &vertex : *entry.second) {
-                lp.push_back((std::vector<float>) {vertex.position.x, vertex.position.y, vertex.position.z});
+        if (triangleVertices.empty()) {
+            minimalEnclosingBall = std::make_pair(glm::vec3(0.0f), 0.0f);
+        } else {
+            std::list<std::vector<float> > lp;
+            for (const auto &entry : triangleVertices) {
+                for (const auto &vertex : *entry.second) {
+                    lp.push_back((std::vector<float>) {vertex.position.x, vertex.position.y, vertex.position.z});
+                }
             }
+
+            typedef std::list<std::vector<float> >::const_iterator PointIterator;
+            typedef std::vector<float>::const_iterator CoordIterator;
+
+            Miniball::Miniball<Miniball::CoordAccessor<PointIterator, CoordIterator>> mb(3, lp.begin(), lp.end());
+            glm::vec3 center(mb.center()[0], mb.center()[1], mb.center()[2]);
+            minimalEnclosingBall = std::make_pair(center, std::sqrt(mb.squared_radius()));
         }
-
-        typedef std::list<std::vector<float> >::const_iterator PointIterator;
-        typedef std::vector<float>::const_iterator CoordIterator;
-
-        Miniball::Miniball<Miniball::CoordAccessor<PointIterator, CoordIterator>> mb(3, lp.begin(), lp.end());
-        glm::vec3 center(mb.center()[0], mb.center()[1], mb.center()[2]);
-        minimalEnclosingBall = std::make_pair(center, std::sqrt(mb.squared_radius()));
     }
     return minimalEnclosingBall.value();
 }

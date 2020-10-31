@@ -69,7 +69,7 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
                     currentFile = new LdrFile();
                     currentFile->metaInfo.type = MPD_SUBFILE;
                     mainFile->mpdSubFiles.insert(currentFile);
-                    LdrFileRepository::add_file(entry.first, currentFile, MPD_SUBFILE);
+                    ldr_file_repo::add_file(entry.first, currentFile, MPD_SUBFILE);
                 }
             }
             unsigned long lineCount = entry.second.size();
@@ -314,7 +314,7 @@ int LdrSubfileReference::getType() const{
 }
 LdrFile * LdrSubfileReference::getFile() {
     if (file==nullptr) {
-        file = LdrFileRepository::get_file(filename);
+        file = ldr_file_repo::get_file(filename);
     }
     return file;
 }

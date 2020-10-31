@@ -463,7 +463,7 @@ void Gui::loop() {
         float availWidth = ImGui::GetContentRegionAvailWidth();
         int thumbSize= controller->thumbnailGenerator.size;
         int columns = std::floor(availWidth / thumbSize);
-        auto texId = (ImTextureID) controller->thumbnailGenerator.getThumbnail(LdrFileRepository::get_file("3001.dat"));
+        auto texId = (ImTextureID) controller->thumbnailGenerator.getThumbnail(ldr_file_repo::get_file("3001.dat"));
         ImGui::ImageButton(texId, ImVec2(thumbSize, thumbSize), ImVec2(0, 1), ImVec2(1, 0), 0);
         ImGui::End();
     }

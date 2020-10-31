@@ -12,8 +12,8 @@ static const int run_count = 100;
 int mainldr() {
     auto before = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < run_count; ++i) {
-        LdrFile *pyramid = LdrFileRepository::get_file("~/ldraw/models/car.ldr");
-        LdrFileRepository::clear_cache();
+        LdrFile *pyramid = ldr_file_repo::get_file("~/ldraw/models/car.ldr");
+        ldr_file_repo::clear_cache();
     }
     auto after = std::chrono::high_resolution_clock::now();
     long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();

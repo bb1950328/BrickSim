@@ -163,7 +163,7 @@ namespace etree {
     }
 
     void ElementTree::loadLdrFile(const std::string &filename) {
-        auto *newNode = new MpdNode(LdrFileRepository::get_file(filename),
+        auto *newNode = new MpdNode(ldr_file_repo::get_file(filename),
                                     LdrColorRepository::getInstance()->get_color(2), &rootNode);
         rootNode.addChild(newNode);
     }

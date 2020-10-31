@@ -19,7 +19,7 @@ int Controller::run() {
     gui.setup();
     bool partsLibraryFound = false;
     while (!partsLibraryFound && !doesUserWantToExit()) {
-        partsLibraryFound = LdrFileRepository::initializeNames();
+        partsLibraryFound = ldr_file_repo::initializeNames();
         while (!partsLibraryFound && !doesUserWantToExit()) {
             bool installFinished = gui.loopPartsLibraryInstallationScreen();
             glfwSwapBuffers(window);

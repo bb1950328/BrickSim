@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <thread>
 #include "ldr_file_repository.h"
 #include "helpers/util.h"
 #include "config.h"
@@ -22,7 +23,7 @@ namespace ldr_file_repo {
         std::map<std::string, std::filesystem::path> partNames;
         std::map<std::string, std::filesystem::path> modelNames;
         
-        std::map<std::string, std::vector<LdrFile*>> partsByCategory;
+        std::map<std::string, std::set<LdrFile*>> partsByCategory;
         
         LdrFile* openFile(std::pair<LdrFileType, std::filesystem::path> typeNamePair, const std::string& fileName) {
             LdrFile *file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
@@ -160,14 +161,44 @@ namespace ldr_file_repo {
         return std::make_pair(LdrFileType::MODEL, util::extend_home_dir_path(filename));
     }
 
-    std::map<std::string, std::vector<LdrFile *>> getPartsGroupedByCategory() {
+    void openAndReadFiles(std::map<std::string, std::filesystem::path>::const_iterator start, std::map<std::string, std::filesystem::path>::const_iterator end) {
+        for (auto i=start;i!=end;++i) {
+            auto filename = i->first;
+            auto path = i->second;
+            LdrFile* file = get_file(std::make_pair(LdrFileType::PART, partsDirectory / path), filename);
+            partsByCategory[file->metaInfo.category].insert(file);
+        }
+    }
+
+    std::map<std::string, std::set<LdrFile *>> getPartsGroupedByCategory() {
         if (partsByCategory.empty()) {
-            for (const auto &partEntry : partNames) {
-                auto filename = partEntry.first;
-                auto path = partEntry.second;
-                LdrFile* file = get_file(std::make_pair(LdrFileType::PART, partsDirectory / path), filename);
-                partsByCategory[file->metaInfo.category].push_back(file);
+            auto before = std::chrono::high_resolution_clock::now();
+            auto numCores = std::thread::hardware_concurrency();
+            numCores = std::max(1u, numCores);
+            if (numCores==1) {
+                openAndReadFiles(partNames.begin(), partNames.end());
+            } else {
+                unsigned long chunkSize = partNames.size() / numCores;
+                auto startIt = partNames.begin();
+                std::vector<std::thread> threads;
+                for (int i = 1; i <= numCores; ++i) {
+                    std::map<std::string, std::filesystem::path>::iterator endIt;
+                    if (i != numCores) {//last one has to do a little bit more work it the number of parts is not divisible by numCores
+                        endIt = startIt;
+                        std::advance(endIt, chunkSize);
+                    } else {
+                        endIt = partNames.end();
+                    }
+                    threads.emplace_back(openAndReadFiles, startIt, endIt);
+                    startIt = endIt;
+                }
+                for (auto &t : threads) {
+                    t.join();
+                }
             }
+            auto after = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds >(after - before).count()/1000.0;
+            std::cout << "loaded remaining parts in " << duration << "ms using " << numCores << " threads." << std::endl;
         }
         return partsByCategory;
     }

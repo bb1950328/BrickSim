@@ -23,6 +23,6 @@ namespace ldr_file_repo {
 
     bool initializeNames();
 
-    std::map<std::string, std::vector<LdrFile*>> getPartsGroupedByCategory();
+    std::map<std::string, std::set<LdrFile *>> getPartsGroupedByCategory();
 };
 #endif //BRICKSIM_LDR_FILE_REPOSITORY_H

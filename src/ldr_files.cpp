@@ -37,6 +37,7 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
     mainFile->metaInfo.type = fileType;
     std::ifstream input(path);
     if (!input.good()) {
+        std::cout << path << std::endl;
         throw std::invalid_argument("can't open file \"" + path.string() + "\"");
     }
     bool isMpd = path.extension() == ".mpd";

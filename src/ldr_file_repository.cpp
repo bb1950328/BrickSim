@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <fstream>
 #include "ldr_file_repository.h"
 #include "helpers/util.h"
 #include "config.h"
@@ -20,23 +21,40 @@ namespace ldr_file_repo {
         std::map<std::string, std::filesystem::path> subpartNames;
         std::map<std::string, std::filesystem::path> partNames;
         std::map<std::string, std::filesystem::path> modelNames;
+        
+        std::map<std::string, std::vector<LdrFile*>> partsByCategory;
+        
+        LdrFile* openFile(std::pair<LdrFileType, std::filesystem::path> typeNamePair, const std::string& fileName) {
+            LdrFile *file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
+            std::vector<std::string> fileNames = {fileName};
+            while (util::starts_with(util::trim(file->metaInfo.title), "~Moved to ")) {
+                typeNamePair = resolve_file(util::trim(file->metaInfo.title).substr(10) + ".dat");
+                file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
+                fileNames.push_back(typeNamePair.second.filename());
+            }
+            auto filePair = std::make_pair(typeNamePair.first, file);
+            for (const auto &fname : fileNames) {
+                files[fname] = filePair;
+            }
+            //file->preLoadSubfilesAndEstimateComplexity(); todo check if this is still useful
+            return file;
+        }
     }
-
+    
+    LdrFile *get_file(const std::pair<LdrFileType, std::filesystem::path> &resolvedPair, const std::string &filename) {
+        auto iterator = files.find(filename);
+        if (iterator == files.end()) {
+            return openFile(resolvedPair, filename);
+        }
+        return (iterator->second.second);
+    }
 
     LdrFile *get_file(const std::string &filename) {
         auto iterator = files.find(filename);
         if (iterator == files.end()) {
-            LdrFile *file;
             std::pair<LdrFileType, std::filesystem::path> typeNamePair;
             typeNamePair = resolve_file(filename);
-            file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
-            while (util::starts_with(util::trim(file->metaInfo.title), "~Moved to ")) {
-                typeNamePair = resolve_file(util::trim(file->metaInfo.title).substr(10) + ".dat");
-                file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
-            }
-            files[filename] = std::make_pair(typeNamePair.first, file);
-            file->preLoadSubfilesAndEstimateComplexity();
-            return file;
+            return openFile(typeNamePair, filename);
         }
         return (iterator->second.second);
     }
@@ -140,5 +158,17 @@ namespace ldr_file_repo {
             return std::make_pair(LdrFileType::MODEL, fullPath);
         }
         return std::make_pair(LdrFileType::MODEL, util::extend_home_dir_path(filename));
+    }
+
+    std::map<std::string, std::vector<LdrFile *>> getPartsGroupedByCategory() {
+        if (partsByCategory.empty()) {
+            for (const auto &partEntry : partNames) {
+                auto filename = partEntry.first;
+                auto path = partEntry.second;
+                LdrFile* file = get_file(std::make_pair(LdrFileType::PART, partsDirectory / path), filename);
+                partsByCategory[file->metaInfo.category].push_back(file);
+            }
+        }
+        return partsByCategory;
     }
 }

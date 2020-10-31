@@ -31,7 +31,7 @@ int Controller::run() {
     }
     if (partsLibraryFound) {
         for (const auto &category : ldr_file_repo::getPartsGroupedByCategory()) {
-            std::cout << category.first << ": " << category.second.size() << std::endl;
+            std::cout << category.first << ": " << category.second.size()  << " (first:" << (*category.second.begin())->metaInfo.name << ")" << std::endl;
         }
         runNormal();
     }

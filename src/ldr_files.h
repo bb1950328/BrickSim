@@ -42,17 +42,22 @@ public:
     std::string title;//usually the first line in the file
     std::string name;//0 Name: xxxxx
     std::string author;//0 Author: xxxxx
-    std::string category;//0 !CATEGORY xxxx
     std::set<std::string> keywords;//0 !KEYWORDS xxx, yyyy, zzzz
     std::vector<std::string> history;//0 !HISTORY xxxx
     std::string license;//0 !LICENSE xxxx
     std::string theme;//0 !THEME
     LdrFileType type;
-
     friend std::ostream &operator<<(std::ostream &os, const LdrFileMetaInfo &info);
 
     bool add_line(const std::string& line);
+
 private:
+    std::string category = "????";
+public:
+    [[nodiscard]] const std::string & getCategory();
+
+private:
+//0 !CATEGORY xxxx
     bool firstLine=true;
 };
 

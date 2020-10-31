@@ -420,3 +420,14 @@ std::ostream & operator<<(std::ostream & os, const LdrFileMetaInfo & info) {
     }
     return os;
 }
+const std::string & LdrFileMetaInfo::getCategory() {
+    if (category=="????") {
+        const auto firstSpace = title.find(' ');
+        auto start = 0;
+        while (title[start]=='_' || title[start]=='~' || title[start]=='=') {
+            start++;
+        }
+        category = title.substr(start, firstSpace-start);
+    }
+    return category;
+}

@@ -6,7 +6,7 @@
 #include "statistic.h"
 #include "helpers/util.h"
 
-namespace stats {
+namespace statistic {
     long Counters::totalBrickCount = 0;
     long Counters::individualBrickCount = 0;
     size_t Counters::vramUsageBytes = 0;

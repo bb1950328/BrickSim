@@ -5,7 +5,7 @@
 #ifndef BRICKSIM_STATISTIC_H
 #define BRICKSIM_STATISTIC_H
 
-namespace stats {
+namespace statistic {
     class Counters {
     public:
         static long totalBrickCount;

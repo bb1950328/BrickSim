@@ -26,7 +26,7 @@ bool Renderer::setup() {
 
     meshCollection.rereadElementTree();
 
-    stats::print();
+    statistic::print();
 
     updateProjectionMatrix();
 

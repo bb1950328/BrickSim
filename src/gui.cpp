@@ -653,7 +653,7 @@ void Gui::loop() {
         ImGui::Begin("Debug Information", &showDebugWindow);
         long lastFrameTime = controller->lastFrameTime;
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", lastFrameTime / 1000.0, 1000000.0 / lastFrameTime);
-        ImGui::Text("Total graphics buffer size: %s", util::formatBytesValue(stats::Counters::vramUsageBytes).c_str());
+        ImGui::Text("Total graphics buffer size: %s", util::formatBytesValue(statistic::Counters::vramUsageBytes).c_str());
         ImGui::End();
     }
 

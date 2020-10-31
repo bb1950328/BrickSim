@@ -459,12 +459,50 @@ void Gui::loop() {
     }
 
     if (showPartPaletteWindow) {
+        static float categorySelectWidth = 250;//todo save
+        float thumbnailContainerWidth = ImGui::GetContentRegionAvailWidth() - categorySelectWidth;
         ImGui::Begin("Part palette", &showPartPaletteWindow);
-        float availWidth = ImGui::GetContentRegionAvailWidth();
-        int thumbSize= controller->thumbnailGenerator.size;
-        int columns = std::floor(availWidth / thumbSize);
-        auto texId = (ImTextureID) controller->thumbnailGenerator.getThumbnail(ldr_file_repo::get_file("3001.dat"));
-        ImGui::ImageButton(texId, ImVec2(thumbSize, thumbSize), ImVec2(0, 1), ImVec2(1, 0), 0);
+        static const auto partsGrouped = ldr_file_repo::getPartsGroupedByCategory();
+        static std::string selectedCategory = partsGrouped.begin()->first;
+
+        ImGui::BeginChild("##categorySelectTree", ImVec2(categorySelectWidth, 0));
+        for (const auto &group : partsGrouped) {
+            int flags = selectedCategory == group.first
+                    ? ImGuiTreeNodeFlags_Leaf|ImGuiTreeNodeFlags_Selected
+                    : ImGuiTreeNodeFlags_Leaf;
+            ImGui::TreeNodeEx(group.first.c_str(), flags);
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+                selectedCategory = group.first;
+            }
+            ImGui::TreePop();
+        }
+        ImGui::EndChild();
+        ImGui::SameLine();
+        ImGui::BeginChild("##thumbnailsContainer", ImVec2(thumbnailContainerWidth, 0));
+        static char searchTextBuffer[128] = {'\0'};
+        ImGui::InputText("", searchTextBuffer, 128);
+        ImGui::SameLine();
+        static int thumbnailZoomPercent = 100;//todo get from config
+        ImGui::DragInt("Zoom", &thumbnailZoomPercent, 10,  10, 500, "%d%%");
+        int actualThumbSize = std::floor(controller->thumbnailGenerator.size * 100.0 / thumbnailZoomPercent);
+        auto actualThumbSizeSquared = ImVec2(actualThumbSize, actualThumbSize);
+        int columns = std::max(1.0f, std::floor(thumbnailContainerWidth / actualThumbSize));
+        int currentCol = 0;
+        for (const auto &part : partsGrouped.find(selectedCategory)->second) {
+            if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
+                auto texId = (ImTextureID) controller->thumbnailGenerator.getThumbnail(part);
+                ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);
+            } else {
+                ImGui::Button(part->metaInfo.name.c_str(), actualThumbSizeSquared);
+            }
+            currentCol++;
+            if (currentCol==columns) {
+                currentCol = 0;
+            } else {
+                ImGui::SameLine();
+            }
+        }
+        ImGui::EndChild();
         ImGui::End();
     }
 

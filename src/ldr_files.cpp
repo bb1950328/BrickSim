@@ -420,6 +420,7 @@ std::ostream & operator<<(std::ostream & os, const LdrFileMetaInfo & info) {
     }
     return os;
 }
+
 const std::string & LdrFileMetaInfo::getCategory() {
     if (category=="????") {
         const auto firstSpace = title.find(' ');

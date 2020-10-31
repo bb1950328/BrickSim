@@ -210,6 +210,9 @@ void Mesh::addLineVertex(const LineVertex &vertex) {
 
 void Mesh::writeGraphicsData() {
     if (!already_initialized) {
+
+        addMinEnclosingBallLines();//todo add flag in config.txt
+
         initializeTriangleGraphics();
         initializeLineGraphics();
         initializeOptionalLineGraphics();
@@ -217,6 +220,18 @@ void Mesh::writeGraphicsData() {
     } else {
         rewriteInstanceBuffer();
     }
+}
+
+void Mesh::addMinEnclosingBallLines() {
+    const auto ball = getMinimalEnclosingBall();
+    auto center = ball.first;
+    auto radius = ball.second;
+    addLineVertex({glm::vec4(center.x + radius, center.y, center.z, 1), glm::vec3(1, 0, 0)});
+    addLineVertex({glm::vec4(center.x - radius, center.y, center.z, 1), glm::vec3(1, 0, 0)});
+    addLineVertex({glm::vec4(center.x, center.y + radius, center.z, 1), glm::vec3(0, 1, 0)});
+    addLineVertex({glm::vec4(center.x, center.y - radius, center.z, 1), glm::vec3(0, 1, 0)});
+    addLineVertex({glm::vec4(center.x, center.y, center.z + radius, 1), glm::vec3(0, 0, 1)});
+    addLineVertex({glm::vec4(center.x, center.y, center.z - radius, 1), glm::vec3(0, 0, 1)});
 }
 
 void Mesh::initializeTriangleGraphics() {

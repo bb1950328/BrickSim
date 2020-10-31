@@ -128,6 +128,8 @@ private:
     void rewriteInstanceBuffer();
 
     void addOptionalLineVertex(const LineVertex &vertex);
+
+    void addMinEnclosingBallLines();
 };
 
 #endif //BRICKSIM_MESH_H

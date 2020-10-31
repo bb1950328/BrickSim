@@ -37,7 +37,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
         const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
         glm::vec3 center = glm::vec4(minimalEnclosingBall.first, 1.0f);
         //std::cout << glm::to_string(minPos) << " ... " << glm::to_string(center) << " ... " << glm::to_string(maxPos) << std::endl;
-        auto meshDiameter = minimalEnclosingBall.second*constants::LDU_TO_OPENGL;
+        auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL;
         //std::cout << "meshDiameter: " << meshDiameter << std::endl;
 
         auto transformation = glm::eulerAngleYZX(
@@ -45,15 +45,23 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
                 (float)(rotationDegrees.y/180*M_PI),
                 (float)(rotationDegrees.z/180*M_PI)
         );
-        transformation = glm::translate(transformation, -center);
-        glm::vec3 viewPos = glm::vec4(meshDiameter*3, 0, 0, 1)*transformation;//todo make mesh centered on framebuffer
+        //transformation = glm::mat4(1);
+        std::cout << meshRadius << std::endl;
+        auto s = (float)(rotationDegrees.x/180*M_PI);
+        auto t = (float)(rotationDegrees.y/180*M_PI);
+        auto distance = (std::tan(25) * meshRadius);
+        glm::vec3 viewPos = glm::vec3(
+                distance * std::cos(s) * std::sin(t),
+                distance * std::sin(s) * std::sin(t),
+                distance * std::cos(t)
+                )-center/**transformation*/;//todo make mesh centered on framebuffer
         auto view = glm::lookAt(viewPos,
-                                glm::vec3(0, 0, 0),//centering is achieved through the instance matrix
+                                /*-center*/glm::vec3(0)+center,
                                 glm::vec3(0.0f, 1.0f, 0.0f));
         const glm::mat4 &projectionView = projection * view;
         MeshInstance tmpInstance{
                 LdrColorRepository::getInstance()->get_color(1),
-                glm::mat4(1.0f),
+                glm::scale(glm::mat4(1.0f), glm::vec3(1/distance)),
                 0
         };
         mesh->instances.push_back(tmpInstance);

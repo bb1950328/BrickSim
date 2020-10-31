@@ -166,7 +166,10 @@ namespace ldr_file_repo {
             auto filename = i->first;
             auto path = i->second;
             LdrFile* file = get_file(std::make_pair(LdrFileType::PART, partsDirectory / path), filename);
-            partsByCategory[file->metaInfo.getCategory()].insert(file);
+            const std::string &category = file->metaInfo.getCategory();
+            if (file->metaInfo.title[0]!='~') {
+                partsByCategory[category].insert(file);
+            }
         }
     }
 

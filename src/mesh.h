@@ -104,12 +104,15 @@ public:
                                                    glm::vec3(1.0f, 0.0f, 0.0f)),// x axis
                                        glm::vec3(constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL)); // and make 100 times smaller
 
+    std::pair<glm::vec3, float> getMinimalEnclosingBall();
 private:
+    std::optional<std::pair<glm::vec3, float>> minimalEnclosingBall;
+
     unsigned int lineVAO, lineVertexVBO, lineInstanceVBO, lineEBO;
 
     unsigned int optionalLineVAO, optionalLineVertexVBO, optionalLineInstanceVBO, optionalLineEBO;
-
     bool already_initialized = false;
+
     size_t lastInstanceBufferSize = 0;
 
     static void setInstanceColor(TriangleInstance *instance, const LdrColor *color) ;

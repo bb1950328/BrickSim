@@ -34,43 +34,13 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
             //todo make color customizable
             mesh->addLdrFile(*ldrFile, glm::mat4(1.0f), LdrColorRepository::getInstance()->get_color(1), false);
         }
-
-        float xMin=0, xMax=1, yMin=0, yMax=1, zMin=0, zMax=1;
-        auto meshDimIt = meshDimensions.find(mesh);
-        if (meshDimIt!=meshDimensions.end()) {
-            xMin = meshDimIt->second[0];
-            xMax = meshDimIt->second[1];
-            yMin = meshDimIt->second[2];
-            yMax = meshDimIt->second[3];
-            zMin = meshDimIt->second[4];
-            zMax = meshDimIt->second[5];
-        } else if (!mesh->triangleVertices.empty()){
-            const auto firstPos = mesh->triangleVertices.begin()->second->begin()->position;
-            xMin = xMax = firstPos.x;
-            yMin = yMax = firstPos.y;
-            zMin = zMax = firstPos.z;
-            for (const auto &pair : mesh->triangleVertices) {
-                for (const auto &vertex : *pair.second) {
-                    xMin = std::min(xMin, vertex.position.x);
-                    xMax = std::max(xMax, vertex.position.x);
-                    yMin = std::min(yMin, vertex.position.y);
-                    yMax = std::max(yMax, vertex.position.y);
-                    zMin = std::min(zMin, vertex.position.z);
-                    zMax = std::max(zMax, vertex.position.z);
-                }
-            }
-            meshDimensions[mesh] = {xMin, xMax, yMin, yMax, zMin, zMax};
-        }
-
-        glm::vec3 minPos = mesh->globalModel*glm::vec4(xMin, yMin, zMin, 1.0f);
-        glm::vec3 maxPos = mesh->globalModel*glm::vec4(xMax, yMax, zMax, 1.0f);
-        glm::vec3 middlePos = (minPos+maxPos)/2.0f;
-        auto center = glm::vec4((minPos+maxPos)/2.0f, 1.0);
+        const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
+        glm::vec3 center = glm::vec4(minimalEnclosingBall.first, 1.0f)*mesh->globalModel;
         //std::cout << glm::to_string(minPos) << " ... " << glm::to_string(center) << " ... " << glm::to_string(maxPos) << std::endl;
-        auto meshDiameter = glm::distance(minPos, maxPos)*1.3;
+        auto meshDiameter = minimalEnclosingBall.second*constants::LDU_TO_OPENGL;
         //std::cout << "meshDiameter: " << meshDiameter << std::endl;
 
-        auto viewPos = glm::vec3(meshDiameter, 0, 0);//todo make mesh centered on framebuffer
+        auto viewPos = glm::vec3(meshDiameter*3, 0, 0);//todo make mesh centered on framebuffer
         auto view = glm::lookAt(viewPos,
                                 glm::vec3(0, 0, 0),//centering is achieved through the instance matrix
                                 glm::vec3(0.0f, 1.0f, 0.0f));
@@ -80,7 +50,8 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
                 (float)(rotationDegrees.y/180*M_PI),
                 (float)(rotationDegrees.z/180*M_PI)
                 );
-        transformation = glm::translate(transformation, -middlePos);
+        transformation = glm::mat4(1.0f);
+        transformation = glm::translate(transformation, -center);
         MeshInstance tmpInstance{
                 LdrColorRepository::getInstance()->get_color(1),
                 transformation,

@@ -11,6 +11,7 @@
 #include "ldr_colors.h"
 #include <glm/gtx/normal.hpp>
 #include "statistic.h"
+#include "lib/Miniball.hpp"
 
 void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation=glm::mat4(1.0f), LdrColor *mainColor= nullptr, bool bfcInverted=false) {
     for (auto element : file.elements) {
@@ -500,6 +501,25 @@ TriangleInstance *Mesh::generateInstancesArray(const LdrColor *color) {
         }
     }
     return instancesArray;
+}
+
+std::pair<glm::vec3, float> Mesh::getMinimalEnclosingBall() {
+    if (!minimalEnclosingBall.has_value()) {
+        std::list<std::vector<float> > lp;
+        for (const auto &entry : triangleVertices) {
+            for (const auto &vertex : *entry.second) {
+                lp.push_back((std::vector<float>) {vertex.position.x, vertex.position.y, vertex.position.z});
+            }
+        }
+
+        typedef std::list<std::vector<float> >::const_iterator PointIterator;
+        typedef std::vector<float>::const_iterator CoordIterator;
+
+        Miniball::Miniball<Miniball::CoordAccessor<PointIterator, CoordIterator>> mb(3, lp.begin(), lp.end());
+        glm::vec3 center(mb.center()[0], mb.center()[1], mb.center()[2]);
+        minimalEnclosingBall = std::make_pair(center, std::sqrt(mb.squared_radius()));
+    }
+    return minimalEnclosingBall.value();
 }
 
 bool MeshInstance::operator==(const MeshInstance& other) const {

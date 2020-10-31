@@ -33,6 +33,7 @@ set(bricksim_libs
         src/lib/tinyfiledialogs.h
         src/lib/tinyfiledialogs.c
         src/lib/stb_image_write.h
+        src/lib/Miniball.hpp
         )
 
 set(bricksim_sources
@@ -104,7 +105,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glew/build/cmake)
 set(CURL_LIBRARY "-lcurl")
 find_package(CURL REQUIRED)
 
-set(OpenGL_GL_PREFERENCE=GLVND)
+cmake_policy(SET CMP0072 NEW)
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS} imgui)

@@ -13,6 +13,6 @@ jpgScreenshotQuality=90
 msaaSamples=16
 screenHeight=1715
 screenWidth=2948
-thumbnailCacheSizeBytes=1048576
+thumbnailCacheSizeBytes=1073741824
 thumbnailSize=256
 guiScale=1.5

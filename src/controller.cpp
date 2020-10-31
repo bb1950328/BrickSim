@@ -46,6 +46,7 @@ void Controller::runNormal() {
     renderer.setWindowSize(view3dWidth, view3dHeight);
     renderer.setup();
     while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
+        const auto loopStart = glfwGetTime();
         auto before = std::chrono::high_resolution_clock::now();
         if (elementTreeChanged) {
             renderer.elementTreeChanged();
@@ -53,6 +54,10 @@ void Controller::runNormal() {
         }
         renderer.loop();
         gui.loop();
+        thumbnailGenerator.discardOldestImages(0);
+        while (glfwGetTime() - loopStart < 1.0 / 60) {
+            thumbnailGenerator.workOnRenderQueue();
+        }
         auto after = std::chrono::high_resolution_clock::now();
         lastFrameTime = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
         glfwSwapBuffers(window);

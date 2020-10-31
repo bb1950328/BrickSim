@@ -11,6 +11,7 @@ namespace statistic {
         static long totalBrickCount;
         static long individualBrickCount;
         static size_t vramUsageBytes;
+        static size_t thumbnailBufferUsageBytes;
     };
 
     void print();

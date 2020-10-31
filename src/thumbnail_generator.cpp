@@ -10,6 +10,10 @@
 #include "ldr_colors.h"
 
 unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
+    if (renderedRotationDegrees!=rotationDegrees) {
+        discardAllImages();
+        renderedRotationDegrees = rotationDegrees;
+    }
     auto imgIt = images.find(ldrFile);
     if (imgIt == images.end()) {
         if (framebufferSize != size) {
@@ -31,7 +35,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
             mesh->addLdrFile(*ldrFile, glm::mat4(1.0f), LdrColorRepository::getInstance()->get_color(1), false);
         }
 
-        float xMin, xMax, yMin, yMax, zMin, zMax;
+        float xMin=0, xMax=1, yMin=0, yMax=1, zMin=0, zMax=1;
         auto meshDimIt = meshDimensions.find(mesh);
         if (meshDimIt!=meshDimensions.end()) {
             xMin = meshDimIt->second[0];
@@ -40,7 +44,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
             yMax = meshDimIt->second[3];
             zMin = meshDimIt->second[4];
             zMax = meshDimIt->second[5];
-        } else {
+        } else if (!mesh->triangleVertices.empty()){
             const auto firstPos = mesh->triangleVertices.begin()->second->begin()->position;
             xMin = xMax = firstPos.x;
             yMin = yMax = firstPos.y;
@@ -62,9 +66,9 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
         glm::vec3 maxPos = mesh->globalModel*glm::vec4(xMax, yMax, zMax, 1.0f);
         glm::vec3 middlePos = (minPos+maxPos)/2.0f;
         auto center = glm::vec4((minPos+maxPos)/2.0f, 1.0);
-        std::cout << glm::to_string(minPos) << " ... " << glm::to_string(center) << " ... " << glm::to_string(maxPos) << std::endl;
+        //std::cout << glm::to_string(minPos) << " ... " << glm::to_string(center) << " ... " << glm::to_string(maxPos) << std::endl;
         auto meshDiameter = glm::distance(minPos, maxPos)*1.3;
-        std::cout << "meshDiameter: " << meshDiameter << std::endl;
+        //std::cout << "meshDiameter: " << meshDiameter << std::endl;
 
         auto viewPos = glm::vec3(meshDiameter, 0, 0);//todo make mesh centered on framebuffer
         auto view = glm::lookAt(viewPos,
@@ -100,13 +104,16 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
         //renderer->lineShader->setMat4("projectionView", projectionView);
         //mesh->drawLineGraphics();//todo make this work
 
-        GLbyte buffer[size * size * 3];
-        glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+        const auto totalBufferSize = size * size * 3;
+        statistic::Counters::thumbnailBufferUsageBytes += totalBufferSize;
+        //GLbyte buffer[totalBufferSize];
+        auto buffer = std::make_unique<GLbyte[]>(totalBufferSize);
+        glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         unsigned int textureId;
         glGenTextures(1, &textureId);
         glBindTexture(GL_TEXTURE_2D, textureId);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
@@ -119,6 +126,14 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
     lastAccessed.remove(ldrFile);
     lastAccessed.push_back(ldrFile);
     return images[ldrFile];
+}
+
+void ThumbnailGenerator::discardAllImages() {
+    for (const auto &item : images) {
+        glDeleteTextures(1, &item.second);
+    }
+    images.clear();
+    lastAccessed.clear();
 }
 
 unsigned int ThumbnailGenerator::copyFramebufferToTexture() const {
@@ -160,13 +175,38 @@ ThumbnailGenerator::ThumbnailGenerator(Renderer *renderer) : renderer(renderer),
 }
 
 void ThumbnailGenerator::discardOldestImages(int reserve_space_for) {
+    int deletedCount = 0;
     while (lastAccessed.size()>maxCachedThumbnails-reserve_space_for) {
         auto lastAccessedIt = lastAccessed.front();
         glDeleteTextures(1, &images[lastAccessedIt]);
         lastAccessed.remove(lastAccessedIt);
+        images.erase(lastAccessedIt);
+        deletedCount++;
     }
+    statistic::Counters::thumbnailBufferUsageBytes -= size * size * 3 * deletedCount;
 }
 
 void ThumbnailGenerator::cleanup() {
     Renderer::deleteFramebuffer(&framebuffer, &textureBuffer, &renderBuffer);
+}
+
+std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const LdrFile *ldrFile) {
+    if (renderedRotationDegrees!=rotationDegrees) {
+        discardAllImages();
+        renderedRotationDegrees = rotationDegrees;
+    }
+    auto imgIt = images.find(ldrFile);
+    if (imgIt == images.end()) {
+        renderRequests.push(ldrFile);
+        return {};
+    } else {
+        return imgIt->second;
+    }
+}
+
+void ThumbnailGenerator::workOnRenderQueue() {
+    if (!renderRequests.empty()) {
+        getThumbnail(renderRequests.front());
+        renderRequests.pop();
+    }
 }

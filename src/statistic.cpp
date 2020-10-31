@@ -10,6 +10,7 @@ namespace statistic {
     long Counters::totalBrickCount = 0;
     long Counters::individualBrickCount = 0;
     size_t Counters::vramUsageBytes = 0;
+    size_t Counters::thumbnailBufferUsageBytes = 0;
 
     void print() {
         std::cout << "===== Statistics =====" << std::endl;

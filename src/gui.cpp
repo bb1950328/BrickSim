@@ -459,9 +459,18 @@ void Gui::loop() {
     }
 
     if (showPartPaletteWindow) {
-        static float categorySelectWidth = 250;//todo save
-        float thumbnailContainerWidth = ImGui::GetContentRegionAvailWidth() - categorySelectWidth;
         ImGui::Begin("Part palette", &showPartPaletteWindow);
+
+        static char searchTextBuffer[128] = {'\0'};
+        ImGui::InputText("##search", searchTextBuffer, 128);
+        ImGui::SameLine();
+        static int thumbnailZoomPercent = 100;//todo get from config
+        ImGui::DragInt("Zoom", &thumbnailZoomPercent, 10,  10, 500, "%d%%");
+
+        static float categorySelectWidth = 250;//todo save
+        const auto totalWidth = ImGui::GetContentRegionAvailWidth();
+        const auto itemSpacingX = ImGui::GetStyle().ItemSpacing.x;
+        float thumbnailContainerWidth = totalWidth - categorySelectWidth - itemSpacingX;
         static const auto partsGrouped = ldr_file_repo::getPartsGroupedByCategory();
         static std::string selectedCategory = partsGrouped.begin()->first;
 
@@ -478,22 +487,28 @@ void Gui::loop() {
         }
         ImGui::EndChild();
         ImGui::SameLine();
-        ImGui::BeginChild("##thumbnailsContainer", ImVec2(thumbnailContainerWidth, 0));
-        static char searchTextBuffer[128] = {'\0'};
-        ImGui::InputText("", searchTextBuffer, 128);
-        ImGui::SameLine();
-        static int thumbnailZoomPercent = 100;//todo get from config
-        ImGui::DragInt("Zoom", &thumbnailZoomPercent, 10,  10, 500, "%d%%");
-        int actualThumbSize = std::floor(controller->thumbnailGenerator.size * 100.0 / thumbnailZoomPercent);
+        ImGui::BeginChild("##thumbnailsContainer", ImVec2(thumbnailContainerWidth, 0), ImGuiWindowFlags_AlwaysVerticalScrollbar);
+        const static auto thumbnailSpacing = 4;
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(thumbnailSpacing, thumbnailSpacing));
+        int actualThumbSize = std::floor(controller->thumbnailGenerator.size / 100.0 * thumbnailZoomPercent);
         auto actualThumbSizeSquared = ImVec2(actualThumbSize, actualThumbSize);
-        int columns = std::max(1.0f, std::floor(thumbnailContainerWidth / actualThumbSize));
+        int columns = std::max(1.0f, std::floor((ImGui::GetContentRegionAvailWidth()+thumbnailSpacing) / (actualThumbSize+thumbnailSpacing)));
         int currentCol = 0;
         for (const auto &part : partsGrouped.find(selectedCategory)->second) {
+            bool realThumbnailAvailable = false;
             if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
-                auto texId = (ImTextureID) controller->thumbnailGenerator.getThumbnail(part);
-                ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);
-            } else {
+                auto optTexId = controller->thumbnailGenerator.getThumbnailNonBlocking(part);
+                if (optTexId.has_value()) {
+                    auto texId = (ImTextureID) (optTexId.value());
+                    ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);
+                    realThumbnailAvailable = true;
+                }
+            }
+            if (!realThumbnailAvailable) {
                 ImGui::Button(part->metaInfo.name.c_str(), actualThumbSizeSquared);
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s\n%s", part->metaInfo.title.c_str(), part->metaInfo.name.c_str());
             }
             currentCol++;
             if (currentCol==columns) {
@@ -502,6 +517,7 @@ void Gui::loop() {
                 ImGui::SameLine();
             }
         }
+        ImGui::PopStyleVar();
         ImGui::EndChild();
         ImGui::End();
     }
@@ -654,6 +670,7 @@ void Gui::loop() {
         long lastFrameTime = controller->lastFrameTime;
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", lastFrameTime / 1000.0, 1000000.0 / lastFrameTime);
         ImGui::Text("Total graphics buffer size: %s", util::formatBytesValue(statistic::Counters::vramUsageBytes).c_str());
+        ImGui::Text("Total thumbnail buffer size: %s", util::formatBytesValue(statistic::Counters::thumbnailBufferUsageBytes).c_str());
         ImGui::End();
     }
 

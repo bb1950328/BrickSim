@@ -34,16 +34,19 @@ namespace part_color_availability_provider {
                         auto secondTab = line.find('\t', firstTab+1);
                         auto partCode = line.substr(0, firstTab);
                         auto colorName = line.substr(firstTab+1, secondTab-firstTab-1);
+                        colorName = util::replaceChar(colorName, ' ', '_');
+                        colorName = util::replaceChar(colorName, '-', '_');
+                        util::replaceAll(colorName, "Gray", "Grey");
                         auto it = colorsByName.find(colorName);
                         if (it != colorsByName.end()) {
                             colorsAvailable[partCode].insert(it->second);
                         } else {
-                            std::cout << "WARNING: found color \"" << colorName << "\" in codes.txt, but not in ldr_colors" << std::endl;
+                            static std::set<std::string> warningPrinted;
+                            if (warningPrinted.find(colorName)==warningPrinted.end()) {
+                                std::cout << "WARNING: found color \"" << colorName << "\" in codes.txt, but not in ldr_colors" << std::endl;
+                                warningPrinted.insert(colorName);
+                            }
                         }
-                    }
-
-                    for (const auto &col : colorsAvailable["3001"]) {
-                        std::cout << col->name << std::endl;
                     }
                 }
                 initialized = true;

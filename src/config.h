@@ -13,10 +13,6 @@ namespace config {
         const std::string name;
     };
     
-    extern std::map<std::string, std::string> strings;
-    extern std::map<std::string, long> longs;
-    extern std::map<std::string, double> doubles;
-    
     [[nodiscard]] std::string get_string(const Key& key);
     [[nodiscard]] long get_long(const Key& key);
     [[nodiscard]] double get_double(const Key& key);

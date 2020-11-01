@@ -42,7 +42,7 @@ public:
 
 private:
     Controller();
-    //todo google how to make singleton
+    //todo convert to namespace
     bool initializeGL();
 
     void runNormal();

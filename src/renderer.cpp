@@ -20,20 +20,12 @@ bool Renderer::setup() {
     lineShader = new Shader("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");
     optionalLineShader = new Shader("src/shaders/optional_line_shader.vsh", "src/shaders/line_shader.fsh", "src/shaders/optional_line_shader.gsh");
 
-    auto before = std::chrono::high_resolution_clock::now();
-
-    auto between = std::chrono::high_resolution_clock::now();
-
     meshCollection.rereadElementTree();
-
-    statistic::print();
+    meshCollection.initializeGraphics();
 
     updateProjectionMatrix();
 
-    meshCollection.initializeGraphics();
-
     triangleShader->use();
-
     triangleShader->setVec3("light.position", lightPos);
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
     glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence

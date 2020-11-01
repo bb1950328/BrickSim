@@ -22,10 +22,10 @@ namespace ldr_file_repo {
         std::map<std::string, std::filesystem::path> subpartNames;
         std::map<std::string, std::filesystem::path> partNames;
         std::map<std::string, std::filesystem::path> modelNames;
-        
-        std::map<std::string, std::set<LdrFile*>> partsByCategory;
-        
-        LdrFile* openFile(std::pair<LdrFileType, std::filesystem::path> typeNamePair, const std::string& fileName) {
+
+        std::map<std::string, std::set<LdrFile *>> partsByCategory;
+
+        LdrFile *openFile(std::pair<LdrFileType, std::filesystem::path> typeNamePair, const std::string &fileName) {
             LdrFile *file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
             std::vector<std::string> fileNames = {fileName};
             while (util::starts_with(util::trim(file->metaInfo.title), "~Moved to ")) {
@@ -41,7 +41,7 @@ namespace ldr_file_repo {
             return file;
         }
     }
-    
+
     LdrFile *get_file(const std::pair<LdrFileType, std::filesystem::path> &resolvedPair, const std::string &filename) {
         auto iterator = files.find(filename);
         if (iterator == files.end()) {
@@ -120,14 +120,10 @@ namespace ldr_file_repo {
                     auto after = std::chrono::high_resolution_clock::now();
                     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count();
                     std::cout << "Initialized name lists in " << duration << "ms. found:" << std::endl;
-                    std::cout << "\t" << partNames.size() << " parts in " << partsDirectory.string() << "(first is "
-                              << partNames.begin()->second << ")" << std::endl;
-                    std::cout << "\t" << subpartNames.size() << " subparts in " << subpartsDirectory.string()
-                              << "(first is " << subpartNames.begin()->second << ")" << std::endl;
-                    std::cout << "\t" << primitiveNames.size() << " primitives in " << primitivesDirectory.string()
-                              << "(first is " << primitiveNames.begin()->second << ")" << std::endl;
-                    std::cout << "\t" << modelNames.size() << " files in " << modelsDirectory.string() << "(first is "
-                              << modelNames.begin()->second << ")" << std::endl;
+                    std::cout << "\t" << partNames.size() << " parts in " << partsDirectory.string() << "(first is " << partNames.begin()->second << ")" << std::endl;
+                    std::cout << "\t" << subpartNames.size() << " subparts in " << subpartsDirectory.string() << "(first is " << subpartNames.begin()->second << ")" << std::endl;
+                    std::cout << "\t" << primitiveNames.size() << " primitives in " << primitivesDirectory.string() << "(first is " << primitiveNames.begin()->second << ")" << std::endl;
+                    std::cout << "\t" << modelNames.size() << " files in " << modelsDirectory.string() << "(first is " << modelNames.begin()->second << ")" << std::endl;
                 }
             }
         }
@@ -162,12 +158,12 @@ namespace ldr_file_repo {
     }
 
     void openAndReadFiles(std::map<std::string, std::filesystem::path>::const_iterator start, std::map<std::string, std::filesystem::path>::const_iterator end) {
-        for (auto i=start;i!=end;++i) {
+        for (auto i = start; i != end; ++i) {
             auto filename = i->first;
             auto path = i->second;
-            LdrFile* file = get_file(std::make_pair(LdrFileType::PART, partsDirectory / path), filename);
+            LdrFile *file = get_file(std::make_pair(LdrFileType::PART, partsDirectory / path), filename);
             const std::string &category = file->metaInfo.getCategory();
-            if (file->metaInfo.title[0]!='~') {
+            if (file->metaInfo.title[0] != '~') {
                 partsByCategory[category].insert(file);
             }
         }
@@ -178,7 +174,7 @@ namespace ldr_file_repo {
             auto before = std::chrono::high_resolution_clock::now();
             auto numCores = std::thread::hardware_concurrency();
             numCores = std::max(1u, numCores);
-            if (numCores==1) {
+            if (numCores == 1) {
                 openAndReadFiles(partNames.begin(), partNames.end());
             } else {
                 unsigned long chunkSize = partNames.size() / numCores;
@@ -200,7 +196,7 @@ namespace ldr_file_repo {
                 }
             }
             auto after = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::microseconds >(after - before).count()/1000.0;
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0;
             std::cout << "loaded remaining parts in " << duration << "ms using " << numCores << " threads." << std::endl;
         }
         return partsByCategory;

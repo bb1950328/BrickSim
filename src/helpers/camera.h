@@ -13,44 +13,34 @@
 
 
 class CadCamera {
-private:
-    float pitch = 0.0f;
 public:
-    float getPitch() const;
+    CadCamera();
 
+    [[nodiscard]] float getPitch() const;
+    [[nodiscard]] float getYaw() const;
+    [[nodiscard]] float getDistance() const;
     void setPitch(float value);
-
-    float getYaw() const;
-
     void setYaw(float value);
-
-private:
-    // up/down angle
-    float yaw = 0.0f; // left/right angle
-    float distance = 3.0f;
-public:
-    float getDistance() const;
-
     void setDistance(float value);
 
+    [[nodiscard]] glm::mat4 getViewMatrix() const;
+    [[nodiscard]] const glm::vec3 &getCameraPos() const;
+
+    void mouseRotate(float x_delta, float y_delta);
+    void mousePan(float x_delta, float y_delta);
+    void moveForwardBackward(float delta);
+    void setStandardView(int i);
 private:
-    // distance between target point and camera
+    float pitch = 0.0f;// up/down angle
+    float yaw = 0.0f; // left/right angle
+    float distance = 3.0f;// distance between target point and camera
+
     glm::vec3 front, target, cameraPos;
-private:
     glm::vec3 worldUp = glm::vec3(0.0f,  1.0f, 0.0f);
     float mouseMoveSensitivity = 0.1f;
     float mouseScrollSensitivity = 0.33f;
     float mousePanSensitivity = 0.33f;
     glm::mat4 viewMatrix;
     void updateVectors();
-public:
-    CadCamera();
-    [[nodiscard]] glm::mat4 getViewMatrix() const;
-    void mouseRotate(float x_delta, float y_delta);
-    void mousePan(float x_delta, float y_delta);
-    void moveForwardBackward(float delta);
-    [[nodiscard]] const glm::vec3 &getCameraPos() const;
-
-    void setStandardView(int i);
 };
 #endif //BRICKSIM_CAMERA_H

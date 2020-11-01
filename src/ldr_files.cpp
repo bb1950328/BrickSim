@@ -13,7 +13,7 @@
 #include "ldr_colors.h"
 
 WindingOrder inverseWindingOrder(WindingOrder order) {
-    return order==CW?CCW:CW;
+    return order == CW ? CCW : CW;
 }
 
 LdrFileElement *LdrFileElement::parse_line(std::string line, BfcState bfcState) {
@@ -183,9 +183,6 @@ std::string LdrFile::getDescription() const {
 long LdrFile::instancedMinComplexity = -1;
 
 bool LdrFile::isComplexEnoughForOwnMesh() const {
-    /*if (instancedMinComplexity==-1) {
-        instancedMinComplexity = config::get_long(config::INSTANCED_MIN_COMPLEXITY);
-    }*/
     return (metaInfo.type!=SUBPART && metaInfo.type!=PRIMITIVE);// todo spend more time here, I think there's much more potential here
 }
 

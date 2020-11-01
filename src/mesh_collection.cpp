@@ -37,32 +37,32 @@ void MeshCollection::deallocateGraphics() {
 }
 
 void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation, LdrColor *parentColor) {
-    etree::Node* nodeToParseChildren = node;
+    etree::Node *nodeToParseChildren = node;
     glm::mat4 absoluteTransformation = parentAbsoluteTransformation;
     if (node->visible) {
         if ((node->getType() & etree::TYPE_MESH) > 0) {
             etree::MeshNode *meshNode;
             LdrColor *color;
-            etree::MeshNode* nodeToGetColorFrom;
-            if (node->getType()==etree::TYPE_MPD_SUBFILE_INSTANCE) {
+            etree::MeshNode *nodeToGetColorFrom;
+            if (node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE) {
                 const auto instanceNode = dynamic_cast<etree::MpdSubfileInstanceNode *>(node);
                 meshNode = instanceNode->mpdSubfileNode;
-                absoluteTransformation = instanceNode->getRelativeTransformation()*parentAbsoluteTransformation;
+                absoluteTransformation = instanceNode->getRelativeTransformation() * parentAbsoluteTransformation;
                 nodeToGetColorFrom = instanceNode;
                 nodeToParseChildren = meshNode;
             } else {
                 meshNode = dynamic_cast<etree::MeshNode *>(node);
                 absoluteTransformation = node->getRelativeTransformation() * parentAbsoluteTransformation;
-                nodeToGetColorFrom=meshNode;
+                nodeToGetColorFrom = meshNode;
             }
-            if (nodeToGetColorFrom->getElementColor()->code==LdrColor::MAIN_COLOR_CODE && parentColor!= nullptr) {
-                color=parentColor;
+            if (nodeToGetColorFrom->getElementColor()->code == LdrColor::MAIN_COLOR_CODE && parentColor != nullptr) {
+                color = parentColor;
             } else {
-                color=nodeToGetColorFrom->getDisplayColor();
+                color = nodeToGetColorFrom->getDisplayColor();
             }
 
-            if (node->getType()==etree::TYPE_MPD_SUBFILE_INSTANCE) {
-                parentColor=color;
+            if (node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE) {
+                parentColor = color;
             }
 
             void *identifier = meshNode->getMeshIdentifier();
@@ -122,7 +122,7 @@ void MeshCollection::updateMeshInstances() {
 }
 
 etree::Node *MeshCollection::getElementById(unsigned int id) {
-    if (elementsSortedById.size()>id) {
+    if (elementsSortedById.size() > id) {
         return elementsSortedById[id];
     }
     return nullptr;

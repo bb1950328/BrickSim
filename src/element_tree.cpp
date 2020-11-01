@@ -63,11 +63,10 @@ namespace etree {
     }
 
     void LdrNode::addToMesh(Mesh *mesh, bool windingInversed) {
-        ldr_color_repo::LdrInstanceDummyColor* dummyColor = &ldr_color_repo::getInstanceDummyColor();
+        ldr_color_repo::LdrInstanceDummyColor *dummyColor = &ldr_color_repo::getInstanceDummyColor();
         for (auto element : ldrFile->elements) {
             switch (element->getType()) {
-                case 0:
-                    break;
+                case 0: break;
                 case 1: {
                     auto *sfElement = dynamic_cast<LdrSubfileReference *>(element);
                     if (childrenWithOwnNode.find(sfElement) == childrenWithOwnNode.end()) {
@@ -75,24 +74,19 @@ namespace etree {
                     }
                 }
                     break;
-                case 2:
-                    mesh->addLdrLine(dummyColor, dynamic_cast<LdrLine &&>(*element), glm::mat4(1.0f));
+                case 2: mesh->addLdrLine(dummyColor, dynamic_cast<LdrLine &&>(*element), glm::mat4(1.0f));
                     break;
-                case 3:
-                    mesh->addLdrTriangle(dummyColor, dynamic_cast<LdrTriangle &&>(*element), glm::mat4(1.0f), windingInversed);
+                case 3: mesh->addLdrTriangle(dummyColor, dynamic_cast<LdrTriangle &&>(*element), glm::mat4(1.0f), windingInversed);
                     break;
-                case 4:
-                    mesh->addLdrQuadrilateral(dummyColor, dynamic_cast<LdrQuadrilateral &&>(*element), glm::mat4(1.0f), windingInversed);
+                case 4: mesh->addLdrQuadrilateral(dummyColor, dynamic_cast<LdrQuadrilateral &&>(*element), glm::mat4(1.0f), windingInversed);
                     break;
-                case 5:
-                    mesh->addLdrOptionalLine(dummyColor, dynamic_cast<LdrOptionalLine &&>(*element), glm::mat4(1.0f));
+                case 5: mesh->addLdrOptionalLine(dummyColor, dynamic_cast<LdrOptionalLine &&>(*element), glm::mat4(1.0f));
                     break;
             }
         }
     }
 
-    MpdSubfileNode *
-    findMpdNodeAndAddSubfileNode(LdrFile *ldrFile, LdrColor *ldrColor, Node *actualNode) {
+    MpdSubfileNode *findMpdNodeAndAddSubfileNode(LdrFile *ldrFile, LdrColor *ldrColor, Node *actualNode) {
         if (actualNode->getType() == TYPE_MULTI_PART_DOCUMENT) {
             //check if the subfileNode already exists
             for (const auto &child : actualNode->getChildren()) {
@@ -114,9 +108,7 @@ namespace etree {
         }
     }
 
-    LdrNode::LdrNode(NodeType nodeType, LdrFile *ldrFile, LdrColor *ldrColor,
-                     Node *parent) : MeshNode(ldrColor, parent),
-                                                           ldrFile(ldrFile) {
+    LdrNode::LdrNode(NodeType nodeType, LdrFile *ldrFile, LdrColor *ldrColor, Node *parent) : MeshNode(ldrColor, parent), ldrFile(ldrFile) {
         type = nodeType;
         this->parent = parent;
         this->setColor(ldrColor);
@@ -128,7 +120,7 @@ namespace etree {
                 Node *newNode = nullptr;
                 if (subFile->metaInfo.type == MPD_SUBFILE) {
                     auto *subFileNode = findMpdNodeAndAddSubfileNode(subFile, sfElement->color, this);
-                    newNode = new MpdSubfileInstanceNode(subFileNode, sfElement->color,this);
+                    newNode = new MpdSubfileInstanceNode(subFileNode, sfElement->color, this);
                     childrenWithOwnNode.insert(sfElement);
                 } else if (subFile->metaInfo.type == PART) {
                     childrenWithOwnNode.insert(sfElement);
@@ -153,16 +145,13 @@ namespace etree {
     bool LdrNode::isDisplayNameUserEditable() const {
         switch (ldrFile->metaInfo.type) {
             case MODEL:
-            case MPD_SUBFILE:
-                return true;
-            default:
-                return false;
+            case MPD_SUBFILE:return true;
+            default:return false;
         }
     }
 
     void ElementTree::loadLdrFile(const std::string &filename) {
-        auto *newNode = new MpdNode(ldr_file_repo::get_file(filename),
-                                    ldr_color_repo::get_color(2), &rootNode);
+        auto *newNode = new MpdNode(ldr_file_repo::get_file(filename), ldr_color_repo::get_color(2), &rootNode);
         rootNode.addChild(newNode);
     }
 
@@ -207,10 +196,7 @@ namespace etree {
         return false;
     }
 
-    MpdSubfileInstanceNode::MpdSubfileInstanceNode(MpdSubfileNode *mpdSubfileNode,
-                                                   LdrColor *color,
-                                                   Node *parent)
-            : mpdSubfileNode(mpdSubfileNode), MeshNode(color, parent) {
+    MpdSubfileInstanceNode::MpdSubfileInstanceNode(MpdSubfileNode *mpdSubfileNode, LdrColor *color, Node *parent) : mpdSubfileNode(mpdSubfileNode), MeshNode(color, parent) {
         type = TYPE_MPD_SUBFILE_INSTANCE;
         this->displayName = mpdSubfileNode->displayName;
     }
@@ -227,16 +213,14 @@ namespace etree {
         return true;
     }
 
-    MpdNode::MpdNode(LdrFile *ldrFile, LdrColor *ldrColor, Node *parent)
-            : LdrNode(TYPE_MULTI_PART_DOCUMENT, ldrFile, ldrColor, parent) {
+    MpdNode::MpdNode(LdrFile *ldrFile, LdrColor *ldrColor, Node *parent) : LdrNode(TYPE_MULTI_PART_DOCUMENT, ldrFile, ldrColor, parent) {
     }
 
     bool MpdSubfileNode::isDisplayNameUserEditable() const {
         return true;
     }
 
-    MpdSubfileNode::MpdSubfileNode(LdrFile *ldrFile, LdrColor *color, Node *parent)
-            : LdrNode(TYPE_MPD_SUBFILE, ldrFile, color, parent) {
+    MpdSubfileNode::MpdSubfileNode(LdrFile *ldrFile, LdrColor *color, Node *parent) : LdrNode(TYPE_MPD_SUBFILE, ldrFile, color, parent) {
         visible = false;
     }
 
@@ -244,8 +228,7 @@ namespace etree {
         return false;
     }
 
-    PartNode::PartNode(LdrFile *ldrFile, LdrColor *ldrColor, Node *parent)
-            : LdrNode(TYPE_PART, ldrFile, ldrColor, parent) {
+    PartNode::PartNode(LdrFile *ldrFile, LdrColor *ldrColor, Node *parent) : LdrNode(TYPE_PART, ldrFile, ldrColor, parent) {
     }
 
     MeshNode::MeshNode(LdrColor *color, Node *parent) : Node(parent) {
@@ -254,7 +237,7 @@ namespace etree {
     }
 
     LdrColor *MeshNode::getDisplayColor() const {
-        if (color->code == LdrColor::MAIN_COLOR_CODE && parent!= nullptr && (parent->getType()&TYPE_MESH)>0) {
+        if (color->code == LdrColor::MAIN_COLOR_CODE && parent != nullptr && (parent->getType() & TYPE_MESH) > 0) {
             return dynamic_cast<MeshNode *>(parent)->getDisplayColor();
         } else {
             return color;
@@ -271,42 +254,29 @@ namespace etree {
 
     const char *getDisplayNameOfType(const NodeType &type) {
         switch (type) {
-            case TYPE_ROOT:
-                return "Root";
-            case TYPE_MESH:
-                return "Mesh";
-            case TYPE_MPD_SUBFILE_INSTANCE:
-                return "MPD subfile Instance";
-            case TYPE_LDRFILE:
-                return "LDraw file";
-            case TYPE_MPD_SUBFILE:
-                return "MPD subfile";
-            case TYPE_MULTI_PART_DOCUMENT:
-                return "MPD file";
-            case TYPE_PART:
-                return "Part";
+            case TYPE_ROOT: return "Root";
+            case TYPE_MESH: return "Mesh";
+            case TYPE_MPD_SUBFILE_INSTANCE: return "MPD subfile Instance";
+            case TYPE_LDRFILE: return "LDraw file";
+            case TYPE_MPD_SUBFILE: return "MPD subfile";
+            case TYPE_MULTI_PART_DOCUMENT: return "MPD file";
+            case TYPE_PART: return "Part";
             case TYPE_OTHER:
-            default:
-                return "Other";
+            default: return "Other";
         }
     }
 
     util::RGBcolor getColorOfType(const NodeType &type) {
         switch (type) {
-            case TYPE_MPD_SUBFILE_INSTANCE:
-                return config::get_color(config::COLOR_MPD_SUBFILE_INSTANCE);
-            case TYPE_MPD_SUBFILE:
-                return config::get_color(config::COLOR_MPD_SUBFILE);
-            case TYPE_MULTI_PART_DOCUMENT:
-                return config::get_color(config::COLOR_MULTI_PART_DOCUMENT);
-            case TYPE_PART:
-                return config::get_color(config::COLOR_OFFICAL_PART);//todo unoffical part
+            case TYPE_MPD_SUBFILE_INSTANCE: return config::get_color(config::COLOR_MPD_SUBFILE_INSTANCE);
+            case TYPE_MPD_SUBFILE: return config::get_color(config::COLOR_MPD_SUBFILE);
+            case TYPE_MULTI_PART_DOCUMENT: return config::get_color(config::COLOR_MULTI_PART_DOCUMENT);
+            case TYPE_PART: return config::get_color(config::COLOR_OFFICAL_PART);//todo unoffical part
             case TYPE_OTHER:
             case TYPE_ROOT:
             case TYPE_MESH:
             case TYPE_LDRFILE:
-            default:
-                return util::RGBcolor(255, 255, 255);
+            default: return util::RGBcolor(255, 255, 255);
         }
     }
 }

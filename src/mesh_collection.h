@@ -14,11 +14,7 @@ public:
     std::map<std::pair<void *, bool>, Mesh*> meshes;
 
     void initializeGraphics();
-
     void deallocateGraphics();
-
-    void readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation,
-                         LdrColor *parentColor);
 
     void rereadElementTree();
 
@@ -27,13 +23,14 @@ public:
     void drawOptionalLineGraphics() const;
 
     etree::Node* getElementById(unsigned int id);
-
 private:
+
     std::vector<etree::Node*> elementsSortedById;
     etree::ElementTree *elementTree;
     std::set<etree::Node*> nodesWithChildrenAlreadyVisited;
     std::map<std::pair<void *, bool>, std::vector<MeshInstance>> newMeshInstances;
 
     void updateMeshInstances();
+    void readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation, LdrColor *parentColor);
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

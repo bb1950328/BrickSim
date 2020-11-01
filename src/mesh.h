@@ -71,19 +71,10 @@ public:
     Mesh()=default;
 
     void addLdrFile(const LdrFile &file, glm::mat4 transformation, LdrColor *mainColor, bool bfcInverted);
-
     void addLdrSubfileReference(LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation, bool bfcInverted);
-
-    void printTriangles();
-
-    void addLineVertex(const LineVertex &vertex);
-
     void addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation);
-
     void addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted);
-
     void addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted);
-
     void addLdrOptionalLine(LdrColor *mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation);
 
     std::vector<unsigned int> *getIndicesList(LdrColor *color);
@@ -120,13 +111,12 @@ private:
     TriangleInstance * generateInstancesArray(const LdrColor *color);
 
     void initializeTriangleGraphics();
-
     void initializeLineGraphics();
-
     void initializeOptionalLineGraphics();
 
     void rewriteInstanceBuffer();
 
+    void addLineVertex(const LineVertex &vertex);
     void addOptionalLineVertex(const LineVertex &vertex);
 
     void addMinEnclosingBallLines();

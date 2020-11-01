@@ -6,9 +6,11 @@
 #include "config.h"
 
 namespace config {
-    std::map<std::string, std::string> strings;
-    std::map<std::string, long> longs;
-    std::map<std::string, double> doubles;
+    namespace {
+        std::map<std::string, std::string> strings;
+        std::map<std::string, long> longs;
+        std::map<std::string, double> doubles;
+    }
 
     void _ensure_settings_loaded() {
         static bool settingsLoaded = false;

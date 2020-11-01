@@ -51,13 +51,9 @@ public:
 
     bool add_line(const std::string& line);
 
-private:
-    std::string category = "????";
-public:
     [[nodiscard]] const std::string & getCategory();
-
 private:
-//0 !CATEGORY xxxx
+    std::string category = "????";//0 !CATEGORY xxxx
     bool firstLine=true;
 };
 

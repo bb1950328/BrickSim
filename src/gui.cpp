@@ -2,6 +2,7 @@
 // Created by bb1950328 on 09.10.2020.
 //
 #define GLM_ENABLE_EXPERIMENTAL
+
 #include <imgui.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -76,20 +77,19 @@ void drawColorGroup(Controller *controller,
     if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
         int i = 0;
         for (const auto *color : colorGroup.second) {
-            if (i%columnCount>0){
+            if (i % columnCount > 0) {
                 ImGui::SameLine();
             }
             ImGui::PushID(color->code);
             const ImColor imColor = ImColor(color->value.red, color->value.green, color->value.blue);
-            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)imColor);
+            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4) imColor);
             if (ImGui::Button(ldrNode->getDisplayColor()->code == color->code ? "#" : "", buttonSize)) {
                 ldrNode->setColor(ldr_color_repo::get_color(color->code));
                 controller->elementTreeChanged = true;
             }
             ImGui::PopStyleColor(/*3*/1);
             ImGui::PopID();
-            if (ImGui::IsItemHovered())
-            {
+            if (ImGui::IsItemHovered()) {
                 ImGui::BeginTooltip();
                 ImGui::Text("%s", color->name.c_str());
                 ImGui::EndTooltip();
@@ -136,7 +136,7 @@ void draw_element_tree_node(etree::Node *node) {
     }
 }
 
-void draw_hyperlink_button(const std::string& url) {
+void draw_hyperlink_button(const std::string &url) {
     if (ImGui::Button(url.c_str())) {
         util::open_default_browser(url);
     }
@@ -216,12 +216,12 @@ void Gui::loop() {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("3D")) {
-            if (ImGui::MenuItem("Front", "ALT+1")) controller->setStandard3dView(1);
-            if (ImGui::MenuItem("Top", "ALT+2")) controller->setStandard3dView(2);
-            if (ImGui::MenuItem("Right", "ALT+3")) controller->setStandard3dView(3);
-            if (ImGui::MenuItem("Rear", "ALT+4")) controller->setStandard3dView(4);
-            if (ImGui::MenuItem("Bottom", "ALT+5")) controller->setStandard3dView(5);
-            if (ImGui::MenuItem("Left", "ALT+6")) controller->setStandard3dView(6);
+            if (ImGui::MenuItem("Front", "ALT+1")) { controller->setStandard3dView(1); }
+            if (ImGui::MenuItem("Top", "ALT+2")) { controller->setStandard3dView(2); }
+            if (ImGui::MenuItem("Right", "ALT+3")) { controller->setStandard3dView(3); }
+            if (ImGui::MenuItem("Rear", "ALT+4")) { controller->setStandard3dView(4); }
+            if (ImGui::MenuItem("Bottom", "ALT+5")) { controller->setStandard3dView(5); }
+            if (ImGui::MenuItem("Left", "ALT+6")) { controller->setStandard3dView(6); }
             ImGui::Separator();
             if (ImGui::MenuItem("Screenshot", "CTRL+P")) {
                 char *fileNameChars = tinyfd_saveFileDialog(
@@ -283,7 +283,7 @@ void Gui::loop() {
                     lastDeltaXright = 0;
                     lastDeltaYright = 0;
                 }
-                if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)&&lastDeltaXleft==0&&lastDeltaYleft==0) {
+                if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && lastDeltaXleft == 0 && lastDeltaYleft == 0) {
                     if (!leftMouseDragging) {
                         auto relCursorPosX = ImGui::GetMousePos().x - ImGui::GetWindowPos().x - ImGui::GetWindowContentRegionMin().x;
                         auto relCursorPosY = ImGui::GetMousePos().y - ImGui::GetWindowPos().y - ImGui::GetWindowContentRegionMin().y;
@@ -314,9 +314,9 @@ void Gui::loop() {
                     Controller::getInstance()->renderer.unrenderedChanges = true;
                 }
             }
-            auto texture3dView = (ImTextureID) (config::get_string(config::DISPLAY_SELECTION_BUFFER)=="true"
-                                                ?controller->renderer.selectionTextureColorbuffer
-                                                :controller->renderer.imageTextureColorbuffer);
+            auto texture3dView = (ImTextureID) (config::get_string(config::DISPLAY_SELECTION_BUFFER) == "true"
+                                                ? controller->renderer.selectionTextureColorbuffer
+                                                : controller->renderer.imageTextureColorbuffer);
             ImGui::ImageButton(texture3dView, wsize, ImVec2(0, 1), ImVec2(1, 0), 0);
             ImGui::EndChild();
         }
@@ -407,21 +407,21 @@ void Gui::loop() {
                 ImGui::DragFloat3("Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
                 ImGui::DragFloat3("Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
             }
-            if ((node->getType()&etree::NodeType::TYPE_MESH)>0) {
-                auto* meshNode = dynamic_cast<etree::MeshNode *>(node);
-                if (meshNode->isColorUserEditable()&&ImGui::TreeNodeEx("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if ((node->getType() & etree::NodeType::TYPE_MESH) > 0) {
+                auto *meshNode = dynamic_cast<etree::MeshNode *>(node);
+                if (meshNode->isColorUserEditable() && ImGui::TreeNodeEx("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
                     static bool isColor16, savedIsColor16;
-                    if (lastNode==node) {
-                       if (isColor16!=savedIsColor16) {
-                           if (isColor16) {
-                               meshNode->setColor(ldr_color_repo::get_color(LdrColor::MAIN_COLOR_CODE));
-                           } else {
-                               meshNode->setColor(meshNode->getDisplayColor());
-                           }
-                           savedIsColor16 = isColor16;
-                       }
+                    if (lastNode == node) {
+                        if (isColor16 != savedIsColor16) {
+                            if (isColor16) {
+                                meshNode->setColor(ldr_color_repo::get_color(LdrColor::MAIN_COLOR_CODE));
+                            } else {
+                                meshNode->setColor(meshNode->getDisplayColor());
+                            }
+                            savedIsColor16 = isColor16;
+                        }
                     } else {
-                        savedIsColor16 = isColor16 = meshNode->getElementColor()->code==LdrColor::MAIN_COLOR_CODE;
+                        savedIsColor16 = isColor16 = meshNode->getElementColor()->code == LdrColor::MAIN_COLOR_CODE;
                     }
                     ImGui::Checkbox("Take color from parent element", &isColor16);
                     if (!isColor16) {
@@ -468,7 +468,7 @@ void Gui::loop() {
         ImGui::InputText("##search", searchTextBuffer, 128);
         ImGui::SameLine();
         static int thumbnailZoomPercent = 100;//todo get from config
-        ImGui::DragInt("Zoom", &thumbnailZoomPercent, 10,  10, 500, "%d%%");
+        ImGui::DragInt("Zoom", &thumbnailZoomPercent, 10, 10, 500, "%d%%");
 
         static float categorySelectWidth = 250;//todo save
         const auto totalWidth = ImGui::GetContentRegionAvailWidth();
@@ -480,25 +480,25 @@ void Gui::loop() {
         ImGui::BeginChild("##categorySelectTree", ImVec2(categorySelectWidth, 0));
         for (const auto &group : partsGrouped) {
             int flags = selectedCategories.find(group.first) != selectedCategories.end()
-                    ? ImGuiTreeNodeFlags_Leaf|ImGuiTreeNodeFlags_Selected
-                    : ImGuiTreeNodeFlags_Leaf;
+                        ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected
+                        : ImGuiTreeNodeFlags_Leaf;
             ImGui::TreeNodeEx(group.first.c_str(), flags);
             if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
                 if (ImGui::GetIO().KeyCtrl) {
-                    if (selectedCategories.find(group.first)==selectedCategories.end()) {
+                    if (selectedCategories.find(group.first) == selectedCategories.end()) {
                         selectedCategories.insert(group.first);
-                    } else  {
+                    } else {
                         selectedCategories.erase(group.first);
                     }
                 } else if (ImGui::GetIO().KeyShift) {
                     auto groupIt = partsGrouped.find(group.first);
-                    while (groupIt != partsGrouped.begin() && selectedCategories.find(groupIt->first)==selectedCategories.end()) {
+                    while (groupIt != partsGrouped.begin() && selectedCategories.find(groupIt->first) == selectedCategories.end()) {
                         selectedCategories.insert(groupIt->first);
                         groupIt--;
                     }
                     selectedCategories.insert(groupIt->first);
                 } else {
-                    bool wasOnlySelectionBefore = selectedCategories.size()==1&&*selectedCategories.begin()==group.first;
+                    bool wasOnlySelectionBefore = selectedCategories.size() == 1 && *selectedCategories.begin() == group.first;
                     selectedCategories.clear();
                     if (!wasOnlySelectionBefore) {
                         selectedCategories.insert(group.first);
@@ -514,16 +514,16 @@ void Gui::loop() {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(thumbnailSpacing, thumbnailSpacing));
         int actualThumbSize = std::floor(controller->thumbnailGenerator.size / 100.0 * thumbnailZoomPercent);
         auto actualThumbSizeSquared = ImVec2(actualThumbSize, actualThumbSize);
-        int columns = std::max(1.0f, std::floor((ImGui::GetContentRegionAvailWidth()+thumbnailSpacing) / (actualThumbSize+thumbnailSpacing)));
+        int columns = std::max(1.0f, std::floor((ImGui::GetContentRegionAvailWidth() + thumbnailSpacing) / (actualThumbSize + thumbnailSpacing)));
         int currentCol = 0;
 
-        if (selectedCategories.size()>1) {
+        if (selectedCategories.size() > 1) {
             for (const auto &category : selectedCategories) {
                 ImGui::Text("%s", category.c_str());
                 for (const auto &part : partsGrouped.find(category)->second) {
                     drawPartThumbnail(controller->thumbnailGenerator, actualThumbSizeSquared, part);
                     currentCol++;
-                    if (currentCol==columns) {
+                    if (currentCol == columns) {
                         currentCol = 0;
                     } else {
                         ImGui::SameLine();
@@ -550,7 +550,7 @@ void Gui::loop() {
                 for (const auto &part : category.second) {
                     drawPartThumbnail(controller->thumbnailGenerator, actualThumbSizeSquared, part);
                     currentCol++;
-                    if (currentCol==columns) {
+                    if (currentCol == columns) {
                         currentCol = 0;
                     } else {
                         ImGui::SameLine();
@@ -605,7 +605,7 @@ void Gui::loop() {
             ImGui::ColorEdit3("Unoffical Part Color", &unofficalPartColor.x);
             ImGui::TreePop();
         }
-        if (ImGui::TreeNode("Debug Settings"))  {
+        if (ImGui::TreeNode("Debug Settings")) {
             ImGui::Checkbox("Display Selection Buffer", &displaySelectionBuffer);
             ImGui::Checkbox("Show Normals", &showNormals);
             ImGui::TreePop();
@@ -617,14 +617,11 @@ void Gui::loop() {
             config::set_long(config::SCREEN_HEIGHT, initialWindowSize[1]);
             config::set_string(config::LDRAW_PARTS_LIBRARY, ldrawDir);
             switch (guiStyle) {
-                case 0:
-                    config::set_string(config::GUI_STYLE, "light");
+                case 0:config::set_string(config::GUI_STYLE, "light");
                     break;
-                case 1:
-                    config::set_string(config::GUI_STYLE, "classic");
+                case 1:config::set_string(config::GUI_STYLE, "classic");
                     break;
-                default:
-                    config::set_string(config::GUI_STYLE, "dark");
+                default:config::set_string(config::GUI_STYLE, "dark");
                     break;
             }
             config::set_long(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));
@@ -663,7 +660,8 @@ void Gui::loop() {
         if (ImGui::Begin("About", &showAboutWindow, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::TextWrapped("BrickSim is a program which should help you build digital brick models.");
             ImGui::TextWrapped("LEGO(R), the brick configuration, and the minifigure are trademarks of the LEGO Group, which does not sponsor, authorize or endorse this program.");
-            ImGui::TextWrapped("This program comes without any warranty. Neihter the developers nor any other person shall have any liability to any person or entity with respect to any loss or damage caused or alleged to be caused directly or indirectly by this program.");
+            ImGui::TextWrapped(
+                    "This program comes without any warranty. Neihter the developers nor any other person shall have any liability to any person or entity with respect to any loss or damage caused or alleged to be caused directly or indirectly by this program.");
             ImGui::Separator();
             ImGui::Text("This program is open source. It's source code is available on GitHub under the following link:");
             draw_hyperlink_button("https://www.github.com/bb1950328/BrickSim");
@@ -714,8 +712,8 @@ void Gui::loop() {
         ImGui::Begin("Debug Information", &showDebugWindow);
         long lastFrameTime = controller->lastFrameTime;
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", lastFrameTime / 1000.0, 1000000.0 / lastFrameTime);
-        ImGui::Text("Total graphics buffer size: %s", util::formatBytesValue(statistic::Counters::vramUsageBytes).c_str());
-        ImGui::Text("Total thumbnail buffer size: %s", util::formatBytesValue(statistic::Counters::thumbnailBufferUsageBytes).c_str());
+        ImGui::Text("Total graphics buffer size: %s", util::formatBytesValue(statistic::vramUsageBytes).c_str());
+        ImGui::Text("Total thumbnail buffer size: %s", util::formatBytesValue(statistic::thumbnailBufferUsageBytes).c_str());
         ImGui::End();
     }
 
@@ -746,7 +744,7 @@ void drawPartThumbnail(ThumbnailGenerator &thumbnailGenerator, const ImVec2 &act
         auto availableColors = part_color_availability_provider::getAvailableColorsForPart(part);
         std::string availText;
         if (availableColors.has_value() && !availableColors.value().empty()) {
-            if (availableColors.value().size()==1) {
+            if (availableColors.value().size() == 1) {
                 availText = std::string("\nOnly available in ") + (*availableColors.value().begin())->name;
             } else {
                 availText = std::string("\nAvailable in ") + std::to_string(availableColors.value().size()) + " Colors";
@@ -776,14 +774,13 @@ bool Gui::loopPartsLibraryInstallationScreen() {
     static std::atomic<long long int> downloadBytes;
     //static std::thread downloadThread;//todo make this work
     static char pathBuffer[255];
-    if (state=='A') {
-        if (ImGui::BeginPopupModal("ldraw library not found.", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-        {
+    if (state == 'A') {
+        if (ImGui::BeginPopupModal("ldraw library not found.", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::Text("Currently, the path for the ldraw parts library is set to");
             auto parts_lib_raw = config::get_string(config::LDRAW_PARTS_LIBRARY);
             auto parts_lib_extended = util::extend_home_dir(parts_lib_raw);
             ImGui::Text("'%s'", parts_lib_raw.c_str());
-            if (parts_lib_extended!=parts_lib_raw) {
+            if (parts_lib_extended != parts_lib_raw) {
                 ImGui::Text("'~' is the users home directory, which currently is : '%s'", util::extend_home_dir("~").c_str());
             }
             ImGui::Text(" ");
@@ -792,13 +789,13 @@ bool Gui::loopPartsLibraryInstallationScreen() {
             ImGui::BulletText(" ");
             ImGui::SameLine();
             if (ImGui::Button("Change the path manually to point to your ldraw directory")) {
-                state='B';
+                state = 'B';
                 strcpy(pathBuffer, parts_lib_raw.c_str());
             }
             ImGui::BulletText("Move the ldraw parts directory to the path above");
             ImGui::SameLine();
             if (ImGui::Button("Done##1")) {
-                state='Z';
+                state = 'Z';
             }
             ImGui::BulletText("Download");
             ImGui::SameLine();
@@ -807,16 +804,16 @@ bool Gui::loopPartsLibraryInstallationScreen() {
             ImGui::Text("and unzip it to the path above");
             ImGui::SameLine();
             if (ImGui::Button("Done##2")) {
-                state='Z';
+                state = 'Z';
             }
             ImGui::BulletText("Automatically download the parts library");
             ImGui::SameLine();
             if (ImGui::Button("Start")) {
-                state='D';
+                state = 'D';
             }
             ImGui::EndPopup();
         }
-    } else if (state=='B') {
+    } else if (state == 'B') {
         ImGui::InputText("ldraw parts directory path", pathBuffer, 255);
         ImGui::Text("'~' will be replaced with '%s' (the current home directory)", util::extend_home_dir("~").c_str());
         if (std::filesystem::exists(std::filesystem::path(pathBuffer))) {
@@ -832,7 +829,7 @@ bool Gui::loopPartsLibraryInstallationScreen() {
             state = 'Z';
             config::set_string(config::LDRAW_PARTS_LIBRARY, std::string(pathBuffer));
         }
-    } else if (state=='D') {
+    } else if (state == 'D') {
         //todo implement (start thread somehow)
     }
     ImGui::Render();

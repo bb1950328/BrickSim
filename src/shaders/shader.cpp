@@ -3,7 +3,8 @@
 //
 #include "shader.h"
 
-Shader::Shader(const char *vertexPath, const char *fragmentPath) : Shader(vertexPath, fragmentPath, nullptr) {}
+Shader::Shader(const char *vertexPath, const char *fragmentPath) : Shader(vertexPath, fragmentPath, nullptr) {
+}
 
 Shader::Shader(const char *vertexPath, const char *fragmentPath, const char *geometryPath) {
     // 1. retrieve the vertex/fragment source code from filePath
@@ -52,12 +53,12 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath, const char *geo
     unsigned int vertex, fragment;
     // vertex shader
     vertex = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex, 1, &vShaderCode, NULL);
+    glShaderSource(vertex, 1, &vShaderCode, nullptr);
     glCompileShader(vertex);
     checkCompileErrors(vertex, "VERTEX");
     // fragment Shader
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment, 1, &fShaderCode, NULL);
+    glShaderSource(fragment, 1, &fShaderCode, nullptr);
     glCompileShader(fragment);
     checkCompileErrors(fragment, "FRAGMENT");
     // if geometry shader is given, compile geometry shader
@@ -66,7 +67,7 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath, const char *geo
     {
         const char * gShaderCode = geometryCode.c_str();
         geometry = glCreateShader(GL_GEOMETRY_SHADER);
-        glShaderSource(geometry, 1, &gShaderCode, NULL);
+        glShaderSource(geometry, 1, &gShaderCode, nullptr);
         glCompileShader(geometry);
         checkCompileErrors(geometry, "GEOMETRY");
     }

@@ -12,15 +12,11 @@
 namespace ldr_file_repo {
     LdrFile *get_file(const std::string& filename);
     LdrFile* get_file(const std::pair<LdrFileType, std::filesystem::path>& resolvedPair, const std::string& filename);
-
+    void add_file(const std::string &filename, LdrFile *file, LdrFileType type);
     LdrFileType get_file_type(const std::string &filename);
-
     std::pair<LdrFileType, std::filesystem::path> resolve_file(const std::string &filename);
 
     void clear_cache();
-
-    void add_file(const std::string &filename, LdrFile *file, LdrFileType type);
-
     bool initializeNames();
 
     std::map<std::string, std::set<LdrFile *>> getPartsGroupedByCategory();

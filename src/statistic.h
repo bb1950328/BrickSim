@@ -6,13 +6,10 @@
 #define BRICKSIM_STATISTIC_H
 
 namespace statistic {
-    class Counters {
-    public:
-        static long totalBrickCount;
-        static long individualBrickCount;
-        static size_t vramUsageBytes;
-        static size_t thumbnailBufferUsageBytes;
-    };
+    extern long totalBrickCount;
+    extern long individualBrickCount;
+    extern size_t vramUsageBytes;
+    extern size_t thumbnailBufferUsageBytes;
 
     void print();
 }

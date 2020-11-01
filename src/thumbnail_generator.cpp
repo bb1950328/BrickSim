@@ -120,7 +120,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
         mesh->drawOptionalLineGraphics();
 
         const auto totalBufferSize = size * size * 3;
-        statistic::Counters::thumbnailBufferUsageBytes += totalBufferSize;
+        statistic::thumbnailBufferUsageBytes += totalBufferSize;
         auto buffer = std::make_unique<GLbyte[]>(totalBufferSize);
         glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -176,7 +176,7 @@ void ThumbnailGenerator::discardOldestImages(int reserve_space_for) {
         images.erase(lastAccessedIt);
         deletedCount++;
     }
-    statistic::Counters::thumbnailBufferUsageBytes -= size * size * 3 * deletedCount;
+    statistic::thumbnailBufferUsageBytes -= size * size * 3 * deletedCount;
 }
 
 void ThumbnailGenerator::cleanup() {

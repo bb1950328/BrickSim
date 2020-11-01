@@ -28,9 +28,6 @@ int Controller::run() {
         }
     }
     if (partsLibraryFound) {
-        /*for (const auto &category : ldr_file_repo::getPartsGroupedByCategory()) {
-            std::cout << category.first << ": " << category.second.size()  << " (first:" << (*category.second.begin())->metaInfo.name << ")" << std::endl;
-        }*/
         runNormal();
     }
     gui.cleanup();
@@ -95,7 +92,6 @@ bool Controller::initializeGL() {
 
     //glfwWindowHint(GLFW_DECORATED, false);//removes the title bar
     window = glfwCreateWindow(windowWidth, windowHeight, "BrickSim", nullptr, nullptr);
-    //glfwSetWindowPos(window, 20, 40);
     if (window == nullptr) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();

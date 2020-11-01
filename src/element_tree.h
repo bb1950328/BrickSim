@@ -49,6 +49,8 @@ namespace etree {
         [[nodiscard]] const std::vector<Node *> &getChildren() const;
         void addChild(Node *newChild);
 
+        void deleteChild(Node *childToDelete);
+        virtual ~Node();
     protected:
         std::vector<Node *> children;
         glm::mat4 relativeTransformation = glm::mat4(1.0f);

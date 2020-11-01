@@ -331,6 +331,7 @@ void Gui::loop() {
         ImGui::End();
     }
 
+    static etree::Node *lastSelectedNode = nullptr;
     if (showElementPropertiesWindow) {
         ImGui::Begin("Element Properties", &showElementPropertiesWindow);
         if (controller->selectedNodes.empty()) {
@@ -339,9 +340,8 @@ void Gui::loop() {
             auto node = *controller->selectedNodes.begin();
 
             static char displayNameBuf[255];
-            static etree::Node *lastNode = nullptr;
-            if (nullptr != lastNode) {
-                lastNode->displayName = std::string(displayNameBuf);
+            if (nullptr != lastSelectedNode) {
+                lastSelectedNode->displayName = std::string(displayNameBuf);
             }
             strcpy(displayNameBuf, node->displayName.data());
             const auto displayNameEditable = node->isDisplayNameUserEditable();
@@ -382,7 +382,7 @@ void Gui::loop() {
                 static glm::vec3 inputEulerAnglesDeg;
                 static glm::vec3 inputPosition;
                 static glm::vec3 inputScalePercent;
-                if (lastNode != node) {
+                if (lastSelectedNode != node) {
                     inputEulerAnglesDeg = treeEulerAnglesRad * (float) (180.0f / M_PI);
                     inputPosition = treePosition;
                     inputScalePercent = treeScale * 100.0f;
@@ -411,7 +411,7 @@ void Gui::loop() {
                 auto *meshNode = dynamic_cast<etree::MeshNode *>(node);
                 if (meshNode->isColorUserEditable() && ImGui::TreeNodeEx("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
                     static bool isColor16, savedIsColor16;
-                    if (lastNode == node) {
+                    if (lastSelectedNode == node) {
                         if (isColor16 != savedIsColor16) {
                             if (isColor16) {
                                 meshNode->setColor(ldr_color_repo::get_color(LdrColor::MAIN_COLOR_CODE));
@@ -453,8 +453,18 @@ void Gui::loop() {
                     ImGui::TreePop();
                 }
             }
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8, 0, 0, 1));
+            const auto deleteClicked = ImGui::Button("Delete element");
+            ImGui::PopStyleColor();
+            if (deleteClicked) {
+                controller->deleteElement(node);
+                lastSelectedNode = nullptr;
+            }
+            if ((node->getType() & etree::NodeType::TYPE_LDRFILE) > 0) {
+                
+            }
 
-            lastNode = node;
+            lastSelectedNode = node;
         } else {
             ImGui::Text("Multi-select currently not supported here");
         }

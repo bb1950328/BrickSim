@@ -41,6 +41,7 @@ public:
     void setStandard3dView(int i);
 
     void insertLdrElement(LdrFile* ldrFile);
+    void deleteElement(etree::Node *nodeToDelete);
 private:
     Controller();
     //todo convert to namespace

@@ -58,6 +58,23 @@ namespace etree {
         children.push_back(newChild);
     }
 
+    void Node::deleteChild(Node *childToDelete) {
+        auto it = children.begin();
+        while (*it != childToDelete && it != children.end()) {
+            ++it;
+        }
+        if (it != children.end()) {
+            //delete *it;//todo do this to free memory but it throws some corrupted list errors....
+            children.erase(it);
+        }
+    }
+
+    Node::~Node() {
+        for (const auto &child : children) {
+            delete child;
+        }
+    }
+
     bool MeshNode::isColorUserEditable() const {
         return true;
     }

@@ -207,6 +207,12 @@ void Controller::insertLdrElement(LdrFile *ldrFile) {
     elementTreeChanged = true;
 }
 
+void Controller::deleteElement(etree::Node *nodeToDelete) {
+    nodeToDelete->parent->deleteChild(nodeToDelete);
+    selectedNodes.erase(nodeToDelete);
+    elementTreeChanged = true;
+}
+
 void window_size_callback(GLFWwindow *window, int width, int height) {
     Controller::getInstance()->setWindowSize(width, height);
 }

@@ -210,9 +210,9 @@ void Mesh::addLineVertex(const LineVertex &vertex) {
 
 void Mesh::writeGraphicsData() {
     if (!already_initialized) {
-
-        addMinEnclosingBallLines();//todo add flag in config.txt
-
+        if (config::get_bool(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES)) {
+            addMinEnclosingBallLines();
+        }
         initializeTriangleGraphics();
         initializeLineGraphics();
         initializeOptionalLineGraphics();

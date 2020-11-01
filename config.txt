@@ -16,3 +16,4 @@ screenWidth=2948
 thumbnailCacheSizeBytes=1073741824
 thumbnailSize=256
 guiScale=1.5
+drawMinimalEnclosingBallLines=false

@@ -24,6 +24,8 @@
 #define XSTR(x) STR(x)
 #define STR(x) #x
 
+void drawPartThumbnail(ThumbnailGenerator &thumbnailGenerator, const ImVec2 &actualThumbSizeSquared, LdrFile *const &part);
+
 void Gui::setup() {
     if (!setupDone) {
         GLFWmonitor *monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
@@ -513,29 +515,50 @@ void Gui::loop() {
         auto actualThumbSizeSquared = ImVec2(actualThumbSize, actualThumbSize);
         int columns = std::max(1.0f, std::floor((ImGui::GetContentRegionAvailWidth()+thumbnailSpacing) / (actualThumbSize+thumbnailSpacing)));
         int currentCol = 0;
-        for (const auto &category : selectedCategories) {
-            for (const auto &part : partsGrouped.find(category)->second) {
-                bool realThumbnailAvailable = false;
-                if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
-                    auto optTexId = controller->thumbnailGenerator.getThumbnailNonBlocking(part);
-                    if (optTexId.has_value()) {
-                        auto texId = (ImTextureID) (optTexId.value());
-                        ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);
-                        realThumbnailAvailable = true;
+
+        if (selectedCategories.size()>1) {
+            for (const auto &category : selectedCategories) {
+                ImGui::Text("%s", category.c_str());
+                for (const auto &part : partsGrouped.find(category)->second) {
+                    drawPartThumbnail(controller->thumbnailGenerator, actualThumbSizeSquared, part);
+                    currentCol++;
+                    if (currentCol==columns) {
+                        currentCol = 0;
+                    } else {
+                        ImGui::SameLine();
                     }
                 }
-                if (!realThumbnailAvailable) {
-                    ImGui::Button(part->metaInfo.name.c_str(), actualThumbSizeSquared);
+                if (currentCol != 0) {
+                    ImGui::NewLine();
                 }
-                if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip("%s\n%s", part->metaInfo.title.c_str(), part->metaInfo.name.c_str());
-                }
+                currentCol = 0;
+            }
+        } else if (selectedCategories.size() == 1) {
+            for (const auto &part : partsGrouped.find(*selectedCategories.begin())->second) {
+                drawPartThumbnail(controller->thumbnailGenerator, actualThumbSizeSquared, part);
                 currentCol++;
-                if (currentCol==columns) {
+                if (currentCol == columns) {
                     currentCol = 0;
                 } else {
                     ImGui::SameLine();
                 }
+            }
+        } else {
+            for (const auto &category : partsGrouped) {
+                ImGui::Text("%s", category.first.c_str());
+                for (const auto &part : category.second) {
+                    drawPartThumbnail(controller->thumbnailGenerator, actualThumbSizeSquared, part);
+                    currentCol++;
+                    if (currentCol==columns) {
+                        currentCol = 0;
+                    } else {
+                        ImGui::SameLine();
+                    }
+                }
+                if (currentCol != 0) {
+                    ImGui::NewLine();
+                }
+                currentCol = 0;
             }
         }
         ImGui::PopStyleVar();
@@ -703,6 +726,24 @@ void Gui::loop() {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     lastScrollDeltaY = 0.0f;
+}
+
+void drawPartThumbnail(ThumbnailGenerator &thumbnailGenerator, const ImVec2 &actualThumbSizeSquared, LdrFile *const &part) {
+    bool realThumbnailAvailable = false;
+    if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
+        auto optTexId = thumbnailGenerator.getThumbnailNonBlocking(part);
+        if (optTexId.has_value()) {
+            auto texId = (ImTextureID) (optTexId.value());
+            ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);
+            realThumbnailAvailable = true;
+        }
+    }
+    if (!realThumbnailAvailable) {
+        ImGui::Button(part->metaInfo.name.c_str(), actualThumbSizeSquared);
+    }
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s\n%s", part->metaInfo.title.c_str(), part->metaInfo.name.c_str());
+    }
 }
 
 void Gui::cleanup() {

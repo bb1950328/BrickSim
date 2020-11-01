@@ -39,9 +39,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
 
         const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
         glm::vec3 center = glm::vec4(minimalEnclosingBall.first, 1.0f) * mesh->globalModel;
-        //std::cout << glm::to_string(minPos) << " ... " << glm::to_string(center) << " ... " << glm::to_string(maxPos) << std::endl;
         auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL;
-        //std::cout << "meshDiameter: " << meshDiameter << std::endl;
 
         MeshInstance tmpInstance{
                 LdrColorRepository::getInstance()->get_color(1),
@@ -52,28 +50,17 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
         mesh->instancesHaveChanged = true;
         mesh->writeGraphicsData();
 
-        auto transformation = glm::eulerAngleYZX(
-                (float) (rotationDegrees.x / 180 * M_PI),
-                (float) (rotationDegrees.y / 180 * M_PI),
-                (float) (rotationDegrees.z / 180 * M_PI)
-        );
-        //transformation = glm::mat4(1);
-        //std::cout << ldrFile->metaInfo.title << std::endl;
-        //std::cout << "meshRadius: " << meshRadius << std::endl;
-        //std::cout << "center: " << glm::to_string(center) << std::endl;
-        auto s = (float) (rotationDegrees.x / 180 * M_PI);
-        auto t = (float) (rotationDegrees.y / 180 * M_PI);
-        //float distance = (std::tan(25) * meshRadius);
         int iterations = 0;
         glm::mat4 projectionView;
-        //float lowerLimit = 0.0;
-        //float upperLimit = meshRadius * 20;//todo check if really no part is bigger
-        //float distance;
         CadCamera camera;
         camera.setPitch(45);
         camera.setYaw(45);
         bool allInside;
         float distance = .1;
+
+        renderer->triangleShader->use();
+        renderer->triangleShader->setInt("drawSelection", 0);
+
         do {
             //distance = (upperLimit + lowerLimit) / 2;
             //std::cout << lowerLimit << " < " << distance << " < " << upperLimit << std::endl;
@@ -94,10 +81,8 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            renderer->triangleShader->use();
             renderer->triangleShader->setVec3("viewPos", viewPos);
             renderer->triangleShader->setMat4("projectionView", projectionView);
-            renderer->triangleShader->setInt("drawSelection", 0);
             mesh->drawTriangleGraphics();
 
             allInside = true;

@@ -50,6 +50,7 @@ namespace config {
     const Key COLOR_UNOFFICAL_PART{"colorUnofficalPart"};
     const Key THUMBNAIL_SIZE{"thumbnailSize"};
     const Key THUMBNAIL_CACHE_SIZE_BYTES{"thumbnailCacheSizeBytes"};
+    const Key DRAW_MINIMAL_ENCLOSING_BALL_LINES{"drawMinimalEnclosingBallLines"};
 }
 
 #endif //BRICKSIM_CONFIG_H

@@ -105,7 +105,7 @@ void MeshCollection::rereadElementTree() {
     }
     auto after = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
-    std::cout << "rereadElementTree() in " << duration / 1000.0f << "ms" << std::endl;
+    statistic::lastElementTreeReread = duration / 1000.0f;
 }
 
 void MeshCollection::updateMeshInstances() {

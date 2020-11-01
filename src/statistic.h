@@ -10,6 +10,7 @@ namespace statistic {
     extern long individualBrickCount;
     extern size_t vramUsageBytes;
     extern size_t thumbnailBufferUsageBytes;
+    extern float lastElementTreeReread;
 
     void print();
 }

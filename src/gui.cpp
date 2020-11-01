@@ -714,6 +714,7 @@ void Gui::loop() {
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", lastFrameTime / 1000.0, 1000000.0 / lastFrameTime);
         ImGui::Text("Total graphics buffer size: %s", util::formatBytesValue(statistic::vramUsageBytes).c_str());
         ImGui::Text("Total thumbnail buffer size: %s", util::formatBytesValue(statistic::thumbnailBufferUsageBytes).c_str());
+        ImGui::Text("Last element tree reread: %f ms", statistic::lastElementTreeReread);
         ImGui::End();
     }
 

@@ -42,6 +42,7 @@ public:
 
     void insertLdrElement(LdrFile* ldrFile);
     void deleteElement(etree::Node *nodeToDelete);
+    void deleteSelectedElements();
 private:
     Controller();
     //todo convert to namespace

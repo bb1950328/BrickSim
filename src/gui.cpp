@@ -453,21 +453,23 @@ void Gui::loop() {
                     ImGui::TreePop();
                 }
             }
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8, 0, 0, 1));
-            const auto deleteClicked = ImGui::Button("Delete element");
-            ImGui::PopStyleColor();
-            if (deleteClicked) {
-                controller->deleteElement(node);
-                lastSelectedNode = nullptr;
-            }
-            if ((node->getType() & etree::NodeType::TYPE_LDRFILE) > 0) {
-                
-            }
 
             lastSelectedNode = node;
         } else {
-            ImGui::Text("Multi-select currently not supported here");
         }
+
+        if (!controller->selectedNodes.empty()) {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8, 0, 0, 1));
+            std::string deleteButtonLabel = controller->selectedNodes.size() > 1
+                                            ? (std::string("Delete ") + std::to_string(controller->selectedNodes.size()) + " elements")
+                                            : "Delete Element";
+            const auto deleteClicked = ImGui::Button(deleteButtonLabel.c_str());
+            ImGui::PopStyleColor();
+            if (deleteClicked) {
+                controller->deleteSelectedElements();
+            }
+        }
+
         ImGui::End();
     }
 

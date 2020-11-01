@@ -472,16 +472,35 @@ void Gui::loop() {
         const auto itemSpacingX = ImGui::GetStyle().ItemSpacing.x;
         float thumbnailContainerWidth = totalWidth - categorySelectWidth - itemSpacingX;
         static const auto partsGrouped = ldr_file_repo::getPartsGroupedByCategory();
-        static std::string selectedCategory = partsGrouped.begin()->first;
+        static std::set<std::string> selectedCategories;
 
         ImGui::BeginChild("##categorySelectTree", ImVec2(categorySelectWidth, 0));
         for (const auto &group : partsGrouped) {
-            int flags = selectedCategory == group.first
+            int flags = selectedCategories.find(group.first) != selectedCategories.end()
                     ? ImGuiTreeNodeFlags_Leaf|ImGuiTreeNodeFlags_Selected
                     : ImGuiTreeNodeFlags_Leaf;
             ImGui::TreeNodeEx(group.first.c_str(), flags);
             if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-                selectedCategory = group.first;
+                if (ImGui::GetIO().KeyCtrl) {
+                    if (selectedCategories.find(group.first)==selectedCategories.end()) {
+                        selectedCategories.insert(group.first);
+                    } else  {
+                        selectedCategories.erase(group.first);
+                    }
+                } else if (ImGui::GetIO().KeyShift) {
+                    auto groupIt = partsGrouped.find(group.first);
+                    while (groupIt != partsGrouped.begin() && selectedCategories.find(groupIt->first)==selectedCategories.end()) {
+                        selectedCategories.insert(groupIt->first);
+                        groupIt--;
+                    }
+                    selectedCategories.insert(groupIt->first);
+                } else {
+                    bool wasOnlySelectionBefore = selectedCategories.size()==1&&*selectedCategories.begin()==group.first;
+                    selectedCategories.clear();
+                    if (!wasOnlySelectionBefore) {
+                        selectedCategories.insert(group.first);
+                    }
+                }
             }
             ImGui::TreePop();
         }
@@ -494,27 +513,29 @@ void Gui::loop() {
         auto actualThumbSizeSquared = ImVec2(actualThumbSize, actualThumbSize);
         int columns = std::max(1.0f, std::floor((ImGui::GetContentRegionAvailWidth()+thumbnailSpacing) / (actualThumbSize+thumbnailSpacing)));
         int currentCol = 0;
-        for (const auto &part : partsGrouped.find(selectedCategory)->second) {
-            bool realThumbnailAvailable = false;
-            if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
-                auto optTexId = controller->thumbnailGenerator.getThumbnailNonBlocking(part);
-                if (optTexId.has_value()) {
-                    auto texId = (ImTextureID) (optTexId.value());
-                    ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);
-                    realThumbnailAvailable = true;
+        for (const auto &category : selectedCategories) {
+            for (const auto &part : partsGrouped.find(category)->second) {
+                bool realThumbnailAvailable = false;
+                if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
+                    auto optTexId = controller->thumbnailGenerator.getThumbnailNonBlocking(part);
+                    if (optTexId.has_value()) {
+                        auto texId = (ImTextureID) (optTexId.value());
+                        ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);
+                        realThumbnailAvailable = true;
+                    }
                 }
-            }
-            if (!realThumbnailAvailable) {
-                ImGui::Button(part->metaInfo.name.c_str(), actualThumbSizeSquared);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("%s\n%s", part->metaInfo.title.c_str(), part->metaInfo.name.c_str());
-            }
-            currentCol++;
-            if (currentCol==columns) {
-                currentCol = 0;
-            } else {
-                ImGui::SameLine();
+                if (!realThumbnailAvailable) {
+                    ImGui::Button(part->metaInfo.name.c_str(), actualThumbSizeSquared);
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s\n%s", part->metaInfo.title.c_str(), part->metaInfo.name.c_str());
+                }
+                currentCol++;
+                if (currentCol==columns) {
+                    currentCol = 0;
+                } else {
+                    ImGui::SameLine();
+                }
             }
         }
         ImGui::PopStyleVar();

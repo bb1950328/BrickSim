@@ -353,4 +353,24 @@ namespace util {
             hue = (((h / 255 / 6.0f) - (int) (h / 255 / 6.0f)) * 255.0f);
         }
     }
+
+
+    bool memeqzero(const void *data, size_t length) {
+        //from https://github.com/rustyrussell/ccan/blob/master/ccan/mem/mem.c#L92
+        const auto *p = static_cast<const unsigned char *>(data);
+        size_t len;
+
+        /* Check first 16 bytes manually */
+        for (len = 0; len < 16; len++) {
+            if (!length)
+                return true;
+            if (*p)
+                return false;
+            p++;
+            length--;
+        }
+
+        /* Now we know that's zero, memcmp with self. */
+        return memcmp(data, p, length) == 0;
+    }
 }

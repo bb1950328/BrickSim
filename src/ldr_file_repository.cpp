@@ -186,11 +186,11 @@ namespace ldr_file_repo {
                 std::vector<std::thread> threads;
                 for (int i = 1; i <= numCores; ++i) {
                     std::map<std::string, std::filesystem::path>::iterator endIt;
-                    if (i != numCores) {//last one has to do a little bit more work it the number of parts is not divisible by numCores
+                    if (i != numCores) {
                         endIt = startIt;
                         std::advance(endIt, chunkSize);
                     } else {
-                        endIt = partNames.end();
+                        endIt = partNames.end();//last one has to do a little bit more work it the number of parts is not divisible by numCores
                     }
                     threads.emplace_back(openAndReadFiles, startIt, endIt);
                     startIt = endIt;

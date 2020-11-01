@@ -74,3 +74,28 @@ void CadCamera::setStandardView(int i) {
     target = glm::vec3(0.0f, 0.0f, 0.0f);
     updateVectors();
 }
+
+float CadCamera::getDistance() const {
+    return distance;
+}
+
+void CadCamera::setDistance(float value) {
+    distance = value;
+    updateVectors();
+}
+
+float CadCamera::getPitch() const {
+    return pitch;
+}
+
+void CadCamera::setPitch(float value) {
+    pitch = value;
+}
+
+float CadCamera::getYaw() const {
+    return yaw;
+}
+
+void CadCamera::setYaw(float value) {
+    yaw = value;
+}

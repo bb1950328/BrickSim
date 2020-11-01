@@ -36,6 +36,8 @@ public:
     explicit ThumbnailGenerator(Renderer *renderer);
     void discardAllImages();
     void workOnRenderQueue();
+
+    void saveFramebufferToBMP(const std::string &filename) const;
 };
 
 #endif //BRICKSIM_THUMBNAIL_GENERATOR_H

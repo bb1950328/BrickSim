@@ -3,14 +3,16 @@
 //
 
 #define GLM_ENABLE_EXPERIMENTAL
+
+#include "lib/stb_image_write.h"
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include "thumbnail_generator.h"
 #include "config.h"
 #include "ldr_colors.h"
 
-unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
-    if (renderedRotationDegrees!=rotationDegrees) {
+unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
+    if (renderedRotationDegrees != rotationDegrees) {
         discardAllImages();
         renderedRotationDegrees = rotationDegrees;
     }
@@ -34,49 +36,97 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
             //todo make color customizable
             mesh->addLdrFile(*ldrFile, glm::mat4(1.0f), LdrColorRepository::getInstance()->get_color(1), false);
         }
+
         const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
-        glm::vec3 center = glm::vec4(minimalEnclosingBall.first, 1.0f);
+        glm::vec3 center = glm::vec4(minimalEnclosingBall.first, 1.0f) * mesh->globalModel;
         //std::cout << glm::to_string(minPos) << " ... " << glm::to_string(center) << " ... " << glm::to_string(maxPos) << std::endl;
         auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL;
         //std::cout << "meshDiameter: " << meshDiameter << std::endl;
 
-        auto transformation = glm::eulerAngleYZX(
-                (float)(rotationDegrees.x/180*M_PI),
-                (float)(rotationDegrees.y/180*M_PI),
-                (float)(rotationDegrees.z/180*M_PI)
-        );
-        //transformation = glm::mat4(1);
-        std::cout << meshRadius << std::endl;
-        auto s = (float)(rotationDegrees.x/180*M_PI);
-        auto t = (float)(rotationDegrees.y/180*M_PI);
-        auto distance = (std::tan(25) * meshRadius);
-        glm::vec3 viewPos = glm::vec3(
-                distance * std::cos(s) * std::sin(t),
-                distance * std::sin(s) * std::sin(t),
-                distance * std::cos(t)
-                )-center/**transformation*/;//todo make mesh centered on framebuffer
-        auto view = glm::lookAt(viewPos,
-                                /*-center*/glm::vec3(0)+center,
-                                glm::vec3(0.0f, 1.0f, 0.0f));
-        const glm::mat4 &projectionView = projection * view;
         MeshInstance tmpInstance{
                 LdrColorRepository::getInstance()->get_color(1),
-                glm::scale(glm::mat4(1.0f), glm::vec3(1/distance)),
+                glm::mat4(1.0f),
                 0
         };
         mesh->instances.push_back(tmpInstance);
         mesh->instancesHaveChanged = true;
         mesh->writeGraphicsData();
-        glViewport(0, 0, size, size);
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        renderer->triangleShader->use();
-        renderer->triangleShader->setVec3("viewPos", viewPos);
-        renderer->triangleShader->setMat4("projectionView", projectionView);
-        renderer->triangleShader->setInt("drawSelection", 0);
-        mesh->drawTriangleGraphics();
+        auto transformation = glm::eulerAngleYZX(
+                (float) (rotationDegrees.x / 180 * M_PI),
+                (float) (rotationDegrees.y / 180 * M_PI),
+                (float) (rotationDegrees.z / 180 * M_PI)
+        );
+        //transformation = glm::mat4(1);
+        //std::cout << ldrFile->metaInfo.title << std::endl;
+        //std::cout << "meshRadius: " << meshRadius << std::endl;
+        //std::cout << "center: " << glm::to_string(center) << std::endl;
+        auto s = (float) (rotationDegrees.x / 180 * M_PI);
+        auto t = (float) (rotationDegrees.y / 180 * M_PI);
+        //float distance = (std::tan(25) * meshRadius);
+        int iterations = 0;
+        glm::mat4 projectionView;
+        //float lowerLimit = 0.0;
+        //float upperLimit = meshRadius * 20;//todo check if really no part is bigger
+        //float distance;
+        CadCamera camera;
+        camera.setPitch(45);
+        camera.setYaw(45);
+        bool allInside;
+        float distance = .1;
+        do {
+            //distance = (upperLimit + lowerLimit) / 2;
+            //std::cout << lowerLimit << " < " << distance << " < " << upperLimit << std::endl;
+            camera.setDistance(distance);
+            /*glm::vec3 viewPos = glm::vec3(
+                    distance * std::cos(s) * std::sin(t),
+                    distance * std::sin(s) * std::sin(t),
+                    distance * std::cos(t)
+            ) - center;*/
+            glm::vec3 viewPos = camera.getCameraPos()/*-center*/;
+            auto view = glm::lookAt(viewPos,
+                                    glm::vec3(0) + center,
+                                    glm::vec3(0.0f, 1.0f, 0.0f));
+            view = camera.getViewMatrix();
+            projectionView = projection * view;
+            glViewport(0, 0, size, size);
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            renderer->triangleShader->use();
+            renderer->triangleShader->setVec3("viewPos", viewPos);
+            renderer->triangleShader->setMat4("projectionView", projectionView);
+            renderer->triangleShader->setInt("drawSelection", 0);
+            mesh->drawTriangleGraphics();
+
+            allInside = true;
+            GLbyte buffer1[3];
+            GLbyte buffer2[3];
+            GLbyte buffer3[3];
+            GLbyte buffer4[3];
+            for (int i = 0; i < size; ++i) {
+                glReadPixels(i, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer1);
+                glReadPixels(0, i, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer2);
+                glReadPixels(i, size - 1, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer3);
+                glReadPixels(size - 1, i, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer4);
+                if (buffer1[0] != 0 || buffer1[1] != 0 || buffer1[2] != 0
+                    || buffer2[0] != 0 || buffer2[1] != 0 || buffer2[2] != 0
+                    || buffer3[0] != 0 || buffer3[1] != 0 || buffer3[2] != 0
+                    || buffer4[0] != 0 || buffer4[1] != 0 || buffer4[2] != 0) {
+                    allInside = false;
+                    break;
+                }
+            }
+            iterations++;
+
+            std::string filename =
+                    std::string("thumbnail/_") + mesh->name + "_iteration" + std::to_string(iterations) + ".bmp";
+            //saveFramebufferToBMP(filename);
+            distance += .33;
+        } while (/*upperLimit - lowerLimit > 0.001 ||*/ !allInside);
+        //std::cout << "iterations: " << iterations << std::endl;
+
         renderer->lineShader->use();
         renderer->lineShader->setMat4("projectionView", projectionView);
         mesh->drawLineGraphics();
@@ -108,6 +158,14 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile* ldrFile) {
     return images[ldrFile];
 }
 
+void ThumbnailGenerator::saveFramebufferToBMP(const std::string &filename) const {
+    std::filesystem::create_directories(std::filesystem::path(filename).parent_path());
+    auto *pixels = new GLubyte[size * size * 4];
+    glReadPixels(0, 0, size, size, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    stbi_write_bmp(filename.c_str(), size, size, 4, pixels);
+    delete[] pixels;
+}
+
 void ThumbnailGenerator::discardAllImages() {
     for (const auto &item : images) {
         glDeleteTextures(1, &item.second);
@@ -116,38 +174,8 @@ void ThumbnailGenerator::discardAllImages() {
     lastAccessed.clear();
 }
 
-unsigned int ThumbnailGenerator::copyFramebufferToTexture() const {
-    //todo this is from https://stackoverflow.com/questions/15306899/is-it-possible-to-copy-data-from-one-framebuffer-to-another-in-opengl but it didn't work
-    unsigned int destinationTextureId;
-    glGenTextures(1, &destinationTextureId);
-
-    // bind fbo as read / draw fbo
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER,framebuffer);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
-
-    // bind source texture to color attachment
-    glBindTexture(GL_TEXTURE_2D,textureBuffer);
-    glFramebufferTexture2D(GL_TEXTURE_2D, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureBuffer, 0);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
-    // bind destination texture to another color attachment
-    glBindTexture(GL_TEXTURE_2D,destinationTextureId);
-    glFramebufferTexture2D(GL_TEXTURE_2D, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, destinationTextureId, 0);
-    glReadBuffer(GL_COLOR_ATTACHMENT1);
-
-
-    // specify source, destination drawing (sub)rectangles.
-    glBlitFramebuffer(0, 0, size, size,
-                      0, 0, size, size, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-    // release state
-    glBindTexture(GL_TEXTURE_2D,0);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER,0);
-    return destinationTextureId;
-}
-
-ThumbnailGenerator::ThumbnailGenerator(Renderer *renderer) : renderer(renderer), meshCollection(&renderer->meshCollection) {
+ThumbnailGenerator::ThumbnailGenerator(Renderer *renderer) : renderer(renderer),
+                                                             meshCollection(&renderer->meshCollection) {
     size = config::get_long(config::THUMBNAIL_SIZE);
     maxCachedThumbnails = config::get_long(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
     projection = glm::perspective(glm::radians(50.0f), 1.0f, 0.001f, 1000.0f);
@@ -156,7 +184,7 @@ ThumbnailGenerator::ThumbnailGenerator(Renderer *renderer) : renderer(renderer),
 
 void ThumbnailGenerator::discardOldestImages(int reserve_space_for) {
     int deletedCount = 0;
-    while (lastAccessed.size()>maxCachedThumbnails-reserve_space_for) {
+    while (lastAccessed.size() > maxCachedThumbnails - reserve_space_for) {
         auto lastAccessedIt = lastAccessed.front();
         glDeleteTextures(1, &images[lastAccessedIt]);
         lastAccessed.remove(lastAccessedIt);
@@ -171,7 +199,7 @@ void ThumbnailGenerator::cleanup() {
 }
 
 std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const LdrFile *ldrFile) {
-    if (renderedRotationDegrees!=rotationDegrees) {
+    if (renderedRotationDegrees != rotationDegrees) {
         discardAllImages();
         renderedRotationDegrees = rotationDegrees;
     }
@@ -189,4 +217,35 @@ void ThumbnailGenerator::workOnRenderQueue() {
         getThumbnail(renderRequests.front());
         renderRequests.pop();
     }
+}
+
+unsigned int ThumbnailGenerator::copyFramebufferToTexture() const {
+    //todo this is from https://stackoverflow.com/questions/15306899/is-it-possible-to-copy-data-from-one-framebuffer-to-another-in-opengl but it didn't work
+    unsigned int destinationTextureId;
+    glGenTextures(1, &destinationTextureId);
+
+    // bind fbo as read / draw fbo
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+
+    // bind source texture to color attachment
+    glBindTexture(GL_TEXTURE_2D, textureBuffer);
+    glFramebufferTexture2D(GL_TEXTURE_2D, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureBuffer, 0);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    // bind destination texture to another color attachment
+    glBindTexture(GL_TEXTURE_2D, destinationTextureId);
+    glFramebufferTexture2D(GL_TEXTURE_2D, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, destinationTextureId, 0);
+    glReadBuffer(GL_COLOR_ATTACHMENT1);
+
+
+    // specify source, destination drawing (sub)rectangles.
+    glBlitFramebuffer(0, 0, size, size,
+                      0, 0, size, size, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+    // release state
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    return destinationTextureId;
 }

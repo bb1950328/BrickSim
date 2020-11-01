@@ -14,9 +14,27 @@
 
 class CadCamera {
 private:
-    float pitch = 0.0f; // up/down angle
+    float pitch = 0.0f;
+public:
+    float getPitch() const;
+
+    void setPitch(float value);
+
+    float getYaw() const;
+
+    void setYaw(float value);
+
+private:
+    // up/down angle
     float yaw = 0.0f; // left/right angle
-    float distance = 3.0f; // distance between target point and camera
+    float distance = 3.0f;
+public:
+    float getDistance() const;
+
+    void setDistance(float value);
+
+private:
+    // distance between target point and camera
     glm::vec3 front, target, cameraPos;
 private:
     glm::vec3 worldUp = glm::vec3(0.0f,  1.0f, 0.0f);

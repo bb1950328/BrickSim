@@ -76,5 +76,6 @@ namespace util {
     };
 
     std::vector<std::string> getSystemInfo();
+    bool memeqzero(const void *data, size_t length);
 }
 #endif //BRICKSIM_UTIL_H

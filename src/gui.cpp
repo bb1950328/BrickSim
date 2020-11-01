@@ -427,26 +427,43 @@ void Gui::loop() {
                     if (!isColor16) {
                         const auto buttonWidth = ImGui::GetFontSize() * 1.5f;
                         const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
-                        const int columnCount = std::floor(
-                                ImGui::GetContentRegionAvailWidth() / (buttonWidth + ImGui::GetStyle().ItemSpacing.x));
-                        const auto &groupedAndSortedByHue = ldr_color_repo::getAllColorsGroupedAndSortedByHue();
-                        const static std::vector<std::string> fixed_pos = {"Solid", "Transparent", "Rubber"};
-                        for (const auto &colorName : fixed_pos) {
-                            const auto &colorGroup = std::make_pair(colorName,
-                                                                    groupedAndSortedByHue.find(colorName)->second);
-                            drawColorGroup(controller, meshNode, buttonSize, columnCount, colorGroup);
-                        }
-                        for (const auto &colorGroup : groupedAndSortedByHue) {
-                            bool alreadyDrawn = false;//todo google how to vector.contains()
-                            for (const auto &groupName : fixed_pos) {
-                                if (groupName == colorGroup.first) {
-                                    alreadyDrawn = true;
-                                    break;
-                                }
-                            }
+                        const int columnCount = std::floor(ImGui::GetContentRegionAvailWidth() / (buttonWidth + ImGui::GetStyle().ItemSpacing.x));
 
-                            if (!alreadyDrawn) {
+                        auto availableColors = part_color_availability_provider::getAvailableColorsForPart(dynamic_cast<etree::LdrNode*>(meshNode)->ldrFile);
+                        bool showAllColors;
+                        if (availableColors.has_value() && !availableColors.value().empty()) {
+                            static bool onlyAvailableChecked = false;
+                            ImGui::Checkbox("Only show available Colors", &onlyAvailableChecked);
+                            showAllColors = !onlyAvailableChecked;
+                            if (onlyAvailableChecked) {
+                                std::pair<std::string, std::vector<const LdrColor*>> group = std::make_pair("Available", std::vector<const LdrColor*>());
+                                for (const auto &color : availableColors.value()) {
+                                    group.second.push_back(color);
+                                }
+                                drawColorGroup(controller, meshNode, buttonSize, columnCount, group);
+                            }
+                        } else {
+                            showAllColors = true;
+                        }
+                        if (showAllColors) {
+                            const auto &groupedAndSortedByHue = ldr_color_repo::getAllColorsGroupedAndSortedByHue();
+                            const static std::vector<std::string> fixed_pos = {"Solid", "Transparent", "Rubber"};
+                            for (const auto &colorName : fixed_pos) {
+                                const auto &colorGroup = std::make_pair(colorName, groupedAndSortedByHue.find(colorName)->second);
                                 drawColorGroup(controller, meshNode, buttonSize, columnCount, colorGroup);
+                            }
+                            for (const auto &colorGroup : groupedAndSortedByHue) {
+                                bool alreadyDrawn = false;//todo google how to vector.contains()
+                                for (const auto &groupName : fixed_pos) {
+                                    if (groupName == colorGroup.first) {
+                                        alreadyDrawn = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!alreadyDrawn) {
+                                    drawColorGroup(controller, meshNode, buttonSize, columnCount, colorGroup);
+                                }
                             }
                         }
                     }

@@ -15,6 +15,7 @@
 #include "git_stats.h"
 #include "lib/tinyfiledialogs.h"
 #include "helpers/util.h"
+#include "part_color_availability_provider.h"
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -742,7 +743,18 @@ void drawPartThumbnail(ThumbnailGenerator &thumbnailGenerator, const ImVec2 &act
         ImGui::Button(part->metaInfo.name.c_str(), actualThumbSizeSquared);
     }
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s\n%s", part->metaInfo.title.c_str(), part->metaInfo.name.c_str());
+        auto availableColors = part_color_availability_provider::getAvailableColorsForPart(part);
+        std::string availText;
+        if (availableColors.has_value() && !availableColors.value().empty()) {
+            if (availableColors.value().size()==1) {
+                availText = std::string("\nOnly available in ") + (*availableColors.value().begin())->name;
+            } else {
+                availText = std::string("\nAvailable in ") + std::to_string(availableColors.value().size()) + " Colors";
+            }
+        } else {
+            availText = std::string("");
+        }
+        ImGui::SetTooltip("%s\n%s%s", part->metaInfo.title.c_str(), part->metaInfo.name.c_str(), availText.c_str());
     }
 }
 

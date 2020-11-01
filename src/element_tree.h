@@ -41,7 +41,7 @@ namespace etree {
         const glm::mat4 &getAbsoluteTransformation();
         [[nodiscard]] virtual bool isTransformationUserEditable() const;
 
-        NodeType getType();
+        NodeType getType() const;
 
         [[nodiscard]] virtual bool isDisplayNameUserEditable() const = 0;
         virtual std::string getDescription();
@@ -90,6 +90,11 @@ namespace etree {
         std::set<LdrSubfileReference *> childrenWithOwnNode;
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
+
+        /**
+         * finds the subfileNode and creates a MpdSubfileInstanceNode as child of this
+         */
+        void addSubfileInstanceNode(LdrFile* subFile, LdrColor* instanceColor);
     };
 
     class MpdSubfileNode;
@@ -131,7 +136,7 @@ namespace etree {
     class ElementTree {
     public:
         RootNode rootNode;
-        void loadLdrFile(const std::string &filename);
+        Node * loadLdrFile(const std::string &filename);
         void print();
 
     private:

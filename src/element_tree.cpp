@@ -33,7 +33,7 @@ namespace etree {
         return absoluteTransformation;
     }
 
-    NodeType Node::getType() {
+    NodeType Node::getType() const {
         return type;
     }
 
@@ -150,9 +150,15 @@ namespace etree {
         }
     }
 
-    void ElementTree::loadLdrFile(const std::string &filename) {
+    void LdrNode::addSubfileInstanceNode(LdrFile *subFile, LdrColor* instanceColor) {
+        MpdSubfileNode *subfileNode = findMpdNodeAndAddSubfileNode(subFile, ldr_color_repo::get_color(1), this);
+        this->children.push_back(new MpdSubfileInstanceNode(subfileNode, instanceColor, this));
+    }
+
+    Node* ElementTree::loadLdrFile(const std::string &filename) {
         auto *newNode = new MpdNode(ldr_file_repo::get_file(filename), ldr_color_repo::get_color(2), &rootNode);
         rootNode.addChild(newNode);
+        return newNode;
     }
 
     void ElementTree::print() {

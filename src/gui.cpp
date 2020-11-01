@@ -26,7 +26,7 @@
 #define XSTR(x) STR(x)
 #define STR(x) #x
 
-void drawPartThumbnail(ThumbnailGenerator &thumbnailGenerator, const ImVec2 &actualThumbSizeSquared, LdrFile *const &part);
+void drawPartThumbnail(Controller *controller, const ImVec2 &actualThumbSizeSquared, LdrFile *const &part);
 
 void Gui::setup() {
     if (!setupDone) {
@@ -521,7 +521,7 @@ void Gui::loop() {
             for (const auto &category : selectedCategories) {
                 ImGui::Text("%s", category.c_str());
                 for (const auto &part : partsGrouped.find(category)->second) {
-                    drawPartThumbnail(controller->thumbnailGenerator, actualThumbSizeSquared, part);
+                    drawPartThumbnail(controller, actualThumbSizeSquared, part);
                     currentCol++;
                     if (currentCol == columns) {
                         currentCol = 0;
@@ -536,7 +536,7 @@ void Gui::loop() {
             }
         } else if (selectedCategories.size() == 1) {
             for (const auto &part : partsGrouped.find(*selectedCategories.begin())->second) {
-                drawPartThumbnail(controller->thumbnailGenerator, actualThumbSizeSquared, part);
+                drawPartThumbnail(controller, actualThumbSizeSquared, part);
                 currentCol++;
                 if (currentCol == columns) {
                     currentCol = 0;
@@ -548,7 +548,7 @@ void Gui::loop() {
             for (const auto &category : partsGrouped) {
                 ImGui::Text("%s", category.first.c_str());
                 for (const auto &part : category.second) {
-                    drawPartThumbnail(controller->thumbnailGenerator, actualThumbSizeSquared, part);
+                    drawPartThumbnail(controller, actualThumbSizeSquared, part);
                     currentCol++;
                     if (currentCol == columns) {
                         currentCol = 0;
@@ -727,10 +727,10 @@ void Gui::loop() {
     lastScrollDeltaY = 0.0f;
 }
 
-void drawPartThumbnail(ThumbnailGenerator &thumbnailGenerator, const ImVec2 &actualThumbSizeSquared, LdrFile *const &part) {
+void drawPartThumbnail(Controller *controller, const ImVec2 &actualThumbSizeSquared, LdrFile *const &part) {
     bool realThumbnailAvailable = false;
     if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
-        auto optTexId = thumbnailGenerator.getThumbnailNonBlocking(part);
+        auto optTexId = controller->thumbnailGenerator.getThumbnailNonBlocking(part);
         if (optTexId.has_value()) {
             auto texId = (ImTextureID) (optTexId.value());
             ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);
@@ -753,6 +753,9 @@ void drawPartThumbnail(ThumbnailGenerator &thumbnailGenerator, const ImVec2 &act
             availText = std::string("");
         }
         ImGui::SetTooltip("%s\n%s%s", part->metaInfo.title.c_str(), part->metaInfo.name.c_str(), availText.c_str());
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+        controller->insertLdrElement(part);
     }
 }
 

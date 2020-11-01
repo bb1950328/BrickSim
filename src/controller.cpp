@@ -124,8 +124,7 @@ void Controller::setWindowSize(unsigned int width, unsigned int height) {
 }
 
 void Controller::openFile(const std::string& path) {
-    elementTree.loadLdrFile(path);
-    elementTreeChanged = true;
+    insertLdrElement(ldr_file_repo::get_file(path));
 }
 
 void Controller::nodeSelectAddRemove(etree::Node *node) {
@@ -184,6 +183,28 @@ void Controller::nodeSelectNone() {
 void Controller::setStandard3dView(int i) {
     renderer.camera.setStandardView(i);
     renderer.unrenderedChanges = true;
+}
+
+void Controller::insertLdrElement(LdrFile *ldrFile) {
+    auto currentlyEditingLdrNode = dynamic_cast<etree::LdrNode *>(currentlyEditingNode);
+    switch (ldrFile->metaInfo.type) {
+        case MODEL:
+            currentlyEditingNode = new etree::MpdNode(ldrFile, ldr_color_repo::get_color(2), &elementTree.rootNode);
+            elementTree.rootNode.addChild(currentlyEditingNode);
+            break;
+        case MPD_SUBFILE:
+            if (nullptr!=currentlyEditingLdrNode) {
+                currentlyEditingLdrNode->addSubfileInstanceNode(ldrFile, ldr_color_repo::get_color(1));
+            }
+            break;
+        case PART:
+            if (nullptr!=currentlyEditingLdrNode) {
+                currentlyEditingLdrNode->addChild(new etree::PartNode(ldrFile, ldr_color_repo::get_color(1), currentlyEditingNode));
+            }
+            break;
+        default: return;
+    }
+    elementTreeChanged = true;
 }
 
 void window_size_callback(GLFWwindow *window, int width, int height) {

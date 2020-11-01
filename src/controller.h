@@ -40,6 +40,7 @@ public:
 
     void setStandard3dView(int i);
 
+    void insertLdrElement(LdrFile* ldrFile);
 private:
     Controller();
     //todo convert to namespace
@@ -48,6 +49,7 @@ private:
     void runNormal();
 
     [[nodiscard]] bool doesUserWantToExit() const;
+    etree::Node *currentlyEditingNode;
 };
 
 #endif //BRICKSIM_CONTROLLER_H

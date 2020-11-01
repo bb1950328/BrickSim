@@ -105,7 +105,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
             GLbyte buffer2[3];
             GLbyte buffer3[3];
             GLbyte buffer4[3];
-            for (int i = 0; i < size; ++i) {
+            for (int i = 0; i < size; ++i) {//todo this is very inefficent
                 glReadPixels(i, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer1);
                 glReadPixels(0, i, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer2);
                 glReadPixels(i, size - 1, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer3);

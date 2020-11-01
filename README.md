@@ -24,3 +24,9 @@ currently, the only way to run BrickSim on OS X is to build it from source, beca
 - add parts palette
 - add manual
 - make lines thicker (geometry shader)
+
+## How to get the `codes.txt` file
+The `codes.txt` file contains all parts with the colors they are available in. Because I don't whether it's allowed to distribute that file together with the program, you have to download it. But don't worry, it's really simple: 
+1. Go to [https://www.bricklink.com/catalogDownload.asp](https://www.bricklink.com/catalogDownload.asp)
+1. Select "Part and Color Codes". Also make sure "Tab-Delimited File" is selected.
+1. Click on the download button and save the file in the BrickSim folder

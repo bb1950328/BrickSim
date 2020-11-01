@@ -213,7 +213,7 @@ LdrSubfileReference::LdrSubfileReference(const std::string& line, bool bfcInvert
     linestream >> i;
     linestream.getline(filenameTmp, MAX_LDR_FILENAME_LENGTH+1);
 
-    color = LdrColorRepository::getInstance()->get_color(colorCode);
+    color = ldr_color_repo::get_color(colorCode);
     filename = util::trim(std::string(filenameTmp));
     delete [] filenameTmp;
 }
@@ -228,7 +228,7 @@ LdrLine::LdrLine(const std::string& line) {
     linestream >> x2;
     linestream >> y2;
     linestream >> z2;
-    color = LdrColorRepository::getInstance()->get_color(colorCode);
+    color = ldr_color_repo::get_color(colorCode);
 }
 
 LdrTriangle::LdrTriangle(const std::string &line, WindingOrder order) {
@@ -253,7 +253,7 @@ LdrTriangle::LdrTriangle(const std::string &line, WindingOrder order) {
         linestream >> y2;
         linestream >> z2;
     }
-    color = LdrColorRepository::getInstance()->get_color(colorCode);
+    color = ldr_color_repo::get_color(colorCode);
 }
 
 LdrQuadrilateral::LdrQuadrilateral(const std::string &line, WindingOrder order) {
@@ -284,7 +284,7 @@ LdrQuadrilateral::LdrQuadrilateral(const std::string &line, WindingOrder order) 
         linestream >> y2;
         linestream >> z2;
     }
-    color = LdrColorRepository::getInstance()->get_color(colorCode);
+    color = ldr_color_repo::get_color(colorCode);
 }
 
 LdrOptionalLine::LdrOptionalLine(const std::string& line) {
@@ -303,7 +303,7 @@ LdrOptionalLine::LdrOptionalLine(const std::string& line) {
     linestream >> control_x2;
     linestream >> control_y2;
     linestream >> control_z2;
-    color = LdrColorRepository::getInstance()->get_color(colorCode);
+    color = ldr_color_repo::get_color(colorCode);
 }
 
 int LdrCommentOrMetaElement::getType() const{

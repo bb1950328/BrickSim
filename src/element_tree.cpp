@@ -63,7 +63,7 @@ namespace etree {
     }
 
     void LdrNode::addToMesh(Mesh *mesh, bool windingInversed) {
-        LdrInstanceDummyColor *dummyColor = &LdrColorRepository::instDummyColor;
+        ldr_color_repo::LdrInstanceDummyColor* dummyColor = &ldr_color_repo::getInstanceDummyColor();
         for (auto element : ldrFile->elements) {
             switch (element->getType()) {
                 case 0:
@@ -79,12 +79,10 @@ namespace etree {
                     mesh->addLdrLine(dummyColor, dynamic_cast<LdrLine &&>(*element), glm::mat4(1.0f));
                     break;
                 case 3:
-                    mesh->addLdrTriangle(dummyColor, dynamic_cast<LdrTriangle &&>(*element), glm::mat4(1.0f),
-                                         windingInversed);
+                    mesh->addLdrTriangle(dummyColor, dynamic_cast<LdrTriangle &&>(*element), glm::mat4(1.0f), windingInversed);
                     break;
                 case 4:
-                    mesh->addLdrQuadrilateral(dummyColor, dynamic_cast<LdrQuadrilateral &&>(*element), glm::mat4(1.0f),
-                                              windingInversed);
+                    mesh->addLdrQuadrilateral(dummyColor, dynamic_cast<LdrQuadrilateral &&>(*element), glm::mat4(1.0f), windingInversed);
                     break;
                 case 5:
                     mesh->addLdrOptionalLine(dummyColor, dynamic_cast<LdrOptionalLine &&>(*element), glm::mat4(1.0f));
@@ -164,7 +162,7 @@ namespace etree {
 
     void ElementTree::loadLdrFile(const std::string &filename) {
         auto *newNode = new MpdNode(ldr_file_repo::get_file(filename),
-                                    LdrColorRepository::getInstance()->get_color(2), &rootNode);
+                                    ldr_color_repo::get_color(2), &rootNode);
         rootNode.addChild(newNode);
     }
 

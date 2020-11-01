@@ -23,7 +23,7 @@ namespace part_color_availability_provider {
                 } else {
                     isDataAvailable = true;
 
-                    for (const auto &item : LdrColorRepository::getInstance()->colors) {
+                    for (const auto &item : ldr_color_repo::getColors()) {
                         colorsByName[item.second.name] = &item.second;
                     }
 

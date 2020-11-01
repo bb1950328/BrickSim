@@ -13,9 +13,7 @@ int Controller::run() {
     }
     renderer.window = window;
     gui.window = window;
-    //openFile("test_files/mpd_test.mpd");
-    openFile("~/Downloads/arocs.mpd");
-    //openFile("3001.dat");
+
     gui.setup();
     bool partsLibraryFound = false;
     while (!partsLibraryFound && !doesUserWantToExit()) {
@@ -45,6 +43,12 @@ bool Controller::doesUserWantToExit() const { return glfwWindowShouldClose(windo
 void Controller::runNormal() {
     renderer.setWindowSize(view3dWidth, view3dHeight);
     renderer.setup();
+    ldr_color_repo::initialize();
+
+    //openFile("test_files/mpd_test.mpd");
+    openFile("~/Downloads/arocs.mpd");
+    //openFile("3001.dat");
+
     while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
         const auto loopStart = glfwGetTime();
         auto before = std::chrono::high_resolution_clock::now();

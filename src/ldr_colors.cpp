@@ -95,65 +95,62 @@ std::string LdrColor::getGroupDisplayName() const {
     }
 }
 
-LdrColor *LdrColorRepository::get_color(const int colorCode) {
-    auto iterator = colors.find(colorCode);
-    if (iterator == colors.end()) {
-        throw std::invalid_argument("unknown color code: " + std::to_string(colorCode));
+namespace ldr_color_repo {
+    namespace {
+        std::map<int, LdrColor> colors;
+        std::vector<int> hueSortedCodes;
     }
-    return &(iterator->second);
-}
 
-LdrColorRepository *LdrColorRepository::instance = nullptr;
-LdrInstanceDummyColor LdrColorRepository::instDummyColor;
-
-LdrColorRepository *LdrColorRepository::getInstance() {
-    if (instance == nullptr) {
-        instance = new LdrColorRepository();
-        instance->initialize();
-    }
-    return instance;
-}
-
-void LdrColorRepository::initialize() {
-    auto lib_path = util::extend_home_dir(config::get_string(config::LDRAW_PARTS_LIBRARY));
-    auto input = std::ifstream(util::pathjoin({lib_path, "LDConfig.ldr"}));
-    for (std::string line; getline(input, line);) {
-        auto trimmed = util::trim(line);
-        if (!trimmed.empty() && trimmed.rfind("0 !COLOUR", 0) == 0) {
-            LdrColor col(line.substr(10));
-            colors[col.code] = col;
-            hueSortedCodes.push_back(col.code);
+    LdrColor *get_color(const int colorCode) {
+        auto iterator = colors.find(colorCode);
+        if (iterator == colors.end()) {
+            throw std::invalid_argument("unknown color code: " + std::to_string(colorCode));
         }
+        return &(iterator->second);
     }
-    colors[instDummyColor.code] = instDummyColor;
-    /*for (const auto &colorPair : colors) {
-        const auto &color = colorPair.second;
-        printf("|%32s|%4d\n", color.name.c_str(), color.alpha);
-    }*/
-    std::sort(hueSortedCodes.begin(), hueSortedCodes.end(),
-              [](const int &a, const int &b){
-                  auto repo = LdrColorRepository::getInstance();
-                  return util::HSVcolor(repo->get_color(a)->value).hue < util::HSVcolor(repo->get_color(b)->value).hue;
-              });
-}
 
-std::map<std::string, std::vector<const LdrColor *>> LdrColorRepository::getAllColorsGroupedAndSortedByHue() {
-    std::map<std::string, std::vector<const LdrColor *>> result;
-    for (const auto &colorPair : colors) {
-        if (colorPair.first != LdrColorRepository::instDummyColor.code
-            && colorPair.first != LdrColor::MAIN_COLOR_CODE
-            && colorPair.first != LdrColor::LINE_COLOR_CODE) {
-            result[colorPair.second.getGroupDisplayName()].push_back(&colorPair.second);
+    void initialize() {
+        auto lib_path = util::extend_home_dir(config::get_string(config::LDRAW_PARTS_LIBRARY));
+        auto input = std::ifstream(util::pathjoin({lib_path, "LDConfig.ldr"}));
+        for (std::string line; getline(input, line);) {
+            auto trimmed = util::trim(line);
+            if (!trimmed.empty() && trimmed.rfind("0 !COLOUR", 0) == 0) {
+                LdrColor col(line.substr(10));
+                colors[col.code] = col;
+                hueSortedCodes.push_back(col.code);
+            }
         }
+        colors[getInstanceDummyColor().code] = getInstanceDummyColor();
+        std::sort(hueSortedCodes.begin(), hueSortedCodes.end(),
+                  [](const int &a, const int &b) {
+                      return util::HSVcolor(get_color(a)->value).hue < util::HSVcolor(get_color(b)->value).hue;
+                  });
     }
-    for (const auto &entry : result) {
 
+    std::map<std::string, std::vector<const LdrColor *>> getAllColorsGroupedAndSortedByHue() {
+        std::map<std::string, std::vector<const LdrColor *>> result;
+        for (const auto &colorPair : colors) {
+            if (colorPair.first != getInstanceDummyColor().code
+                && colorPair.first != LdrColor::MAIN_COLOR_CODE
+                && colorPair.first != LdrColor::LINE_COLOR_CODE) {
+                result[colorPair.second.getGroupDisplayName()].push_back(&colorPair.second);
+            }
+        }
+        return result;
     }
-    return result;
-}
 
-LdrInstanceDummyColor::LdrInstanceDummyColor() {
-    name = "Instance Dummy Color";
-    code = -1;
-    value = edge = util::RGBcolor("#FFB39B");
+    std::map<int, LdrColor> &getColors() {
+        return colors;
+    }
+
+    LdrInstanceDummyColor &getInstanceDummyColor() {
+        static LdrInstanceDummyColor instDummyColor;
+        return instDummyColor;
+    }
+
+    LdrInstanceDummyColor::LdrInstanceDummyColor() {
+        name = "Instance Dummy Color";
+        code = -1;
+        value = edge = util::RGBcolor("#FFB39B");
+    }
 }

@@ -34,7 +34,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
             meshCollection->meshes[meshKey] = mesh;
             mesh->name = ldrFile->getDescription();
             //todo make color customizable
-            mesh->addLdrFile(*ldrFile, glm::mat4(1.0f), LdrColorRepository::getInstance()->get_color(1), false);
+            mesh->addLdrFile(*ldrFile, glm::mat4(1.0f), ldr_color_repo::get_color(1), false);
         }
 
         const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
@@ -42,7 +42,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
         auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL;
 
         MeshInstance tmpInstance{
-                LdrColorRepository::getInstance()->get_color(1),
+                ldr_color_repo::get_color(1),
                 glm::mat4(1.0f),
                 0
         };

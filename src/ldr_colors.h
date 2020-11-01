@@ -49,28 +49,18 @@ public:
     const static int LINE_COLOR_CODE = 24;
 };
 
-class LdrInstanceDummyColor : public LdrColor {
-public:
-    LdrInstanceDummyColor();
-};
 
-class LdrColorRepository {
-private:
-    static LdrColorRepository *instance;
-public:
-    std::map<int, LdrColor> colors;
-    std::vector<int> hueSortedCodes;
-    static LdrColorRepository *getInstance();
 
-public:
-
+namespace ldr_color_repo {
+    class LdrInstanceDummyColor : public LdrColor {
+    public:
+        LdrInstanceDummyColor();
+    };
     void initialize();
 
     LdrColor *get_color(int colorCode);
-
-    static LdrInstanceDummyColor instDummyColor;
-
     std::map<std::string, std::vector<const LdrColor *>> getAllColorsGroupedAndSortedByHue();
-
+    std::map<int, LdrColor> &getColors();
+    LdrInstanceDummyColor& getInstanceDummyColor();
 };
 #endif //BRICKSIM_LDR_COLORS_H

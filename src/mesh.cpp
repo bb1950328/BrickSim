@@ -498,7 +498,7 @@ void Mesh::setInstanceColor(TriangleInstance *instance, const LdrColor *color) {
 TriangleInstance *Mesh::generateInstancesArray(const LdrColor *color) {
     auto *instancesArray = new TriangleInstance[instances.size()];
     unsigned int arr_cursor = 0;
-    if (color == &LdrColorRepository::instDummyColor) {
+    if (color == &ldr_color_repo::getInstanceDummyColor()) {
         for (auto &instance : instances) {
             instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * globalModel);
             setInstanceColor(&instancesArray[arr_cursor], instance.color);

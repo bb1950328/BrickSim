@@ -56,8 +56,9 @@ void Controller::runNormal() {
         renderer.loop();
         gui.loop();
         thumbnailGenerator.discardOldestImages(0);
-        while (glfwGetTime() - loopStart < 1.0 / 60) {
-            thumbnailGenerator.workOnRenderQueue();
+        bool moreWork = true;
+        while (glfwGetTime() - loopStart < 1.0 / 60 && moreWork) {
+            moreWork = thumbnailGenerator.workOnRenderQueue();
         }
         auto after = std::chrono::high_resolution_clock::now();
         lastFrameTime = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();

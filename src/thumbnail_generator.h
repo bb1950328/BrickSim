@@ -35,7 +35,7 @@ public:
     void discardOldestImages(int reserve_space_for=1);
     explicit ThumbnailGenerator(Renderer *renderer);
     void discardAllImages();
-    void workOnRenderQueue();
+    bool workOnRenderQueue();
 
     void saveFramebufferToBMP(const std::string &filename) const;
 };

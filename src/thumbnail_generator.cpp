@@ -197,11 +197,12 @@ std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const Ld
     }
 }
 
-void ThumbnailGenerator::workOnRenderQueue() {
+bool ThumbnailGenerator::workOnRenderQueue() {
     if (!renderRequests.empty()) {
         getThumbnail(renderRequests.front());
         renderRequests.pop();
     }
+    return !renderRequests.empty();
 }
 
 unsigned int ThumbnailGenerator::copyFramebufferToTexture() const {

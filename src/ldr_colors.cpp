@@ -8,6 +8,7 @@
 #include "ldr_colors.h"
 #include "helpers/util.h"
 #include "config.h"
+#include "ldr_file_repository.h"
 
 LdrColor::LdrColor(const std::string &line) {
     std::stringstream linestream(line);
@@ -116,7 +117,8 @@ LdrColorRepository *LdrColorRepository::getInstance() {
 
 void LdrColorRepository::initialize() {
     auto lib_path = util::extend_home_dir(config::get_string(config::LDRAW_PARTS_LIBRARY));
-    auto input = std::ifstream(util::pathjoin({lib_path, "LDConfig.ldr"}));
+    //auto input = std::ifstream(util::pathjoin({lib_path, }));
+    auto input = ldr_file_repo::resolve_file("LDConfig.ldr").second;
     for (std::string line; getline(input, line);) {
         auto trimmed = util::trim(line);
         if (!trimmed.empty() && trimmed.rfind("0 !COLOUR", 0) == 0) {

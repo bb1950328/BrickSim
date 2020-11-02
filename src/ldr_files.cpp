@@ -26,26 +26,21 @@ LdrFileElement *LdrFileElement::parse_line(std::string line, BfcState bfcState) 
         case 3: return new LdrTriangle(line_content, bfcState.windingOrder);
         case 4: return new LdrQuadrilateral(line_content, bfcState.windingOrder);
         case 5: return new LdrOptionalLine(line_content);
-        default: throw std::invalid_argument("The line is not valid: \"" + line + "\"");
+        default: /*throw std::invalid_argument("The line is not valid: \"" + line + "\"");*/ std::cout << "WARNING: invalid line: " << line << std::endl; return nullptr;
         //@formatter:off
     }
 }
 LdrFileElement::~LdrFileElement()= default;
 
-LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &path){
+LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &path, std::stringstream& content) {
     auto mainFile = new LdrFile();
     mainFile->metaInfo.type = fileType;
-    std::ifstream input(path);
-    if (!input.good()) {
-        std::cout << path << std::endl;
-        throw std::invalid_argument("can't open file \"" + path.string() + "\"");
-    }
     bool isMpd = path.extension() == ".mpd";
     if (isMpd) {
         std::string currentSubFileName = path.string();
         std::map<std::string, std::list<std::string>> fileLines;
         bool firstFile = true;
-        for (std::string line; getline(input, line);) {
+        for (std::string line; getline(content, line);) {
             if (util::starts_with(line, "0 FILE")) {
                 if (!firstFile) {
                     currentSubFileName = util::trim(line.substr(7));
@@ -81,7 +76,7 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
 
         }
     } else {
-        for (std::string line; getline(input, line);) {
+        for (std::string line; getline(content, line);) {
             mainFile->addTextLine(line);
         }
     }
@@ -94,44 +89,46 @@ void LdrFile::addTextLine(const std::string &line) {
     unsigned int currentStep = elements.empty()?0:elements.back()->step;
     if (!trimmed.empty()) {
         LdrFileElement *element = LdrFileElement::parse_line(trimmed, bfcState);
-        bfcState.invertNext = false;
-        if (element->getType()==0) {
-            auto *metaElement = dynamic_cast<LdrCommentOrMetaElement *>(element);
-            if (metaInfo.add_line(metaElement->content)) {
-                delete element;
-                element = nullptr;
-            } else if (metaElement->content=="STEP") {
-                currentStep++;
-            } else if (util::starts_with(metaElement->content, "BFC")) {
-                std::string bfcCommand = util::trim(metaElement->content.substr(3));
-                if (util::starts_with(bfcCommand, "CERTIFY")) {
-                    std::string order = util::trim(bfcCommand.substr(7));
-                    bfcState.windingOrder = order=="CW"?CW:CCW;
-                    bfcState.active = true;
-                } else if (util::starts_with(bfcCommand, "CLIP")) {
-                    std::string order = util::trim(bfcCommand.substr(4));
-                    if (order == "CW") {
-                        bfcState.windingOrder = CW;
-                    } else if (order == "CCW") {
-                        bfcState.windingOrder = CCW;
+        if (element!=nullptr) {
+            bfcState.invertNext = false;
+            if (element->getType()==0) {
+                auto *metaElement = dynamic_cast<LdrCommentOrMetaElement *>(element);
+                if (metaInfo.add_line(metaElement->content)) {
+                    delete element;
+                    element = nullptr;
+                } else if (metaElement->content=="STEP") {
+                    currentStep++;
+                } else if (util::starts_with(metaElement->content, "BFC")) {
+                    std::string bfcCommand = util::trim(metaElement->content.substr(3));
+                    if (util::starts_with(bfcCommand, "CERTIFY")) {
+                        std::string order = util::trim(bfcCommand.substr(7));
+                        bfcState.windingOrder = order=="CW"?CW:CCW;
+                        bfcState.active = true;
+                    } else if (util::starts_with(bfcCommand, "CLIP")) {
+                        std::string order = util::trim(bfcCommand.substr(4));
+                        if (order == "CW") {
+                            bfcState.windingOrder = CW;
+                        } else if (order == "CCW") {
+                            bfcState.windingOrder = CCW;
+                        }
+                        bfcState.active = true;
+                    } else if (bfcCommand=="CW") {
+                        bfcState.windingOrder=CW;
+                        bfcState.active = true;//todo this is never explicitly stated in the standard
+                    } else if (bfcCommand=="CCW") {
+                        bfcState.windingOrder=CCW;
+                        bfcState.active = true;//todo this is never explicitly stated in the standard
+                    } else if (bfcCommand=="NOCLIP") {
+                        bfcState.active = false;
+                    } else if (bfcCommand=="INVERTNEXT") {
+                        bfcState.invertNext = true;
                     }
-                    bfcState.active = true;
-                } else if (bfcCommand=="CW") {
-                    bfcState.windingOrder=CW;
-                    bfcState.active = true;//todo this is never explicitly stated in the standard
-                } else if (bfcCommand=="CCW") {
-                    bfcState.windingOrder=CCW;
-                    bfcState.active = true;//todo this is never explicitly stated in the standard
-                } else if (bfcCommand=="NOCLIP") {
-                    bfcState.active = false;
-                } else if (bfcCommand=="INVERTNEXT") {
-                    bfcState.invertNext = true;
                 }
             }
-        }
-        if (element!=nullptr) {
-            element->step = currentStep;
-            elements.push_back(element);
+            if (element != nullptr) {
+                element->step = currentStep;
+                elements.push_back(element);
+            }
         }
     }
 }

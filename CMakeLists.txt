@@ -76,7 +76,10 @@ set(bricksim_sources
         src/git_stats.h
         src/thumbnail_generator.cpp
         src/thumbnail_generator.h
-        src/git_stats.cpp)
+        src/git_stats.cpp
+        src/helpers/zip_buffer.cpp
+        src/helpers/zip_buffer.h
+        )
 
 add_executable(BrickSim
         ${imgui_sources}
@@ -109,15 +112,16 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glew/build/cmake)
 #4 copy curl-7.73.0/include/curl/* to MinGW/include/curl/* (whole folder)
 set(CURL_LIBRARY "-lcurl")
 find_package(CURL REQUIRED)
-
+find_package(libzip REQUIRED)
+message("${LIBZIP_INCLUDE_DIRS}")
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS} imgui)
+include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS} zip imgui)
 
 target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glew glfw)
 target_compile_definitions(glew PUBLIC GLEW_STATIC)
 
-target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES})
+target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES} zip)
 if (UNIX)#todo check if this is needed
     if (APPLE)
         target_link_libraries(${CMAKE_PROJECT_NAME}

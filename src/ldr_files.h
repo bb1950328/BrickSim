@@ -65,7 +65,6 @@ class LdrFile {
 public:
     unsigned long long estimatedComplexity = 0;
     unsigned int referenceCount = 0;
-    static LdrFile *parseFile(LdrFileType fileType, const std::filesystem::path &path);
 
     LdrFile() = default;
 
@@ -81,6 +80,9 @@ public:
     [[nodiscard]] bool isComplexEnoughForOwnMesh() const;
 
     LdrFileMetaInfo metaInfo;
+
+    static LdrFile *parseFile(LdrFileType fileType, const std::filesystem::path &path, std::stringstream &content);
+
 private:
     bool subfiles_preloaded_and_complexity_estimated = false;
 
@@ -90,6 +92,7 @@ private:
 
     static long instancedMinComplexity;
     BfcState bfcState;
+
 };
 
 class LdrFileElement {

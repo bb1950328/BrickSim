@@ -3,11 +3,8 @@
 //
 
 #include <iostream>
-#include <fstream>
-#include "../mingw-std-threads/mingw.thread.h"
 #include <thread>
 #include "ldr_file_repository.h"
-#include "helpers/util.h"
 #include "config.h"
 
 namespace ldr_file_repo {

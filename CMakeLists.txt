@@ -105,7 +105,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glew/build/cmake)
 set(CURL_LIBRARY "-lcurl")
 find_package(CURL REQUIRED)
 
-cmake_policy(SET CMP0072 NEW)
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS} imgui)

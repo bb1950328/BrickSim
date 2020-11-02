@@ -31,7 +31,7 @@ namespace ldr_file_repo {
             while (util::starts_with(util::trim(file->metaInfo.title), "~Moved to ")) {
                 typeNamePair = resolve_file(util::trim(file->metaInfo.title).substr(10) + ".dat");
                 file = LdrFile::parseFile(typeNamePair.first, typeNamePair.second);
-                fileNames.push_back(typeNamePair.second.filename());
+                fileNames.push_back(typeNamePair.second.filename().string());
             }
             auto filePair = std::make_pair(typeNamePair.first, file);
             for (const auto &fname : fileNames) {

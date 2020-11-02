@@ -30,3 +30,10 @@ The `codes.txt` file contains all parts with the colors they are available in. B
 1. Go to [https://www.bricklink.com/catalogDownload.asp](https://www.bricklink.com/catalogDownload.asp)
 1. Select "Part and Color Codes". Also make sure "Tab-Delimited File" is selected.
 1. Click on the download button and save the file in the BrickSim folder
+
+## How to setup windows workspace for development
+1. Download MSYS2 from [https://www.msys2.org/](https://www.msys2.org/) and follow the installation instructions there
+1. Execute the following command in a MSYS2 Shell: `pacman -S git mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain base-devel mingw-w64-x86_64-cmake mingw-w64-i686-cmake libcurl-devel $(pacman -Ssq freeglut) mingw-w64-x86_64-glm mingw-w64-i686-glm`
+1. Clone out this repository with `git clone --recurse-submodules -j8 git://github.com/bb1950328/BrickSim.git`
+1. Unzip `glew-2.1.0.zip` and rename the resulting folder from `glew-2.1.0` to `glew`
+1. Unzip the include folder of `glad.zip` and copy the `glad` and `KHR` folders to `C:\msys64\mingw32\include` and to `C:\msys64\mingw64\include`

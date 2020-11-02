@@ -84,6 +84,11 @@ add_executable(BrickSim
         ${bricksim_sources}
         )
 
+if (WIN32)
+    option(MINGW_STDTHREADS_GENERATE_STDHEADERS "" ON)
+    add_subdirectory(mingw-std-threads)
+endif ()
+
 # On Ubuntu, I had to sudo apt install mesa-utils freeglut3-dev libglfw3-dev libglew-dev libcurl4-openssl-dev libglm-dev
 # and add the files from https://glad.dav1d.de to /usr/include and the project folder
 # windows libraries and headers installation: https://learnopengl.com/Getting-started/Creating-a-window

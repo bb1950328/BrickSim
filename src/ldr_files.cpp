@@ -32,15 +32,18 @@ LdrFileElement *LdrFileElement::parse_line(std::string line, BfcState bfcState) 
 }
 LdrFileElement::~LdrFileElement()= default;
 
-LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &path, std::stringstream& content) {
+LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &path, const std::string* content) {
     auto mainFile = new LdrFile();
     mainFile->metaInfo.type = fileType;
     bool isMpd = path.extension() == ".mpd";
+    std::stringstream contentStream;
+    contentStream << *content;//todo parse the string directly using find('\n') and substr
+    //std::cout << path.string() << ": " << content->size() << " bytes" << std::endl;
     if (isMpd) {
         std::string currentSubFileName = path.string();
         std::map<std::string, std::list<std::string>> fileLines;
         bool firstFile = true;
-        for (std::string line; getline(content, line);) {
+        for (std::string line; getline(contentStream, line);) {
             if (util::starts_with(line, "0 FILE")) {
                 if (!firstFile) {
                     currentSubFileName = util::trim(line.substr(7));
@@ -76,7 +79,7 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
 
         }
     } else {
-        for (std::string line; getline(content, line);) {
+        for (std::string line; getline(contentStream, line);) {
             mainFile->addTextLine(line);
         }
     }

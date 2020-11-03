@@ -15,7 +15,7 @@ namespace ldr_file_repo {
 
     LdrFileType get_file_type(const std::string &filename);
 
-    std::pair<LdrFileType, std::stringstream> resolve_file(const std::string &filename);
+    std::pair<LdrFileType, const std::string *> resolve_file(const std::string &filename);
 
     void clear_cache();
 

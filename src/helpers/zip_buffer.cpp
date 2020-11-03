@@ -54,10 +54,19 @@ namespace zip_buffer {
                     if (util::starts_with(fileNameToSave, zipNameStem)) {
                         fileNameToSave.erase(0, zipNameStem.size()+1);//plus 1 is for slash
                     }
-                    std::vector<char> *buffer = &files[fileNameToSave];
-                    buffer->resize(sb.size);
-                    zip_fread(zFile, buffer->data(), sb.size);
+                    if (util::ends_with(fileNameToSave, ".txt") || util::ends_with(fileNameToSave, ".dat") || util::ends_with(fileNameToSave, ".ldr") || util::ends_with(fileNameToSave, ".mpd")) {
+                        std::string content;
+                        content.resize(sb.size);
+                        zip_fread(zFile, content.data(), sb.size);
+                        textFiles.emplace(fileNameToSave, content);
+                    } else {
+                        std::vector<char> content;
+                        content.resize(sb.size);
+                        zip_fread(zFile, content.data(), sb.size);
+                        binaryFiles.emplace(fileNameToSave, content);
+                    }
                     zip_fclose(zFile);
+                    //std::cout << "========================================================" << std::endl << fileNameToSave << std::endl << content << std::endl;
                 }
             }
         }
@@ -66,16 +75,25 @@ namespace zip_buffer {
             throw std::invalid_argument("%s: can't close zip archive `%s'/n");
         }
 
-        std::cout << "read " << files.size() << " files in " << path << std::endl;
+        std::cout << "read " << textFiles.size() << " files in " << path << std::endl;
     }
 
     std::stringstream BufferedZip::getFileAsStream(const std::string& filename) {
-        auto it = files.find(filename);
-        if (it != files.end()) {
+        auto it = textFiles.find(filename);
+        if (it != textFiles.end()) {
             std::string buffer(it->second.begin(), it->second.end());
             std::stringstream stream;
             stream << buffer;
             return stream;
+        } else {
+            throw std::invalid_argument(std::string("no such file in this zip! ")+filename);
+        }
+    }
+
+    const std::string* BufferedZip::getFileAsString(const std::string& filename) {
+        auto it = textFiles.find(filename);
+        if (it != textFiles.end()) {
+            return &it->second;
         } else {
             throw std::invalid_argument(std::string("no such file in this zip! ")+filename);
         }

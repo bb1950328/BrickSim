@@ -81,18 +81,17 @@ public:
 
     LdrFileMetaInfo metaInfo;
 
-    static LdrFile *parseFile(LdrFileType fileType, const std::filesystem::path &path, std::stringstream &content);
-
+    static LdrFile *parseFile(LdrFileType fileType, const std::filesystem::path &path, const std::string *content);
 private:
+
     bool subfiles_preloaded_and_complexity_estimated = false;
 
     void addTextLine(const std::string &line);
 
     void preLoadSubfilesAndEstimateComplexityInternal();
-
     static long instancedMinComplexity;
-    BfcState bfcState;
 
+    BfcState bfcState;
 };
 
 class LdrFileElement {

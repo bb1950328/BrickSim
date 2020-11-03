@@ -1,8 +1,8 @@
+# if you are stuck here, take a look at the "How to setup workspace for development" section in README.md
 cmake_minimum_required(VERSION 3.16)
 project(BrickSim)
 
 set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_BUILD_TYPE "Release")
 
 if (UNIX)# todo check if this is necessary
     if (NOT APPLE)
@@ -92,10 +92,6 @@ if (WIN32)
     add_subdirectory(mingw-std-threads)
 endif ()
 
-# On Ubuntu, I had to sudo apt install mesa-utils freeglut3-dev libglfw3-dev libglew-dev libcurl4-openssl-dev libglm-dev
-# and add the files from https://glad.dav1d.de to /usr/include and the project folder
-# windows libraries and headers installation: https://learnopengl.com/Getting-started/Creating-a-window
-
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -105,11 +101,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw ${CMAKE_CURRENT_SOURCE_DIR}/gl
 # unzip glew-2.1.0.zip to /glew
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glew/build/cmake)
 
-#Installation on MinGW:
-#1. download https://curl.haxx.se/download/curl-7.73.0.zip
-#2. unzip curl-7.73.0.zip and execute 'mingw32-make mingw32' inside the folder.
-#3. copy curl-7.73.0/lib/libcurl.dll to MinGW/lib/libcurl.dll
-#4 copy curl-7.73.0/include/curl/* to MinGW/include/curl/* (whole folder)
 set(CURL_LIBRARY "-lcurl")
 find_package(CURL REQUIRED)
 find_package(libzip REQUIRED)

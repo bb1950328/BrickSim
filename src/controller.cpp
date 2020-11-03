@@ -3,6 +3,7 @@
 //
 
 #include "controller.h"
+#include "price_guide_provider.h"
 
 void window_size_callback(GLFWwindow *window, int width, int height);
 
@@ -41,6 +42,12 @@ void Controller::runNormal() {
     renderer.setWindowSize(view3dWidth, view3dHeight);
     renderer.setup();
     ldr_color_repo::initialize();
+    price_guide_provider::initialize();
+
+    const std::vector<price_guide_provider::PriceGuide> &pgs = price_guide_provider::getPriceGuide("3001", "CHF", "Black");//todo move this to a more useful place
+    for (const auto &pg : pgs) {
+        std::cout << pg.avgPrice << std::endl;
+    }
 
     //openFile("test_files/mpd_test.mpd");
     openFile("~/Downloads/arocs.mpd");

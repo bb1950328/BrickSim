@@ -48,6 +48,7 @@ namespace util {
     glm::vec3 convertIntToColorVec3(unsigned int value);
     unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue);
     std::string formatBytesValue(size_t bytes);
+    std::string fileToString(const std::filesystem::path& path);
 
     class HSVcolor;
     class RGBcolor {

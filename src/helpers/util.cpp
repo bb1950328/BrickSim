@@ -21,6 +21,7 @@
 #include <GL/gl.h>
 #include <imgui.h>
 #include <GLFW/glfw3.h>
+#include <fstream>
 
 namespace util {
     std::string extend_home_dir(const std::string &input) {
@@ -372,5 +373,13 @@ namespace util {
 
         /* Now we know that's zero, memcmp with self. */
         return memcmp(data, p, length) == 0;
+    }
+
+    std::string fileToString(const std::filesystem::path& path) {
+        https://stackoverflow.com/a/2602258/8733066
+        std::ifstream t(path);
+        std::stringstream buffer;
+        buffer << t.rdbuf();
+        return buffer.str();
     }
 }

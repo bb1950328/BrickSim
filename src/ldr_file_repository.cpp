@@ -79,12 +79,16 @@ namespace ldr_file_repo {
         }
 
         void cleanUpFileCache() {
+            std::vector<std::filesystem::path> cacheEraseEntries;
             for (const auto &item : otherFileCache) {
                 auto it = otherFileCacheLock.find(&item.second);
                 if (!it->second) {
-                    otherFileCache.erase(item.first);
+                    cacheEraseEntries.push_back(item.first);
                     otherFileCacheLock.erase(it);
                 }
+            }
+            for (const auto &entry : cacheEraseEntries) {
+                otherFileCache.erase(entry);
             }
         }
     }

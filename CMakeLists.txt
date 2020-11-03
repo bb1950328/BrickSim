@@ -81,6 +81,8 @@ set(bricksim_sources
         src/part_color_availability_provider.h
         src/helpers/zip_buffer.cpp
         src/helpers/zip_buffer.h
+        src/price_guide_provider.cpp
+        src/price_guide_provider.h
         )
 
 add_executable(BrickSim

@@ -511,30 +511,31 @@ void Gui::loop() {
             int flags = selectedCategories.find(group.first) != selectedCategories.end()
                         ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected
                         : ImGuiTreeNodeFlags_Leaf;
-            ImGui::TreeNodeEx(group.first.c_str(), flags);
-            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-                if (ImGui::GetIO().KeyCtrl) {
-                    if (selectedCategories.find(group.first) == selectedCategories.end()) {
-                        selectedCategories.insert(group.first);
-                    } else {
-                        selectedCategories.erase(group.first);
-                    }
-                } else if (ImGui::GetIO().KeyShift) {
-                    auto groupIt = partsGrouped.find(group.first);
-                    while (groupIt != partsGrouped.begin() && selectedCategories.find(groupIt->first) == selectedCategories.end()) {
+            if (ImGui::TreeNodeEx(group.first.c_str(), flags)) {
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+                    if (ImGui::GetIO().KeyCtrl) {
+                        if (selectedCategories.find(group.first) == selectedCategories.end()) {
+                            selectedCategories.insert(group.first);
+                        } else {
+                            selectedCategories.erase(group.first);
+                        }
+                    } else if (ImGui::GetIO().KeyShift) {
+                        auto groupIt = partsGrouped.find(group.first);
+                        while (groupIt != partsGrouped.begin() && selectedCategories.find(groupIt->first) == selectedCategories.end()) {
+                            selectedCategories.insert(groupIt->first);
+                            groupIt--;
+                        }
                         selectedCategories.insert(groupIt->first);
-                        groupIt--;
-                    }
-                    selectedCategories.insert(groupIt->first);
-                } else {
-                    bool wasOnlySelectionBefore = selectedCategories.size() == 1 && *selectedCategories.begin() == group.first;
-                    selectedCategories.clear();
-                    if (!wasOnlySelectionBefore) {
-                        selectedCategories.insert(group.first);
+                    } else {
+                        bool wasOnlySelectionBefore = selectedCategories.size() == 1 && *selectedCategories.begin() == group.first;
+                        selectedCategories.clear();
+                        if (!wasOnlySelectionBefore) {
+                            selectedCategories.insert(group.first);
+                        }
                     }
                 }
+                ImGui::TreePop();
             }
-            ImGui::TreePop();
         }
         ImGui::EndChild();
         ImGui::SameLine();

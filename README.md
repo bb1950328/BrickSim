@@ -38,7 +38,7 @@ The `codes.txt` file contains all parts with the colors they are available in. B
 1. Clone out this repository with `git clone --recurse-submodules -j8 git://github.com/bb1950328/BrickSim.git`
 1. Execute the following commant to unzip glew: `unzip glew-2.1.0.zip && mv glew-2.1.0 glew`
 1. Copy the glad includes: `sudo unzip -o glad.zip "include/*" -d "/usr"`
-1. Install some libraries: `sudo apt-get install mesa-utils freeglut3-dev libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev libglew-dev libcurl4-openssl-dev libglm-dev`
+1. Install some libraries: `sudo apt-get install mesa-utils freeglut3-dev libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev libglew-dev libcurl4-openssl-dev libglm-dev libzip-dev`
 1. Open your project with your favourite IDE (I recommend CLion). It should support CMake.
 ### Windows
 1. Download MSYS2 from [https://www.msys2.org/](https://www.msys2.org/) and follow the installation instructions there

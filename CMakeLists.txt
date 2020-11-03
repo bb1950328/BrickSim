@@ -92,6 +92,8 @@ add_executable(BrickSim
 if (WIN32)
     option(MINGW_STDTHREADS_GENERATE_STDHEADERS "" ON)
     add_subdirectory(mingw-std-threads)
+
+    find_package(libzip REQUIRED)
 endif ()
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -105,7 +107,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glew/build/cmake)
 
 set(CURL_LIBRARY "-lcurl")
 find_package(CURL REQUIRED)
-find_package(libzip REQUIRED)
 message("${LIBZIP_INCLUDE_DIRS}")
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)

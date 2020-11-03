@@ -12,7 +12,7 @@
 #include "ldr_file_repository.h"
 
 LdrColor::LdrColor(const std::string &line) {
-    std::stringstream linestream(line);
+    std::stringstream linestream(line);//todo optimize this one day (using strtok instead of stringstream)
     linestream >> name;
     while (linestream.rdbuf()->in_avail() != 0) {
         std::string keyword;

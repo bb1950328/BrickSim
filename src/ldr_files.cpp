@@ -38,8 +38,7 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
     mainFile->metaInfo.type = fileType;
     bool isMpd = path.extension() == ".mpd";
     std::stringstream contentStream;
-    contentStream << *content;//todo parse the string directly using find('\n') and substr
-    //std::cout << path.string() << ": " << content->size() << " bytes" << std::endl;
+    contentStream << *content;
     if (isMpd) {
         std::string currentSubFileName = path.string();
         std::map<std::string, std::list<std::string>> fileLines;

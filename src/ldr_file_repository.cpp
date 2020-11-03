@@ -19,6 +19,8 @@ namespace ldr_file_repo {
         std::filesystem::path modelsDirectory;
 
         zip_buffer::BufferedZip* zipLibrary;
+        std::map<std::filesystem::path, std::string> otherFileCache;
+        std::map<const std::string*, bool> otherFileCacheLock;
 
         bool namesInitialized;
         bool isZipLibrary;
@@ -44,7 +46,6 @@ namespace ldr_file_repo {
             for (const auto &fname : fileNames) {
                 files[fname] = filePair;
             }
-            //file->preLoadSubfilesAndEstimateComplexity(); todo check if this is still useful
             return file;
         }
 
@@ -55,32 +56,45 @@ namespace ldr_file_repo {
             return result;
         }
 
-        std::string* readFileToString2(const std::filesystem::path& path) {
-            //https://stackoverflow.com/a/2602060/8733066
-            std::ifstream fileStream(path);
-            auto* str = new std::string;//todo save it somewhere so it can be deleted (something like a filecache)
-
-            fileStream.seekg(0, std::ios::end);
-            str->reserve(fileStream.tellg());
-            std::cout << fileStream.tellg() << std::endl;
-            fileStream.seekg(0, std::ios::beg);
-
-            str->assign(std::istreambuf_iterator<char>(fileStream),std::istreambuf_iterator<char>());
-            return str;
+        std::string* readFileToString(const std::filesystem::path& path) {
+            std::string *pointer;
+            auto it = otherFileCache.find(path);
+            if (it==otherFileCache.end()) {
+                std::ostringstream sstr;
+                sstr << std::ifstream(path).rdbuf();
+                otherFileCache[path] = std::string(sstr.str());
+                pointer = &otherFileCache[path];
+            } else {
+                pointer = &it->second;
+            }
+            otherFileCacheLock[pointer] = true;
+            return pointer;
         }
 
-        std::string* readFileToString(const std::filesystem::path& path) {
-            std::ostringstream sstr;
-            sstr << std::ifstream(path).rdbuf();
-            auto* str = new std::string(sstr.str());//todo save it somewhere so it can be deleted (something like a filecache)
-            return str;
+        void unlockCachedFile(const std::string* fileContent) {
+            auto it = otherFileCacheLock.find(fileContent);
+            if (it != otherFileCacheLock.end()) {
+                it->second = false;
+            }
+        }
+
+        void cleanUpFileCache() {
+            for (const auto &item : otherFileCache) {
+                auto it = otherFileCacheLock.find(&item.second);
+                if (!it->second) {
+                    otherFileCache.erase(item.first);
+                    otherFileCacheLock.erase(it);
+                }
+            }
         }
     }
     
     LdrFile *get_file(const std::pair<LdrFileType, const std::string*> &resolvedPair, const std::string &filename) {
         auto iterator = files.find(filename);
         if (iterator == files.end()) {
-            return openFile(resolvedPair.first, resolvedPair.second, filename);
+            LdrFile *file = openFile(resolvedPair.first, resolvedPair.second, filename);
+            unlockCachedFile(resolvedPair.second);
+            return file;
         }
         return (iterator->second.second);
     }
@@ -89,7 +103,9 @@ namespace ldr_file_repo {
         auto iterator = files.find(filename);
         if (iterator == files.end()) {
             auto typeNamePair = resolve_file(filename);
-            return openFile(typeNamePair.first, typeNamePair.second, filename);
+            LdrFile *file = openFile(typeNamePair.first, typeNamePair.second, filename);
+            unlockCachedFile(typeNamePair.second);
+            return file;
         }
         return (iterator->second.second);
     }
@@ -298,6 +314,7 @@ namespace ldr_file_repo {
             }
             auto after = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::microseconds >(after - before).count()/1000.0;
+            cleanUpFileCache();
             std::cout << "loaded remaining parts in " << duration << "ms using " << numCores << " threads." << std::endl;
         }
         return partsByCategory;

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iostream>
 #include <filesystem>
+#include <cstring>
 #include "ldr_files.h"
 #include "helpers/util.h"
 #include "config.h"
@@ -26,26 +27,23 @@ LdrFileElement *LdrFileElement::parse_line(std::string line, BfcState bfcState) 
         case 3: return new LdrTriangle(line_content, bfcState.windingOrder);
         case 4: return new LdrQuadrilateral(line_content, bfcState.windingOrder);
         case 5: return new LdrOptionalLine(line_content);
-        default: throw std::invalid_argument("The line is not valid: \"" + line + "\"");
+        default: /*throw std::invalid_argument("The line is not valid: \"" + line + "\"");*/ std::cout << "WARNING: invalid line: " << line << std::endl; return nullptr;
         //@formatter:off
     }
 }
 LdrFileElement::~LdrFileElement()= default;
 
-LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &path){
+LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &path, const std::string* content) {
     auto mainFile = new LdrFile();
     mainFile->metaInfo.type = fileType;
-    std::ifstream input(path);
-    if (!input.good()) {
-        std::cout << path << std::endl;
-        throw std::invalid_argument("can't open file \"" + path.string() + "\"");
-    }
     bool isMpd = path.extension() == ".mpd";
+    std::stringstream contentStream;
+    contentStream << *content;
     if (isMpd) {
         std::string currentSubFileName = path.string();
         std::map<std::string, std::list<std::string>> fileLines;
         bool firstFile = true;
-        for (std::string line; getline(input, line);) {
+        for (std::string line; getline(contentStream, line);) {
             if (util::starts_with(line, "0 FILE")) {
                 if (!firstFile) {
                     currentSubFileName = util::trim(line.substr(7));
@@ -81,7 +79,7 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
 
         }
     } else {
-        for (std::string line; getline(input, line);) {
+        for (std::string line; getline(contentStream, line);) {
             mainFile->addTextLine(line);
         }
     }
@@ -94,44 +92,46 @@ void LdrFile::addTextLine(const std::string &line) {
     unsigned int currentStep = elements.empty()?0:elements.back()->step;
     if (!trimmed.empty()) {
         LdrFileElement *element = LdrFileElement::parse_line(trimmed, bfcState);
-        bfcState.invertNext = false;
-        if (element->getType()==0) {
-            auto *metaElement = dynamic_cast<LdrCommentOrMetaElement *>(element);
-            if (metaInfo.add_line(metaElement->content)) {
-                delete element;
-                element = nullptr;
-            } else if (metaElement->content=="STEP") {
-                currentStep++;
-            } else if (util::starts_with(metaElement->content, "BFC")) {
-                std::string bfcCommand = util::trim(metaElement->content.substr(3));
-                if (util::starts_with(bfcCommand, "CERTIFY")) {
-                    std::string order = util::trim(bfcCommand.substr(7));
-                    bfcState.windingOrder = order=="CW"?CW:CCW;
-                    bfcState.active = true;
-                } else if (util::starts_with(bfcCommand, "CLIP")) {
-                    std::string order = util::trim(bfcCommand.substr(4));
-                    if (order == "CW") {
-                        bfcState.windingOrder = CW;
-                    } else if (order == "CCW") {
-                        bfcState.windingOrder = CCW;
+        if (element!=nullptr) {
+            bfcState.invertNext = false;
+            if (element->getType()==0) {
+                auto *metaElement = dynamic_cast<LdrCommentOrMetaElement *>(element);
+                if (metaInfo.add_line(metaElement->content)) {
+                    delete element;
+                    element = nullptr;
+                } else if (metaElement->content=="STEP") {
+                    currentStep++;
+                } else if (util::starts_with(metaElement->content, "BFC")) {
+                    std::string bfcCommand = util::trim(metaElement->content.substr(3));
+                    if (util::starts_with(bfcCommand, "CERTIFY")) {
+                        std::string order = util::trim(bfcCommand.substr(7));
+                        bfcState.windingOrder = order=="CW"?CW:CCW;
+                        bfcState.active = true;
+                    } else if (util::starts_with(bfcCommand, "CLIP")) {
+                        std::string order = util::trim(bfcCommand.substr(4));
+                        if (order == "CW") {
+                            bfcState.windingOrder = CW;
+                        } else if (order == "CCW") {
+                            bfcState.windingOrder = CCW;
+                        }
+                        bfcState.active = true;
+                    } else if (bfcCommand=="CW") {
+                        bfcState.windingOrder=CW;
+                        bfcState.active = true;//todo this is never explicitly stated in the standard
+                    } else if (bfcCommand=="CCW") {
+                        bfcState.windingOrder=CCW;
+                        bfcState.active = true;//todo this is never explicitly stated in the standard
+                    } else if (bfcCommand=="NOCLIP") {
+                        bfcState.active = false;
+                    } else if (bfcCommand=="INVERTNEXT") {
+                        bfcState.invertNext = true;
                     }
-                    bfcState.active = true;
-                } else if (bfcCommand=="CW") {
-                    bfcState.windingOrder=CW;
-                    bfcState.active = true;//todo this is never explicitly stated in the standard
-                } else if (bfcCommand=="CCW") {
-                    bfcState.windingOrder=CCW;
-                    bfcState.active = true;//todo this is never explicitly stated in the standard
-                } else if (bfcCommand=="NOCLIP") {
-                    bfcState.active = false;
-                } else if (bfcCommand=="INVERTNEXT") {
-                    bfcState.invertNext = true;
                 }
             }
-        }
-        if (element!=nullptr) {
-            element->step = currentStep;
-            elements.push_back(element);
+            if (element != nullptr) {
+                element->step = currentStep;
+                elements.push_back(element);
+            }
         }
     }
 }
@@ -190,117 +190,107 @@ LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
     content = line;
 }
 
-LdrSubfileReference::LdrSubfileReference(const std::string& line, bool bfcInverted) : bfcInverted(bfcInverted) {
-    std::stringstream linestream(line);
-    int colorCode;
-    char *filenameTmp = new char [MAX_LDR_FILENAME_LENGTH+1];
-
-    linestream >> colorCode;
-    linestream >> x;
-    linestream >> y;
-    linestream >> z;
-    linestream >> a;
-    linestream >> b;
-    linestream >> c;
-    linestream >> d;
-    linestream >> e;
-    linestream >> f;
-    linestream >> g;
-    linestream >> h;
-    linestream >> i;
-    linestream.getline(filenameTmp, MAX_LDR_FILENAME_LENGTH+1);
-
-    color = ldr_color_repo::get_color(colorCode);
-    filename = util::trim(std::string(filenameTmp));
-    delete [] filenameTmp;
+LdrSubfileReference::LdrSubfileReference(std::string& line, bool bfcInverted) : bfcInverted(bfcInverted) {
+    char* rest = &line[0];
+    char* pch = strtok_r(rest, " \t", &rest);
+    color = ldr_color_repo::get_color(atoi(pch));
+    pch = strtok_r(rest, " \t", &rest); x = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); a = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); b = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); c = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); d = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); e = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); f = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); g = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); h = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); i = atof(pch);
+    filename =  util::trim(std::string(rest));
 }
 
-LdrLine::LdrLine(const std::string& line) {
-    std::stringstream linestream(line);
-    int colorCode;
-    linestream >> colorCode;
-    linestream >> x1;
-    linestream >> y1;
-    linestream >> z1;
-    linestream >> x2;
-    linestream >> y2;
-    linestream >> z2;
-    color = ldr_color_repo::get_color(colorCode);
+LdrLine::LdrLine(std::string& line) {
+    char* rest = &line[0];
+    char* pch = strtok_r(rest, " \t", &rest);
+    color = ldr_color_repo::get_color(atoi(pch));
+    pch = strtok_r(rest, " \t", &rest); x1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); x2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z2 = atof(pch);
 }
 
-LdrTriangle::LdrTriangle(const std::string &line, WindingOrder order) {
-    std::stringstream linestream(line);
-    int colorCode;
-    linestream >> colorCode;
-    linestream >> x1;
-    linestream >> y1;
-    linestream >> z1;
+LdrTriangle::LdrTriangle(std::string &line, WindingOrder order) {
+    char* rest = &line[0];
+    char* pch = strtok_r(rest, " \t", &rest);
+    color = ldr_color_repo::get_color(atoi(pch));
+    pch = strtok_r(rest, " \t", &rest); x1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z1 = atof(pch);
     if (order==CCW) {
-        linestream >> x2;
-        linestream >> y2;
-        linestream >> z2;
-        linestream >> x3;
-        linestream >> y3;
-        linestream >> z3;
+        pch = strtok_r(rest, " \t", &rest); x2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); x3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z3 = atof(pch);
     } else {
-        linestream >> x3;
-        linestream >> y3;
-        linestream >> z3;
-        linestream >> x2;
-        linestream >> y2;
-        linestream >> z2;
+        pch = strtok_r(rest, " \t", &rest); x3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); x2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z2 = atof(pch);
     }
-    color = ldr_color_repo::get_color(colorCode);
 }
 
-LdrQuadrilateral::LdrQuadrilateral(const std::string &line, WindingOrder order) {
-    std::stringstream linestream(line);
-    int colorCode;
-    linestream >> colorCode;
-    linestream >> x1;
-    linestream >> y1;
-    linestream >> z1;
+LdrQuadrilateral::LdrQuadrilateral(std::string &line, WindingOrder order) {
+    char* rest = &line[0];
+    char* pch = strtok_r(rest, " \t", &rest);
+    color = ldr_color_repo::get_color(atoi(pch));
+    pch = strtok_r(rest, " \t", &rest); x1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z1 = atof(pch);
     if (order==CCW) {
-        linestream >> x2;
-        linestream >> y2;
-        linestream >> z2;
-        linestream >> x3;
-        linestream >> y3;
-        linestream >> z3;
-        linestream >> x4;
-        linestream >> y4;
-        linestream >> z4;
+        pch = strtok_r(rest, " \t", &rest); x2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); x3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); x4 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y4 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z4 = atof(pch);
     } else {
-        linestream >> x4;
-        linestream >> y4;
-        linestream >> z4;
-        linestream >> x3;
-        linestream >> y3;
-        linestream >> z3;
-        linestream >> x2;
-        linestream >> y2;
-        linestream >> z2;
+        pch = strtok_r(rest, " \t", &rest); x4 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y4 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z4 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); x3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); x2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z2 = atof(pch);
     }
-    color = ldr_color_repo::get_color(colorCode);
 }
 
-LdrOptionalLine::LdrOptionalLine(const std::string& line) {
-    std::stringstream linestream(line);
-    int colorCode;
-    linestream >> colorCode;
-    linestream >> x1;
-    linestream >> y1;
-    linestream >> z1;
-    linestream >> x2;
-    linestream >> y2;
-    linestream >> z2;
-    linestream >> control_x1;
-    linestream >> control_y1;
-    linestream >> control_z1;
-    linestream >> control_x2;
-    linestream >> control_y2;
-    linestream >> control_z2;
-    color = ldr_color_repo::get_color(colorCode);
+LdrOptionalLine::LdrOptionalLine(std::string& line) {
+    char* rest = &line[0];
+    char* pch = strtok_r(rest, " \t", &rest);
+    color = ldr_color_repo::get_color(atoi(pch));
+    pch = strtok_r(rest, " \t", &rest); x1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); x2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); control_x1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); control_y1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); control_z1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); control_x2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); control_y2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); control_z2 = atof(pch);
 }
 
 int LdrCommentOrMetaElement::getType() const{

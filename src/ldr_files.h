@@ -61,7 +61,6 @@ class LdrFile {
 public:
     unsigned long long estimatedComplexity = 0;
     unsigned int referenceCount = 0;
-    static LdrFile *parseFile(LdrFileType fileType, const std::filesystem::path &path);
 
     LdrFile() = default;
 
@@ -77,14 +76,17 @@ public:
     [[nodiscard]] bool isComplexEnoughForOwnMesh() const;
 
     LdrFileMetaInfo metaInfo;
+
+    static LdrFile *parseFile(LdrFileType fileType, const std::filesystem::path &path, const std::string *content);
 private:
+
     bool subfiles_preloaded_and_complexity_estimated = false;
 
     void addTextLine(const std::string &line);
 
     void preLoadSubfilesAndEstimateComplexityInternal();
-
     static long instancedMinComplexity;
+
     BfcState bfcState;
 };
 
@@ -112,7 +114,7 @@ public:
 class LdrSubfileReference : public LdrFileElement {
 
 public:
-    explicit LdrSubfileReference(const std::string &line, bool bfcInverted);
+    explicit LdrSubfileReference(std::string &line, bool bfcInverted);
     bool bfcInverted;
     LdrColor *color;
     double x, y, z, a, b, c, d, e, f, g, h, i;
@@ -130,7 +132,7 @@ public:
     LdrColor *color;
     double x1, y1, z1, x2, y2, z2;
 
-    explicit LdrLine(const std::string &line);
+    explicit LdrLine(std::string &line);
 
     [[nodiscard]] int getType() const override;
 };
@@ -140,7 +142,7 @@ public:
     LdrColor *color;
     double x1, y1, z1, x2, y2, z2, x3, y3, z3;
 
-    explicit LdrTriangle(const std::string &line, WindingOrder order);
+    explicit LdrTriangle(std::string &line, WindingOrder order);
 
     [[nodiscard]] int getType() const override;
 };
@@ -150,7 +152,7 @@ public:
     LdrColor *color;
     double x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
 
-    explicit LdrQuadrilateral(const std::string &line, WindingOrder order);
+    explicit LdrQuadrilateral(std::string &line, WindingOrder order);
 
     [[nodiscard]] int getType() const override;
 };
@@ -161,7 +163,7 @@ public:
 
     double x1, y1, z1, x2, y2, z2, control_x1, control_y1, control_z1, control_x2, control_y2, control_z2;
 
-    explicit LdrOptionalLine(const std::string &line);
+    explicit LdrOptionalLine(std::string &line);
 
     [[nodiscard]] int getType() const override;
 };

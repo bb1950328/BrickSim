@@ -1,8 +1,8 @@
+# if you are stuck here, take a look at the "How to setup workspace for development" section in README.md
 cmake_minimum_required(VERSION 3.16)
 project(BrickSim)
 
 set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_BUILD_TYPE "Release")
 
 if (UNIX)# todo check if this is necessary
     if (NOT APPLE)
@@ -76,8 +76,11 @@ set(bricksim_sources
         src/git_stats.h
         src/thumbnail_generator.cpp
         src/thumbnail_generator.h
-        src/git_stats.cpp src/part_color_availability_provider.cpp
+        src/git_stats.cpp
+        src/part_color_availability_provider.cpp
         src/part_color_availability_provider.h
+        src/helpers/zip_buffer.cpp
+        src/helpers/zip_buffer.h
         )
 
 add_executable(BrickSim
@@ -86,9 +89,10 @@ add_executable(BrickSim
         ${bricksim_sources}
         )
 
-# On Ubuntu, I had to sudo apt install mesa-utils freeglut3-dev libglfw3-dev libglew-dev libcurl4-openssl-dev libglm-dev
-# and add the files from https://glad.dav1d.de to /usr/include and the project folder
-# windows libraries and headers installation: https://learnopengl.com/Getting-started/Creating-a-window
+if (WIN32)
+    option(MINGW_STDTHREADS_GENERATE_STDHEADERS "" ON)
+    add_subdirectory(mingw-std-threads)
+endif ()
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -99,23 +103,18 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw ${CMAKE_CURRENT_SOURCE_DIR}/gl
 # unzip glew-2.1.0.zip to /glew
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glew/build/cmake)
 
-#Installation on MinGW:
-#1. download https://curl.haxx.se/download/curl-7.73.0.zip
-#2. unzip curl-7.73.0.zip and execute 'mingw32-make mingw32' inside the folder.
-#3. copy curl-7.73.0/lib/libcurl.dll to MinGW/lib/libcurl.dll
-#4 copy curl-7.73.0/include/curl/* to MinGW/include/curl/* (whole folder)
 set(CURL_LIBRARY "-lcurl")
 find_package(CURL REQUIRED)
-
-cmake_policy(SET CMP0072 NEW)
+find_package(libzip REQUIRED)
+message("${LIBZIP_INCLUDE_DIRS}")
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS} imgui)
+include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS} zip imgui)
 
 target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glew glfw)
 target_compile_definitions(glew PUBLIC GLEW_STATIC)
 
-target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES})
+target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES} zip)
 if (UNIX)#todo check if this is needed
     if (APPLE)
         target_link_libraries(${CMAKE_PROJECT_NAME}

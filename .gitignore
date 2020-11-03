@@ -40,3 +40,4 @@ cmake-build-minsizerel/
 cmake-build-release/
 cmake-build-relwithdebinfo/
 /codes.txt
+/.cmake/

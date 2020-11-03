@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iostream>
 #include <filesystem>
+#include <cstring>
 #include "ldr_files.h"
 #include "helpers/util.h"
 #include "config.h"
@@ -193,117 +194,107 @@ LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
     content = line;
 }
 
-LdrSubfileReference::LdrSubfileReference(const std::string& line, bool bfcInverted) : bfcInverted(bfcInverted) {
-    std::stringstream linestream(line);
-    int colorCode;
-    char *filenameTmp = new char [MAX_LDR_FILENAME_LENGTH+1];
-
-    linestream >> colorCode;
-    linestream >> x;
-    linestream >> y;
-    linestream >> z;
-    linestream >> a;
-    linestream >> b;
-    linestream >> c;
-    linestream >> d;
-    linestream >> e;
-    linestream >> f;
-    linestream >> g;
-    linestream >> h;
-    linestream >> i;
-    linestream.getline(filenameTmp, MAX_LDR_FILENAME_LENGTH+1);
-
-    color = LdrColorRepository::getInstance()->get_color(colorCode);
-    filename = util::trim(std::string(filenameTmp));
-    delete [] filenameTmp;
+LdrSubfileReference::LdrSubfileReference(std::string& line, bool bfcInverted) : bfcInverted(bfcInverted) {
+    char* rest = &line[0];
+    char* pch = strtok_r(rest, " \t", &rest);
+    color = LdrColorRepository::getInstance()->get_color(atoi(pch));
+    pch = strtok_r(rest, " \t", &rest); x = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); a = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); b = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); c = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); d = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); e = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); f = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); g = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); h = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); i = atof(pch);
+    filename =  util::trim(std::string(rest));
 }
 
-LdrLine::LdrLine(const std::string& line) {
-    std::stringstream linestream(line);
-    int colorCode;
-    linestream >> colorCode;
-    linestream >> x1;
-    linestream >> y1;
-    linestream >> z1;
-    linestream >> x2;
-    linestream >> y2;
-    linestream >> z2;
-    color = LdrColorRepository::getInstance()->get_color(colorCode);
+LdrLine::LdrLine(std::string& line) {
+    char* rest = &line[0];
+    char* pch = strtok_r(rest, " \t", &rest);
+    color = LdrColorRepository::getInstance()->get_color(atoi(pch));
+    pch = strtok_r(rest, " \t", &rest); x1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); x2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z2 = atof(pch);
 }
 
-LdrTriangle::LdrTriangle(const std::string &line, WindingOrder order) {
-    std::stringstream linestream(line);
-    int colorCode;
-    linestream >> colorCode;
-    linestream >> x1;
-    linestream >> y1;
-    linestream >> z1;
+LdrTriangle::LdrTriangle(std::string &line, WindingOrder order) {
+    char* rest = &line[0];
+    char* pch = strtok_r(rest, " \t", &rest);
+    color = LdrColorRepository::getInstance()->get_color(atoi(pch));
+    pch = strtok_r(rest, " \t", &rest); x1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z1 = atof(pch);
     if (order==CCW) {
-        linestream >> x2;
-        linestream >> y2;
-        linestream >> z2;
-        linestream >> x3;
-        linestream >> y3;
-        linestream >> z3;
+        pch = strtok_r(rest, " \t", &rest); x2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); x3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z3 = atof(pch);
     } else {
-        linestream >> x3;
-        linestream >> y3;
-        linestream >> z3;
-        linestream >> x2;
-        linestream >> y2;
-        linestream >> z2;
+        pch = strtok_r(rest, " \t", &rest); x3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); x2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z2 = atof(pch);
     }
-    color = LdrColorRepository::getInstance()->get_color(colorCode);
 }
 
-LdrQuadrilateral::LdrQuadrilateral(const std::string &line, WindingOrder order) {
-    std::stringstream linestream(line);
-    int colorCode;
-    linestream >> colorCode;
-    linestream >> x1;
-    linestream >> y1;
-    linestream >> z1;
+LdrQuadrilateral::LdrQuadrilateral(std::string &line, WindingOrder order) {
+    char* rest = &line[0];
+    char* pch = strtok_r(rest, " \t", &rest);
+    color = LdrColorRepository::getInstance()->get_color(atoi(pch));
+    pch = strtok_r(rest, " \t", &rest); x1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z1 = atof(pch);
     if (order==CCW) {
-        linestream >> x2;
-        linestream >> y2;
-        linestream >> z2;
-        linestream >> x3;
-        linestream >> y3;
-        linestream >> z3;
-        linestream >> x4;
-        linestream >> y4;
-        linestream >> z4;
+        pch = strtok_r(rest, " \t", &rest); x2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); x3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); x4 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y4 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z4 = atof(pch);
     } else {
-        linestream >> x4;
-        linestream >> y4;
-        linestream >> z4;
-        linestream >> x3;
-        linestream >> y3;
-        linestream >> z3;
-        linestream >> x2;
-        linestream >> y2;
-        linestream >> z2;
+        pch = strtok_r(rest, " \t", &rest); x4 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y4 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z4 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); x3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z3 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); x2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); y2 = atof(pch);
+        pch = strtok_r(rest, " \t", &rest); z2 = atof(pch);
     }
-    color = LdrColorRepository::getInstance()->get_color(colorCode);
 }
 
-LdrOptionalLine::LdrOptionalLine(const std::string& line) {
-    std::stringstream linestream(line);
-    int colorCode;
-    linestream >> colorCode;
-    linestream >> x1;
-    linestream >> y1;
-    linestream >> z1;
-    linestream >> x2;
-    linestream >> y2;
-    linestream >> z2;
-    linestream >> control_x1;
-    linestream >> control_y1;
-    linestream >> control_z1;
-    linestream >> control_x2;
-    linestream >> control_y2;
-    linestream >> control_z2;
-    color = LdrColorRepository::getInstance()->get_color(colorCode);
+LdrOptionalLine::LdrOptionalLine(std::string& line) {
+    char* rest = &line[0];
+    char* pch = strtok_r(rest, " \t", &rest);
+    color = LdrColorRepository::getInstance()->get_color(atoi(pch));
+    pch = strtok_r(rest, " \t", &rest); x1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); x2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); y2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); z2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); control_x1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); control_y1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); control_z1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); control_x2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); control_y2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); control_z2 = atof(pch);
 }
 
 int LdrCommentOrMetaElement::getType() const{

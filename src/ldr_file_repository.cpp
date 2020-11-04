@@ -143,7 +143,7 @@ namespace ldr_file_repo {
                 zipLibrary = zip_buffer::openZipFile(partsLibraryPath);
                 for (const auto &file : zipLibrary->textFiles) {
                     if (util::starts_with(file.first, "parts/s/")) {
-                        auto fname = file.first.substr(8);
+                        auto fname = file.first.substr(6);//not 8 because "s/" should be kept
                         subpartNames[util::as_lower(fname)] = fname;
                     } else if (util::starts_with(file.first, "parts/")) {
                         auto fname = file.first.substr(6);
@@ -225,7 +225,7 @@ namespace ldr_file_repo {
             auto filenameWithForwardSlash = util::replaceChar(filename, '\\', '/');
             auto itSubpart = subpartNames.find(util::as_lower(filenameWithForwardSlash));
             if (itSubpart != subpartNames.end()) {
-                return std::make_pair(LdrFileType::SUBPART, zipLibrary->getFileAsString(std::string("parts/s/")+itSubpart->second));
+                return std::make_pair(LdrFileType::SUBPART, zipLibrary->getFileAsString(std::string("parts/")+itSubpart->second));
             }
             auto itPart = partNames.find(util::as_lower(filenameWithForwardSlash));
             if (partNames.end() != itPart) {

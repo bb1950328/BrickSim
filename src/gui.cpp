@@ -809,7 +809,7 @@ bool Gui::loopPartsLibraryInstallationScreen() {
     //static std::thread downloadThread;//todo make this work
     static char pathBuffer[255];
     if (state == 'A') {
-        if (ImGui::BeginPopupModal("ldraw library not found.", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::BeginPopupModal("ldraw library not found.", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {//todo this gives a segmentation fault because of some imgui id stack thing
             ImGui::Text("Currently, the path for the ldraw parts library is set to");
             auto parts_lib_raw = config::get_string(config::LDRAW_PARTS_LIBRARY);
             auto parts_lib_extended = util::extend_home_dir(parts_lib_raw);

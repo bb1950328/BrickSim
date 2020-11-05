@@ -29,12 +29,18 @@ Default         | 2315ms         | 536.558ms           |  3399 KB
 Test Model: Lego Technic Arocs Set
 Code Revision: 04.11.2020 22:13 d4226af6
 Build Type: Release
-Test Systems: Ubuntu 20.04, Intel Core i7 6700k @ 4.00GHz
+Test Systems:
+- Ubuntu 20.04, Intel Core i7 6700k @ 4.00GHz, SATA SSD
+- Windows 10 Intel Core i7 8565U @ 1.8GHz, PCIe SSD
 Test                     | RAM    | Name list init | Remaining part load | Total time
 -------------------------|--------|----------------|---------------------|--------
 dir, Linux               | 630MB  | 37ms           | 926.783ms           | 963.783ms
 zip, Linux               | 738MB  | 980.492ms      | 769.12ms            | 1749.612ms
 dir, Linux, after Reboot | 630MB  | 79ms           | 1288.79ms           | 1367.79ms
 zip, Linux, after Reboot | 737MB  | 1012.3ms       | 845.404ms           | 1857.704ms
-dir, Windows             | TODO test this on my windows machine
-zip, Windows             |
+dir, Windows             | 653MB  | 2009ms         | 4412.8ms            | 6421.8ms
+zip, Windows             | 861MB  | 1441.97ms      | 2512.31ms           | 3954.28ms
+
+Conclusion:
+On Linux, its better to unzip your parts library while on windows you should use the .zip directly.
+I think the big difference between Windows and Linux is because of the file system, ext4 is usually faster than NTFS

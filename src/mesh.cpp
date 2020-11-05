@@ -11,8 +11,10 @@
 #include "config.h"
 #include "ldr_colors.h"
 #include <glm/gtx/normal.hpp>
+#include <mutex>
 #include "statistic.h"
 #include "lib/Miniball.hpp"
+#include "controller.h"
 
 void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation = glm::mat4(1.0f), LdrColor *mainColor = nullptr, bool bfcInverted = false) {
     for (auto element : file.elements) {
@@ -222,6 +224,7 @@ void Mesh::addMinEnclosingBallLines() {
 }
 
 void Mesh::initializeTriangleGraphics() {
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     for (const auto &entry: triangleIndices) {
         LdrColor *color = entry.first;
         std::vector<unsigned int> *indices = entry.second;
@@ -290,6 +293,7 @@ void Mesh::initializeTriangleGraphics() {
 }
 
 void Mesh::rewriteInstanceBuffer() {
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     if (instancesHaveChanged) {
         size_t newBufferSize = (sizeof(TriangleInstance) * triangleIndices.size() + 2 * sizeof(glm::mat4)) * instances.size();
         statistic::vramUsageBytes -= this->lastInstanceBufferSize;
@@ -318,7 +322,7 @@ void Mesh::rewriteInstanceBuffer() {
 }
 
 void Mesh::initializeLineGraphics() {
-
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     //vao
     glGenVertexArrays(1, &lineVAO);
     glBindVertexArray(lineVAO);
@@ -364,7 +368,7 @@ void Mesh::initializeLineGraphics() {
 }
 
 void Mesh::initializeOptionalLineGraphics() {
-
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     //vao
     glGenVertexArrays(1, &optionalLineVAO);
     glBindVertexArray(optionalLineVAO);
@@ -410,6 +414,7 @@ void Mesh::initializeOptionalLineGraphics() {
 }
 
 void Mesh::drawTriangleGraphics() {
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     for (const auto &entry: triangleIndices) {
         LdrColor *color = entry.first;
         std::vector<unsigned int> *indices = entry.second;
@@ -419,16 +424,19 @@ void Mesh::drawTriangleGraphics() {
 }
 
 void Mesh::drawLineGraphics() {
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     glBindVertexArray(lineVAO);
     glDrawElementsInstanced(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, instances.size());
 }
 
 void Mesh::drawOptionalLineGraphics() {
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     glBindVertexArray(optionalLineVAO);
     glDrawElementsInstanced(GL_LINES_ADJACENCY, optionalLineIndices.size(), GL_UNSIGNED_INT, nullptr, instances.size());
 }
 
 void Mesh::deallocateGraphics() {
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     for (const auto &entry: triangleIndices) {
         LdrColor *color = entry.first;
         unsigned int vao = VAOs[color];

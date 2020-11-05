@@ -26,6 +26,7 @@ namespace controller {
         void window_size_callback(GLFWwindow *window, int width, int height);
 
         bool initializeGL() {
+            std::lock_guard<std::recursive_mutex> lg(getOpenGlMutex());
             glfwInit();
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -273,5 +274,10 @@ namespace controller {
 
     long getLastFrameTime() {
         return lastFrameTime;
+    }
+
+    std::recursive_mutex &getOpenGlMutex() {
+        static std::recursive_mutex openGlMutex;
+        return openGlMutex;
     }
 }

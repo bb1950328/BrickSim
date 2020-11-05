@@ -14,7 +14,7 @@ coming soon!
 currently, the only way to run BrickSim on OS X is to build it from source, because I have zero knowledge about OS X. If you know how to build it, please add a GitHub Actions workflow file.
 
 
-## TODO
+## Planned features
 - render arrows to translate and rotate object
 - render lines in another color if mesh instance is selected (add boolean to lineInstanceBuffer)
 - add save functionality
@@ -24,6 +24,7 @@ currently, the only way to run BrickSim on OS X is to build it from source, beca
 - add parts palette
 - add manual
 - make lines thicker (geometry shader)
+- add a class BackgroundTask which takes a function pointer which is called in a new thread, and a static method to get a list of running background tasks for gui (like intellij)
 
 ## How to get the `codes.txt` file
 The `codes.txt` file contains all parts with the colors they are available in. Because I don't whether it's allowed to distribute that file together with the program, you have to download it. But don't worry, it's really simple: 

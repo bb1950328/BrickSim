@@ -156,8 +156,11 @@ void Gui::loop() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    {
+        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
 
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
@@ -751,7 +754,10 @@ void Gui::loop() {
 
     // Rendering
     ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    {
+        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    }
     lastScrollDeltaY = 0.0f;
 }
 

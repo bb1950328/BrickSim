@@ -5,6 +5,7 @@
 #ifndef BRICKSIM_CONTROLLER_H
 #define BRICKSIM_CONTROLLER_H
 
+#include <mutex>
 #include "element_tree.h"
 #include "renderer.h"
 #include "gui.h"
@@ -38,6 +39,7 @@ namespace controller {
     Gui& getGui();
     ThumbnailGenerator& getThumbnailGenerator();
     long getLastFrameTime();
+    std::recursive_mutex & getOpenGlMutex();
 
     void runNormal();
     [[nodiscard]] bool doesUserWantToExit();

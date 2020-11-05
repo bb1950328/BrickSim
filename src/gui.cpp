@@ -71,8 +71,6 @@ void drawColorGroup(etree::MeshNode *ldrNode,
                     const ImVec2 &buttonSize,
                     const int columnCount,
                     const std::pair<const std::string, std::vector<const LdrColor *>> &colorGroup) {
-    //todo make palette look prettier
-    //todo show only colors which are available for this part (get the data somewhere)
     if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
         int i = 0;
         for (const auto *color : colorGroup.second) {
@@ -453,15 +451,7 @@ void Gui::loop() {
                                 drawColorGroup(meshNode, buttonSize, columnCount, colorGroup);
                             }
                             for (const auto &colorGroup : groupedAndSortedByHue) {
-                                bool alreadyDrawn = false;//todo google how to vector.contains()
-                                for (const auto &groupName : fixed_pos) {
-                                    if (groupName == colorGroup.first) {
-                                        alreadyDrawn = true;
-                                        break;
-                                    }
-                                }
-
-                                if (!alreadyDrawn) {
+                                if (std::find(fixed_pos.begin(), fixed_pos.end(), colorGroup.first) == fixed_pos.end()) {
                                     drawColorGroup(meshNode, buttonSize, columnCount, colorGroup);
                                 }
                             }

@@ -159,8 +159,10 @@ void ThumbnailGenerator::discardAllImages() {
     lastAccessed.clear();
 }
 
-ThumbnailGenerator::ThumbnailGenerator(Renderer *renderer) : renderer(renderer),
-                                                             meshCollection(&renderer->meshCollection) {
+ThumbnailGenerator::ThumbnailGenerator(Renderer *renderer) : renderer(renderer), meshCollection(&renderer->meshCollection) {
+}
+
+void ThumbnailGenerator::initialize() {
     size = config::get_long(config::THUMBNAIL_SIZE);
     maxCachedThumbnails = config::get_long(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
     projection = glm::perspective(glm::radians(50.0f), 1.0f, 0.001f, 1000.0f);

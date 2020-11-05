@@ -38,6 +38,7 @@ public:
     bool workOnRenderQueue();
 
     void saveFramebufferToBMP(const std::string &filename) const;
+    void initialize();
 };
 
 #endif //BRICKSIM_THUMBNAIL_GENERATOR_H

@@ -215,10 +215,10 @@ void processInput(GLFWwindow *window) {
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    Controller::getInstance()->gui.lastScrollDeltaY = yoffset;
+    controller::getGui().lastScrollDeltaY = yoffset;
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
-    Controller::getInstance()->renderer.camera.moveForwardBackward(yoffset);
-    Controller::getInstance()->renderer.unrenderedChanges = true;
+    controller::getRenderer()->camera.moveForwardBackward(yoffset);
+    controller::getRenderer()->unrenderedChanges = true;
 }

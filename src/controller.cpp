@@ -3,6 +3,8 @@
 //
 
 #include "controller.h"
+
+#include <utility>
 #include "price_guide_provider.h"
 
 namespace controller {
@@ -21,9 +23,11 @@ namespace controller {
         bool userWantsToExit = false;
         std::set<etree::Node *> selectedNodes;
         etree::Node *currentlyEditingNode;
+        std::map<unsigned int, BackgroundTask*> backgroundTasks;
 
         bool initializeGL();
         void window_size_callback(GLFWwindow *window, int width, int height);
+        void checkForFinishedBackgroundTasks();
 
         bool initializeGL() {
             std::lock_guard<std::recursive_mutex> lg(getOpenGlMutex());
@@ -61,6 +65,23 @@ namespace controller {
 
         void window_size_callback(GLFWwindow *window, int width, int height) {
             setWindowSize(width, height);
+        }
+
+        void checkForFinishedBackgroundTasks() {
+            static double lastCheck = 0;
+            auto now = glfwGetTime();
+            if (now-lastCheck>0.5) {
+                for(auto iter = backgroundTasks.begin(); iter != backgroundTasks.end(); ) {
+                    if (iter->second->isDone()) {
+                        iter->second->joinThread();
+                        delete iter->second;
+                        iter = backgroundTasks.erase(iter);
+                    } else {
+                        ++iter;
+                    }
+                }
+                lastCheck = now;
+            }
         }
     }
 
@@ -136,6 +157,12 @@ namespace controller {
         config::set_long(config::SCREEN_HEIGHT, windowHeight);
         config::save();
         renderer.cleanup();
+        auto &bgTasks = getBackgroundTasks();
+        std::cout << "waiting for " << bgTasks.size() << " background tasks to finish..." << std::endl;
+        for (auto &task : bgTasks) {
+            task.second->joinThread();
+        }
+        std::cout << "all background tasks finished, exiting now" << std::endl;
     }
 
     void set3dViewSize(unsigned int width, unsigned int height) {
@@ -150,7 +177,9 @@ namespace controller {
     }
 
     void openFile(const std::string &path) {
-        insertLdrElement(ldr_file_repo::get_file(path));
+        addBackgroundTask(std::string("Open")+path, [path](){
+            insertLdrElement(ldr_file_repo::get_file(path));
+        });
     }
 
     void nodeSelectAddRemove(etree::Node *node) {
@@ -249,7 +278,7 @@ namespace controller {
     }
 
     void setUserWantsToExit(bool val) {
-        userWantsToExit = true;
+        userWantsToExit = val;
     }
 
     std::set<etree::Node *> &getSelectedNodes() {
@@ -279,5 +308,16 @@ namespace controller {
     std::recursive_mutex &getOpenGlMutex() {
         static std::recursive_mutex openGlMutex;
         return openGlMutex;
+    }
+
+    std::map<unsigned int, BackgroundTask*> &getBackgroundTasks() {
+        checkForFinishedBackgroundTasks();
+        return backgroundTasks;
+    }
+
+    void addBackgroundTask(std::string name, const std::function<void()>& function) {
+        static unsigned int sId = 0;
+        unsigned int id = sId++;
+        backgroundTasks.insert(std::make_pair(id, new BackgroundTask(id, std::move(name), function)));
     }
 }

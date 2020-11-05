@@ -745,6 +745,13 @@ void Gui::loop() {
         ImGui::Text("Total graphics buffer size: %s", util::formatBytesValue(statistic::vramUsageBytes).c_str());
         ImGui::Text("Total thumbnail buffer size: %s", util::formatBytesValue(statistic::thumbnailBufferUsageBytes).c_str());
         ImGui::Text("Last element tree reread: %f ms", statistic::lastElementTreeReread);
+        const auto &bgTasks = controller::getBackgroundTasks();
+        if (!bgTasks.empty()) {
+            ImGui::Text("%lu background tasks:", bgTasks.size());
+            for (const auto &task : bgTasks) {
+                ImGui::BulletText("%s", task.second->getTaskName().c_str());
+            }
+        }
         ImGui::End();
     }
 

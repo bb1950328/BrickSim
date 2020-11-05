@@ -10,6 +10,7 @@
 #include "renderer.h"
 #include "gui.h"
 #include "thumbnail_generator.h"
+#include "background_task.h"
 
 namespace controller {
     int run();
@@ -40,6 +41,9 @@ namespace controller {
     ThumbnailGenerator& getThumbnailGenerator();
     long getLastFrameTime();
     std::recursive_mutex & getOpenGlMutex();
+
+    std::map<unsigned int, BackgroundTask *> & getBackgroundTasks();
+    void addBackgroundTask(std::string name, const std::function<void()>& function);
 
     void runNormal();
     [[nodiscard]] bool doesUserWantToExit();

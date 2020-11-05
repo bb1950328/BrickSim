@@ -83,7 +83,7 @@ set(bricksim_sources
         src/helpers/zip_buffer.h
         src/price_guide_provider.cpp
         src/price_guide_provider.h
-        )
+        src/background_task.cpp src/background_task.h)
 
 add_executable(BrickSim
         ${imgui_sources}

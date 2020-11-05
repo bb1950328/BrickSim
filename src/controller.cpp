@@ -5,7 +5,7 @@
 #include "controller.h"
 
 #include <utility>
-#include "price_guide_provider.h"
+#include "info_providers/price_guide_provider.h"
 
 namespace controller {
     namespace {

@@ -16,7 +16,7 @@
 #include "git_stats.h"
 #include "lib/tinyfiledialogs.h"
 #include "helpers/util.h"
-#include "part_color_availability_provider.h"
+#include "info_providers/part_color_availability_provider.h"
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>

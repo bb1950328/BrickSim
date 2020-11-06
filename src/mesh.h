@@ -46,6 +46,7 @@ struct MeshInstance {
     LdrColor * color;
     glm::mat4 transformation;
     unsigned int elementId;
+    bool selected;
     bool operator==(const MeshInstance& other) const;
     bool operator!=(const MeshInstance& other) const;
 };

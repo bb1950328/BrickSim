@@ -310,6 +310,9 @@ void Mesh::rewriteInstanceBuffer() {
         glm::mat4 instancesArray[instances.size()];
         for (int i = 0; i < instances.size(); ++i) {
             instancesArray[i] = glm::transpose(instances[i].transformation * globalModel);
+            if (instances[i].selected) {
+                instancesArray[i][2][3] = 1;
+            }
         }
         size_t instance_size = sizeof(glm::mat4);
         glBindBuffer(GL_ARRAY_BUFFER, lineInstanceVBO);
@@ -535,9 +538,9 @@ std::pair<glm::vec3, float> Mesh::getMinimalEnclosingBall() {
 }
 
 bool MeshInstance::operator==(const MeshInstance &other) const {
-    return transformation == other.transformation && color == other.color && elementId == other.elementId;
+    return transformation == other.transformation && color == other.color && elementId == other.elementId && selected == other.selected;
 }
 
 bool MeshInstance::operator!=(const MeshInstance &other) const {
-    return transformation != other.transformation || color != other.color || elementId != other.elementId;
+    return transformation != other.transformation || color != other.color || elementId != other.elementId || selected != other.selected;
 }

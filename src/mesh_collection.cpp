@@ -76,7 +76,7 @@ void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentA
                 meshNode->addToMesh(mesh, windingInversed);
             }
             const auto elementId = static_cast<unsigned int>(elementsSortedById.size());
-            MeshInstance newInstance{color, absoluteTransformation, elementId};
+            MeshInstance newInstance{color, absoluteTransformation, elementId, meshNode->selected};
             elementsSortedById.push_back(node);
             newMeshInstances[meshesKey].push_back(newInstance);
         }

@@ -194,6 +194,7 @@ namespace controller {
         } else {
             selectedNodes.erase(iterator);
         }
+        elementTreeChanged = true;
     }
 
     void nodeSelectSet(etree::Node *node) {
@@ -203,6 +204,7 @@ namespace controller {
         selectedNodes.clear();
         node->selected = true;
         selectedNodes.insert(node);
+        elementTreeChanged = true;
     }
 
     void nodeSelectUntil(etree::Node *node) {
@@ -224,12 +226,14 @@ namespace controller {
                 selectedNodes.insert(itNode);
             }
         }
+        elementTreeChanged = true;
     }
 
     void nodeSelectAll() {
         nodeSelectNone();
         elementTree.rootNode.selected = true;
         selectedNodes.insert(&elementTree.rootNode);
+        elementTreeChanged = true;
     }
 
     void nodeSelectNone() {
@@ -237,6 +241,7 @@ namespace controller {
             node->selected = false;
         }
         selectedNodes.clear();
+        elementTreeChanged = true;
     }
 
     void setStandard3dView(int i) {

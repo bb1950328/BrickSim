@@ -46,6 +46,7 @@ public:
 private:
     // utility function for checking shader compilation/linking errors.
     static void checkCompileErrors(GLuint shader, const std::string& type);
+    void compileShaders(const char *geometryPath, const std::string &vertexCode, const std::string &fragmentCode, const std::string &geometryCode);
 };
 
 #endif //BRICKSIM_SHADER_H

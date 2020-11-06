@@ -77,12 +77,14 @@ set(bricksim_sources
         src/thumbnail_generator.cpp
         src/thumbnail_generator.h
         src/git_stats.cpp
-        src/part_color_availability_provider.cpp
-        src/part_color_availability_provider.h
+        src/info_providers/part_color_availability_provider.cpp
+        src/info_providers/part_color_availability_provider.h
         src/helpers/zip_buffer.cpp
         src/helpers/zip_buffer.h
-        src/price_guide_provider.cpp
-        src/price_guide_provider.h
+        src/info_providers/price_guide_provider.cpp
+        src/info_providers/price_guide_provider.h
+        src/background_task.cpp
+        src/background_task.h
         )
 
 add_executable(BrickSim

@@ -177,12 +177,11 @@ namespace util {
     }
 
     glm::vec3 triangleCentroid(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3) {
-        return (p1 + p2 + p3) / 3.0f;//todo check if this is mathematically correct
+        return (p1 + p2 + p3) / 3.0f;
     }
 
-    glm::vec3
-    quadrilateralCentroid(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3, const glm::vec3 &p4) {
-        return (p1 + p2 + p3 + p4) / 4.0f;//todo check if this is mathematically correct
+    glm::vec3 quadrilateralCentroid(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3, const glm::vec3 &p4) {
+        return (p1 + p2 + p3 + p4) / 4.0f;
     }
 
     bool doesTransformationInverseWindingOrder(const glm::mat4 &transformation) {

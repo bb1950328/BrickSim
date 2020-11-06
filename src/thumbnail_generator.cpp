@@ -7,9 +7,11 @@
 #include "lib/stb_image_write.h"
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/euler_angles.hpp>
+#include <mutex>
 #include "thumbnail_generator.h"
 #include "config.h"
 #include "ldr_colors.h"
+#include "controller.h"
 
 unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
     if (renderedRotationDegrees != rotationDegrees) {
@@ -61,82 +63,85 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
         renderer->triangleShader->use();
         renderer->triangleShader->setInt("drawSelection", 0);
 
-        do {
-            //distance = (upperLimit + lowerLimit) / 2;
-            //std::cout << lowerLimit << " < " << distance << " < " << upperLimit << std::endl;
-            camera.setDistance(distance);
-            /*glm::vec3 viewPos = glm::vec3(
-                    distance * std::cos(s) * std::sin(t),
-                    distance * std::sin(s) * std::sin(t),
-                    distance * std::cos(t)
-            ) - center;*/
-            glm::vec3 viewPos = camera.getCameraPos()/*-center*/;
-            auto view = glm::lookAt(viewPos,
-                                    glm::vec3(0) + center,
-                                    glm::vec3(0.0f, 1.0f, 0.0f));
-            view = camera.getViewMatrix();
-            projectionView = projection * view;
-            glViewport(0, 0, size, size);
-            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        {
+            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+            do {
+                //distance = (upperLimit + lowerLimit) / 2;
+                //std::cout << lowerLimit << " < " << distance << " < " << upperLimit << std::endl;
+                camera.setDistance(distance);
+                /*glm::vec3 viewPos = glm::vec3(
+                        distance * std::cos(s) * std::sin(t),
+                        distance * std::sin(s) * std::sin(t),
+                        distance * std::cos(t)
+                ) - center;*/
+                glm::vec3 viewPos = camera.getCameraPos()/*-center*/;
+                auto view = glm::lookAt(viewPos,
+                                        glm::vec3(0) + center,
+                                        glm::vec3(0.0f, 1.0f, 0.0f));
+                view = camera.getViewMatrix();
+                projectionView = projection * view;
+                glViewport(0, 0, size, size);
+                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+                glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            renderer->triangleShader->setVec3("viewPos", viewPos);
-            renderer->triangleShader->setMat4("projectionView", projectionView);
-            mesh->drawTriangleGraphics();
+                renderer->triangleShader->setVec3("viewPos", viewPos);
+                renderer->triangleShader->setMat4("projectionView", projectionView);
+                mesh->drawTriangleGraphics();
 
-            allInside = true;
-            GLbyte buffer1[3];
-            GLbyte buffer2[3];
-            GLbyte buffer3[3];
-            GLbyte buffer4[3];
-            for (int i = 0; i < size; ++i) {//todo this is very inefficent
-                glReadPixels(i, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer1);
-                glReadPixels(0, i, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer2);
-                glReadPixels(i, size - 1, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer3);
-                glReadPixels(size - 1, i, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer4);
-                if (buffer1[0] != 0 || buffer1[1] != 0 || buffer1[2] != 0
-                    || buffer2[0] != 0 || buffer2[1] != 0 || buffer2[2] != 0
-                    || buffer3[0] != 0 || buffer3[1] != 0 || buffer3[2] != 0
-                    || buffer4[0] != 0 || buffer4[1] != 0 || buffer4[2] != 0) {
-                    allInside = false;
-                    break;
+                allInside = true;
+                GLbyte buffer1[3];
+                GLbyte buffer2[3];
+                GLbyte buffer3[3];
+                GLbyte buffer4[3];
+                for (int i = 0; i < size; ++i) {//todo this is very inefficent
+                    glReadPixels(i, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer1);
+                    glReadPixels(0, i, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer2);
+                    glReadPixels(i, size - 1, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer3);
+                    glReadPixels(size - 1, i, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer4);
+                    if (buffer1[0] != 0 || buffer1[1] != 0 || buffer1[2] != 0
+                        || buffer2[0] != 0 || buffer2[1] != 0 || buffer2[2] != 0
+                        || buffer3[0] != 0 || buffer3[1] != 0 || buffer3[2] != 0
+                        || buffer4[0] != 0 || buffer4[1] != 0 || buffer4[2] != 0) {
+                        allInside = false;
+                        break;
+                    }
                 }
-            }
-            iterations++;
+                iterations++;
 
-            std::string filename =
-                    std::string("thumbnail/_") + mesh->name + "_iteration" + std::to_string(iterations) + ".bmp";
-            //saveFramebufferToBMP(filename);
-            distance += .33;
-        } while (/*upperLimit - lowerLimit > 0.001 ||*/ !allInside);
-        //std::cout << "iterations: " << iterations << std::endl;
+                std::string filename =
+                        std::string("thumbnail/_") + mesh->name + "_iteration" + std::to_string(iterations) + ".bmp";
+                //saveFramebufferToBMP(filename);
+                distance += .33;
+            } while (/*upperLimit - lowerLimit > 0.001 ||*/ !allInside);
+            //std::cout << "iterations: " << iterations << std::endl;
 
-        renderer->lineShader->use();
-        renderer->lineShader->setMat4("projectionView", projectionView);
-        mesh->drawLineGraphics();
-        renderer->optionalLineShader->use();
-        renderer->optionalLineShader->setMat4("projectionView", projectionView);
-        mesh->drawOptionalLineGraphics();
+            renderer->lineShader->use();
+            renderer->lineShader->setMat4("projectionView", projectionView);
+            mesh->drawLineGraphics();
+            renderer->optionalLineShader->use();
+            renderer->optionalLineShader->setMat4("projectionView", projectionView);
+            mesh->drawOptionalLineGraphics();
 
-        const auto totalBufferSize = size * size * 3;
-        statistic::thumbnailBufferUsageBytes += totalBufferSize;
-        auto buffer = std::make_unique<GLbyte[]>(totalBufferSize);
-        glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        unsigned int textureId;
-        glGenTextures(1, &textureId);
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
-        images[ldrFile] = textureId;
-        mesh->instances = instanceBackup;
-        mesh->instancesHaveChanged = true;
-        mesh->writeGraphicsData();
+            const auto totalBufferSize = size * size * 3;
+            statistic::thumbnailBufferUsageBytes += totalBufferSize;
+            auto buffer = std::make_unique<GLbyte[]>(totalBufferSize);
+            glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            unsigned int textureId;
+            glGenTextures(1, &textureId);
+            glBindTexture(GL_TEXTURE_2D, textureId);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
+            images[ldrFile] = textureId;
+            mesh->instances = instanceBackup;
+            mesh->instancesHaveChanged = true;
+            mesh->writeGraphicsData();
 
-        glViewport(0, 0, renderer->windowWidth, renderer->windowHeight);
+            glViewport(0, 0, renderer->windowWidth, renderer->windowHeight);
+        }
     }
     lastAccessed.remove(ldrFile);
     lastAccessed.push_back(ldrFile);
@@ -152,6 +157,7 @@ void ThumbnailGenerator::saveFramebufferToBMP(const std::string &filename) const
 }
 
 void ThumbnailGenerator::discardAllImages() {
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     for (const auto &item : images) {
         glDeleteTextures(1, &item.second);
     }
@@ -159,8 +165,10 @@ void ThumbnailGenerator::discardAllImages() {
     lastAccessed.clear();
 }
 
-ThumbnailGenerator::ThumbnailGenerator(Renderer *renderer) : renderer(renderer),
-                                                             meshCollection(&renderer->meshCollection) {
+ThumbnailGenerator::ThumbnailGenerator(Renderer *renderer) : renderer(renderer), meshCollection(&renderer->meshCollection) {
+}
+
+void ThumbnailGenerator::initialize() {
     size = config::get_long(config::THUMBNAIL_SIZE);
     maxCachedThumbnails = config::get_long(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
     projection = glm::perspective(glm::radians(50.0f), 1.0f, 0.001f, 1000.0f);
@@ -168,6 +176,7 @@ ThumbnailGenerator::ThumbnailGenerator(Renderer *renderer) : renderer(renderer),
 }
 
 void ThumbnailGenerator::discardOldestImages(int reserve_space_for) {
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     int deletedCount = 0;
     while (lastAccessed.size() > maxCachedThumbnails - reserve_space_for) {
         auto lastAccessedIt = lastAccessed.front();
@@ -206,6 +215,7 @@ bool ThumbnailGenerator::workOnRenderQueue() {
 }
 
 unsigned int ThumbnailGenerator::copyFramebufferToTexture() const {
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     //todo this is from https://stackoverflow.com/questions/15306899/is-it-possible-to-copy-data-from-one-framebuffer-to-another-in-opengl but it didn't work
     unsigned int destinationTextureId;
     glGenTextures(1, &destinationTextureId);

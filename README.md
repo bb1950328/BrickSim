@@ -14,7 +14,7 @@ coming soon!
 currently, the only way to run BrickSim on OS X is to build it from source, because I have zero knowledge about OS X. If you know how to build it, please add a GitHub Actions workflow file.
 
 
-## TODO
+## Planned features
 - render arrows to translate and rotate object
 - render lines in another color if mesh instance is selected (add boolean to lineInstanceBuffer)
 - add save functionality

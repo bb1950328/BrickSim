@@ -51,6 +51,7 @@ void Renderer::createFramebuffer(unsigned int* framebufferIdLocation,
                                  unsigned int* renderBufferObjectIdLocation,
                                  unsigned int width,
                                  unsigned int height) {
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     glGenFramebuffers(1, framebufferIdLocation);
     glBindFramebuffer(GL_FRAMEBUFFER, *framebufferIdLocation);
     // create a color attachment texture
@@ -86,6 +87,7 @@ bool Renderer::loop() {
     processInput(window);
 
     if (unrenderedChanges) {
+        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
         glBindFramebuffer(GL_FRAMEBUFFER, imageFramebuffer);
         const util::RGBcolor &bgColor = util::RGBcolor(config::get_string(config::BACKGROUND_COLOR));
         glClearColor(bgColor.red/255.0f, bgColor.green/255.0f, bgColor.blue/255.0f, 1.0f);
@@ -128,6 +130,7 @@ void Renderer::setWindowSize(unsigned int width, unsigned int height) {
     if (windowWidth != width || windowHeight!=height) {
         windowWidth = width;
         windowHeight = height;
+        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
         glViewport(0, 0, width, height);
         updateProjectionMatrix();
         deleteFramebuffer(&imageFramebuffer, &imageTextureColorbuffer, &imageRenderBufferObject);
@@ -142,6 +145,7 @@ void Renderer::elementTreeChanged() {
 }
 
 unsigned int Renderer::getSelectionPixel(unsigned int x, unsigned int y) {
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     if (currentSelectionBuffersWidth != windowWidth || currentSelectionBuffersHeight != windowHeight) {
         if (currentSelectionBuffersWidth != 0 || currentSelectionBuffersHeight != 0) {
             deleteFramebuffer(&selectionFramebuffer, &selectionTextureColorbuffer, &selectionRenderBufferObject);
@@ -170,6 +174,7 @@ unsigned int Renderer::getSelectionPixel(unsigned int x, unsigned int y) {
 void Renderer::deleteFramebuffer(unsigned int *framebufferIdLocation,
                                  unsigned int *textureColorbufferIdLocation,
                                  unsigned int *renderBufferObjectIdLocation) {
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     glDeleteRenderbuffers(1, renderBufferObjectIdLocation);
     glDeleteTextures(1, textureColorbufferIdLocation);
     glDeleteFramebuffers(1, framebufferIdLocation);
@@ -183,9 +188,13 @@ bool Renderer::saveImage(const std::string& path) {
     const int channels = 3;
 
     auto pixels = new GLubyte[windowWidth*windowHeight*channels];
-    glBindFramebuffer(GL_FRAMEBUFFER, imageFramebuffer);
-    glReadPixels(0, 0, windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    {
+        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+        glBindFramebuffer(GL_FRAMEBUFFER, imageFramebuffer);
+        glReadPixels(0, 0, windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
     //unsigned int result = (pixel[0] << 4u) | (pixel[1] << 2u) | pixel[2];
     //std::cout << result << std::endl;
 
@@ -215,10 +224,10 @@ void processInput(GLFWwindow *window) {
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    Controller::getInstance()->gui.lastScrollDeltaY = yoffset;
+    controller::getGui().lastScrollDeltaY = yoffset;
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
-    Controller::getInstance()->renderer.camera.moveForwardBackward(yoffset);
-    Controller::getInstance()->renderer.unrenderedChanges = true;
+    controller::getRenderer()->camera.moveForwardBackward(yoffset);
+    controller::getRenderer()->unrenderedChanges = true;
 }

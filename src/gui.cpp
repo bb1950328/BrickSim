@@ -16,7 +16,7 @@
 #include "git_stats.h"
 #include "lib/tinyfiledialogs.h"
 #include "helpers/util.h"
-#include "part_color_availability_provider.h"
+#include "info_providers/part_color_availability_provider.h"
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -26,7 +26,7 @@
 #define XSTR(x) STR(x)
 #define STR(x) #x
 
-void drawPartThumbnail(Controller *controller, const ImVec2 &actualThumbSizeSquared, LdrFile *const &part);
+void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, LdrFile *const &part);
 
 void Gui::setup() {
     if (!setupDone) {
@@ -67,13 +67,10 @@ void Gui::setup() {
     }
 }
 
-void drawColorGroup(Controller *controller,
-                    etree::MeshNode *ldrNode,
+void drawColorGroup(etree::MeshNode *ldrNode,
                     const ImVec2 &buttonSize,
                     const int columnCount,
                     const std::pair<const std::string, std::vector<const LdrColor *>> &colorGroup) {
-    //todo make palette look prettier
-    //todo show only colors which are available for this part (get the data somewhere)
     if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
         int i = 0;
         for (const auto *color : colorGroup.second) {
@@ -85,7 +82,7 @@ void drawColorGroup(Controller *controller,
             ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4) imColor);
             if (ImGui::Button(ldrNode->getDisplayColor()->code == color->code ? "#" : "", buttonSize)) {
                 ldrNode->setColor(ldr_color_repo::get_color(color->code));
-                controller->elementTreeChanged = true;
+                controller::setElementTreeChanged(true);
             }
             ImGui::PopStyleColor(/*3*/1);
             ImGui::PopID();
@@ -125,13 +122,12 @@ void draw_element_tree_node(etree::Node *node) {
     }
     ImGui::PopStyleColor();
     if (itemClicked) {
-        auto controller = Controller::getInstance();
         if (ImGui::GetIO().KeyCtrl) {
-            controller->nodeSelectAddRemove(node);
+            controller::nodeSelectAddRemove(node);
         } else if (ImGui::GetIO().KeyShift) {
-            controller->nodeSelectUntil(node);
+            controller::nodeSelectUntil(node);
         } else {
-            controller->nodeSelectSet(node);
+            controller::nodeSelectSet(node);
         }
     }
 }
@@ -158,10 +154,12 @@ void Gui::loop() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    {
+        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
 
-    auto *controller = Controller::getInstance();
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Open", "CTRL+O")) {
@@ -174,11 +172,11 @@ void Gui::loop() {
                         0);
                 if (fileNameChars != nullptr) {
                     std::string fileName(fileNameChars);
-                    controller->openFile(fileName);
+                    controller::openFile(fileName);
                 }
             }
             if (ImGui::MenuItem("Exit", "CTRL+W")) {
-                controller->userWantsToExit = true;
+                controller::setUserWantsToExit(true);
             }
             ImGui::MenuItem("About", "", &showAboutWindow);
             ImGui::MenuItem("System Info", "", &showSysInfoWindow);
@@ -207,21 +205,21 @@ void Gui::loop() {
         }
         if (ImGui::BeginMenu("Selection")) {
             if (ImGui::MenuItem("Select All", "CTRL+A")) {
-                controller->nodeSelectAll();
+                controller::nodeSelectAll();
             }
             if (ImGui::MenuItem("Select Nothing", "CTRL+U")) {
-                controller->nodeSelectNone();
+                controller::nodeSelectNone();
             }
-            ImGui::TextDisabled("%lu Elements currently selected", controller->selectedNodes.size());
+            ImGui::TextDisabled("%lu Elements currently selected", controller::getSelectedNodes().size());
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("3D")) {
-            if (ImGui::MenuItem("Front", "ALT+1")) { controller->setStandard3dView(1); }
-            if (ImGui::MenuItem("Top", "ALT+2")) { controller->setStandard3dView(2); }
-            if (ImGui::MenuItem("Right", "ALT+3")) { controller->setStandard3dView(3); }
-            if (ImGui::MenuItem("Rear", "ALT+4")) { controller->setStandard3dView(4); }
-            if (ImGui::MenuItem("Bottom", "ALT+5")) { controller->setStandard3dView(5); }
-            if (ImGui::MenuItem("Left", "ALT+6")) { controller->setStandard3dView(6); }
+            if (ImGui::MenuItem("Front", "ALT+1")) { controller::setStandard3dView(1); }
+            if (ImGui::MenuItem("Top", "ALT+2")) { controller::setStandard3dView(2); }
+            if (ImGui::MenuItem("Right", "ALT+3")) { controller::setStandard3dView(3); }
+            if (ImGui::MenuItem("Rear", "ALT+4")) { controller::setStandard3dView(4); }
+            if (ImGui::MenuItem("Bottom", "ALT+5")) { controller::setStandard3dView(5); }
+            if (ImGui::MenuItem("Left", "ALT+6")) { controller::setStandard3dView(6); }
             ImGui::Separator();
             if (ImGui::MenuItem("Screenshot", "CTRL+P")) {
                 char *fileNameChars = tinyfd_saveFileDialog(
@@ -232,7 +230,7 @@ void Gui::loop() {
                         nullptr);
                 if (fileNameChars != nullptr) {
                     std::string fileNameString(fileNameChars);
-                    controller->renderer.saveImage(fileNameString);
+                    controller::getRenderer()->saveImage(fileNameString);
                 }
             }
             ImGui::EndMenu();
@@ -246,7 +244,7 @@ void Gui::loop() {
         {
             ImGui::BeginChild("3DRender");
             ImVec2 wsize = ImGui::GetContentRegionAvail();
-            controller->set3dViewSize((unsigned int) wsize.x, (unsigned int) wsize.y);
+            controller::set3dViewSize((unsigned int) wsize.x, (unsigned int) wsize.y);
             const ImVec2 &windowPos = ImGui::GetWindowPos();
             const ImVec2 &regionMin = ImGui::GetWindowContentRegionMin();
             const ImVec2 &mousePos = ImGui::GetMousePos();
@@ -263,9 +261,9 @@ void Gui::loop() {
                 if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
                     leftMouseDragging = true;
                     const ImVec2 &leftBtnDrag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
-                    controller->renderer.camera.mouseRotate(leftBtnDrag.x - lastDeltaXleft,
+                    controller::getRenderer()->camera.mouseRotate(leftBtnDrag.x - lastDeltaXleft,
                                                             (leftBtnDrag.y - lastDeltaYleft) * -1);
-                    controller->renderer.unrenderedChanges = true;
+                    controller::getRenderer()->unrenderedChanges = true;
                     lastDeltaXleft = leftBtnDrag.x;
                     lastDeltaYleft = leftBtnDrag.y;
                 } else {
@@ -274,9 +272,9 @@ void Gui::loop() {
                 }
                 if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
                     const ImVec2 &rightBtnDrag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
-                    controller->renderer.camera.mousePan(rightBtnDrag.x - lastDeltaXright,
+                    controller::getRenderer()->camera.mousePan(rightBtnDrag.x - lastDeltaXright,
                                                          (rightBtnDrag.y - lastDeltaYright) * -1);
-                    controller->renderer.unrenderedChanges = true;
+                    controller::getRenderer()->unrenderedChanges = true;
                     lastDeltaXright = rightBtnDrag.x;
                     lastDeltaYright = rightBtnDrag.y;
                 } else {
@@ -290,18 +288,18 @@ void Gui::loop() {
                         //std::cout << "relCursorPos: " << relCursorPosX << ", " << relCursorPosY << std::endl;
                         //std::cout << "GetWindowPos: " << ImGui::GetWindowPos().x << ", " << ImGui::GetWindowPos().y << std::endl;
                         //std::cout << "GetMousePos: " << ImGui::GetMousePos().x << ", " << ImGui::GetMousePos().y << std::endl << std::endl;
-                        const auto elementIdUnderMouse = controller->renderer.getSelectionPixel(relCursorPosX, relCursorPosY);
+                        const auto elementIdUnderMouse = controller::getRenderer()->getSelectionPixel(relCursorPosX, relCursorPosY);
                         if (elementIdUnderMouse == 0) {
-                            controller->nodeSelectNone();
+                            controller::nodeSelectNone();
                         } else {
-                            auto *clickedNode = controller->renderer.meshCollection.getElementById(elementIdUnderMouse);
+                            auto *clickedNode = controller::getRenderer()->meshCollection.getElementById(elementIdUnderMouse);
                             if (clickedNode != nullptr) {
                                 if (ImGui::GetIO().KeyCtrl) {
-                                    controller->nodeSelectAddRemove(clickedNode);
+                                    controller::nodeSelectAddRemove(clickedNode);
                                 } else if (ImGui::GetIO().KeyShift) {
-                                    controller->nodeSelectUntil(clickedNode);
+                                    controller::nodeSelectUntil(clickedNode);
                                 } else {
-                                    controller->nodeSelectSet(clickedNode);
+                                    controller::nodeSelectSet(clickedNode);
                                 }
                                 //std::cout << clickedNode->displayName << std::endl;
                             }
@@ -310,13 +308,13 @@ void Gui::loop() {
                     leftMouseDragging = false;
                 }
                 if (std::abs(lastScrollDeltaY) > 0.01) {
-                    controller->renderer.camera.moveForwardBackward((float) lastScrollDeltaY);
-                    Controller::getInstance()->renderer.unrenderedChanges = true;
+                    controller::getRenderer()->camera.moveForwardBackward((float) lastScrollDeltaY);
+                    controller::getRenderer()->unrenderedChanges = true;
                 }
             }
             auto texture3dView = (ImTextureID) (config::get_string(config::DISPLAY_SELECTION_BUFFER) == "true"
-                                                ? controller->renderer.selectionTextureColorbuffer
-                                                : controller->renderer.imageTextureColorbuffer);
+                                                ? controller::getRenderer()->selectionTextureColorbuffer
+                                                : controller::getRenderer()->imageTextureColorbuffer);
             ImGui::ImageButton(texture3dView, wsize, ImVec2(0, 1), ImVec2(1, 0), 0);
             ImGui::EndChild();
         }
@@ -325,7 +323,7 @@ void Gui::loop() {
 
     if (showElementTreeWindow) {
         ImGui::Begin("Element Tree", &showElementTreeWindow);
-        for (auto *rootChild : controller->elementTree.rootNode.getChildren()) {
+        for (auto *rootChild : controller::getElementTree().rootNode.getChildren()) {
             draw_element_tree_node(rootChild);
         }
         ImGui::End();
@@ -334,10 +332,10 @@ void Gui::loop() {
     static etree::Node *lastSelectedNode = nullptr;
     if (showElementPropertiesWindow) {
         ImGui::Begin("Element Properties", &showElementPropertiesWindow);
-        if (controller->selectedNodes.empty()) {
+        if (controller::getSelectedNodes().empty()) {
             ImGui::Text("Select an element to view its properties here");
-        } else if (controller->selectedNodes.size() == 1) {
-            auto node = *controller->selectedNodes.begin();
+        } else if (controller::getSelectedNodes().size() == 1) {
+            auto node = *controller::getSelectedNodes().begin();
 
             static char displayNameBuf[255];
             if (nullptr != lastSelectedNode) {
@@ -399,7 +397,7 @@ void Gui::loop() {
                     auto newTransformation = newTranslation * newRotation * newScale;
                     if (treeRelTransf != newTransformation) {
                         node->setRelativeTransformation(glm::transpose(newTransformation));
-                        controller->elementTreeChanged = true;
+                        controller::setElementTreeChanged(true);
                     }
                 }
 
@@ -440,7 +438,7 @@ void Gui::loop() {
                                 for (const auto &color : availableColors.value()) {
                                     group.second.push_back(color);
                                 }
-                                drawColorGroup(controller, meshNode, buttonSize, columnCount, group);
+                                drawColorGroup(meshNode, buttonSize, columnCount, group);
                             }
                         } else {
                             showAllColors = true;
@@ -450,19 +448,11 @@ void Gui::loop() {
                             const static std::vector<std::string> fixed_pos = {"Solid", "Transparent", "Rubber"};
                             for (const auto &colorName : fixed_pos) {
                                 const auto &colorGroup = std::make_pair(colorName, groupedAndSortedByHue.find(colorName)->second);
-                                drawColorGroup(controller, meshNode, buttonSize, columnCount, colorGroup);
+                                drawColorGroup(meshNode, buttonSize, columnCount, colorGroup);
                             }
                             for (const auto &colorGroup : groupedAndSortedByHue) {
-                                bool alreadyDrawn = false;//todo google how to vector.contains()
-                                for (const auto &groupName : fixed_pos) {
-                                    if (groupName == colorGroup.first) {
-                                        alreadyDrawn = true;
-                                        break;
-                                    }
-                                }
-
-                                if (!alreadyDrawn) {
-                                    drawColorGroup(controller, meshNode, buttonSize, columnCount, colorGroup);
+                                if (std::find(fixed_pos.begin(), fixed_pos.end(), colorGroup.first) == fixed_pos.end()) {
+                                    drawColorGroup(meshNode, buttonSize, columnCount, colorGroup);
                                 }
                             }
                         }
@@ -475,15 +465,15 @@ void Gui::loop() {
         } else {
         }
 
-        if (!controller->selectedNodes.empty()) {
+        if (!controller::getSelectedNodes().empty()) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8, 0, 0, 1));
-            std::string deleteButtonLabel = controller->selectedNodes.size() > 1
-                                            ? (std::string("Delete ") + std::to_string(controller->selectedNodes.size()) + " elements")
+            std::string deleteButtonLabel = controller::getSelectedNodes().size() > 1
+                                            ? (std::string("Delete ") + std::to_string(controller::getSelectedNodes().size()) + " elements")
                                             : "Delete Element";
             const auto deleteClicked = ImGui::Button(deleteButtonLabel.c_str());
             ImGui::PopStyleColor();
             if (deleteClicked) {
-                controller->deleteSelectedElements();
+                controller::deleteSelectedElements();
             }
         }
 
@@ -542,7 +532,7 @@ void Gui::loop() {
         ImGui::BeginChild("##thumbnailsContainer", ImVec2(thumbnailContainerWidth, 0), ImGuiWindowFlags_AlwaysVerticalScrollbar);
         const static auto thumbnailSpacing = 4;
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(thumbnailSpacing, thumbnailSpacing));
-        int actualThumbSize = std::floor(controller->thumbnailGenerator.size / 100.0 * thumbnailZoomPercent);
+        int actualThumbSize = std::floor(controller::getThumbnailGenerator().size / 100.0 * thumbnailZoomPercent);
         auto actualThumbSizeSquared = ImVec2(actualThumbSize, actualThumbSize);
         int columns = std::max(1.0f, std::floor((ImGui::GetContentRegionAvailWidth() + thumbnailSpacing) / (actualThumbSize + thumbnailSpacing)));
         int currentCol = 0;
@@ -551,7 +541,7 @@ void Gui::loop() {
             for (const auto &category : selectedCategories) {
                 ImGui::Text("%s", category.c_str());
                 for (const auto &part : partsGrouped.find(category)->second) {
-                    drawPartThumbnail(controller, actualThumbSizeSquared, part);
+                    drawPartThumbnail(actualThumbSizeSquared, part);
                     currentCol++;
                     if (currentCol == columns) {
                         currentCol = 0;
@@ -566,7 +556,7 @@ void Gui::loop() {
             }
         } else if (selectedCategories.size() == 1) {
             for (const auto &part : partsGrouped.find(*selectedCategories.begin())->second) {
-                drawPartThumbnail(controller, actualThumbSizeSquared, part);
+                drawPartThumbnail(actualThumbSizeSquared, part);
                 currentCol++;
                 if (currentCol == columns) {
                     currentCol = 0;
@@ -578,7 +568,7 @@ void Gui::loop() {
             for (const auto &category : partsGrouped) {
                 ImGui::Text("%s", category.first.c_str());
                 for (const auto &part : category.second) {
-                    drawPartThumbnail(controller, actualThumbSizeSquared, part);
+                    drawPartThumbnail(actualThumbSizeSquared, part);
                     currentCol++;
                     if (currentCol == columns) {
                         currentCol = 0;
@@ -740,11 +730,18 @@ void Gui::loop() {
 
     if (showDebugWindow) {
         ImGui::Begin("Debug Information", &showDebugWindow);
-        long lastFrameTime = controller->lastFrameTime;
+        long lastFrameTime = controller::getLastFrameTime();
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", lastFrameTime / 1000.0, 1000000.0 / lastFrameTime);
         ImGui::Text("Total graphics buffer size: %s", util::formatBytesValue(statistic::vramUsageBytes).c_str());
         ImGui::Text("Total thumbnail buffer size: %s", util::formatBytesValue(statistic::thumbnailBufferUsageBytes).c_str());
         ImGui::Text("Last element tree reread: %f ms", statistic::lastElementTreeReread);
+        const auto &bgTasks = controller::getBackgroundTasks();
+        if (!bgTasks.empty()) {
+            ImGui::Text("%lu background tasks:", bgTasks.size());
+            for (const auto &task : bgTasks) {
+                ImGui::BulletText("%s", task.second->getTaskName().c_str());
+            }
+        }
         ImGui::End();
     }
 
@@ -754,14 +751,17 @@ void Gui::loop() {
 
     // Rendering
     ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    {
+        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    }
     lastScrollDeltaY = 0.0f;
 }
 
-void drawPartThumbnail(Controller *controller, const ImVec2 &actualThumbSizeSquared, LdrFile *const &part) {
+void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, LdrFile *const &part) {
     bool realThumbnailAvailable = false;
     if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
-        auto optTexId = controller->thumbnailGenerator.getThumbnailNonBlocking(part);
+        auto optTexId = controller::getThumbnailGenerator().getThumbnailNonBlocking(part);
         if (optTexId.has_value()) {
             auto texId = (ImTextureID) (optTexId.value());
             ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);
@@ -786,7 +786,7 @@ void drawPartThumbnail(Controller *controller, const ImVec2 &actualThumbSizeSqua
         ImGui::SetTooltip("%s\n%s%s", part->metaInfo.title.c_str(), part->metaInfo.name.c_str(), availText.c_str());
     }
     if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-        controller->insertLdrElement(part);
+        controller::insertLdrElement(part);
     }
 }
 

@@ -17,8 +17,8 @@ namespace controller {
         ThumbnailGenerator thumbnailGenerator(&renderer);
         unsigned int view3dWidth = 800;
         unsigned int view3dHeight = 600;
-        unsigned int windowWidth = config::get_long(config::SCREEN_WIDTH);
-        unsigned int windowHeight = config::get_long(config::SCREEN_HEIGHT);
+        unsigned int windowWidth;
+        unsigned int windowHeight;
         long lastFrameTime = 0;//in µs
         bool userWantsToExit = false;
         std::set<etree::Node *> selectedNodes;
@@ -86,6 +86,10 @@ namespace controller {
     }
 
     int run() {
+        config::ensure_settings_loaded();
+        windowWidth = config::get_long(config::SCREEN_WIDTH);
+        windowHeight = config::get_long(config::SCREEN_HEIGHT);
+
         if (!initializeGL()) {
             std::cerr << "FATAL: failed to initialize OpenGL / glfw" << std::endl;
             return -1;

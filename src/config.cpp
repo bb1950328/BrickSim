@@ -3,6 +3,8 @@
 //
 
 #include <fstream>
+#include <iostream>
+#include <mutex>
 #include "config.h"
 
 namespace config {
@@ -10,9 +12,12 @@ namespace config {
         std::map<std::string, std::string> strings;
         std::map<std::string, long> longs;
         std::map<std::string, double> doubles;
+
+        std::mutex loadMutex;
     }
 
-    void _ensure_settings_loaded() {
+    void ensure_settings_loaded() {
+        std::lock_guard<std::mutex> lockGuard(loadMutex);
         static bool settingsLoaded = false;
         if (!settingsLoaded) {
             std::ifstream input("config.txt");
@@ -51,7 +56,7 @@ namespace config {
     }
 
     std::string get_string(const Key& key) {
-        _ensure_settings_loaded();
+        ensure_settings_loaded();
         auto it = strings.find(key.name);
         if (it==strings.end()) {
             return "";
@@ -60,7 +65,7 @@ namespace config {
     }
 
     long get_long(const Key& key) {
-        _ensure_settings_loaded();
+        ensure_settings_loaded();
         auto it = longs.find(key.name);
         if (it==longs.end()) {
             return 0;
@@ -69,7 +74,7 @@ namespace config {
     }
 
     double get_double(const Key& key) {
-        _ensure_settings_loaded();
+        ensure_settings_loaded();
         auto it = doubles.find(key.name);
         if (it==doubles.end()) {
             return 0.0;
@@ -78,42 +83,42 @@ namespace config {
     }
 
     util::RGBcolor get_color(const Key &key) {
-        _ensure_settings_loaded();
+        ensure_settings_loaded();
         return util::RGBcolor(get_string(key));
     }
 
     bool get_bool(const Key &key) {
-        _ensure_settings_loaded();
+        ensure_settings_loaded();
         return get_string(key)=="true";
     }
 
     void set_string(const Key& key, const std::string &value) {
-        _ensure_settings_loaded();
+        ensure_settings_loaded();
         strings[key.name] = value;
     }
 
     void set_long(const Key& key, long value) {
-        _ensure_settings_loaded();
+        ensure_settings_loaded();
         longs[key.name] = value;
     }
 
     void set_double(const Key& key, double value) {
-        _ensure_settings_loaded();
+        ensure_settings_loaded();
         doubles[key.name] = value;
     }
 
     void set_color(const Key &key, util::RGBcolor value) {
-        _ensure_settings_loaded();
+        ensure_settings_loaded();
         set_string(key, value.asHtmlCode());
     }
 
     void set_bool(const Key &key, bool value) {
-        _ensure_settings_loaded();
+        ensure_settings_loaded();
         set_string(key, value?"true":"false");
     }
 
     bool save() {
-        _ensure_settings_loaded();
+        ensure_settings_loaded();
         std::ofstream file("config.txt");
         if (!file.good()) {
             return false;
@@ -128,5 +133,9 @@ namespace config {
             file << entry.first << "=" << entry.second << std::endl;
         }
         return true;
+    }
+
+    bool Key::operator==(const Key& other) const {
+        return other.name==name;
     }
 }

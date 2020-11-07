@@ -5,6 +5,7 @@
 #include <iostream>
 #include <thread>
 #include <fstream>
+#include <mutex>
 #include "ldr_file_repository.h"
 #include "config.h"
 #include "helpers/zip_buffer.h"
@@ -21,6 +22,7 @@ namespace ldr_file_repo {
         zip_buffer::BufferedZip* zipLibrary;
         std::map<std::filesystem::path, std::string> otherFileCache;
         std::map<const std::string*, bool> otherFileCacheLock;
+        std::mutex otherFileCacheLockMutex;
 
         bool namesInitialized;
         bool isZipLibrary;
@@ -67,11 +69,15 @@ namespace ldr_file_repo {
             } else {
                 pointer = &it->second;
             }
-            otherFileCacheLock[pointer] = true;
+            {
+                std::lock_guard<std::mutex> lg(otherFileCacheLockMutex);
+                otherFileCacheLock[pointer] = true;
+            }
             return pointer;
         }
 
         void unlockCachedFile(const std::string* fileContent) {
+            std::lock_guard<std::mutex> lg(otherFileCacheLockMutex);
             auto it = otherFileCacheLock.find(fileContent);
             if (it != otherFileCacheLock.end()) {
                 it->second = false;
@@ -80,11 +86,14 @@ namespace ldr_file_repo {
 
         void cleanUpFileCache() {
             std::vector<std::filesystem::path> cacheEraseEntries;
-            for (const auto &item : otherFileCache) {
-                auto it = otherFileCacheLock.find(&item.second);
-                if (!it->second) {
-                    cacheEraseEntries.push_back(item.first);
-                    otherFileCacheLock.erase(it);
+            {
+                std::lock_guard<std::mutex> lg(otherFileCacheLockMutex);
+                for (const auto &item : otherFileCache) {
+                    auto it = otherFileCacheLock.find(&item.second);
+                    if (!it->second) {
+                        cacheEraseEntries.push_back(item.first);
+                        otherFileCacheLock.erase(it);
+                    }
                 }
             }
             for (const auto &entry : cacheEraseEntries) {
@@ -276,7 +285,6 @@ namespace ldr_file_repo {
         for (auto i = start; i != end; ++i) {
             auto filename = i->first;
             auto path = i->second;
-            //const std::pair<LdrFileType, std::stringstream&> &pair = std::make_pair(LdrFileType::PART, readFileToStringstream(partsDirectory / path));
             LdrFile* file = get_file(filename);
             const std::string &category = file->metaInfo.getCategory();
             if (file->metaInfo.title[0] != '~') {
@@ -287,6 +295,7 @@ namespace ldr_file_repo {
 
     std::map<std::string, std::set<LdrFile *>> getPartsGroupedByCategory() {
         if (partsByCategory.empty()) {
+            std::cout << "started loading remaining parts" << std::endl;
             auto before = std::chrono::high_resolution_clock::now();
             auto numCores = std::thread::hardware_concurrency();
             numCores = std::max(1u, numCores);

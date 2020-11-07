@@ -12,6 +12,7 @@ namespace controller {
         GLFWwindow *window;
         etree::ElementTree elementTree;
         bool elementTreeChanged = false;
+        bool selectionChanged = false;
         Renderer renderer(&elementTree);
         Gui gui;
         ThumbnailGenerator thumbnailGenerator(&renderer);
@@ -141,6 +142,11 @@ namespace controller {
         while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
             const auto loopStart = glfwGetTime();
             auto before = std::chrono::high_resolution_clock::now();
+
+            if (elementTreeChanged || selectionChanged) {
+                renderer.meshCollection.updateSelectionContainerBox();
+                selectionChanged = false;
+            }
             if (elementTreeChanged) {
                 renderer.elementTreeChanged();
                 elementTreeChanged = false;
@@ -181,7 +187,7 @@ namespace controller {
     }
 
     void openFile(const std::string &path) {
-        addBackgroundTask(std::string("Open")+path, [path](){
+        addBackgroundTask(std::string("Open ")+path, [path](){
             insertLdrElement(ldr_file_repo::get_file(path));
         });
     }
@@ -194,7 +200,7 @@ namespace controller {
         } else {
             selectedNodes.erase(iterator);
         }
-        elementTreeChanged = true;
+        selectionChanged = true;
     }
 
     void nodeSelectSet(etree::Node *node) {
@@ -204,7 +210,7 @@ namespace controller {
         selectedNodes.clear();
         node->selected = true;
         selectedNodes.insert(node);
-        elementTreeChanged = true;
+        selectionChanged = true;
     }
 
     void nodeSelectUntil(etree::Node *node) {
@@ -226,14 +232,14 @@ namespace controller {
                 selectedNodes.insert(itNode);
             }
         }
-        elementTreeChanged = true;
+        selectionChanged = true;
     }
 
     void nodeSelectAll() {
         nodeSelectNone();
         elementTree.rootNode.selected = true;
         selectedNodes.insert(&elementTree.rootNode);
-        elementTreeChanged = true;
+        selectionChanged = true;
     }
 
     void nodeSelectNone() {
@@ -241,7 +247,7 @@ namespace controller {
             node->selected = false;
         }
         selectedNodes.clear();
-        elementTreeChanged = true;
+        selectionChanged = true;
     }
 
     void setStandard3dView(int i) {
@@ -274,6 +280,7 @@ namespace controller {
         nodeToDelete->parent->deleteChild(nodeToDelete);
         selectedNodes.erase(nodeToDelete);
         elementTreeChanged = true;
+        selectionChanged = true;
     }
 
     void deleteSelectedElements() {

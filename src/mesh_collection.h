@@ -23,6 +23,10 @@ public:
     void drawOptionalLineGraphics() const;
 
     etree::Node* getElementById(unsigned int id);
+
+    void updateSelectionContainerBox();
+
+    std::pair<glm::vec3, glm::vec3> getBoundingBox(const etree::MeshNode* node) const;
 private:
 
     std::vector<etree::Node*> elementsSortedById;

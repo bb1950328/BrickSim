@@ -31,6 +31,7 @@ namespace etree {
     public:
         explicit Node(Node *parent);
         bool visible = true;
+        bool visibleInElementTree = true;
         Node *parent;
         std::string displayName;
         bool selected = false;
@@ -38,7 +39,7 @@ namespace etree {
 
         [[nodiscard]] const glm::mat4 &getRelativeTransformation() const;
         void setRelativeTransformation(const glm::mat4 &newValue);
-        const glm::mat4 &getAbsoluteTransformation();
+        const glm::mat4 &getAbsoluteTransformation() const;
         [[nodiscard]] virtual bool isTransformationUserEditable() const;
 
         NodeType getType() const;
@@ -54,8 +55,8 @@ namespace etree {
     protected:
         std::vector<Node *> children;
         glm::mat4 relativeTransformation = glm::mat4(1.0f);
-        glm::mat4 absoluteTransformation;
-        bool absoluteTransformationValid = false;
+        mutable glm::mat4 absoluteTransformation;
+        mutable bool absoluteTransformationValid = false;
 
         void invalidateAbsoluteTransformation();
     };
@@ -71,7 +72,7 @@ namespace etree {
     public:
         MeshNode(LdrColor *color, Node *parent);
 
-        virtual void *getMeshIdentifier() = 0;
+        virtual void *getMeshIdentifier() const = 0;
         virtual void addToMesh(Mesh *mesh, bool windingInversed) = 0;
         [[nodiscard]] virtual bool isColorUserEditable() const;
         [[nodiscard]] LdrColor *getDisplayColor() const;
@@ -85,7 +86,7 @@ namespace etree {
     public:
         LdrNode(NodeType nodeType, LdrFile *ldrFile, LdrColor *ldrColor, Node *parent);
 
-        void *getMeshIdentifier() override;
+        void *getMeshIdentifier() const override;
         void addToMesh(Mesh *mesh, bool windingInversed) override;
         std::string getDescription() override;
         LdrFile *ldrFile;
@@ -106,7 +107,7 @@ namespace etree {
         MpdSubfileInstanceNode(MpdSubfileNode *mpdSubfileNode, LdrColor *color, Node *parent);
 
         MpdSubfileNode *mpdSubfileNode;
-        void *getMeshIdentifier() override;
+        void *getMeshIdentifier() const override;
         void addToMesh(Mesh *mesh, bool windingInversed) override;
         std::string getDescription() override;
         [[nodiscard]] bool isDisplayNameUserEditable() const override;

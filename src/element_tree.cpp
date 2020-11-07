@@ -25,7 +25,7 @@ namespace etree {
         }
     }
 
-    const glm::mat4 &Node::getAbsoluteTransformation() {
+    const glm::mat4 &Node::getAbsoluteTransformation() const {
         if (!absoluteTransformationValid) {
             absoluteTransformation = relativeTransformation * parent->getAbsoluteTransformation();
             absoluteTransformationValid = true;
@@ -151,7 +151,7 @@ namespace etree {
         }
     }
 
-    void *LdrNode::getMeshIdentifier() {
+    void *LdrNode::getMeshIdentifier() const {
         return reinterpret_cast<void *>(ldrFile);
     }
 
@@ -203,7 +203,7 @@ namespace etree {
         return false;
     }
 
-    void *MpdSubfileInstanceNode::getMeshIdentifier() {
+    void *MpdSubfileInstanceNode::getMeshIdentifier() const {
         return mpdSubfileNode->getMeshIdentifier();
     }
 

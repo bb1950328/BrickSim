@@ -381,4 +381,16 @@ namespace util {
         buffer << t.rdbuf();
         return buffer.str();
     }
+
+    glm::vec2 minForEachComponent(const glm::vec2 &a, const glm::vec2 &b) {
+        return {std::min(a.x, b.x), std::min(a.y, b.y)};
+    }
+
+    glm::vec3 minForEachComponent(const glm::vec3 &a, const glm::vec3 &b) {
+        return {std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z)};
+    }
+
+    glm::vec4 minForEachComponent(const glm::vec4 &a, const glm::vec4 &b) {
+        return {std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z), std::min(a.w, b.w)};
+    }
 }

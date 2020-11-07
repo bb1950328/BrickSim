@@ -49,6 +49,9 @@ namespace util {
     unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue);
     std::string formatBytesValue(size_t bytes);
     std::string fileToString(const std::filesystem::path& path);
+    glm::vec2 minForEachComponent(const glm::vec2& a, const glm::vec2& b);
+    glm::vec3 minForEachComponent(const glm::vec3& a, const glm::vec3& b);
+    glm::vec4 minForEachComponent(const glm::vec4& a, const glm::vec4& b);
 
     class HSVcolor;
     class RGBcolor {

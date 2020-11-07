@@ -11,11 +11,9 @@ BackgroundTask::BackgroundTask(unsigned int id, std::string name, const std::fun
     //todo maybe also make a constructor for a function which gets the background task passes so it can report progress
     std::cout << "starting " << taskName << std::endl;
     thread = std::thread([this, taskFunction]() {
-        std::chrono::seconds timespan(1);
-        std::this_thread::sleep_for(timespan);
-        //std::cout << taskName << " started." << std::endl;
+        std::cout << taskName << " started." << std::endl;
         taskFunction();
-        //std::cout << taskName << " finished." << std::endl;
+        std::cout << taskName << " finished." << std::endl;
         is_done.store(true);
     });
 }

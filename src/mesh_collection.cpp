@@ -2,6 +2,7 @@
 // Created by bb1950328 on 03.10.20.
 //
 
+#include <glm/gtx/string_cast.hpp>
 #include "mesh_collection.h"
 #include "statistic.h"
 #include "helpers/util.h"
@@ -37,7 +38,7 @@ void MeshCollection::deallocateGraphics() {
     }
 }
 
-void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation, LdrColor *parentColor) {
+void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation, LdrColor *parentColor, std::optional<unsigned int> selectionTargetElementId) {
     etree::Node *nodeToParseChildren = node;
     glm::mat4 absoluteTransformation = parentAbsoluteTransformation;
     if (node->visible) {
@@ -76,14 +77,22 @@ void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentA
                 mesh->name = meshNode->getDescription();
                 meshNode->addToMesh(mesh, windingInversed);
             }
-            const auto elementId = static_cast<unsigned int>(elementsSortedById.size());
+            unsigned int elementId;
+            if (selectionTargetElementId.has_value()) {
+                elementId = selectionTargetElementId.value();
+            } else {
+                elementId = static_cast<unsigned int>(elementsSortedById.size());
+                if (node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE) {
+                    selectionTargetElementId = elementId;//for the children
+                }
+            }
             MeshInstance newInstance{color, absoluteTransformation, elementId, meshNode->selected};
             elementsSortedById.push_back(node);
             newMeshInstances[meshesKey].push_back(newInstance);
         }
         for (const auto &child: nodeToParseChildren->getChildren()) {
             if (child->visible) {
-                readElementTree(child, absoluteTransformation, parentColor);
+                readElementTree(child, absoluteTransformation, parentColor, selectionTargetElementId);
             }
         }
         nodesWithChildrenAlreadyVisited.insert(nodeToParseChildren);
@@ -98,7 +107,7 @@ void MeshCollection::rereadElementTree() {
     elementsSortedById.clear();
     elementsSortedById.push_back(nullptr);
     auto before = std::chrono::high_resolution_clock::now();
-    readElementTree(&elementTree->rootNode, glm::mat4(1.0f), nullptr);
+    readElementTree(&elementTree->rootNode, glm::mat4(1.0f), nullptr, std::nullopt);
     updateMeshInstances();
     nodesWithChildrenAlreadyVisited.clear();
     for (const auto &mesh: meshes) {
@@ -147,7 +156,16 @@ void MeshCollection::updateSelectionContainerBox() {
                 auto p2 = boxDimensions.second;
                 auto center = (p1 + p2) / 2.0f;
                 auto size = p1 - p2;
-                auto transformation = glm::scale(glm::mat4(1.0f), size / 2.0f) * node->getAbsoluteTransformation();//the /2 is because box0.dat has 2ldu edge length
+                std::cout << "------------------------------" << std::endl;
+                std::cout << "name: " << node->displayName << std::endl;
+                std::cout << "p1: " << glm::to_string(p1) << std::endl;
+                std::cout << "p2: " << glm::to_string(p2) << std::endl;
+                std::cout << "center: " << glm::to_string(center) << std::endl;
+                std::cout << "size: " << glm::to_string(size) << std::endl;
+                auto transformation = glm::mat4(1.0f);
+                transformation = glm::translate(transformation, center);
+                transformation = glm::scale(transformation, size / 2.0f);//the /2 is because box0.dat has 2ldu edge length
+                transformation = glm::transpose(transformation);
                 selectionBoxMesh->instances.push_back({ldr_color_repo::get_color(1), transformation, 0, true});
             }
         }
@@ -157,8 +175,14 @@ void MeshCollection::updateSelectionContainerBox() {
     controller::getRenderer()->unrenderedChanges = true;
 }
 
-std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(const etree::MeshNode* node) const {
-    glm::mat4 absoluteTransformation = node->getAbsoluteTransformation();
+std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(const etree::MeshNode* node, std::optional<const etree::MeshNode*> parent) const {
+    //todo something here is wrong for subfile instances
+    glm::mat4 absoluteTransformation;
+    if (parent.has_value()) {
+        absoluteTransformation = node->getRelativeTransformation()*parent.value()->getAbsoluteTransformation();
+    } else {
+        absoluteTransformation = node->getAbsoluteTransformation();
+    }
     bool windingInversed = util::doesTransformationInverseWindingOrder(absoluteTransformation);
     auto it = meshes.find(std::make_pair(node->getMeshIdentifier(), windingInversed));
     float x1, x2, y1, y2, z1, z2;
@@ -166,24 +190,34 @@ std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(const etree::Mesh
     if (it != meshes.end()) {
         Mesh *mesh = it->second;
         for (const auto &lineVertex : mesh->lineVertices) {//todo check if iterating over triangle vertices is faster
+            const glm::vec4 &position = lineVertex.position;
             if (first) {
                 first = false;
-                x1 = x2 = lineVertex.position.x;
-                y1 = y2 = lineVertex.position.y;
-                z1 = z2 = lineVertex.position.z;
+                x1 = x2 = position.x;
+                y1 = y2 = position.y;
+                z1 = z2 = position.z;
             } else {
-                x1 = std::min(x1, lineVertex.position.x);
-                x2 = std::max(x2, lineVertex.position.x);
-                y1 = std::min(y1, lineVertex.position.y);
-                y2 = std::max(y2, lineVertex.position.y);
-                z1 = std::min(z1, lineVertex.position.z);
-                z2 = std::max(z2, lineVertex.position.z);
+                x1 = std::min(x1, position.x);
+                x2 = std::max(x2, position.x);
+                y1 = std::min(y1, position.y);
+                y2 = std::max(y2, position.y);
+                z1 = std::min(z1, position.z);
+                z2 = std::max(z2, position.z);
             }
         }
     }
-    for (const auto &child : node->getChildren()) {
+    bool isSubfileInstance = node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE;
+    const std::vector<etree::Node *> &children = isSubfileInstance
+            ? dynamic_cast<const etree::MpdSubfileInstanceNode*>(node)->mpdSubfileNode->getChildren()
+            : node->getChildren();
+    auto parentOpt = isSubfileInstance
+            ? std::make_optional(node)
+            : std::nullopt;
+    for (const auto &child : children) {
         if (child->getType()&etree::TYPE_MESH) {
-            auto childResult = getBoundingBox(dynamic_cast<const etree::MeshNode*>(child));
+            auto childResult = getBoundingBox(dynamic_cast<const etree::MeshNode*>(child), parentOpt);
+            childResult.first = glm::vec4(childResult.first, 1.0f) * child->getRelativeTransformation();
+            childResult.second = glm::vec4(childResult.second, 1.0f) * child->getRelativeTransformation();
             if (first) {
                 first = false;
                 x1 = childResult.first.x;
@@ -202,5 +236,8 @@ std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(const etree::Mesh
             }
         }
     }
-    return {{x1, y1, z1}, {x2, y2, z2}};
+    return {
+        glm::vec4(x1, y1, z1, 1.0f)*absoluteTransformation,
+        glm::vec4(x2, y2, z2, 1.0f)*absoluteTransformation
+    };
 }

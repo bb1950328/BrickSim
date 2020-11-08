@@ -429,7 +429,10 @@ void Gui::loop() {
                         const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
                         const int columnCount = std::floor(ImGui::GetContentRegionAvailWidth() / (buttonWidth + ImGui::GetStyle().ItemSpacing.x));
 
-                        auto availableColors = part_color_availability_provider::getAvailableColorsForPart(dynamic_cast<etree::LdrNode*>(meshNode)->ldrFile);
+                        std::optional<std::set<const LdrColor *>> availableColors = std::nullopt;
+                        if (meshNode->getType()==etree::TYPE_PART) {
+                            availableColors = part_color_availability_provider::getAvailableColorsForPart(dynamic_cast<etree::LdrNode *>(meshNode)->ldrFile);
+                        }
                         bool showAllColors;
                         if (availableColors.has_value() && !availableColors.value().empty()) {
                             static bool onlyAvailableChecked = false;
@@ -743,6 +746,9 @@ void Gui::loop() {
             for (const auto &task : bgTasks) {
                 ImGui::BulletText("%s", task.second->getTaskName().c_str());
             }
+        }
+        if (ImGui::Button("Reread element tree now")) {
+            controller::setElementTreeChanged(true);
         }
         ImGui::End();
     }

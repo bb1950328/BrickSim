@@ -60,7 +60,7 @@ jobs:
     - name: Unzip glew sources
       run: |
         unzip glew-2.1.0.zip
-        mv glew-2.1.0 glew
+        mv glew-2.1.0 src/lib/glew
 
 #    - run: pacman -Syu --noconfirm
     - run: pacman -S libcurl-devel --noconfirm

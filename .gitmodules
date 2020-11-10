@@ -1,12 +1,12 @@
 [submodule "imgui"]
-	path = imgui
+	path = src/lib/imgui
 	url = https://github.com/ocornut/imgui
 [submodule "glfw"]
-	path = glfw
+	path = src/lib/glfw
 	url = https://github.com/glfw/glfw.git
 [submodule "mingw-std-threads"]
-	path = mingw-std-threads
+	path = src/lib/mingw-std-threads
 	url = https://github.com/meganz/mingw-std-threads
 [submodule "SQLiteCpp"]
-	path = SQLiteCpp
+	path = src/lib/SQLiteCpp
 	url = https://github.com/SRombauts/SQLiteCpp.git

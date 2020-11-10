@@ -14,20 +14,20 @@ if (UNIX)# todo check if this is necessary
 endif()
 
 set(imgui_sources # if cmake doesn't find these files, run `git submodule update --init`
-        imgui/imconfig.h
-        imgui/imgui_demo.cpp
-        imgui/imgui_draw.cpp
-        imgui/backends/imgui_impl_glfw.cpp
-        imgui/backends/imgui_impl_glfw.h
-        imgui/backends/imgui_impl_opengl3.cpp
-        imgui/backends/imgui_impl_opengl3.h
-        imgui/imgui_internal.h
-        imgui/imgui_widgets.cpp
-        imgui/imgui.cpp
-        imgui/imgui.h
-        imgui/imstb_rectpack.h
-        imgui/imstb_textedit.h
-        imgui/imstb_truetype.h
+        src/lib/imgui/imconfig.h
+        src/lib/imgui/imgui_demo.cpp
+        src/lib/imgui/imgui_draw.cpp
+        src/lib/imgui/backends/imgui_impl_glfw.cpp
+        src/lib/imgui/backends/imgui_impl_glfw.h
+        src/lib/imgui/backends/imgui_impl_opengl3.cpp
+        src/lib/imgui/backends/imgui_impl_opengl3.h
+        src/lib/imgui/imgui_internal.h
+        src/lib/imgui/imgui_widgets.cpp
+        src/lib/imgui/imgui.cpp
+        src/lib/imgui/imgui.h
+        src/lib/imgui/imstb_rectpack.h
+        src/lib/imgui/imstb_textedit.h
+        src/lib/imgui/imstb_truetype.h
         )
 set(bricksim_libs
         src/lib/glad.c
@@ -99,7 +99,7 @@ add_executable(BrickSim
 
 if (WIN32)
     option(MINGW_STDTHREADS_GENERATE_STDHEADERS "" ON)
-    add_subdirectory(mingw-std-threads)
+    add_subdirectory(src/lib/mingw-std-threads)
 
     find_package(libzip REQUIRED)
 endif ()
@@ -108,25 +108,25 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 # glfw source folder is a git submodule
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw ${CMAKE_CURRENT_SOURCE_DIR}/glfw/bin)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/glfw ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/glfw/bin)
 
 # unzip glew-2.1.0.zip to /glew
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glew/build/cmake)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/glew/build/cmake)
 
 #todo check if this is also needed on linux
 if (WIN32)
     set(SQLITECPP_USE_STACK_PROTECTION OFF)
 endif ()
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/SQLiteCpp)
-include_directories(${CMAKE_CURRENT_LIST_DIR}/SQLiteCpp/include)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/SQLiteCpp)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/src/lib/SQLiteCpp/include)
 
 set(CURL_LIBRARY "-lcurl")
 find_package(CURL REQUIRED)
 message("${LIBZIP_INCLUDE_DIRS}")
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS} zip imgui)
+include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS} zip src/lib/imgui)
 
 target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glew glfw SQLiteCpp sqlite3)
 target_compile_definitions(glew PUBLIC GLEW_STATIC)

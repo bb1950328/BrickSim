@@ -33,12 +33,13 @@
 
 # CMake
 /imgui.ini
-/glew/
+/src/lib/glew/
 cmake-build-debug/
 cmake-build-default/
 cmake-build-minsizerel/
 cmake-build-release/
 cmake-build-relwithdebinfo/
+/cmake-build/
 /codes.txt
 /.cmake/
 /requestCache/

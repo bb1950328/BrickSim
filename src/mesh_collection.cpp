@@ -2,6 +2,7 @@
 // Created by bb1950328 on 03.10.20.
 //
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 #include "mesh_collection.h"
 #include "statistic.h"

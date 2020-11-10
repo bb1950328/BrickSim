@@ -17,7 +17,7 @@ git ls-tree -r HEAD \
 echo ";" >> "src/git_stats.cpp"
 
 echo -n "float git_stats::total_hours = " >> "src/git_stats.cpp"
-git log --all | grep -oE "t=[0-9]+\\.?[0-9]*" | grep -oE "[0-9]+\\.?[0-9]*" | awk '{ SUM += $1} END { printf "%f;\n", SUM }' >> "src/git_stats.cpp"
+git log --no-merges --all | grep -oE "t=[0-9]+\\.?[0-9]*" | grep -oE "[0-9]+\\.?[0-9]*" | awk '{ SUM += $1} END { printf "%f;\n", SUM }' >> "src/git_stats.cpp"
 
 echo -n "unsigned int git_stats::commit_count = " >> "src/git_stats.cpp"
 git log --oneline | wc -l | awk '{ printf "%d;", $0}' >> "src/git_stats.cpp"

@@ -89,7 +89,6 @@ namespace controller {
 
     int run() {
         db::initialize();
-        config::ensure_settings_loaded();
         windowWidth = config::get_long(config::SCREEN_WIDTH);
         windowHeight = config::get_long(config::SCREEN_HEIGHT);
 
@@ -167,7 +166,8 @@ namespace controller {
         }
         config::set_long(config::SCREEN_WIDTH, windowWidth);
         config::set_long(config::SCREEN_HEIGHT, windowHeight);
-        config::save();
+        bool result;
+        result = true;
         renderer.cleanup();
         auto &bgTasks = getBackgroundTasks();
         std::cout << "waiting for " << bgTasks.size() << " background tasks to finish..." << std::endl;

@@ -11,6 +11,7 @@
 namespace config {
     struct Key {
         const std::string name;
+        explicit Key(std::string name);
         bool operator==(const Key& other) const;
     };
     
@@ -26,8 +27,8 @@ namespace config {
     void set_color(const Key& key, util::RGBcolor value);
     void set_bool(const Key& key, bool value);
 
-    bool save();
-    void ensure_settings_loaded();
+    void exportToTxt();
+    void importFromTxt();
     
     const Key LDRAW_PARTS_LIBRARY{"ldrawPartsLibrary"};
     const Key SCREEN_WIDTH{"screenWidth"};

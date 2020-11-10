@@ -54,7 +54,7 @@ void Mesh::addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElemen
     indicesList->push_back(idx1 + 1);
     indicesList->push_back(idx1 + 2);
 
-    if (config::get_string(config::SHOW_NORMALS) == "true") {
+    if (config::get_bool(config::SHOW_NORMALS)) {
         auto lp1 = glm::vec4(util::triangleCentroid(p1, p2, p3), 1.0f) * transformation;
         auto lp2 = lp1 + (transformedNormal * 5.0f);
         LineVertex lv1{lp1, transformedNormal};
@@ -106,7 +106,7 @@ void Mesh::addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilat
     indices_list->push_back(idx + 3);
     indices_list->push_back(idx);
 
-    if (config::get_string(config::SHOW_NORMALS) == "true") {
+    if (config::get_bool(config::SHOW_NORMALS)) {
         auto lp1 = glm::vec4(util::quadrilateralCentroid(p1, p2, p3, p4), 1.0f) * transformation;
         auto lp2 = lp1 + (transformedNormal * 5.0f);
         LineVertex lv1{lp1, transformedNormal};

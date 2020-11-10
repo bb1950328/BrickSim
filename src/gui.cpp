@@ -12,19 +12,13 @@
 #include "gui.h"
 #include "config.h"
 #include "controller.h"
-#include "ldr_colors.h"
 #include "git_stats.h"
 #include "lib/tinyfiledialogs.h"
-#include "helpers/util.h"
 #include "info_providers/part_color_availability_provider.h"
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <atomic>
-#include <GLFW/glfw3.h>
-
-#define XSTR(x) STR(x)
-#define STR(x) #x
 
 void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, LdrFile *const &part);
 
@@ -314,7 +308,7 @@ void Gui::loop() {
                     controller::getRenderer()->unrenderedChanges = true;
                 }
             }
-            auto texture3dView = (ImTextureID) (config::get_string(config::DISPLAY_SELECTION_BUFFER) == "true"
+            auto texture3dView = (ImTextureID) (config::get_bool(config::DISPLAY_SELECTION_BUFFER)
                                                 ? controller::getRenderer()->selectionTextureColorbuffer
                                                 : controller::getRenderer()->imageTextureColorbuffer);
             ImGui::ImageButton(texture3dView, wsize, ImVec2(0, 1), ImVec2(1, 0), 0);
@@ -658,25 +652,6 @@ void Gui::loop() {
             config::set_color(config::COLOR_UNOFFICAL_PART, util::RGBcolor(unofficalPartColor));
             config::set_bool(config::DISPLAY_SELECTION_BUFFER, displaySelectionBuffer);
             config::set_bool(config::SHOW_NORMALS, showNormals);
-            saveFailed = !config::save();
-        }
-        if (saveFailed) {
-            ImGui::OpenPopup("Error##saveFailed");
-        }
-        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-
-        if (ImGui::BeginPopupModal("Error##saveFailed", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Text("Failed to save settings. ");
-            ImGui::Text("Please check if you have write access to the config file location");
-            ImGui::Separator();
-
-            if (ImGui::Button("OK")) {
-                saveFailed = false;
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::SetItemDefaultFocus();
-            ImGui::EndPopup();
         }
         ImGui::End();
     }

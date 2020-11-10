@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/SQLiteCpp" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/glfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/imgui" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/mingw-std-threads" vcs="Git" />

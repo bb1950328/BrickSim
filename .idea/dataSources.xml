@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="config" uuid="35e90e8f-9c7f-4c26-abce-27c42602a9da">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:C:\Users\Bader\CLionProjects\BrickSim\config.db3</jdbc-url>
+    </data-source>
+    <data-source source="LOCAL" name="fileList" uuid="a445c3ee-1a8f-4f6b-8d83-2c86477f28fb">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:C:\Users\Bader\CLionProjects\BrickSim\fileList.db3</jdbc-url>
+    </data-source>
+  </component>
+</project>

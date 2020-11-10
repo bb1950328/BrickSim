@@ -2,6 +2,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(BrickSim)
 
+file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)#prevent profiles from loading in parallel, causes problems with submodules
+
 set(CMAKE_CXX_STANDARD 17)
 
 if (UNIX)# todo check if this is necessary
@@ -85,6 +87,8 @@ set(bricksim_sources
         src/info_providers/price_guide_provider.h
         src/background_task.cpp
         src/background_task.h
+        src/db.cpp
+        src/db.h
         )
 
 add_executable(BrickSim
@@ -109,6 +113,14 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw ${CMAKE_CURRENT_SOURCE_DIR}/gl
 # unzip glew-2.1.0.zip to /glew
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glew/build/cmake)
 
+#todo check if this is also needed on linux
+if (WIN32)
+    set(SQLITECPP_USE_STACK_PROTECTION OFF)
+endif ()
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/SQLiteCpp)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/SQLiteCpp/include)
+
 set(CURL_LIBRARY "-lcurl")
 find_package(CURL REQUIRED)
 message("${LIBZIP_INCLUDE_DIRS}")
@@ -116,7 +128,7 @@ find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS} zip imgui)
 
-target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glew glfw)
+target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glew glfw SQLiteCpp sqlite3)
 target_compile_definitions(glew PUBLIC GLEW_STATIC)
 
 target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES} zip)

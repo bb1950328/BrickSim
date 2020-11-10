@@ -6,6 +6,7 @@
 
 #include <utility>
 #include "info_providers/price_guide_provider.h"
+#include "db.h"
 
 namespace controller {
     namespace {
@@ -87,6 +88,7 @@ namespace controller {
     }
 
     int run() {
+        db::initialize();
         config::ensure_settings_loaded();
         windowWidth = config::get_long(config::SCREEN_WIDTH);
         windowHeight = config::get_long(config::SCREEN_HEIGHT);

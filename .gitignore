@@ -42,3 +42,6 @@ cmake-build-relwithdebinfo/
 /codes.txt
 /.cmake/
 /requestCache/
+/cmake.lock
+/config.db3
+/fileList.db3

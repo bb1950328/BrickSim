@@ -26,10 +26,10 @@ bool Renderer::setup() {
     updateProjectionMatrix();
 
     triangleShader->use();
-    triangleShader->setVec3("light.position", lightPos);
+    triangleShader->setVec3("light.position", /*lightPos*/camera.getCameraPos()+glm::vec3(0, 5, 0));
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-    glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
-    glm::vec3 ambientColor = diffuseColor * glm::vec3(0.9f); // low influence
+    glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+    glm::vec3 ambientColor = diffuseColor * glm::vec3(1.3f);
     triangleShader->setVec3("light.ambient", ambientColor);
     triangleShader->setVec3("light.diffuse", diffuseColor);
     triangleShader->setVec3("light.specular", 1.0f, 1.0f, 1.0f);

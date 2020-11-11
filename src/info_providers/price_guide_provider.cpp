@@ -62,7 +62,7 @@ namespace price_guide_provider {
                     return {0, fromCache.value()};
                 }
             }
-            std::cout << " cache miss" << std::endl;
+            std::cout << (useCache?" cache miss":" without cache") << std::endl;
             auto curl = curl_easy_init();
             if (curl) {
                 curl_easy_setopt(curl, CURLOPT_URL, url.c_str());

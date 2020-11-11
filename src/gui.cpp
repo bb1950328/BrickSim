@@ -259,7 +259,7 @@ void Gui::loop() {
                     leftMouseDragging = true;
                     const ImVec2 &leftBtnDrag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
                     controller::getRenderer()->camera.mouseRotate(leftBtnDrag.x - lastDeltaXleft,
-                                                            (leftBtnDrag.y - lastDeltaYleft) * -1);
+                                                                  (leftBtnDrag.y - lastDeltaYleft) * -1);
                     controller::getRenderer()->unrenderedChanges = true;
                     lastDeltaXleft = leftBtnDrag.x;
                     lastDeltaYleft = leftBtnDrag.y;
@@ -270,7 +270,7 @@ void Gui::loop() {
                 if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
                     const ImVec2 &rightBtnDrag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
                     controller::getRenderer()->camera.mousePan(rightBtnDrag.x - lastDeltaXright,
-                                                         (rightBtnDrag.y - lastDeltaYright) * -1);
+                                                               (rightBtnDrag.y - lastDeltaYright) * -1);
                     controller::getRenderer()->unrenderedChanges = true;
                     lastDeltaXright = rightBtnDrag.x;
                     lastDeltaYright = rightBtnDrag.y;
@@ -425,7 +425,7 @@ void Gui::loop() {
                         const int columnCount = std::floor(ImGui::GetContentRegionAvailWidth() / (buttonWidth + ImGui::GetStyle().ItemSpacing.x));
 
                         std::optional<std::set<const LdrColor *>> availableColors = std::nullopt;
-                        if (meshNode->getType()==etree::TYPE_PART) {
+                        if (meshNode->getType() == etree::TYPE_PART) {
                             availableColors = part_color_availability_provider::getAvailableColorsForPart(dynamic_cast<etree::LdrNode *>(meshNode)->ldrFile);
                         }
                         bool showAllColors;
@@ -434,7 +434,7 @@ void Gui::loop() {
                             ImGui::Checkbox("Only show available Colors", &onlyAvailableChecked);
                             showAllColors = !onlyAvailableChecked;
                             if (onlyAvailableChecked) {
-                                std::pair<std::string, std::vector<const LdrColor*>> group = std::make_pair("Available", std::vector<const LdrColor*>());
+                                std::pair<std::string, std::vector<const LdrColor *>> group = std::make_pair("Available", std::vector<const LdrColor *>());
                                 for (const auto &color : availableColors.value()) {
                                     group.second.push_back(color);
                                 }
@@ -468,54 +468,116 @@ void Gui::loop() {
                     const auto color = partNode->getDisplayColor();
                     const auto currencyCode = config::get_string(config::BRICKLINK_CURRENCY_CODE);
                     const auto colorBricklinkName = util::translateLDrawColorNameToBricklink(color->name);
-                    auto pg = price_guide_provider::getPriceGuideIfCached(partCode, currencyCode, colorBricklinkName);
-                    if (pg.has_value()) {
-                        if (ImGui::Button("Reload")) {
-                            controller::addBackgroundTask("Reload Price Guide for " + partCode, [partCode, colorBricklinkName, currencyCode](){
-                                price_guide_provider::getPriceGuide(partCode, currencyCode, colorBricklinkName, true);
-                            });
+                    auto availableColors = part_color_availability_provider::getAvailableColorsForPart(partNode->ldrFile);
+                    if (availableColors.has_value()) {
+                        if (ImGui::Button("(Re)load all available colors")) {
+                            for (const auto &item : availableColors.value()) {
+                                controller::addBackgroundTask("Reload price guide for " + partCode + " in " + item->name, [partCode, item, currencyCode]() {
+                                    price_guide_provider::getPriceGuide(partCode, currencyCode, util::translateLDrawColorNameToBricklink(item->name), true);
+                                });
+                            }
                         }
-                        if (pg->available) {
-                            float availWidth = ImGui::GetContentRegionAvailWidth();
-
-                            ImGui::SetNextItemWidth(availWidth / 2);
-                            ImGui::Text("%d", pg.value().totalLots);
-                            ImGui::SameLine();
-                            ImGui::Text("Total Lots");
-
-                            ImGui::SetNextItemWidth(availWidth / 2);
-                            ImGui::Text("%d", pg.value().totalQty);
-                            ImGui::SameLine();
-                            ImGui::Text("Total Quantity");
-
-                            ImGui::SetNextItemWidth(availWidth / 2);
-                            ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().minPrice);
-                            ImGui::SameLine();
-                            ImGui::Text("Min Price");
-
-                            ImGui::SetNextItemWidth(availWidth / 2);
-                            ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().avgPrice);
-                            ImGui::SameLine();
-                            ImGui::Text("Avg Price");
-
-                            ImGui::SetNextItemWidth(availWidth / 2);
-                            ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().qtyAvgPrice);
-                            ImGui::SameLine();
-                            ImGui::Text("Qty avg Price");
-
-                            ImGui::SetNextItemWidth(availWidth / 2);
-                            ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().maxPrice);
-                            ImGui::SameLine();
-                            ImGui::Text("Max Price");
-                            //todo a small histogram would be nice (parse data from price guide html table)
-                        } else {
-                            ImGui::Text("No price Guide for %s in %s", color->name.c_str(), currencyCode.c_str());
+                    }
+                    std::map<const LdrColor *, const price_guide_provider::PriceGuide> pGuides;
+                    if (availableColors.has_value()) {
+                        for (const auto &item : availableColors.value()) {
+                            auto pg = price_guide_provider::getPriceGuideIfCached(partCode, currencyCode, util::translateLDrawColorNameToBricklink(item->name));
+                            if (pg.has_value()) {
+                                pGuides.emplace(item, pg.value());
+                            }
                         }
                     } else {
-                        if (ImGui::Button("Get")) {
-                            controller::addBackgroundTask("Get Price Guide for " + partCode, [partCode, colorBricklinkName, currencyCode](){
+                        auto pg = price_guide_provider::getPriceGuideIfCached(partCode, currencyCode, colorBricklinkName);
+                        if (pg.has_value()) {
+                            pGuides.emplace(color, pg.value());
+                        }
+                    }
+                    if (!pGuides.empty()) {
+                        if (pGuides.find(color) != pGuides.end()) {
+                            if (ImGui::Button(("Reload for " + color->name).c_str())) {
+                                controller::addBackgroundTask("Reload price guide for " + partCode, [partCode, colorBricklinkName, currencyCode]() {
+                                    price_guide_provider::getPriceGuide(partCode, currencyCode, colorBricklinkName, true);
+                                });
+                            }
+                        }
+                        ImGui::Text("Currency: %s", currencyCode.c_str());
+                        if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("Can be changed in settings");
+                        }
+
+                        const auto windowBgImVec = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+                        const auto windowBg = glm::vec3(windowBgImVec.x, windowBgImVec.y, windowBgImVec.z);
+                        auto drawColoredValueText = [&windowBg](const char* text, const LdrColor* color){
+                            ImGui::SameLine();
+                            auto col = color->value.asGlmVector();
+                            if (util::vector_sum(glm::abs(windowBg-col))<0.3) {
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(col.x, col.y, col.z, 1.0f));
+                                auto bgColor = util::vector_sum(col) > 1.5 ? ImVec4(0, 0, 0, 1) : ImVec4(1, 1, 1, 1);
+                                ImGui::PushStyleColor(ImGuiCol_Button, bgColor);
+                                ImGui::PushStyleColor(ImGuiCol_ButtonActive, bgColor);
+                                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, bgColor);
+                                ImGui::Button(text);
+                                ImGui::PopStyleColor(4);
+                            } else {
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(col.x, col.y, col.z, 1.0f));
+                                ImGui::Text("%s", text);
+                                ImGui::PopStyleColor();
+                            }
+                            if (ImGui::IsItemHovered()) {
+                                ImGui::SetTooltip("%s", color->name.c_str());
+                            }
+                        };
+
+                        static char valueBuffer[10];
+
+                        ImGui::Text("Total Lots: ");
+                        for (const auto &pGuide : pGuides) {
+                            snprintf(valueBuffer, 10, "%d", pGuide.second.totalLots);
+                            drawColoredValueText(valueBuffer, pGuide.first);
+                        }
+
+                        ImGui::Text("Total Qty: ");
+                        for (const auto &pGuide : pGuides) {
+                            snprintf(valueBuffer, 10, "%d", pGuide.second.totalQty);
+                            drawColoredValueText(valueBuffer, pGuide.first);
+                        }
+
+                        ImGui::Text("Min Price: ");
+                        for (const auto &pGuide : pGuides) {
+                            snprintf(valueBuffer, 10, pGuide.second.minPrice<0.05?"%.4f":"%.2f", pGuide.second.minPrice);
+                            drawColoredValueText(valueBuffer, pGuide.first);
+                        }
+
+                        ImGui::Text("Avg Price: ");
+                        for (const auto &pGuide : pGuides) {
+                            snprintf(valueBuffer, 10, pGuide.second.minPrice<0.05?"%.4f":"%.2f", pGuide.second.avgPrice);
+                            drawColoredValueText(valueBuffer, pGuide.first);
+                        }
+
+                        ImGui::Text("Qty avg Price: ");
+                        for (const auto &pGuide : pGuides) {
+                            snprintf(valueBuffer, 10, pGuide.second.minPrice<0.05?"%.4f":"%.2f", pGuide.second.qtyAvgPrice);
+                            drawColoredValueText(valueBuffer, pGuide.first);
+                        }
+
+                        ImGui::Text("Max Price: ");
+                        for (const auto &pGuide : pGuides) {
+                            snprintf(valueBuffer, 10, pGuide.second.minPrice<0.05?"%.4f":"%.2f", pGuide.second.maxPrice);
+                            drawColoredValueText(valueBuffer, pGuide.first);
+                        }
+                        //todo a small histogram would be nice (parse data from price guide html table)
+                    } else {
+                        if (ImGui::Button(("Get for " + color->name).c_str())) {
+                            controller::addBackgroundTask("Get Price Guide for " + partCode, [partCode, colorBricklinkName, currencyCode]() {
                                 price_guide_provider::getPriceGuide(partCode, currencyCode, colorBricklinkName, false);
                             });
+                        }
+                        if (availableColors.has_value() && ImGui::Button(("Get for all " + std::to_string(availableColors.value().size()) + " available colors").c_str())) {
+                            for (const auto &avCol : availableColors.value()) {
+                                controller::addBackgroundTask("Get Price Guide for " + partCode + " in " + avCol->name, [partCode, avCol, currencyCode]() {
+                                    price_guide_provider::getPriceGuide(partCode, currencyCode, util::translateLDrawColorNameToBricklink(avCol->name), false);
+                                });
+                            }
                         }
                     }
                     ImGui::TreePop();

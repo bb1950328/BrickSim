@@ -89,6 +89,7 @@ namespace controller {
 
     int run() {
         db::initialize();
+        config::importFromTxt();
         windowWidth = config::get_long(config::SCREEN_WIDTH);
         windowHeight = config::get_long(config::SCREEN_HEIGHT);
 

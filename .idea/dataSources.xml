@@ -7,11 +7,16 @@
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:C:\Users\Bader\CLionProjects\BrickSim\config.db3</jdbc-url>
     </data-source>
-    <data-source source="LOCAL" name="fileList" uuid="a445c3ee-1a8f-4f6b-8d83-2c86477f28fb">
+    <data-source source="LOCAL" name="cache" uuid="9a94f114-cba6-4f0b-b7c8-d8ad144360a9">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:C:\Users\Bader\CLionProjects\BrickSim\fileList.db3</jdbc-url>
+      <jdbc-url>jdbc:sqlite:C:\Users\Bader\CLionProjects\BrickSim\cache.db3</jdbc-url>
+      <libraries>
+        <library>
+          <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/Xerial SQLiteJDBC/3.31.1/sqlite-jdbc-3.31.1.jar</url>
+        </library>
+      </libraries>
     </data-source>
   </component>
 </project>

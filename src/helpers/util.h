@@ -81,5 +81,8 @@ namespace util {
 
     std::vector<std::string> getSystemInfo();
     bool memeqzero(const void *data, size_t length);
+    std::string translateBrickLinkColorNameToLDraw(std::string colorName);
+    std::string translateLDrawColorNameToBricklink(std::string colorName);
+    bool equalsAlphanum(std::string a, std::string b);
 }
 #endif //BRICKSIM_UTIL_H

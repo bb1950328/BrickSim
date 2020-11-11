@@ -49,6 +49,7 @@ namespace config {
     const Key THUMBNAIL_SIZE{"thumbnailSize"};
     const Key THUMBNAIL_CACHE_SIZE_BYTES{"thumbnailCacheSizeBytes"};
     const Key DRAW_MINIMAL_ENCLOSING_BALL_LINES{"drawMinimalEnclosingBallLines"};
+    const Key BRICKLINK_CURRENCY_CODE{"bricklinkCurrencyCode"};
 }
 
 #endif //BRICKSIM_CONFIG_H

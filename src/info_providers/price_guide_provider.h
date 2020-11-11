@@ -43,12 +43,13 @@ namespace price_guide_provider {
         int totalQty;
         float minPrice;
         float avgPrice;
-        float gtqAvgPrice;
+        float qtyAvgPrice;
         float maxPrice;
     };
     bool initialize();
 
-    std::vector<PriceGuide> getPriceGuide(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, bool forceRefresh = false);
+    PriceGuide getPriceGuide(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, bool forceRefresh = false);
+    std::optional<PriceGuide> getPriceGuideIfCached(const std::string& partCode, const std::string& currencyCode, const std::string& colorName);
 }
 
 #endif //BRICKSIM_PRICE_GUIDE_PROVIDER_H

@@ -15,6 +15,7 @@
 #include "git_stats.h"
 #include "lib/tinyfiledialogs.h"
 #include "info_providers/part_color_availability_provider.h"
+#include "info_providers/price_guide_provider.h"
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -454,6 +455,64 @@ void Gui::loop() {
                                     drawColorGroup(meshNode, buttonSize, columnCount, colorGroup);
                                 }
                             }
+                        }
+                    }
+                    ImGui::TreePop();
+                }
+            }
+            if (node->getType() == etree::NodeType::TYPE_PART) {
+                if (ImGui::TreeNodeEx("Price Guide")) {
+                    auto *partNode = dynamic_cast<etree::PartNode *>(node);
+                    auto partCode = partNode->ldrFile->metaInfo.name;
+                    util::replaceAll(partCode, ".dat", "");
+                    const auto color = partNode->getDisplayColor();
+                    const auto currencyCode = config::get_string(config::BRICKLINK_CURRENCY_CODE);
+                    const auto colorBricklinkName = util::translateLDrawColorNameToBricklink(color->name);
+                    auto pg = price_guide_provider::getPriceGuideIfCached(partCode, currencyCode, colorBricklinkName);
+                    if (pg.has_value()) {
+                        if (ImGui::Button("Reload")) {
+                            controller::addBackgroundTask("Reload Price Guide for " + partCode, [partCode, colorBricklinkName, currencyCode](){
+                                price_guide_provider::getPriceGuide(partCode, currencyCode, colorBricklinkName, true);
+                            });
+                        }
+                        float availWidth = ImGui::GetContentRegionAvailWidth();
+
+                        ImGui::SetNextItemWidth(availWidth/2);
+                        ImGui::Text("%d", pg.value().totalLots);
+                        ImGui::SameLine();
+                        ImGui::Text("Total Lots");
+
+                        ImGui::SetNextItemWidth(availWidth/2);
+                        ImGui::Text("%d", pg.value().totalQty);
+                        ImGui::SameLine();
+                        ImGui::Text("Total Quantity");
+
+                        ImGui::SetNextItemWidth(availWidth/2);
+                        ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().minPrice);
+                        ImGui::SameLine();
+                        ImGui::Text("Min Price");
+
+                        ImGui::SetNextItemWidth(availWidth/2);
+                        ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().avgPrice);
+                        ImGui::SameLine();
+                        ImGui::Text("Avg Price");
+
+                        ImGui::SetNextItemWidth(availWidth/2);
+                        ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().qtyAvgPrice);
+                        ImGui::SameLine();
+                        ImGui::Text("Qty avg Price");
+
+                        ImGui::SetNextItemWidth(availWidth/2);
+                        ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().maxPrice);
+                        ImGui::SameLine();
+                        ImGui::Text("Max Price");
+
+                        //todo a small histogram would be nice (parse data from price guide html table)
+                    } else {
+                        if (ImGui::Button("Get")) {
+                            controller::addBackgroundTask("Get Price Guide for " + partCode, [partCode, colorBricklinkName, currencyCode](){
+                                price_guide_provider::getPriceGuide(partCode, currencyCode, colorBricklinkName, false);
+                            });
                         }
                     }
                     ImGui::TreePop();

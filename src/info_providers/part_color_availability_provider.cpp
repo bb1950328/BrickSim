@@ -13,6 +13,7 @@ namespace part_color_availability_provider {
         std::map<const std::string, std::set<const LdrColor*>> colorsAvailable;
 
         bool isDataAvailable = false;
+
         void ensureDataLoaded() {
             static bool initialized = false;
             if (!initialized) {
@@ -34,9 +35,7 @@ namespace part_color_availability_provider {
                         auto secondTab = line.find('\t', firstTab+1);
                         auto partCode = line.substr(0, firstTab);
                         auto colorName = line.substr(firstTab+1, secondTab-firstTab-1);
-                        colorName = util::replaceChar(colorName, ' ', '_');
-                        colorName = util::replaceChar(colorName, '-', '_');
-                        util::replaceAll(colorName, "Gray", "Grey");
+                        colorName = util::translateBrickLinkColorNameToLDraw(colorName);
                         auto it = colorsByName.find(colorName);
                         if (it != colorsByName.end()) {
                             colorsAvailable[partCode].insert(it->second);
@@ -52,6 +51,8 @@ namespace part_color_availability_provider {
                 initialized = true;
             }
         }
+
+
     }
 
     std::optional<std::set<const LdrColor *>> getAvailableColorsForPart(LdrFile *part) {

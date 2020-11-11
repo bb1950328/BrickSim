@@ -11,6 +11,7 @@
 #include <fstream>
 #include "price_guide_provider.h"
 #include "../helpers/util.h"
+#include "../db.h"
 
 namespace price_guide_provider {
     namespace {
@@ -39,7 +40,8 @@ namespace price_guide_provider {
 
         const BRColor *getColorByName(const std::string &name) {
             for (const auto &color : colors) {
-                if (color.name == name) {
+                std::cout << color.name << std::endl;
+                if (util::equalsAlphanum(color.name, name)) {
                     return &color;
                 }
             }
@@ -52,45 +54,48 @@ namespace price_guide_provider {
         }
 
         std::pair<int, std::string> requestGET(const std::string &url, bool useCache = true) {
-            std::size_t urlHash = std::hash<std::string>{}(url);
-            std::filesystem::path cachePath("./requestCache/" + std::to_string(urlHash) + ".txt");
-
-            if (useCache && std::filesystem::is_regular_file(cachePath)) {
-                return {0, util::fileToString(cachePath)};
-            } else {
-                auto curl = curl_easy_init();
-                if (curl) {
-                    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-                    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
-                    curl_easy_setopt(curl, CURLOPT_USERPWD, "user:pass");
-                    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.10136");//sorry microsoft ;)
-                    curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
-                    curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
-
-                    std::string response_string;
-                    std::string header_string;
-                    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
-                    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
-                    curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
-
-                    curl_easy_perform(curl);
-                    curl_easy_cleanup(curl);
-
-                    char *effectiveUrl;
-                    long response_code;
-                    double elapsed;
-                    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-                    curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &elapsed);
-                    curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &effectiveUrl);
-
-                    std::filesystem::create_directories(cachePath.parent_path());
-                    std::ofstream out(cachePath);
-                    out << response_string;
-
-                    return {response_code, response_string};
+            //todo move this to a own class because its universal
+            std::cout << "INFO: request GET " << url;
+            if (useCache) {
+                auto fromCache = db::requestCache::get(url);
+                if (fromCache.has_value())  {
+                    std::cout << " cache hit" << std::endl;
+                    return {0, fromCache.value()};
                 }
-                return {-1, ""};
             }
+            std::cout << " cache miss" << std::endl;
+            auto curl = curl_easy_init();
+            if (curl) {
+                curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+                curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+                curl_easy_setopt(curl, CURLOPT_USERPWD, "user:pass");
+                curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.10136");//sorry microsoft ;)
+                curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
+                curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+
+                std::string response_string;
+                std::string header_string;
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+                curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
+
+                curl_easy_perform(curl);
+                curl_easy_cleanup(curl);
+
+                char *effectiveUrl;
+                long response_code;
+                double elapsed;
+                curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+                curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &elapsed);
+                curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &effectiveUrl);
+
+                if (useCache) {
+                    db::requestCache::put(url, response_string);
+                }
+
+                return {response_code, response_string};
+            }
+            return {-1, ""};
         }
 
         std::map<const std::string, int> idItems;
@@ -129,9 +134,10 @@ namespace price_guide_provider {
                                              matches[3].str()
                                      });
             } else if (std::regex_search(line, matches, colorRgx)) {
+                std::cout << matches[0] << std::endl;
                 colors.push_back({
                                          std::stoi(matches[1].str()),
-                                         matches[2].str()
+                                         util::trim(matches[2].str())
                                  });
             }
         }
@@ -139,35 +145,45 @@ namespace price_guide_provider {
         return true;
     }
 
-    std::vector<PriceGuide> getPriceGuide(const std::string &partCode, const std::string &currencyCode, const std::string &colorName, bool forceRefresh) {
-        std::string pgUrl = std::string("https://www.bricklink.com/v2/catalog/catalogitem_pgtab.page?idItem=") + std::to_string(getIdItem(partCode))
-                            + "&idColor=" + std::to_string(getColorByName(colorName)->id)
-                            + "&st=2&gm=0&gc=0&ei=0&prec=4&showflag=0&showbulk=0&currency=" + std::to_string(getCurrencyByCode(currencyCode)->id);
-        auto res = requestGET(pgUrl, !forceRefresh);
+    PriceGuide getPriceGuide(const std::string &partCode, const std::string &currencyCode, const std::string &colorName, bool forceRefresh) {
+        if (!forceRefresh) {
+            auto cacheValue = db::priceGuideCache::get(partCode, currencyCode, colorName);
+            if (cacheValue.has_value()) {
+                return cacheValue.value();
+            }
+        }
+        //https://www.bricklink.com/v2/catalog/catalogitem_pgtab.page?idItem=38562&idColor=11&st=2&gm=1&gc=0&ei=0&prec=2&showflag=0&showbulk=0&currency=136
+        const std::string &partIdStr = std::to_string(getIdItem(partCode));
+        const std::string &colorCodeStr = std::to_string(getColorByName(colorName)->id);
+        const std::string &currencyCodeStr = std::to_string(getCurrencyByCode(currencyCode)->id);
+        std::string pgUrl = std::string("https://www.bricklink.com/v2/catalog/catalogitem_pgtab.page?idItem=") + partIdStr + "&idColor=" + colorCodeStr + "&st=2&gm=0&gc=0&ei=0&prec=4&showflag=0&showbulk=0&currency=" + currencyCodeStr;
+        auto res = requestGET(pgUrl, false);//don't use cache because relevant numbers are saved in priceGuideCache, otherwise it uses more than 2MB in requestCache
 
         std::regex rgx(
                 R"(\s*<TABLE CELLSPACING=0 CELLPADDING=0 CLASS="pcipgSummaryTable"><TR><TD>Total Lots:</TD><TD><b>(\d+)</b></TD></TR><TR><TD>Total Qty:</TD><TD><b>(\d+)</b></TD></TR><TR><TD>Min Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR><TR><TD>Avg Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR><TR><TD>Qty Avg Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR><TR><TD>Max Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR></TABLE>\s*)");
 
-        std::vector<PriceGuide> priceGuides;
         std::stringstream html;
         html << res.second;
         for (std::string line; getline(html, line);) {
             std::smatch matches;
             if (std::regex_search(line, matches, rgx)) {
-                priceGuides.push_back({currencyCode,
+                PriceGuide value{currencyCode,
                                        std::stoi(matches[1].str()),
                                        std::stoi(matches[2].str()),
                                        std::stof(matches[3].str()),
                                        std::stof(matches[4].str()),
                                        std::stof(matches[5].str()),
                                        std::stof(matches[6].str()),
-                                      });
-                if (priceGuides.size()==2) {
-                    break;
-                }
+                                      };
+                db::priceGuideCache::put(partCode, currencyCode, colorName, value);
+                return value;
             }
         }
 
-        return priceGuides;
+        throw std::invalid_argument("price guide not found in " + pgUrl);
+    }
+
+    std::optional<PriceGuide> getPriceGuideIfCached(const std::string &partCode, const std::string &currencyCode, const std::string &colorName) {
+        return db::priceGuideCache::get(partCode, currencyCode, colorName);
     }
 }

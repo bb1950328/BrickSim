@@ -5,10 +5,22 @@
 #ifndef BRICKSIM_DB_H
 #define BRICKSIM_DB_H
 
+#include "info_providers/price_guide_provider.h"
+
 namespace db {
     void initialize();
 
     void cleanup();
+
+    namespace requestCache {
+        std::optional<std::string> get(const std::string& url);
+        void put(const std::string& url, const std::string& response);
+    }
+
+    namespace priceGuideCache {
+        std::optional<price_guide_provider::PriceGuide> get(const std::string& partCode, const std::string& currencyCode, const std::string& colorName);
+        void put(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, const price_guide_provider::PriceGuide &value);
+    }
 
     namespace config {
         std::string getString(const std::string& key);

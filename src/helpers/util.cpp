@@ -393,4 +393,24 @@ namespace util {
     glm::vec4 minForEachComponent(const glm::vec4 &a, const glm::vec4 &b) {
         return {std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z), std::min(a.w, b.w)};
     }
+
+    std::string translateBrickLinkColorNameToLDraw(std::string colorName) {
+        colorName = util::replaceChar(colorName, ' ', '_');
+        colorName = util::replaceChar(colorName, '-', '_');
+        util::replaceAll(colorName, "Gray", "Grey");
+        return colorName;
+    }
+
+    std::string translateLDrawColorNameToBricklink(std::string colorName) {
+        colorName = util::replaceChar(colorName, '_', ' ');
+        util::replaceAll(colorName, "Grey", "Gray");
+        return colorName;
+    }
+
+    bool equalsAlphanum(std::string a, std::string b) {
+        //todo this is very inefficient
+        a.erase(std::remove_if(a.begin(), a.end(), [](char ch){return !std::isalnum(ch);}), a.end());
+        b.erase(std::remove_if(b.begin(), b.end(), [](char ch){return !std::isalnum(ch);}), b.end());
+        return a==b;
+    }
 }

@@ -46,3 +46,4 @@ cmake-build-relwithdebinfo/
 /cmake.lock
 /config.db3
 /fileList.db3
+/cache.db3

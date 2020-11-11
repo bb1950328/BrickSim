@@ -52,7 +52,15 @@ namespace price_guide_provider {
             return size * nmemb;
         }
 
-        std::pair<int, std::string> requestGET(const std::string &url, bool useCache = true) {
+        size_t writeFunctionMax500Kb(void *ptr, size_t size, size_t nmemb, std::string *data) {
+            data->append((char *) ptr, size * nmemb);
+            if (data->size()>500000) {
+                return 0;
+            }
+            return size * nmemb;
+        }
+
+        std::pair<int, std::string> requestGET(const std::string &url, bool useCache = true, bool first500kbOnly= false) {
             //todo move this to a own class because its universal
             std::cout << "INFO: request GET " << url;
             if (useCache) {
@@ -68,16 +76,20 @@ namespace price_guide_provider {
                 curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
                 curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
                 curl_easy_setopt(curl, CURLOPT_USERPWD, "user:pass");
-                curl_easy_setopt(curl, CURLOPT_USERAGENT,
-                                 "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.10136");//sorry microsoft ;)
+                curl_easy_setopt(curl, CURLOPT_USERAGENT,"Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.10136");//sorry microsoft ;)
                 curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
                 curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
 
                 std::string response_string;
                 std::string header_string;
-                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+                if (first500kbOnly) {
+                    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunctionMax500Kb);
+                } else {
+                    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+                }
                 curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
                 curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
+                curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
                 curl_easy_perform(curl);
                 curl_easy_cleanup(curl);
@@ -103,7 +115,14 @@ namespace price_guide_provider {
         int getIdItem(const std::string &partCode) {
             auto it = idItems.find(partCode);
             if (it == idItems.end()) {
-                auto res = requestGET("https://www.bricklink.com/v2/catalog/catalogitem.page?P=" + partCode);
+                std::pair<int, std::string> res;
+                {
+                    static std::map<const std::string, std::mutex> locks;
+                    std::lock_guard<std::mutex> lg(locks.operator[](partCode));
+                    res = requestGET("https://www.bricklink.com/v2/catalog/catalogitem.page?P=" + partCode);
+                    locks.erase(partCode);
+                }
+
                 std::regex rgx("idItem:\\s+(\\d+)");
                 std::smatch matches;
                 if (std::regex_search(res.second, matches, rgx)) {
@@ -157,9 +176,7 @@ namespace price_guide_provider {
         const std::string &currencyCodeStr = std::to_string(getCurrencyByCode(currencyCode)->id);
         std::string pgUrl = std::string("https://www.bricklink.com/v2/catalog/catalogitem_pgtab.page?idItem=") + partIdStr + "&idColor=" + colorCodeStr +
                             "&st=2&gm=0&gc=0&ei=0&prec=4&showflag=0&showbulk=0&currency=" + currencyCodeStr;
-        auto res = requestGET(pgUrl,
-                              false);//don't use cache because relevant numbers are saved in priceGuideCache, otherwise it uses more than 2MB in requestCache
-
+        auto res = requestGET(pgUrl,false, 200000);//don't use cache because relevant numbers are saved in priceGuideCache
         std::regex rgx(
                 R"(\s*<TABLE CELLSPACING=0 CELLPADDING=0 CLASS="pcipgSummaryTable"><TR><TD>Total Lots:</TD><TD><b>(\d+)</b></TD></TR><TR><TD>Total Qty:</TD><TD><b>(\d+)</b></TD></TR><TR><TD>Min Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR><TR><TD>Avg Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR><TR><TD>Qty Avg Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR><TR><TD>Max Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR></TABLE>\s*)");
 

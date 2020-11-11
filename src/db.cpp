@@ -54,6 +54,7 @@ namespace db {
                                 "partCode TEXT COLLATE NOCASE,"
                                 "currencyCode TEXT NOT NULL,"
                                 "colorName TEXT NOT NULL,"
+                                "available INTEGER,"
                                 "totalLots INTEGER NOT NULL,"
                                 "totalQty INTEGER NOT NULL,"
                                 "minPrice REAL NOT NULL,"
@@ -90,6 +91,7 @@ namespace db {
             stmt.bind(3, colorName);
             if (stmt.executeStep()) {
                 return price_guide_provider::PriceGuide{
+                    stmt.getColumn("available").getInt()!=0,
                     stmt.getColumn("currencyCode"),
                     stmt.getColumn("totalLots"),
                     stmt.getColumn("totalQty"),
@@ -102,16 +104,17 @@ namespace db {
             return {};
         }
         void put(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, const price_guide_provider::PriceGuide &value) {
-            SQLite::Statement stmt(cacheDb.value(), "REPLACE INTO priceGuideCache (partCode,currencyCode,colorName,totalLots,totalQty,minPrice,avgPrice,qtyAvgPrice,maxPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
+            SQLite::Statement stmt(cacheDb.value(), "REPLACE INTO priceGuideCache (partCode,currencyCode,colorName,available,totalLots,totalQty,minPrice,avgPrice,qtyAvgPrice,maxPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
             stmt.bind(1, partCode);
             stmt.bind(2, currencyCode);
             stmt.bind(3, colorName);
-            stmt.bind(4, value.totalLots);
-            stmt.bind(5, value.totalQty);
-            stmt.bind(6, value.minPrice);
-            stmt.bind(7, value.avgPrice);
-            stmt.bind(8, value.qtyAvgPrice);
-            stmt.bind(9, value.maxPrice);
+            stmt.bind(4, value.available?1:0);
+            stmt.bind(5, value.totalLots);
+            stmt.bind(6, value.totalQty);
+            stmt.bind(7, value.minPrice);
+            stmt.bind(8, value.avgPrice);
+            stmt.bind(9, value.qtyAvgPrice);
+            stmt.bind(10, value.maxPrice);
             stmt.exec();
         }
     }

@@ -408,9 +408,24 @@ namespace util {
     }
 
     bool equalsAlphanum(std::string a, std::string b) {
-        //todo this is very inefficient
-        a.erase(std::remove_if(a.begin(), a.end(), [](char ch){return !std::isalnum(ch);}), a.end());
-        b.erase(std::remove_if(b.begin(), b.end(), [](char ch){return !std::isalnum(ch);}), b.end());
-        return a==b;
+        auto itA = a.cbegin();
+        auto itB = b.cbegin();
+        while (itA != a.cend() && itB != b.cend()) {
+            while (itA != a.cend() && !std::isalnum(*itA)) {
+                ++itA;
+            }
+            while (itB != b.cend() && !std::isalnum(*itB)) {
+                ++itB;
+            }
+            if ((itA==a.cend())!=(itB==b.cend())) {//
+                return false;
+            }
+            if (itA!=a.cend() && *itA != *itB) {
+                return false;
+            }
+            ++itA;
+            ++itB;
+        }
+        return true;
     }
 }

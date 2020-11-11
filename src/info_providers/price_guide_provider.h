@@ -37,8 +37,11 @@
 
 namespace price_guide_provider {
     struct PriceGuide {
+        bool available;
+
         std::string currency;
 
+        //these values are undefined if available==false
         int totalLots;
         int totalQty;
         float minPrice;

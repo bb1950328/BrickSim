@@ -475,39 +475,42 @@ void Gui::loop() {
                                 price_guide_provider::getPriceGuide(partCode, currencyCode, colorBricklinkName, true);
                             });
                         }
-                        float availWidth = ImGui::GetContentRegionAvailWidth();
+                        if (pg->available) {
+                            float availWidth = ImGui::GetContentRegionAvailWidth();
 
-                        ImGui::SetNextItemWidth(availWidth/2);
-                        ImGui::Text("%d", pg.value().totalLots);
-                        ImGui::SameLine();
-                        ImGui::Text("Total Lots");
+                            ImGui::SetNextItemWidth(availWidth / 2);
+                            ImGui::Text("%d", pg.value().totalLots);
+                            ImGui::SameLine();
+                            ImGui::Text("Total Lots");
 
-                        ImGui::SetNextItemWidth(availWidth/2);
-                        ImGui::Text("%d", pg.value().totalQty);
-                        ImGui::SameLine();
-                        ImGui::Text("Total Quantity");
+                            ImGui::SetNextItemWidth(availWidth / 2);
+                            ImGui::Text("%d", pg.value().totalQty);
+                            ImGui::SameLine();
+                            ImGui::Text("Total Quantity");
 
-                        ImGui::SetNextItemWidth(availWidth/2);
-                        ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().minPrice);
-                        ImGui::SameLine();
-                        ImGui::Text("Min Price");
+                            ImGui::SetNextItemWidth(availWidth / 2);
+                            ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().minPrice);
+                            ImGui::SameLine();
+                            ImGui::Text("Min Price");
 
-                        ImGui::SetNextItemWidth(availWidth/2);
-                        ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().avgPrice);
-                        ImGui::SameLine();
-                        ImGui::Text("Avg Price");
+                            ImGui::SetNextItemWidth(availWidth / 2);
+                            ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().avgPrice);
+                            ImGui::SameLine();
+                            ImGui::Text("Avg Price");
 
-                        ImGui::SetNextItemWidth(availWidth/2);
-                        ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().qtyAvgPrice);
-                        ImGui::SameLine();
-                        ImGui::Text("Qty avg Price");
+                            ImGui::SetNextItemWidth(availWidth / 2);
+                            ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().qtyAvgPrice);
+                            ImGui::SameLine();
+                            ImGui::Text("Qty avg Price");
 
-                        ImGui::SetNextItemWidth(availWidth/2);
-                        ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().maxPrice);
-                        ImGui::SameLine();
-                        ImGui::Text("Max Price");
-
-                        //todo a small histogram would be nice (parse data from price guide html table)
+                            ImGui::SetNextItemWidth(availWidth / 2);
+                            ImGui::Text("%s %.3f", pg.value().currency.c_str(), pg.value().maxPrice);
+                            ImGui::SameLine();
+                            ImGui::Text("Max Price");
+                            //todo a small histogram would be nice (parse data from price guide html table)
+                        } else {
+                            ImGui::Text("No price Guide for %s in %s", color->name.c_str(), currencyCode.c_str());
+                        }
                     } else {
                         if (ImGui::Button("Get")) {
                             controller::addBackgroundTask("Get Price Guide for " + partCode, [partCode, colorBricklinkName, currencyCode](){

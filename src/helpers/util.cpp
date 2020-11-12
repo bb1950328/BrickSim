@@ -428,4 +428,14 @@ namespace util {
         }
         return true;
     }
+
+    std::filesystem::path withoutBasePath(const std::filesystem::path &path, const std::filesystem::path &basePath) {
+        //todo this can be more efficient
+        std::string result = path.string();
+        replaceAll(result, basePath.string(), "");
+        if (result[0]==PATH_SEPARATOR) {
+            result.erase(0, 1);
+        }
+        return result;
+    }
 }

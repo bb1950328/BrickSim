@@ -12,13 +12,19 @@
 namespace ldr_file_repo {
     LdrFile *getFile(const std::string& filename);
     LdrFile* getFile(const std::pair<LdrFileType, std::stringstream&> &resolvedPair, const std::string& filename);
+    LdrFile* getFileInLdrawDirectory(const std::string& filename);
+    LdrFile* getFile(const std::string& filename, LdrFileType fileType);
     void addFile(const std::string &filename, LdrFile *file, LdrFileType type);
     LdrFileType getFileType(const std::string &filename);
-    std::pair<LdrFileType, const std::string *> resolveFile(const std::string &filename);
+    std::pair<LdrFileType, const std::string *> findAndReadFileContent(const std::string &filename);
+    const std::string* readFileFromLdrawDirectory(const std::string& filename);
 
     void clearCache();
-    bool initializeNames();
+    void initializeFileList();
+    void initializeLdrawLibraryLocation();
 
     std::map<std::string, std::set<LdrFile *>> getPartsGroupedByCategory();
+    std::set<std::string> getAllCategories();
+    std::set<LdrFile*> getAllFilesOfCategory(const std::string& categoryName);
 };
 #endif //BRICKSIM_LDR_FILE_REPOSITORY_H

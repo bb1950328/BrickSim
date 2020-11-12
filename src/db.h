@@ -5,6 +5,7 @@
 #ifndef BRICKSIM_DB_H
 #define BRICKSIM_DB_H
 
+#include <set>
 #include "info_providers/price_guide_provider.h"
 
 namespace db {
@@ -20,6 +21,21 @@ namespace db {
     namespace priceGuideCache {
         std::optional<price_guide_provider::PriceGuide> get(const std::string& partCode, const std::string& currencyCode, const std::string& colorName);
         void put(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, const price_guide_provider::PriceGuide &value);
+    }
+
+    namespace fileList {
+        struct Entry {
+            std::string name;
+            std::string title;
+            std::string category;
+        };
+        int getSize();
+        void put(const std::string& name, const std::string& title, const std::string& category);
+        void put(const std::vector<Entry>& entries);
+        std::set<std::string> getAllCategories();
+        std::set<std::string> getAllFiles();
+        std::set<std::string> getAllFilesForCategory(const std::string& category);
+        std::optional<std::string> containsFile(const std::string& name);
     }
 
     namespace config {

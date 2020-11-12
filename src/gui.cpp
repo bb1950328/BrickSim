@@ -616,34 +616,35 @@ void Gui::loop() {
         const auto totalWidth = ImGui::GetContentRegionAvailWidth();
         const auto itemSpacingX = ImGui::GetStyle().ItemSpacing.x;
         float thumbnailContainerWidth = totalWidth - categorySelectWidth - itemSpacingX;
-        static const auto partsGrouped = ldr_file_repo::getPartsGroupedByCategory();
-        static std::set<std::string> selectedCategories;
+        //static const auto partsGrouped = ldr_file_repo::getPartsGroupedByCategory();
+        static const auto partCategories = ldr_file_repo::getAllCategories();
+        static std::set<std::string> selectedCategories = {*partCategories.begin()};//first category preselected
 
         ImGui::BeginChild("##categorySelectTree", ImVec2(categorySelectWidth, 0));
-        for (const auto &group : partsGrouped) {
-            int flags = selectedCategories.find(group.first) != selectedCategories.end()
+        for (const auto &category : partCategories) {
+            int flags = selectedCategories.find(category) != selectedCategories.end()
                         ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected
                         : ImGuiTreeNodeFlags_Leaf;
-            if (ImGui::TreeNodeEx(group.first.c_str(), flags)) {
+            if (ImGui::TreeNodeEx(category.c_str(), flags)) {
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
                     if (ImGui::GetIO().KeyCtrl) {
-                        if (selectedCategories.find(group.first) == selectedCategories.end()) {
-                            selectedCategories.insert(group.first);
+                        if (selectedCategories.find(category) == selectedCategories.end()) {
+                            selectedCategories.insert(category);
                         } else {
-                            selectedCategories.erase(group.first);
+                            selectedCategories.erase(category);
                         }
                     } else if (ImGui::GetIO().KeyShift) {
-                        auto groupIt = partsGrouped.find(group.first);
-                        while (groupIt != partsGrouped.begin() && selectedCategories.find(groupIt->first) == selectedCategories.end()) {
-                            selectedCategories.insert(groupIt->first);
+                        auto groupIt = partCategories.find(category);
+                        while (groupIt != partCategories.begin() && selectedCategories.find(*groupIt) == selectedCategories.end()) {
+                            selectedCategories.insert(*groupIt);
                             groupIt--;
                         }
-                        selectedCategories.insert(groupIt->first);
+                        selectedCategories.insert(*groupIt);
                     } else {
-                        bool wasOnlySelectionBefore = selectedCategories.size() == 1 && *selectedCategories.begin() == group.first;
+                        bool wasOnlySelectionBefore = selectedCategories.size() == 1 && *selectedCategories.begin() == category;
                         selectedCategories.clear();
                         if (!wasOnlySelectionBefore) {
-                            selectedCategories.insert(group.first);
+                            selectedCategories.insert(category);
                         }
                     }
                 }
@@ -663,7 +664,7 @@ void Gui::loop() {
         if (selectedCategories.size() > 1) {
             for (const auto &category : selectedCategories) {
                 ImGui::Text("%s", category.c_str());
-                for (const auto &part : partsGrouped.find(category)->second) {
+                for (const auto &part : ldr_file_repo::getAllFilesOfCategory(category)) {
                     drawPartThumbnail(actualThumbSizeSquared, part);
                     currentCol++;
                     if (currentCol == columns) {
@@ -678,7 +679,7 @@ void Gui::loop() {
                 currentCol = 0;
             }
         } else if (selectedCategories.size() == 1) {
-            for (const auto &part : partsGrouped.find(*selectedCategories.begin())->second) {
+            for (const auto &part : ldr_file_repo::getAllFilesOfCategory(*selectedCategories.begin())) {
                 drawPartThumbnail(actualThumbSizeSquared, part);
                 currentCol++;
                 if (currentCol == columns) {
@@ -688,7 +689,7 @@ void Gui::loop() {
                 }
             }
         } else {
-            for (const auto &category : partsGrouped) {
+            for (const auto &category : ldr_file_repo::getPartsGroupedByCategory()) {
                 ImGui::Text("%s", category.first.c_str());
                 for (const auto &part : category.second) {
                     drawPartThumbnail(actualThumbSizeSquared, part);

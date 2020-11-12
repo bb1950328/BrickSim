@@ -204,7 +204,7 @@ bool Renderer::saveImage(const std::string& path) {
     if (util::endsWith(path, ".png")) {
         success=stbi_write_png(path.c_str(), windowWidth, windowHeight, channels, pixels, windowWidth * channels)!=0;
     } else if (util::endsWith(path, ".jpg") || util::endsWith(path, ".jpeg")) {
-        const int quality = std::min(100, std::max(5, (int) config::getLong(config::JPG_SCREENSHOT_QUALITY)));
+        const int quality = std::min(100, std::max(5, (int) config::getInt(config::JPG_SCREENSHOT_QUALITY)));
         success = stbi_write_jpg(path.c_str(), windowWidth, windowHeight, channels, pixels, quality)!=0;
     } else if (util::endsWith(path_lower, ".bmp")) {
         success = stbi_write_bmp(path.c_str(), windowWidth, windowHeight, channels, pixels)!=0;

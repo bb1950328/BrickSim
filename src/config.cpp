@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <mutex>
+#include <utility>
 #include "config.h"
 #include "db.h"
 
@@ -21,55 +22,83 @@ namespace config {
         std::mutex doublesCacheMtx;
     }
 
-    std::string getString(const Key& key) {
+    std::string getString(const StringKey& key) {
         auto it = stringsCache.find(key.name);
         if (it==stringsCache.end()) {
             std::lock_guard<std::mutex> lg(stringsCacheMtx);
-            auto value = db::config::getString(key.name);
+            auto valueOpt = db::config::getString(key.name);
+            std::string value;
+            if (valueOpt.has_value()) {
+                value = valueOpt.value();
+            } else {
+                value = key.defaultValue;
+                setString(key, value);
+            }
             stringsCache.emplace(key.name, value);
             return value;
         }
         return it->second;
     }
 
-    long getLong(const Key& key) {
+    int getInt(const IntKey &key) {
         auto it = intsCache.find(key.name);
         if (it==intsCache.end()) {
             std::lock_guard<std::mutex> lg(intsCacheMtx);
-            auto value = db::config::getInt(key.name);
+            auto valueOpt = db::config::getInt(key.name);
+            int value;
+            if (valueOpt.has_value()) {
+                value = valueOpt.value();
+            } else {
+                value = key.defaultValue;
+                setInt(key, value);
+            }
             intsCache.emplace(key.name, value);
             return value;
         }
         return it->second;
     }
 
-    double getDouble(const Key& key) {
+    double getDouble(const DoubleKey &key) {
         auto it = doublesCache.find(key.name);
         if (it==doublesCache.end()) {
             std::lock_guard<std::mutex> lg(intsCacheMtx);
-            auto value = db::config::getDouble(key.name);
+            auto valueOpt = db::config::getDouble(key.name);
+            double value;
+            if (valueOpt.has_value()) {
+                value = valueOpt.value();
+            } else {
+                value = key.defaultValue;
+                setDouble(key, value);
+            }
             doublesCache.emplace(key.name, value);
             return value;
         }
         return it->second;
     }
 
-    util::RGBcolor getColor(const Key &key) {
+    util::RGBcolor getColor(const ColorKey &key) {
         return util::RGBcolor(getString(key));
     }
 
-    bool getBool(const Key &key) {
+    bool getBool(const BoolKey &key) {
         auto it = boolsCache.find(key.name);
         if (it==boolsCache.end()) {
             std::lock_guard<std::mutex> lg(boolsCacheMtx);
-            auto value = db::config::getBool(key.name);
+            auto valueOpt = db::config::getBool(key.name);
+            bool value;
+            if (valueOpt.has_value()) {
+                value = valueOpt.value();
+            } else {
+                value = key.defaultValue;
+                setBool(key, value);
+            }
             boolsCache.emplace(key.name, value);
             return value;
         }
         return it->second;
     }
 
-    void setString(const Key& key, const std::string &value) {
+    void setString(const StringKey &key, const std::string &value) {
         db::config::setString(key.name, value);
         {
             std::lock_guard<std::mutex> lg(stringsCacheMtx);
@@ -77,7 +106,7 @@ namespace config {
         }
     }
 
-    void setLong(const Key& key, long value) {
+    void setInt(const IntKey &key, int value) {
         db::config::setInt(key.name, value);
         {
             std::lock_guard<std::mutex> lg(intsCacheMtx);
@@ -85,7 +114,7 @@ namespace config {
         }
     }
 
-    void setDouble(const Key& key, double value) {
+    void setDouble(const DoubleKey &key, double value) {
         db::config::setDouble(key.name, value);
         {
             std::lock_guard<std::mutex> lg(doublesCacheMtx);
@@ -93,11 +122,11 @@ namespace config {
         }
     }
 
-    void setColor(const Key &key, util::RGBcolor value) {
+    void setColor(const ColorKey &key, util::RGBcolor value) {
         setString(key, value.asHtmlCode());
     }
 
-    void setBool(const Key &key, bool value) {
+    void setBool(const BoolKey &key, bool value) {
         db::config::setBool(key.name, value);
         {
             std::lock_guard<std::mutex> lg(boolsCacheMtx);
@@ -144,15 +173,15 @@ namespace config {
                 }
                 if (has_nondigit) {
                     if (value_str=="true" || value_str=="false") {
-                        setBool(Key(key), value_str == "true");
+                        setBool(BoolKey(key, false), value_str == "true");
                     } else {
-                        setString(Key(key), value_str);
+                        setString(StringKey(key, ""), value_str);
                     }
                 } else {
                     if (has_dot) {
-                        setDouble(Key(key), std::stod(value_str));
+                        setDouble(DoubleKey(key, 0), std::stod(value_str));
                     } else {
-                        setLong(Key(key), std::stol(value_str));
+                        setInt(IntKey(key, 0), std::stol(value_str));
                     }
                 }
             }
@@ -164,4 +193,14 @@ namespace config {
     }
 
     Key::Key(std::string name) : name(std::move(name)) {}
+
+    StringKey::StringKey(const std::string &name, std::string defaultValue) : Key(name), defaultValue(std::move(defaultValue)) {}
+
+    IntKey::IntKey(const std::string &name, const int defaultValue) : Key(name), defaultValue(defaultValue) {}
+
+    DoubleKey::DoubleKey(const std::string &name, const double defaultValue) : Key(name), defaultValue(defaultValue) {}
+
+    ColorKey::ColorKey(const std::string &name, const util::RGBcolor &defaultValue) : StringKey(name, defaultValue.asHtmlCode()), defaultValue(defaultValue) {}
+
+    BoolKey::BoolKey(const std::string &name, const bool defaultValue) : Key(name), defaultValue(defaultValue) {}
 }

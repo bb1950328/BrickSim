@@ -23,10 +23,10 @@ namespace db {
     }
 
     namespace config {
-        std::string getString(const std::string& key);
-        int getInt(const std::string& key);
-        bool getBool(const std::string& key);
-        double getDouble(const std::string& key);
+        std::optional<std::string> getString(const std::string& key);
+        std::optional<int> getInt(const std::string& key);
+        std::optional<bool> getBool(const std::string& key);
+        std::optional<double> getDouble(const std::string& key);
 
         void setString(const std::string& key, const std::string& value);
         void setInt(const std::string& key, int value);

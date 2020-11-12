@@ -714,14 +714,14 @@ void Gui::loop() {
         ImGui::Begin("Settings", &showSettingsWindow);
         static auto guiScale = (float) (config::getDouble(config::GUI_SCALE));
         static int initialWindowSize[2]{
-                static_cast<int>(config::getLong(config::SCREEN_WIDTH)),
-                static_cast<int>(config::getLong(config::SCREEN_HEIGHT))
+                static_cast<int>(config::getInt(config::SCREEN_WIDTH)),
+                static_cast<int>(config::getInt(config::SCREEN_HEIGHT))
         };
         static auto ldrawDirString = config::getString(config::LDRAW_PARTS_LIBRARY);
         static auto ldrawDir = ldrawDirString.c_str();
         static auto guiStyleString = config::getString(config::GUI_STYLE);
         static auto guiStyle = guiStyleString == "light" ? 0 : (guiStyleString == "classic" ? 1 : 2);
-        static int msaaSamples = (int) (config::getLong(config::MSAA_SAMPLES));
+        static int msaaSamples = (int) (config::getInt(config::MSAA_SAMPLES));
         static int msaaElem = std::log2(msaaSamples);
         static glm::vec3 backgroundColor = config::getColor(config::BACKGROUND_COLOR).asGlmVector();
         static glm::vec3 multiPartDocumentColor = config::getColor(config::COLOR_MULTI_PART_DOCUMENT).asGlmVector();
@@ -756,8 +756,8 @@ void Gui::loop() {
         static bool saveFailed = false;
         if (ImGui::Button("Save")) {
             config::setDouble(config::GUI_SCALE, guiScale);
-            config::setLong(config::SCREEN_WIDTH, initialWindowSize[0]);
-            config::setLong(config::SCREEN_HEIGHT, initialWindowSize[1]);
+            config::setInt(config::SCREEN_WIDTH, initialWindowSize[0]);
+            config::setInt(config::SCREEN_HEIGHT, initialWindowSize[1]);
             config::setString(config::LDRAW_PARTS_LIBRARY, ldrawDir);
             switch (guiStyle) {
                 case 0:
@@ -770,7 +770,7 @@ void Gui::loop() {
                     config::setString(config::GUI_STYLE, "dark");
                     break;
             }
-            config::setLong(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));
+            config::setInt(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));
             config::setColor(config::BACKGROUND_COLOR, util::RGBcolor(backgroundColor));
             config::setColor(config::COLOR_MULTI_PART_DOCUMENT, util::RGBcolor(multiPartDocumentColor));
             config::setColor(config::COLOR_MPD_SUBFILE, util::RGBcolor(mpdSubfileColor));

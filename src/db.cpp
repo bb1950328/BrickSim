@@ -120,40 +120,40 @@ namespace db {
     }
 
     namespace config {
-        std::string getString(const std::string &key) {
+        std::optional<std::string> getString(const std::string &key) {
             SQLite::Statement query(configDb.value(), "SELECT value FROM strings WHERE key=?");
             query.bind(1, key);
             if (query.executeStep()) {
                 return query.getColumn(0);
             }
-            throw std::invalid_argument("key " + key + " not found in strings");
+            return {};
         }
 
-        int getInt(const std::string &key) {
+        std::optional<int> getInt(const std::string &key) {
             SQLite::Statement query(configDb.value(), "SELECT value FROM ints WHERE key=?");
             query.bind(1, key);
             if (query.executeStep()) {
                 return query.getColumn(0);
             }
-            throw std::invalid_argument("key " + key + " not found in ints");
+            return {};
         }
 
-        bool getBool(const std::string &key) {
+        std::optional<bool> getBool(const std::string &key) {
             SQLite::Statement query(configDb.value(), "SELECT value FROM ints WHERE key=?");
             query.bind(1, key);
             if (query.executeStep()) {
                 return ((int) query.getColumn(0)) != 0;
             }
-            throw std::invalid_argument("key " + key + " not found in ints");
+            return {};
         }
 
-        double getDouble(const std::string &key) {
+        std::optional<double> getDouble(const std::string &key) {
             SQLite::Statement query(configDb.value(), "SELECT value FROM doubles WHERE key=?");
             query.bind(1, key);
             if (query.executeStep()) {
                 return query.getColumn(0).getDouble();
             }
-            throw std::invalid_argument("key " + key + " not found in floats");
+            return {};
         }
 
         void setString(const std::string &key, const std::string &value) {

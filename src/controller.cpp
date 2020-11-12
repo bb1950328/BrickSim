@@ -36,7 +36,7 @@ namespace controller {
             glfwInit();
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-            glfwWindowHint(GLFW_SAMPLES, (int) (config::getLong(config::MSAA_SAMPLES)));
+            glfwWindowHint(GLFW_SAMPLES, (int) (config::getInt(config::MSAA_SAMPLES)));
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
@@ -90,8 +90,8 @@ namespace controller {
     int run() {
         db::initialize();
         config::importFromTxt();
-        windowWidth = config::getLong(config::SCREEN_WIDTH);
-        windowHeight = config::getLong(config::SCREEN_HEIGHT);
+        windowWidth = config::getInt(config::SCREEN_WIDTH);
+        windowHeight = config::getInt(config::SCREEN_HEIGHT);
 
         if (!initializeGL()) {
             std::cerr << "FATAL: failed to initialize OpenGL / glfw" << std::endl;
@@ -165,8 +165,8 @@ namespace controller {
             glfwSwapBuffers(window);
             glfwPollEvents();
         }
-        config::setLong(config::SCREEN_WIDTH, windowWidth);
-        config::setLong(config::SCREEN_HEIGHT, windowHeight);
+        config::setInt(config::SCREEN_WIDTH, windowWidth);
+        config::setInt(config::SCREEN_HEIGHT, windowHeight);
         bool result;
         result = true;
         renderer.cleanup();

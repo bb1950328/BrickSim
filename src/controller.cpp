@@ -36,7 +36,7 @@ namespace controller {
             glfwInit();
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-            glfwWindowHint(GLFW_SAMPLES, (int) (config::get_long(config::MSAA_SAMPLES)));
+            glfwWindowHint(GLFW_SAMPLES, (int) (config::getLong(config::MSAA_SAMPLES)));
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
@@ -90,8 +90,8 @@ namespace controller {
     int run() {
         db::initialize();
         config::importFromTxt();
-        windowWidth = config::get_long(config::SCREEN_WIDTH);
-        windowHeight = config::get_long(config::SCREEN_HEIGHT);
+        windowWidth = config::getLong(config::SCREEN_WIDTH);
+        windowHeight = config::getLong(config::SCREEN_HEIGHT);
 
         if (!initializeGL()) {
             std::cerr << "FATAL: failed to initialize OpenGL / glfw" << std::endl;
@@ -165,8 +165,8 @@ namespace controller {
             glfwSwapBuffers(window);
             glfwPollEvents();
         }
-        config::set_long(config::SCREEN_WIDTH, windowWidth);
-        config::set_long(config::SCREEN_HEIGHT, windowHeight);
+        config::setLong(config::SCREEN_WIDTH, windowWidth);
+        config::setLong(config::SCREEN_HEIGHT, windowHeight);
         bool result;
         result = true;
         renderer.cleanup();
@@ -191,7 +191,7 @@ namespace controller {
 
     void openFile(const std::string &path) {
         addBackgroundTask(std::string("Open ")+path, [path](){
-            insertLdrElement(ldr_file_repo::get_file(path));
+            insertLdrElement(ldr_file_repo::getFile(path));
         });
     }
 

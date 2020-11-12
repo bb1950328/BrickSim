@@ -54,7 +54,7 @@ void Mesh::addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElemen
     indicesList->push_back(idx1 + 1);
     indicesList->push_back(idx1 + 2);
 
-    if (config::get_bool(config::SHOW_NORMALS)) {
+    if (config::getBool(config::SHOW_NORMALS)) {
         auto lp1 = glm::vec4(util::triangleCentroid(p1, p2, p3), 1.0f) * transformation;
         auto lp2 = lp1 + (transformedNormal * 5.0f);
         LineVertex lv1{lp1, transformedNormal};
@@ -106,7 +106,7 @@ void Mesh::addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilat
     indices_list->push_back(idx + 3);
     indices_list->push_back(idx);
 
-    if (config::get_bool(config::SHOW_NORMALS)) {
+    if (config::getBool(config::SHOW_NORMALS)) {
         auto lp1 = glm::vec4(util::quadrilateralCentroid(p1, p2, p3, p4), 1.0f) * transformation;
         auto lp2 = lp1 + (transformedNormal * 5.0f);
         LineVertex lv1{lp1, transformedNormal};
@@ -142,7 +142,7 @@ void Mesh::addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4
     if (lineElement.color->code == LdrColor::MAIN_COLOR_CODE) {
         color = mainColor->edge.asGlmVector();
     } else if (lineElement.color->code == LdrColor::LINE_COLOR_CODE) {
-        color = glm::vec3(1 - util::vector_sum(mainColor->value.asGlmVector()) / 3);//todo look up specification
+        color = glm::vec3(1 - util::vectorSum(mainColor->value.asGlmVector()) / 3);//todo look up specification
     } else {
         color = lineElement.color->edge.asGlmVector();
     }
@@ -157,14 +157,14 @@ void Mesh::addLdrOptionalLine(LdrColor *mainColor, const LdrOptionalLine &option
     if (optionalLineElement.color->code == LdrColor::MAIN_COLOR_CODE) {
         color = mainColor->edge.asGlmVector();
     } else if (optionalLineElement.color->code == LdrColor::LINE_COLOR_CODE) {
-        color = glm::vec3(1 - util::vector_sum(mainColor->value.asGlmVector()) / 3);//todo look up specification
+        color = glm::vec3(1 - util::vectorSum(mainColor->value.asGlmVector()) / 3);//todo look up specification
     } else {
         color = optionalLineElement.color->edge.asGlmVector();
     }
-    LineVertex cv1{glm::vec4(optionalLineElement.control_x1, optionalLineElement.control_y1, optionalLineElement.control_z1, 1.0f) * transformation, color};
+    LineVertex cv1{glm::vec4(optionalLineElement.controlX1, optionalLineElement.controlY1, optionalLineElement.controlZ1, 1.0f) * transformation, color};
     LineVertex lv1{glm::vec4(optionalLineElement.x1, optionalLineElement.y1, optionalLineElement.z1, 1.0f) * transformation, color};
     LineVertex lv2{glm::vec4(optionalLineElement.x2, optionalLineElement.y2, optionalLineElement.z2, 1.0f) * transformation, color};
-    LineVertex cv2{glm::vec4(optionalLineElement.control_x2, optionalLineElement.control_y2, optionalLineElement.control_z2, 1.0f) * transformation, color};
+    LineVertex cv2{glm::vec4(optionalLineElement.controlX2, optionalLineElement.controlY2, optionalLineElement.controlZ2, 1.0f) * transformation, color};
     addOptionalLineVertex(cv1);
     addOptionalLineVertex(lv1);
     addOptionalLineVertex(lv2);
@@ -199,7 +199,7 @@ void Mesh::addLineVertex(const LineVertex &vertex) {
 
 void Mesh::writeGraphicsData() {
     if (!already_initialized) {
-        if (config::get_bool(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES)) {
+        if (config::getBool(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES)) {
             addMinEnclosingBallLines();
         }
         initializeTriangleGraphics();

@@ -173,7 +173,7 @@ namespace etree {
     }
 
     Node* ElementTree::loadLdrFile(const std::string &filename) {
-        auto *newNode = new MpdNode(ldr_file_repo::get_file(filename), ldr_color_repo::get_color(2), &rootNode);
+        auto *newNode = new MpdNode(ldr_file_repo::getFile(filename), ldr_color_repo::get_color(2), &rootNode);
         rootNode.addChild(newNode);
         return newNode;
     }
@@ -291,10 +291,10 @@ namespace etree {
 
     util::RGBcolor getColorOfType(const NodeType &type) {
         switch (type) {
-            case TYPE_MPD_SUBFILE_INSTANCE: return config::get_color(config::COLOR_MPD_SUBFILE_INSTANCE);
-            case TYPE_MPD_SUBFILE: return config::get_color(config::COLOR_MPD_SUBFILE);
-            case TYPE_MULTI_PART_DOCUMENT: return config::get_color(config::COLOR_MULTI_PART_DOCUMENT);
-            case TYPE_PART: return config::get_color(config::COLOR_OFFICAL_PART);//todo unoffical part
+            case TYPE_MPD_SUBFILE_INSTANCE: return config::getColor(config::COLOR_MPD_SUBFILE_INSTANCE);
+            case TYPE_MPD_SUBFILE: return config::getColor(config::COLOR_MPD_SUBFILE);
+            case TYPE_MULTI_PART_DOCUMENT: return config::getColor(config::COLOR_MULTI_PART_DOCUMENT);
+            case TYPE_PART: return config::getColor(config::COLOR_OFFICAL_PART);//todo unoffical part
             case TYPE_OTHER:
             case TYPE_ROOT:
             case TYPE_MESH:

@@ -24,11 +24,11 @@
 #include <fstream>
 
 namespace util {
-    std::string extend_home_dir(const std::string &input) {
-        return extend_home_dir_path(input).string();
+    std::string extendHomeDir(const std::string &input) {
+        return extendHomeDirPath(input).string();
     }
 
-    std::filesystem::path extend_home_dir_path(const std::string &input) {
+    std::filesystem::path extendHomeDirPath(const std::string &input) {
         if (input[0] == '~' && (input[1] == '/' || input[1] == '\\')) {
             return std::filesystem::path(getenv(USER_ENV_VAR)) / std::filesystem::path(input.substr(2));
         } else {
@@ -55,7 +55,7 @@ namespace util {
         return result;
     }
 
-    std::string as_lower(const std::string &string) {
+    std::string asLower(const std::string &string) {
         auto result = std::string();
         for (const auto &ch: string) {
             result.push_back(std::tolower(ch));
@@ -63,7 +63,7 @@ namespace util {
         return result;
     }
 
-    bool ends_with(std::string const &fullString, std::string const &ending) {
+    bool endsWith(std::string const &fullString, std::string const &ending) {
         if (fullString.length() >= ending.length()) {
             return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
         } else {
@@ -71,11 +71,11 @@ namespace util {
         }
     }
 
-    bool starts_with(std::string const &fullString, std::string const &start) {
+    bool startsWith(std::string const &fullString, std::string const &start) {
         return fullString.rfind(start, 0) == 0;
     }
 
-    void cout_mat4(glm::mat4 mat) {/*
+    void coutMat4(glm::mat4 mat) {/*
         std::cout << "⌈" << glm::to_string(mat[0]) << "⌉\n";
         std::cout << "|" << glm::to_string(mat[1]) << "|\n";
         std::cout << "|" << glm::to_string(mat[2]) << "|\n";
@@ -109,15 +109,15 @@ namespace util {
         return result;
     }
 
-    float biggest_value(glm::vec2 vector) {
+    float biggestValue(glm::vec2 vector) {
         return std::max(vector.x, vector.y);
     }
 
-    float biggest_value(glm::vec3 vector) {
+    float biggestValue(glm::vec3 vector) {
         return std::max(std::max(vector.x, vector.y), vector.z);
     }
 
-    float biggest_value(glm::vec4 vector) {
+    float biggestValue(glm::vec4 vector) {
         return std::max(std::max(vector.x, vector.y), std::max(vector.z, vector.w));
     }
 
@@ -157,7 +157,7 @@ namespace util {
         return a / gcd(a, b) * b;//https://stackoverflow.com/a/3154503/8733066
     }
 
-    void open_default_browser(const std::string &link) {
+    void openDefaultBrowser(const std::string &link) {
 #ifdef _WIN32
         ShellExecute(nullptr, "open", link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);//todo testing
 #endif
@@ -225,15 +225,15 @@ namespace util {
         return result;
     }
 
-    float vector_sum(glm::vec2 vector) {
+    float vectorSum(glm::vec2 vector) {
         return vector.x + vector.y;
     }
 
-    float vector_sum(glm::vec3 vector) {
+    float vectorSum(glm::vec3 vector) {
         return vector.x + vector.y + vector.z;
     }
 
-    float vector_sum(glm::vec4 vector) {
+    float vectorSum(glm::vec4 vector) {
         return vector.x + vector.y + vector.z + vector.w;
     }
 

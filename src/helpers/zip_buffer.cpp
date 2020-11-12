@@ -51,10 +51,11 @@ namespace zip_buffer {
                         throw std::invalid_argument(std::string("can't open ") + sb.name + " in " + path.string());
                     }
                     std::string fileNameToSave(sb.name);
-                    if (util::starts_with(fileNameToSave, zipNameStem)) {
+                    if (util::startsWith(fileNameToSave, zipNameStem)) {
                         fileNameToSave.erase(0, zipNameStem.size()+1);//plus 1 is for slash
                     }
-                    if (util::ends_with(fileNameToSave, ".txt") || util::ends_with(fileNameToSave, ".dat") || util::ends_with(fileNameToSave, ".ldr") || util::ends_with(fileNameToSave, ".mpd")) {
+                    if (util::endsWith(fileNameToSave, ".txt") || util::endsWith(fileNameToSave, ".dat") || util::endsWith(fileNameToSave, ".ldr") ||
+                        util::endsWith(fileNameToSave, ".mpd")) {
                         std::string content;
                         content.resize(sb.size);
                         zip_fread(zFile, content.data(), sb.size);

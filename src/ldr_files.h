@@ -49,7 +49,7 @@ public:
     LdrFileType type;
     friend std::ostream &operator<<(std::ostream &os, const LdrFileMetaInfo &info);
 
-    bool add_line(const std::string& line);
+    bool addLine(const std::string& line);
 
     [[nodiscard]] const std::string & getCategory();
 private:
@@ -80,7 +80,7 @@ public:
     static LdrFile *parseFile(LdrFileType fileType, const std::filesystem::path &path, const std::string *content);
 private:
 
-    bool subfiles_preloaded_and_complexity_estimated = false;
+    bool subfilesPreloadedAndComplexityEstimated = false;
 
     void addTextLine(const std::string &line);
 
@@ -161,7 +161,7 @@ class LdrOptionalLine : public LdrFileElement {
 public:
     LdrColor *color;
 
-    double x1, y1, z1, x2, y2, z2, control_x1, control_y1, control_z1, control_x2, control_y2, control_z2;
+    double x1, y1, z1, x2, y2, z2, controlX1, controlY1, controlZ1, controlX2, controlY2, controlZ2;
 
     explicit LdrOptionalLine(std::string &line);
 

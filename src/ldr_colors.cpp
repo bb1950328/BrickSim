@@ -105,10 +105,10 @@ namespace ldr_color_repo {
     }
 
     void initialize() {
-        auto lib_path = util::extend_home_dir(config::get_string(config::LDRAW_PARTS_LIBRARY));
+        auto lib_path = util::extendHomeDir(config::getString(config::LDRAW_PARTS_LIBRARY));
         //auto input = std::ifstream(util::pathjoin({lib_path, }));
     std::stringstream inpStream;
-    const std::string *contentString = ldr_file_repo::resolve_file("LDConfig.ldr").second;
+    const std::string *contentString = ldr_file_repo::resolveFile("LDConfig.ldr").second;
     inpStream << *contentString;
         for (std::string line; getline(inpStream, line);) {
             auto trimmed = util::trim(line);

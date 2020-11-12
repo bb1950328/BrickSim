@@ -8,6 +8,8 @@
 #include <string>
 #include <filesystem>
 
-void *download_file(std::string url, const std::filesystem::path& destination, std::pair<float, long long int>* progressPercentBytes);
+namespace file_downloader {
+    void *download_file(std::string url, const std::filesystem::path &destination, std::pair<float, long long int> *progressPercentBytes);
+}
 
 #endif //BRICKSIM_FILE_DOWNLOADER_H

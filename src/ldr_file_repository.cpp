@@ -38,9 +38,9 @@ namespace ldr_file_repo {
         LdrFile *openFile(LdrFileType fileType, const std::string* content,std::string fileName) {
             LdrFile *file = LdrFile::parseFile(fileType, fileName, content);
             std::vector<std::string> fileNames = {fileName};
-            while (util::starts_with(util::trim(file->metaInfo.title), "~Moved to ")) {
+            while (util::startsWith(util::trim(file->metaInfo.title), "~Moved to ")) {
                 fileName = util::trim(file->metaInfo.title).substr(10) + ".dat";
-                auto typeNamePair = resolve_file(fileName);
+                auto typeNamePair = resolveFile(fileName);
                 file = LdrFile::parseFile(typeNamePair.first, fileName, typeNamePair.second);
                 fileNames.push_back(fileName);
             }
@@ -112,10 +112,10 @@ namespace ldr_file_repo {
         return (iterator->second.second);
     }
 
-    LdrFile *get_file(const std::string &filename) {
+    LdrFile *getFile(const std::string &filename) {
         auto iterator = files.find(filename);
         if (iterator == files.end()) {
-            auto typeNamePair = resolve_file(filename);
+            auto typeNamePair = resolveFile(filename);
             LdrFile *file = openFile(typeNamePair.first, typeNamePair.second, filename);
             unlockCachedFile(typeNamePair.second);
             return file;
@@ -123,7 +123,7 @@ namespace ldr_file_repo {
         return (iterator->second.second);
     }
 
-    LdrFileType get_file_type(const std::string &filename) {
+    LdrFileType getFileType(const std::string &filename) {
         auto iterator = files.find(filename);
         if (iterator == files.end()) {
             throw std::invalid_argument("this file is unknown!");
@@ -131,17 +131,17 @@ namespace ldr_file_repo {
         return iterator->second.first;
     }
 
-    void add_file(const std::string &filename, LdrFile *file, LdrFileType type) {
+    void addFile(const std::string &filename, LdrFile *file, LdrFileType type) {
         files[filename] = std::make_pair(type, file);
     }
 
-    void clear_cache() {
+    void clearCache() {
         files.clear();
     }
 
     bool initializeNames() {
         if (!namesInitialized) {
-            const auto &partsLibraryPath = util::extend_home_dir_path(config::get_string(config::LDRAW_PARTS_LIBRARY));//todo add some search (add .zip, remove .zip) and update config
+            const auto &partsLibraryPath = util::extendHomeDirPath(config::getString(config::LDRAW_PARTS_LIBRARY));//todo add some search (add .zip, remove .zip) and update config
             if (std::filesystem::is_regular_file(partsLibraryPath)) {
                 if (partsLibraryPath.filename().extension() != ".zip") {
                     throw std::invalid_argument(partsLibraryPath.string()+" is a file, but not a .zip! (it's a "+partsLibraryPath.filename().extension().string()+")");
@@ -151,18 +151,18 @@ namespace ldr_file_repo {
                 isZipLibrary = true;
                 zipLibrary = zip_buffer::openZipFile(partsLibraryPath);
                 for (const auto &file : zipLibrary->textFiles) {
-                    if (util::starts_with(file.first, "parts/s/")) {
+                    if (util::startsWith(file.first, "parts/s/")) {
                         auto fname = file.first.substr(6);//not 8 because "s/" should be kept
-                        subpartNames[util::as_lower(fname)] = fname;
-                    } else if (util::starts_with(file.first, "parts/")) {
+                        subpartNames[util::asLower(fname)] = fname;
+                    } else if (util::startsWith(file.first, "parts/")) {
                         auto fname = file.first.substr(6);
-                        partNames[util::as_lower(fname)] = fname;
-                    } else if (util::starts_with(file.first, "p/")) {
+                        partNames[util::asLower(fname)] = fname;
+                    } else if (util::startsWith(file.first, "p/")) {
                         auto fname = file.first.substr(2);
-                        primitiveNames[util::as_lower(fname)] = fname;
-                    } else if (util::starts_with(file.first, "models/")) {
+                        primitiveNames[util::asLower(fname)] = fname;
+                    } else if (util::startsWith(file.first, "models/")) {
                         auto fname = file.first.substr(7);
-                        modelNames[util::as_lower(fname)] = fname;
+                        modelNames[util::asLower(fname)] = fname;
                     }
                 }
 
@@ -193,25 +193,25 @@ namespace ldr_file_repo {
                         for (const auto &entry : std::filesystem::directory_iterator(partsDirectory)) {
                             if (entry.is_regular_file()) {
                                 auto fname = entry.path().filename();
-                                partNames[util::as_lower(fname.string())] = fname.string();
+                                partNames[util::asLower(fname.string())] = fname.string();
                             }
                         }
                         for (const auto &entry : std::filesystem::directory_iterator(subpartsDirectory)) {
                             if (entry.is_regular_file()) {
                                 auto fname = entry.path().filename();
-                                subpartNames[util::as_lower(std::string("s\\") + fname.string())] = fname.string();
+                                subpartNames[util::asLower(std::string("s\\") + fname.string())] = fname.string();
                             }
                         }
                         for (const auto &entry : std::filesystem::recursive_directory_iterator(primitivesDirectory)) {
                             if (entry.is_regular_file()) {
                                 const auto &fname = std::filesystem::relative(entry.path(), primitivesDirectory);
-                                primitiveNames[util::as_lower(fname.string())] = fname.string();
+                                primitiveNames[util::asLower(fname.string())] = fname.string();
                             }
                         }
                         for (const auto &entry : std::filesystem::recursive_directory_iterator(modelsDirectory)) {
                             if (entry.is_regular_file()) {
                                 const auto &fname = std::filesystem::relative(entry.path(), modelsDirectory);
-                                modelNames[util::as_lower(fname.string())] = fname.string();
+                                modelNames[util::asLower(fname.string())] = fname.string();
                         }
                     }
                     namesInitialized = true;
@@ -228,23 +228,23 @@ namespace ldr_file_repo {
         return namesInitialized;
     }
 
-    std::pair<LdrFileType, const std::string*> resolve_file(const std::string &filename) {
+    std::pair<LdrFileType, const std::string*> resolveFile(const std::string &filename) {
         initializeNames();
         if (isZipLibrary) {
             auto filenameWithForwardSlash = util::replaceChar(filename, '\\', '/');
-            auto itSubpart = subpartNames.find(util::as_lower(filenameWithForwardSlash));
+            auto itSubpart = subpartNames.find(util::asLower(filenameWithForwardSlash));
             if (itSubpart != subpartNames.end()) {
                 return std::make_pair(LdrFileType::SUBPART, zipLibrary->getFileAsString(std::string("parts/")+itSubpart->second));
             }
-            auto itPart = partNames.find(util::as_lower(filenameWithForwardSlash));
+            auto itPart = partNames.find(util::asLower(filenameWithForwardSlash));
             if (partNames.end() != itPart) {
                 return std::make_pair(LdrFileType::PART, zipLibrary->getFileAsString(std::string("parts/")+itPart->second));
             }
-            auto itPrimitive = primitiveNames.find(util::as_lower(filenameWithForwardSlash));
+            auto itPrimitive = primitiveNames.find(util::asLower(filenameWithForwardSlash));
             if (primitiveNames.end() != itPrimitive) {
                 return std::make_pair(LdrFileType::PRIMITIVE, zipLibrary->getFileAsString(std::string("p/")+itPrimitive->second));
             }
-            auto itModel = modelNames.find(util::as_lower(filenameWithForwardSlash));
+            auto itModel = modelNames.find(util::asLower(filenameWithForwardSlash));
             if (modelNames.end() != itModel) {
                 return std::make_pair(LdrFileType::MODEL, zipLibrary->getFileAsString(std::string("models/")+itModel->second));
             }
@@ -254,22 +254,22 @@ namespace ldr_file_repo {
             }
         } else {
             auto filenameWithPlatformSeparators = util::replaceChar(filename, '\\', std::filesystem::path::preferred_separator);
-            auto itSubpart = subpartNames.find(util::as_lower(filename));
+            auto itSubpart = subpartNames.find(util::asLower(filename));
             if (itSubpart != subpartNames.end()) {
                 auto fullPath = subpartsDirectory / itSubpart->second;
                 return std::make_pair(LdrFileType::SUBPART, readFileToString(fullPath));
             }
-            auto itPart = partNames.find(util::as_lower(filenameWithPlatformSeparators));
+            auto itPart = partNames.find(util::asLower(filenameWithPlatformSeparators));
             if (partNames.end() != itPart) {
                 auto fullPath = partsDirectory / itPart->second;
                 return std::make_pair(LdrFileType::PART, readFileToString(fullPath));
             }
-            auto itPrimitive = primitiveNames.find(util::as_lower(filenameWithPlatformSeparators));
+            auto itPrimitive = primitiveNames.find(util::asLower(filenameWithPlatformSeparators));
             if (primitiveNames.end() != itPrimitive) {
                 auto fullPath = primitivesDirectory / itPrimitive->second;
                 return std::make_pair(LdrFileType::PRIMITIVE, readFileToString(fullPath));
             }
-            auto itModel = modelNames.find(util::as_lower(filenameWithPlatformSeparators));
+            auto itModel = modelNames.find(util::asLower(filenameWithPlatformSeparators));
             if (modelNames.end() != itModel) {
                 auto fullPath = modelsDirectory / itModel->second;
                 return std::make_pair(LdrFileType::MODEL, readFileToString(fullPath));
@@ -278,14 +278,14 @@ namespace ldr_file_repo {
                 return std::make_pair(LdrFileType::MODEL, readFileToString(ldrawDirectory / filename));
             }
         }
-        return std::make_pair(LdrFileType::MODEL, readFileToString(util::extend_home_dir_path(filename)));
+        return std::make_pair(LdrFileType::MODEL, readFileToString(util::extendHomeDirPath(filename)));
     }
 
     void openAndReadFiles(std::map<std::string, std::string>::const_iterator start, std::map<std::string, std::string>::const_iterator end) {
         for (auto i = start; i != end; ++i) {
             auto filename = i->first;
             auto path = i->second;
-            LdrFile* file = get_file(filename);
+            LdrFile* file = getFile(filename);
             const std::string &category = file->metaInfo.getCategory();
             if (file->metaInfo.title[0] != '~') {
                 partsByCategory[category].insert(file);

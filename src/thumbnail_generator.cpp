@@ -169,8 +169,8 @@ ThumbnailGenerator::ThumbnailGenerator(Renderer *renderer) : renderer(renderer),
 }
 
 void ThumbnailGenerator::initialize() {
-    size = config::get_long(config::THUMBNAIL_SIZE);
-    maxCachedThumbnails = config::get_long(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
+    size = config::getLong(config::THUMBNAIL_SIZE);
+    maxCachedThumbnails = config::getLong(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
     projection = glm::perspective(glm::radians(50.0f), 1.0f, 0.001f, 1000.0f);
     rotationDegrees = glm::vec3(45, -45, 0);
 }

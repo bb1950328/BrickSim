@@ -21,7 +21,7 @@ namespace config {
         std::mutex doublesCacheMtx;
     }
 
-    std::string get_string(const Key& key) {
+    std::string getString(const Key& key) {
         auto it = stringsCache.find(key.name);
         if (it==stringsCache.end()) {
             std::lock_guard<std::mutex> lg(stringsCacheMtx);
@@ -32,7 +32,7 @@ namespace config {
         return it->second;
     }
 
-    long get_long(const Key& key) {
+    long getLong(const Key& key) {
         auto it = intsCache.find(key.name);
         if (it==intsCache.end()) {
             std::lock_guard<std::mutex> lg(intsCacheMtx);
@@ -43,7 +43,7 @@ namespace config {
         return it->second;
     }
 
-    double get_double(const Key& key) {
+    double getDouble(const Key& key) {
         auto it = doublesCache.find(key.name);
         if (it==doublesCache.end()) {
             std::lock_guard<std::mutex> lg(intsCacheMtx);
@@ -54,11 +54,11 @@ namespace config {
         return it->second;
     }
 
-    util::RGBcolor get_color(const Key &key) {
-        return util::RGBcolor(get_string(key));
+    util::RGBcolor getColor(const Key &key) {
+        return util::RGBcolor(getString(key));
     }
 
-    bool get_bool(const Key &key) {
+    bool getBool(const Key &key) {
         auto it = boolsCache.find(key.name);
         if (it==boolsCache.end()) {
             std::lock_guard<std::mutex> lg(boolsCacheMtx);
@@ -69,7 +69,7 @@ namespace config {
         return it->second;
     }
 
-    void set_string(const Key& key, const std::string &value) {
+    void setString(const Key& key, const std::string &value) {
         db::config::setString(key.name, value);
         {
             std::lock_guard<std::mutex> lg(stringsCacheMtx);
@@ -77,7 +77,7 @@ namespace config {
         }
     }
 
-    void set_long(const Key& key, long value) {
+    void setLong(const Key& key, long value) {
         db::config::setInt(key.name, value);
         {
             std::lock_guard<std::mutex> lg(intsCacheMtx);
@@ -85,7 +85,7 @@ namespace config {
         }
     }
 
-    void set_double(const Key& key, double value) {
+    void setDouble(const Key& key, double value) {
         db::config::setDouble(key.name, value);
         {
             std::lock_guard<std::mutex> lg(doublesCacheMtx);
@@ -93,11 +93,11 @@ namespace config {
         }
     }
 
-    void set_color(const Key &key, util::RGBcolor value) {
-        set_string(key, value.asHtmlCode());
+    void setColor(const Key &key, util::RGBcolor value) {
+        setString(key, value.asHtmlCode());
     }
 
-    void set_bool(const Key &key, bool value) {
+    void setBool(const Key &key, bool value) {
         db::config::setBool(key.name, value);
         {
             std::lock_guard<std::mutex> lg(boolsCacheMtx);
@@ -144,15 +144,15 @@ namespace config {
                 }
                 if (has_nondigit) {
                     if (value_str=="true" || value_str=="false") {
-                        set_bool(Key(key), value_str=="true");
+                        setBool(Key(key), value_str == "true");
                     } else {
-                        set_string(Key(key), value_str);
+                        setString(Key(key), value_str);
                     }
                 } else {
                     if (has_dot) {
-                        set_double(Key(key), std::stod(value_str));
+                        setDouble(Key(key), std::stod(value_str));
                     } else {
-                        set_long(Key(key), std::stol(value_str));
+                        setLong(Key(key), std::stol(value_str));
                     }
                 }
             }

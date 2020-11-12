@@ -89,7 +89,7 @@ bool Renderer::loop() {
     if (unrenderedChanges) {
         std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
         glBindFramebuffer(GL_FRAMEBUFFER, imageFramebuffer);
-        const util::RGBcolor &bgColor = util::RGBcolor(config::get_string(config::BACKGROUND_COLOR));
+        const util::RGBcolor &bgColor = util::RGBcolor(config::getString(config::BACKGROUND_COLOR));
         glClearColor(bgColor.red/255.0f, bgColor.green/255.0f, bgColor.blue/255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -199,16 +199,16 @@ bool Renderer::saveImage(const std::string& path) {
     //std::cout << result << std::endl;
 
     //todo make this work (png and bmp are split in half diagonally, jpg and tga cause crash)
-    auto path_lower = util::as_lower(path);
+    auto path_lower = util::asLower(path);
     bool success;
-    if (util::ends_with(path, ".png")) {
+    if (util::endsWith(path, ".png")) {
         success=stbi_write_png(path.c_str(), windowWidth, windowHeight, channels, pixels, windowWidth * channels)!=0;
-    } else if (util::ends_with(path, ".jpg") || util::ends_with(path, ".jpeg")) {
-        const int quality = std::min(100, std::max(5, (int)config::get_long(config::JPG_SCREENSHOT_QUALITY)));
+    } else if (util::endsWith(path, ".jpg") || util::endsWith(path, ".jpeg")) {
+        const int quality = std::min(100, std::max(5, (int) config::getLong(config::JPG_SCREENSHOT_QUALITY)));
         success = stbi_write_jpg(path.c_str(), windowWidth, windowHeight, channels, pixels, quality)!=0;
-    } else if (util::ends_with(path_lower, ".bmp")) {
+    } else if (util::endsWith(path_lower, ".bmp")) {
         success = stbi_write_bmp(path.c_str(), windowWidth, windowHeight, channels, pixels)!=0;
-    } else if (util::ends_with(path_lower, ".tga")) {
+    } else if (util::endsWith(path_lower, ".tga")) {
         success = stbi_write_tga(path.c_str(), windowWidth, windowHeight, channels, pixels)!=0;
     } else {
         success = false;

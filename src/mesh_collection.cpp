@@ -144,7 +144,7 @@ void MeshCollection::updateSelectionContainerBox() {
     if (selectionBoxMesh == nullptr) {
         selectionBoxMesh = new Mesh();
         meshes[std::make_pair(reinterpret_cast<void*>(selectionBoxMesh), false)] = selectionBoxMesh;
-        selectionBoxMesh->addLdrFile(*ldr_file_repo::get_file("box0.dat"), glm::mat4(1.0f), &ldr_color_repo::getInstanceDummyColor(), false);
+        selectionBoxMesh->addLdrFile(*ldr_file_repo::getFile("box0.dat"), glm::mat4(1.0f), &ldr_color_repo::getInstanceDummyColor(), false);
     }
     selectionBoxMesh->instances.clear();
     if (!controller::getSelectedNodes().empty()) {

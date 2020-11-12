@@ -32,7 +32,7 @@ void Gui::setup() {
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
-        auto scaleFactor = (float) (config::get_double(config::GUI_SCALE));
+        auto scaleFactor = (float) (config::getDouble(config::GUI_SCALE));
         if (xscale > 1 || yscale > 1) {
             scaleFactor = (xscale + yscale) / 2.0f;
             ImGuiStyle &style = ImGui::GetStyle();
@@ -46,7 +46,7 @@ void Gui::setup() {
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 330");
         // Setup Dear ImGui style
-        auto guiStyle = config::get_string(config::GUI_STYLE);
+        auto guiStyle = config::getString(config::GUI_STYLE);
         if (guiStyle == "light") {
             ImGui::StyleColorsLight();
         } else if (guiStyle == "classic") {
@@ -131,7 +131,7 @@ void draw_element_tree_node(etree::Node *node) {
 
 void draw_hyperlink_button(const std::string &url) {
     if (ImGui::Button(url.c_str())) {
-        util::open_default_browser(url);
+        util::openDefaultBrowser(url);
     }
 }
 
@@ -309,7 +309,7 @@ void Gui::loop() {
                     controller::getRenderer()->unrenderedChanges = true;
                 }
             }
-            auto texture3dView = (ImTextureID) (config::get_bool(config::DISPLAY_SELECTION_BUFFER)
+            auto texture3dView = (ImTextureID) (config::getBool(config::DISPLAY_SELECTION_BUFFER)
                                                 ? controller::getRenderer()->selectionTextureColorbuffer
                                                 : controller::getRenderer()->imageTextureColorbuffer);
             ImGui::ImageButton(texture3dView, wsize, ImVec2(0, 1), ImVec2(1, 0), 0);
@@ -384,9 +384,9 @@ void Gui::loop() {
                 }
                 glm::vec3 inputEulerAnglesRad = inputEulerAnglesDeg * (float) (M_PI / 180.0f);
 
-                if ((util::biggest_value(glm::abs(treePosition - inputPosition)) > 0.01)
-                    || (util::biggest_value(glm::abs(inputEulerAnglesRad - treeEulerAnglesRad)) > 0.0001)
-                    || (util::biggest_value(glm::abs(inputScalePercent / 100.0f - treeScale)) > 0.001)) {
+                if ((util::biggestValue(glm::abs(treePosition - inputPosition)) > 0.01)
+                    || (util::biggestValue(glm::abs(inputEulerAnglesRad - treeEulerAnglesRad)) > 0.0001)
+                    || (util::biggestValue(glm::abs(inputScalePercent / 100.0f - treeScale)) > 0.001)) {
                     auto newRotation = glm::eulerAngleXYZ(inputEulerAnglesRad.x, inputEulerAnglesRad.y,
                                                           inputEulerAnglesRad.z);
                     auto newTranslation = glm::translate(glm::mat4(1.0f), inputPosition);
@@ -466,7 +466,7 @@ void Gui::loop() {
                     auto partCode = partNode->ldrFile->metaInfo.name;
                     util::replaceAll(partCode, ".dat", "");
                     const auto color = partNode->getDisplayColor();
-                    const auto currencyCode = config::get_string(config::BRICKLINK_CURRENCY_CODE);
+                    const auto currencyCode = config::getString(config::BRICKLINK_CURRENCY_CODE);
                     const auto colorBricklinkName = util::translateLDrawColorNameToBricklink(color->name);
                     auto availableColors = part_color_availability_provider::getAvailableColorsForPart(partNode->ldrFile);
                     if (availableColors.has_value()) {
@@ -510,9 +510,9 @@ void Gui::loop() {
                         auto drawColoredValueText = [&windowBg](const char* text, const LdrColor* color){
                             ImGui::SameLine();
                             auto col = color->value.asGlmVector();
-                            if (util::vector_sum(glm::abs(windowBg-col))<0.3) {
+                            if (util::vectorSum(glm::abs(windowBg - col)) < 0.3) {
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(col.x, col.y, col.z, 1.0f));
-                                auto bgColor = util::vector_sum(col) > 1.5 ? ImVec4(0, 0, 0, 1) : ImVec4(1, 1, 1, 1);
+                                auto bgColor = util::vectorSum(col) > 1.5 ? ImVec4(0, 0, 0, 1) : ImVec4(1, 1, 1, 1);
                                 ImGui::PushStyleColor(ImGuiCol_Button, bgColor);
                                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, bgColor);
                                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, bgColor);
@@ -712,25 +712,25 @@ void Gui::loop() {
 
     if (showSettingsWindow) {
         ImGui::Begin("Settings", &showSettingsWindow);
-        static auto guiScale = (float) (config::get_double(config::GUI_SCALE));
+        static auto guiScale = (float) (config::getDouble(config::GUI_SCALE));
         static int initialWindowSize[2]{
-                static_cast<int>(config::get_long(config::SCREEN_WIDTH)),
-                static_cast<int>(config::get_long(config::SCREEN_HEIGHT))
+                static_cast<int>(config::getLong(config::SCREEN_WIDTH)),
+                static_cast<int>(config::getLong(config::SCREEN_HEIGHT))
         };
-        static auto ldrawDirString = config::get_string(config::LDRAW_PARTS_LIBRARY);
+        static auto ldrawDirString = config::getString(config::LDRAW_PARTS_LIBRARY);
         static auto ldrawDir = ldrawDirString.c_str();
-        static auto guiStyleString = config::get_string(config::GUI_STYLE);
+        static auto guiStyleString = config::getString(config::GUI_STYLE);
         static auto guiStyle = guiStyleString == "light" ? 0 : (guiStyleString == "classic" ? 1 : 2);
-        static int msaaSamples = (int) (config::get_long(config::MSAA_SAMPLES));
+        static int msaaSamples = (int) (config::getLong(config::MSAA_SAMPLES));
         static int msaaElem = std::log2(msaaSamples);
-        static glm::vec3 backgroundColor = config::get_color(config::BACKGROUND_COLOR).asGlmVector();
-        static glm::vec3 multiPartDocumentColor = config::get_color(config::COLOR_MULTI_PART_DOCUMENT).asGlmVector();
-        static glm::vec3 mpdSubfileColor = config::get_color(config::COLOR_MPD_SUBFILE).asGlmVector();
-        static glm::vec3 mpdSubfileInstanceColor = config::get_color(config::COLOR_MPD_SUBFILE_INSTANCE).asGlmVector();
-        static glm::vec3 officalPartColor = config::get_color(config::COLOR_OFFICAL_PART).asGlmVector();
-        static glm::vec3 unofficalPartColor = config::get_color(config::COLOR_UNOFFICAL_PART).asGlmVector();
-        static bool displaySelectionBuffer = config::get_bool(config::DISPLAY_SELECTION_BUFFER);
-        static bool showNormals = config::get_bool(config::SHOW_NORMALS);
+        static glm::vec3 backgroundColor = config::getColor(config::BACKGROUND_COLOR).asGlmVector();
+        static glm::vec3 multiPartDocumentColor = config::getColor(config::COLOR_MULTI_PART_DOCUMENT).asGlmVector();
+        static glm::vec3 mpdSubfileColor = config::getColor(config::COLOR_MPD_SUBFILE).asGlmVector();
+        static glm::vec3 mpdSubfileInstanceColor = config::getColor(config::COLOR_MPD_SUBFILE_INSTANCE).asGlmVector();
+        static glm::vec3 officalPartColor = config::getColor(config::COLOR_OFFICAL_PART).asGlmVector();
+        static glm::vec3 unofficalPartColor = config::getColor(config::COLOR_UNOFFICAL_PART).asGlmVector();
+        static bool displaySelectionBuffer = config::getBool(config::DISPLAY_SELECTION_BUFFER);
+        static bool showNormals = config::getBool(config::SHOW_NORMALS);
         if (ImGui::TreeNode("General Settings")) {
             ImGui::SliderFloat("UI Scale", &guiScale, 0.25, 8, "%.2f");
             ImGui::InputInt2("Initial Window Size", initialWindowSize);
@@ -755,27 +755,30 @@ void Gui::loop() {
         }
         static bool saveFailed = false;
         if (ImGui::Button("Save")) {
-            config::set_double(config::GUI_SCALE, guiScale);
-            config::set_long(config::SCREEN_WIDTH, initialWindowSize[0]);
-            config::set_long(config::SCREEN_HEIGHT, initialWindowSize[1]);
-            config::set_string(config::LDRAW_PARTS_LIBRARY, ldrawDir);
+            config::setDouble(config::GUI_SCALE, guiScale);
+            config::setLong(config::SCREEN_WIDTH, initialWindowSize[0]);
+            config::setLong(config::SCREEN_HEIGHT, initialWindowSize[1]);
+            config::setString(config::LDRAW_PARTS_LIBRARY, ldrawDir);
             switch (guiStyle) {
-                case 0:config::set_string(config::GUI_STYLE, "light");
+                case 0:
+                    config::setString(config::GUI_STYLE, "light");
                     break;
-                case 1:config::set_string(config::GUI_STYLE, "classic");
+                case 1:
+                    config::setString(config::GUI_STYLE, "classic");
                     break;
-                default:config::set_string(config::GUI_STYLE, "dark");
+                default:
+                    config::setString(config::GUI_STYLE, "dark");
                     break;
             }
-            config::set_long(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));
-            config::set_color(config::BACKGROUND_COLOR, util::RGBcolor(backgroundColor));
-            config::set_color(config::COLOR_MULTI_PART_DOCUMENT, util::RGBcolor(multiPartDocumentColor));
-            config::set_color(config::COLOR_MPD_SUBFILE, util::RGBcolor(mpdSubfileColor));
-            config::set_color(config::COLOR_MPD_SUBFILE_INSTANCE, util::RGBcolor(mpdSubfileInstanceColor));
-            config::set_color(config::COLOR_OFFICAL_PART, util::RGBcolor(officalPartColor));
-            config::set_color(config::COLOR_UNOFFICAL_PART, util::RGBcolor(unofficalPartColor));
-            config::set_bool(config::DISPLAY_SELECTION_BUFFER, displaySelectionBuffer);
-            config::set_bool(config::SHOW_NORMALS, showNormals);
+            config::setLong(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));
+            config::setColor(config::BACKGROUND_COLOR, util::RGBcolor(backgroundColor));
+            config::setColor(config::COLOR_MULTI_PART_DOCUMENT, util::RGBcolor(multiPartDocumentColor));
+            config::setColor(config::COLOR_MPD_SUBFILE, util::RGBcolor(mpdSubfileColor));
+            config::setColor(config::COLOR_MPD_SUBFILE_INSTANCE, util::RGBcolor(mpdSubfileInstanceColor));
+            config::setColor(config::COLOR_OFFICAL_PART, util::RGBcolor(officalPartColor));
+            config::setColor(config::COLOR_UNOFFICAL_PART, util::RGBcolor(unofficalPartColor));
+            config::setBool(config::DISPLAY_SELECTION_BUFFER, displaySelectionBuffer);
+            config::setBool(config::SHOW_NORMALS, showNormals);
         }
         ImGui::End();
     }
@@ -789,8 +792,8 @@ void Gui::loop() {
             ImGui::Separator();
             ImGui::Text("This program is open source. It's source code is available on GitHub under the following link:");
             draw_hyperlink_button("https://www.github.com/bb1950328/BrickSim");
-            ImGui::TextWrapped("It's direct contributors have spent %.1f hours for this program. The following users have contributed:", git_stats::total_hours);
-            ImGui::TextWrapped("%s", git_stats::contributor_loc);
+            ImGui::TextWrapped("It's direct contributors have spent %.1f hours for this program. The following users have contributed:", git_stats::totalHours);
+            ImGui::TextWrapped("%s", git_stats::contributorLoc);
             ImGui::Text("The numbers are the lines of code each contributer has committed. (Bigger number doesn't neccessarily mean more effort)");
             ImGui::TextWrapped("If you got this program from a source which is not listed on GitHub, please uninstall it and report is on GitHub (Create a Issue)");
             ImGui::TextWrapped("If find a bug, create a issue on GitHub where you describe the steps to reproduce as exact as possible so the developers can fix it.");
@@ -918,11 +921,11 @@ bool Gui::loopPartsLibraryInstallationScreen() {
     if (state == 'A') {
         if (ImGui::BeginPopupModal("ldraw library not found.", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {//todo this gives a segmentation fault because of some imgui id stack thing
             ImGui::Text("Currently, the path for the ldraw parts library is set to");
-            auto parts_lib_raw = config::get_string(config::LDRAW_PARTS_LIBRARY);
-            auto parts_lib_extended = util::extend_home_dir(parts_lib_raw);
+            auto parts_lib_raw = config::getString(config::LDRAW_PARTS_LIBRARY);
+            auto parts_lib_extended = util::extendHomeDir(parts_lib_raw);
             ImGui::Text("'%s'", parts_lib_raw.c_str());
             if (parts_lib_extended != parts_lib_raw) {
-                ImGui::Text("'~' is the users home directory, which currently is : '%s'", util::extend_home_dir("~").c_str());
+                ImGui::Text("'~' is the users home directory, which currently is : '%s'", util::extendHomeDir("~").c_str());
             }
             ImGui::Text(" ");
             ImGui::Text("But this directory isn't recognized as a valid ldraw parts library.");
@@ -956,7 +959,7 @@ bool Gui::loopPartsLibraryInstallationScreen() {
         }
     } else if (state == 'B') {
         ImGui::InputText("ldraw parts directory path", pathBuffer, 255);
-        ImGui::Text("'~' will be replaced with '%s' (the current home directory)", util::extend_home_dir("~").c_str());
+        ImGui::Text("'~' will be replaced with '%s' (the current home directory)", util::extendHomeDir("~").c_str());
         if (std::filesystem::exists(std::filesystem::path(pathBuffer))) {
             ImGui::TextColored(ImVec4(0, 1, 0, 1), "Good! Path exists.");
         } else {
@@ -968,7 +971,7 @@ bool Gui::loopPartsLibraryInstallationScreen() {
         ImGui::SameLine();
         if (ImGui::Button("OK")) {
             state = 'Z';
-            config::set_string(config::LDRAW_PARTS_LIBRARY, std::string(pathBuffer));
+            config::setString(config::LDRAW_PARTS_LIBRARY, std::string(pathBuffer));
         }
     } else if (state == 'D') {
         //todo implement (start thread somehow)

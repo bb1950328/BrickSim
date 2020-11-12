@@ -23,25 +23,25 @@ namespace util {
     const char PATH_SEPARATOR_FOREIGN = '\\';
 #endif
 
-    std::string extend_home_dir(const std::string &input);
-    std::filesystem::path extend_home_dir_path(const std::string &input);
+    std::string extendHomeDir(const std::string &input);
+    std::filesystem::path extendHomeDirPath(const std::string &input);
     std::string trim(const std::string& input);
     std::string pathjoin(const std::list<std::string>& parts);
-    std::string as_lower(const std::string& string);
-    bool ends_with(std::string const &fullString, std::string const &ending);
-    bool starts_with(std::string const &fullString, std::string const &start);
-    void cout_mat4(glm::mat4 mat);
+    std::string asLower(const std::string& string);
+    bool endsWith(std::string const &fullString, std::string const &ending);
+    bool startsWith(std::string const &fullString, std::string const &start);
+    void coutMat4(glm::mat4 mat);
     void replaceAll(std::string& str, const std::string& from, const std::string& to);
     std::string replaceChar(const std::string& str, char from, char to);
     unsigned long gcd(unsigned long a, unsigned long b);
     unsigned long lcm(unsigned long a, unsigned long b);
-    float biggest_value(glm::vec2 vector);
-    float biggest_value(glm::vec3 vector);
-    float biggest_value(glm::vec4 vector);
-    float vector_sum(glm::vec2 vector);
-    float vector_sum(glm::vec3 vector);
-    float vector_sum(glm::vec4 vector);
-    void open_default_browser(const std::string& link);
+    float biggestValue(glm::vec2 vector);
+    float biggestValue(glm::vec3 vector);
+    float biggestValue(glm::vec4 vector);
+    float vectorSum(glm::vec2 vector);
+    float vectorSum(glm::vec3 vector);
+    float vectorSum(glm::vec4 vector);
+    void openDefaultBrowser(const std::string& link);
     glm::vec3 triangleCentroid(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3);
     glm::vec3 quadrilateralCentroid(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec3& p4);
     bool doesTransformationInverseWindingOrder(const glm::mat4& transformation);

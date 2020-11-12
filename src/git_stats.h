@@ -3,9 +3,9 @@
 #define GIT_STATS_H
 class git_stats {
 public:
-    static const char * contributor_loc;
-    static float total_hours;
-    static unsigned int commit_count;
+    static const char * contributorLoc;
+    static float totalHours;
+    static unsigned int commitCount;
     static const char* lastCommitHash;
 };
 #endif //GIT_STATS_H

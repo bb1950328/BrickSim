@@ -10,13 +10,13 @@
 #include "ldr_files.h"
 
 namespace ldr_file_repo {
-    LdrFile *get_file(const std::string& filename);
-    LdrFile* get_file(const std::pair<LdrFileType, std::stringstream&> &resolvedPair, const std::string& filename);
-    void add_file(const std::string &filename, LdrFile *file, LdrFileType type);
-    LdrFileType get_file_type(const std::string &filename);
-    std::pair<LdrFileType, const std::string *> resolve_file(const std::string &filename);
+    LdrFile *getFile(const std::string& filename);
+    LdrFile* getFile(const std::pair<LdrFileType, std::stringstream&> &resolvedPair, const std::string& filename);
+    void addFile(const std::string &filename, LdrFile *file, LdrFileType type);
+    LdrFileType getFileType(const std::string &filename);
+    std::pair<LdrFileType, const std::string *> resolveFile(const std::string &filename);
 
-    void clear_cache();
+    void clearCache();
     bool initializeNames();
 
     std::map<std::string, std::set<LdrFile *>> getPartsGroupedByCategory();

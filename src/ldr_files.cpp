@@ -44,13 +44,13 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
         std::map<std::string, std::list<std::string>> fileLines;
         bool firstFile = true;
         for (std::string line; getline(contentStream, line);) {
-            if (util::starts_with(line, "0 FILE")) {
+            if (util::startsWith(line, "0 FILE")) {
                 if (!firstFile) {
                     currentSubFileName = util::trim(line.substr(7));
                 } else {
                     firstFile = false;
                 }
-            } else if (util::starts_with(line, "0 !DATA")) {
+            } else if (util::startsWith(line, "0 !DATA")) {
                 currentSubFileName = util::trim(line.substr(8));
             } else {
                 fileLines[currentSubFileName].push_back(line);
@@ -61,14 +61,14 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
             if (entry.first == path) {
                 currentFile = mainFile;
             } else {
-                if (util::starts_with(entry.second.front(), "0 !: ")) {
+                if (util::startsWith(entry.second.front(), "0 !: ")) {
                     //todo parse base64 data and store it somewhere
                     continue;
                 } else {
                     currentFile = new LdrFile();
                     currentFile->metaInfo.type = MPD_SUBFILE;
                     mainFile->mpdSubFiles.insert(currentFile);
-                    ldr_file_repo::add_file(entry.first, currentFile, MPD_SUBFILE);
+                    ldr_file_repo::addFile(entry.first, currentFile, MPD_SUBFILE);
                 }
             }
             unsigned long lineCount = entry.second.size();
@@ -96,18 +96,18 @@ void LdrFile::addTextLine(const std::string &line) {
             bfcState.invertNext = false;
             if (element->getType()==0) {
                 auto *metaElement = dynamic_cast<LdrCommentOrMetaElement *>(element);
-                if (metaInfo.add_line(metaElement->content)) {
+                if (metaInfo.addLine(metaElement->content)) {
                     delete element;
                     element = nullptr;
                 } else if (metaElement->content=="STEP") {
                     currentStep++;
-                } else if (util::starts_with(metaElement->content, "BFC")) {
+                } else if (util::startsWith(metaElement->content, "BFC")) {
                     std::string bfcCommand = util::trim(metaElement->content.substr(3));
-                    if (util::starts_with(bfcCommand, "CERTIFY")) {
+                    if (util::startsWith(bfcCommand, "CERTIFY")) {
                         std::string order = util::trim(bfcCommand.substr(7));
                         bfcState.windingOrder = order=="CW"?CW:CCW;
                         bfcState.active = true;
-                    } else if (util::starts_with(bfcCommand, "CLIP")) {
+                    } else if (util::startsWith(bfcCommand, "CLIP")) {
                         std::string order = util::trim(bfcCommand.substr(4));
                         if (order == "CW") {
                             bfcState.windingOrder = CW;
@@ -148,13 +148,13 @@ void LdrFile::printStructure(int indent) {
     }
 }
 void LdrFile::preLoadSubfilesAndEstimateComplexity() {
-    if (!subfiles_preloaded_and_complexity_estimated) {
+    if (!subfilesPreloadedAndComplexityEstimated) {
         preLoadSubfilesAndEstimateComplexityInternal();
     }
 }
 void LdrFile::preLoadSubfilesAndEstimateComplexityInternal(){
     referenceCount++;
-    if (!subfiles_preloaded_and_complexity_estimated) {
+    if (!subfilesPreloadedAndComplexityEstimated) {
         for (LdrFileElement *elem: elements) {
             if (elem->getType()==1) {
                 LdrFile *subFile = dynamic_cast<LdrSubfileReference *>(elem)->getFile();
@@ -168,7 +168,7 @@ void LdrFile::preLoadSubfilesAndEstimateComplexityInternal(){
                 estimatedComplexity += 3;
             }
         }
-        subfiles_preloaded_and_complexity_estimated = true;
+        subfilesPreloadedAndComplexityEstimated = true;
     }
 }
 std::string LdrFile::getDescription() const {
@@ -285,12 +285,12 @@ LdrOptionalLine::LdrOptionalLine(std::string& line) {
     pch = strtok_r(rest, " \t", &rest); x2 = atof(pch);
     pch = strtok_r(rest, " \t", &rest); y2 = atof(pch);
     pch = strtok_r(rest, " \t", &rest); z2 = atof(pch);
-    pch = strtok_r(rest, " \t", &rest); control_x1 = atof(pch);
-    pch = strtok_r(rest, " \t", &rest); control_y1 = atof(pch);
-    pch = strtok_r(rest, " \t", &rest); control_z1 = atof(pch);
-    pch = strtok_r(rest, " \t", &rest); control_x2 = atof(pch);
-    pch = strtok_r(rest, " \t", &rest); control_y2 = atof(pch);
-    pch = strtok_r(rest, " \t", &rest); control_z2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); controlX1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); controlY1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); controlZ1 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); controlX2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); controlY2 = atof(pch);
+    pch = strtok_r(rest, " \t", &rest); controlZ2 = atof(pch);
 }
 
 int LdrCommentOrMetaElement::getType() const{
@@ -302,7 +302,7 @@ int LdrSubfileReference::getType() const{
 }
 LdrFile * LdrSubfileReference::getFile() {
     if (file==nullptr) {
-        file = ldr_file_repo::get_file(filename);
+        file = ldr_file_repo::getFile(filename);
     }
     return file;
 }
@@ -327,17 +327,17 @@ int LdrOptionalLine::getType() const {
     return 5;
 }
 
-bool LdrFileMetaInfo::add_line(const std::string& line){
+bool LdrFileMetaInfo::addLine(const std::string& line){
     if (firstLine) {
         title = util::trim(line);
         firstLine = false;
-    } else if (util::starts_with(line, "Name:")) {
+    } else if (util::startsWith(line, "Name:")) {
         name = util::trim(line.substr(5));
-    } else if (util::starts_with(line, "Author:")) {
+    } else if (util::startsWith(line, "Author:")) {
         author = util::trim(line.substr(7));
-    } else if (util::starts_with(line, "!CATEGORY")) {
+    } else if (util::startsWith(line, "!CATEGORY")) {
         category = util::trim(line.substr(9));
-    } else if (util::starts_with(line, "!KEYWORDS")) {
+    } else if (util::startsWith(line, "!KEYWORDS")) {
         size_t i = 9;
         while (true) {
             size_t next = line.find(',', i);
@@ -348,11 +348,11 @@ bool LdrFileMetaInfo::add_line(const std::string& line){
             keywords.insert(util::trim(line.substr(i, next-i)));
             i = next+1;
         }
-    } else if (util::starts_with(line, "!HISTORY")) {
+    } else if (util::startsWith(line, "!HISTORY")) {
         history.push_back(util::trim(line.substr(8)));
-    } else if (util::starts_with(line, "!LICENSE")) {
+    } else if (util::startsWith(line, "!LICENSE")) {
         license = line.substr(8);
-    } else if (util::starts_with(line, "!THEME")) {
+    } else if (util::startsWith(line, "!THEME")) {
         theme = line.substr(6);
     } else {
         return false;

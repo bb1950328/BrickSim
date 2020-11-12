@@ -15,17 +15,17 @@ namespace config {
         bool operator==(const Key& other) const;
     };
     
-    [[nodiscard]] std::string get_string(const Key& key);
-    [[nodiscard]] long get_long(const Key& key);
-    [[nodiscard]] double get_double(const Key& key);
-    [[nodiscard]] util::RGBcolor get_color(const Key& key);
-    [[nodiscard]] bool get_bool(const Key& key);
+    [[nodiscard]] std::string getString(const Key& key);
+    [[nodiscard]] long getLong(const Key& key);
+    [[nodiscard]] double getDouble(const Key& key);
+    [[nodiscard]] util::RGBcolor getColor(const Key& key);
+    [[nodiscard]] bool getBool(const Key& key);
 
-    void set_string(const Key& key, const std::string &value);
-    void set_long(const Key& key, long value);
-    void set_double(const Key& key, double value);
-    void set_color(const Key& key, util::RGBcolor value);
-    void set_bool(const Key& key, bool value);
+    void setString(const Key& key, const std::string &value);
+    void setLong(const Key& key, long value);
+    void setDouble(const Key& key, double value);
+    void setColor(const Key& key, util::RGBcolor value);
+    void setBool(const Key& key, bool value);
 
     void exportToTxt();
     void importFromTxt();

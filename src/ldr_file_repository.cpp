@@ -9,6 +9,7 @@
 #include "ldr_file_repository.h"
 #include "config.h"
 #include "helpers/zip_buffer.h"
+#include "db.h"
 
 namespace ldr_file_repo {
     namespace {
@@ -24,7 +25,6 @@ namespace ldr_file_repo {
         std::map<const std::string*, bool> otherFileCacheLock;
         std::mutex otherFileCacheLockMutex;
 
-        bool namesInitialized;
         bool isZipLibrary;
 
         //key is name lowercase, value is name in original case
@@ -35,19 +35,28 @@ namespace ldr_file_repo {
 
         std::map<std::string, std::set<LdrFile *>> partsByCategory;
 
-        LdrFile *openFile(LdrFileType fileType, const std::string* content,std::string fileName) {
+        const std::string PSEUDO_CATEGORY_SUBPART = "__SUBPART";
+        const std::string PSEUDO_CATEGORY_PRIMITIVE = "__PRIMITIVE";
+        const std::string PSEUDO_CATEGORY_MODEL = "__MODEL";
+        const std::vector<std::string> PSEUDO_CATEGORIES{PSEUDO_CATEGORY_SUBPART, PSEUDO_CATEGORY_PRIMITIVE, PSEUDO_CATEGORY_MODEL};
+
+        std::pair<LdrFileType, std::string> convertLDrawDirPathToFilenameAndType(const std::string &ldrawDirPath);
+
+        LdrFile *openFile(LdrFileType fileType, const std::string* content,const std::string& fileName) {
             LdrFile *file = LdrFile::parseFile(fileType, fileName, content);
-            std::vector<std::string> fileNames = {fileName};
+            /*std::vector<std::string> fileNames = {fileName};
             while (util::startsWith(util::trim(file->metaInfo.title), "~Moved to ")) {
                 fileName = util::trim(file->metaInfo.title).substr(10) + ".dat";
-                auto typeNamePair = resolveFile(fileName);
+                auto typeNamePair = findAndReadFileContent(fileName);
                 file = LdrFile::parseFile(typeNamePair.first, fileName, typeNamePair.second);
                 fileNames.push_back(fileName);
             }
             auto filePair = std::make_pair(fileType, file);
             for (const auto &fname : fileNames) {
                 files[fname] = filePair;
-            }
+            }*///todo put that somewhere else
+
+            files[fileName] = {fileType, file};
             return file;
         }
 
@@ -100,6 +109,71 @@ namespace ldr_file_repo {
                 otherFileCache.erase(entry);
             }
         }
+
+        bool shouldFileBeSavedInList(const std::string &filename) {
+            return (util::endsWith(filename, ".dat")
+                    || util::endsWith(filename, ".ldr")
+                    || util::endsWith(filename, ".mpd"))
+                   &&
+                   (util::startsWith(filename, "parts/s/")
+                    || util::startsWith(filename, "parts/")
+                    || util::startsWith(filename, "p/")
+                    || util::startsWith(filename, "models/"));
+        }
+
+        void fillFileListFromZip() {
+            std::vector<db::fileList::Entry> entries;
+            for (const auto &file : zipLibrary->textFiles) {
+                if (shouldFileBeSavedInList(file.first)) {
+                    auto ldrFile = getFileInLdrawDirectory(file.first);
+                    entries.push_back({ldrFile->metaInfo.name, ldrFile->metaInfo.title, ldrFile->metaInfo.getCategory()});
+                }
+            }
+            db::fileList::put(entries);
+        }
+        
+        void fillFileListFromDirectory() {
+            std::vector<db::fileList::Entry> entries;
+            for (const auto &entry : std::filesystem::recursive_directory_iterator(ldrawDirectory)) {
+                auto path = util::withoutBasePath(entry.path(), ldrawDirectory).string();
+                auto pathWithForwardSlash = util::replaceChar(path, '\\', '/');
+
+                if (shouldFileBeSavedInList(pathWithForwardSlash)) {
+                    auto ldrFile = getFileInLdrawDirectory(path);
+                    auto type = convertLDrawDirPathToFilenameAndType(pathWithForwardSlash).first;
+
+                    std::string category;
+                    if (type==LdrFileType::PART) {
+                        category = ldrFile->metaInfo.getCategory();
+                    } else if (type==LdrFileType::SUBPART) {
+                        category = PSEUDO_CATEGORY_SUBPART;
+                    } else if (type==LdrFileType::PRIMITIVE) {
+                        category = PSEUDO_CATEGORY_PRIMITIVE;
+                    } else if (type==LdrFileType::MODEL) {
+                        category = PSEUDO_CATEGORY_MODEL;
+                    }
+                    entries.push_back({pathWithForwardSlash, ldrFile->metaInfo.title, category});
+                }
+            }
+            db::fileList::put(entries);
+        }
+        
+        /**
+         * @param ldrawDirPath a relative path from the ldraw directory, for example parts/3001.dat 
+         * @return the LdrFileType and the fileName like its referenced in ldr files, for example 3001.dat or s/xyz123.dat
+         */
+        std::pair<LdrFileType, std::string> convertLDrawDirPathToFilenameAndType(const std::string &ldrawDirPath) {
+            if (util::startsWith(ldrawDirPath, "parts/s/")) {
+                return {LdrFileType::SUBPART, ldrawDirPath.substr(6)};//not 8 because "s/" should be kept
+            } else if (util::startsWith(ldrawDirPath, "parts/")) {
+                return {LdrFileType::PART, ldrawDirPath.substr(6)};
+            } else if (util::startsWith(ldrawDirPath, "p/")) {
+                return {LdrFileType::PRIMITIVE, ldrawDirPath.substr(2)};
+            } else if (util::startsWith(ldrawDirPath, "models/")) {
+                return {LdrFileType::MODEL, ldrawDirPath.substr(7)};
+            }
+            return {LdrFileType::MODEL, ldrawDirPath};
+        }
     }
 
     LdrFile *get_file(const std::pair<LdrFileType, const std::string*> &resolvedPair, const std::string &filename) {
@@ -115,7 +189,7 @@ namespace ldr_file_repo {
     LdrFile *getFile(const std::string &filename) {
         auto iterator = files.find(filename);
         if (iterator == files.end()) {
-            auto typeNamePair = resolveFile(filename);
+            auto typeNamePair = findAndReadFileContent(filename);
             LdrFile *file = openFile(typeNamePair.first, typeNamePair.second, filename);
             unlockCachedFile(typeNamePair.second);
             return file;
@@ -139,192 +213,137 @@ namespace ldr_file_repo {
         files.clear();
     }
 
-    bool initializeNames() {
-        if (!namesInitialized) {
+    void initializeLdrawLibraryLocation() {
+        static auto done = false;
+        if (!done) {
             const auto &partsLibraryPath = util::extendHomeDirPath(config::getString(config::LDRAW_PARTS_LIBRARY));//todo add some search (add .zip, remove .zip) and update config
             if (std::filesystem::is_regular_file(partsLibraryPath)) {
                 if (partsLibraryPath.filename().extension() != ".zip") {
                     throw std::invalid_argument(partsLibraryPath.string()+" is a file, but not a .zip! (it's a "+partsLibraryPath.filename().extension().string()+")");
                 }
-
-                auto before = std::chrono::high_resolution_clock::now();
                 isZipLibrary = true;
                 zipLibrary = zip_buffer::openZipFile(partsLibraryPath);
-                for (const auto &file : zipLibrary->textFiles) {
-                    if (util::startsWith(file.first, "parts/s/")) {
-                        auto fname = file.first.substr(6);//not 8 because "s/" should be kept
-                        subpartNames[util::asLower(fname)] = fname;
-                    } else if (util::startsWith(file.first, "parts/")) {
-                        auto fname = file.first.substr(6);
-                        partNames[util::asLower(fname)] = fname;
-                    } else if (util::startsWith(file.first, "p/")) {
-                        auto fname = file.first.substr(2);
-                        primitiveNames[util::asLower(fname)] = fname;
-                    } else if (util::startsWith(file.first, "models/")) {
-                        auto fname = file.first.substr(7);
-                        modelNames[util::asLower(fname)] = fname;
-                    }
-                }
-
-                namesInitialized = true;
-                auto after = std::chrono::high_resolution_clock::now();
-                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
-                std::cout << "initialized name lists in " << duration/1000.0 << "ms. found:" << std::endl;
-                std::cout << "\t" << partNames.size() << " parts (first is " << partNames.begin()->second << ")" << std::endl;
-                std::cout << "\t" << subpartNames.size() << " subparts (first is " << subpartNames.begin()->second << ")" << std::endl;
-                std::cout << "\t" << primitiveNames.size() << " primitives (first is " << primitiveNames.begin()->second << ")" << std::endl;
-                std::cout << "\t" << modelNames.size() << " files (first is " << modelNames.begin()->second << ")" << std::endl;
             } else {
                 isZipLibrary = false;
                 ldrawDirectory = partsLibraryPath;
-                std::cout << "ldraw dir: " << ldrawDirectory << std::endl;
-                if (std::filesystem::exists(ldrawDirectory) && std::filesystem::is_directory(ldrawDirectory)) {
-                    auto before = std::chrono::high_resolution_clock::now();
-                    partsDirectory = ldrawDirectory / std::filesystem::path("parts");
-                    subpartsDirectory = partsDirectory / std::filesystem::path("s");
-                    primitivesDirectory = ldrawDirectory / std::filesystem::path("p");
-                    modelsDirectory = ldrawDirectory / std::filesystem::path("models");
-
-                    if (std::filesystem::exists(partsDirectory)
-                        && std::filesystem::exists(subpartsDirectory)
-                        && std::filesystem::exists(primitivesDirectory)
-                        && std::filesystem::exists(modelsDirectory)) {
-                        //todo code duplication
-                        for (const auto &entry : std::filesystem::directory_iterator(partsDirectory)) {
-                            if (entry.is_regular_file()) {
-                                auto fname = entry.path().filename();
-                                partNames[util::asLower(fname.string())] = fname.string();
-                            }
-                        }
-                        for (const auto &entry : std::filesystem::directory_iterator(subpartsDirectory)) {
-                            if (entry.is_regular_file()) {
-                                auto fname = entry.path().filename();
-                                subpartNames[util::asLower(std::string("s\\") + fname.string())] = fname.string();
-                            }
-                        }
-                        for (const auto &entry : std::filesystem::recursive_directory_iterator(primitivesDirectory)) {
-                            if (entry.is_regular_file()) {
-                                const auto &fname = std::filesystem::relative(entry.path(), primitivesDirectory);
-                                primitiveNames[util::asLower(fname.string())] = fname.string();
-                            }
-                        }
-                        for (const auto &entry : std::filesystem::recursive_directory_iterator(modelsDirectory)) {
-                            if (entry.is_regular_file()) {
-                                const auto &fname = std::filesystem::relative(entry.path(), modelsDirectory);
-                                modelNames[util::asLower(fname.string())] = fname.string();
-                        }
-                    }
-                    namesInitialized = true;
-                    auto after = std::chrono::high_resolution_clock::now();
-                    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count();
-                    std::cout << "Initialized name lists in " << duration << "ms. found:" << std::endl;
-                    std::cout << "\t" << partNames.size() << " parts in " << partsDirectory.string() << "(first is " << partNames.begin()->second << ")" << std::endl;
-                    std::cout << "\t" << subpartNames.size() << " subparts in " << subpartsDirectory.string() << "(first is " << subpartNames.begin()->second << ")" << std::endl;
-                    std::cout << "\t" << primitiveNames.size() << " primitives in " << primitivesDirectory.string() << "(first is " << primitiveNames.begin()->second << ")" << std::endl;
-                    std::cout << "\t" << modelNames.size() << " files in " << modelsDirectory.string() << "(first is " << modelNames.begin()->second << ")" << std::endl;}
-                }
             }
+            done = true;
         }
-        return namesInitialized;
     }
 
-    std::pair<LdrFileType, const std::string*> resolveFile(const std::string &filename) {
-        initializeNames();
-        if (isZipLibrary) {
-            auto filenameWithForwardSlash = util::replaceChar(filename, '\\', '/');
-            auto itSubpart = subpartNames.find(util::asLower(filenameWithForwardSlash));
-            if (itSubpart != subpartNames.end()) {
-                return std::make_pair(LdrFileType::SUBPART, zipLibrary->getFileAsString(std::string("parts/")+itSubpart->second));
+    void initializeFileList() {
+        initializeLdrawLibraryLocation();
+        static auto done = false;
+        if (!done) {
+            if (db::fileList::getSize()==0) {
+                std::cout << "starting to fill fileList" << std::endl;
+                auto before = std::chrono::high_resolution_clock::now();
+                if (isZipLibrary) {
+                    fillFileListFromZip();//todo testing
+                } else {
+                    fillFileListFromDirectory();
+                }
+                auto after = std::chrono::high_resolution_clock::now();
+                auto durationMs = std::chrono::duration_cast<std::chrono::microseconds >(after - before).count()/1000.0;
+                std::cout << "INFO: filled fileList in " << durationMs << "ms. Size: " << db::fileList::getSize() << std::endl;
             }
-            auto itPart = partNames.find(util::asLower(filenameWithForwardSlash));
-            if (partNames.end() != itPart) {
-                return std::make_pair(LdrFileType::PART, zipLibrary->getFileAsString(std::string("parts/")+itPart->second));
-            }
-            auto itPrimitive = primitiveNames.find(util::asLower(filenameWithForwardSlash));
-            if (primitiveNames.end() != itPrimitive) {
-                return std::make_pair(LdrFileType::PRIMITIVE, zipLibrary->getFileAsString(std::string("p/")+itPrimitive->second));
-            }
-            auto itModel = modelNames.find(util::asLower(filenameWithForwardSlash));
-            if (modelNames.end() != itModel) {
-                return std::make_pair(LdrFileType::MODEL, zipLibrary->getFileAsString(std::string("models/")+itModel->second));
-            }
-            auto itZip = zipLibrary->textFiles.find(filenameWithForwardSlash);
-            if (itZip != zipLibrary->textFiles.end()) {
-                return std::make_pair(LdrFileType::MODEL, zipLibrary->getFileAsString(filenameWithForwardSlash));
-            }
-        } else {
-            auto filenameWithPlatformSeparators = util::replaceChar(filename, '\\', std::filesystem::path::preferred_separator);
-            auto itSubpart = subpartNames.find(util::asLower(filename));
-            if (itSubpart != subpartNames.end()) {
-                auto fullPath = subpartsDirectory / itSubpart->second;
-                return std::make_pair(LdrFileType::SUBPART, readFileToString(fullPath));
-            }
-            auto itPart = partNames.find(util::asLower(filenameWithPlatformSeparators));
-            if (partNames.end() != itPart) {
-                auto fullPath = partsDirectory / itPart->second;
-                return std::make_pair(LdrFileType::PART, readFileToString(fullPath));
-            }
-            auto itPrimitive = primitiveNames.find(util::asLower(filenameWithPlatformSeparators));
-            if (primitiveNames.end() != itPrimitive) {
-                auto fullPath = primitivesDirectory / itPrimitive->second;
-                return std::make_pair(LdrFileType::PRIMITIVE, readFileToString(fullPath));
-            }
-            auto itModel = modelNames.find(util::asLower(filenameWithPlatformSeparators));
-            if (modelNames.end() != itModel) {
-                auto fullPath = modelsDirectory / itModel->second;
-                return std::make_pair(LdrFileType::MODEL, readFileToString(fullPath));
-            }
-            if (std::filesystem::is_regular_file(ldrawDirectory / filename)) {
-                return std::make_pair(LdrFileType::MODEL, readFileToString(ldrawDirectory / filename));
-            }
+            done = true;
         }
+    }
+
+    std::pair<LdrFileType, const std::string*> findAndReadFileContent(const std::string &filename) {
+        if (std::filesystem::path(filename).is_absolute()) {
+            return std::make_pair(LdrFileType::MODEL, readFileToString(filename));
+        }
+        
+        auto filenameWithForwardSlash = util::replaceChar(filename, '\\', '/');
+
+        auto partsFN = std::string("parts/") + filenameWithForwardSlash;
+        auto partsResult = db::fileList::containsFile(partsFN);
+        if (partsResult.has_value()) {
+            LdrFileType type;
+            type = util::startsWith(filenameWithForwardSlash, "s/") ? LdrFileType::SUBPART : LdrFileType::PART;
+            return std::make_pair(type, readFileFromLdrawDirectory(partsFN));
+        }
+
+        auto primitiveFN = std::string("p/") + filenameWithForwardSlash;
+        auto primitiveResult = db::fileList::containsFile(primitiveFN);
+        if (primitiveResult.has_value()) {
+            return std::make_pair(LdrFileType::PRIMITIVE, readFileFromLdrawDirectory(primitiveFN));
+        }
+
+        auto modelFN = std::string("models/") + filenameWithForwardSlash;
+        auto modelResult = db::fileList::containsFile(modelFN);
+        if (modelResult.has_value()) {
+            return std::make_pair(LdrFileType::MODEL, readFileFromLdrawDirectory(modelFN));
+        }
+        
         return std::make_pair(LdrFileType::MODEL, readFileToString(util::extendHomeDirPath(filename)));
     }
 
-    void openAndReadFiles(std::map<std::string, std::string>::const_iterator start, std::map<std::string, std::string>::const_iterator end) {
-        for (auto i = start; i != end; ++i) {
-            auto filename = i->first;
-            auto path = i->second;
-            LdrFile* file = getFile(filename);
-            const std::string &category = file->metaInfo.getCategory();
-            if (file->metaInfo.title[0] != '~') {
-                partsByCategory[category].insert(file);
+    std::map<std::string, std::set<LdrFile *>> getPartsGroupedByCategory() {
+        auto categories = getAllCategories();
+
+        if (categories.size() < partsByCategory.size()) {
+            for (const auto &ca : categories) {
+                if (partsByCategory.find(ca)==partsByCategory.end()) {
+                    getAllFilesOfCategory(ca);
+                }
             }
+        }
+
+        return partsByCategory;
+    }
+
+    std::set<std::string> getAllCategories() {
+        static std::set<std::string> result;
+        if (result.empty()) {
+            result = db::fileList::getAllCategories();
+            for (const auto &pseudoCategory : PSEUDO_CATEGORIES) {
+                result.erase(pseudoCategory);
+            }
+        }
+        return result;
+    }
+
+    std::set<LdrFile *> getAllFilesOfCategory(const std::string &categoryName) {
+        auto it = partsByCategory.find(categoryName);
+        if (it == partsByCategory.end()) {
+            const auto &fileNames = db::fileList::getAllFilesForCategory(categoryName);
+            std::set<LdrFile*> result;
+            for (const auto &fileName : fileNames) {
+                result.insert(getFileInLdrawDirectory(fileName));
+            }
+            partsByCategory.emplace(categoryName, result);
+            return result;
+        }
+        return it->second;
+    }
+
+    /**
+     * @param filename path relative to the ldraw directory 
+     * @return opened LdrFile
+     */
+    LdrFile *getFileInLdrawDirectory(const std::string &filename) {
+        initializeLdrawLibraryLocation();
+        auto typeNamePair = convertLDrawDirPathToFilenameAndType(filename);
+        auto it = files.find(typeNamePair.second);
+        if (it == files.end()) {
+            const auto *content = readFileFromLdrawDirectory(filename);
+            LdrFile *file = openFile(typeNamePair.first, content, typeNamePair.second);
+            unlockCachedFile(content);
+            return file;
+        } else {
+            return it->second.second;
         }
     }
 
-    std::map<std::string, std::set<LdrFile *>> getPartsGroupedByCategory() {
-        if (partsByCategory.empty()) {
-            std::cout << "started loading remaining parts" << std::endl;
-            auto before = std::chrono::high_resolution_clock::now();
-            auto numCores = std::thread::hardware_concurrency();
-            numCores = std::max(1u, numCores);
-            if (numCores == 1) {
-                openAndReadFiles(partNames.begin(), partNames.end());
-            } else {
-                unsigned long chunkSize = partNames.size() / numCores;
-                auto startIt = partNames.begin();
-                std::vector<std::thread> threads;
-                for (int i = 1; i <= numCores; ++i) {
-                    std::map<std::string, std::string>::iterator endIt;
-                    if (i != numCores) {
-                        endIt = startIt;
-                        std::advance(endIt, chunkSize);
-                    } else {
-                        endIt = partNames.end();//last one has to do a little bit more work it the number of parts is not divisible by numCores
-                    }
-                    threads.emplace_back(openAndReadFiles, startIt, endIt);
-                    startIt = endIt;
-                }
-                for (auto &t : threads) {
-                    t.join();
-                }
-            }
-            auto after = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0;
-            cleanUpFileCache();
-            std::cout << "loaded remaining parts in " << duration << "ms using " << numCores << " threads." << std::endl;
+    const std::string *readFileFromLdrawDirectory(const std::string &filename) {
+        initializeLdrawLibraryLocation();
+        if (isZipLibrary) {
+            return zipLibrary->getFileAsString(filename);
+        } else {
+            return readFileToString(ldrawDirectory / filename);
         }
-        return partsByCategory;
     }
 }

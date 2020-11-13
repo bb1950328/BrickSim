@@ -5,64 +5,117 @@
 #include <SQLiteCpp/Database.h>
 #include <vector>
 #include <iostream>
+#include <filesystem>
 #include "db.h"
 
-const std::vector<std::string> CONFIG_TABLE_CREATION_SCRIPTS = {
-        "CREATE TABLE IF NOT EXISTS strings ("
-        "key TEXT PRIMARY KEY,"
-        "value TEXT NOT NULL);"
-        "CREATE UNIQUE INDEX IF NOT EXISTS idx_strings ON strings (key);",
-
-        "CREATE TABLE IF NOT EXISTS ints ("
-        "key TEXT PRIMARY KEY,"
-        "value INTEGER NOT NULL);"
-        "CREATE UNIQUE INDEX IF NOT EXISTS idx_ints ON ints (key)",
-
-        "CREATE TABLE IF NOT EXISTS doubles ("
-        "key TEXT PRIMARY KEY,"
-        "value REAL NOT NULL);"
-        "CREATE UNIQUE INDEX IF NOT EXISTS idx_doubles ON doubles (key)",
-};
 
 namespace db {
     namespace {
         std::optional<SQLite::Database> configDb;
         std::optional<SQLite::Database> cacheDb;
+
+        const int NEWEST_CONFIG_DB_VERSION = 1;
+        const int NEWEST_CACHE_DB_VERSION = 1;
+
+        void upgradeConfigDbToVersion(int newVersion) {
+            std::cout << "INFO: Upgrading config.db3 to version " << newVersion << std::endl;
+            switch (newVersion) {
+                default: break;
+            }
+        }
+
+        void upgradeCacheDbToVersion(int newVersion) {
+            std::cout << "INFO: Upgrading cache.db3 to version " << newVersion << std::endl;
+            switch (newVersion) {
+                default: break;
+            }
+        }
     }
 
     void initialize() {
+        bool configDbNew = !std::filesystem::is_regular_file("config.db3");
+        bool cacheDbNew = !std::filesystem::is_regular_file("cache.db3");
         configDb = SQLite::Database("config.db3", SQLite::OPEN_CREATE | SQLite::OPEN_READWRITE);
         cacheDb = SQLite::Database("cache.db3", SQLite::OPEN_CREATE | SQLite::OPEN_READWRITE);
 
-        for (const auto &script : CONFIG_TABLE_CREATION_SCRIPTS) {
-            configDb.value().exec(script);
+        if (configDbNew) {
+            configDb.value().exec("CREATE TABLE strings ("
+                                  "   key TEXT PRIMARY KEY,"
+                                  "   value TEXT NOT NULL);"
+                                  "CREATE UNIQUE INDEX idx_strings ON strings (key);"
+
+                                  "CREATE TABLE ints ("
+                                  "   key TEXT PRIMARY KEY,"
+                                  "   value INTEGER NOT NULL);"
+                                  "CREATE UNIQUE INDEX idx_ints ON ints (key);"
+
+                                  "CREATE TABLE doubles ("
+                                  "   key TEXT PRIMARY KEY,"
+                                  "   value REAL NOT NULL);"
+                                  "CREATE UNIQUE INDEX idx_doubles ON doubles (key);"
+
+                                  "CREATE TABLE meta (version INTEGER);");
+
+            SQLite::Statement stmt(configDb.value(), "INSERT INTO meta (version) VALUES (?)");
+            stmt.bind(1, NEWEST_CONFIG_DB_VERSION);
+            stmt.exec();
+        }
+        while (true) {
+            SQLite::Statement stmt(configDb.value(), "SELECT version FROM meta");
+            if (stmt.executeStep()) {
+                int currentDbVersion = stmt.getColumn(0);
+                if (currentDbVersion < NEWEST_CONFIG_DB_VERSION) {
+                    upgradeConfigDbToVersion(currentDbVersion+1);
+                } else {
+                    break;
+                }
+            }
         }
 
-        cacheDb.value().exec("CREATE TABLE IF NOT EXISTS files ("
-                                "name TEXT PRIMARY KEY COLLATE NOCASE,"
-                                "title TEXT,"
-                                "category TEXT NOT NULL);"
-                                "CREATE UNIQUE INDEX IF NOT EXISTS idx_files ON files (name);"
-                                ""
-                                "CREATE TABLE IF NOT EXISTS requestCache ("
-                                "url TEXT PRIMARY KEY COLLATE NOCASE,"
-                                "response TEXT"
+        if (cacheDbNew) {
+            cacheDb.value().exec("CREATE TABLE files ("
+                                "   name TEXT PRIMARY KEY COLLATE NOCASE,"
+                                "   title TEXT,"
+                                "   category TEXT NOT NULL"
                                 ");"
-                                "CREATE UNIQUE INDEX IF NOT EXISTS idx_requestCache ON requestCache (url);"
-                                ""
-                                "CREATE TABLE IF NOT EXISTS priceGuideCache ("
-                                "partCode TEXT COLLATE NOCASE,"
-                                "currencyCode TEXT NOT NULL,"
-                                "colorName TEXT NOT NULL,"
-                                "available INTEGER,"
-                                "totalLots INTEGER NOT NULL,"
-                                "totalQty INTEGER NOT NULL,"
-                                "minPrice REAL NOT NULL,"
-                                "avgPrice REAL NOT NULL,"
-                                "qtyAvgPrice REAL NOT NULL,"
-                                "maxPrice REAL NOT NULL"
+                                "CREATE UNIQUE INDEX idx_files ON files (name);"
+
+                                "CREATE TABLE requestCache ("
+                                "   url TEXT PRIMARY KEY COLLATE NOCASE,"
+                                "   response TEXT"
                                 ");"
-                                "CREATE UNIQUE INDEX IF NOT EXISTS idx_priceGuideCache ON priceGuideCache(partCode, currencyCode, colorName);");
+                                "CREATE UNIQUE INDEX idx_requestCache ON requestCache (url);"
+
+                                "CREATE TABLE priceGuideCache ("
+                                "   partCode TEXT COLLATE NOCASE,"
+                                "   currencyCode TEXT NOT NULL,"
+                                "   colorName TEXT NOT NULL,"
+                                "   available INTEGER,"
+                                "   totalLots INTEGER NOT NULL,"
+                                "   totalQty INTEGER NOT NULL,"
+                                "   minPrice REAL NOT NULL,"
+                                "   avgPrice REAL NOT NULL,"
+                                "   qtyAvgPrice REAL NOT NULL,"
+                                "   maxPrice REAL NOT NULL"
+                                ");"
+                                "CREATE UNIQUE INDEX idx_priceGuideCache ON priceGuideCache(partCode, currencyCode, colorName);"
+
+                                "CREATE TABLE meta (version INTEGER)");
+            SQLite::Statement stmt(cacheDb.value(), "INSERT INTO meta (version) VALUES (?)");
+            stmt.bind(1, NEWEST_CACHE_DB_VERSION);
+            stmt.exec();
+        }
+        while (true) {
+            SQLite::Statement stmt(cacheDb.value(), "SELECT version FROM meta");
+            if (stmt.executeStep()) {
+                int currentDbVersion = stmt.getColumn(0);
+                if (currentDbVersion < NEWEST_CACHE_DB_VERSION) {
+                    upgradeCacheDbToVersion(currentDbVersion+1);
+                } else {
+                    break;
+                }
+            }
+        }
     }
 
     namespace requestCache {
@@ -183,5 +236,92 @@ namespace db {
             query.bind(2, value);
             query.exec();
         }
+    }
+
+    int fileList::getSize() {
+        SQLite::Statement stmt(cacheDb.value(), "SELECT COUNT(*) FROM files;");
+        if (stmt.executeStep()) {
+            return stmt.getColumn(0);
+        }
+        return -1;
+    }
+
+    void fileList::put(const std::string &name, const std::string &title, const std::string &category) {
+        SQLite::Statement stmt(cacheDb.value(), "INSERT INTO files (name, title, category) VALUES (?, ?, ?);");
+        stmt.bind(1, name);
+        stmt.bind(2, title);
+        stmt.bind(3, category);
+        stmt.exec();
+    }
+
+    std::set<std::string> fileList::getAllCategories() {
+        SQLite::Statement stmt(cacheDb.value(), "SELECT DISTINCT category FROM files;");
+        std::set<std::string> result;
+        while (stmt.executeStep()) {
+            result.insert(stmt.getColumn(0));
+        }
+        return result;
+    }
+
+    std::set<std::string> fileList::getAllFiles() {
+        SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files;");
+        std::set<std::string> result;
+        while (stmt.executeStep()) {
+            result.insert(stmt.getColumn(0));
+        }
+        return result;
+    }
+
+    std::set<std::string> fileList::getAllFilesForCategory(const std::string &category) {
+        SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files WHERE category=?;");
+        stmt.bind(1, category);
+        std::set<std::string> result;
+        while (stmt.executeStep()) {
+            result.insert(stmt.getColumn(0));
+        }
+        return result;
+    }
+
+    std::optional<std::string> fileList::containsFile(const std::string &name) {
+        SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files WHERE name=?;");
+        stmt.bind(1, name);
+        if (stmt.executeStep()) {
+            return stmt.getColumn(0);
+        } else {
+            return {};
+        }
+    }
+
+    void escapeSqlStringLiterals(std::string& str) {
+        auto it = str.find('\'');
+        while (it != std::string::npos) {
+            str.insert(it, 1, '\'');
+            it = str.find('\'', it+2);//it+1 is the one we just inserted
+        }
+    }
+
+    void fileList::put(const std::vector<Entry> &entries) {
+        std::string command = "INSERT INTO files (name, title, category) VALUES ";
+        std::string name, title, category;
+        for (const auto &entry : entries) {
+            name = entry.name;
+            title = entry.title;
+            category = entry.category;
+            escapeSqlStringLiterals(name);
+            escapeSqlStringLiterals(title);
+            escapeSqlStringLiterals(category);
+            command += "('";
+            command += name;
+            command += "','";
+            command += title;
+            command += "','";
+            command += category;
+            command += "'),";
+        }
+        command.pop_back();//last comma
+        command.push_back(';');
+        std::cout << command << std::endl;
+        SQLite::Statement stmt(cacheDb.value(), command);
+        stmt.exec();
     }
 }

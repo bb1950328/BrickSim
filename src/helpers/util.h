@@ -84,5 +84,6 @@ namespace util {
     std::string translateBrickLinkColorNameToLDraw(std::string colorName);
     std::string translateLDrawColorNameToBricklink(std::string colorName);
     bool equalsAlphanum(std::string a, std::string b);
+    std::filesystem::path withoutBasePath(const std::filesystem::path& path, const std::filesystem::path& basePath);
 }
 #endif //BRICKSIM_UTIL_H

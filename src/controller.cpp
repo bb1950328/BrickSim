@@ -103,7 +103,7 @@ namespace controller {
         gui.setup();
         bool partsLibraryFound = false;
         while (!partsLibraryFound && !doesUserWantToExit()) {
-            partsLibraryFound = ldr_file_repo::initializeNames();
+            partsLibraryFound = true;//todo check if parts library found (method in ldr_file_repo::)
             while (!partsLibraryFound && !doesUserWantToExit()) {
                 bool installFinished = gui.loopPartsLibraryInstallationScreen();
                 glfwSwapBuffers(window);
@@ -129,6 +129,7 @@ namespace controller {
         renderer.setWindowSize(view3dWidth, view3dHeight);
         renderer.setup();
         ldr_color_repo::initialize();
+        ldr_file_repo::initializeFileList();
         price_guide_provider::initialize();
         thumbnailGenerator.initialize();
 

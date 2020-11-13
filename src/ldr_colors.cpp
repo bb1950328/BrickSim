@@ -105,24 +105,28 @@ namespace ldr_color_repo {
     }
 
     void initialize() {
-        auto lib_path = util::extendHomeDir(config::getString(config::LDRAW_PARTS_LIBRARY));
-        //auto input = std::ifstream(util::pathjoin({lib_path, }));
-    std::stringstream inpStream;
-    const std::string *contentString = ldr_file_repo::resolveFile("LDConfig.ldr").second;
-    inpStream << *contentString;
-        for (std::string line; getline(inpStream, line);) {
-            auto trimmed = util::trim(line);
-            if (!trimmed.empty() && trimmed.rfind("0 !COLOUR", 0) == 0) {
-                LdrColor col(line.substr(10));
-                colors[col.code] = col;
-                hueSortedCodes.push_back(col.code);
+        static bool initialized = false;
+        if (!initialized) {
+            //auto lib_path = util::extendHomeDir(config::getString(config::LDRAW_PARTS_LIBRARY));
+            //auto input = std::ifstream(util::pathjoin({lib_path, }));
+            std::stringstream inpStream;
+            const std::string *contentString = ldr_file_repo::readFileFromLdrawDirectory("LDConfig.ldr");
+            inpStream << *contentString;
+            for (std::string line; getline(inpStream, line);) {
+                auto trimmed = util::trim(line);
+                if (!trimmed.empty() && trimmed.rfind("0 !COLOUR", 0) == 0) {
+                    LdrColor col(line.substr(10));
+                    colors[col.code] = col;
+                    hueSortedCodes.push_back(col.code);
+                }
             }
+            colors[getInstanceDummyColor().code] = getInstanceDummyColor();
+            std::sort(hueSortedCodes.begin(), hueSortedCodes.end(),
+                      [](const int &a, const int &b) {
+                          return util::HSVcolor(get_color(a)->value).hue < util::HSVcolor(get_color(b)->value).hue;
+                      });
+            initialized = true;
         }
-        colors[getInstanceDummyColor().code] = getInstanceDummyColor();
-        std::sort(hueSortedCodes.begin(), hueSortedCodes.end(),
-                  [](const int &a, const int &b) {
-                      return util::HSVcolor(get_color(a)->value).hue < util::HSVcolor(get_color(b)->value).hue;
-                  });
     }
 
     std::map<std::string, std::vector<const LdrColor *>> getAllColorsGroupedAndSortedByHue() {

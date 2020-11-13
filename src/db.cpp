@@ -30,6 +30,14 @@ namespace db {
                 default: break;
             }
         }
+
+        void escapeSqlStringLiterals(std::string& str) {
+            auto it = str.find('\'');
+            while (it != std::string::npos) {
+                str.insert(it, 1, '\'');
+                it = str.find('\'', it+2);//it+1 is the one we just inserted
+            }
+        }
     }
 
     void initialize() {
@@ -238,90 +246,85 @@ namespace db {
         }
     }
 
-    int fileList::getSize() {
-        SQLite::Statement stmt(cacheDb.value(), "SELECT COUNT(*) FROM files;");
-        if (stmt.executeStep()) {
-            return stmt.getColumn(0);
-        }
-        return -1;
-    }
+    namespace fileList {
 
-    void fileList::put(const std::string &name, const std::string &title, const std::string &category) {
-        SQLite::Statement stmt(cacheDb.value(), "INSERT INTO files (name, title, category) VALUES (?, ?, ?);");
-        stmt.bind(1, name);
-        stmt.bind(2, title);
-        stmt.bind(3, category);
-        stmt.exec();
-    }
-
-    std::set<std::string> fileList::getAllCategories() {
-        SQLite::Statement stmt(cacheDb.value(), "SELECT DISTINCT category FROM files;");
-        std::set<std::string> result;
-        while (stmt.executeStep()) {
-            result.insert(stmt.getColumn(0));
+        int getSize() {
+            SQLite::Statement stmt(cacheDb.value(), "SELECT COUNT(*) FROM files;");
+            if (stmt.executeStep()) {
+                return stmt.getColumn(0);
+            }
+            return -1;
         }
-        return result;
-    }
 
-    std::set<std::string> fileList::getAllFiles() {
-        SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files;");
-        std::set<std::string> result;
-        while (stmt.executeStep()) {
-            result.insert(stmt.getColumn(0));
+        void put(const std::string &name, const std::string &title, const std::string &category) {
+            SQLite::Statement stmt(cacheDb.value(), "INSERT INTO files (name, title, category) VALUES (?, ?, ?);");
+            stmt.bind(1, name);
+            stmt.bind(2, title);
+            stmt.bind(3, category);
+            stmt.exec();
         }
-        return result;
-    }
 
-    std::set<std::string> fileList::getAllFilesForCategory(const std::string &category) {
-        SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files WHERE category=?;");
-        stmt.bind(1, category);
-        std::set<std::string> result;
-        while (stmt.executeStep()) {
-            result.insert(stmt.getColumn(0));
+        std::set<std::string> getAllCategories() {
+            SQLite::Statement stmt(cacheDb.value(), "SELECT DISTINCT category FROM files;");
+            std::set<std::string> result;
+            while (stmt.executeStep()) {
+                result.insert(stmt.getColumn(0));
+            }
+            return result;
         }
-        return result;
-    }
 
-    std::optional<std::string> fileList::containsFile(const std::string &name) {
-        SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files WHERE name=?;");
-        stmt.bind(1, name);
-        if (stmt.executeStep()) {
-            return stmt.getColumn(0);
-        } else {
-            return {};
+        std::set<std::string> getAllFiles() {
+            SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files;");
+            std::set<std::string> result;
+            while (stmt.executeStep()) {
+                result.insert(stmt.getColumn(0));
+            }
+            return result;
         }
-    }
 
-    void escapeSqlStringLiterals(std::string& str) {
-        auto it = str.find('\'');
-        while (it != std::string::npos) {
-            str.insert(it, 1, '\'');
-            it = str.find('\'', it+2);//it+1 is the one we just inserted
+        std::set<std::string> getAllFilesForCategory(const std::string &category) {
+            SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files WHERE category=?;");
+            stmt.bind(1, category);
+            std::set<std::string> result;
+            while (stmt.executeStep()) {
+                result.insert(stmt.getColumn(0));
+            }
+            return result;
         }
-    }
 
-    void fileList::put(const std::vector<Entry> &entries) {
-        std::string command = "INSERT INTO files (name, title, category) VALUES ";
-        std::string name, title, category;
-        for (const auto &entry : entries) {
-            name = entry.name;
-            title = entry.title;
-            category = entry.category;
-            escapeSqlStringLiterals(name);
-            escapeSqlStringLiterals(title);
-            escapeSqlStringLiterals(category);
-            command += "('";
-            command += name;
-            command += "','";
-            command += title;
-            command += "','";
-            command += category;
-            command += "'),";
+        std::optional<std::string> containsFile(const std::string &name) {
+            SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files WHERE name=?;");
+            stmt.bind(1, name);
+            if (stmt.executeStep()) {
+                return stmt.getColumn(0);
+            } else {
+                return {};
+            }
         }
-        command.pop_back();//last comma
-        command.push_back(';');
-        std::cout << command << std::endl;
-        SQLite::Statement stmt(cacheDb.value(), command);
-        stmt.exec();
+
+        void put(const std::vector<Entry> &entries) {
+            std::string command = "INSERT INTO files (name, title, category) VALUES ";
+            std::string name, title, category;
+            for (const auto &entry : entries) {
+                name = entry.name;
+                title = entry.title;
+                category = entry.category;
+                escapeSqlStringLiterals(name);
+                escapeSqlStringLiterals(title);
+                escapeSqlStringLiterals(category);
+                command += "('";
+                command += name;
+                command += "','";
+                command += title;
+                command += "','";
+                command += category;
+                command += "'),";
+            }
+            command.pop_back();//last comma
+            command.push_back(';');
+            std::cout << command << std::endl;
+            SQLite::Statement stmt(cacheDb.value(), command);
+            stmt.exec();
+        }
     }
 }

@@ -42,9 +42,9 @@ namespace ldr_file_repo {
 
         std::pair<LdrFileType, std::string> convertLDrawDirPathToFilenameAndType(const std::string &ldrawDirPath);
 
-        LdrFile *openFile(LdrFileType fileType, const std::string* content,std::string fileName) {
+        LdrFile *openFile(LdrFileType fileType, const std::string* content,const std::string& fileName) {
             LdrFile *file = LdrFile::parseFile(fileType, fileName, content);
-            std::vector<std::string> fileNames = {fileName};
+            /*std::vector<std::string> fileNames = {fileName};
             while (util::startsWith(util::trim(file->metaInfo.title), "~Moved to ")) {
                 fileName = util::trim(file->metaInfo.title).substr(10) + ".dat";
                 auto typeNamePair = findAndReadFileContent(fileName);
@@ -54,7 +54,9 @@ namespace ldr_file_repo {
             auto filePair = std::make_pair(fileType, file);
             for (const auto &fname : fileNames) {
                 files[fname] = filePair;
-            }
+            }*///todo put that somewhere else
+
+            files[fileName] = {fileType, file};
             return file;
         }
 

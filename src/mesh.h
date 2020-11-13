@@ -43,7 +43,7 @@ struct TriangleInstance {
 };
 
 struct MeshInstance {
-    LdrColor * color;
+    const LdrColor * color;
     glm::mat4 transformation;
     unsigned int elementId;
     bool selected;
@@ -53,8 +53,8 @@ struct MeshInstance {
 
 class Mesh {
 public:
-    std::map<LdrColor *, std::vector<TriangleVertex> *> triangleVertices;
-    std::map<LdrColor *, std::vector<unsigned int> *> triangleIndices;
+    std::map<const LdrColor *, std::vector<TriangleVertex> *> triangleVertices;
+    std::map<const LdrColor *, std::vector<unsigned int> *> triangleIndices;
 
     std::vector<LineVertex> lineVertices;
     std::vector<unsigned int> lineIndices;
@@ -62,7 +62,7 @@ public:
     std::vector<LineVertex> optionalLineVertices;
     std::vector<unsigned int> optionalLineIndices;
 
-    std::map<LdrColor *, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
+    std::map<const LdrColor *, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
 
     std::vector<MeshInstance> instances;
     bool instancesHaveChanged = false;
@@ -71,15 +71,15 @@ public:
 
     Mesh()=default;
 
-    void addLdrFile(const LdrFile &file, glm::mat4 transformation, LdrColor *mainColor, bool bfcInverted);
-    void addLdrSubfileReference(LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation, bool bfcInverted);
-    void addLdrLine(LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation);
-    void addLdrTriangle(LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted);
-    void addLdrQuadrilateral(LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted);
-    void addLdrOptionalLine(LdrColor *mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation);
+    void addLdrFile(const LdrFile &file, glm::mat4 transformation, const LdrColor *mainColor, bool bfcInverted);
+    void addLdrSubfileReference(const LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation, bool bfcInverted);
+    void addLdrLine(const LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation);
+    void addLdrTriangle(const LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted);
+    void addLdrQuadrilateral(const LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted);
+    void addLdrOptionalLine(const LdrColor *mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation);
 
-    std::vector<unsigned int> *getIndicesList(LdrColor *color);
-    std::vector<TriangleVertex> *getVerticesList(LdrColor *color);
+    std::vector<unsigned int> *getIndicesList(const LdrColor *color);
+    std::vector<TriangleVertex> *getVerticesList(const LdrColor *color);
 
     void writeGraphicsData();
 

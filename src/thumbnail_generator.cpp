@@ -13,12 +13,13 @@
 #include "ldr_colors.h"
 #include "controller.h"
 
-unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
+unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile, const LdrColor *color) {
     if (renderedRotationDegrees != rotationDegrees) {
         discardAllImages();
         renderedRotationDegrees = rotationDegrees;
     }
-    auto imgIt = images.find(ldrFile);
+    std::pair<const LdrFile*, const LdrColor*> fileKey = {ldrFile, color}; 
+    auto imgIt = images.find(fileKey);
     if (imgIt == images.end()) {
         if (framebufferSize != size) {
             renderer->createFramebuffer(&framebuffer, &textureBuffer, &renderBuffer, size, size);
@@ -35,8 +36,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
             mesh = new Mesh();
             meshCollection->meshes[meshKey] = mesh;
             mesh->name = ldrFile->getDescription();
-            //todo make color customizable
-            mesh->addLdrFile(*ldrFile, glm::mat4(1.0f), ldr_color_repo::get_color(1), false);
+            mesh->addLdrFile(*ldrFile, glm::mat4(1.0f), &ldr_color_repo::getInstanceDummyColor(), false);
         }
 
         const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
@@ -44,7 +44,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
         auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL;
 
         MeshInstance tmpInstance{
-                ldr_color_repo::get_color(1),
+                color,
                 glm::mat4(1.0f),
                 0
         };
@@ -98,7 +98,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
-            images[ldrFile] = textureId;
+            images[fileKey] = textureId;
             mesh->instances = instanceBackup;
             mesh->instancesHaveChanged = true;
             mesh->writeGraphicsData();
@@ -106,9 +106,9 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile) {
             glViewport(0, 0, renderer->windowWidth, renderer->windowHeight);
         }
     }
-    lastAccessed.remove(ldrFile);
-    lastAccessed.push_back(ldrFile);
-    return images[ldrFile];
+    lastAccessed.remove(fileKey);
+    lastAccessed.push_back(fileKey);
+    return images[fileKey];
 }
 
 void ThumbnailGenerator::saveFramebufferToBMP(const std::string &filename) const {
@@ -155,14 +155,17 @@ void ThumbnailGenerator::cleanup() {
     Renderer::deleteFramebuffer(&framebuffer, &textureBuffer, &renderBuffer);
 }
 
-std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const LdrFile *ldrFile) {
+std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const LdrFile *ldrFile, const LdrColor *color) {
     if (renderedRotationDegrees != rotationDegrees) {
         discardAllImages();
         renderedRotationDegrees = rotationDegrees;
     }
-    auto imgIt = images.find(ldrFile);
+    std::pair<const LdrFile*, const LdrColor*> fileKey = {ldrFile, color};
+    auto imgIt = images.find(fileKey);
     if (imgIt == images.end()) {
-        renderRequests.push(ldrFile);
+        if (std::find(renderRequests.begin(), renderRequests.end(), fileKey)==renderRequests.end()) {
+            renderRequests.push_back(fileKey);
+        }
         return {};
     } else {
         return imgIt->second;
@@ -171,8 +174,9 @@ std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const Ld
 
 bool ThumbnailGenerator::workOnRenderQueue() {
     if (!renderRequests.empty()) {
-        getThumbnail(renderRequests.front());
-        renderRequests.pop();
+        const std::pair<const LdrFile *, const LdrColor *> &request = renderRequests.front();
+        getThumbnail(request.first, request.second);
+        renderRequests.pop_front();
     }
     return !renderRequests.empty();
 }

@@ -21,7 +21,11 @@
 #include <glm/gtx/string_cast.hpp>
 #include <atomic>
 
-void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, LdrFile *const &part);
+void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, LdrFile *const &part, LdrColor *color);
+
+ImVec4 getWhiteOrBlackBetterContrast(const glm::vec3& col) {
+    return util::vectorSum(col) > 1.5 ? ImVec4(0, 0, 0, 1) : ImVec4(1, 1, 1, 1);
+}
 
 void Gui::setup() {
     if (!setupDone) {
@@ -512,7 +516,7 @@ void Gui::loop() {
                             auto col = color->value.asGlmVector();
                             if (util::vectorSum(glm::abs(windowBg - col)) < 0.3) {
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(col.x, col.y, col.z, 1.0f));
-                                auto bgColor = util::vectorSum(col) > 1.5 ? ImVec4(0, 0, 0, 1) : ImVec4(1, 1, 1, 1);
+                                auto bgColor = getWhiteOrBlackBetterContrast(col);
                                 ImGui::PushStyleColor(ImGuiCol_Button, bgColor);
                                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, bgColor);
                                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, bgColor);
@@ -610,7 +614,63 @@ void Gui::loop() {
         ImGui::InputText("##search", searchTextBuffer, 128);
         ImGui::SameLine();
         static int thumbnailZoomPercent = 100;//todo get from config
-        ImGui::DragInt("Zoom", &thumbnailZoomPercent, 10, 10, 500, "%d%%");
+        ImGui::SetNextItemWidth(ImGui::GetFontSize()*8);
+        ImGui::DragInt("##Zoom", &thumbnailZoomPercent, 5, 10, 500, " Zoom: %d%%");
+        static LdrColor* color = ldr_color_repo::get_color(1);//todo save in config
+        const glm::vec3 &col = color->value.asGlmVector();
+        const ImVec4 &txtColor = getWhiteOrBlackBetterContrast(col);
+        ImGui::PushStyleColor(ImGuiCol_Text, txtColor);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(col.x, col.y, col.z, 1));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(col.x, col.y, col.z, .8));
+
+        static LdrColor* colorChosenInPopup;
+        ImGui::SameLine();
+        if (ImGui::Button(color->name.c_str())) {
+            colorChosenInPopup = color;
+            ImGui::OpenPopup("Part Palette Color");
+        }
+        ImGui::PopStyleColor(3);
+        ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        if (ImGui::BeginPopupModal("Part Palette Color", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            const auto buttonWidth = ImGui::GetFontSize() * 1.5f;
+            const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
+            const int columnCount = 20;
+
+            for (const auto &colorGroup: ldr_color_repo::getAllColorsGroupedAndSortedByHue()) {
+                if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+                    int i = 0;
+                    for (const auto *currentColor : colorGroup.second) {
+                        if (i % columnCount > 0) {
+                            ImGui::SameLine();
+                        }
+                        ImGui::PushID(currentColor->code);
+                        const ImColor imColor = ImColor(currentColor->value.red, currentColor->value.green, currentColor->value.blue);
+                        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4) imColor);
+                        if (ImGui::Button(colorChosenInPopup->code == currentColor->code ? "#" : "", buttonSize)) {
+                            colorChosenInPopup = ldr_color_repo::get_color(currentColor->code);
+                        }
+                        ImGui::PopStyleColor(/*3*/1);
+                        ImGui::PopID();
+                        if (ImGui::IsItemHovered()) {
+                            ImGui::BeginTooltip();
+                            ImGui::Text("%s", currentColor->name.c_str());
+                            ImGui::EndTooltip();
+                        }
+                        ++i;
+                    }
+                    ImGui::TreePop();
+                }
+            }
+            if (ImGui::Button("Cancel")) {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Apply")) {
+                color = colorChosenInPopup;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
 
         static float categorySelectWidth = 250;//todo save
         const auto totalWidth = ImGui::GetContentRegionAvailWidth();
@@ -665,7 +725,7 @@ void Gui::loop() {
             for (const auto &category : selectedCategories) {
                 ImGui::Text("%s", category.c_str());
                 for (const auto &part : ldr_file_repo::getAllFilesOfCategory(category)) {
-                    drawPartThumbnail(actualThumbSizeSquared, part);
+                    drawPartThumbnail(actualThumbSizeSquared, part, color);
                     currentCol++;
                     if (currentCol == columns) {
                         currentCol = 0;
@@ -680,7 +740,7 @@ void Gui::loop() {
             }
         } else if (selectedCategories.size() == 1) {
             for (const auto &part : ldr_file_repo::getAllFilesOfCategory(*selectedCategories.begin())) {
-                drawPartThumbnail(actualThumbSizeSquared, part);
+                drawPartThumbnail(actualThumbSizeSquared, part, color);
                 currentCol++;
                 if (currentCol == columns) {
                     currentCol = 0;
@@ -692,7 +752,7 @@ void Gui::loop() {
             for (const auto &category : ldr_file_repo::getPartsGroupedByCategory()) {
                 ImGui::Text("%s", category.first.c_str());
                 for (const auto &part : category.second) {
-                    drawPartThumbnail(actualThumbSizeSquared, part);
+                    drawPartThumbnail(actualThumbSizeSquared, part, color);
                     currentCol++;
                     if (currentCol == columns) {
                         currentCol = 0;
@@ -869,10 +929,10 @@ void Gui::loop() {
     lastScrollDeltaY = 0.0f;
 }
 
-void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, LdrFile *const &part) {
+void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, LdrFile *const &part, LdrColor *color) {
     bool realThumbnailAvailable = false;
     if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
-        auto optTexId = controller::getThumbnailGenerator().getThumbnailNonBlocking(part);
+        auto optTexId = controller::getThumbnailGenerator().getThumbnailNonBlocking(part, color);
         if (optTexId.has_value()) {
             auto texId = (ImTextureID) (optTexId.value());
             ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);

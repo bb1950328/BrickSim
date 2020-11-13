@@ -69,7 +69,7 @@ public:
 
     void elementTreeChanged();
 
-    bool saveImage(const std::string& path);
+    bool saveImage(const std::string& path) const;
 
     void createFramebuffer(unsigned int* framebufferIdLocation,
                            unsigned int* textureColorbufferIdLocation,

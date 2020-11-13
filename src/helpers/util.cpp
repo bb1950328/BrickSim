@@ -10,6 +10,8 @@
 #include <glm/gtx/string_cast.hpp>
 #include "util.h"
 #include "../git_stats.h"
+#include "../config.h"
+#include "../lib/stb_image_write.h"
 
 #ifdef _WIN32
 
@@ -437,5 +439,22 @@ namespace util {
             result.erase(0, 1);
         }
         return result;
+    }
+
+    bool writeImage(const char *path, unsigned char* pixels, unsigned int width, unsigned int height, int channels) {
+        auto path_lower = util::asLower(path);
+        stbi_flip_vertically_on_write(true);
+        if (util::endsWith(path_lower, ".png")) {
+            return stbi_write_png(path, width, height, channels, pixels, width * channels)!=0;
+        } else if (util::endsWith(path_lower, ".jpg") || util::endsWith(path, ".jpeg")) {
+            const int quality = std::min(100, std::max(5, (int) config::getInt(config::JPG_SCREENSHOT_QUALITY)));
+            return stbi_write_jpg(path, width, height, channels, pixels, quality)!=0;
+        } else if (util::endsWith(path_lower, ".bmp")) {
+            return stbi_write_bmp(path, width, height, channels, pixels)!=0;
+        } else if (util::endsWith(path_lower, ".tga")) {
+            return stbi_write_tga(path, width, height, channels, pixels)!=0;
+        } else {
+            return false;
+        }
     }
 }

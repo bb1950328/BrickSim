@@ -156,10 +156,10 @@ namespace controller {
             renderer.loop();
             gui.loop();
             thumbnailGenerator.discardOldestImages(0);
-            bool moreWork = true;
-            while (glfwGetTime() - loopStart < 1.0 / 60 && moreWork) {
+            bool moreWork;
+            do {
                 moreWork = thumbnailGenerator.workOnRenderQueue();
-            }
+            } while (glfwGetTime() - loopStart < 1.0 / 60 && moreWork);
             auto after = std::chrono::high_resolution_clock::now();
             lastFrameTime = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
             glfwSwapBuffers(window);

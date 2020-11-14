@@ -23,7 +23,7 @@ namespace ldr_file_repo {
     void initializeFileList();
     void initializeLdrawLibraryLocation();
 
-    std::map<std::string, std::set<LdrFile *>> getPartsGroupedByCategory();
+    std::map<std::string, std::set<LdrFile *>>& getPartsGroupedByCategory();
     std::set<std::string> getAllCategories();
     std::set<LdrFile*> getAllFilesOfCategory(const std::string& categoryName);
 };

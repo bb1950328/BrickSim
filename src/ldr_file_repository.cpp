@@ -281,10 +281,10 @@ namespace ldr_file_repo {
         return std::make_pair(LdrFileType::MODEL, readFileToString(util::extendHomeDirPath(filename)));
     }
 
-    std::map<std::string, std::set<LdrFile *>> getPartsGroupedByCategory() {
+    std::map<std::string, std::set<LdrFile *>>& getPartsGroupedByCategory() {
         auto categories = getAllCategories();
 
-        if (categories.size() < partsByCategory.size()) {
+        if (categories.size() > partsByCategory.size()) {
             for (const auto &ca : categories) {
                 if (partsByCategory.find(ca)==partsByCategory.end()) {
                     getAllFilesOfCategory(ca);

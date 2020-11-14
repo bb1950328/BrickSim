@@ -77,6 +77,8 @@ namespace db {
                 } else {
                     break;
                 }
+            } else {
+                throw std::invalid_argument("config.meta table should have exactly one record!");
             }
         }
 
@@ -122,6 +124,8 @@ namespace db {
                 } else {
                     break;
                 }
+            } else {
+                throw std::invalid_argument("cache.meta table should have exactly one record!");
             }
         }
     }

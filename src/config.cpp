@@ -20,21 +20,41 @@ namespace config {
         std::mutex intsCacheMtx;
         std::mutex boolsCacheMtx;
         std::mutex doublesCacheMtx;
+
+        void setStringNoMutex(const StringKey &key, const std::string &value) {
+            db::config::setString(key.name, value);
+            stringsCache.emplace(key.name, value);
+        }
+
+        void setIntNoMutex(const IntKey &key, int value) {
+            db::config::setInt(key.name, value);
+            intsCache.emplace(key.name, value);
+        }
+
+        void setDoubleNoMutex(const DoubleKey &key, double value) {
+            db::config::setDouble(key.name, value);
+            doublesCache.emplace(key.name, value);
+        }
+
+        void setBoolNoMutex(const BoolKey &key, bool value) {
+            db::config::setBool(key.name, value);
+            boolsCache.emplace(key.name, value);
+        }
     }
 
-    std::string getString(const StringKey& key) {
+    std::string getString(const StringKey &key) {
         auto it = stringsCache.find(key.name);
-        if (it==stringsCache.end()) {
+        if (it == stringsCache.end()) {
             std::lock_guard<std::mutex> lg(stringsCacheMtx);
             auto valueOpt = db::config::getString(key.name);
             std::string value;
             if (valueOpt.has_value()) {
                 value = valueOpt.value();
+                stringsCache.emplace(key.name, value);
             } else {
                 value = key.defaultValue;
-                setString(key, value);
+                setStringNoMutex(key, value);
             }
-            stringsCache.emplace(key.name, value);
             return value;
         }
         return it->second;
@@ -42,17 +62,17 @@ namespace config {
 
     int getInt(const IntKey &key) {
         auto it = intsCache.find(key.name);
-        if (it==intsCache.end()) {
+        if (it == intsCache.end()) {
             std::lock_guard<std::mutex> lg(intsCacheMtx);
             auto valueOpt = db::config::getInt(key.name);
             int value;
             if (valueOpt.has_value()) {
                 value = valueOpt.value();
+                intsCache.emplace(key.name, value);
             } else {
                 value = key.defaultValue;
-                setInt(key, value);
+                setIntNoMutex(key, value);
             }
-            intsCache.emplace(key.name, value);
             return value;
         }
         return it->second;
@@ -60,17 +80,17 @@ namespace config {
 
     double getDouble(const DoubleKey &key) {
         auto it = doublesCache.find(key.name);
-        if (it==doublesCache.end()) {
+        if (it == doublesCache.end()) {
             std::lock_guard<std::mutex> lg(intsCacheMtx);
             auto valueOpt = db::config::getDouble(key.name);
             double value;
             if (valueOpt.has_value()) {
                 value = valueOpt.value();
+                doublesCache.emplace(key.name, value);
             } else {
                 value = key.defaultValue;
-                setDouble(key, value);
+                setDoubleNoMutex(key, value);
             }
-            doublesCache.emplace(key.name, value);
             return value;
         }
         return it->second;
@@ -82,44 +102,35 @@ namespace config {
 
     bool getBool(const BoolKey &key) {
         auto it = boolsCache.find(key.name);
-        if (it==boolsCache.end()) {
+        if (it == boolsCache.end()) {
             std::lock_guard<std::mutex> lg(boolsCacheMtx);
             auto valueOpt = db::config::getBool(key.name);
             bool value;
             if (valueOpt.has_value()) {
                 value = valueOpt.value();
+                boolsCache.emplace(key.name, value);
             } else {
                 value = key.defaultValue;
-                setBool(key, value);
+                setBoolNoMutex(key, value);
             }
-            boolsCache.emplace(key.name, value);
             return value;
         }
         return it->second;
     }
 
     void setString(const StringKey &key, const std::string &value) {
-        db::config::setString(key.name, value);
-        {
-            std::lock_guard<std::mutex> lg(stringsCacheMtx);
-            stringsCache.emplace(key.name, value);
-        }
+        std::lock_guard<std::mutex> lg(stringsCacheMtx);
+        setStringNoMutex(key, value);
     }
 
     void setInt(const IntKey &key, int value) {
-        db::config::setInt(key.name, value);
-        {
-            std::lock_guard<std::mutex> lg(intsCacheMtx);
-            intsCache.emplace(key.name, value);
-        }
+        std::lock_guard<std::mutex> lg(intsCacheMtx);
+        setIntNoMutex(key, value);
     }
 
     void setDouble(const DoubleKey &key, double value) {
-        db::config::setDouble(key.name, value);
-        {
-            std::lock_guard<std::mutex> lg(doublesCacheMtx);
-            doublesCache.emplace(key.name, value);
-        }
+        std::lock_guard<std::mutex> lg(doublesCacheMtx);
+        setDoubleNoMutex(key, value);
     }
 
     void setColor(const ColorKey &key, util::RGBcolor value) {
@@ -127,11 +138,8 @@ namespace config {
     }
 
     void setBool(const BoolKey &key, bool value) {
-        db::config::setBool(key.name, value);
-        {
-            std::lock_guard<std::mutex> lg(boolsCacheMtx);
-            boolsCache.emplace(key.name, value);
-        }
+        std::lock_guard<std::mutex> lg(boolsCacheMtx);
+        setBoolNoMutex(key, value);
     }
 
     void exportToTxt() {
@@ -160,19 +168,19 @@ namespace config {
             if (!line.empty()) {
                 auto sep_pos = line.find('=');
                 auto key = line.substr(0, sep_pos);
-                auto value_str = line.substr(sep_pos+1);
+                auto value_str = line.substr(sep_pos + 1);
 
                 auto has_dot = false;
                 auto has_nondigit = false;
                 for (char i : value_str) {
-                    if (i=='.') {
+                    if (i == '.') {
                         has_dot = true;
-                    } else if (!std::isdigit(i) && i!='-') {
+                    } else if (!std::isdigit(i) && i != '-') {
                         has_nondigit = true;
                     }
                 }
                 if (has_nondigit) {
-                    if (value_str=="true" || value_str=="false") {
+                    if (value_str == "true" || value_str == "false") {
                         setBool(BoolKey(key, false), value_str == "true");
                     } else {
                         setString(StringKey(key, ""), value_str);
@@ -188,8 +196,8 @@ namespace config {
         }
     }
 
-    bool Key::operator==(const Key& other) const {
-        return other.name==name;
+    bool Key::operator==(const Key &other) const {
+        return other.name == name;
     }
 
     Key::Key(std::string name) : name(std::move(name)) {}

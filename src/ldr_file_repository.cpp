@@ -38,7 +38,8 @@ namespace ldr_file_repo {
         const std::string PSEUDO_CATEGORY_SUBPART = "__SUBPART";
         const std::string PSEUDO_CATEGORY_PRIMITIVE = "__PRIMITIVE";
         const std::string PSEUDO_CATEGORY_MODEL = "__MODEL";
-        const std::vector<std::string> PSEUDO_CATEGORIES{PSEUDO_CATEGORY_SUBPART, PSEUDO_CATEGORY_PRIMITIVE, PSEUDO_CATEGORY_MODEL};
+        const std::string PSEUDO_CATEGORY_HIDDEN_PART = "__HIDDEN_PART";
+        const std::vector<std::string> PSEUDO_CATEGORIES{PSEUDO_CATEGORY_SUBPART, PSEUDO_CATEGORY_PRIMITIVE, PSEUDO_CATEGORY_MODEL, PSEUDO_CATEGORY_HIDDEN_PART};
 
         std::pair<LdrFileType, std::string> convertLDrawDirPathToFilenameAndType(const std::string &ldrawDirPath);
 
@@ -144,7 +145,12 @@ namespace ldr_file_repo {
 
                     std::string category;
                     if (type==LdrFileType::PART) {
-                        category = ldrFile->metaInfo.getCategory();
+                        char &firstChar = ldrFile->metaInfo.title[0];
+                        if ((firstChar == '~' && ldrFile->metaInfo.title[1] != '|') || firstChar=='=' || firstChar=='_') {
+                            category = PSEUDO_CATEGORY_HIDDEN_PART;
+                        } else {
+                            category = ldrFile->metaInfo.getCategory();
+                        }
                     } else if (type==LdrFileType::SUBPART) {
                         category = PSEUDO_CATEGORY_SUBPART;
                     } else if (type==LdrFileType::PRIMITIVE) {
@@ -309,7 +315,7 @@ namespace ldr_file_repo {
     std::set<LdrFile *> getAllFilesOfCategory(const std::string &categoryName) {
         auto it = partsByCategory.find(categoryName);
         if (it == partsByCategory.end()) {
-            const auto &fileNames = db::fileList::getAllFilesForCategory(categoryName);
+            const auto &fileNames = db::fileList::getAllPartsForCategory(categoryName);
             std::set<LdrFile*> result;
             for (const auto &fileName : fileNames) {
                 result.insert(getFileInLdrawDirectory(fileName));

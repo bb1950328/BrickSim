@@ -34,7 +34,7 @@ namespace db {
         void put(const std::vector<Entry>& entries);
         std::set<std::string> getAllCategories();
         std::set<std::string> getAllFiles();
-        std::set<std::string> getAllFilesForCategory(const std::string& category);
+        std::set<std::string> getAllPartsForCategory(const std::string& category);
         std::optional<std::string> containsFile(const std::string& name);
     }
 

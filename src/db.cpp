@@ -286,7 +286,7 @@ namespace db {
             return result;
         }
 
-        std::set<std::string> getAllFilesForCategory(const std::string &category) {
+        std::set<std::string> getAllPartsForCategory(const std::string &category) {
             SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files WHERE category=?;");
             stmt.bind(1, category);
             std::set<std::string> result;

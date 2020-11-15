@@ -15,7 +15,6 @@ namespace controller {
         bool elementTreeChanged = false;
         bool selectionChanged = false;
         Renderer renderer(&elementTree);
-        Gui gui;
         ThumbnailGenerator thumbnailGenerator(&renderer);
         unsigned int view3dWidth = 800;
         unsigned int view3dHeight = 600;
@@ -117,8 +116,8 @@ namespace controller {
                 return;
             }
             renderer.window = window;
-            gui.window = window;
-            gui.setup();
+            gui::setWindow(window);
+            gui::setup();
             renderer.setWindowSize(view3dWidth, view3dHeight);
             renderer.setup();
 
@@ -132,8 +131,8 @@ namespace controller {
                 std::cout << initStep.getName() << std::endl;
                 initStep.start();
                 while (!initStep.isFinished()) {
-                    if (gui.isSetupDone()) {
-                        gui.drawWaitMessage(initStep.getName());
+                    if (gui::isSetupDone()) {
+                        gui::drawWaitMessage(initStep.getName());
                         glfwSwapBuffers(window);
                         glfwPollEvents();
                     } else {
@@ -170,7 +169,7 @@ namespace controller {
                 elementTreeChanged = false;
             }
             renderer.loop();
-            gui.loop();
+            gui::loop();
             thumbnailGenerator.discardOldestImages(0);
             bool moreWork;
             do {
@@ -190,7 +189,7 @@ namespace controller {
             task.second->joinThread();
         }
         std::cout << "all background tasks finished, exiting now" << std::endl;
-        gui.cleanup();
+        gui::cleanup();
         glfwTerminate();
         return 0;
     }
@@ -331,10 +330,6 @@ namespace controller {
 
     etree::ElementTree &getElementTree() {
         return elementTree;
-    }
-
-    Gui &getGui() {
-        return gui;
     }
 
     ThumbnailGenerator &getThumbnailGenerator() {

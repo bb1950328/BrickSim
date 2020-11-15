@@ -207,7 +207,7 @@ void processInput(GLFWwindow *window) {
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    controller::getGui().lastScrollDeltaY = yoffset;
+    gui::setLastScrollDeltaY(yoffset);
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }

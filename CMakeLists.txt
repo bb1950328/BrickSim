@@ -64,8 +64,8 @@ set(bricksim_sources
         src/ldr_colors.h
         src/renderer.cpp
         src/renderer.h
-        src/gui.cpp
-        src/gui.h
+        src/gui/gui.cpp
+        src/gui/gui.h
         src/controller.cpp
         src/controller.h
         src/tools/gears.cpp

@@ -9,7 +9,7 @@
 #include <atomic>
 #include "element_tree.h"
 #include "renderer.h"
-#include "gui.h"
+#include "gui/gui.h"
 #include "thumbnail_generator.h"
 #include "background_task.h"
 
@@ -57,7 +57,6 @@ namespace controller {
     std::set<etree::Node *>& getSelectedNodes();
     Renderer* getRenderer();
     etree::ElementTree& getElementTree();
-    Gui& getGui();
     ThumbnailGenerator& getThumbnailGenerator();
     long getLastFrameTime();
     std::recursive_mutex & getOpenGlMutex();

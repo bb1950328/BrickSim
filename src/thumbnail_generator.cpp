@@ -21,6 +21,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile, const LdrC
     std::pair<const LdrFile*, const LdrColor*> fileKey = {ldrFile, color}; 
     auto imgIt = images.find(fileKey);
     if (imgIt == images.end()) {
+        auto before = std::chrono::high_resolution_clock::now();
         if (framebufferSize != size) {
             renderer->createFramebuffer(&framebuffer, &textureBuffer, &renderBuffer, size, size);
         }
@@ -105,6 +106,8 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile, const LdrC
 
             glViewport(0, 0, renderer->windowWidth, renderer->windowHeight);
         }
+        auto after = std::chrono::high_resolution_clock::now();
+        statistic::lastThumbnailRenderingTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0;
     }
     lastAccessed.remove(fileKey);
     lastAccessed.push_back(fileKey);

@@ -11,7 +11,8 @@ namespace statistic {
     long individualBrickCount = 0;
     size_t vramUsageBytes = 0;
     size_t thumbnailBufferUsageBytes = 0;
-    float lastElementTreeReread = 0;
+    float lastElementTreeRereadMs = 0;
+    float lastThumbnailRenderingTimeMs = 0;
 
     void print() {
         std::cout << "===== Statistics =====" << std::endl;

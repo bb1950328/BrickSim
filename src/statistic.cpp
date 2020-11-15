@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <map>
 #include "statistic.h"
 #include "helpers/util.h"
 
@@ -13,6 +14,7 @@ namespace statistic {
     size_t thumbnailBufferUsageBytes = 0;
     float lastElementTreeRereadMs = 0;
     float lastThumbnailRenderingTimeMs = 0;
+    std::vector<std::pair<std::string, float>> lastWindowDrawingTimesMs = {};
 
     void print() {
         std::cout << "===== Statistics =====" << std::endl;

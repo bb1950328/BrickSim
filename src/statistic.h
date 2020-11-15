@@ -5,6 +5,8 @@
 #ifndef BRICKSIM_STATISTIC_H
 #define BRICKSIM_STATISTIC_H
 
+#include <vector>
+
 namespace statistic {
     extern long totalBrickCount;
     extern long individualBrickCount;
@@ -12,6 +14,7 @@ namespace statistic {
     extern size_t thumbnailBufferUsageBytes;
     extern float lastElementTreeRereadMs;
     extern float lastThumbnailRenderingTimeMs;
+    extern std::vector<std::pair<std::string, float>> lastWindowDrawingTimesMs;
 
     void print();
 }

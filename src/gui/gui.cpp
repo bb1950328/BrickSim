@@ -167,41 +167,30 @@ namespace gui {
             ImGui::EndMainMenuBar();
         }
 
-        if (show3dWindow) {
-            windows::draw3dWindow(&show3dWindow);
-        }
+        static std::tuple<std::string, bool*, std::function<void(bool*)>> windowFuncsAndState[]{
+                {"3D View", &show3dWindow, windows::draw3dWindow},
+                {"Element Tree", &showElementTreeWindow, windows::drawElementTreeWindow},
+                {"Element Properties", &showElementPropertiesWindow, windows::drawElementPropertiesWindow},
+                {"Part Palette", &showPartPaletteWindow, windows::drawPartPaletteWindow},
+                {"Settings", &showSettingsWindow, windows::drawSettingsWindow},
+                {"About", &showAboutWindow, windows::drawAboutWindow},
+                {"Sysinfo", &showSysInfoWindow, windows::drawSysInfoWindow},
+                {"Debug", &showDebugWindow, windows::drawDebugWindow},
+                {"Dear ImGui Demo", &showDemoWindow, ImGui::ShowDemoWindow},
+        };
 
-        if (showElementTreeWindow) {
-            windows::drawElementTreeWindow(&showElementTreeWindow);
-        }
+        std::vector<std::pair<std::string, float>> drawingTimes;
+        for (const auto &winFuncState : windowFuncsAndState) {
+            const auto& windowName = std::get<0>(winFuncState);
+            const auto& windowState = std::get<1>(winFuncState);
+            const auto& windowFunc = std::get<2>(winFuncState);
 
-        if (showElementPropertiesWindow) {
-            windows::drawElementPropertiesWindow(&showElementPropertiesWindow);
+            auto before = std::chrono::high_resolution_clock::now();
+            windowFunc(windowState);
+            auto after = std::chrono::high_resolution_clock::now();
+            drawingTimes.emplace_back(windowName, std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0);
         }
-
-        if (showPartPaletteWindow) {
-            windows::drawPartPaletteWindow(&showPartPaletteWindow);
-        }
-
-        if (showSettingsWindow) {
-            windows::drawSettingsWindow(&showSettingsWindow);
-        }
-
-        if (showAboutWindow) {
-            windows::drawAboutWindow(&showAboutWindow);
-        }
-
-        if (showSysInfoWindow) {
-            windows::drawSysInfoWindow(&showSysInfoWindow);
-        }
-
-        if (showDebugWindow) {
-            windows::drawDebugWindow(&showDebugWindow);
-        }
-
-        if (showDemoWindow) {
-            ImGui::ShowDemoWindow(&showDemoWindow);
-        }
+        statistic::lastWindowDrawingTimesMs = drawingTimes;
 
         // Rendering
         ImGui::Render();

@@ -21,6 +21,13 @@ namespace gui {
                 ImGui::BulletText("%s", task.second->getTaskName().c_str());
             }
         }
+
+        ImGui::BeginChild("Window drawing times", ImVec2(0, ImGui::GetFontSize()*7), true);
+        for (const auto &item : statistic::lastWindowDrawingTimesMs) {
+            ImGui::Text("%s: %.3f ms", item.first.c_str(), item.second);
+        }
+        ImGui::EndChild();
+
         if (ImGui::Button("Reread element tree now")) {
             controller::setElementTreeChanged(true);
         }

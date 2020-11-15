@@ -89,6 +89,16 @@ set(bricksim_sources
         src/background_task.h
         src/db.cpp
         src/db.h
+        src/gui/window_3d.cpp
+        src/gui/window_element_tree.cpp
+        src/gui/window_element_properties.cpp
+        src/gui/window_part_palette.cpp
+        src/gui/window_settings.cpp
+        src/gui/window_about.cpp
+        src/gui/window_sysinfo.cpp
+        src/gui/window_debug.cpp
+        src/gui/gui_internal.cpp
+        src/gui/gui_internal.h
         )
 
 add_executable(BrickSim

@@ -9,19 +9,25 @@
 #include "../ldr_files.h"
 #include "../element_tree.h"
 #include <imgui.h>
+#include <GLFW/glfw3.h>
 
 static const int NUM_LDR_FILTER_PATTERNS = 3;
 
 static const int NUM_IMAGE_FILTER_PATTERNS = 4;
 
 namespace gui {
-    namespace {
-        void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, LdrFile *const &part, LdrColor *color);
-        ImVec4 getWhiteOrBlackBetterContrast(const glm::vec3 &col);
-        void drawColorGroup(etree::MeshNode *ldrNode, const ImVec2 &buttonSize, int columnCount, const std::pair<const std::string, std::vector<const LdrColor *>> &colorGroup);
-        void draw_element_tree_node(etree::Node *node);
-        void draw_hyperlink_button(const std::string &url);
+    namespace windows {
+        void draw3dWindow(bool* show);
+        void drawElementTreeWindow(bool* show);
+        void drawElementPropertiesWindow(bool* show);
+        void drawPartPaletteWindow(bool* show);
+        void drawSettingsWindow(bool* show);
+        void drawAboutWindow(bool* show);
+        void drawSysInfoWindow(bool* show);
+        void drawDebugWindow(bool* show);
     }
+    void drawMenuBar(bool* show);
+
     void setWindow(GLFWwindow* value);
     GLFWwindow* getWindow();
     void setLastScrollDeltaY(double value);

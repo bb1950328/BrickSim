@@ -15,13 +15,15 @@ public:
     GLFWwindow *window;
     Gui() = default;
     void setup();
+    [[nodiscard]] bool isSetupDone() const;
     void loop();
+
     void cleanup();
 
     double lastScrollDeltaY;
-
     bool loopPartsLibraryInstallationScreen();//returns true when finished
 
+    void drawWaitMessage(const std::string& message) const;
 private:
     char const * lFilterPatterns[NUM_LDR_FILTER_PATTERNS] = {"*.ldr", "*.dat", "*.mpd"};
     char const * imageFilterPatterns[NUM_IMAGE_FILTER_PATTERNS] = {"*.png", "*.jpg", "*.bmp", "*.tga"};

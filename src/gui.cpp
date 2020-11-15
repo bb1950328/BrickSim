@@ -20,6 +20,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <atomic>
+#include <imgui_internal.h>
 
 void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, LdrFile *const &part, LdrColor *color);
 
@@ -1044,4 +1045,35 @@ bool Gui::loopPartsLibraryInstallationScreen() {
         state = 'A';
     }
     return finished;
+}
+
+void Gui::drawWaitMessage(const std::string &message) const {
+    if (setupDone) {
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        {
+            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+
+        ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+        const float fontSize = ImGui::GetFontSize();
+        ImGui::SetNextWindowSize(ImVec2(fontSize * 18, fontSize * 6));
+        ImGui::Begin("Please wait", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Text("%c %s", "|/-\\"[(int)(glfwGetTime()*8) % 4], message.c_str());
+        ImGui::End();
+
+        ImGui::Render();
+        {
+            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        }
+    }
+}
+
+bool Gui::isSetupDone() const {
+    return setupDone;
 }

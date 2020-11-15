@@ -15,7 +15,7 @@ public:
     [[nodiscard]] const std::string &getTaskName() const;
     [[nodiscard]] unsigned int getId() const;
     void joinThread();
-    bool isDone() const;
+    [[nodiscard]] bool isDone() const;
 private:
 
     std::string taskName;

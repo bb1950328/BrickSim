@@ -27,10 +27,6 @@ namespace controller {
         etree::Node *currentlyEditingNode;
         std::map<unsigned int, BackgroundTask*> backgroundTasks;
 
-        bool initializeGL();
-        void window_size_callback(GLFWwindow *window, int width, int height);
-        void checkForFinishedBackgroundTasks();
-
         bool initializeGL() {
             std::lock_guard<std::recursive_mutex> lg(getOpenGlMutex());
             glfwInit();
@@ -85,53 +81,73 @@ namespace controller {
                 lastCheck = now;
             }
         }
-    }
+        InitialisationStep::InitialisationStep(std::string name, std::function<void()> task) : name(std::move(name)), task(std::move(task)) {}
 
-    int run() {
-        db::initialize();
-        windowWidth = config::getInt(config::SCREEN_WIDTH);
-        windowHeight = config::getInt(config::SCREEN_HEIGHT);
-
-        if (!initializeGL()) {
-            std::cerr << "FATAL: failed to initialize OpenGL / glfw" << std::endl;
-            return -1;
+        void controller::InitialisationStep::start() {
+            taskFinished = false;
+            taskThread = new std::thread([this](){
+                task();
+                taskFinished = true;
+            });
         }
-        renderer.window = window;
-        gui.window = window;
 
-        gui.setup();
-        bool partsLibraryFound = false;
-        while (!partsLibraryFound && !doesUserWantToExit()) {
-            partsLibraryFound = true;//todo check if parts library found (method in ldr_file_repo::)
-            while (!partsLibraryFound && !doesUserWantToExit()) {
-                bool installFinished = gui.loopPartsLibraryInstallationScreen();
-                glfwSwapBuffers(window);
-                glfwPollEvents();
-                if (installFinished) {
-                    break;
+        bool controller::InitialisationStep::isFinished() {
+            if (taskFinished && taskThread != nullptr) {
+                taskThread->join();
+                taskThread = nullptr;
+                taskFinished = false;
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        const std::string &controller::InitialisationStep::getName() const {
+            return name;
+        }
+
+        void initialize() {
+            db::initialize();
+
+            windowWidth = config::getInt(config::SCREEN_WIDTH);
+            windowHeight = config::getInt(config::SCREEN_HEIGHT);
+
+            if (!initializeGL()) {
+                std::cerr << "FATAL: failed to initialize OpenGL / glfw" << std::endl;
+                return;
+            }
+            renderer.window = window;
+            gui.window = window;
+            gui.setup();
+            renderer.setWindowSize(view3dWidth, view3dHeight);
+            renderer.setup();
+
+            InitialisationStep steps[]{
+                    {"load color definitions", [](){ldr_color_repo::initialize();}},
+                    {"initialize file list", [](){ldr_file_repo::initializeFileList();}},
+                    {"initialize price guide provider", [](){price_guide_provider::initialize();}},
+                    {"initialize thumbnail generator", [](){thumbnailGenerator.initialize();}},
+            };
+            for (auto &initStep : steps) {
+                std::cout << initStep.getName() << std::endl;
+                initStep.start();
+                while (!initStep.isFinished()) {
+                    if (gui.isSetupDone()) {
+                        gui.drawWaitMessage(initStep.getName());
+                        glfwSwapBuffers(window);
+                        glfwPollEvents();
+                    } else {
+                        std::chrono::milliseconds sleepTime(16);
+                        std::this_thread::sleep_for(sleepTime);
+                    }
                 }
             }
         }
-        if (partsLibraryFound) {
-            runNormal();
-        }
-        gui.cleanup();
-        glfwTerminate();
-        return 0;
     }
 
-    bool doesUserWantToExit() {
-        return glfwWindowShouldClose(window) || userWantsToExit;
-    }
-
-    void runNormal() {
-        renderer.setWindowSize(view3dWidth, view3dHeight);
-        renderer.setup();
-        ldr_color_repo::initialize();
-        ldr_file_repo::initializeFileList();
-        price_guide_provider::initialize();
-        thumbnailGenerator.initialize();
-
+    int run() {
+        //todo check if parts library found (method in ldr_file_repo::)
+        initialize();
         /*const std::vector<price_guide_provider::PriceGuide> &pgs = price_guide_provider::getPriceGuide("3001", "CHF", "Black");//todo move this to a more useful place
         for (const auto &pg : pgs) {
             std::cout << pg.avgPrice << std::endl;
@@ -167,8 +183,6 @@ namespace controller {
         }
         config::setInt(config::SCREEN_WIDTH, windowWidth);
         config::setInt(config::SCREEN_HEIGHT, windowHeight);
-        bool result;
-        result = true;
         renderer.cleanup();
         auto &bgTasks = getBackgroundTasks();
         std::cout << "waiting for " << bgTasks.size() << " background tasks to finish..." << std::endl;
@@ -176,6 +190,13 @@ namespace controller {
             task.second->joinThread();
         }
         std::cout << "all background tasks finished, exiting now" << std::endl;
+        gui.cleanup();
+        glfwTerminate();
+        return 0;
+    }
+
+    bool doesUserWantToExit() {
+        return glfwWindowShouldClose(window) || userWantsToExit;
     }
 
     void set3dViewSize(unsigned int width, unsigned int height) {

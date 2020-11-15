@@ -6,6 +6,7 @@
 #define BRICKSIM_CONTROLLER_H
 
 #include <mutex>
+#include <atomic>
 #include "element_tree.h"
 #include "renderer.h"
 #include "gui.h"
@@ -13,6 +14,25 @@
 #include "background_task.h"
 
 namespace controller {
+    namespace {
+        bool initializeGL();
+        void window_size_callback(GLFWwindow *window, int width, int height);
+        void checkForFinishedBackgroundTasks();
+        void initialize();
+        class InitialisationStep {
+        private:
+            std::string name;
+            std::function<void()> task;
+            std::thread* taskThread = nullptr;
+            std::atomic<bool> taskFinished = false;
+        public:
+            InitialisationStep(std::string name, std::function<void()> task);
+            void start();
+            bool isFinished();
+            [[nodiscard]] const std::string &getName() const;
+        };
+    }
+
     int run();
     void set3dViewSize(unsigned int width, unsigned int height);
 
@@ -45,7 +65,6 @@ namespace controller {
     std::map<unsigned int, BackgroundTask *> & getBackgroundTasks();
     void addBackgroundTask(std::string name, const std::function<void()>& function);
 
-    void runNormal();
     [[nodiscard]] bool doesUserWantToExit();
 };
 

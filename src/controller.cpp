@@ -163,6 +163,7 @@ namespace controller {
             if (elementTreeChanged || selectionChanged) {
                 renderer.meshCollection.updateSelectionContainerBox();
                 selectionChanged = false;
+                elementTreeChanged = true;
             }
             if (elementTreeChanged) {
                 renderer.elementTreeChanged();

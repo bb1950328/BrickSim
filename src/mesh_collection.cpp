@@ -157,12 +157,12 @@ void MeshCollection::updateSelectionContainerBox() {
                 auto p2 = boxDimensions.second;
                 auto center = (p1 + p2) / 2.0f;
                 auto size = p1 - p2;
-                std::cout << "------------------------------" << std::endl;
-                std::cout << "name: " << node->displayName << std::endl;
-                std::cout << "p1: " << glm::to_string(p1) << std::endl;
-                std::cout << "p2: " << glm::to_string(p2) << std::endl;
-                std::cout << "center: " << glm::to_string(center) << std::endl;
-                std::cout << "size: " << glm::to_string(size) << std::endl;
+                //std::cout << "------------------------------" << std::endl;
+                //std::cout << "name: " << node->displayName << std::endl;
+                //std::cout << "p1: " << glm::to_string(p1) << std::endl;
+                //std::cout << "p2: " << glm::to_string(p2) << std::endl;
+                //std::cout << "center: " << glm::to_string(center) << std::endl;
+                //std::cout << "size: " << glm::to_string(size) << std::endl;
                 auto transformation = glm::mat4(1.0f);
                 transformation = glm::translate(transformation, center);
                 transformation = glm::scale(transformation, size / 2.0f);//the /2 is because box0.dat has 2ldu edge length
@@ -176,34 +176,41 @@ void MeshCollection::updateSelectionContainerBox() {
     controller::getRenderer()->unrenderedChanges = true;
 }
 
-std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(const etree::MeshNode* node, std::optional<const etree::MeshNode*> parent) const {
+std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(const etree::MeshNode* node) const {
+    auto result = getBoundingBoxInternal(node);
+    return {
+        glm::vec4(result.first, 1.0f) * node->getAbsoluteTransformation(),
+        glm::vec4(result.second, 1.0f) * node->getAbsoluteTransformation(),
+    };
+}
+
+//relative to parameter node
+std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBoxInternal(const etree::MeshNode* node) const {
     //todo something here is wrong for subfile instances
     glm::mat4 absoluteTransformation;
-    if (parent.has_value()) {
-        absoluteTransformation = node->getRelativeTransformation()*parent.value()->getAbsoluteTransformation();
-    } else {
-        absoluteTransformation = node->getAbsoluteTransformation();
-    }
+    absoluteTransformation = node->getAbsoluteTransformation();
     bool windingInversed = util::doesTransformationInverseWindingOrder(absoluteTransformation);
     auto it = meshes.find(std::make_pair(node->getMeshIdentifier(), windingInversed));
-    float x1, x2, y1, y2, z1, z2;
+    float x1=0, x2=0, y1=0, y2=0, z1=0, z2=0;
     bool first = true;
     if (it != meshes.end()) {
         Mesh *mesh = it->second;
-        for (const auto &lineVertex : mesh->lineVertices) {//todo check if iterating over triangle vertices is faster
-            const glm::vec4 &position = lineVertex.position;
-            if (first) {
-                first = false;
-                x1 = x2 = position.x;
-                y1 = y2 = position.y;
-                z1 = z2 = position.z;
-            } else {
-                x1 = std::min(x1, position.x);
-                x2 = std::max(x2, position.x);
-                y1 = std::min(y1, position.y);
-                y2 = std::max(y2, position.y);
-                z1 = std::min(z1, position.z);
-                z2 = std::max(z2, position.z);
+        for (const auto &colorPair : mesh->triangleVertices) {
+            for (const auto &triangleVertex : *colorPair.second) {//todo check if iterating over line vertices is faster
+                const glm::vec4 &position = triangleVertex.position;
+                if (first) {
+                    first = false;
+                    x1 = x2 = position.x;
+                    y1 = y2 = position.y;
+                    z1 = z2 = position.z;
+                } else {
+                    x1 = std::min(x1, position.x);
+                    x2 = std::max(x2, position.x);
+                    y1 = std::min(y1, position.y);
+                    y2 = std::max(y2, position.y);
+                    z1 = std::min(z1, position.z);
+                    z2 = std::max(z2, position.z);
+                }
             }
         }
     }
@@ -211,14 +218,13 @@ std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(const etree::Mesh
     const std::vector<etree::Node *> &children = isSubfileInstance
             ? dynamic_cast<const etree::MpdSubfileInstanceNode*>(node)->mpdSubfileNode->getChildren()
             : node->getChildren();
-    auto parentOpt = isSubfileInstance
-            ? std::make_optional(node)
-            : std::nullopt;
     for (const auto &child : children) {
         if (child->getType()&etree::TYPE_MESH) {
-            auto childResult = getBoundingBox(dynamic_cast<const etree::MeshNode*>(child), parentOpt);
-            childResult.first = glm::vec4(childResult.first, 1.0f) * child->getRelativeTransformation();
-            childResult.second = glm::vec4(childResult.second, 1.0f) * child->getRelativeTransformation();
+            auto childResult = getBoundingBoxInternal(dynamic_cast<const etree::MeshNode*>(child));
+            childResult.first = glm::vec4(childResult.first, 1.0f)*child->getRelativeTransformation();
+            childResult.second = glm::vec4(childResult.second, 1.0f)*child->getRelativeTransformation();
+            //std::cout << glm::to_string(childResult.first) << ", " << glm::to_string(childResult.second) << std::endl;
+            //std::cout << glm::to_string(child->getRelativeTransformation()) << std::endl;
             if (first) {
                 first = false;
                 x1 = childResult.first.x;
@@ -237,8 +243,10 @@ std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(const etree::Mesh
             }
         }
     }
+
+    //std::cout << node->displayName << ": (" << x1 << ", " << y1 << ", " << z1 << "), (" << x2 << ", " << y2 << ", " << z2 << ")" << std::endl;
     return {
-        glm::vec4(x1, y1, z1, 1.0f)*absoluteTransformation,
-        glm::vec4(x2, y2, z2, 1.0f)*absoluteTransformation
+        glm::vec4(x1, y1, z1, 1.0f),
+        glm::vec4(x2, y2, z2, 1.0f)
     };
 }

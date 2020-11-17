@@ -7,7 +7,7 @@
 
 0 !THEME Technic
 
-1 16 0 0 0 1 0 0 0 1 0 0 0 1 subfile1.dat
+1 16 -40 0 0 1 0 0 0 1 0 0 0 1 subfile1.dat
 1 5 60 0 0 1 0 0 0 1 0 0 0 1 3001.dat
 
 
@@ -19,3 +19,16 @@
 0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
 0 !THEME Technic
 1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 4 0 0 45 1 0 0 0 1 0 0 0 1 3001.dat
+1 4 0 0 -85 1 0 0 0 1 0 0 0 1 subsubfile1.dat
+
+
+0 FILE subsubfile1.dat
+0 a subsubfile
+0 Author: bb1950328
+0 Name: subsubfile1.dat
+0 !LDRAW_ORG Model
+0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
+0 !THEME Technic
+1 6 0 0 0 1 0 0 0 1 0 0 0 1 3002.dat
+1 6 0 0 5 1 0 0 0 1 0 0 0 1 3002.dat

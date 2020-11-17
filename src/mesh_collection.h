@@ -26,15 +26,16 @@ public:
 
     void updateSelectionContainerBox();
 
-    std::pair<glm::vec3, glm::vec3> getBoundingBox(const etree::MeshNode *node, std::optional<const etree::MeshNode *> parent=std::nullopt) const;
+    std::pair<glm::vec3, glm::vec3> getBoundingBox(const etree::MeshNode *node) const;
 private:
     std::vector<etree::Node*> elementsSortedById;
+
     etree::ElementTree *elementTree;
     std::set<etree::Node*> nodesWithChildrenAlreadyVisited;
 
     std::map<std::pair<void *, bool>, std::vector<MeshInstance>> newMeshInstances;
     void updateMeshInstances();
-
     void readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation, LdrColor *parentColor, std::optional<unsigned int> selectionTargetElementId);
+    std::pair<glm::vec3, glm::vec3> getBoundingBoxInternal(const etree::MeshNode *node) const;
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

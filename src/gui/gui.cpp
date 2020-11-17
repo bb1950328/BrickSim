@@ -185,10 +185,12 @@ namespace gui {
             const auto& windowState = std::get<1>(winFuncState);
             const auto& windowFunc = std::get<2>(winFuncState);
 
-            auto before = std::chrono::high_resolution_clock::now();
-            windowFunc(windowState);
-            auto after = std::chrono::high_resolution_clock::now();
-            drawingTimes.emplace_back(windowName, std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0);
+            if (*windowState) {
+                auto before = std::chrono::high_resolution_clock::now();
+                windowFunc(windowState);
+                auto after = std::chrono::high_resolution_clock::now();
+                drawingTimes.emplace_back(windowName, std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0);
+            }
         }
         statistic::lastWindowDrawingTimesMs = drawingTimes;
 
@@ -303,7 +305,7 @@ namespace gui {
             const float fontSize = ImGui::GetFontSize();
             ImGui::SetNextWindowSize(ImVec2(fontSize * 18, fontSize * 6));
             ImGui::Begin("Please wait", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::Text("%c %s", "|/-\\"[(int) (glfwGetTime() * 8) % 4], message.c_str());
+            ImGui::Text("%c %s", gui_internal::getLoFiSpinner(), message.c_str());
             ImGui::End();
 
             ImGui::Render();

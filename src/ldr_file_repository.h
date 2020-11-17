@@ -23,7 +23,9 @@ namespace ldr_file_repo {
     void initializeFileList();
     void initializeLdrawLibraryLocation();
 
-    std::map<std::string, std::set<LdrFile *>>& getPartsGroupedByCategory();
+    [[ nodiscard ]] bool areAllPartsLoaded();
+    std::map<std::string, std::set<LdrFile *>>& getAllPartsGroupedByCategory();
+    std::map<std::string, std::set<LdrFile *>>& getLoadedPartsGroupedByCategory();
     std::set<std::string> getAllCategories();
     std::set<LdrFile*> getAllFilesOfCategory(const std::string& categoryName);
 };

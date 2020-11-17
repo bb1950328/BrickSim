@@ -86,5 +86,6 @@ namespace util {
     bool equalsAlphanum(std::string a, std::string b);
     std::filesystem::path withoutBasePath(const std::filesystem::path& path, const std::filesystem::path& basePath);
     bool writeImage(const char* path, unsigned char* pixels, unsigned int width, unsigned int height, int channels=3);
+    bool containsIgnoreCase(const std::string& full, const std::string& sub);
 }
 #endif //BRICKSIM_UTIL_H

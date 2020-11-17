@@ -75,4 +75,8 @@ namespace gui_internal {
             util::openDefaultBrowser(url);
         }
     }
+
+    char getLoFiSpinner() {
+        return "|/-\\"[(int) (glfwGetTime() * 8) % 4];
+    }
 }

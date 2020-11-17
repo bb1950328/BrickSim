@@ -99,6 +99,8 @@ set(bricksim_sources
         src/gui/window_debug.cpp
         src/gui/gui_internal.cpp
         src/gui/gui_internal.h
+        src/part_finder.cpp
+        src/part_finder.h
         )
 
 add_executable(BrickSim

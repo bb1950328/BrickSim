@@ -18,6 +18,7 @@ namespace gui_internal {
     ImVec4 getWhiteOrBlackBetterContrast(const glm::vec3 &col);
     void drawColorGroup(etree::MeshNode *ldrNode, const ImVec2 &buttonSize, int columnCount, const std::pair<const std::string, std::vector<const LdrColor *>> &colorGroup);
     void draw_hyperlink_button(const std::string &url);
+    char getLoFiSpinner();
 }
 
 #endif //BRICKSIM_GUI_INTERNAL_H

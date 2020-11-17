@@ -457,4 +457,12 @@ namespace util {
             return false;
         }
     }
+
+    bool containsIgnoreCase(const std::string &full, const std::string &sub) {
+        return std::search(
+                full.begin(), full.end(),
+                sub.begin(), sub.end(),
+                [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+        ) != full.end();
+    }
 }

@@ -287,17 +287,19 @@ namespace ldr_file_repo {
         return std::make_pair(LdrFileType::MODEL, readFileToString(util::extendHomeDirPath(filename)));
     }
 
-    std::map<std::string, std::set<LdrFile *>>& getPartsGroupedByCategory() {
-        auto categories = getAllCategories();
-
-        if (categories.size() > partsByCategory.size()) {
-            for (const auto &ca : categories) {
+    std::map<std::string, std::set<LdrFile *>>& getAllPartsGroupedByCategory() {
+        if (!areAllPartsLoaded()) {
+            for (const auto &ca : getAllCategories()) {
                 if (partsByCategory.find(ca)==partsByCategory.end()) {
                     getAllFilesOfCategory(ca);
                 }
             }
         }
 
+        return partsByCategory;
+    }
+
+    std::map<std::string, std::set<LdrFile *>> &getLoadedPartsGroupedByCategory() {
         return partsByCategory;
     }
 
@@ -327,7 +329,7 @@ namespace ldr_file_repo {
     }
 
     /**
-     * @param filename path relative to the ldraw directory 
+     * @param filename path relative to the ldraw directory
      * @return opened LdrFile
      */
     LdrFile *getFileInLdrawDirectory(const std::string &filename) {
@@ -351,5 +353,9 @@ namespace ldr_file_repo {
         } else {
             return readFileToString(ldrawDirectory / filename);
         }
+    }
+
+    bool areAllPartsLoaded() {
+        return getAllCategories().size() == partsByCategory.size();
     }
 }

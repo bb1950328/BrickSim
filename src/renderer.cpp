@@ -19,6 +19,7 @@ bool Renderer::setup() {
     triangleShader = new Shader("src/shaders/triangle_shader.vsh", "src/shaders/triangle_shader.fsh");
     lineShader = new Shader("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");
     optionalLineShader = new Shader("src/shaders/optional_line_shader.vsh", "src/shaders/line_shader.fsh", "src/shaders/optional_line_shader.gsh");
+    textureShader = new Shader("src/shaders/texture_shader.vsh", "src/shaders/texture_shader.fsh");
 
     meshCollection.rereadElementTree();
     meshCollection.initializeGraphics();
@@ -58,7 +59,7 @@ void Renderer::createFramebuffer(unsigned int* framebufferIdLocation,
 
     glGenTextures(1, textureColorbufferIdLocation);
     glBindTexture(GL_TEXTURE_2D, *textureColorbufferIdLocation);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *textureColorbufferIdLocation, 0);
@@ -68,7 +69,7 @@ void Renderer::createFramebuffer(unsigned int* framebufferIdLocation,
     glBindRenderbuffer(GL_RENDERBUFFER, *renderBufferObjectIdLocation);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height); // use a single renderbuffer object for both a depth AND stencil buffer.
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, *renderBufferObjectIdLocation); // now actually attach it
-// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+    // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
     }

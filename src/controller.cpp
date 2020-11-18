@@ -7,6 +7,7 @@
 #include <utility>
 #include "info_providers/price_guide_provider.h"
 #include "db.h"
+#include "orientation_cube.h"
 
 namespace controller {
     namespace {
@@ -126,6 +127,7 @@ namespace controller {
                     {"initialize file list", [](){ldr_file_repo::initializeFileList();}},
                     {"initialize price guide provider", [](){price_guide_provider::initialize();}},
                     {"initialize thumbnail generator", [](){thumbnailGenerator.initialize();}},
+                    {"initialize orientation cube generator", [](){orientation_cube::initialize();}},
             };
             for (auto &initStep : steps) {
                 std::cout << initStep.getName() << std::endl;

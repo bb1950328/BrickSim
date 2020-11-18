@@ -97,10 +97,13 @@ set(bricksim_sources
         src/gui/window_about.cpp
         src/gui/window_sysinfo.cpp
         src/gui/window_debug.cpp
+        src/gui/window_orientation_cube.cpp
         src/gui/gui_internal.cpp
         src/gui/gui_internal.h
         src/part_finder.cpp
         src/part_finder.h
+        src/orientation_cube.cpp
+        src/orientation_cube.h
         )
 
 add_executable(BrickSim

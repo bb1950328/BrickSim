@@ -30,6 +30,7 @@ public:
     Shader *triangleShader;
     Shader *lineShader;
     Shader *optionalLineShader;
+    Shader *textureShader;
     MeshCollection meshCollection;
 
     unsigned int windowWidth = 0;

@@ -76,6 +76,7 @@ namespace gui {
         static bool showAboutWindow = false;
         static bool showSysInfoWindow = false;
         static bool showPartPaletteWindow = true;
+        static bool showOrientationCube = true;
         static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.6f, 1.0f);
 
         ImGui_ImplOpenGL3_NewFrame();
@@ -122,9 +123,13 @@ namespace gui {
             }
             if (ImGui::BeginMenu("View")) {
                 ImGui::MenuItem("3D View", "ALT+V", &show3dWindow);
+                ImGui::MenuItem("Orientation Cube", "", &showOrientationCube);
+                ImGui::Separator();
                 ImGui::MenuItem("Element Tree", "ALT+T", &showElementTreeWindow);
                 ImGui::MenuItem("Element Properties", "ALT+P", &showElementPropertiesWindow);
+                ImGui::Separator();
                 ImGui::MenuItem("Part Palette", "ALT+N", &showPartPaletteWindow);
+                ImGui::Separator();
                 ImGui::MenuItem("Settings", "ALT+S", &showSettingsWindow);
                 ImGui::Separator();
                 ImGui::MenuItem("Demo", "", &showDemoWindow);
@@ -177,6 +182,7 @@ namespace gui {
                 {"Sysinfo", &showSysInfoWindow, windows::drawSysInfoWindow},
                 {"Debug", &showDebugWindow, windows::drawDebugWindow},
                 {"Dear ImGui Demo", &showDemoWindow, ImGui::ShowDemoWindow},
+                {"Orientation Cube", &showOrientationCube, windows::drawOrientationCube},
         };
 
         std::vector<std::pair<std::string, float>> drawingTimes;

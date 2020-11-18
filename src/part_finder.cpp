@@ -15,8 +15,10 @@ namespace part_finder {
     const Predicate &getPredicate(const std::string &expression) {
         auto it = predicates.find(expression);
         if (it==predicates.end()) {
-            for (auto i = expression.length()-1; i > std::max(0lu, expression.length()-5); --i) {
-                predicates.erase(expression.substr(0, i));
+            if (!expression.empty()) {
+                for (auto i = expression.length() - 1; i > (expression.length() >= 5 ? expression.length() - 5 : 0); --i) {
+                    predicates.erase(expression.substr(0, i));
+                }
             }
             return predicates.emplace(expression, Predicate(expression)).first->second;
         }

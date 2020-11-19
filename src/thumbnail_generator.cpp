@@ -42,7 +42,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile, const LdrC
 
         const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
         glm::vec3 center = glm::vec4(minimalEnclosingBall.first, 1.0f) * mesh->globalModel;
-        auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL;
+        auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL_SCALE;
 
         MeshInstance tmpInstance{
                 color,
@@ -55,7 +55,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile, const LdrC
 
         std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
         auto distance = meshRadius*2.45f;
-        auto s = glm::radians(45.0f);
+        auto s = glm::radians(45.0f);//todo make variable
         auto t = glm::radians(45.0f);
         glm::vec3 viewPos = glm::vec3(
                 distance * std::cos(s) * std::cos(t),

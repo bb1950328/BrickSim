@@ -13,7 +13,7 @@ struct TexturedVertex {
 };
 
 namespace orientation_cube {
-    unsigned int getImage(float pitch, float yaw);
+    unsigned int getImage();
 };
 
 #endif //BRICKSIM_ORIENTATION_CUBE_H

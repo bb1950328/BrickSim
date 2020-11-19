@@ -91,10 +91,8 @@ public:
     virtual ~Mesh();
 
     //this is the conversion from the ldraw coordinate system to the OpenGL coordinate system
-    glm::mat4 globalModel = glm::scale(glm::rotate(glm::mat4(1.0f),//base
-                                                   glm::radians(180.0f),//rotate 180° around
-                                                   glm::vec3(1.0f, 0.0f, 0.0f)),// x axis
-                                       glm::vec3(constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL, constants::LDU_TO_OPENGL)); // and make 100 times smaller
+    glm::mat4 globalModel = glm::scale(constants::LDU_TO_OPENGL_ROTATION,
+                                       glm::vec3(constants::LDU_TO_OPENGL_SCALE, constants::LDU_TO_OPENGL_SCALE, constants::LDU_TO_OPENGL_SCALE)); // and make 100 times smaller
 
     std::pair<glm::vec3, float> getMinimalEnclosingBall();
 private:

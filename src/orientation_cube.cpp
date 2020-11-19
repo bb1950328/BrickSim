@@ -3,6 +3,7 @@
 //
 
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include "orientation_cube.h"
 #include "controller.h"
 #include "lib/stb_image.h"
@@ -41,13 +42,13 @@ namespace orientation_cube {
                 /*rearRightBottom*/ +1, +1, +1, 1.0f / 6, 0, // Right B
                 /*rearRightTop*/    +1, -1, +1, 1.0f / 6, 1,
 
-                /*rearRightBottom*/ +1, +1, +1, 1.0f / 3, 0,
-                /*frontLeftBottom*/ -1, +1, -1, 1.0f / 6, 1,//Bottom A
-                /*rearLeftBottom*/  -1, +1, +1, 1.0f / 6, 0,
+                /*rearRightBottom*/ +1, +1, +1, 5.0f / 6, 0,
+                /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 1,//Bottom A
+                /*rearLeftBottom*/  -1, +1, +1, 2.0f / 3, 0,
 
-                /*frontLeftBottom*/ -1, +1, -1, 1.0f / 6, 1,
-                /*rearRightBottom*/ +1, +1, +1, 1.0f / 3, 0,//Bottom B
-                /*frontRightBottom*/+1, +1, -1, 1.0f / 3, 1,
+                /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 1,
+                /*rearRightBottom*/ +1, +1, +1, 5.0f / 6, 0,//Bottom B
+                /*frontRightBottom*/+1, +1, -1, 5.0f / 6, 1,
 
                 /*rearLeftBottom*/  -1, +1, +1, 1.0f / 2, 0,
                 /*rearRightTop*/    +1, -1, +1, 1.0f / 3, 1,//Back A
@@ -65,13 +66,13 @@ namespace orientation_cube {
                 /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 0,//Left B
                 /*frontLeftTop*/    -1, -1, -1, 2.0f / 3, 1,
 
-                /*frontRightTop*/   +1, -1, -1, 5.0f / 6, 0,
-                /*rearLeftTop*/     -1, -1, +1, 2.0f / 3, 1,//Top A
-                /*frontLeftTop*/    -1, -1, -1, 2.0f / 3, 0,
+                /*frontRightTop*/   +1, -1, -1, 1.0f / 3, 0,
+                /*rearLeftTop*/     -1, -1, +1, 1.0f / 6, 1,//Top A
+                /*frontLeftTop*/    -1, -1, -1, 1.0f / 6, 0,
 
-                /*rearLeftTop*/     -1, -1, +1, 2.0f / 3, 1,
-                /*frontRightTop*/   +1, -1, -1, 5.0f / 6, 0,// Top B
-                /*rearRightTop*/    +1, -1, +1, 5.0f / 6, 1,
+                /*rearLeftTop*/     -1, -1, +1, 1.0f / 6, 1,
+                /*frontRightTop*/   +1, -1, -1, 1.0f / 3, 0,// Top B
+                /*rearRightTop*/    +1, -1, +1, 1.0f / 3, 1,
 
                 /*frontRightBottom*/+1, +1, -1, 1, 0,
                 /*frontLeftTop*/    -1, -1, -1, 5.0f / 6, 1,//Front A
@@ -90,19 +91,16 @@ namespace orientation_cube {
         unsigned int texture;
         float lastPitch = 1e9, lastYaw = 1e9;
         const glm::mat4 projection = glm::perspective(glm::radians(50.0f), 1.0f, 0.1f, 1000.0f);
-        const glm::mat4 view = glm::lookAt(glm::vec3(4.0f, 0.0f, 0.0f), {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
 
         glm::mat4 getMatrix(float pitch, float yaw) {
-            glm::mat4 model = glm::eulerAngleYXZ(yaw, pitch, 0.0f);
-            return projection * view * model;
-        }
-
-        void checkGLError()
-        {
-            GLenum err;
-            while((err = glGetError()) != GL_NO_ERROR){
-                std::cout << err;
-            }
+            pitch *= -1;
+            glm::vec3 viewPos = glm::vec3(
+                    4.0f * std::cos(pitch) * std::cos(yaw),
+                    4.0f * std::sin(pitch),
+                    4.0f * std::sin(yaw) * std::cos(pitch)
+            );
+            const glm::mat4 view = glm::lookAt(viewPos, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
+            return projection * view * constants::LDU_TO_OPENGL_ROTATION;
         }
 
         void initialize() {
@@ -113,10 +111,7 @@ namespace orientation_cube {
             int imgWidth, imgHeight, nrChannels;
             const auto filename = std::string("resources") + util::PATH_SEPARATOR + "orientation_cube.jpg";
             unsigned char *data = stbi_load(filename.c_str(), &imgWidth, &imgHeight, &nrChannels, 3);
-            std::cout << imgWidth << std::endl;
-            for (int i = 0; i < 200; ++i) {
-                //printf("%02x", data[i]);
-            }
+
             if (data) {
                 //std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
 
@@ -141,12 +136,23 @@ namespace orientation_cube {
                 glGenTextures(1, &texture);
                 glBindTexture(GL_TEXTURE_2D, texture);
 
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                GLenum format;
+                if (nrChannels == 1)
+                    format = GL_RED;
+                else if (nrChannels == 3)
+                    format = GL_RGB;
+                else if (nrChannels == 4)
+                    format = GL_RGBA;
+
+                glBindTexture(GL_TEXTURE_2D, texture);
+                glTexImage2D(GL_TEXTURE_2D, 0, format, imgWidth, imgHeight, 0, format, GL_UNSIGNED_BYTE, data);
+                glGenerateMipmap(GL_TEXTURE_2D);
+
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
             } else {
                 throw std::invalid_argument("texture for orientation cube not read successfully: " + filename);
             }
@@ -156,8 +162,11 @@ namespace orientation_cube {
     }
 
 
-    unsigned int getImage(float pitch, float yaw) {
-        if (pitch != lastPitch || yaw != lastYaw || true) {
+    unsigned int getImage() {
+        const auto camera = controller::getRenderer()->camera;
+        auto pitch = glm::radians(camera.getPitch());
+        auto yaw = glm::radians(camera.getYaw());
+        if (pitch != lastPitch || yaw != lastYaw) {
             Renderer *renderer = controller::getRenderer();
             if (framebufferSize != size) {
                 renderer->createFramebuffer(&fbo, &tbo, &rbo, size, size);

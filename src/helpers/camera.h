@@ -16,11 +16,11 @@ class CadCamera {
 public:
     CadCamera();
 
-    [[nodiscard]] float getPitch() const;
-    [[nodiscard]] float getYaw() const;
+    [[nodiscard]] float getPitch() const;//degrees
+    [[nodiscard]] float getYaw() const;//degrees
     [[nodiscard]] float getDistance() const;
-    void setPitch(float value);
-    void setYaw(float value);
+    void setPitch(float value);//degrees
+    void setYaw(float value);//degrees
     void setDistance(float value);
 
     [[nodiscard]] glm::mat4 getViewMatrix() const;

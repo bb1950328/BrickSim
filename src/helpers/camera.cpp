@@ -30,7 +30,7 @@ void CadCamera::mouseRotate(float x_delta, float y_delta) {
     pitch -= y_delta * mouseMoveSensitivity;
     pitch = std::min(89.99f, std::max(-89.99f, pitch));
     updateVectors();
-    //std::cout << "yaw=" << yaw << ", pitch=" << pitch << "\n";
+    std::cout << "yaw=" << yaw << ", pitch=" << pitch << "\n";
 }
 
 void CadCamera::mousePan(float x_delta, float y_delta) {
@@ -63,12 +63,12 @@ const glm::vec3 &CadCamera::getCameraPos() const {
 
 void CadCamera::setStandardView(int i) {
     switch (i) {
-        case 1: yaw = 0.0f; pitch = 0.0f; break; //Front
-        case 2: yaw = 180.0f; pitch = 90.0f; break; //Top
-        case 3: yaw = -90.0f; pitch = 0.0f; break; //Right
-        case 4: yaw = 180.0f; pitch = 0.0f; break; //Rear
-        case 5: yaw = 180.0f; pitch = -90.0f; break; //Bottom
-        case 6: yaw = 90.0f; pitch = 0.0f; break; //Left
+        case 1: yaw = 90.0f; pitch = 0.0f; break; //Front
+        case 2: yaw = 90.0f; pitch = 89.99f; break; //Top
+        case 3: yaw = 0.0f; pitch = 0.0f; break; //Right
+        case 4: yaw = 270.0f; pitch = 0.0f; break; //Rear
+        case 5: yaw = 90.0f; pitch = -89.99f; break; //Bottom
+        case 6: yaw = 180.0f; pitch = 0.0f; break; //Left
         default: throw std::invalid_argument("1...6 only");
     }
     target = glm::vec3(0.0f, 0.0f, 0.0f);

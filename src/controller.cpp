@@ -58,6 +58,8 @@ namespace controller {
             glEnable(GL_DEPTH_TEST);
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
+
+            std::cout << "INFO: OpenGL initialized" << std::endl;
             return true;
         }
 
@@ -127,7 +129,7 @@ namespace controller {
                     {"initialize file list", [](){ldr_file_repo::initializeFileList();}},
                     {"initialize price guide provider", [](){price_guide_provider::initialize();}},
                     {"initialize thumbnail generator", [](){thumbnailGenerator.initialize();}},
-                    {"initialize orientation cube generator", [](){orientation_cube::initialize();}},
+                    //{"initialize orientation cube generator", [](){orientation_cube::initialize();}},
             };
             for (auto &initStep : steps) {
                 std::cout << initStep.getName() << std::endl;
@@ -135,8 +137,12 @@ namespace controller {
                 while (!initStep.isFinished()) {
                     if (gui::isSetupDone()) {
                         gui::drawWaitMessage(initStep.getName());
-                        glfwSwapBuffers(window);
-                        glfwPollEvents();
+
+                        {
+                            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+                            glfwSwapBuffers(window);
+                            glfwPollEvents();
+                        }
                     } else {
                         std::chrono::milliseconds sleepTime(16);
                         std::this_thread::sleep_for(sleepTime);

@@ -13,7 +13,6 @@ struct TexturedVertex {
 };
 
 namespace orientation_cube {
-    void initialize();
     unsigned int getImage(float pitch, float yaw);
 };
 

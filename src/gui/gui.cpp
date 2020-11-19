@@ -297,11 +297,11 @@ namespace gui {
 
     void drawWaitMessage(const std::string &message) {
         if (setupDone) {
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
-
             {
+                ImGui_ImplOpenGL3_NewFrame();
+                ImGui_ImplGlfw_NewFrame();
+                ImGui::NewFrame();
+
                 std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
                 glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT);

@@ -30,7 +30,7 @@ void CadCamera::mouseRotate(float x_delta, float y_delta) {
     pitch -= y_delta * mouseMoveSensitivity;
     pitch = std::min(89.99f, std::max(-89.99f, pitch));
     updateVectors();
-    std::cout << "yaw=" << yaw << ", pitch=" << pitch << "\n";
+    //std::cout << "yaw=" << yaw << ", pitch=" << pitch << "\n";
 }
 
 void CadCamera::mousePan(float x_delta, float y_delta) {

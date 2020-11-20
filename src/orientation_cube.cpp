@@ -108,55 +108,26 @@ namespace orientation_cube {
             if (initialized) {
                 return;
             }
-            int imgWidth, imgHeight, nrChannels;
-            const auto filename = std::string("resources") + util::PATH_SEPARATOR + "orientation_cube.jpg";
-            unsigned char *data = stbi_load(filename.c_str(), &imgWidth, &imgHeight, &nrChannels, 3);
 
-            if (data) {
-                //std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+            texture = util::loadTextureFromFile(std::filesystem::path("resources/orientation_cube.jpg"));
 
-                glGenVertexArrays(1, &VAO);
-                glGenBuffers(1, &VBO);
+            glGenVertexArrays(1, &VAO);
+            glGenBuffers(1, &VBO);
 
-                glBindVertexArray(VAO);
+            glBindVertexArray(VAO);
 
-                glBindBuffer(GL_ARRAY_BUFFER, VBO);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
-                std::cout << "orientation_cube VAO, VBO: " << VAO << ", " << VBO << std::endl;
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
 
-                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), nullptr);
-                glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
+            glEnableVertexAttribArray(0);
 
-                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void *)(3*sizeof(float)));
-                glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
+            glEnableVertexAttribArray(1);
 
-                glBindBuffer(GL_ARRAY_BUFFER, 0);
-                glBindVertexArray(0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
 
-                glGenTextures(1, &texture);
-                glBindTexture(GL_TEXTURE_2D, texture);
-
-                GLenum format;
-                if (nrChannels == 1)
-                    format = GL_RED;
-                else if (nrChannels == 3)
-                    format = GL_RGB;
-                else if (nrChannels == 4)
-                    format = GL_RGBA;
-
-                glBindTexture(GL_TEXTURE_2D, texture);
-                glTexImage2D(GL_TEXTURE_2D, 0, format, imgWidth, imgHeight, 0, format, GL_UNSIGNED_BYTE, data);
-                glGenerateMipmap(GL_TEXTURE_2D);
-
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-            } else {
-                throw std::invalid_argument("texture for orientation cube not read successfully: " + filename);
-            }
-            stbi_image_free(data);
             initialized = true;
         }
     }

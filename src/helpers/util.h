@@ -87,5 +87,6 @@ namespace util {
     std::filesystem::path withoutBasePath(const std::filesystem::path& path, const std::filesystem::path& basePath);
     bool writeImage(const char* path, unsigned char* pixels, unsigned int width, unsigned int height, int channels=3);
     bool containsIgnoreCase(const std::string& full, const std::string& sub);
+    unsigned int loadTextureFromFile(const std::filesystem::path& image);
 }
 #endif //BRICKSIM_UTIL_H

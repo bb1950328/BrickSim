@@ -22,6 +22,7 @@ currently, the only way to run BrickSim on OS X is to build it from source, beca
 - add manual
 - make lines thicker (geometry shader)
 - add more sophisticated search in part palette to handle queries like `title=Hello OR name=World`
+- add log library, [https://github.com/emilk/loguru](https://github.com/emilk/loguru) looks interesting
 
 ## How to get the `codes.txt` file
 The `codes.txt` file contains all parts with the colors they are available in. Because I don't whether it's allowed to distribute that file together with the program, you have to download it. But don't worry, it's really simple: 

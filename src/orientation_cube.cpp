@@ -2,6 +2,7 @@
 // Created by bb1950328 on 18.11.2020.
 //
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include "orientation_cube.h"

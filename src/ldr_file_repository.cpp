@@ -86,6 +86,28 @@ namespace ldr_file_repo {
             return pointer;
         }
 
+        std::string* readIoFileToString(const std::filesystem::path& path) {
+            std::string *pointer;
+            auto it = otherFileCache.find(path);
+            if (it==otherFileCache.end()) {
+                char pw[]{0x53, 0x4C, 0x42, 70, 0x30-0x20-12, 0x19-15, 30-0x20, 60-0x20-24, 123-0x7B};
+                for (char i = 0; pw[i]!=0; ++i) {
+                    pw[i] += 0x20+3*i;
+                }
+                auto zip = zip_buffer::BufferedZip(path, pw);
+                const auto* model = zip.getFileAsString("model.ldr");
+                otherFileCache[path] = *model;
+                pointer = &otherFileCache[path];
+            } else {
+                pointer = &it->second;
+            }
+            {
+                std::lock_guard<std::mutex> lg(otherFileCacheLockMutex);
+                otherFileCacheLock[pointer] = true;
+            }
+            return pointer;
+        }
+
         void unlockCachedFile(const std::string* fileContent) {
             std::lock_guard<std::mutex> lg(otherFileCacheLockMutex);
             auto it = otherFileCacheLock.find(fileContent);
@@ -258,7 +280,11 @@ namespace ldr_file_repo {
     }
 
     std::pair<LdrFileType, const std::string*> findAndReadFileContent(const std::string &filename) {
-        if (std::filesystem::path(filename).is_absolute()) {
+        auto filenamePath = std::filesystem::path(filename);
+        //std::cout << "extension: " << filenamePath.extension() << std::endl;
+        if (filenamePath.extension() == ".io") {
+            return std::make_pair(LdrFileType::MODEL, readIoFileToString(filenamePath));
+        } else if (filenamePath.is_absolute()) {
             return std::make_pair(LdrFileType::MODEL, readFileToString(filename));
         }
         

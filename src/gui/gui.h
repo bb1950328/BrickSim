@@ -11,9 +11,9 @@
 #include <imgui.h>
 #include <GLFW/glfw3.h>
 
-static const int NUM_LDR_FILTER_PATTERNS = 3;
+constexpr int NUM_LDR_FILTER_PATTERNS = 4;
 
-static const int NUM_IMAGE_FILTER_PATTERNS = 4;
+constexpr int NUM_IMAGE_FILTER_PATTERNS = 4;
 
 namespace gui {
     namespace windows {

@@ -35,13 +35,16 @@ namespace gui {
     double getLastScrollDeltaY();
     void setup();
     [[nodiscard]] bool isSetupDone();
-    void loop();
+
+    void beginFrame();
+    void drawMainWindows();
+    void endFrame();
 
     void cleanup();
 
     bool loopPartsLibraryInstallationScreen();//returns true when finished
 
-    void drawWaitMessage(const std::string& message);
+    void drawWaitMessage(const std::string &message, float progress);
 };
 
 #endif //BRICKSIM_GUI_H

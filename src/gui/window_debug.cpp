@@ -18,7 +18,7 @@ namespace gui {
         if (!bgTasks.empty()) {
             ImGui::Text("%llu background tasks:", bgTasks.size());
             for (const auto &task : bgTasks) {
-                ImGui::BulletText("%s", task.second->getTaskName().c_str());
+                ImGui::BulletText("%s", task.second->getName().c_str());
             }
         }
 

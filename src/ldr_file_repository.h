@@ -20,7 +20,7 @@ namespace ldr_file_repo {
     const std::string* readFileFromLdrawDirectory(const std::string& filename);
 
     void clearCache();
-    void initializeFileList();
+    void initializeFileList(float *progress);
     void initializeLdrawLibraryLocation();
 
     [[ nodiscard ]] bool areAllPartsLoaded();

@@ -40,6 +40,7 @@ namespace ldr_file_repo {
         const std::string PSEUDO_CATEGORY_MODEL = "__MODEL";
         const std::string PSEUDO_CATEGORY_HIDDEN_PART = "__HIDDEN_PART";
         const std::vector<std::string> PSEUDO_CATEGORIES{PSEUDO_CATEGORY_SUBPART, PSEUDO_CATEGORY_PRIMITIVE, PSEUDO_CATEGORY_MODEL, PSEUDO_CATEGORY_HIDDEN_PART};
+        const int ESTIMATE_PART_LIBRARY_FILE_COUNT = 19057;//counted on 2020-12-09
 
         std::pair<LdrFileType, std::string> convertLDrawDirPathToFilenameAndType(const std::string &ldrawDirPath);
 
@@ -144,18 +145,19 @@ namespace ldr_file_repo {
                     || util::startsWith(filename, "models/"));
         }
 
-        void fillFileListFromZip() {
+        void fillFileListFromZip(float *progress) {
             std::vector<db::fileList::Entry> entries;
             for (const auto &file : zipLibrary->textFiles) {
                 if (shouldFileBeSavedInList(file.first)) {
                     auto ldrFile = getFileInLdrawDirectory(file.first);
                     entries.push_back({ldrFile->metaInfo.name, ldrFile->metaInfo.title, ldrFile->metaInfo.getCategory()});
+                    *progress = 0.99f*entries.size()/ESTIMATE_PART_LIBRARY_FILE_COUNT;
                 }
             }
             db::fileList::put(entries);
         }
         
-        void fillFileListFromDirectory() {
+        void fillFileListFromDirectory(float *progress) {
             std::vector<db::fileList::Entry> entries;
             for (const auto &entry : std::filesystem::recursive_directory_iterator(ldrawDirectory)) {
                 auto path = util::withoutBasePath(entry.path(), ldrawDirectory).string();
@@ -181,6 +183,7 @@ namespace ldr_file_repo {
                         category = PSEUDO_CATEGORY_MODEL;
                     }
                     entries.push_back({pathWithForwardSlash, ldrFile->metaInfo.title, category});
+                    *progress = 0.99f*entries.size()/ESTIMATE_PART_LIBRARY_FILE_COUNT;
                 }
             }
             db::fileList::put(entries);
@@ -259,7 +262,7 @@ namespace ldr_file_repo {
         }
     }
 
-    void initializeFileList() {
+    void initializeFileList(float *progress) {
         initializeLdrawLibraryLocation();
         static auto done = false;
         if (!done) {
@@ -267,9 +270,9 @@ namespace ldr_file_repo {
                 std::cout << "starting to fill fileList" << std::endl;
                 auto before = std::chrono::high_resolution_clock::now();
                 if (isZipLibrary) {
-                    fillFileListFromZip();//todo testing
+                    fillFileListFromZip(progress);//todo testing
                 } else {
-                    fillFileListFromDirectory();
+                    fillFileListFromDirectory(progress);
                 }
                 auto after = std::chrono::high_resolution_clock::now();
                 auto durationMs = std::chrono::duration_cast<std::chrono::microseconds >(after - before).count()/1000.0;

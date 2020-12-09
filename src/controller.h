@@ -11,7 +11,7 @@
 #include "renderer.h"
 #include "gui/gui.h"
 #include "thumbnail_generator.h"
-#include "background_task.h"
+#include "tasks.h"
 
 namespace controller {
     namespace {
@@ -19,18 +19,6 @@ namespace controller {
         void window_size_callback(GLFWwindow *window, int width, int height);
         void checkForFinishedBackgroundTasks();
         void initialize();
-        class InitialisationStep {
-        private:
-            std::string name;
-            std::function<void()> task;
-            std::thread* taskThread = nullptr;
-            std::atomic<bool> taskFinished = false;
-        public:
-            InitialisationStep(std::string name, std::function<void()> task);
-            void start();
-            bool isFinished();
-            [[nodiscard]] const std::string &getName() const;
-        };
     }
 
     int run();
@@ -61,7 +49,7 @@ namespace controller {
     long getLastFrameTime();
     std::recursive_mutex & getOpenGlMutex();
 
-    std::map<unsigned int, BackgroundTask *> & getBackgroundTasks();
+    std::map<unsigned int, Task *> & getBackgroundTasks();
     void addBackgroundTask(std::string name, const std::function<void()>& function);
 
     [[nodiscard]] bool doesUserWantToExit();

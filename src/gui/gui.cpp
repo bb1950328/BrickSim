@@ -66,7 +66,7 @@ namespace gui {
         }
     }
 
-    void loop() {
+    void drawMainWindows() {
         static bool show3dWindow = true;
         static bool showElementTreeWindow = true;
         static bool showElementPropertiesWindow = true;
@@ -77,17 +77,6 @@ namespace gui {
         static bool showSysInfoWindow = false;
         static bool showPartPaletteWindow = true;
         static bool showOrientationCube = true;
-        static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.6f, 1.0f);
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        {
-            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
-        }
 
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
@@ -199,14 +188,27 @@ namespace gui {
             }
         }
         statistic::lastWindowDrawingTimesMs = drawingTimes;
+        lastScrollDeltaY = 0.0f;
+    }
 
-        // Rendering
+    void endFrame() {
         ImGui::Render();
         {
             std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
-        lastScrollDeltaY = 0.0f;
+    }
+
+    void beginFrame() {
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        {
+            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
     }
 
     void cleanup() {
@@ -295,30 +297,15 @@ namespace gui {
         return finished;
     }
 
-    void drawWaitMessage(const std::string &message) {
+    void drawWaitMessage(const std::string &message, float progress) {
         if (setupDone) {
-            {
-                ImGui_ImplOpenGL3_NewFrame();
-                ImGui_ImplGlfw_NewFrame();
-                ImGui::NewFrame();
-
-                std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-                glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT);
-            }
-
             ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
             const float fontSize = ImGui::GetFontSize();
             ImGui::SetNextWindowSize(ImVec2(fontSize * 18, fontSize * 6));
             ImGui::Begin("Please wait", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::Text("%c %s", gui_internal::getLoFiSpinner(), message.c_str());
+            ImGui::ProgressBar(progress);
             ImGui::End();
-
-            ImGui::Render();
-            {
-                std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-            }
         }
     }
 

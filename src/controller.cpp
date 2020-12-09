@@ -8,6 +8,7 @@
 #include "info_providers/price_guide_provider.h"
 #include "db.h"
 #include "orientation_cube.h"
+#include "tasks.h"
 
 namespace controller {
     namespace {
@@ -25,7 +26,7 @@ namespace controller {
         bool userWantsToExit = false;
         std::set<etree::Node *> selectedNodes;
         etree::Node *currentlyEditingNode;
-        std::map<unsigned int, BackgroundTask*> backgroundTasks;
+        std::map<unsigned int, Task*> backgroundTasks;
 
         bool initializeGL() {
             std::lock_guard<std::recursive_mutex> lg(getOpenGlMutex());
@@ -83,30 +84,6 @@ namespace controller {
                 lastCheck = now;
             }
         }
-        InitialisationStep::InitialisationStep(std::string name, std::function<void()> task) : name(std::move(name)), task(std::move(task)) {}
-
-        void controller::InitialisationStep::start() {
-            taskFinished = false;
-            taskThread = new std::thread([this](){
-                task();
-                taskFinished = true;
-            });
-        }
-
-        bool controller::InitialisationStep::isFinished() {
-            if (taskFinished && taskThread != nullptr) {
-                taskThread->join();
-                taskThread = nullptr;
-                taskFinished = false;
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        const std::string &controller::InitialisationStep::getName() const {
-            return name;
-        }
 
         void initialize() {
             db::initialize();
@@ -124,19 +101,21 @@ namespace controller {
             renderer.setWindowSize(view3dWidth, view3dHeight);
             renderer.setup();
 
-            InitialisationStep steps[]{
+            Task steps[]{
                     {"load color definitions", [](){ldr_color_repo::initialize();}},
-                    {"initialize file list", [](){ldr_file_repo::initializeFileList();}},
+                    {"initialize file list", [](float *progress){ldr_file_repo::initializeFileList(progress);}},
                     {"initialize price guide provider", [](){price_guide_provider::initialize();}},
                     {"initialize thumbnail generator", [](){thumbnailGenerator.initialize();}},
                     //{"initialize orientation cube generator", [](){orientation_cube::initialize();}},
             };
             for (auto &initStep : steps) {
                 std::cout << initStep.getName() << std::endl;
-                initStep.start();
-                while (!initStep.isFinished()) {
+                initStep.startThread();
+                while (!initStep.isDone()) {
                     if (gui::isSetupDone()) {
-                        gui::drawWaitMessage(initStep.getName());
+                        gui::beginFrame();
+                        gui::drawWaitMessage(initStep.getName(), initStep.getProgress());
+                        gui::endFrame();
 
                         {
                             std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
@@ -148,6 +127,7 @@ namespace controller {
                         std::this_thread::sleep_for(sleepTime);
                     }
                 }
+                initStep.joinThread();
             }
         }
     }
@@ -178,7 +158,11 @@ namespace controller {
                 elementTreeChanged = false;
             }
             renderer.loop();
-            gui::loop();
+
+            gui::beginFrame();
+            gui::drawMainWindows();
+            gui::endFrame();
+
             thumbnailGenerator.discardOldestImages(0);
             bool moreWork;
             do {
@@ -354,7 +338,7 @@ namespace controller {
         return openGlMutex;
     }
 
-    std::map<unsigned int, BackgroundTask*> &getBackgroundTasks() {
+    std::map<unsigned int, Task*> &getBackgroundTasks() {
         checkForFinishedBackgroundTasks();
         return backgroundTasks;
     }
@@ -362,6 +346,8 @@ namespace controller {
     void addBackgroundTask(std::string name, const std::function<void()>& function) {
         static unsigned int sId = 0;
         unsigned int id = sId++;
-        backgroundTasks.insert(std::make_pair(id, new BackgroundTask(id, std::move(name), function)));
+        auto *task = new Task(std::move(name), function);
+        backgroundTasks.insert(std::make_pair(id, task));
+        task->startThread();
     }
 }

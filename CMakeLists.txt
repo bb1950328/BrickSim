@@ -85,8 +85,6 @@ set(bricksim_sources
         src/helpers/zip_buffer.h
         src/info_providers/price_guide_provider.cpp
         src/info_providers/price_guide_provider.h
-        src/background_task.cpp
-        src/background_task.h
         src/db.cpp
         src/db.h
         src/gui/window_3d.cpp
@@ -104,7 +102,7 @@ set(bricksim_sources
         src/part_finder.h
         src/orientation_cube.cpp
         src/orientation_cube.h
-        )
+        src/tasks.cpp src/tasks.h)
 
 add_executable(BrickSim
         ${imgui_sources}

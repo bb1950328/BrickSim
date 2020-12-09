@@ -45,6 +45,8 @@ namespace gui {
     bool loopPartsLibraryInstallationScreen();//returns true when finished
 
     void drawWaitMessage(const std::string &message, float progress);
+    void updateBlockingMessage(const std::string &message, float progress);
+    void closeBlockingMessage();
 };
 
 #endif //BRICKSIM_GUI_H

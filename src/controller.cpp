@@ -27,6 +27,7 @@ namespace controller {
         std::set<etree::Node *> selectedNodes;
         etree::Node *currentlyEditingNode;
         std::map<unsigned int, Task*> backgroundTasks;
+        std::queue<Task *> foregroundTasks;
 
         bool initializeGL() {
             std::lock_guard<std::recursive_mutex> lg(getOpenGlMutex());
@@ -130,6 +131,22 @@ namespace controller {
                 initStep.joinThread();
             }
         }
+
+        void handleForegroundTasks() {
+            while (!foregroundTasks.empty()) {
+                Task *&frontTask = foregroundTasks.front();
+                if (!frontTask->isStarted()) {
+                    frontTask->startThread();
+                }
+                if (frontTask->isDone()) {
+                    frontTask->joinThread();
+                    delete frontTask;
+                    foregroundTasks.pop();
+                } else {
+                    return;
+                }
+            }
+        }
     }
 
     int run() {
@@ -161,6 +178,14 @@ namespace controller {
 
             gui::beginFrame();
             gui::drawMainWindows();
+
+            handleForegroundTasks();
+            if (foregroundTasks.empty()) {
+                gui::closeBlockingMessage();
+            } else {
+                gui::updateBlockingMessage(foregroundTasks.front()->getName(), foregroundTasks.front()->getProgress());
+            }
+
             gui::endFrame();
 
             thumbnailGenerator.discardOldestImages(0);
@@ -203,9 +228,9 @@ namespace controller {
     }
 
     void openFile(const std::string &path) {
-        addBackgroundTask(std::string("Open ")+path, [path](){
+        foregroundTasks.push(new Task(std::string("Open ")+path, [path](){
             insertLdrElement(ldr_file_repo::getFile(path));
-        });
+        }));
     }
 
     void nodeSelectAddRemove(etree::Node *node) {
@@ -349,5 +374,9 @@ namespace controller {
         auto *task = new Task(std::move(name), function);
         backgroundTasks.insert(std::make_pair(id, task));
         task->startThread();
+    }
+
+    std::queue<Task *>& getForegroundTasks() {
+        return foregroundTasks;
     }
 }

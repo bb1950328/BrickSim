@@ -24,7 +24,9 @@ namespace gui {
         GLFWwindow *window;
         double lastScrollDeltaY;
 
-
+        std::string blockingMessageText;
+        bool blockingMessageShowing = false;
+        float blockingMessageProgress = 0;
     }
 
     void setup() {
@@ -189,6 +191,18 @@ namespace gui {
         }
         statistic::lastWindowDrawingTimesMs = drawingTimes;
         lastScrollDeltaY = 0.0f;
+
+        if (ImGui::BeginPopupModal("Please wait##Modal", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Text("Please wait until this operation has finished.");
+            ImGui::Separator();
+            ImGui::Text("%s", blockingMessageText.c_str());
+            ImGui::ProgressBar(blockingMessageProgress);
+            if (!blockingMessageShowing) {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
     }
 
     void endFrame() {
@@ -327,5 +341,20 @@ namespace gui {
 
     double getLastScrollDeltaY() {
         return lastScrollDeltaY;
+    }
+
+    void updateBlockingMessage(const std::string &message, float progress) {
+        blockingMessageText = message;
+        blockingMessageProgress = progress;
+        if (!blockingMessageShowing) {
+            ImGui::OpenPopup("Please wait##Modal");
+            blockingMessageShowing = true;
+        }
+    }
+
+    void closeBlockingMessage() {
+        if (blockingMessageShowing) {
+            blockingMessageShowing = false;
+        }
     }
 }

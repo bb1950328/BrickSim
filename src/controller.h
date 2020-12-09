@@ -52,6 +52,8 @@ namespace controller {
     std::map<unsigned int, Task *> & getBackgroundTasks();
     void addBackgroundTask(std::string name, const std::function<void()>& function);
 
+    std::queue<Task *>& getForegroundTasks();
+
     [[nodiscard]] bool doesUserWantToExit();
 };
 

@@ -24,6 +24,9 @@ currently, the only way to run BrickSim on OS X is to build it from source, beca
 - add more sophisticated search in part palette to handle queries like `title=Hello OR name=World`
 - add log library, [https://github.com/emilk/loguru](https://github.com/emilk/loguru) looks interesting
 
+## Known bugs
+- If you change the layer of a part in the element properties, all instances but the selected disappear, (the changed instance is drawn over the other things correctly)
+
 ## How to get the `codes.txt` file
 The `codes.txt` file contains all parts with the colors they are available in. Because I don't whether it's allowed to distribute that file together with the program, you have to download it. But don't worry, it's really simple: 
 1. Go to [https://www.bricklink.com/catalogDownload.asp](https://www.bricklink.com/catalogDownload.asp)

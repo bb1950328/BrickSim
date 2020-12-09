@@ -102,7 +102,7 @@ set(bricksim_sources
         src/part_finder.h
         src/orientation_cube.cpp
         src/orientation_cube.h
-        src/tasks.cpp src/tasks.h)
+        src/tasks.cpp src/tasks.h src/types.h)
 
 add_executable(BrickSim
         ${imgui_sources}

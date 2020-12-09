@@ -36,6 +36,7 @@ namespace etree {
         std::string displayName;
         bool selected = false;
         NodeType type = TYPE_OTHER;
+        layer_t layer=0;
 
         [[nodiscard]] const glm::mat4 &getRelativeTransformation() const;
         void setRelativeTransformation(const glm::mat4 &newValue);

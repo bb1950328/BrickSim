@@ -274,6 +274,8 @@ namespace gui {
                 }
             }
 
+            ImGui::DragScalar("Layer", ImGuiDataType_U8, &node->layer, 0.2f, nullptr, nullptr);
+
             lastSelectedNode = node;
         } else {
         }

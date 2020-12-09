@@ -12,6 +12,7 @@
 #include "shaders/shader.h"
 #include "helpers/camera.h"
 #include "constants.h"
+#include "types.h"
 
 struct TriangleVertex {
     //TriangleVertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color);
@@ -47,6 +48,7 @@ struct MeshInstance {
     glm::mat4 transformation;
     unsigned int elementId;
     bool selected;
+    layer_t layer;
     bool operator==(const MeshInstance& other) const;
     bool operator!=(const MeshInstance& other) const;
 };
@@ -66,6 +68,7 @@ public:
 
     std::vector<MeshInstance> instances;
     bool instancesHaveChanged = false;
+    std::map<layer_t, unsigned int> instanceCountOfLayerAndGreater;//for example element with key 4 is the number of elements in layer 4 and above
 
     std::string name = "?";
 
@@ -83,9 +86,9 @@ public:
 
     void writeGraphicsData();
 
-    void drawTriangleGraphics();
-    void drawLineGraphics();
-    void drawOptionalLineGraphics();
+    void drawTriangleGraphics(layer_t layer=constants::DEFAULT_LAYER);
+    void drawLineGraphics(layer_t layer=constants::DEFAULT_LAYER);
+    void drawOptionalLineGraphics(layer_t layer=constants::DEFAULT_LAYER);
 
     void deallocateGraphics();
     virtual ~Mesh();
@@ -119,6 +122,8 @@ private:
     void addOptionalLineVertex(const LineVertex &vertex);
 
     void addMinEnclosingBallLines();
+    void updateInstanceCountOfLayerAndGreater();
+    void sortInstancesByLayer();
 };
 
 #endif //BRICKSIM_MESH_H

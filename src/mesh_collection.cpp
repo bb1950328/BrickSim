@@ -15,21 +15,21 @@ void MeshCollection::initializeGraphics() {
     }
 }
 
-void MeshCollection::drawLineGraphics() const {
+void MeshCollection::drawLineGraphics(const layer_t layer) const {
     for (const auto &pair: meshes) {
-        pair.second->drawLineGraphics();
+        pair.second->drawLineGraphics(layer);
     }
 }
 
-void MeshCollection::drawOptionalLineGraphics() const {
+void MeshCollection::drawOptionalLineGraphics(const layer_t layer) const {
     for (const auto &pair: meshes) {
-        pair.second->drawOptionalLineGraphics();
+        pair.second->drawOptionalLineGraphics(layer);
     }
 }
 
-void MeshCollection::drawTriangleGraphics() const {
+void MeshCollection::drawTriangleGraphics(const layer_t layer) const {
     for (const auto &pair: meshes) {
-        pair.second->drawTriangleGraphics();
+        pair.second->drawTriangleGraphics(layer);
     }
 }
 
@@ -87,7 +87,8 @@ void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentA
                     selectionTargetElementId = elementId;//for the children
                 }
             }
-            MeshInstance newInstance{color, absoluteTransformation, elementId, meshNode->selected};
+            MeshInstance newInstance{color, absoluteTransformation, elementId, meshNode->selected, node->layer};
+            layersInUse.emplace(node->layer);
             elementsSortedById.push_back(node);
             newMeshInstances[meshesKey].push_back(newInstance);
         }
@@ -107,6 +108,7 @@ MeshCollection::MeshCollection(etree::ElementTree *elementTree) {
 void MeshCollection::rereadElementTree() {
     elementsSortedById.clear();
     elementsSortedById.push_back(nullptr);
+    layersInUse.clear();
     auto before = std::chrono::high_resolution_clock::now();
     readElementTree(&elementTree->rootNode, glm::mat4(1.0f), nullptr, std::nullopt);
     updateMeshInstances();
@@ -249,4 +251,8 @@ std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBoxInternal(const etr
         glm::vec4(x1, y1, z1, 1.0f),
         glm::vec4(x2, y2, z2, 1.0f)
     };
+}
+
+const std::set<layer_t> &MeshCollection::getLayersInUse() const {
+    return layersInUse;
 }

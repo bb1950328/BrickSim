@@ -47,7 +47,9 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile, const LdrC
         MeshInstance tmpInstance{
                 color,
                 glm::mat4(1.0f),
-                0
+                0,
+                false,
+                constants::DEFAULT_LAYER
         };
         mesh->instances.push_back(tmpInstance);
         mesh->instancesHaveChanged = true;

@@ -47,6 +47,9 @@ namespace gui {
             }
             ImGuiIO &io = ImGui::GetIO();
             io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+            if (config::getBool(config::ENABLE_VIEWPORTS)) {
+                io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+            }
             io.Fonts->AddFontFromFileTTF("RobotoMono-Regular.ttf", 13.0f * scaleFactor, nullptr, nullptr);
             // Setup Platform/Renderer bindings
             ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -208,6 +211,10 @@ namespace gui {
     void endFrame() {
         ImGui::Render();
         {
+            if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+                ImGui::UpdatePlatformWindows();
+                ImGui::RenderPlatformWindowsDefault();
+            }
             std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }

@@ -77,6 +77,7 @@ namespace config {
     const IntKey THUMBNAIL_CACHE_SIZE_BYTES("thumbnailCacheSizeBytes", 1073741824);
     const BoolKey DRAW_MINIMAL_ENCLOSING_BALL_LINES("drawMinimalEnclosingBallLines", false);
     const StringKey BRICKLINK_CURRENCY_CODE("bricklinkCurrencyCode", "CHF");
+    const BoolKey ENABLE_VIEWPORTS("enableViewports", false);
 }
 
 #endif //BRICKSIM_CONFIG_H

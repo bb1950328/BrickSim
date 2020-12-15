@@ -92,24 +92,28 @@ bool Renderer::loop() {
         glBindFramebuffer(GL_FRAMEBUFFER, imageFramebuffer);
         const util::RGBcolor &bgColor = util::RGBcolor(config::getString(config::BACKGROUND_COLOR));
         glClearColor(bgColor.red/255.0f, bgColor.green/255.0f, bgColor.blue/255.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         glm::mat4 view = camera.getViewMatrix();
         const glm::mat4 &projectionView = projection * view;
 
-        triangleShader->use();
-        triangleShader->setVec3("viewPos", camera.getCameraPos());
-        triangleShader->setMat4("projectionView", projectionView);
-        triangleShader->setInt("drawSelection", 0);
-        meshCollection.drawTriangleGraphics();
+        for (const auto &layer : meshCollection.getLayersInUse()) {
+            glClear(GL_DEPTH_BUFFER_BIT);
+            triangleShader->use();
+            triangleShader->setVec3("viewPos", camera.getCameraPos());
+            triangleShader->setMat4("projectionView", projectionView);
+            triangleShader->setInt("drawSelection", 0);
+            meshCollection.drawTriangleGraphics(layer);
 
-        lineShader->use();
-        lineShader->setMat4("projectionView", projectionView);
-        meshCollection.drawLineGraphics();
+            lineShader->use();
+            lineShader->setMat4("projectionView", projectionView);
+            meshCollection.drawLineGraphics(layer);
 
-        optionalLineShader->use();
-        optionalLineShader->setMat4("projectionView", projectionView);
-        meshCollection.drawOptionalLineGraphics();
+            optionalLineShader->use();
+            optionalLineShader->setMat4("projectionView", projectionView);
+            meshCollection.drawOptionalLineGraphics(layer);
+        }
+
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         unrenderedChanges = false;
@@ -164,7 +168,10 @@ unsigned int Renderer::getSelectionPixel(unsigned int x, unsigned int y) {
 
     triangleShader->use();
     triangleShader->setInt("drawSelection", 1);
-    meshCollection.drawTriangleGraphics();
+    for (const auto &layer : meshCollection.getLayersInUse()) {
+        glClear(GL_DEPTH_BUFFER_BIT);
+        meshCollection.drawTriangleGraphics(layer);
+    }
 
     GLubyte  middlePixel[3];
     glReadPixels(x, (currentSelectionBuffersHeight - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel);

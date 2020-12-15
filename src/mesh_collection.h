@@ -18,15 +18,16 @@ public:
 
     void rereadElementTree();
 
-    void drawTriangleGraphics() const;
-    void drawLineGraphics() const;
-    void drawOptionalLineGraphics() const;
+    void drawTriangleGraphics(const layer_t layer) const;
+    void drawLineGraphics(const layer_t layer) const;
+    void drawOptionalLineGraphics(const layer_t layer) const;
 
     etree::Node* getElementById(unsigned int id);
 
     void updateSelectionContainerBox();
 
     std::pair<glm::vec3, glm::vec3> getBoundingBox(const etree::MeshNode *node) const;
+    [[nodiscard]] const std::set<layer_t> &getLayersInUse() const;
 private:
     std::vector<etree::Node*> elementsSortedById;
 
@@ -34,6 +35,7 @@ private:
     std::set<etree::Node*> nodesWithChildrenAlreadyVisited;
 
     std::map<std::pair<void *, bool>, std::vector<MeshInstance>> newMeshInstances;
+    std::set<layer_t> layersInUse;
     void updateMeshInstances();
     void readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation, LdrColor *parentColor, std::optional<unsigned int> selectionTargetElementId);
     std::pair<glm::vec3, glm::vec3> getBoundingBoxInternal(const etree::MeshNode *node) const;

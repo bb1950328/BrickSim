@@ -202,9 +202,13 @@ void Mesh::writeGraphicsData() {
         if (config::getBool(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES)) {
             addMinEnclosingBallLines();
         }
+        sortInstancesByLayer();
+        updateInstanceCountOfLayerAndGreater();
+
         initializeTriangleGraphics();
         initializeLineGraphics();
         initializeOptionalLineGraphics();
+
         already_initialized = true;
     } else {
         rewriteInstanceBuffer();
@@ -295,6 +299,11 @@ void Mesh::initializeTriangleGraphics() {
 void Mesh::rewriteInstanceBuffer() {
     std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     if (instancesHaveChanged) {
+        sortInstancesByLayer();
+        updateInstanceCountOfLayerAndGreater();
+
+        //todo just clear buffer data when no instances
+
         size_t newBufferSize = (sizeof(TriangleInstance) * triangleIndices.size() + 2 * sizeof(glm::mat4)) * instances.size();
         statistic::vramUsageBytes -= this->lastInstanceBufferSize;
         statistic::vramUsageBytes += newBufferSize;
@@ -321,6 +330,28 @@ void Mesh::rewriteInstanceBuffer() {
         glBindBuffer(GL_ARRAY_BUFFER, optionalLineInstanceVBO);
         glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
         instancesHaveChanged = false;
+    }
+}
+
+void Mesh::sortInstancesByLayer() {
+    std::sort(instances.begin(), instances.end(),
+              [](const MeshInstance &a, const MeshInstance &b) {
+                  return a.layer > b.layer;
+              });
+}
+
+void Mesh::updateInstanceCountOfLayerAndGreater() {
+    instanceCountOfLayerAndGreater.clear();
+    if (!instances.empty()) {
+        layer_t layerNum = instances.begin()->layer;
+        unsigned count = 0;
+        for (const auto &inst : instances) {
+            if (inst.layer!=layerNum) {
+                instanceCountOfLayerAndGreater.emplace(layerNum, count);
+            }
+            count++;
+        }
+        instanceCountOfLayerAndGreater.emplace(layerNum, count);
     }
 }
 
@@ -416,26 +447,35 @@ void Mesh::initializeOptionalLineGraphics() {
     delete[] instancesArray;
 }
 
-void Mesh::drawTriangleGraphics() {
-    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-    for (const auto &entry: triangleIndices) {
-        const LdrColor *color = entry.first;
-        std::vector<unsigned int> *indices = entry.second;
-        glBindVertexArray(VAOs[color]);
-        glDrawElementsInstanced(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, nullptr, instances.size());
+void Mesh::drawTriangleGraphics(layer_t layer) {
+    const auto it = instanceCountOfLayerAndGreater.find(layer);
+    if (it != instanceCountOfLayerAndGreater.cend()) {
+        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+        for (const auto &entry: triangleIndices) {
+            const LdrColor *color = entry.first;
+            std::vector<unsigned int> *indices = entry.second;
+            glBindVertexArray(VAOs[color]);
+            glDrawElementsInstanced(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, nullptr, it->second);
+        }
     }
 }
 
-void Mesh::drawLineGraphics() {
-    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-    glBindVertexArray(lineVAO);
-    glDrawElementsInstanced(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, instances.size());
+void Mesh::drawLineGraphics(layer_t layer) {
+    const auto it = instanceCountOfLayerAndGreater.find(layer);
+    if (it != instanceCountOfLayerAndGreater.cend()) {
+        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+        glBindVertexArray(lineVAO);
+        glDrawElementsInstanced(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, it->second);
+    }
 }
 
-void Mesh::drawOptionalLineGraphics() {
-    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-    glBindVertexArray(optionalLineVAO);
-    glDrawElementsInstanced(GL_LINES_ADJACENCY, optionalLineIndices.size(), GL_UNSIGNED_INT, nullptr, instances.size());
+void Mesh::drawOptionalLineGraphics(layer_t layer) {
+    const auto it = instanceCountOfLayerAndGreater.find(layer);
+    if (it != instanceCountOfLayerAndGreater.cend()) {
+        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+        glBindVertexArray(optionalLineVAO);
+        glDrawElementsInstanced(GL_LINES_ADJACENCY, optionalLineIndices.size(), GL_UNSIGNED_INT, nullptr, it->second);
+    }
 }
 
 void Mesh::deallocateGraphics() {

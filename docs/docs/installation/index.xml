@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Installation on BrickSim</title>
+    <link>https://bb1950328.github.io/BrickSim/docs/installation/</link>
+    <description>Recent content in Installation on BrickSim</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language><atom:link href="https://bb1950328.github.io/BrickSim/docs/installation/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Windows</title>
+      <link>https://bb1950328.github.io/BrickSim/docs/installation/windows/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://bb1950328.github.io/BrickSim/docs/installation/windows/</guid>
+      <description>currently, the only way to run BrickSim on Windows is to build it from source. A .exe file will be provided as soon as I have figured out how to build it in GitHub Actions on Windows.</description>
+    </item>
+    
+    <item>
+      <title>Linux</title>
+      <link>https://bb1950328.github.io/BrickSim/docs/installation/linux/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://bb1950328.github.io/BrickSim/docs/installation/linux/</guid>
+      <description> Go to CMake Linux Build, select the topmost run and download the &amp;quot;BrickSimLinux&amp;quot; artifact. Unzip it somewhere Open the terminal and go to the folder you unzipped the files Mark the program as executable with the following command: chmod a+x BrickSim Install some dependencies: sudo apt install libgl1-mesa-dev libglew-dev Run the program with ./BrickSim  </description>
+    </item>
+    
+    <item>
+      <title>Mac OS X</title>
+      <link>https://bb1950328.github.io/BrickSim/docs/installation/osx/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://bb1950328.github.io/BrickSim/docs/installation/osx/</guid>
+      <description>currently, the only way to run BrickSim a Mac is to build it from source. A binary file will be provided as soon as I have found someone who knows how to build software on Mac OS X.</description>
+    </item>
+    
+  </channel>
+</rss>

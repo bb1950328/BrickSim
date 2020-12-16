@@ -44,6 +44,7 @@ public:
 
     [[nodiscard]] std::string to_string() const;
     [[nodiscard]] std::string to_multiline_string() const;
+
     friend std::ostream &operator<<(std::ostream &os, const Fraction &fraction);
 };
 #endif //BRICKSIM_FRACTION_H

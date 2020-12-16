@@ -1,5 +1,8 @@
 name: CMake Windows Build
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - "docs/**"
 env:
   BUILD_TYPE: Release
 jobs:

@@ -1,13 +1,7 @@
 # BrickSim
 
-## Planned features / TODOs
-- render arrows to translate and rotate object
-- render lines in another color if mesh instance is selected (add boolean to lineInstanceBuffer)
-- add save functionality
+## TODOs
 - add automated build for windows
-- add camera pan
-- add manual
-- make lines thicker (geometry shader)
 - add more sophisticated search in part palette to handle queries like `title=Hello OR name=World`
 - add log library, [https://github.com/emilk/loguru](https://github.com/emilk/loguru) looks interesting
 

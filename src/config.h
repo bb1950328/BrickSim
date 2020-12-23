@@ -63,7 +63,7 @@ namespace config {
     const IntKey INSTANCED_MIN_COMPLEXITY("instancedMinComplexity", 6000);
     const IntKey MSAA_SAMPLES("msaaSamples", 16);
     const DoubleKey GUI_SCALE("guiScale", 1.5);
-    const StringKey GUI_STYLE("guiStyle", "dark");
+    const StringKey GUI_STYLE("guiStyle", "BrickSim");//or ImGuiLight, ImGuiClassic or ImGuiDark
     const ColorKey BACKGROUND_COLOR("backgroundColor", util::RGBcolor(0x36, 0x36, 0x36));
     const BoolKey SHOW_NORMALS("showNormals", false);
     const BoolKey DISPLAY_SELECTION_BUFFER("displaySelectionBuffer", false);

@@ -31,7 +31,7 @@ namespace gui {
             ImGui::SliderFloat("UI Scale", &guiScale, 0.25, 8, "%.2f");
             ImGui::InputInt2("Initial Window Size", initialWindowSize);
             ImGui::InputText("Ldraw path", const_cast<char *>(ldrawDir), 256);
-            ImGui::Combo("GUI Theme", &guiStyle, "Light\0Classic\0Dark\0");
+            ImGui::Combo("GUI Theme", &guiStyle, "BrickSim Default\0ImGui Light\0ImGui Classic\0ImGui Dark\0");
             ImGui::SliderInt("MSAA Samples", &msaaElem, 0, 4, std::to_string((int) std::pow(2, msaaElem)).c_str());
             ImGui::ColorEdit3("Background Color", &backgroundColor.x);
             ImGui::TreePop();
@@ -56,14 +56,17 @@ namespace gui {
             config::setInt(config::SCREEN_HEIGHT, initialWindowSize[1]);
             config::setString(config::LDRAW_PARTS_LIBRARY, ldrawDir);
             switch (guiStyle) {
-                case 0:
-                    config::setString(config::GUI_STYLE, "light");
-                    break;
                 case 1:
-                    config::setString(config::GUI_STYLE, "classic");
+                    config::setString(config::GUI_STYLE, "ImGuiLight");
+                    break;
+                case 2:
+                    config::setString(config::GUI_STYLE, "ImGuiClassic");
+                    break;
+                case 3:
+                    config::setString(config::GUI_STYLE, "ImGuiDark");
                     break;
                 default:
-                    config::setString(config::GUI_STYLE, "dark");
+                    config::setString(config::GUI_STYLE, "BrickSim");
                     break;
             }
             config::setInt(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));

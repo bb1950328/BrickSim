@@ -13,6 +13,10 @@
 #include <glm/glm.hpp>
 
 namespace util {
+    namespace {
+        unsigned int copyTextureToVram(int imgWidth, int imgHeight, int nrChannels, const unsigned char *data);
+    }
+
 #if _WIN32
     const char *const USER_ENV_VAR = "USERPROFILE";
     const char PATH_SEPARATOR = '\\';
@@ -88,5 +92,6 @@ namespace util {
     bool writeImage(const char* path, unsigned char* pixels, unsigned int width, unsigned int height, int channels=3);
     bool containsIgnoreCase(const std::string& full, const std::string& sub);
     unsigned int loadTextureFromFile(const std::filesystem::path& image);
+    unsigned int loadTextureFromMemory(const unsigned char* fileData, unsigned int dataSize);
 }
 #endif //BRICKSIM_UTIL_H

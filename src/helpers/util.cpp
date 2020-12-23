@@ -29,6 +29,36 @@
 #include <mutex>
 
 namespace util {
+    namespace {
+        unsigned int copyTextureToVram(int imgWidth, int imgHeight, int nrChannels, const unsigned char *data) {
+            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+            unsigned int textureId;
+            glGenTextures(1, &textureId);
+            glBindTexture(GL_TEXTURE_2D, textureId);
+
+            GLenum format;
+            if (nrChannels == 1) {
+                format = GL_RED;
+            } else if (nrChannels == 3) {
+                format = GL_RGB;
+            } else if (nrChannels == 4) {
+                format = GL_RGBA;
+            } else {
+                std::cout << "WARNING: image has a weird number of channels: " << nrChannels << std::endl;
+                format = GL_RGB;
+            }
+            glBindTexture(GL_TEXTURE_2D, textureId);
+            glTexImage2D(GL_TEXTURE_2D, 0, format, imgWidth, imgHeight, 0, format, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            return textureId;
+        }
+    }
+
     std::string extendHomeDir(const std::string &input) {
         return extendHomeDirPath(input).string();
     }
@@ -473,33 +503,22 @@ namespace util {
         int imgWidth, imgHeight, nrChannels;
         unsigned int textureId;
         unsigned char *data = stbi_load(image.string().c_str(), &imgWidth, &imgHeight, &nrChannels, 3);
-        if (data){
-            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-            glGenTextures(1, &textureId);
-            glBindTexture(GL_TEXTURE_2D, textureId);
-
-            GLenum format;
-            if (nrChannels == 1) {
-                format = GL_RED;
-            } else if (nrChannels == 3) {
-                format = GL_RGB;
-            } else if (nrChannels == 4) {
-                format = GL_RGBA;
-            } else {
-                std::cout << "WARNING: image has a weird number of channels: " << nrChannels << std::endl;
-                format = GL_RGB;
-            }
-            glBindTexture(GL_TEXTURE_2D, textureId);
-            glTexImage2D(GL_TEXTURE_2D, 0, format, imgWidth, imgHeight, 0, format, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        } else {
+        if (!data) {
             throw std::invalid_argument("texture not read successfully: " + image.string());
         }
+        textureId = copyTextureToVram(imgWidth, imgHeight, nrChannels, data);
+        stbi_image_free(data);
+        return textureId;
+    }
+
+    unsigned int loadTextureFromMemory(const unsigned char* fileData, unsigned int dataSize) {
+        int imgWidth, imgHeight, nrChannels;
+        unsigned int textureId;
+        unsigned char *data = stbi_load_from_memory(fileData, dataSize, &imgWidth, &imgHeight, &nrChannels, 3);
+        if (!data) {
+            throw std::invalid_argument("texture not read successfully from memory: " + std::to_string((unsigned long) fileData));
+        }
+        textureId = copyTextureToVram(imgWidth, imgHeight, nrChannels, data);
         stbi_image_free(data);
         return textureId;
     }

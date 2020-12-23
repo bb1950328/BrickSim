@@ -69,26 +69,26 @@ namespace gui {
 
     void setupFont(float scaleFactor, ImGuiIO &io) {
         auto fontName = config::getString(config::FONT);
-        unsigned char* fontData;
+        const unsigned char* fontData;
         unsigned int fontDataLength;
         if (fontName=="Roboto") {
-            fontData = resource::Roboto_Regular_ttf;
-            fontDataLength = resource::Roboto_Regular_ttf_len;
+            fontData = resources::fonts_Roboto_Regular_ttf;
+            fontDataLength = resources::fonts_Roboto_Regular_ttf_len;
         } else {
             if (fontName != "RobotoMono") {
                 std::cout << "WARNING: Invalid font config: " << fontName;
             }
-            fontData = resource::RobotoMono_Regular_ttf;
-            fontDataLength = resource::RobotoMono_Regular_ttf_len;
+            fontData = resources::fonts_RobotoMono_Regular_ttf;
+            fontDataLength = resources::fonts_RobotoMono_Regular_ttf_len;
         }
-        io.Fonts->AddFontFromMemoryTTF(fontData, fontDataLength, 13.0f * scaleFactor, nullptr, nullptr);
+        io.Fonts->AddFontFromMemoryTTF((void *) fontData, fontDataLength, 13.0f * scaleFactor, nullptr, nullptr);
 
         // merge in icons from Font Awesome
         static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
         ImFontConfig icons_config;
         icons_config.MergeMode = true;
         icons_config.PixelSnapH = true;
-        io.Fonts->AddFontFromMemoryTTF(resource::fa_solid_900_ttf, resource::fa_solid_900_ttf_len, 13.0f * scaleFactor, &icons_config, icons_ranges);
+        io.Fonts->AddFontFromMemoryTTF((void *) resources::fonts_fa_solid_900_ttf, resources::fonts_fa_solid_900_ttf_len, 13.0f * scaleFactor, &icons_config, icons_ranges);
     }
 
     void setupStyle() {

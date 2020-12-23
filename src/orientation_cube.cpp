@@ -8,6 +8,7 @@
 #include "orientation_cube.h"
 #include "controller.h"
 #include "lib/stb_image.h"
+#include "resources.h"
 
 namespace orientation_cube {
     namespace {
@@ -110,7 +111,7 @@ namespace orientation_cube {
                 return;
             }
 
-            texture = util::loadTextureFromFile(std::filesystem::path("resources/orientation_cube.jpg"));
+            texture = util::loadTextureFromMemory(resources::orientation_cube_jpg, resources::orientation_cube_jpg_len);
 
             glGenVertexArrays(1, &VAO);
             glGenBuffers(1, &VBO);

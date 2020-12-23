@@ -106,6 +106,7 @@ set(bricksim_sources
         src/tasks.cpp
         src/tasks.h
         src/types.h
+        src/resources.cpp
         src/resources.h
         )
 

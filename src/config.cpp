@@ -142,60 +142,6 @@ namespace config {
         setBoolNoMutex(key, value);
     }
 
-    void exportToTxt() {
-        std::ofstream file("config.txt");
-        if (!file.good()) {
-            throw std::system_error(std::make_error_code(std::errc::io_error), "error while opening config.txt, do you have sufficient permissions?");
-        }
-        //todo implement methods to get all values
-        /*for (const auto &entry : strings) {
-            file << entry.first << "=" << entry.second << std::endl;
-        }
-        for (const auto &entry : longs) {
-            file << entry.first << "=" << entry.second << std::endl;
-        }
-        for (const auto &entry : doubles) {
-            file << entry.first << "=" << entry.second << std::endl;
-        }*/
-    }
-
-    void importFromTxt() {
-        std::ifstream input("config.txt");
-        if (!input.good()) {
-            throw std::system_error(std::make_error_code(std::errc::no_such_file_or_directory), "can't find config.txt file, should be in cwd!!");
-        }
-        for (std::string line; getline(input, line);) {
-            if (!line.empty()) {
-                auto sep_pos = line.find('=');
-                auto key = line.substr(0, sep_pos);
-                auto value_str = line.substr(sep_pos + 1);
-
-                auto has_dot = false;
-                auto has_nondigit = false;
-                for (char i : value_str) {
-                    if (i == '.') {
-                        has_dot = true;
-                    } else if (!std::isdigit(i) && i != '-') {
-                        has_nondigit = true;
-                    }
-                }
-                if (has_nondigit) {
-                    if (value_str == "true" || value_str == "false") {
-                        setBool(BoolKey(key, false), value_str == "true");
-                    } else {
-                        setString(StringKey(key, ""), value_str);
-                    }
-                } else {
-                    if (has_dot) {
-                        setDouble(DoubleKey(key, 0), std::stod(value_str));
-                    } else {
-                        setInt(IntKey(key, 0), std::stol(value_str));
-                    }
-                }
-            }
-        }
-    }
-
     bool Key::operator==(const Key &other) const {
         return other.name == name;
     }

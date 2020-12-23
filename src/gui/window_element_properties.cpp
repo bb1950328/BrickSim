@@ -14,7 +14,7 @@
 namespace gui {
     void windows::drawElementPropertiesWindow(bool *show) {
         static etree::Node *lastSelectedNode = nullptr;
-        ImGui::Begin("Element Properties", show);
+        ImGui::Begin(ICON_FA_WRENCH" Element Properties", show);
         if (controller::getSelectedNodes().empty()) {
             ImGui::Text("Select an element to view its properties here");
         } else if (controller::getSelectedNodes().size() == 1) {
@@ -31,7 +31,7 @@ namespace gui {
             if (!displayNameEditable && ImGui::IsItemHovered()) {
                 ImGui::BeginTooltip();
                 ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                ImGui::TextUnformatted("Changing the name of an element of this type is not possible.");
+                ImGui::TextUnformatted(ICON_FA_TIMES_CIRCLE" Changing the name of an element of this type is not possible.");
                 ImGui::PopTextWrapPos();
                 ImGui::EndTooltip();
             }
@@ -84,13 +84,13 @@ namespace gui {
                     }
                 }
 
-                ImGui::DragFloat3("Rotation", &inputEulerAnglesDeg[0], 1.0f, -180, 180, "%.1f°");
-                ImGui::DragFloat3("Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
-                ImGui::DragFloat3("Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
+                ImGui::DragFloat3(ICON_FA_SYNC" Rotation", &inputEulerAnglesDeg[0], 1.0f, -180, 180, "%.1f°");
+                ImGui::DragFloat3(ICON_FA_ARROWS_ALT" Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
+                ImGui::DragFloat3(ICON_FA_EXPAND_ARROWS_ALT" Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
             }
             if ((node->getType() & etree::NodeType::TYPE_MESH) > 0) {
                 auto *meshNode = dynamic_cast<etree::MeshNode *>(node);
-                if (meshNode->isColorUserEditable() && ImGui::TreeNodeEx("Color", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (meshNode->isColorUserEditable() && ImGui::TreeNodeEx(ICON_FA_PALETTE" Color", ImGuiTreeNodeFlags_DefaultOpen)) {
                     static bool isColor16, savedIsColor16;
                     if (lastSelectedNode == node) {
                         if (isColor16 != savedIsColor16) {
@@ -104,7 +104,7 @@ namespace gui {
                     } else {
                         savedIsColor16 = isColor16 = meshNode->getElementColor()->code == LdrColor::MAIN_COLOR_CODE;
                     }
-                    ImGui::Checkbox("Take color from parent element", &isColor16);
+                    ImGui::Checkbox(ICON_FA_ARROW_DOWN" Take color from parent element", &isColor16);
                     if (!isColor16) {
                         const auto buttonWidth = ImGui::GetFontSize() * 1.5f;
                         const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
@@ -148,7 +148,7 @@ namespace gui {
                 }
             }
             if (node->getType() == etree::NodeType::TYPE_PART) {
-                if (ImGui::TreeNodeEx("Price Guide")) {
+                if (ImGui::TreeNodeEx(ICON_FA_MONEY_BILL_WAVE" Price Guide")) {
                     auto *partNode = dynamic_cast<etree::PartNode *>(node);
                     auto partCode = partNode->ldrFile->metaInfo.name;
                     util::replaceAll(partCode, ".dat", "");
@@ -157,7 +157,7 @@ namespace gui {
                     const auto colorBricklinkName = util::translateLDrawColorNameToBricklink(color->name);
                     auto availableColors = part_color_availability_provider::getAvailableColorsForPart(partNode->ldrFile);
                     if (availableColors.has_value()) {
-                        if (ImGui::Button("(Re)load all available colors")) {
+                        if (ImGui::Button(ICON_FA_SYNC" (Re)load all available colors")) {
                             for (const auto &item : availableColors.value()) {
                                 controller::addBackgroundTask("Reload price guide for " + partCode + " in " + item->name, [partCode, item, currencyCode]() {
                                     price_guide_provider::getPriceGuide(partCode, currencyCode, util::translateLDrawColorNameToBricklink(item->name), true);
@@ -182,7 +182,7 @@ namespace gui {
                     }
                     if (!pGuides.empty()) {
                         if (pGuides.find(color) != pGuides.end()) {
-                            if (ImGui::Button(("Reload for " + color->name).c_str())) {
+                            if (ImGui::Button((ICON_FA_SYNC" Reload for " + color->name).c_str())) {
                                 controller::addBackgroundTask("Reload price guide for " + partCode, [partCode, colorBricklinkName, currencyCode]() {
                                     price_guide_provider::getPriceGuide(partCode, currencyCode, colorBricklinkName, true);
                                 });
@@ -255,13 +255,13 @@ namespace gui {
                         }
                         //todo a small histogram would be nice (parse data from price guide html table)
                     } else {
-                        if (ImGui::Button(("Get for " + color->name).c_str())) {
+                        if (ImGui::Button((ICON_FA_DOWNLOAD" Get for " + color->name).c_str())) {
                             controller::addBackgroundTask("Get Price Guide for " + partCode, [partCode, colorBricklinkName, currencyCode]() {
                                 price_guide_provider::getPriceGuide(partCode, currencyCode, colorBricklinkName, false);
                             });
                         }
                         if (availableColors.has_value() &&
-                            ImGui::Button(("Get for all " + std::to_string(availableColors.value().size()) + " available colors").c_str())) {
+                            ImGui::Button((ICON_FA_DOWNLOAD" Get for all " + std::to_string(availableColors.value().size()) + " available colors").c_str())) {
                             for (const auto &avCol : availableColors.value()) {
                                 controller::addBackgroundTask("Get Price Guide for " + partCode + " in " + avCol->name, [partCode, avCol, currencyCode]() {
                                     price_guide_provider::getPriceGuide(partCode, currencyCode, util::translateLDrawColorNameToBricklink(avCol->name),
@@ -274,7 +274,7 @@ namespace gui {
                 }
             }
 
-            ImGui::DragScalar("Layer", ImGuiDataType_U8, &node->layer, 0.2f, nullptr, nullptr);
+            ImGui::DragScalar(ICON_FA_LAYER_GROUP" Layer", ImGuiDataType_U8, &node->layer, 0.2f, nullptr, nullptr);
 
             lastSelectedNode = node;
         } else {
@@ -283,8 +283,8 @@ namespace gui {
         if (!controller::getSelectedNodes().empty()) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8, 0, 0, 1));
             std::string deleteButtonLabel = controller::getSelectedNodes().size() > 1
-                                            ? (std::string("Delete ") + std::to_string(controller::getSelectedNodes().size()) + " elements")
-                                            : "Delete Element";
+                                            ? (std::string(ICON_FA_TRASH_ALT" Delete ") + std::to_string(controller::getSelectedNodes().size()) + " elements")
+                                            : ICON_FA_TRASH_ALT" Delete Element";
             const auto deleteClicked = ImGui::Button(deleteButtonLabel.c_str());
             ImGui::PopStyleColor();
             if (deleteClicked) {

@@ -36,6 +36,7 @@ set(bricksim_libs
         src/lib/tinyfiledialogs.c
         src/lib/stb_image_write.h
         src/lib/Miniball.hpp
+        src/lib/IconFontCppHeaders/IconsFontAwesome5.h
         )
 
 set(bricksim_sources
@@ -102,7 +103,11 @@ set(bricksim_sources
         src/part_finder.h
         src/orientation_cube.cpp
         src/orientation_cube.h
-        src/tasks.cpp src/tasks.h src/types.h)
+        src/tasks.cpp
+        src/tasks.h
+        src/types.h
+        src/resources.h
+        )
 
 add_executable(BrickSim
         ${imgui_sources}

@@ -8,7 +8,7 @@
 
 namespace gui {
     void windows::drawAboutWindow(bool *show) {
-        if (ImGui::Begin("About", show, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::Begin(ICON_FA_INFO_CIRCLE " About", show, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::TextWrapped("BrickSim is a program which should help you build digital brick models.");
             ImGui::TextWrapped(
                     "LEGO(R), the brick configuration, and the minifigure are trademarks of the LEGO Group, which does not sponsor, authorize or endorse this program.");

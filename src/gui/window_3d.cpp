@@ -7,7 +7,7 @@
 
 namespace gui {
     void windows::draw3dWindow(bool *show) {
-        ImGui::Begin("3D View", show, ImGuiWindowFlags_NoScrollWithMouse);
+        ImGui::Begin(ICON_FA_CUBES" 3D View", show, ImGuiWindowFlags_NoScrollWithMouse);
         {
             ImGui::BeginChild("3DRender");
             ImVec2 wsize = ImGui::GetContentRegionAvail();

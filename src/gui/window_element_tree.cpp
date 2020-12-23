@@ -44,7 +44,7 @@ void draw_element_tree_node(etree::Node *node) {
 
 namespace gui {
     void windows::drawElementTreeWindow(bool *show) {
-        ImGui::Begin("Element Tree", show);
+        ImGui::Begin(ICON_FA_LIST" Element Tree", show);
         for (auto *rootChild : controller::getElementTree().rootNode.getChildren()) {
             draw_element_tree_node(rootChild);
         }

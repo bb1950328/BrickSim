@@ -10,10 +10,10 @@
 
 namespace gui {
     void windows::drawPartPaletteWindow(bool *show) {
-        ImGui::Begin("Part palette", show);
+        ImGui::Begin(ICON_FA_TH" Part Palette", show);
 
         static char searchTextBuffer[128] = {'\0'};
-        ImGui::InputText("##search", searchTextBuffer, 128);
+        ImGui::InputText(ICON_FA_SEARCH"##search", searchTextBuffer, 128);
         ImGui::SameLine();
         static int thumbnailZoomPercent = 100;//todo get from config
         ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8);
@@ -29,11 +29,11 @@ namespace gui {
         ImGui::SameLine();
         if (ImGui::Button(color->name.c_str())) {
             colorChosenInPopup = color;
-            ImGui::OpenPopup("Part Palette Color");
+            ImGui::OpenPopup(ICON_FA_SWATCHBOOK" Part Palette Color");
         }
         ImGui::PopStyleColor(3);
         ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-        if (ImGui::BeginPopupModal("Part Palette Color", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::BeginPopupModal(ICON_FA_SWATCHBOOK" Part Palette Color", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             const auto buttonWidth = ImGui::GetFontSize() * 1.5f;
             const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
             const int columnCount = 20;
@@ -48,7 +48,7 @@ namespace gui {
                         ImGui::PushID(currentColor->code);
                         const ImColor imColor = ImColor(currentColor->value.red, currentColor->value.green, currentColor->value.blue);
                         ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4) imColor);
-                        if (ImGui::Button(colorChosenInPopup->code == currentColor->code ? "#" : "", buttonSize)) {
+                        if (ImGui::Button(colorChosenInPopup->code == currentColor->code ? ICON_FA_CHECK : "", buttonSize)) {
                             colorChosenInPopup = ldr_color_repo::get_color(currentColor->code);
                         }
                         ImGui::PopStyleColor(/*3*/1);
@@ -63,11 +63,11 @@ namespace gui {
                     ImGui::TreePop();
                 }
             }
-            if (ImGui::Button("Cancel")) {
+            if (ImGui::Button(ICON_FA_WINDOW_CLOSE" Cancel")) {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SameLine();
-            if (ImGui::Button("Apply")) {
+            if (ImGui::Button(ICON_FA_CHECK_SQUARE" Apply")) {
                 color = colorChosenInPopup;
                 ImGui::CloseCurrentPopup();
             }

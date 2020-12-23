@@ -10,6 +10,7 @@
 #include "../element_tree.h"
 #include <imgui.h>
 #include <GLFW/glfw3.h>
+#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 
 constexpr int NUM_LDR_FILTER_PATTERNS = 4;
 
@@ -34,6 +35,7 @@ namespace gui {
     void setLastScrollDeltaY(double value);
     double getLastScrollDeltaY();
     void setup();
+    void setupStyle();
     [[nodiscard]] bool isSetupDone();
 
     void beginFrame();

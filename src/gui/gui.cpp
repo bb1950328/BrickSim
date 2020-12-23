@@ -13,6 +13,8 @@
 #include "../lib/tinyfiledialogs.h"
 #include "../info_providers/part_color_availability_provider.h"
 #include "gui_internal.h"
+#include "../resources.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include <atomic>
 #include <imgui_internal.h>
 
@@ -29,39 +31,64 @@ namespace gui {
         float blockingMessageProgress = 0;
     }
 
-    void setupStyle();
+    void setupFont(float scaleFactor, ImGuiIO &io);
 
     void setup() {
-        if (!setupDone) {
-            GLFWmonitor *monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
-            float xscale, yscale;
-            glfwGetMonitorContentScale(monitor, &xscale, &yscale);
-            std::cout << "xscale: " << xscale << "\tyscale: " << yscale << std::endl;
-            // Setup Dear ImGui context
-            IMGUI_CHECKVERSION();
-            ImGui::CreateContext();
-            auto scaleFactor = (float) (config::getDouble(config::GUI_SCALE));
-            if (xscale > 1 || yscale > 1) {
-                scaleFactor = (xscale + yscale) / 2.0f;
-                ImGuiStyle &style = ImGui::GetStyle();
-                style.ScaleAllSizes(scaleFactor);
-                glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
-            }
-            ImGuiIO &io = ImGui::GetIO();
-            io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-            if (config::getBool(config::ENABLE_VIEWPORTS)) {
-                io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-            }
-            io.Fonts->AddFontFromFileTTF("RobotoMono-Regular.ttf", 13.0f * scaleFactor, nullptr, nullptr);
-            // Setup Platform/Renderer bindings
-            ImGui_ImplGlfw_InitForOpenGL(window, true);
-            ImGui_ImplOpenGL3_Init("#version 330");
-            // Setup Dear ImGui style
-            setupStyle();
-            setupDone = true;
-        } else {
+        if (setupDone) {
             throw std::invalid_argument("setup called twice");
         }
+        GLFWmonitor *monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
+        float xscale, yscale;
+        glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+        std::cout << "xscale: " << xscale << "\tyscale: " << yscale << std::endl;
+        // Setup Dear ImGui context
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        auto scaleFactor = (float) (config::getDouble(config::GUI_SCALE));
+        if (xscale > 1 || yscale > 1) {
+            scaleFactor *= (xscale + yscale) / 2.0f;
+            ImGuiStyle &style = ImGui::GetStyle();
+            style.ScaleAllSizes(scaleFactor);
+            glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+        }
+        ImGuiIO &io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        if (config::getBool(config::ENABLE_VIEWPORTS)) {
+            io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+        }
+
+        setupFont(scaleFactor, io);
+
+        // Setup Platform/Renderer bindings
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init("#version 330");
+        // Setup Dear ImGui style
+        setupStyle();
+        setupDone = true;
+    }
+
+    void setupFont(float scaleFactor, ImGuiIO &io) {
+        auto fontName = config::getString(config::FONT);
+        unsigned char* fontData;
+        unsigned int fontDataLength;
+        if (fontName=="Roboto") {
+            fontData = resource::Roboto_Regular_ttf;
+            fontDataLength = resource::Roboto_Regular_ttf_len;
+        } else {
+            if (fontName != "RobotoMono") {
+                std::cout << "WARNING: Invalid font config: " << fontName;
+            }
+            fontData = resource::RobotoMono_Regular_ttf;
+            fontDataLength = resource::RobotoMono_Regular_ttf_len;
+        }
+        io.Fonts->AddFontFromMemoryTTF(fontData, fontDataLength, 13.0f * scaleFactor, nullptr, nullptr);
+
+        // merge in icons from Font Awesome
+        static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+        ImFontConfig icons_config;
+        icons_config.MergeMode = true;
+        icons_config.PixelSnapH = true;
+        io.Fonts->AddFontFromMemoryTTF(resource::fa_solid_900_ttf, resource::fa_solid_900_ttf_len, 13.0f * scaleFactor, &icons_config, icons_ranges);
     }
 
     void setupStyle() {
@@ -121,11 +148,11 @@ namespace gui {
 
             ImGui::GetStyle().FrameRounding = 8;
             ImGui::GetStyle().WindowRounding = 8;
-        } else if (guiStyle == "light") {
+        } else if (guiStyle == "ImGuiLight") {
             ImGui::StyleColorsLight();
-        } else if (guiStyle == "classic") {
+        } else if (guiStyle == "ImGuiClassic") {
             ImGui::StyleColorsClassic();
-        } else if (guiStyle == "dark") {
+        } else if (guiStyle == "ImGuiDark") {
             ImGui::StyleColorsDark();
         } else {
             std::cout << "WARNING: please set " << config::GUI_STYLE.name << "to BrickSim, ImGuiLight, ImGuiClassic or ImGuiDark" << std::endl;
@@ -146,7 +173,7 @@ namespace gui {
 
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
-                if (ImGui::MenuItem("Open", "CTRL+O")) {
+                if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN " Open", "CTRL+O")) {
                     char *fileNameChars = tinyfd_openFileDialog(
                             "Open File",
                             "",
@@ -159,36 +186,36 @@ namespace gui {
                         controller::openFile(fileName);
                     }
                 }
-                if (ImGui::MenuItem("Exit", "CTRL+W")) {
+                if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Exit", "CTRL+W")) {
                     controller::setUserWantsToExit(true);
                 }
-                ImGui::MenuItem("About", "", &showAboutWindow);
-                ImGui::MenuItem("System Info", "", &showSysInfoWindow);
+                ImGui::MenuItem(ICON_FA_INFO_CIRCLE " About", "", &showAboutWindow);
+                ImGui::MenuItem(ICON_FA_MICROCHIP " System Info", "", &showSysInfoWindow);
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Edit")) {
                 //todo implement these functions
-                if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-                if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}
+                if (ImGui::MenuItem(ICON_FA_UNDO" Undo", "CTRL+Z")) {}
+                if (ImGui::MenuItem(ICON_FA_REDO" Redo", "CTRL+Y", false, false)) {}
                 ImGui::Separator();
-                if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-                if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-                if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+                if (ImGui::MenuItem(ICON_FA_CUT" Cut", "CTRL+X")) {}
+                if (ImGui::MenuItem(ICON_FA_COPY" Copy", "CTRL+C")) {}
+                if (ImGui::MenuItem(ICON_FA_PASTE" Paste", "CTRL+V")) {}
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("View")) {
-                ImGui::MenuItem("3D View", "ALT+V", &show3dWindow);
-                ImGui::MenuItem("Orientation Cube", "", &showOrientationCube);
+                ImGui::MenuItem(ICON_FA_CUBES" 3D View", "ALT+V", &show3dWindow);
+                ImGui::MenuItem(ICON_FA_CUBE" Orientation Cube", "", &showOrientationCube);
                 ImGui::Separator();
-                ImGui::MenuItem("Element Tree", "ALT+T", &showElementTreeWindow);
-                ImGui::MenuItem("Element Properties", "ALT+P", &showElementPropertiesWindow);
+                ImGui::MenuItem(ICON_FA_LIST" Element Tree", "ALT+T", &showElementTreeWindow);
+                ImGui::MenuItem(ICON_FA_WRENCH" Element Properties", "ALT+P", &showElementPropertiesWindow);
                 ImGui::Separator();
-                ImGui::MenuItem("Part Palette", "ALT+N", &showPartPaletteWindow);
+                ImGui::MenuItem(ICON_FA_TH" Part Palette", "ALT+N", &showPartPaletteWindow);
                 ImGui::Separator();
-                ImGui::MenuItem("Settings", "ALT+S", &showSettingsWindow);
+                ImGui::MenuItem(ICON_FA_SLIDERS_H" Settings", "ALT+S", &showSettingsWindow);
                 ImGui::Separator();
-                ImGui::MenuItem("Demo", "", &showDemoWindow);
-                ImGui::MenuItem("Debug", "ALT+D", &showDebugWindow);
+                ImGui::MenuItem(ICON_FA_IMAGE" ImGui Demo", "", &showDemoWindow);
+                ImGui::MenuItem(ICON_FA_BUG" Debug", "ALT+D", &showDebugWindow);
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Selection")) {
@@ -209,9 +236,9 @@ namespace gui {
                 if (ImGui::MenuItem("Bottom", "ALT+5")) { controller::setStandard3dView(5); }
                 if (ImGui::MenuItem("Left", "ALT+6")) { controller::setStandard3dView(6); }
                 ImGui::Separator();
-                if (ImGui::MenuItem("Screenshot", "CTRL+P")) {
+                if (ImGui::MenuItem(ICON_FA_CAMERA" Screenshot", "CTRL+P")) {
                     char *fileNameChars = tinyfd_saveFileDialog(
-                            "Save Screenshot",
+                            ICON_FA_CAMERA" Save Screenshot",
                             "",
                             NUM_IMAGE_FILTER_PATTERNS,
                             imageFilterPatterns,
@@ -228,16 +255,16 @@ namespace gui {
         }
 
         static std::tuple<std::string, bool*, std::function<void(bool*)>> windowFuncsAndState[]{
-                {"3D View", &show3dWindow, windows::draw3dWindow},
-                {"Element Tree", &showElementTreeWindow, windows::drawElementTreeWindow},
-                {"Element Properties", &showElementPropertiesWindow, windows::drawElementPropertiesWindow},
-                {"Part Palette", &showPartPaletteWindow, windows::drawPartPaletteWindow},
-                {"Settings", &showSettingsWindow, windows::drawSettingsWindow},
-                {"About", &showAboutWindow, windows::drawAboutWindow},
-                {"Sysinfo", &showSysInfoWindow, windows::drawSysInfoWindow},
-                {"Debug", &showDebugWindow, windows::drawDebugWindow},
-                {"Dear ImGui Demo", &showDemoWindow, ImGui::ShowDemoWindow},
-                {"Orientation Cube", &showOrientationCube, windows::drawOrientationCube},
+                {ICON_FA_CUBES" 3D View", &show3dWindow, windows::draw3dWindow},
+                {ICON_FA_LIST" Element Tree", &showElementTreeWindow, windows::drawElementTreeWindow},
+                {ICON_FA_WRENCH" Element Properties", &showElementPropertiesWindow, windows::drawElementPropertiesWindow},
+                {ICON_FA_TH" Part Palette", &showPartPaletteWindow, windows::drawPartPaletteWindow},
+                {ICON_FA_SLIDERS_H" Settings", &showSettingsWindow, windows::drawSettingsWindow},
+                {ICON_FA_INFO_CIRCLE " About", &showAboutWindow, windows::drawAboutWindow},
+                {ICON_FA_MICROCHIP " System Info", &showSysInfoWindow, windows::drawSysInfoWindow},
+                {ICON_FA_BUG" Debug", &showDebugWindow, windows::drawDebugWindow},
+                {ICON_FA_IMAGE" ImGui Demo", &showDemoWindow, ImGui::ShowDemoWindow},
+                {ICON_FA_CUBE" Orientation Cube", &showOrientationCube, windows::drawOrientationCube},
         };
 
         std::vector<std::pair<std::string, float>> drawingTimes;

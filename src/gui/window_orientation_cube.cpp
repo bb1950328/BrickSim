@@ -8,7 +8,7 @@
 
 namespace gui {
     void windows::drawOrientationCube(bool* show) {
-        ImGui::Begin("Orientation Cube", show);
+        ImGui::Begin(ICON_FA_CUBE" Orientation Cube", show);
         ImGui::ImageButton((ImTextureID)orientation_cube::getImage(), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, 1), 0);
         ImGui::End();
     }

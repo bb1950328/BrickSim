@@ -78,6 +78,7 @@ namespace config {
     const BoolKey DRAW_MINIMAL_ENCLOSING_BALL_LINES("drawMinimalEnclosingBallLines", false);
     const StringKey BRICKLINK_CURRENCY_CODE("bricklinkCurrencyCode", "CHF");
     const BoolKey ENABLE_VIEWPORTS("enableViewports", false);
+    const StringKey FONT("font", "Roboto");
 }
 
 #endif //BRICKSIM_CONFIG_H

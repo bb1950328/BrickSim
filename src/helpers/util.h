@@ -86,6 +86,13 @@ namespace util {
         [[nodiscard]] glm::vec3 asGlmVector() const;
     };
 
+    struct TextureLoadResult {
+        unsigned int textureId;
+        int width;
+        int height;
+        int nrChannels;
+    };
+
     std::vector<std::string> getSystemInfo();
     bool memeqzero(const void *data, size_t length);
     std::string translateBrickLinkColorNameToLDraw(std::string colorName);
@@ -94,7 +101,7 @@ namespace util {
     std::filesystem::path withoutBasePath(const std::filesystem::path& path, const std::filesystem::path& basePath);
     bool writeImage(const char* path, unsigned char* pixels, unsigned int width, unsigned int height, int channels=3);
     bool containsIgnoreCase(const std::string& full, const std::string& sub);
-    unsigned int loadTextureFromFile(const std::filesystem::path& image);
-    unsigned int loadTextureFromMemory(const unsigned char* fileData, unsigned int dataSize);
+    TextureLoadResult loadTextureFromFile(const std::filesystem::path& image);
+    TextureLoadResult loadTextureFromMemory(const unsigned char* fileData, unsigned int dataSize);
 }
 #endif //BRICKSIM_UTIL_H

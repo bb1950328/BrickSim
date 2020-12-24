@@ -36,6 +36,7 @@ namespace gui {
     double getLastScrollDeltaY();
     void setup();
     void setupStyle();
+    void setupFont(float scaleFactor, ImGuiIO &io);
     [[nodiscard]] bool isSetupDone();
 
     void beginFrame();

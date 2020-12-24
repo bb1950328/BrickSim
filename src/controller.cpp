@@ -9,6 +9,7 @@
 #include "db.h"
 #include "orientation_cube.h"
 #include "tasks.h"
+#include "lib/stb_image.h"
 
 namespace controller {
     namespace {
@@ -96,6 +97,9 @@ namespace controller {
                 std::cerr << "FATAL: failed to initialize OpenGL / glfw" << std::endl;
                 return;
             }
+
+            stbi_set_flip_vertically_on_load(1);
+
             renderer.window = window;
             gui::setWindow(window);
             gui::setup();

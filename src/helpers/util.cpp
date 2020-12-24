@@ -499,7 +499,7 @@ namespace util {
         ) != full.end();
     }
 
-    unsigned int loadTextureFromFile(const std::filesystem::path &image) {
+    TextureLoadResult loadTextureFromFile(const std::filesystem::path &image) {
         int imgWidth, imgHeight, nrChannels;
         unsigned int textureId;
         unsigned char *data = stbi_load(image.string().c_str(), &imgWidth, &imgHeight, &nrChannels, 3);
@@ -508,18 +508,28 @@ namespace util {
         }
         textureId = copyTextureToVram(imgWidth, imgHeight, nrChannels, data);
         stbi_image_free(data);
-        return textureId;
+        return {
+            textureId,
+            imgWidth,
+            imgHeight,
+            nrChannels
+        };
     }
 
-    unsigned int loadTextureFromMemory(const unsigned char* fileData, unsigned int dataSize) {
+    TextureLoadResult loadTextureFromMemory(const unsigned char* fileData, unsigned int dataSize) {
         int imgWidth, imgHeight, nrChannels;
         unsigned int textureId;
-        unsigned char *data = stbi_load_from_memory(fileData, dataSize, &imgWidth, &imgHeight, &nrChannels, 3);
+        unsigned char *data = stbi_load_from_memory(fileData, dataSize, &imgWidth, &imgHeight, &nrChannels, 0);
         if (!data) {
             throw std::invalid_argument("texture not read successfully from memory: " + std::to_string((unsigned long) fileData));
         }
         textureId = copyTextureToVram(imgWidth, imgHeight, nrChannels, data);
         stbi_image_free(data);
-        return textureId;
+        return {
+                textureId,
+                imgWidth,
+                imgHeight,
+                nrChannels
+        };
     }
 }

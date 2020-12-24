@@ -29,9 +29,9 @@ namespace gui {
         std::string blockingMessageText;
         bool blockingMessageShowing = false;
         float blockingMessageProgress = 0;
-    }
 
-    void setupFont(float scaleFactor, ImGuiIO &io);
+        util::TextureLoadResult logoTexture;
+    }
 
     void setup() {
         if (setupDone) {
@@ -71,6 +71,9 @@ namespace gui {
         ImGui_ImplOpenGL3_Init("#version 330");
         // Setup Dear ImGui style
         setupStyle();
+
+        logoTexture = util::loadTextureFromMemory(resources::logo_fit_nobg_png, resources::logo_fit_nobg_png_len);
+
         setupDone = true;
     }
 
@@ -99,7 +102,6 @@ namespace gui {
         iconsConfig.PixelSnapH = true;
         iconsConfig.FontDataOwnedByAtlas = false;
         io.Fonts->AddFontFromMemoryTTF((void *) resources::fonts_fa_solid_900_ttf, resources::fonts_fa_solid_900_ttf_len, 13.0f * scaleFactor, &iconsConfig, icons_ranges);
-        //io.Fonts->AddFontFromFileTTF("resources/fonts/fa-solid-900.ttf", 13.0f * scaleFactor, &iconsConfig, icons_ranges);
     }
 
     void setupStyle() {
@@ -296,6 +298,7 @@ namespace gui {
 
         if (ImGui::BeginPopupModal("Please wait##Modal", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         {
+            ImGui::Image(gui_internal::convertTextureId(logoTexture.textureId), ImVec2(logoTexture.width, logoTexture.height), ImVec2(0, 1), ImVec2(1, 0));
             ImGui::Text("Please wait until this operation has finished.");
             ImGui::Separator();
             ImGui::Text("%s", blockingMessageText.c_str());
@@ -420,9 +423,10 @@ namespace gui {
     void drawWaitMessage(const std::string &message, float progress) {
         if (setupDone) {
             ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-            const float fontSize = ImGui::GetFontSize();
-            ImGui::SetNextWindowSize(ImVec2(fontSize * 18, fontSize * 6));
+            //const float fontSize = ImGui::GetFontSize();
+            //ImGui::SetNextWindowSize(ImVec2(fontSize * 18, fontSize * 6));
             ImGui::Begin("Please wait", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Image(gui_internal::convertTextureId(logoTexture.textureId), ImVec2(logoTexture.width, logoTexture.height), ImVec2(0, 1), ImVec2(1, 0));
             ImGui::Text("%c %s", gui_internal::getLoFiSpinner(), message.c_str());
             ImGui::ProgressBar(progress);
             ImGui::End();

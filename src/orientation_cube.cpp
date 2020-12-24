@@ -36,53 +36,53 @@ namespace orientation_cube {
  * 3----1      2
  */
         const float cubeVertices[]{
-                /*rearRightBottom*/ +1, +1, +1, 1.0f / 6, 0,
-                /*frontRightTop*/   +1, -1, -1, 0, 1, // Right A
-                /*frontRightBottom*/+1, +1, -1, 0, 0,
+                /*rearRightBottom*/ +1, +1, +1, 1.0f / 6, 1,
+                /*frontRightTop*/   +1, -1, -1, 0, 0, // Right A
+                /*frontRightBottom*/+1, +1, -1, 0, 1,
 
-                /*frontRightTop*/   +1, -1, -1, 0, 1,
-                /*rearRightBottom*/ +1, +1, +1, 1.0f / 6, 0, // Right B
-                /*rearRightTop*/    +1, -1, +1, 1.0f / 6, 1,
+                /*frontRightTop*/   +1, -1, -1, 0, 0,
+                /*rearRightBottom*/ +1, +1, +1, 1.0f / 6, 1, // Right B
+                /*rearRightTop*/    +1, -1, +1, 1.0f / 6, 0,
 
-                /*rearRightBottom*/ +1, +1, +1, 5.0f / 6, 0,
-                /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 1,//Bottom A
-                /*rearLeftBottom*/  -1, +1, +1, 2.0f / 3, 0,
-
-                /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 1,
-                /*rearRightBottom*/ +1, +1, +1, 5.0f / 6, 0,//Bottom B
-                /*frontRightBottom*/+1, +1, -1, 5.0f / 6, 1,
-
-                /*rearLeftBottom*/  -1, +1, +1, 1.0f / 2, 0,
-                /*rearRightTop*/    +1, -1, +1, 1.0f / 3, 1,//Back A
-                /*rearRightBottom*/ +1, +1, +1, 1.0f / 3, 0,
-
-                /*rearRightTop*/    +1, -1, +1, 1.0f / 3, 1,
-                /*rearLeftBottom*/  -1, +1, +1, 1.0f / 2, 0,//Back B
-                /*rearLeftTop*/     -1, -1, +1, 1.0f / 2, 1,
+                /*rearRightBottom*/ +1, +1, +1, 5.0f / 6, 1,
+                /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 0,//Bottom A
+                /*rearLeftBottom*/  -1, +1, +1, 2.0f / 3, 1,
 
                 /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 0,
-                /*rearLeftTop*/     -1, -1, +1, 1.0f / 2, 1,//Left A
-                /*rearLeftBottom*/  -1, +1, +1, 1.0f / 2, 0,
+                /*rearRightBottom*/ +1, +1, +1, 5.0f / 6, 1,//Bottom B
+                /*frontRightBottom*/+1, +1, -1, 5.0f / 6, 0,
 
-                /*rearLeftTop*/     -1, -1, +1, 1.0f / 2, 1,
-                /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 0,//Left B
-                /*frontLeftTop*/    -1, -1, -1, 2.0f / 3, 1,
+                /*rearLeftBottom*/  -1, +1, +1, 1.0f / 2, 1,
+                /*rearRightTop*/    +1, -1, +1, 1.0f / 3, 0,//Back A
+                /*rearRightBottom*/ +1, +1, +1, 1.0f / 3, 1,
 
-                /*frontRightTop*/   +1, -1, -1, 1.0f / 3, 0,
-                /*rearLeftTop*/     -1, -1, +1, 1.0f / 6, 1,//Top A
-                /*frontLeftTop*/    -1, -1, -1, 1.0f / 6, 0,
+                /*rearRightTop*/    +1, -1, +1, 1.0f / 3, 0,
+                /*rearLeftBottom*/  -1, +1, +1, 1.0f / 2, 1,//Back B
+                /*rearLeftTop*/     -1, -1, +1, 1.0f / 2, 0,
 
-                /*rearLeftTop*/     -1, -1, +1, 1.0f / 6, 1,
-                /*frontRightTop*/   +1, -1, -1, 1.0f / 3, 0,// Top B
-                /*rearRightTop*/    +1, -1, +1, 1.0f / 3, 1,
+                /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 1,
+                /*rearLeftTop*/     -1, -1, +1, 1.0f / 2, 0,//Left A
+                /*rearLeftBottom*/  -1, +1, +1, 1.0f / 2, 1,
 
-                /*frontRightBottom*/+1, +1, -1, 1, 0,
-                /*frontLeftTop*/    -1, -1, -1, 5.0f / 6, 1,//Front A
-                /*frontLeftBottom*/ -1, +1, -1, 5.0f / 6, 0,
+                /*rearLeftTop*/     -1, -1, +1, 1.0f / 2, 0,
+                /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 1,//Left B
+                /*frontLeftTop*/    -1, -1, -1, 2.0f / 3, 0,
 
-                /*frontLeftTop*/    -1, -1, -1, 5.0f / 6, 1,
-                /*frontRightBottom*/+1, +1, -1, 1, 0,//Front B
-                /*frontRightTop*/   +1, -1, -1, 1, 1,
+                /*frontRightTop*/   +1, -1, -1, 1.0f / 3, 1,
+                /*rearLeftTop*/     -1, -1, +1, 1.0f / 6, 0,//Top A
+                /*frontLeftTop*/    -1, -1, -1, 1.0f / 6, 1,
+
+                /*rearLeftTop*/     -1, -1, +1, 1.0f / 6, 0,
+                /*frontRightTop*/   +1, -1, -1, 1.0f / 3, 1,// Top B
+                /*rearRightTop*/    +1, -1, +1, 1.0f / 3, 0,
+
+                /*frontRightBottom*/+1, +1, -1, 1, 1,
+                /*frontLeftTop*/    -1, -1, -1, 5.0f / 6, 0,//Front A
+                /*frontLeftBottom*/ -1, +1, -1, 5.0f / 6, 1,
+
+                /*frontLeftTop*/    -1, -1, -1, 5.0f / 6, 0,
+                /*frontRightBottom*/+1, +1, -1, 1, 1,//Front B
+                /*frontRightTop*/   +1, -1, -1, 1, 0,
         };
         constexpr auto cubeVertexCount = 36;
 
@@ -111,7 +111,7 @@ namespace orientation_cube {
                 return;
             }
 
-            texture = util::loadTextureFromMemory(resources::orientation_cube_jpg, resources::orientation_cube_jpg_len);
+            texture = util::loadTextureFromMemory(resources::orientation_cube_jpg, resources::orientation_cube_jpg_len).textureId;
 
             glGenVertexArrays(1, &VAO);
             glGenBuffers(1, &VBO);

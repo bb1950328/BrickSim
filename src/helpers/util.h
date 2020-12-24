@@ -58,6 +58,9 @@ namespace util {
     glm::vec4 minForEachComponent(const glm::vec4& a, const glm::vec4& b);
 
     class HSVcolor;
+
+    typedef unsigned char color_component_t;
+
     class RGBcolor {
     public:
         RGBcolor() = default;
@@ -66,9 +69,9 @@ namespace util {
         explicit RGBcolor(glm::vec3 vector);
         explicit RGBcolor(HSVcolor hsv);
 
-        RGBcolor(unsigned short red, unsigned short green, unsigned short blue);
+        RGBcolor(color_component_t red, color_component_t green, color_component_t blue);
 
-        unsigned short red, green, blue;
+        color_component_t red, green, blue;
         [[nodiscard]] glm::vec3 asGlmVector() const;
         [[nodiscard]] std::string asHtmlCode() const;
     };
@@ -79,7 +82,7 @@ namespace util {
         explicit HSVcolor(glm::vec3 vector);
         explicit HSVcolor(RGBcolor rgb);
 
-        unsigned short hue, saturation, value;
+        color_component_t hue, saturation, value;
         [[nodiscard]] glm::vec3 asGlmVector() const;
     };
 

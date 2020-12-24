@@ -14,7 +14,6 @@
 #include "../info_providers/part_color_availability_provider.h"
 #include "gui_internal.h"
 #include "../resources.h"
-#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "../lib/stb_image.h"
 #include <atomic>
 #include <imgui_internal.h>

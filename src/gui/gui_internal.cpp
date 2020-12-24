@@ -12,7 +12,7 @@ namespace gui_internal {
         if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
             auto optTexId = controller::getThumbnailGenerator().getThumbnailNonBlocking(part, color);
             if (optTexId.has_value()) {
-                auto texId = (ImTextureID) (optTexId.value());
+                auto texId = convertTextureId(optTexId.value());
                 ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);
                 realThumbnailAvailable = true;
             }
@@ -78,5 +78,12 @@ namespace gui_internal {
 
     char getLoFiSpinner() {
         return "|/-\\"[(int) (glfwGetTime() * 8) % 4];
+    }
+
+    ImTextureID convertTextureId(unsigned int textureId) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
+        return (ImTextureID) textureId;
+#pragma GCC diagnostic pop
     }
 }

@@ -4,6 +4,7 @@
 
 #include "gui.h"
 #include "../controller.h"
+#include "gui_internal.h"
 
 namespace gui {
     void windows::draw3dWindow(bool *show) {
@@ -80,7 +81,7 @@ namespace gui {
                     controller::getRenderer()->unrenderedChanges = true;
                 }
             }
-            auto texture3dView = (ImTextureID) (config::getBool(config::DISPLAY_SELECTION_BUFFER)
+            auto texture3dView = gui_internal::convertTextureId(config::getBool(config::DISPLAY_SELECTION_BUFFER)
                                                 ? controller::getRenderer()->selectionTextureColorbuffer
                                                 : controller::getRenderer()->imageTextureColorbuffer);
             ImGui::ImageButton(texture3dView, wsize, ImVec2(0, 1), ImVec2(1, 0), 0);

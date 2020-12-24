@@ -203,12 +203,15 @@ namespace util {
 #elif __linux
         std::string command = std::string("xdg-open ") + link;
         std::cout << command << std::endl;
-        system(command.c_str());
+        int exitCode = system(command.c_str());
+        if (exitCode != 0) {
+            std::cout << "exit code of " << command << "was " << exitCode << std::endl;
+        }
 #endif
     }
 
     RGBcolor::RGBcolor(const std::string &htmlCode) {
-        std::sscanf(htmlCode.c_str(), "#%2hx%2hx%2hx", &red, &green, &blue);
+        std::sscanf(htmlCode.c_str(), "#%2s%2s%2s", &red, &green, &blue);
     }
 
     glm::vec3 triangleCentroid(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3) {
@@ -353,7 +356,7 @@ namespace util {
         }
     }
 
-    RGBcolor::RGBcolor(unsigned short red, unsigned short green, unsigned short blue) : red(red), green(green), blue(blue) {
+    RGBcolor::RGBcolor(color_component_t red, color_component_t green, color_component_t blue) : red(red), green(green), blue(blue) {
 
     }
 

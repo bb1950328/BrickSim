@@ -28,6 +28,7 @@ set(imgui_sources # if cmake doesn't find these files, run `git submodule update
         src/lib/imgui/imstb_rectpack.h
         src/lib/imgui/imstb_textedit.h
         src/lib/imgui/imstb_truetype.h
+        src/lib/imgui/imgui_tables.cpp
         )
 set(bricksim_libs
         src/lib/glad.c

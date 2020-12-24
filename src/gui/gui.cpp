@@ -88,14 +88,18 @@ namespace gui {
             fontData = resources::fonts_RobotoMono_Regular_ttf;
             fontDataLength = resources::fonts_RobotoMono_Regular_ttf_len;
         }
-        io.Fonts->AddFontFromMemoryTTF((void *) fontData, fontDataLength, 13.0f * scaleFactor, nullptr, nullptr);
+        ImFontConfig fontConfig;
+        fontConfig.FontDataOwnedByAtlas = false;//otherwise ImGui tries to free() the data which causes a crash because the data is const
+        io.Fonts->AddFontFromMemoryTTF((void *) fontData, fontDataLength, 13.0f * scaleFactor, &fontConfig, nullptr);
 
         // merge in icons from Font Awesome
         static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-        ImFontConfig icons_config;
-        icons_config.MergeMode = true;
-        icons_config.PixelSnapH = true;
-        io.Fonts->AddFontFromMemoryTTF((void *) resources::fonts_fa_solid_900_ttf, resources::fonts_fa_solid_900_ttf_len, 13.0f * scaleFactor, &icons_config, icons_ranges);
+        ImFontConfig iconsConfig;
+        iconsConfig.MergeMode = true;
+        iconsConfig.PixelSnapH = true;
+        iconsConfig.FontDataOwnedByAtlas = false;
+        io.Fonts->AddFontFromMemoryTTF((void *) resources::fonts_fa_solid_900_ttf, resources::fonts_fa_solid_900_ttf_len, 13.0f * scaleFactor, &iconsConfig, icons_ranges);
+        //io.Fonts->AddFontFromFileTTF("resources/fonts/fa-solid-900.ttf", 13.0f * scaleFactor, &iconsConfig, icons_ranges);
     }
 
     void setupStyle() {

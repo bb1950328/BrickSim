@@ -15,6 +15,7 @@
 #include "gui_internal.h"
 #include "../resources.h"
 #include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../lib/stb_image.h"
 #include <atomic>
 #include <imgui_internal.h>
 
@@ -51,6 +52,13 @@ namespace gui {
             style.ScaleAllSizes(scaleFactor);
             glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
         }
+
+        //todo test which logo looks best on windows
+        GLFWimage images[1];
+        images[0].pixels = stbi_load_from_memory(resources::logo_square_nobg_png, resources::logo_square_nobg_png_len, &images[0].width, &images[0].height, nullptr, 4); //rgba channels
+        glfwSetWindowIcon(window, 1, images);
+        stbi_image_free(images[0].pixels);
+
         ImGuiIO &io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         if (config::getBool(config::ENABLE_VIEWPORTS)) {

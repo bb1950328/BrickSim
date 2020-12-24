@@ -10,5 +10,15 @@
     extern const unsigned int fonts_fa_solid_900_ttf_len;
     extern const unsigned char orientation_cube_jpg[];
     extern const unsigned int orientation_cube_jpg_len;
+    extern const unsigned char logo_fit_png[];
+    extern const unsigned int logo_fit_png_len;
+    extern const unsigned char logo_fit_nobg_png[];
+    extern const unsigned int logo_fit_nobg_png_len;
+    extern const unsigned char logo_square_png[];
+    extern const unsigned int logo_square_png_len;
+    extern const unsigned char logo_square_nobg_png[];
+    extern const unsigned int logo_square_nobg_png_len;
+    extern const unsigned char logo_fit_highres_png[];
+    extern const unsigned int logo_fit_highres_png_len;
 }
 #endif //BRICKSIM_RESOURCES_H

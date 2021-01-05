@@ -103,5 +103,8 @@ namespace util {
     bool containsIgnoreCase(const std::string& full, const std::string& sub);
     TextureLoadResult loadTextureFromFile(const std::filesystem::path& image);
     TextureLoadResult loadTextureFromMemory(const unsigned char* fileData, unsigned int dataSize);
+
+    bool isStbiFlipVertically();
+    void setStbiFlipVertically(bool value);
 }
 #endif //BRICKSIM_UTIL_H

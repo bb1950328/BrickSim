@@ -109,7 +109,7 @@ set(bricksim_sources
         src/types.h
         src/resources.cpp
         src/resources.h
-        )
+        src/helpers/platform_detection.h)
 
 add_executable(BrickSim
         ${imgui_sources}

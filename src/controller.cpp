@@ -98,7 +98,7 @@ namespace controller {
                 return;
             }
 
-            stbi_set_flip_vertically_on_load(1);
+            util::setStbiFlipVertically(true);
 
             renderer.window = window;
             gui::setWindow(window);

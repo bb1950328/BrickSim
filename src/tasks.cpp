@@ -26,7 +26,7 @@ const std::string &Task::getName() const {
 void Task::startThread() {
     std::cout << "starting " << name << std::endl;
     thread = std::thread([this](){
-        std::cout << name << "started" << std::endl;
+        std::cout << name << " started" << std::endl;
         function(&progress);
         std::cout << name << "finished" << std::endl;
         progress=1;

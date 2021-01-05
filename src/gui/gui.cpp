@@ -17,6 +17,7 @@
 #include "../lib/stb_image.h"
 #include <atomic>
 #include <imgui_internal.h>
+#include "../helpers/platform_detection.h"
 
 namespace gui {
     namespace {
@@ -53,10 +54,16 @@ namespace gui {
         }
 
         //todo test which logo looks best on windows
+        auto flipFlagBefore = util::isStbiFlipVertically();
+#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
+        util::setStbiFlipVertically(false);
+#endif
         GLFWimage images[1];
         images[0].pixels = stbi_load_from_memory(resources::logo_square_nobg_png, resources::logo_square_nobg_png_len, &images[0].width, &images[0].height, nullptr, 4); //rgba channels
         glfwSetWindowIcon(window, 1, images);
         stbi_image_free(images[0].pixels);
+
+        util::setStbiFlipVertically(flipFlagBefore);
 
         ImGuiIO &io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;

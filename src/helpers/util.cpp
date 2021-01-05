@@ -14,8 +14,9 @@
 #include "../lib/stb_image_write.h"
 #include "../lib/stb_image.h"
 #include "../controller.h"
+#include "platform_detection.h"
 
-#ifdef _WIN32
+#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
 
 #include <windows.h>
 
@@ -57,6 +58,7 @@ namespace util {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             return textureId;
         }
+        bool isStbiVerticalFlipEnabled = false;
     }
 
     std::string extendHomeDir(const std::string &input) {
@@ -193,7 +195,7 @@ namespace util {
     }
 
     void openDefaultBrowser(const std::string &link) {
-#ifdef _WIN32
+#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
         ShellExecute(nullptr, "open", link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);//todo testing
 #endif
 #ifdef __APPLE__
@@ -521,7 +523,7 @@ namespace util {
         unsigned int textureId;
         unsigned char *data = stbi_load_from_memory(fileData, dataSize, &imgWidth, &imgHeight, &nrChannels, 0);
         if (!data) {
-            throw std::invalid_argument("texture not read successfully from memory: " + std::to_string((unsigned long) fileData));
+            throw std::invalid_argument("texture not read successfully from memory: " + std::to_string((intptr_t) fileData));
         }
         textureId = copyTextureToVram(imgWidth, imgHeight, nrChannels, data);
         stbi_image_free(data);
@@ -531,5 +533,14 @@ namespace util {
                 imgHeight,
                 nrChannels
         };
+    }
+
+    bool isStbiFlipVertically() {
+        return isStbiVerticalFlipEnabled;
+    }
+
+    void setStbiFlipVertically(bool value) {
+        isStbiVerticalFlipEnabled = value;
+        stbi_set_flip_vertically_on_load(value?1:0);
     }
 }

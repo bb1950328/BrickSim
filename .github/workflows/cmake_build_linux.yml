@@ -28,6 +28,11 @@ jobs:
         unzip src/lib/glew-2.1.0.zip
         mv glew-2.1.0 src/lib/glew
 
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        languages: cpp
+
     - name: Create Build Environment
       run: cmake -E make_directory ${{runner.workspace}}/build
 
@@ -54,6 +59,9 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       shell: bash
       run: ctest -C $BUILD_TYPE
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1
 
     - name: Upload Binary
       uses: actions/upload-artifact@v2

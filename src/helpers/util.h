@@ -106,5 +106,14 @@ namespace util {
 
     bool isStbiFlipVertically();
     void setStbiFlipVertically(bool value);
+
+    /**
+     * @param url
+     * @param useCache if db::requestCache should be used
+     * @param sizeLimit stop download after sizeLimit bytes, default never stop
+     * @param progressFunc void(size_t nowDownloaded, size_t totalToDownload)
+     * @return (responseCode, responseString)
+     */
+    std::pair<int, std::string> requestGET(const std::string &url, bool useCache = true, size_t sizeLimit=0, void (*progressFunc)(size_t, size_t)=nullptr);
 }
 #endif //BRICKSIM_UTIL_H

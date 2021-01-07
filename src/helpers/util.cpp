@@ -8,6 +8,7 @@
 #include <iostream>
 #include <filesystem>
 #include <glm/gtx/string_cast.hpp>
+#include <curl/curl.h>
 #include "util.h"
 #include "../git_stats.h"
 #include "../config.h"
@@ -15,6 +16,7 @@
 #include "../lib/stb_image.h"
 #include "../controller.h"
 #include "platform_detection.h"
+#include "../db.h"
 
 #ifdef BRICKSIM_PLATFORM_WIN32_OR_64
 
@@ -543,4 +545,65 @@ namespace util {
         isStbiVerticalFlipEnabled = value;
         stbi_set_flip_vertically_on_load(value?1:0);
     }
+
+    std::pair<int, std::string> requestGET(const std::string &url, bool useCache, size_t sizeLimit, void (*progressFunc)(size_t, size_t)) {
+        std::cout << "INFO: request GET " << url;
+        if (useCache) {
+            auto fromCache = db::requestCache::get(url);
+            if (fromCache.has_value()) {
+                std::cout << " cache hit" << std::endl;
+                return {0, fromCache.value()};
+            }
+        }
+        std::cout << (useCache?" cache miss":" without cache") << std::endl;
+        auto curl = curl_easy_init();
+        if (!curl) {
+            return {-1, ""};
+        };
+
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+        curl_easy_setopt(curl, CURLOPT_USERPWD, "user:pass");
+        curl_easy_setopt(curl, CURLOPT_USERAGENT,"Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.10136");//sorry microsoft ;)
+        curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
+        curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, [sizeLimit](void *ptr, size_t size, size_t nmemb, std::string *data) -> size_t {
+            data->append((char *) ptr, size * nmemb);
+            if (sizeLimit > 0 && data->size()>sizeLimit) {
+                return 0;
+            }
+            return size * nmemb;
+        });
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, FALSE);
+        if (progressFunc != nullptr) {
+            curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, [progressFunc](void* ptr, double totalToDownload, double nowDownloaded, double totalToUpload, double nowUploaded){
+                progressFunc(nowDownloaded, totalToDownload);
+            });
+        }
+
+        std::string response_string;
+        std::string header_string;
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+        curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+
+        curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+
+        char *effectiveUrl;
+        long response_code;
+        double elapsed;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &elapsed);
+        curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &effectiveUrl);
+
+        if (useCache) {
+            db::requestCache::put(url, response_string);
+        }
+
+        return {response_code, response_string};
+    }
+
+
 }

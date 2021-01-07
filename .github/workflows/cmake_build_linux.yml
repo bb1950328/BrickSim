@@ -1,5 +1,6 @@
 name: CMake Linux Build
 on:
+  pull_request:
   push:
     paths-ignore:
       - "docs/**"

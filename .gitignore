@@ -31,19 +31,23 @@
 *.out
 *.app
 
-# CMake
+
 /imgui.ini
 /src/lib/glew/
+/src/lib/rapidjson/
+# CMake
 cmake-build-debug/
 cmake-build-default/
 cmake-build-minsizerel/
 cmake-build-release/
 cmake-build-relwithdebinfo/
 /cmake-build/
-/codes.txt
 /.cmake/
-/requestCache/
 /cmake.lock
+
+/codes.txt
+/requestCache/
+
 /config.db3
 /fileList.db3
 /cache.db3

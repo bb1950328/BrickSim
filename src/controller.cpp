@@ -10,6 +10,7 @@
 #include "orientation_cube.h"
 #include "tasks.h"
 #include "lib/stb_image.h"
+#include "info_providers/bricklink_constants_provider.h"
 
 namespace controller {
     namespace {
@@ -111,10 +112,12 @@ namespace controller {
                     {"initialize file list", [](float *progress){ldr_file_repo::initializeFileList(progress);}},
                     {"initialize price guide provider", [](){price_guide_provider::initialize();}},
                     {"initialize thumbnail generator", [](){thumbnailGenerator.initialize();}},
+                    {"initialize BrickLink constants", [](){bricklink_constants_provider::initialize();}},
                     //{"initialize orientation cube generator", [](){orientation_cube::initialize();}},
             };
             for (auto &initStep : steps) {
                 std::cout << initStep.getName() << std::endl;
+                auto before = std::chrono::high_resolution_clock::now();
                 initStep.startThread();
                 while (!initStep.isDone()) {
                     if (gui::isSetupDone()) {
@@ -133,6 +136,8 @@ namespace controller {
                     }
                 }
                 initStep.joinThread();
+                auto after = std::chrono::high_resolution_clock::now();
+                std::cout << initStep.getName() << ": " << std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count() << "ms." << std::endl;
             }
         }
 

@@ -40,6 +40,52 @@ set(bricksim_libs
         src/lib/IconFontCppHeaders/IconsFontAwesome5.h
         )
 
+set(rapidjson_files
+        src/lib/rapidjson/allocators.h
+        src/lib/rapidjson/cursorstreamwrapper.h
+        src/lib/rapidjson/document.h
+        src/lib/rapidjson/encodedstream.h
+        src/lib/rapidjson/encodings.h
+        src/lib/rapidjson/error
+        src/lib/rapidjson/filereadstream.h
+        src/lib/rapidjson/filewritestream.h
+        src/lib/rapidjson/fwd.h
+        src/lib/rapidjson/internal
+        src/lib/rapidjson/istreamwrapper.h
+        src/lib/rapidjson/memorybuffer.h
+        src/lib/rapidjson/memorystream.h
+        src/lib/rapidjson/msinttypes
+        src/lib/rapidjson/ostreamwrapper.h
+        src/lib/rapidjson/pointer.h
+        src/lib/rapidjson/prettywriter.h
+        src/lib/rapidjson/rapidjson.h
+        src/lib/rapidjson/reader.h
+        src/lib/rapidjson/schema.h
+        src/lib/rapidjson/stream.h
+        src/lib/rapidjson/stringbuffer.h
+        src/lib/rapidjson/writer.h
+
+        src/lib/rapidjson/error/en.h
+        src/lib/rapidjson/error/error.h
+
+        src/lib/rapidjson/internal/biginteger.h
+        src/lib/rapidjson/internal/clzll.h
+        src/lib/rapidjson/internal/diyfp.h
+        src/lib/rapidjson/internal/dtoa.h
+        src/lib/rapidjson/internal/ieee754.h
+        src/lib/rapidjson/internal/itoa.h
+        src/lib/rapidjson/internal/meta.h
+        src/lib/rapidjson/internal/pow10.h
+        src/lib/rapidjson/internal/regex.h
+        src/lib/rapidjson/internal/stack.h
+        src/lib/rapidjson/internal/strfunc.h
+        src/lib/rapidjson/internal/strtod.h
+        src/lib/rapidjson/internal/swap.h
+
+        src/lib/rapidjson/msinttypes/inttypes.h
+        src/lib/rapidjson/msinttypes/stdint.h
+        )
+
 set(bricksim_sources
         src/main.cpp
         src/ldr_files.cpp
@@ -109,12 +155,13 @@ set(bricksim_sources
         src/types.h
         src/resources.cpp
         src/resources.h
-        src/helpers/platform_detection.h)
+        src/helpers/platform_detection.h src/info_providers/bricklink_constants_provider.cpp src/info_providers/bricklink_constants_provider.h)
 
 add_executable(BrickSim
         ${imgui_sources}
         ${bricksim_libs}
         ${bricksim_sources}
+        ${rapidjson_files}
         )
 
 if (WIN32)

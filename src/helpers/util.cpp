@@ -3,6 +3,8 @@
 //
 
 #define GLM_ENABLE_EXPERIMENTAL
+#define USE_SSLEAY
+#define USE_OPENSSL
 
 #include <algorithm>
 #include <iostream>
@@ -546,6 +548,11 @@ namespace util {
         stbi_set_flip_vertically_on_load(value?1:0);
     }
 
+    size_t oldWriteFunction(void *ptr, size_t size, size_t nmemb, std::string *data) {
+        data->append((char *) ptr, size * nmemb);
+        return size * nmemb;
+    }
+
     std::pair<int, std::string> requestGET(const std::string &url, bool useCache, size_t sizeLimit, void (*progressFunc)(size_t, size_t)) {
         std::cout << "INFO: request GET " << url;
         if (useCache) {
@@ -568,13 +575,14 @@ namespace util {
         curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
         curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
 
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, [sizeLimit](void *ptr, size_t size, size_t nmemb, std::string *data) -> size_t {
+        /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, [sizeLimit](void *ptr, size_t size, size_t nmemb, std::string *data) -> size_t {
             data->append((char *) ptr, size * nmemb);
             if (sizeLimit > 0 && data->size()>sizeLimit) {
                 return 0;
             }
             return size * nmemb;
-        });
+        });*///todo build something threadsafe which can pass sizeLimit to writeFunction
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, oldWriteFunction);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, FALSE);
         if (progressFunc != nullptr) {
             curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, [progressFunc](void* ptr, double totalToDownload, double nowDownloaded, double totalToUpload, double nowUploaded){

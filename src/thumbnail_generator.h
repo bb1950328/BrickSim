@@ -36,6 +36,7 @@ public:
     explicit ThumbnailGenerator(Renderer *renderer);
     void discardAllImages();
     bool workOnRenderQueue();
+    bool renderQueueEmpty();
 
     void saveFramebufferToBMP(const std::string &filename) const;
     void initialize();

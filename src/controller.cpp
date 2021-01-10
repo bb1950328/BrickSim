@@ -31,6 +31,8 @@ namespace controller {
         std::map<unsigned int, Task*> backgroundTasks;
         std::queue<Task *> foregroundTasks;
 
+        std::chrono::milliseconds idle_sleep(25);
+
         bool initializeGL() {
             std::lock_guard<std::recursive_mutex> lg(getOpenGlMutex());
             glfwInit();
@@ -171,6 +173,12 @@ namespace controller {
         //openFile("3001.dat");
 
         while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
+            if (foregroundTasks.empty() && backgroundTasks.empty() && thumbnailGenerator.renderQueueEmpty() && glfwGetWindowAttrib(window, GLFW_FOCUSED)==0) {
+                std::this_thread::sleep_for(idle_sleep);
+                glfwPollEvents();
+                continue;
+            }
+
             const auto loopStart = glfwGetTime();
             auto before = std::chrono::high_resolution_clock::now();
 

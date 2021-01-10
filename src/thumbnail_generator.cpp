@@ -217,3 +217,7 @@ unsigned int ThumbnailGenerator::copyFramebufferToTexture() const {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     return destinationTextureId;
 }
+
+bool ThumbnailGenerator::renderQueueEmpty() {
+    return renderRequests.empty();
+}

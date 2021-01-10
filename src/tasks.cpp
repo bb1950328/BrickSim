@@ -28,7 +28,7 @@ void Task::startThread() {
     thread = std::thread([this](){
         std::cout << name << " started" << std::endl;
         function(&progress);
-        std::cout << name << "finished" << std::endl;
+        std::cout << name << " finished" << std::endl;
         progress=1;
         is_done.store(true);
     });

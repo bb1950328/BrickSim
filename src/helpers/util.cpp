@@ -553,6 +553,16 @@ namespace util {
         return size * nmemb;
     }
 
+    size_t oldWriteFunction4kb(void *ptr, size_t size, size_t nmemb, std::string *data) {
+        data->append((char *) ptr, size * nmemb);
+        if (data->size()>4096) {
+            return 0;
+        }
+        return size * nmemb;
+    }
+
+
+
     std::pair<int, std::string> requestGET(const std::string &url, bool useCache, size_t sizeLimit, void (*progressFunc)(size_t, size_t)) {
         std::cout << "INFO: request GET " << url;
         if (useCache) {
@@ -582,7 +592,7 @@ namespace util {
             }
             return size * nmemb;
         });*///todo build something threadsafe which can pass sizeLimit to writeFunction
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, oldWriteFunction);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, sizeLimit<4096?oldWriteFunction4kb:oldWriteFunction);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, FALSE);
         if (progressFunc != nullptr) {
             curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, [progressFunc](void* ptr, double totalToDownload, double nowDownloaded, double totalToUpload, double nowUploaded){

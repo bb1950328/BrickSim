@@ -8,54 +8,38 @@
 #include "price_guide_provider.h"
 #include "../helpers/util.h"
 #include "../db.h"
+#include "bricklink_constants_provider.h"
 
 namespace price_guide_provider {
     namespace {
-        struct BRCurrency {
-            int id;
-            std::string name;
-            std::string code;
-        };
 
-        struct BRColor {
-            int id;
-            std::string name;
-        };
-
-        std::vector<BRCurrency> currencies;
-        std::vector<BRColor> colors;
-
-        const BRCurrency *getCurrencyByCode(const std::string &code) {
-            for (const auto &currency : currencies) {
-                if (currency.code == code) {
-                    return &currency;
+        std::optional<bricklink::Currency> getCurrencyByCode(const std::string &code) {
+            for (const auto &currency : bricklink_constants_provider::getCurrencies()) {
+                if (currency.second.codeCurrency == code) {
+                    return {currency.second};
                 }
             }
-            return nullptr;
+            return {};
         }
 
-        const BRColor *getColorByName(const std::string &name) {
-            for (const auto &color : colors) {
-                if (util::equalsAlphanum(color.name, name)) {
-                    return &color;
+        std::optional<bricklink::Color> getColorByName(const std::string &name) {
+            for (const auto &color : bricklink_constants_provider::getColors()) {
+                if (util::equalsAlphanum(color.second.strColorName, name)) {
+                    return {color.second};
                 }
             }
-            return nullptr;
+            return {};
         }
 
         std::map<const std::string, int> idItems;
 
         int getIdItem(const std::string &partCode) {
+            //todo save in cache db
+            static std::mutex lock;
+            std::lock_guard<std::mutex> lg(lock);
             auto it = idItems.find(partCode);
             if (it == idItems.end()) {
-                std::pair<int, std::string> res;
-                {
-                    static std::map<const std::string, std::mutex> locks;
-                    std::lock_guard<std::mutex> lg(locks.operator[](partCode));
-                    res = util::requestGET("https://www.bricklink.com/v2/catalog/catalogitem.page?P=" + partCode);
-                    locks.erase(partCode);
-                }
-
+                auto res = util::requestGET("https://www.bricklink.com/v2/catalog/catalogitem.page?P=" + partCode);
                 std::regex rgx("idItem:\\s+(\\d+)");
                 std::smatch matches;
                 if (std::regex_search(res.second, matches, rgx)) {
@@ -72,27 +56,6 @@ namespace price_guide_provider {
     }
 
     bool initialize() {
-        auto allVarsJs = util::requestGET("https://www.bricklink.com/js/allVars.js");
-        std::stringstream vars;
-        vars << allVarsJs.second;
-        std::regex currencyRgx(R"(^_varCurrencyList\.push\( \{ idCurrency: (\d+), strCurrencyName: '([a-zA-Z0-9 ]+)', strCurrencyCode: '([A-Z]+)' \} \);\s*$)");
-        std::regex colorRgx(R"(^_varColorList\.push\( \{ idColor: (\d+), strColorName: '(.+)', group: (\d+), rgb: '([a-fA-F0-9]*)' \} \);\s*$)");
-        for (std::string line; getline(vars, line);) {
-            std::smatch matches;
-            if (std::regex_search(line, matches, currencyRgx)) {
-                currencies.push_back({
-                                             std::stoi(matches[1].str()),
-                                             matches[2].str(),
-                                             matches[3].str()
-                                     });
-            } else if (std::regex_search(line, matches, colorRgx)) {
-                colors.push_back({
-                                         std::stoi(matches[1].str()),
-                                         util::trim(matches[2].str())
-                                 });
-            }
-        }
-
         return true;
     }
 
@@ -105,11 +68,11 @@ namespace price_guide_provider {
         }
         //https://www.bricklink.com/v2/catalog/catalogitem_pgtab.page?idItem=38562&idColor=11&st=2&gm=1&gc=0&ei=0&prec=2&showflag=0&showbulk=0&currency=136
         const std::string &partIdStr = std::to_string(getIdItem(partCode));
-        const std::string &colorCodeStr = std::to_string(getColorByName(colorName)->id);
-        const std::string &currencyCodeStr = std::to_string(getCurrencyByCode(currencyCode)->id);
+        const std::string &colorCodeStr = std::to_string(getColorByName(colorName)->idColor);
+        const std::string &currencyCodeStr = std::to_string(getCurrencyByCode(currencyCode)->idCurrency);
         std::string pgUrl = std::string("https://www.bricklink.com/v2/catalog/catalogitem_pgtab.page?idItem=") + partIdStr + "&idColor=" + colorCodeStr +
                             "&st=2&gm=0&gc=0&ei=0&prec=4&showflag=0&showbulk=0&currency=" + currencyCodeStr;
-        auto res = util::requestGET(pgUrl,false, 200000);//don't use cache because relevant numbers are saved in priceGuideCache
+        auto res = util::requestGET(pgUrl,false, 3500);//don't use cache because relevant numbers are saved in priceGuideCache
         std::regex rgx(
                 R"(\s*<TABLE CELLSPACING=0 CELLPADDING=0 CLASS="pcipgSummaryTable"><TR><TD>Total Lots:</TD><TD><b>(\d+)</b></TD></TR><TR><TD>Total Qty:</TD><TD><b>(\d+)</b></TD></TR><TR><TD>Min Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR><TR><TD>Avg Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR><TR><TD>Qty Avg Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR><TR><TD>Max Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR></TABLE>\s*)");
 

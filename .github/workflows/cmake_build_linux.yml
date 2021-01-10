@@ -29,6 +29,11 @@ jobs:
         unzip src/lib/glew-2.1.0.zip
         mv glew-2.1.0 src/lib/glew
 
+    - name: Unzip rapidjson
+      run: |
+        unzip src/lib/rapidjson.zip
+        mv rapidjson src/lib/rapidjson
+
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
       with:

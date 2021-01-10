@@ -593,7 +593,7 @@ namespace util {
             return size * nmemb;
         });*///todo build something threadsafe which can pass sizeLimit to writeFunction
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, sizeLimit<4096?oldWriteFunction4kb:oldWriteFunction);
-        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, FALSE);
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
         if (progressFunc != nullptr) {
             curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, [progressFunc](void* ptr, double totalToDownload, double nowDownloaded, double totalToUpload, double nowUploaded){
                 progressFunc(nowDownloaded, totalToDownload);

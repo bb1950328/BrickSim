@@ -196,7 +196,7 @@ namespace gui {
                         const auto windowBgImVec = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
                         const auto windowBg = glm::vec3(windowBgImVec.x, windowBgImVec.y, windowBgImVec.z);
                         auto drawColoredValueText = [&windowBg](const char *text, const LdrColor *color) {
-                            ImGui::SameLine();
+                            //ImGui::SameLine();
                             auto col = color->value.asGlmVector();
                             if (util::vectorSum(glm::abs(windowBg - col)) < 0.3) {
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(col.x, col.y, col.z, 1.0f));
@@ -216,42 +216,85 @@ namespace gui {
                             }
                         };
 
-                        static char valueBuffer[10];
-
-                        ImGui::Text("Total Lots: ");
+                        auto tableFlags =
+                                ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
+                                ImGuiTableFlags_BordersV | ImGuiTableFlags_ScrollX;
+                        ImVec2 outer_size = ImVec2(-FLT_MIN, ImGui::GetTextLineHeightWithSpacing()*9);
+                        auto tableId = std::string("##priceGuideTable") + partCode;
                         for (const auto &pGuide : pGuides) {
-                            snprintf(valueBuffer, 10, "%d", pGuide.second.totalLots);
-                            drawColoredValueText(valueBuffer, pGuide.first);
+                            tableId += std::string(";") + std::to_string(pGuide.first->code);
                         }
+                        if (ImGui::BeginTable(tableId.c_str(), pGuides.size() + 1, tableFlags, outer_size))
+                        {
+                            ImGui::TableSetupScrollFreeze(1, 1);
+                            ImGui::TableSetupColumn(ICON_FA_MONEY_BILL, ImGuiTableColumnFlags_NoHide);
+                            for (const auto &pGuide : pGuides) {
+                                ImGui::TableSetupColumn(pGuide.first->name.c_str());
+                            }
+                            ImGui::TableHeadersRow();
 
-                        ImGui::Text("Total Qty: ");
-                        for (const auto &pGuide : pGuides) {
-                            snprintf(valueBuffer, 10, "%d", pGuide.second.totalQty);
-                            drawColoredValueText(valueBuffer, pGuide.first);
-                        }
+                            static char valueBuffer[10];
+                            int column = 0;
 
-                        ImGui::Text("Min Price: ");
-                        for (const auto &pGuide : pGuides) {
-                            snprintf(valueBuffer, 10, pGuide.second.minPrice < 0.05 ? "%.4f" : "%.2f", pGuide.second.minPrice);
-                            drawColoredValueText(valueBuffer, pGuide.first);
-                        }
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(column++);
+                            ImGui::Text("Total Lots: ");
+                            for (const auto &pGuide : pGuides) {
+                                ImGui::TableSetColumnIndex(column++);
+                                snprintf(valueBuffer, 10, "%d", pGuide.second.totalLots);
+                                drawColoredValueText(valueBuffer, pGuide.first);
+                            }
 
-                        ImGui::Text("Avg Price: ");
-                        for (const auto &pGuide : pGuides) {
-                            snprintf(valueBuffer, 10, pGuide.second.minPrice < 0.05 ? "%.4f" : "%.2f", pGuide.second.avgPrice);
-                            drawColoredValueText(valueBuffer, pGuide.first);
-                        }
+                            column = 0;
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(column++);
+                            ImGui::Text("Total Qty: ");
+                            for (const auto &pGuide : pGuides) {
+                                ImGui::TableSetColumnIndex(column++);
+                                snprintf(valueBuffer, 10, "%d", pGuide.second.totalQty);
+                                drawColoredValueText(valueBuffer, pGuide.first);
+                            }
 
-                        ImGui::Text("Qty avg Price: ");
-                        for (const auto &pGuide : pGuides) {
-                            snprintf(valueBuffer, 10, pGuide.second.minPrice < 0.05 ? "%.4f" : "%.2f", pGuide.second.qtyAvgPrice);
-                            drawColoredValueText(valueBuffer, pGuide.first);
-                        }
+                            column = 0;
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(column++);
+                            ImGui::Text("Min Price: ");
+                            for (const auto &pGuide : pGuides) {
+                                ImGui::TableSetColumnIndex(column++);
+                                snprintf(valueBuffer, 10, pGuide.second.minPrice < 0.05 ? "%.4f" : "%.2f", pGuide.second.minPrice);
+                                drawColoredValueText(valueBuffer, pGuide.first);
+                            }
 
-                        ImGui::Text("Max Price: ");
-                        for (const auto &pGuide : pGuides) {
-                            snprintf(valueBuffer, 10, pGuide.second.minPrice < 0.05 ? "%.4f" : "%.2f", pGuide.second.maxPrice);
-                            drawColoredValueText(valueBuffer, pGuide.first);
+                            column = 0;
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(column++);
+                            ImGui::Text("Avg Price: ");
+                            for (const auto &pGuide : pGuides) {
+                                ImGui::TableSetColumnIndex(column++);
+                                snprintf(valueBuffer, 10, pGuide.second.minPrice < 0.05 ? "%.4f" : "%.2f", pGuide.second.avgPrice);
+                                drawColoredValueText(valueBuffer, pGuide.first);
+                            }
+
+                            column = 0;
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(column++);
+                            ImGui::Text("Qty avg Price: ");
+                            for (const auto &pGuide : pGuides) {
+                                ImGui::TableSetColumnIndex(column++);
+                                snprintf(valueBuffer, 10, pGuide.second.minPrice < 0.05 ? "%.4f" : "%.2f", pGuide.second.qtyAvgPrice);
+                                drawColoredValueText(valueBuffer, pGuide.first);
+                            }
+
+                            column = 0;
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(column++);
+                            ImGui::Text("Max Price: ");
+                            for (const auto &pGuide : pGuides) {
+                                ImGui::TableSetColumnIndex(column++);
+                                snprintf(valueBuffer, 10, pGuide.second.minPrice < 0.05 ? "%.4f" : "%.2f", pGuide.second.maxPrice);
+                                drawColoredValueText(valueBuffer, pGuide.first);
+                            }
+                            ImGui::EndTable();
                         }
                         //todo a small histogram would be nice (parse data from price guide html table)
                     } else {

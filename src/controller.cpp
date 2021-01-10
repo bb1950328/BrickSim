@@ -163,10 +163,6 @@ namespace controller {
     int run() {
         //todo check if parts library found (method in ldr_file_repo::)
         initialize();
-        /*const std::vector<price_guide_provider::PriceGuide> &pgs = price_guide_provider::getPriceGuide("3001", "CHF", "Black");//todo move this to a more useful place
-        for (const auto &pg : pgs) {
-            std::cout << pg.avgPrice << std::endl;
-        }*/
 
         //openFile("test_files/mpd_test.mpd");
         openFile("~/Downloads/arocs.mpd");

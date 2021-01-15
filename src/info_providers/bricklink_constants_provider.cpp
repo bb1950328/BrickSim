@@ -27,7 +27,7 @@ namespace bricklink_constants_provider {
 
         auto response = util::requestGET("https://www.bricklink.com/_file/global_constants.js");
 
-        if (response.first != 0 && (response.first < 200 || response.first >= 300)) {
+        if (response.first != util::RESPONSE_CODE_FROM_CACHE && (response.first < 200 || response.first >= 300)) {
             throw std::runtime_error(std::string("can't download global bricklink constants. HTTP Status: ") + std::to_string(response.first));
         }
 
@@ -38,7 +38,6 @@ namespace bricklink_constants_provider {
         }
 
         response.second = response.second.substr(startPos);
-
 
         while (response.second.back()!=';') {
             response.second.pop_back();

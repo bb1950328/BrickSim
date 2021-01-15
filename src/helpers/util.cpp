@@ -569,7 +569,7 @@ namespace util {
             auto fromCache = db::requestCache::get(url);
             if (fromCache.has_value()) {
                 std::cout << " cache hit" << std::endl;
-                return {0, fromCache.value()};
+                return {RESPONSE_CODE_FROM_CACHE, fromCache.value()};
             }
         }
         std::cout << (useCache?" cache miss":" without cache") << std::endl;

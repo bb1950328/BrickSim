@@ -124,6 +124,8 @@ namespace util {
 
     bool memeqzero(const void *data, size_t length);
 
+    constexpr int RESPONSE_CODE_FROM_CACHE = 1001;
+
     /**
      * @param url
      * @param useCache if db::requestCache should be used

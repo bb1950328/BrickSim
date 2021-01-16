@@ -11,7 +11,7 @@
 #include "ldr_files.h"
 #include "shaders/shader.h"
 #include "helpers/camera.h"
-#include "constants.h"
+#include "constant_data/constants.h"
 #include "types.h"
 
 struct TriangleVertex {

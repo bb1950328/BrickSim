@@ -3,7 +3,7 @@
 //
 
 #include "gui.h"
-#include "../git_stats.h"
+#include "../constant_data/git_stats.h"
 #include "gui_internal.h"
 
 namespace gui {

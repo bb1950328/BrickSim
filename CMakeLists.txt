@@ -118,15 +118,15 @@ set(bricksim_sources
         src/controller.h
         src/tools/gears.cpp
         src/tools/gears.h
-        src/constants.h
+        src/constant_data/constants.h
         src/helpers/fraction.cpp
         src/helpers/fraction.h
         #src/file_downloader.cpp
         #src/file_downloader.h
-        src/git_stats.h
+        src/constant_data/git_stats.h
         src/thumbnail_generator.cpp
         src/thumbnail_generator.h
-        src/git_stats.cpp
+        src/constant_data/git_stats.cpp
         src/info_providers/part_color_availability_provider.cpp
         src/info_providers/part_color_availability_provider.h
         src/helpers/zip_buffer.cpp
@@ -153,8 +153,8 @@ set(bricksim_sources
         src/tasks.cpp
         src/tasks.h
         src/types.h
-        src/resources.cpp
-        src/resources.h
+        src/constant_data/resources.cpp
+        src/constant_data/resources.h
         src/helpers/platform_detection.h src/info_providers/bricklink_constants_provider.cpp src/info_providers/bricklink_constants_provider.h)
 
 add_executable(BrickSim

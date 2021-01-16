@@ -8,7 +8,7 @@
 #include "orientation_cube.h"
 #include "controller.h"
 #include "lib/stb_image.h"
-#include "resources.h"
+#include "constant_data/resources.h"
 
 namespace orientation_cube {
     namespace {

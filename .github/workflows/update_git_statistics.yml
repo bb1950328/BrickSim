@@ -17,6 +17,6 @@ jobs:
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Actions Bot"
-          git add src/git_stats.cpp
+          git add src/constant_data/git_stats.cpp
           git commit -m "GitHub Actions: updated git_stats.h"
           git push

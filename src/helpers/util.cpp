@@ -12,7 +12,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include <curl/curl.h>
 #include "util.h"
-#include "../git_stats.h"
+#include "../constant_data/git_stats.h"
 #include "../config.h"
 #include "../lib/stb_image_write.h"
 #include "../lib/stb_image.h"

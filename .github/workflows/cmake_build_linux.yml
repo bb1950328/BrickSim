@@ -34,6 +34,10 @@ jobs:
         unzip src/lib/rapidjson.zip
         mv rapidjson src/lib/rapidjson
 
+    - name: Update Git Stats
+      #The changes aren't committed but they should be included in the binary so it's done here too
+      run: ./update_git_statistics.sh
+
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
       with:

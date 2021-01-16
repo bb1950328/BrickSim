@@ -155,14 +155,17 @@ set(bricksim_sources
         src/types.h
         src/constant_data/resources.cpp
         src/constant_data/resources.h
-        src/helpers/platform_detection.h src/info_providers/bricklink_constants_provider.cpp src/info_providers/bricklink_constants_provider.h)
+        src/helpers/platform_detection.h
+        src/info_providers/bricklink_constants_provider.cpp
+        src/info_providers/bricklink_constants_provider.h
+        )
 
 add_executable(BrickSim
         ${imgui_sources}
         ${bricksim_libs}
         ${bricksim_sources}
         ${rapidjson_files}
-        src/overlay_2d.cpp src/overlay_2d.h)
+        )
 
 if (WIN32)
     option(MINGW_STDTHREADS_GENERATE_STDHEADERS "" ON)

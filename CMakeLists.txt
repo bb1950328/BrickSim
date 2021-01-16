@@ -162,7 +162,7 @@ add_executable(BrickSim
         ${bricksim_libs}
         ${bricksim_sources}
         ${rapidjson_files}
-        )
+        src/overlay_2d.cpp src/overlay_2d.h)
 
 if (WIN32)
     option(MINGW_STDTHREADS_GENERATE_STDHEADERS "" ON)

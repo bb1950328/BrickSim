@@ -563,7 +563,7 @@ namespace util {
 
 
 
-    std::pair<int, std::string> requestGET(const std::string &url, bool useCache, size_t sizeLimit, void (*progressFunc)(size_t, size_t)) {
+    std::pair<int, std::string> requestGET(const std::string &url, bool useCache, size_t sizeLimit, int (*progressFunc)(void*, long, long, long, long)) {
         std::cout << "INFO: request GET " << url;
         if (useCache) {
             auto fromCache = db::requestCache::get(url);
@@ -592,12 +592,13 @@ namespace util {
             }
             return size * nmemb;
         });*///todo build something threadsafe which can pass sizeLimit to writeFunction
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, sizeLimit<4096?oldWriteFunction4kb:oldWriteFunction);
-        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (0<sizeLimit&&sizeLimit<4096)?oldWriteFunction4kb:oldWriteFunction);
+
         if (progressFunc != nullptr) {
-            curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, [progressFunc](void* ptr, double totalToDownload, double nowDownloaded, double totalToUpload, double nowUploaded){
-                progressFunc(nowDownloaded, totalToDownload);
-            });
+            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+            curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progressFunc);
+        } else {
+            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
         }
 
         std::string response_string;

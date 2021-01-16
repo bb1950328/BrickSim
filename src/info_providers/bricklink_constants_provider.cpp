@@ -12,6 +12,16 @@ namespace bricklink_constants_provider {
     namespace {
         bool initialized = false;
 
+        constexpr long fileSizeEstimated = 1056551;
+        float* initialisationProgress;
+        int globalConstantsDownloadProgress(void *ptr, long downTotal, long downNow, long upTotal, long upNow) {
+            std::cout << "globalConstantsProgress(" << ptr << ", " << downTotal << ", " << downNow << ", " << upTotal << ", " << upNow << "...);" << std::endl;
+            if (initialisationProgress!= nullptr) {
+                *initialisationProgress = 0.99f * std::min(downNow, fileSizeEstimated) / fileSizeEstimated;
+            }
+            return 0;
+        }
+
         std::map<int, bricklink::ColorFamily> colorFamilies;
         std::map<int, bricklink::ColorType> colorTypes;
         std::map<int, bricklink::Color> colors;
@@ -20,12 +30,14 @@ namespace bricklink_constants_provider {
         std::map<int, bricklink::Continent> continents;
     }
 
-    void initialize() {
+    void initialize(float *progress) {
         if (initialized) {
             std::cout << "WARNING: bricklink_constants_provider::initialize() already called" << std::endl;
         }
 
-        auto response = util::requestGET("https://www.bricklink.com/_file/global_constants.js");
+        initialisationProgress = progress;
+        *progress = 0.0f;
+        auto response = util::requestGET("https://www.bricklink.com/_file/global_constants.js", true, 0, globalConstantsDownloadProgress);
 
         if (response.first != util::RESPONSE_CODE_FROM_CACHE && (response.first < 200 || response.first >= 300)) {
             throw std::runtime_error(std::string("can't download global bricklink constants. HTTP Status: ") + std::to_string(response.first));
@@ -113,6 +125,7 @@ namespace bricklink_constants_provider {
             }});
         }
 
+        *progress = 1.0f;
         initialized = true;
     }
 

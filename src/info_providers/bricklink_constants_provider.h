@@ -53,14 +53,14 @@ namespace bricklink {
 }
 
 namespace bricklink_constants_provider {
-    void initialize();
+    void initialize(float *progress = nullptr);
 
-    const std::map<int, bricklink::ColorFamily>& getColorFamilies();
-    const std::map<int, bricklink::ColorType>& getColorTypes();
-    const std::map<int, bricklink::Color>& getColors();
-    const std::map<int, bricklink::Currency>& getCurrencies();
-    const std::map<std::string, bricklink::Country>& getCountries();
-    const std::map<int, bricklink::Continent>& getContinents();
+    const std::map<int, bricklink::ColorFamily> &getColorFamilies();
+    const std::map<int, bricklink::ColorType> &getColorTypes();
+    const std::map<int, bricklink::Color> &getColors();
+    const std::map<int, bricklink::Currency> &getCurrencies();
+    const std::map<std::string, bricklink::Country> &getCountries();
+    const std::map<int, bricklink::Continent> &getContinents();
 }
 
 #endif //BRICKSIM_BRICKLINK_CONSTANTS_PROVIDER_H

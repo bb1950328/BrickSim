@@ -114,7 +114,7 @@ namespace controller {
                     {"initialize file list", [](float *progress){ldr_file_repo::initializeFileList(progress);}},
                     {"initialize price guide provider", [](){price_guide_provider::initialize();}},
                     {"initialize thumbnail generator", [](){thumbnailGenerator.initialize();}},
-                    {"initialize BrickLink constants", [](){bricklink_constants_provider::initialize();}},
+                    {"initialize BrickLink constants", [](float *progress){ bricklink_constants_provider::initialize(progress);}},
                     //{"initialize orientation cube generator", [](){orientation_cube::initialize();}},
             };
             for (auto &initStep : steps) {

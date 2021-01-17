@@ -49,6 +49,7 @@ cmake-build-relwithdebinfo/
 /cmake-build/
 /.cmake/
 /cmake.lock
+/_CPack_Packages/
 
 /codes.txt
 /requestCache/

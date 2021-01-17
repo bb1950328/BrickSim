@@ -54,8 +54,8 @@ jobs:
       shell: bash
       run: ctest -C $BUILD_TYPE
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+    #todo- name: Perform CodeQL Analysis
+    #todo  uses: github/codeql-action/analyze@v1
 
     - name: Create .deb using CPack
       run: cpack --config ${{runner.workspace}}/build/CPackConfig.cmake

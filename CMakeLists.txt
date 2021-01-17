@@ -158,6 +158,8 @@ set(bricksim_sources
         src/helpers/platform_detection.h
         src/info_providers/bricklink_constants_provider.cpp
         src/info_providers/bricklink_constants_provider.h
+        src/overlay_2d.cpp
+        src/overlay_2d.h
         )
 
 add_executable(BrickSim

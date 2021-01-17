@@ -224,4 +224,5 @@ add_compile_options("-lphread")
 
 target_include_directories(BrickSim PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+        src/lib/include
         $<INSTALL_INTERFACE:include>)

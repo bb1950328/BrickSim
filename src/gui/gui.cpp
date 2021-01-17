@@ -53,13 +53,10 @@ namespace gui {
             glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
         }
 
-        //todo test which logo looks best on windows
         auto flipFlagBefore = util::isStbiFlipVertically();
-#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
         util::setStbiFlipVertically(false);
-#endif
         GLFWimage images[1];
-        images[0].pixels = stbi_load_from_memory(resources::logo_square_nobg_png, resources::logo_square_nobg_png_len, &images[0].width, &images[0].height, nullptr, 4); //rgba channels
+        images[0].pixels = stbi_load_from_memory(resources::logo_icon_png, resources::logo_icon_png_len, &images[0].width, &images[0].height, nullptr, 4); //rgba channels
         glfwSetWindowIcon(window, 1, images);
         stbi_image_free(images[0].pixels);
 

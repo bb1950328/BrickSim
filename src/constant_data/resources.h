@@ -20,5 +20,7 @@
     extern const unsigned int logo_square_nobg_png_len;
     extern const unsigned char logo_fit_highres_png[];
     extern const unsigned int logo_fit_highres_png_len;
+    extern const unsigned char logo_icon_png[];
+    extern const unsigned int logo_icon_png_len;
 }
 #endif //BRICKSIM_RESOURCES_H

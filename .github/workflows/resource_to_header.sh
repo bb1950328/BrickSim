@@ -10,6 +10,7 @@ declare -a files=(
   "logo_square.png"
   "logo_square_nobg.png"
   "logo_fit_highres.png"
+  "logo_icon.png"
 )
 
 if [ ! -d "src" ]; then

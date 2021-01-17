@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# cloning git submodules if not already done
+git submodule update --init --recursive
+
+
 # checking working directory
 if [[ ! -d src ]]; then
   echo "execute this script in the BrickSim repository root!" >&2

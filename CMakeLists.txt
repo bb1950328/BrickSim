@@ -4,6 +4,10 @@ project(BrickSim)
 
 file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)#prevent profiles from loading in parallel, causes problems with submodules
 
+set(BRICKSIM_VERSION_MAJOR 1)
+set(BRICKSIM_VERSION_MINOR 0)
+set(BRICKSIM_VERSION_PATCH 0)
+
 set(CMAKE_CXX_STANDARD 17)
 
 if (UNIX)# todo check if this is necessary
@@ -204,6 +208,7 @@ target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glew glfw SQL
 target_compile_definitions(glew PUBLIC GLEW_STATIC)
 
 target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES} zip)
+
 if (UNIX)#todo check if this is needed
     if (APPLE)
         target_link_libraries(${CMAKE_PROJECT_NAME}
@@ -226,3 +231,52 @@ target_include_directories(BrickSim PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
         src/lib/include
         $<INSTALL_INTERFACE:include>)
+
+
+#packaging
+
+install(TARGETS BrickSim
+        RUNTIME)
+
+set(CPACK_PACKAGE_NAME "BrickSim")
+set(CPACK_PACKAGE_EXECUTABLES "BrickSim" "BrickSim")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "BrickSim")
+set(CPACK_PACKAGE_VENDOR "bb1950328")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_PACKAGE_VERSION_MAJOR "${BRICKSIM_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${BRICKSIM_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${BRICKSIM_VERSION_PATCH}")
+set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "BrickSim_${BRICKSIM_VERSION_MAJOR}_${BRICKSIM_VERSION_MINOR}_${BRICKSIM_VERSION_PATCH}")
+
+set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/resources\\\\logo_icon.png")
+
+#set(CPACK_INSTALL_CMAKE_PROJECTS BrickSim)
+
+if(WIN32)
+    SET(CPACK_GENERATOR "NSIS")## todo maybe NSIS64
+
+    # There is a bug in NSI that does not handle full UNIX paths properly.
+    # Make sure there is at least one set of four backlashes.
+    SET(CPACK_NSIS_MUI_ICON "${CMake_SOURCE_DIR}/resources\\\\logo_icon.ico")
+    SET(CPACK_NSIS_MUI_UNIICON "${CMake_SOURCE_DIR}/resources\\\\logo_icon_uninstall.ico")
+
+    set(CPACK_NSIS_MENU_LINKS "programs\\bin\\BrickSim" "BrickSim")
+
+    ##set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\MyExecutable.exe")
+    set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} BrickSim")
+    set(CPACK_NSIS_HELP_LINK "https:\\\\\\\\bb1950328.github.io/BrickSim/")
+    set(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\bb1950328.github.io/BrickSim/")
+    ##set(CPACK_NSIS_CONTACT "me@my-personal-home-page.com")
+endif()
+
+if(UNIX)
+    SET(CPACK_GENERATOR "DEB")
+    set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+    set(CPACK_PACKAGE_CONTACT bb1950328@gmail.com)
+    set(CPACK_PACKAGE_FILE_NAME BrickSim)
+    ##set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzip,libcurl")
+endif()
+
+include(CPack)

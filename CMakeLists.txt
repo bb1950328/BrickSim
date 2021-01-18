@@ -273,10 +273,13 @@ endif()
 
 if(UNIX)
     SET(CPACK_GENERATOR "DEB")
-    set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
     set(CPACK_PACKAGE_CONTACT bb1950328@gmail.com)
     set(CPACK_PACKAGE_FILE_NAME BrickSim)
-    ##set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzip,libcurl")
+
+    #For some reason, shlibdeps doesn't work on the GitHub Actions server. that's why the dependencies are hardcoded
+    #uncomment the next line, run cpack locally and run 'dpkg --info _CPack_Packages/Linux/DEB/BrickSim.deb' if you want to update the dependencies
+    #set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.29), libcurl4 (>= 7.16.2), libgcc-s1 (>= 3.0), libgl1, libglew2.1 (>= 2.1.0), libstdc++6 (>= 9), libx11-6, libzip5 (>= 0.10)")
 endif()
 
 include(CPack)

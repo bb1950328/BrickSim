@@ -77,11 +77,14 @@ jobs:
         find ${{runner.workspace}} -type f -name "*.deb"
         find ${{runner.workspace}} -type f -name "*.md"
 
+    - name: Copy the .deb file
+      run: cp -f ${{runner.workspace}}/BrickSim/_CPack_Packages/Linux/DEB/BrickSim.deb ${{runner.workspace}}/BrickSim/BrickSim.deb
+
     - name: Upload Binary
       uses: actions/upload-artifact@v2
       with:
         name: BrickSimLinux
         path: |
-          ${{runner.workspace}}/BrickSim/_CPack_Packages/Linux/DEB/BrickSim.deb
+          ${{runner.workspace}}/BrickSim/BrickSim.deb
           ${{runner.workspace}}/BrickSim/README.md
         #todo README.md is not in artifact -> find out why

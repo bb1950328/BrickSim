@@ -67,11 +67,11 @@ fi
 
 #unzipping libraries
 rm -rf src/lib/glew
-unzip src/lib/glew-2.1.0.zip
+unzip src/lib/glew-2.1.0.zip | grep -v inflating:
 mv glew-2.1.0 src/lib/glew
 
 rm -rf src/lib/rapidjson
-unzip src/lib/rapidjson.zip
+unzip src/lib/rapidjson.zip | grep -v inflating:
 mv rapidjson src/lib/rapidjson
 
 unzip -j "src/lib/glad.zip" "src/glad.c" -d "src/lib"

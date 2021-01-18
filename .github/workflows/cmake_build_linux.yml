@@ -45,6 +45,11 @@ jobs:
         whereis gcc
         echo "runner.workspace: \"${{runner.workspace}}\""
 
+    - name: get infos 2
+      run: |
+        apt list --installed | grep zip
+
+
     - name: Build
       working-directory: ${{runner.workspace}}/build
       shell: bash
@@ -79,6 +84,9 @@ jobs:
 
     - name: Copy the .deb file
       run: cp -f ${{runner.workspace}}/BrickSim/_CPack_Packages/Linux/DEB/BrickSim.deb ${{runner.workspace}}/BrickSim/BrickSim.deb
+
+    - name: run ldd
+      run: ldd ${{runner.workspace}}/build/BrickSim
 
     - name: Upload Binary
       uses: actions/upload-artifact@v2

@@ -43,6 +43,7 @@ jobs:
       run: |
         gcc --version
         whereis gcc
+        echo "runner.workspace: \"${{runner.workspace}}\""
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
@@ -74,12 +75,13 @@ jobs:
     - name: Trying to get the artifact location
       run: |
         find ${{runner.workspace}} -type f -name "*.deb"
+        find ${{runner.workspace}} -type f -name "*.md"
 
     - name: Upload Binary
       uses: actions/upload-artifact@v2
       with:
         name: BrickSimLinux
         path: |
-          ${{runner.workspace}}/_CPack_Packages/Linux/DEB/BrickSim.deb
-          ${{runner.workspace}}/README.md
+          ${{runner.workspace}}/BrickSim/BrickSim/_CPack_Packages/Linux/DEB/BrickSim.deb
+          ${{runner.workspace}}/BrickSim/README.md
         #todo README.md is not in artifact -> find out why

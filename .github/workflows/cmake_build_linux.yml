@@ -56,6 +56,10 @@ jobs:
 
     #todo- name: Perform CodeQL Analysis
     #todo  uses: github/codeql-action/analyze@v1
+    - name: Get info
+      run: |
+        whereis libGLEW.so.2.1
+        sudo find / -iname "libGLEW.so.*"
 
     - name: Create .deb using CPack
       run: cpack --config ${{runner.workspace}}/build/CPackConfig.cmake

@@ -201,7 +201,7 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/src/lib/SQLiteCpp/include)
 
 set(CURL_LIBRARY "-lcurl")
 find_package(CURL REQUIRED)
-message("${LIBZIP_INCLUDE_DIRS}")
+message("LIBZIP_INCLUDE_DIRS = ${LIBZIP_INCLUDE_DIRS}")
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_DIR} ${GLFW_INCLUDE_DIRS} zip src/lib/imgui)
@@ -209,7 +209,13 @@ include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_D
 target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glew glfw SQLiteCpp sqlite3)
 target_compile_definitions(glew PUBLIC GLEW_STATIC)
 
-target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES} zip)
+target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES})
+
+if(UNIX)
+    target_link_libraries(BrickSim libzip.so.5)
+else()#todo find out which one for apple
+    target_link_libraries(BrickSim zip)
+endif()
 
 if (UNIX)#todo check if this is needed
     if (APPLE)

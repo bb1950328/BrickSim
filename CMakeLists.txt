@@ -10,6 +10,8 @@ set(BRICKSIM_VERSION_PATCH 0)
 
 set(CMAKE_CXX_STANDARD 17)
 
+set(OpenGL_GL_PREFERENCE GLVND)
+
 if (UNIX)# todo check if this is necessary
     if (NOT APPLE)
         find_package(Threads REQUIRED)

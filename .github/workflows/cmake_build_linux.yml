@@ -67,6 +67,8 @@ jobs:
     - name: Create .deb using CPack
       run: |
         LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{runner.workspace}}/build/lib
+        echo "$LD_LIBRARY_PATH"
+        sudo ldconfig
         cpack --config ${{runner.workspace}}/build/CPackConfig.cmake
 
     - name: Upload Binary

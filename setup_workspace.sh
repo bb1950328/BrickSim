@@ -39,7 +39,8 @@ fi
 if [[ "$OS" == "linux" ]]; then
   echo "Installing packages using apt-get..."
   sudo apt-get update
-  sudo apt-get install mesa-utils freeglut3-dev libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev libglew-dev libcurl4-openssl-dev libglm-dev libzip-dev gcc-10 g++-10 libglew xorg-dev ## glew-utils libxrandr-dev
+  #sudo apt-get install mesa-utils freeglut3-dev libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev libglew-dev libcurl4-openssl-dev libglm-dev libzip-dev gcc-10 g++-10 libglew xorg-dev ## glew-utils libxrandr-dev
+  sudo apt-get install mesa-utils freeglut3-dev libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev libglew-dev libcurl4-openssl-dev libglm-dev libzip-dev gcc-10 g++-10
   echo "packages installed."
 fi
 

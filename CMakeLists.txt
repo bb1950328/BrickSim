@@ -204,7 +204,11 @@ include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_D
 target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glew glfw SQLiteCpp sqlite3)
 target_compile_definitions(glew PUBLIC GLEW_STATIC)
 
-target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES} -lssp)
+target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES})
+
+if(WIN32)
+    target_link_libraries(BrickSim -lssp)
+endif()
 
 if(UNIX)
     target_link_libraries(BrickSim libzip.so.5)

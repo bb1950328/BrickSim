@@ -1,15 +1,12 @@
-# if you are stuck here, take a look at the "How to setup workspace for development" section in README.md
 cmake_minimum_required(VERSION 3.16)
+set(CMAKE_CXX_STANDARD 17)
 project(BrickSim)
-
 
 file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)#prevent profiles from loading in parallel, causes problems with submodules
 
 set(BRICKSIM_VERSION_MAJOR 1)
 set(BRICKSIM_VERSION_MINOR 0)
 set(BRICKSIM_VERSION_PATCH 0)
-
-set(CMAKE_CXX_STANDARD 17)
 
 add_executable(BrickSim)
 
@@ -89,13 +86,7 @@ include_directories(${CURL_INCLUDE_DIR})
 target_link_libraries(BrickSim ${CURL_LIBRARIES})
 
 
-
 add_subdirectory(src)
-
- ############# TODO would move this in src/lib/CMakelists.txt work?
-
-
-target_link_libraries(BrickSim ${CMAKE_DL_LIBS})
 
 if (WIN32)
     target_link_libraries(BrickSim -lssp) # stack smashing protection
@@ -105,6 +96,7 @@ target_include_directories(BrickSim PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
         src/lib/include
         $<INSTALL_INTERFACE:include>)
+target_link_libraries(BrickSim ${CMAKE_DL_LIBS})
 
 
 #packaging

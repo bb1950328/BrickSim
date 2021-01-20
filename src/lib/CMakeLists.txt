@@ -76,3 +76,5 @@ target_sources(BrickSim PUBLIC
         ${other_libs}
         ${rapidjson_sources}
         )
+
+target_include_directories(BrickSim PUBLIC imgui)

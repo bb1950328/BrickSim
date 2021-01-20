@@ -1,6 +1,8 @@
 target_sources(BrickSim PUBLIC
         gui.cpp
         gui.h
+        gui_internal.cpp
+        gui_internal.h
 
         window_3d.cpp
         window_element_tree.cpp
@@ -11,6 +13,5 @@ target_sources(BrickSim PUBLIC
         window_sysinfo.cpp
         window_debug.cpp
         window_orientation_cube.cpp
-        gui_internal.cpp
-        gui_internal.h
+        window_log.cpp
         )

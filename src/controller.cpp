@@ -11,6 +11,7 @@
 #include "tasks.h"
 #include "lib/stb_image.h"
 #include "info_providers/bricklink_constants_provider.h"
+#include "latest_log_messages_tank.h"
 #include <spdlog/spdlog.h>
 
 namespace controller {
@@ -93,6 +94,9 @@ namespace controller {
         }
 
         void initialize() {
+            const std::shared_ptr<latest_log_messages_tank::Sink<std::mutex>> x(new latest_log_messages_tank::Sink<std::mutex>);
+            spdlog::default_logger()->sinks().push_back(x);
+
             db::initialize();
 
             windowWidth = config::getInt(config::SCREEN_WIDTH);
@@ -227,6 +231,7 @@ namespace controller {
         }
         spdlog::info("all background tasks finished, exiting now");
         gui::cleanup();
+        spdlog::shutdown();
         glfwTerminate();
         return 0;
     }

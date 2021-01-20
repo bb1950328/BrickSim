@@ -27,6 +27,7 @@ namespace gui {
         void drawSysInfoWindow(bool* show);
         void drawDebugWindow(bool* show);
         void drawOrientationCube(bool *show);
+        void drawLogWindow(bool *show);
     }
     void drawMenuBar(bool* show);
 

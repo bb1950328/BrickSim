@@ -188,6 +188,7 @@ namespace gui {
         static bool showSysInfoWindow = false;
         static bool showPartPaletteWindow = true;
         static bool showOrientationCube = true;
+        static bool showLogWindow = false;
 
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
@@ -234,6 +235,7 @@ namespace gui {
                 ImGui::Separator();
                 ImGui::MenuItem(ICON_FA_IMAGE" ImGui Demo", "", &showDemoWindow);
                 ImGui::MenuItem(ICON_FA_BUG" Debug", "ALT+D", &showDebugWindow);
+                ImGui::MenuItem(ICON_FA_LIST" Log", nullptr, &showLogWindow);
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Selection")) {
@@ -283,6 +285,7 @@ namespace gui {
                 {ICON_FA_BUG" Debug", &showDebugWindow, windows::drawDebugWindow},
                 {ICON_FA_IMAGE" ImGui Demo", &showDemoWindow, ImGui::ShowDemoWindow},
                 {ICON_FA_CUBE" Orientation Cube", &showOrientationCube, windows::drawOrientationCube},
+                {ICON_FA_LIST" Log", &showLogWindow, windows::drawLogWindow},
         };
 
         std::vector<std::pair<std::string, float>> drawingTimes;

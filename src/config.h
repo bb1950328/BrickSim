@@ -79,6 +79,7 @@ namespace config {
     const StringKey BRICKLINK_CURRENCY_CODE("bricklinkCurrencyCode", "CHF");
     const BoolKey ENABLE_VIEWPORTS("enableViewports", false);
     const StringKey FONT("font", "Roboto");
+    const IntKey NOT_IMPORTANT_LOG_MESSAGE_KEEP_COUNT("notImportantLogMessageKeepCount", 10);
 }
 
 #endif //BRICKSIM_CONFIG_H

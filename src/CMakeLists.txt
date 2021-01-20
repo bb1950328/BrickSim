@@ -50,6 +50,8 @@ target_sources(BrickSim PUBLIC
 
         overlay_2d.cpp
         overlay_2d.h
+        latest_log_messages_tank.cpp
+        latest_log_messages_tank.h
         )
 
 add_subdirectory(info_providers)

@@ -245,17 +245,35 @@ elseif(WIN32)
 
     install(TARGETS BrickSim
             DESTINATION bin
+            COMPONENT BrickSimMain
             )
 
-    find_library(DLL_LIBCURL_LOCATION libcurl-4.dll)
-    find_library(DLL_LIBZIP_LOCATION libzip.dll)
-    find_library(DLL_LIBWINPTHREAD_LOCATION libwinpthread-1.dll)
-    find_library(DLL_LIBGCC_S_SEH_LOCATION libgcc_s_seh-1.dll)
+    find_library(DLL_LIBCURL_LOCATION libcurl)
+    find_library(DLL_LIBZIP_LOCATION libzip)
+    find_library(DLL_LIBWINPTHREAD_LOCATION winpthread)
+    find_library(DLL_LIBGCC_S_SEH_LOCATION libgcc_s_seh)
 
     message(STATUS ${DLL_LIBCURL_LOCATION})
     message(STATUS ${DLL_LIBZIP_LOCATION})
     message(STATUS ${DLL_LIBWINPTHREAD_LOCATION})
     message(STATUS ${DLL_LIBGCC_S_SEH_LOCATION})
+
+    install(FILES ${DLL_LIBCURL_LOCATION}
+            DESTINATION bin
+            COMPONENT BrickSimMain
+            )
+    install(FILES ${DLL_LIBZIP_LOCATION}
+            DESTINATION bin
+            COMPONENT BrickSimMain
+            )
+
+    set(CPACK_COMPONENTS_ALL BrickSimMain)
+    set(CPACK_COMPONENT_BrickSimMain_DISPLAY_NAME "BrickSim Application")
+
+    # no clue where these components are coming from...
+    set(CPACK_COMPONENT_Unspecified_HIDDEN TRUE)
+    set(CPACK_COMPONENT_headers_HIDDEN TRUE)
+    set(CPACK_COMPONENT_libraries_HIDDEN TRUE)
 
 endif ()
 
@@ -278,7 +296,7 @@ set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/resources\\\\logo_icon.png")
 if(WIN32)
     SET(CPACK_GENERATOR "WIX")
 
-    set(CPACK_RESOURCE_FILE_LICENSE  "${CMAKE_SOURCE_DIR}/LICENSE")
+    set(CPACK_RESOURCE_FILE_LICENSE  "${CMAKE_SOURCE_DIR}/LICENSE.txt")
     set(CPACK_WIX_PRODUCT_ICON "${CMAKE_SOURCE_DIR}/resources/logo_icon.ico")
     set(CPACK_WIX_PROGRAM_MENU_FOLDER BrickSim)
 

@@ -80,3 +80,7 @@ mv rapidjson src/lib/rapidjson
 
 unzip -j "src/lib/glad.zip" "src/glad.c" -d "src/lib"
 unzip -o src/lib/glad.zip "include/*" -d "src/lib"
+###########################################
+
+#symlinking LICENSE to make WiX accept it
+ln LICENSE LICENSE.txt

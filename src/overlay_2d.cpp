@@ -15,4 +15,5 @@ bool Overlay2dCollection::clickEvent(element_id_t elementId) {
     for (int i = 0; i < overlays.size(); ++i) {
 
     }
+    return false;
 }

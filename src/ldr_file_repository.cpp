@@ -6,6 +6,7 @@
 #include <thread>
 #include <fstream>
 #include <mutex>
+#include <spdlog/spdlog.h>
 #include "ldr_file_repository.h"
 #include "config.h"
 #include "helpers/zip_buffer.h"
@@ -267,7 +268,7 @@ namespace ldr_file_repo {
         static auto done = false;
         if (!done) {
             if (db::fileList::getSize()==0) {
-                std::cout << "starting to fill fileList" << std::endl;
+                spdlog::debug("starting to fill fileList");
                 auto before = std::chrono::high_resolution_clock::now();
                 if (isZipLibrary) {
                     fillFileListFromZip(progress);//todo testing
@@ -276,7 +277,7 @@ namespace ldr_file_repo {
                 }
                 auto after = std::chrono::high_resolution_clock::now();
                 auto durationMs = std::chrono::duration_cast<std::chrono::microseconds >(after - before).count()/1000.0;
-                std::cout << "INFO: filled fileList in " << durationMs << "ms. Size: " << db::fileList::getSize() << std::endl;
+                spdlog::info("filled fileList in {} ms. Size: {}", durationMs, db::fileList::getSize());
             }
             done = true;
         }
@@ -284,7 +285,6 @@ namespace ldr_file_repo {
 
     std::pair<LdrFileType, const std::string*> findAndReadFileContent(const std::string &filename) {
         auto filenamePath = std::filesystem::path(filename);
-        //std::cout << "extension: " << filenamePath.extension() << std::endl;
         if (filenamePath.extension() == ".io") {
             return std::make_pair(LdrFileType::MODEL, readIoFileToString(filenamePath));
         } else if (filenamePath.is_absolute()) {

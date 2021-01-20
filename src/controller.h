@@ -18,6 +18,7 @@ namespace controller {
         bool initializeGL();
         void window_size_callback(GLFWwindow *window, int width, int height);
         void checkForFinishedBackgroundTasks();
+        void glfwErrorCallback(int code, const char* message);
         void initialize();
     }
 

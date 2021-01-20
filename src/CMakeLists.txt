@@ -4,7 +4,6 @@ target_sources(BrickSim PUBLIC
         ldr_files.h
         config.cpp
         config.h
-        test/test_ldr_file_read.cpp
         mesh.cpp
         mesh.h
         shaders/shader.cpp

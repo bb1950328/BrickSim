@@ -4,6 +4,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <iostream>
 #include <glm/gtx/normal.hpp>
+#include <spdlog/spdlog.h>
 #include "camera.h"
 
 void CadCamera::updateVectors() {
@@ -30,13 +31,12 @@ void CadCamera::mouseRotate(float x_delta, float y_delta) {
     pitch -= y_delta * mouseMoveSensitivity;
     pitch = std::min(89.99f, std::max(-89.99f, pitch));
     updateVectors();
-    //std::cout << "yaw=" << yaw << ", pitch=" << pitch << "\n";
 }
 
 void CadCamera::mousePan(float x_delta, float y_delta) {
     if (std::abs(x_delta)>0.01||std::abs(y_delta)>0.01) {
         //todo is there a more efficient way to do this?? and it doesn't even work :(
-        std::cout << "pan " << x_delta << ", " << y_delta << std::endl;
+        spdlog::debug("mousePan(x_delta={}, y_delta={})", x_delta, y_delta);
         auto translateDown = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -1));
         glm::vec3 below_cameraPos = translateDown * glm::vec4(cameraPos, 1.0);
         auto right = glm::triangleNormal(cameraPos, target, below_cameraPos);

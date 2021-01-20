@@ -11,6 +11,7 @@
 #include "tasks.h"
 #include "lib/stb_image.h"
 #include "info_providers/bricklink_constants_provider.h"
+#include <spdlog/spdlog.h>
 
 namespace controller {
     namespace {
@@ -35,6 +36,7 @@ namespace controller {
 
         bool initializeGL() {
             std::lock_guard<std::recursive_mutex> lg(getOpenGlMutex());
+            glfwSetErrorCallback(glfwErrorCallback);
             glfwInit();
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -48,7 +50,7 @@ namespace controller {
             //glfwWindowHint(GLFW_DECORATED, false);//removes the title bar
             window = glfwCreateWindow(windowWidth, windowHeight, "BrickSim", nullptr, nullptr);
             if (window == nullptr) {
-                std::cout << "Failed to create GLFW window" << std::endl;
+                spdlog::critical("Failed to create GLFW window");
                 glfwTerminate();
                 return false;
             }
@@ -65,7 +67,7 @@ namespace controller {
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
 
-            std::cout << "INFO: OpenGL initialized" << std::endl;
+            spdlog::info("OpenGL initialized");
             return true;
         }
 
@@ -118,7 +120,7 @@ namespace controller {
                     //{"initialize orientation cube generator", [](){orientation_cube::initialize();}},
             };
             for (auto &initStep : steps) {
-                std::cout << initStep.getName() << std::endl;
+                spdlog::info("Starting init step {}", initStep.getName());
                 auto before = std::chrono::high_resolution_clock::now();
                 initStep.startThread();
                 while (!initStep.isDone()) {
@@ -139,7 +141,7 @@ namespace controller {
                 }
                 initStep.joinThread();
                 auto after = std::chrono::high_resolution_clock::now();
-                std::cout << initStep.getName() << ": " << std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count() << "ms." << std::endl;
+                spdlog::info("finished init step {} in {} ms.", initStep.getName(), std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count());
             }
         }
 
@@ -158,9 +160,13 @@ namespace controller {
                 }
             }
         }
+        void glfwErrorCallback(int code, const char *message) {
+            spdlog::error("GLFW Error: {} {}", code, message);
+        }
     }
 
     int run() {
+        spdlog::info("BrickSim started.");
         //todo check if parts library found (method in ldr_file_repo::)
         initialize();
 
@@ -215,11 +221,11 @@ namespace controller {
         config::setInt(config::SCREEN_HEIGHT, windowHeight);
         renderer.cleanup();
         auto &bgTasks = getBackgroundTasks();
-        std::cout << "waiting for " << bgTasks.size() << " background tasks to finish..." << std::endl;
+        spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
         for (auto &task : bgTasks) {
             task.second->joinThread();
         }
-        std::cout << "all background tasks finished, exiting now" << std::endl;
+        spdlog::info("all background tasks finished, exiting now");
         gui::cleanup();
         glfwTerminate();
         return 0;

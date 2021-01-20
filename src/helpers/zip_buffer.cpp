@@ -6,6 +6,7 @@
 #include <zip.h>
 #include <cstring>
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include "util.h"
 
 namespace zip_buffer {
@@ -67,7 +68,6 @@ namespace zip_buffer {
                         binaryFiles.emplace(fileNameToSave, content);
                     }
                     zip_fclose(zFile);
-                    //std::cout << "========================================================" << std::endl << fileNameToSave << std::endl << content << std::endl;
                 }
             }
         }
@@ -76,7 +76,7 @@ namespace zip_buffer {
             throw std::invalid_argument("%s: can't close zip archive `%s'/n");
         }
 
-        std::cout << "read " << textFiles.size() << " files in " << path << std::endl;
+        spdlog::debug("read {} files in {}", textFiles.size(), path.string());
     }
 
     std::stringstream BufferedZip::getFileAsStream(const std::string& filename) {

@@ -3,6 +3,7 @@
 //
 
 #include <imgui.h>
+#include <spdlog/spdlog.h>
 #include "renderer.h"
 #include "controller.h"
 #include "ldr_colors.h"
@@ -71,7 +72,7 @@ void Renderer::createFramebuffer(unsigned int* framebufferIdLocation,
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, *renderBufferObjectIdLocation); // now actually attach it
     // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+        spdlog::error("Framebuffer is not complete");
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -192,7 +193,7 @@ void Renderer::deleteFramebuffer(unsigned int *framebufferIdLocation,
 }
 
 bool Renderer::saveImage(const std::string& path) const {
-    std::cout << path << std::endl;
+    spdlog::info("saveImage(\"{}\")", path);
     const int channels = 3;
 
     auto pixels = new GLubyte[windowWidth*windowHeight*channels];

@@ -17,6 +17,7 @@
 #include "../lib/stb_image.h"
 #include <atomic>
 #include <imgui_internal.h>
+#include <spdlog/spdlog.h>
 #include "../helpers/platform_detection.h"
 
 namespace gui {
@@ -41,7 +42,7 @@ namespace gui {
         GLFWmonitor *monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
         float xscale, yscale;
         glfwGetMonitorContentScale(monitor, &xscale, &yscale);
-        std::cout << "xscale: " << xscale << "\tyscale: " << yscale << std::endl;
+        spdlog::info("xscale={}, yscale={}", xscale, yscale);
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -90,7 +91,7 @@ namespace gui {
             fontDataLength = resources::fonts_Roboto_Regular_ttf_len;
         } else {
             if (fontName != "RobotoMono") {
-                std::cout << "WARNING: Invalid font config: " << fontName;
+                spdlog::warn("invalid font config: \"{}\"", fontName);
             }
             fontData = resources::fonts_RobotoMono_Regular_ttf;
             fontDataLength = resources::fonts_RobotoMono_Regular_ttf_len;
@@ -172,7 +173,7 @@ namespace gui {
         } else if (guiStyle == "ImGuiDark") {
             ImGui::StyleColorsDark();
         } else {
-            std::cout << "WARNING: please set " << config::GUI_STYLE.name << "to BrickSim, ImGuiLight, ImGuiClassic or ImGuiDark" << std::endl;
+            spdlog::warn("please set {} to BrickSim, ImGuiLight, ImGuiClassic or ImGuiDark (currently set to \"{}\"", config::GUI_STYLE.name, guiStyle);
         }
     }
 

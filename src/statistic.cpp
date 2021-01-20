@@ -4,11 +4,11 @@
 
 #include <iostream>
 #include <map>
+#include <spdlog/spdlog.h>
 #include "statistic.h"
 #include "helpers/util.h"
 
 namespace statistic {
-    long totalBrickCount = 0;
     long individualBrickCount = 0;
     size_t vramUsageBytes = 0;
     size_t thumbnailBufferUsageBytes = 0;
@@ -16,9 +16,4 @@ namespace statistic {
     float lastThumbnailRenderingTimeMs = 0;
     std::vector<std::pair<std::string, float>> lastWindowDrawingTimesMs = {};
 
-    void print() {
-        std::cout << "===== Statistics =====" << std::endl;
-        std::cout << "Brick Count: " << individualBrickCount << " different bricks, " << totalBrickCount << " total" << std::endl;
-        std::cout << "VRAM Usage: " << util::formatBytesValue(vramUsageBytes) << std::endl;
-    }
 }

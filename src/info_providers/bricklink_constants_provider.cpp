@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include "bricklink_constants_provider.h"
 #include "part_color_availability_provider.h"
 
@@ -15,7 +16,6 @@ namespace bricklink_constants_provider {
         constexpr long fileSizeEstimated = 1056551;
         float* initialisationProgress;
         int globalConstantsDownloadProgress(void *ptr, long downTotal, long downNow, long upTotal, long upNow) {
-            std::cout << "globalConstantsProgress(" << ptr << ", " << downTotal << ", " << downNow << ", " << upTotal << ", " << upNow << "...);" << std::endl;
             if (initialisationProgress!= nullptr) {
                 *initialisationProgress = 0.99f * std::min(downNow, fileSizeEstimated) / fileSizeEstimated;
             }
@@ -32,7 +32,7 @@ namespace bricklink_constants_provider {
 
     void initialize(float *progress) {
         if (initialized) {
-            std::cout << "WARNING: bricklink_constants_provider::initialize() already called" << std::endl;
+            spdlog::warn("bricklink_constants_provider::initialize() already called");
         }
 
         initialisationProgress = progress;

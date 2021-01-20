@@ -85,6 +85,9 @@ find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIR})
 target_link_libraries(BrickSim ${CURL_LIBRARIES})
 
+# spdlog
+find_package(spdlog REQUIRED)
+target_link_libraries(BrickSim spdlog::spdlog)
 
 add_subdirectory(src)
 

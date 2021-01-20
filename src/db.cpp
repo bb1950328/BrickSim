@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <filesystem>
+#include <spdlog/spdlog.h>
 #include "db.h"
 
 
@@ -18,14 +19,14 @@ namespace db {
         const int NEWEST_CACHE_DB_VERSION = 1;
 
         void upgradeConfigDbToVersion(int newVersion) {
-            std::cout << "INFO: Upgrading config.db3 to version " << newVersion << std::endl;
+            spdlog::info("Upgrading config.db3 to version {}", newVersion);
             switch (newVersion) {
                 default: break;
             }
         }
 
         void upgradeCacheDbToVersion(int newVersion) {
-            std::cout << "INFO: Upgrading cache.db3 to version " << newVersion << std::endl;
+            spdlog::info("Upgrading cache.db3 to version {}", newVersion);
             switch (newVersion) {
                 default: break;
             }
@@ -326,7 +327,6 @@ namespace db {
             }
             command.pop_back();//last comma
             command.push_back(';');
-            std::cout << command << std::endl;
             SQLite::Statement stmt(cacheDb.value(), command);
             stmt.exec();
         }

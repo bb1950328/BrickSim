@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include "part_color_availability_provider.h"
 
 namespace part_color_availability_provider {
@@ -19,7 +20,7 @@ namespace part_color_availability_provider {
             if (!initialized) {
                 std::ifstream codesFile("codes.txt");
                 if (!codesFile.good()) {
-                    std::cout << "WARNING: codes.txt not found" << std::endl;
+                    spdlog::warn("codes.txt not found");
                     isDataAvailable = false;
                 } else {
                     isDataAvailable = true;
@@ -42,7 +43,7 @@ namespace part_color_availability_provider {
                         } else {
                             static std::set<std::string> warningPrinted;
                             if (warningPrinted.find(colorName)==warningPrinted.end()) {
-                                std::cout << "WARNING: found color \"" << colorName << "\" in codes.txt, but not in ldr_colors" << std::endl;
+                                spdlog::warn("found color \"{}\" in codes.txt, but not in ldr_colors", colorName);
                                 warningPrinted.insert(colorName);
                             }
                         }

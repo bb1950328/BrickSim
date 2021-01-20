@@ -2,6 +2,7 @@
 // Created by bb1950328 on 29.09.2020.
 //
 #include <mutex>
+#include <spdlog/spdlog.h>
 #include "shader.h"
 #include "../controller.h"
 
@@ -44,7 +45,7 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath, const char *geo
         }
     }
     catch (std::ifstream::failure &e) {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+        spdlog::error("shader file not read successfully {} {}", e.code().value(), e.code().message());
     }
     compileShaders(geometryPath, vertexCode, fragmentCode, geometryCode);
 
@@ -150,15 +151,13 @@ void Shader::checkCompileErrors(GLuint shader, const std::string &type) {
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
-            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n";
-            std::cout << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            spdlog::error("{} shader compilation error: \n{}", type, infoLog);
         }
     } else {
         glGetProgramiv(shader, GL_LINK_STATUS, &success);
         if (!success) {
             glGetProgramInfoLog(shader, 1024, nullptr, infoLog);
-            std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n";
-            std::cout << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            spdlog::error("{} shader program linking error: \n{}", type, infoLog);
         }
     }
 }

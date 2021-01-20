@@ -32,6 +32,7 @@
 #include <GLFW/glfw3.h>
 #include <fstream>
 #include <mutex>
+#include <spdlog/spdlog.h>
 
 namespace util {
     namespace {
@@ -49,7 +50,7 @@ namespace util {
             } else if (nrChannels == 4) {
                 format = GL_RGBA;
             } else {
-                std::cout << "WARNING: image has a weird number of channels: " << nrChannels << std::endl;
+                spdlog::warn("image has a weird number of channels: {}", nrChannels);
                 format = GL_RGB;
             }
             glBindTexture(GL_TEXTURE_2D, textureId);
@@ -199,16 +200,15 @@ namespace util {
     }
 
     void openDefaultBrowser(const std::string &link) {
+        spdlog::info("openDefaultBrowser(\"{}\")", link);
 #ifdef BRICKSIM_PLATFORM_WIN32_OR_64
         ShellExecute(nullptr, "open", link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);//todo testing
 #endif
 #ifdef __APPLE__
         std::string command = std::string("open ") + link;//todo testing
-        std::cout << command << std::endl;
         system(command.c_str());
 #elif __linux
         std::string command = std::string("xdg-open ") + link;
-        std::cout << command << std::endl;
         system(command.c_str());
 #endif
     }
@@ -564,15 +564,14 @@ namespace util {
 
 
     std::pair<int, std::string> requestGET(const std::string &url, bool useCache, size_t sizeLimit, int (*progressFunc)(void*, long, long, long, long)) {
-        std::cout << "INFO: request GET " << url;
         if (useCache) {
             auto fromCache = db::requestCache::get(url);
             if (fromCache.has_value()) {
-                std::cout << " cache hit" << std::endl;
+                spdlog::info("Request GET {} cache hit", url);
                 return {RESPONSE_CODE_FROM_CACHE, fromCache.value()};
             }
         }
-        std::cout << (useCache?" cache miss":" without cache") << std::endl;
+        spdlog::info("Request GET {} {}", url, useCache ? " cache miss" : " without cache");
         auto curl = curl_easy_init();
         if (!curl) {
             return {-1, ""};

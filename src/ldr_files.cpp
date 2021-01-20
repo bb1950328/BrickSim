@@ -7,6 +7,7 @@
 #include <iostream>
 #include <filesystem>
 #include <cstring>
+#include <spdlog/spdlog.h>
 #include "ldr_files.h"
 #include "helpers/util.h"
 #include "config.h"
@@ -27,7 +28,7 @@ LdrFileElement *LdrFileElement::parse_line(std::string line, BfcState bfcState) 
         case 3: return new LdrTriangle(line_content, bfcState.windingOrder);
         case 4: return new LdrQuadrilateral(line_content, bfcState.windingOrder);
         case 5: return new LdrOptionalLine(line_content);
-        default: /*throw std::invalid_argument("The line is not valid: \"" + line + "\"");*/ std::cout << "WARNING: invalid line: " << line << std::endl; return nullptr;
+        default: /*throw std::invalid_argument("The line is not valid: \"" + line + "\"");*/ spdlog::warn("invalid line: {}", line); return nullptr;
         //@formatter:off
     }
 }

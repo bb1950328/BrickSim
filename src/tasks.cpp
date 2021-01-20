@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include "tasks.h"
 
 
@@ -24,14 +25,15 @@ const std::string &Task::getName() const {
 }
 
 void Task::startThread() {
-    std::cout << "starting " << name << std::endl;
+    spdlog::info("starting task {}", name);
     thread = std::thread([this](){
-        std::cout << name << " started" << std::endl;
+        spdlog::debug("thread of task {} started", name);
         function(&progress);
-        std::cout << name << " finished" << std::endl;
         progress=1;
+        spdlog::debug("thread of task {} finishing", name);
         is_done.store(true);
     });
+    spdlog::info("task {} finished", name);
 }
 
 void Task::joinThread() {

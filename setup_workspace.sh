@@ -40,7 +40,7 @@ if [[ "$OS" == "linux" ]]; then
   echo "Installing packages using apt-get..."
   sudo apt-get update
   #sudo apt-get install mesa-utils freeglut3-dev libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev libglew-dev libcurl4-openssl-dev libglm-dev libzip-dev gcc-10 g++-10 libglew xorg-dev ## glew-utils libxrandr-dev
-  sudo apt-get install mesa-utils freeglut3-dev libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev libglew-dev libcurl4-openssl-dev libglm-dev libzip-dev gcc-10 g++-10
+  sudo apt-get install build-essential mesa-utils freeglut3-dev libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev libglew-dev libcurl4-openssl-dev libglm-dev libzip-dev gcc-10 g++-10
   #sudo apt-get install libglew2.1
   sudo apt-get install libzip5
   echo "packages installed."
@@ -49,8 +49,12 @@ fi
 if [[ "$OS" == "windows" ]]; then
   echo "Installing packages using pacman..."
   pacman -S unzip --noconfirm
+  pacman -S mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain --noconfirm
+  pacman -S base-devel mingw-w64-x86_64-cmake mingw-w64-i686-cmake --noconfirm
   pacman -S libcurl-devel --noconfirm
   pacman -S "$(pacman -Ssq freeglut)" --noconfirm
+  pacman -S mingw-w64-x86_64-glm mingw-w64-i686-glm --noconfirm
+  pacman -S mingw-w64-x86_64-libzip mingw-w64-i686-libzip --noconfirm
   #pacman -S openssl-devel # todo find out if these are needed
   #pacman -S mingw-w64-openssl
   #pacman -S mingw-w64-x86_64-openssl

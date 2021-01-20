@@ -191,11 +191,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/glfw ${CMAKE_CURRENT_SOURCE
 # unzip glew-2.1.0.zip to /glew
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/glew/build/cmake)
 
-#todo check if this is also needed on linux
-if (WIN32)
-    set(SQLITECPP_USE_STACK_PROTECTION OFF)
-endif ()
-
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/SQLiteCpp)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/src/lib/SQLiteCpp/include)
 
@@ -209,7 +204,7 @@ include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${CURL_INCLUDE_D
 target_link_libraries(BrickSim ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glew glfw SQLiteCpp sqlite3)
 target_compile_definitions(glew PUBLIC GLEW_STATIC)
 
-target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES})
+target_link_libraries(BrickSim ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} ${CURL_LIBRARIES} -lssp)
 
 if(UNIX)
     target_link_libraries(BrickSim libzip.so.5)
@@ -242,9 +237,27 @@ target_include_directories(BrickSim PUBLIC
 
 
 #packaging
+if (UNIX)
+    install(TARGETS BrickSim
+            RUNTIME)
+elseif(WIN32)
+    #target_link_libraries(BrickSim -static-libgcc -static-libstdc++)
 
-install(TARGETS BrickSim
-        RUNTIME)
+    install(TARGETS BrickSim
+            DESTINATION bin
+            )
+
+    find_library(DLL_LIBCURL_LOCATION libcurl-4.dll)
+    find_library(DLL_LIBZIP_LOCATION libzip.dll)
+    find_library(DLL_LIBWINPTHREAD_LOCATION libwinpthread-1.dll)
+    find_library(DLL_LIBGCC_S_SEH_LOCATION libgcc_s_seh-1.dll)
+
+    message(STATUS ${DLL_LIBCURL_LOCATION})
+    message(STATUS ${DLL_LIBZIP_LOCATION})
+    message(STATUS ${DLL_LIBWINPTHREAD_LOCATION})
+    message(STATUS ${DLL_LIBGCC_S_SEH_LOCATION})
+
+endif ()
 
 set(CPACK_PACKAGE_NAME "BrickSim")
 set(CPACK_PACKAGE_EXECUTABLES "BrickSim" "BrickSim")
@@ -263,19 +276,23 @@ set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/resources\\\\logo_icon.png")
 #set(CPACK_INSTALL_CMAKE_PROJECTS BrickSim)
 
 if(WIN32)
-    SET(CPACK_GENERATOR "NSIS")## todo maybe NSIS64
+    SET(CPACK_GENERATOR "WIX")
+
+    set(CPACK_RESOURCE_FILE_LICENSE  "${CMAKE_SOURCE_DIR}/LICENSE")
+    set(CPACK_WIX_PRODUCT_ICON "${CMAKE_SOURCE_DIR}/resources/logo_icon.ico")
+    set(CPACK_WIX_PROGRAM_MENU_FOLDER BrickSim)
 
     # There is a bug in NSI that does not handle full UNIX paths properly.
     # Make sure there is at least one set of four backlashes.
-    SET(CPACK_NSIS_MUI_ICON "${CMake_SOURCE_DIR}/resources\\\\logo_icon.ico")
-    SET(CPACK_NSIS_MUI_UNIICON "${CMake_SOURCE_DIR}/resources\\\\logo_icon_uninstall.ico")
+    #SET(CPACK_NSIS_MUI_ICON "${CMake_SOURCE_DIR}/resources\\\\logo_icon.ico")
+    #SET(CPACK_NSIS_MUI_UNIICON "${CMake_SOURCE_DIR}/resources\\\\logo_icon_uninstall.ico")
 
-    set(CPACK_NSIS_MENU_LINKS "programs\\bin\\BrickSim" "BrickSim")
+    #set(CPACK_NSIS_MENU_LINKS "programs\\bin\\BrickSim" "BrickSim")
 
-    ##set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\MyExecutable.exe")
-    set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} BrickSim")
-    set(CPACK_NSIS_HELP_LINK "https:\\\\\\\\bb1950328.github.io/BrickSim/")
-    set(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\bb1950328.github.io/BrickSim/")
+    ###set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\MyExecutable.exe")
+    #set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} BrickSim")
+    #set(CPACK_NSIS_HELP_LINK "https:\\\\\\\\bb1950328.github.io/BrickSim/")
+    #set(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\bb1950328.github.io/BrickSim/")
     ##set(CPACK_NSIS_CONTACT "me@my-personal-home-page.com")
 endif()
 

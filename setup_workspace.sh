@@ -51,6 +51,9 @@ if [[ "$OS" == "windows" ]]; then
   pacman -S unzip --noconfirm
   pacman -S libcurl-devel --noconfirm
   pacman -S "$(pacman -Ssq freeglut)" --noconfirm
+  #pacman -S openssl-devel # todo find out if these are needed
+  #pacman -S mingw-w64-openssl
+  #pacman -S mingw-w64-x86_64-openssl
   echo "packages installed."
 fi
 

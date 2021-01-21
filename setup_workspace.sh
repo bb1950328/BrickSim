@@ -12,50 +12,34 @@ fi
 ######################################################
 
 # Detecting OS
-OS="unknown"
-
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  echo "linux detected"
-  OS="linux"
-fi
-
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  echo "macOS detected"
-  OS="mac"
-fi
-
-if [[ "$OSTYPE" =~ ^(cygwin|msys)$ ]]; then
-  echo "MinGW/MSYS or cygwin detected"
-  OS="windows"
-fi
-
-if [[ "$OS" == "unknown" ]]; then
-  echo "unknown operating system, exiting" >&2
-  exit 2
-fi
+unameValue="$(uname -s)"
+case "${unameValue}" in
+    Linux*)           OS="linux"; echo "linux detected";;
+    Darwin*)          OS="mac"; echo "macOS detected";;
+    CYGWIN* | MINGW* | MSYS*) OS="windows"; echo "MinGW/MSYS or cygwin detected";;
+    *)                echo "unknown OS: ${unameValue}" >&2; exit 2;;
+esac
 #######################################################
 
 #installing dependencies
 if [[ "$OS" == "linux" ]]; then
   echo "Installing packages using apt-get..."
   sudo apt-get update
-  #sudo apt-get install mesa-utils freeglut3-dev libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev libglew-dev libcurl4-openssl-dev libglm-dev libzip-dev gcc-10 g++-10 libglew xorg-dev ## glew-utils libxrandr-dev
   sudo apt-get install build-essential mesa-utils freeglut3-dev libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev libglew-dev libcurl4-openssl-dev libglm-dev libzip-dev gcc-10 g++-10 libspdlog-dev
-  #sudo apt-get install libglew2.1
   sudo apt-get install libzip5
   echo "packages installed."
 fi
 
 if [[ "$OS" == "windows" ]]; then
   echo "Installing packages using pacman..."
-  pacman -S unzip --noconfirm
-  pacman -S mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain --noconfirm
-  pacman -S base-devel mingw-w64-x86_64-cmake mingw-w64-i686-cmake --noconfirm
-  pacman -S libcurl-devel --noconfirm
-  pacman -S "$(pacman -Ssq freeglut)" --noconfirm
-  pacman -S mingw-w64-x86_64-glm mingw-w64-i686-glm --noconfirm
-  pacman -S mingw-w64-x86_64-libzip mingw-w64-i686-libzip --noconfirm
-  pacman -S mingw-w64-x86_64-spdlog --noconfirm
+  pacman -S unzip --noconfirm --needed
+  pacman -S mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain --noconfirm --needed
+  pacman -S base-devel mingw-w64-x86_64-cmake mingw-w64-i686-cmake --noconfirm --needed
+  pacman -S libcurl-devel --noconfirm --needed
+  pacman -S "$(pacman -Ssq freeglut)" --noconfirm --needed
+  pacman -S mingw-w64-x86_64-glm mingw-w64-i686-glm --noconfirm --needed
+  pacman -S mingw-w64-x86_64-libzip mingw-w64-i686-libzip --noconfirm --needed
+  pacman -S mingw-w64-x86_64-spdlog --noconfirm --needed
   #pacman -S openssl-devel # todo find out if these are needed
   #pacman -S mingw-w64-openssl
   #pacman -S mingw-w64-x86_64-openssl
@@ -83,9 +67,18 @@ rm -rf src/lib/rapidjson
 unzip src/lib/rapidjson.zip | grep -v inflating:
 mv rapidjson src/lib/rapidjson
 
-unzip -j "src/lib/glad.zip" "src/glad.c" -d "src/lib"
-unzip -o src/lib/glad.zip "include/*" -d "src/lib"
+
+unzip -o -j "src/lib/glad.zip" "src/glad.c" -d "src/lib"
+
+rm -rf src/lib/include
+mkdir "src/lib/include"
+cd src/lib/include || exit 3
+unzip ../glad.zip
+cp -r include/glad .
+cp -r include/KHR .
+rm -rf src include
+cd ../../..
 ###########################################
 
 #symlinking LICENSE to make WiX accept it
-ln LICENSE LICENSE.txt
+ln -f LICENSE LICENSE.txt

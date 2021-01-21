@@ -9,6 +9,7 @@
 #include <spdlog/sinks/base_sink.h>
 #include <queue>
 #include <list>
+#include <ctime>
 
 namespace latest_log_messages_tank {
     struct LogMessage {
@@ -17,8 +18,8 @@ namespace latest_log_messages_tank {
         std::shared_ptr<const char *> formattedTime;
         std::shared_ptr<const char *> message;
 
-        LogMessage(const long timestamp, const unsigned char level, const std::shared_ptr<const char *> &formattedTime,
-                   const std::shared_ptr<const char *> &message);
+        LogMessage(long timestamp, unsigned char level, std::shared_ptr<const char *> formattedTime,
+                   std::shared_ptr<const char *> message);
     };
 
     namespace {
@@ -44,7 +45,7 @@ namespace latest_log_messages_tank {
         std::list<LogMessage>::const_iterator itB;
         std::vector<LogMessage>::const_iterator endA;
         std::list<LogMessage>::const_iterator endB;
-        LogMessage const *current;
+        LogMessage const *current{};
     };
 
     void initialize();
@@ -58,7 +59,7 @@ namespace latest_log_messages_tank {
     protected:
         void sink_it_(const spdlog::details::log_msg &msg) override {
             char* time = new char[9];
-            const long long int timestamp = msg.time.time_since_epoch().count();
+            const time_t timestamp = std::chrono::system_clock::to_time_t(msg.time);
             std::strftime(time, sizeof(time), "%T", std::localtime(&timestamp));
             char* message = new char[msg.payload.size()+1];
             std::memcpy(message, msg.payload.data(), msg.payload.size()+1);

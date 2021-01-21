@@ -3,6 +3,8 @@
 //
 
 #include "latest_log_messages_tank.h"
+
+#include <utility>
 #include "config.h"
 
 namespace latest_log_messages_tank {
@@ -26,13 +28,7 @@ namespace latest_log_messages_tank {
     }
 
     iterator::iterator() : itA(alwaysKeepingMessages.cbegin()), itB(lastNMessages.cbegin()), endA(alwaysKeepingMessages.cend()), endB(lastNMessages.cend()) {
-        if (itA->timestamp < itB->timestamp) {
-            current = itA.base();
-            itA++;
-        } else {
-            current = &(*itB);
-            itB++;
-        }
+        this->operator++();
     }
 
     iterator::self_type iterator::operator++() {
@@ -53,6 +49,12 @@ namespace latest_log_messages_tank {
         return current;
     }
 
-    LogMessage::LogMessage(const long timestamp, const unsigned char level, const std::shared_ptr<const char *> &formattedTime,
-                           const std::shared_ptr<const char *> &message) : timestamp(timestamp), level(level), formattedTime(formattedTime), message(message) {}
+    LogMessage::LogMessage(const long timestamp,
+                           const unsigned char level,
+                           std::shared_ptr<const char *> formattedTime,
+                           std::shared_ptr<const char *> message)
+                           : timestamp(timestamp),
+                           level(level),
+                           formattedTime(std::move(formattedTime)),
+                           message(std::move(message)) {}
 }

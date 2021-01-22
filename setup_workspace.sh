@@ -25,8 +25,9 @@ esac
 if [[ "$OS" == "linux" ]]; then
   echo "Installing packages using apt-get..."
   sudo apt-get update
-  sudo apt-get install build-essential mesa-utils freeglut3-dev libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev libglew-dev libcurl4-openssl-dev libglm-dev libzip-dev gcc-10 g++-10 libspdlog-dev
-  sudo apt-get install libzip5
+  sudo apt-get install build-essential mesa-utils freeglut3-dev libxinerama-dev \
+                       libxrandr-dev libxcursor-dev libxi-dev libglew-dev libcurl4-openssl-dev \
+                       libglm-dev libzip-dev gcc-10 g++-10 libspdlog-dev cmake libzip5
   echo "packages installed."
 fi
 

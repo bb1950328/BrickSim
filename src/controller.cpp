@@ -4,6 +4,7 @@
 
 #include "controller.h"
 
+#include <GLFW/glfw3.h>
 #include <utility>
 #include "info_providers/price_guide_provider.h"
 #include "db.h"
@@ -50,12 +51,12 @@ namespace controller {
 
             //glfwWindowHint(GLFW_DECORATED, false);//removes the title bar
             window = glfwCreateWindow(windowWidth, windowHeight, "BrickSim", nullptr, nullptr);
+            glfwMakeContextCurrent(window);
             if (window == nullptr) {
                 spdlog::critical("Failed to create GLFW window");
                 glfwTerminate();
                 return false;
             }
-            glfwMakeContextCurrent(window);
             glfwSetFramebufferSizeCallback(window, window_size_callback);
             glfwSetScrollCallback(window, scroll_callback);
 
@@ -67,6 +68,13 @@ namespace controller {
             glEnable(GL_DEPTH_TEST);
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
+
+            /*GLenum err = glewInit();
+            spdlog::info("err={}", err);
+            if (err != GLEW_OK) {
+                spdlog::error("glewInit(): {}", glewGetErrorString(err));
+                return false;
+            }*/
 
             spdlog::info("OpenGL initialized");
             return true;
@@ -103,7 +111,7 @@ namespace controller {
             windowHeight = config::getInt(config::SCREEN_HEIGHT);
 
             if (!initializeGL()) {
-                std::cerr << "FATAL: failed to initialize OpenGL / glfw" << std::endl;
+                spdlog::critical("failed to initialize OpenGL / glfw, exiting");
                 return;
             }
 

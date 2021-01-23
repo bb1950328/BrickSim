@@ -16,6 +16,7 @@ bool Renderer::setup() {
     if (setupCalled) {
         return true;
     }
+    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
 
     triangleShader = new Shader("src/shaders/triangle_shader.vsh", "src/shaders/triangle_shader.fsh");
     lineShader = new Shader("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");

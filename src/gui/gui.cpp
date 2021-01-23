@@ -331,10 +331,18 @@ namespace gui {
     }
 
     void beginFrame() {
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
+        static bool firstTime = true;
+        if(firstTime) {
+            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+            firstTime = false;
+        } else {
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+        }
         {
             std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);

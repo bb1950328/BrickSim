@@ -38,11 +38,6 @@ if (UNIX)# todo check if this is necessary
     endif ()
 endif ()
 
-# GLEW
-add_subdirectory(src/lib/glew/build/cmake)
-target_link_libraries(BrickSim glew)
-target_compile_definitions(glew PUBLIC GLEW_STATIC)
-
 # GLUT
 find_package(GLUT REQUIRED)
 include_directories(${GLUT_INCLUDE_DIRS})

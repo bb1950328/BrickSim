@@ -26,7 +26,7 @@ if [[ "$OS" == "linux" ]]; then
   echo "Installing packages using apt-get..."
   sudo apt-get update
   sudo apt-get install -y build-essential mesa-utils freeglut3-dev libxinerama-dev \
-                          libxrandr-dev libxcursor-dev libxi-dev libglew-dev libcurl4-openssl-dev \
+                          libxrandr-dev libxcursor-dev libxi-dev libcurl4-openssl-dev \
                           libglm-dev libzip-dev gcc-10 g++-10 libspdlog-dev cmake libzip5
   echo "packages installed."
 fi
@@ -60,10 +60,6 @@ fi
 ###########################################
 
 #unzipping libraries
-rm -rf src/lib/glew
-unzip src/lib/glew-2.1.0.zip | grep -v inflating:
-mv glew-2.1.0 src/lib/glew
-
 rm -rf src/lib/rapidjson
 unzip src/lib/rapidjson.zip | grep -v inflating:
 mv rapidjson src/lib/rapidjson

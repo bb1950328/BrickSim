@@ -21,12 +21,15 @@ namespace ldr_file_repo {
 
     void clearCache();
     void initializeFileList(float *progress);
-    void initializeLdrawLibraryLocation();
+    bool checkLdrawLibraryLocation();
 
     [[ nodiscard ]] bool areAllPartsLoaded();
     std::map<std::string, std::set<LdrFile *>>& getAllPartsGroupedByCategory();
     std::map<std::string, std::set<LdrFile *>>& getLoadedPartsGroupedByCategory();
     std::set<std::string> getAllCategories();
     std::set<LdrFile*> getAllFilesOfCategory(const std::string& categoryName);
+
+    bool isValidDirectoryLibrary(const std::filesystem::path &path);
+    bool isValidZipLibrary(const std::filesystem::path &path);
 };
 #endif //BRICKSIM_LDR_FILE_REPOSITORY_H

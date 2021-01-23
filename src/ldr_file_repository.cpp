@@ -7,6 +7,7 @@
 #include <fstream>
 #include <mutex>
 #include <spdlog/spdlog.h>
+#include <zip.h>
 #include "ldr_file_repository.h"
 #include "config.h"
 #include "helpers/zip_buffer.h"
@@ -21,9 +22,9 @@ namespace ldr_file_repo {
         std::filesystem::path primitivesDirectory;
         std::filesystem::path modelsDirectory;
 
-        zip_buffer::BufferedZip* zipLibrary;
+        zip_buffer::BufferedZip *zipLibrary;
         std::map<std::filesystem::path, std::string> otherFileCache;
-        std::map<const std::string*, bool> otherFileCacheLock;
+        std::map<const std::string *, bool> otherFileCacheLock;
         std::mutex otherFileCacheLockMutex;
 
         bool isZipLibrary;
@@ -45,7 +46,7 @@ namespace ldr_file_repo {
 
         std::pair<LdrFileType, std::string> convertLDrawDirPathToFilenameAndType(const std::string &ldrawDirPath);
 
-        LdrFile *openFile(LdrFileType fileType, const std::string* content,const std::string& fileName) {
+        LdrFile *openFile(LdrFileType fileType, const std::string *content, const std::string &fileName) {
             LdrFile *file = LdrFile::parseFile(fileType, fileName, content);
             /*std::vector<std::string> fileNames = {fileName};
             while (util::startsWith(util::trim(file->metaInfo.title), "~Moved to ")) {
@@ -63,17 +64,17 @@ namespace ldr_file_repo {
             return file;
         }
 
-        std::stringstream readFileToStringstream(const std::filesystem::path& path) {
+        std::stringstream readFileToStringstream(const std::filesystem::path &path) {
             std::stringstream result;
             std::ifstream fileStream(path);
             result << fileStream.rdbuf();
             return result;
         }
 
-        std::string* readFileToString(const std::filesystem::path& path) {
+        std::string *readFileToString(const std::filesystem::path &path) {
             std::string *pointer;
             auto it = otherFileCache.find(path);
-            if (it==otherFileCache.end()) {
+            if (it == otherFileCache.end()) {
                 std::ostringstream sstr;
                 sstr << std::ifstream(path).rdbuf();
                 otherFileCache[path] = std::string(sstr.str());
@@ -88,16 +89,16 @@ namespace ldr_file_repo {
             return pointer;
         }
 
-        std::string* readIoFileToString(const std::filesystem::path& path) {
+        std::string *readIoFileToString(const std::filesystem::path &path) {
             std::string *pointer;
             auto it = otherFileCache.find(path);
-            if (it==otherFileCache.end()) {
-                char pw[]{0x53, 0x4C, 0x42, 70, 0x30-0x20-12, 0x19-15, 30-0x20, 60-0x20-24, 123-0x7B};
-                for (char i = 0; pw[i]!=0; ++i) {
-                    pw[i] += 0x20+3*i;
+            if (it == otherFileCache.end()) {
+                char pw[]{0x53, 0x4C, 0x42, 70, 0x30 - 0x20 - 12, 0x19 - 15, 30 - 0x20, 60 - 0x20 - 24, 123 - 0x7B};
+                for (char i = 0; pw[i] != 0; ++i) {
+                    pw[i] += 0x20 + 3 * i;
                 }
                 auto zip = zip_buffer::BufferedZip(path, pw);
-                const auto* model = zip.getFileAsString("model.ldr");
+                const auto *model = zip.getFileAsString("model.ldr");
                 otherFileCache[path] = *model;
                 pointer = &otherFileCache[path];
             } else {
@@ -110,7 +111,7 @@ namespace ldr_file_repo {
             return pointer;
         }
 
-        void unlockCachedFile(const std::string* fileContent) {
+        void unlockCachedFile(const std::string *fileContent) {
             std::lock_guard<std::mutex> lg(otherFileCacheLockMutex);
             auto it = otherFileCacheLock.find(fileContent);
             if (it != otherFileCacheLock.end()) {
@@ -152,12 +153,12 @@ namespace ldr_file_repo {
                 if (shouldFileBeSavedInList(file.first)) {
                     auto ldrFile = getFileInLdrawDirectory(file.first);
                     entries.push_back({ldrFile->metaInfo.name, ldrFile->metaInfo.title, ldrFile->metaInfo.getCategory()});
-                    *progress = 0.99f*entries.size()/ESTIMATE_PART_LIBRARY_FILE_COUNT;
+                    *progress = 0.99f * entries.size() / ESTIMATE_PART_LIBRARY_FILE_COUNT;
                 }
             }
             db::fileList::put(entries);
         }
-        
+
         void fillFileListFromDirectory(float *progress) {
             std::vector<db::fileList::Entry> entries;
             for (const auto &entry : std::filesystem::recursive_directory_iterator(ldrawDirectory)) {
@@ -169,27 +170,27 @@ namespace ldr_file_repo {
                     auto type = convertLDrawDirPathToFilenameAndType(pathWithForwardSlash).first;
 
                     std::string category;
-                    if (type==LdrFileType::PART) {
+                    if (type == LdrFileType::PART) {
                         char &firstChar = ldrFile->metaInfo.title[0];
-                        if ((firstChar == '~' && ldrFile->metaInfo.title[1] != '|') || firstChar=='=' || firstChar=='_') {
+                        if ((firstChar == '~' && ldrFile->metaInfo.title[1] != '|') || firstChar == '=' || firstChar == '_') {
                             category = PSEUDO_CATEGORY_HIDDEN_PART;
                         } else {
                             category = ldrFile->metaInfo.getCategory();
                         }
-                    } else if (type==LdrFileType::SUBPART) {
+                    } else if (type == LdrFileType::SUBPART) {
                         category = PSEUDO_CATEGORY_SUBPART;
-                    } else if (type==LdrFileType::PRIMITIVE) {
+                    } else if (type == LdrFileType::PRIMITIVE) {
                         category = PSEUDO_CATEGORY_PRIMITIVE;
-                    } else if (type==LdrFileType::MODEL) {
+                    } else if (type == LdrFileType::MODEL) {
                         category = PSEUDO_CATEGORY_MODEL;
                     }
                     entries.push_back({pathWithForwardSlash, ldrFile->metaInfo.title, category});
-                    *progress = 0.99f*entries.size()/ESTIMATE_PART_LIBRARY_FILE_COUNT;
+                    *progress = 0.99f * entries.size() / ESTIMATE_PART_LIBRARY_FILE_COUNT;
                 }
             }
             db::fileList::put(entries);
         }
-        
+
         /**
          * @param ldrawDirPath a relative path from the ldraw directory, for example parts/3001.dat 
          * @return the LdrFileType and the fileName like its referenced in ldr files, for example 3001.dat or s/xyz123.dat
@@ -206,9 +207,26 @@ namespace ldr_file_repo {
             }
             return {LdrFileType::MODEL, ldrawDirPath};
         }
+
+        bool tryLibraryPath(const std::filesystem::path &path) {
+            if (std::filesystem::is_regular_file(path)) {
+                if (isValidZipLibrary(path)) {
+                    isZipLibrary = true;
+                    zipLibrary = zip_buffer::openZipFile(path);
+                    return true;
+                }
+            } else {
+                if (isValidDirectoryLibrary(path)) {
+                    isZipLibrary = false;
+                    ldrawDirectory = path;
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
-    LdrFile *get_file(const std::pair<LdrFileType, const std::string*> &resolvedPair, const std::string &filename) {
+    LdrFile *get_file(const std::pair<LdrFileType, const std::string *> &resolvedPair, const std::string &filename) {
         auto iterator = files.find(filename);
         if (iterator == files.end()) {
             LdrFile *file = openFile(resolvedPair.first, resolvedPair.second, filename);
@@ -245,29 +263,32 @@ namespace ldr_file_repo {
         files.clear();
     }
 
-    void initializeLdrawLibraryLocation() {
-        static auto done = false;
-        if (!done) {
-            const auto &partsLibraryPath = util::extendHomeDirPath(config::getString(config::LDRAW_PARTS_LIBRARY));//todo add some search (add .zip, remove .zip) and update config
-            if (std::filesystem::is_regular_file(partsLibraryPath)) {
-                if (partsLibraryPath.filename().extension() != ".zip") {
-                    throw std::invalid_argument(partsLibraryPath.string()+" is a file, but not a .zip! (it's a "+partsLibraryPath.filename().extension().string()+")");
+    bool checkLdrawLibraryLocation() {
+        static auto found = false;
+        if (!found) {
+            const auto &pathFromConfig = util::extendHomeDirPath(config::getString(config::LDRAW_PARTS_LIBRARY));
+            auto strPath = pathFromConfig.string();
+            if (tryLibraryPath(pathFromConfig)) {
+                found = true;
+            } else if (util::endsWith(strPath, ".zip")) {
+                auto zipEndingRemoved = strPath.substr(0, strPath.size() - 4);
+                if (tryLibraryPath(zipEndingRemoved)) {
+                    config::setString(config::LDRAW_PARTS_LIBRARY, zipEndingRemoved);
+                    found = true;
                 }
-                isZipLibrary = true;
-                zipLibrary = zip_buffer::openZipFile(partsLibraryPath);
-            } else {
-                isZipLibrary = false;
-                ldrawDirectory = partsLibraryPath;
+            } else if (tryLibraryPath(strPath + ".zip")) {
+                config::setString(config::LDRAW_PARTS_LIBRARY, strPath + ".zip");
+                found = true;
             }
-            done = true;
         }
+        return found;
     }
 
     void initializeFileList(float *progress) {
-        initializeLdrawLibraryLocation();
+        checkLdrawLibraryLocation();
         static auto done = false;
         if (!done) {
-            if (db::fileList::getSize()==0) {
+            if (db::fileList::getSize() == 0) {
                 spdlog::debug("starting to fill fileList");
                 auto before = std::chrono::high_resolution_clock::now();
                 if (isZipLibrary) {
@@ -276,21 +297,21 @@ namespace ldr_file_repo {
                     fillFileListFromDirectory(progress);
                 }
                 auto after = std::chrono::high_resolution_clock::now();
-                auto durationMs = std::chrono::duration_cast<std::chrono::microseconds >(after - before).count()/1000.0;
+                auto durationMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0;
                 spdlog::info("filled fileList in {} ms. Size: {}", durationMs, db::fileList::getSize());
             }
             done = true;
         }
     }
 
-    std::pair<LdrFileType, const std::string*> findAndReadFileContent(const std::string &filename) {
+    std::pair<LdrFileType, const std::string *> findAndReadFileContent(const std::string &filename) {
         auto filenamePath = std::filesystem::path(filename);
         if (filenamePath.extension() == ".io") {
             return std::make_pair(LdrFileType::MODEL, readIoFileToString(filenamePath));
         } else if (filenamePath.is_absolute()) {
             return std::make_pair(LdrFileType::MODEL, readFileToString(filename));
         }
-        
+
         auto filenameWithForwardSlash = util::replaceChar(filename, '\\', '/');
 
         auto partsFN = std::string("parts/") + filenameWithForwardSlash;
@@ -312,14 +333,14 @@ namespace ldr_file_repo {
         if (modelResult.has_value()) {
             return std::make_pair(LdrFileType::MODEL, readFileFromLdrawDirectory(modelFN));
         }
-        
+
         return std::make_pair(LdrFileType::MODEL, readFileToString(util::extendHomeDirPath(filename)));
     }
 
-    std::map<std::string, std::set<LdrFile *>>& getAllPartsGroupedByCategory() {
+    std::map<std::string, std::set<LdrFile *>> &getAllPartsGroupedByCategory() {
         if (!areAllPartsLoaded()) {
             for (const auto &ca : getAllCategories()) {
-                if (partsByCategory.find(ca)==partsByCategory.end()) {
+                if (partsByCategory.find(ca) == partsByCategory.end()) {
                     getAllFilesOfCategory(ca);
                 }
             }
@@ -347,7 +368,7 @@ namespace ldr_file_repo {
         auto it = partsByCategory.find(categoryName);
         if (it == partsByCategory.end()) {
             const auto &fileNames = db::fileList::getAllPartsForCategory(categoryName);
-            std::set<LdrFile*> result;
+            std::set<LdrFile *> result;
             for (const auto &fileName : fileNames) {
                 result.insert(getFileInLdrawDirectory(fileName));
             }
@@ -362,7 +383,7 @@ namespace ldr_file_repo {
      * @return opened LdrFile
      */
     LdrFile *getFileInLdrawDirectory(const std::string &filename) {
-        initializeLdrawLibraryLocation();
+        checkLdrawLibraryLocation();
         auto typeNamePair = convertLDrawDirPathToFilenameAndType(filename);
         auto it = files.find(typeNamePair.second);
         if (it == files.end()) {
@@ -376,7 +397,7 @@ namespace ldr_file_repo {
     }
 
     const std::string *readFileFromLdrawDirectory(const std::string &filename) {
-        initializeLdrawLibraryLocation();
+        checkLdrawLibraryLocation();
         if (isZipLibrary) {
             return zipLibrary->getFileAsString(filename);
         } else {
@@ -386,5 +407,44 @@ namespace ldr_file_repo {
 
     bool areAllPartsLoaded() {
         return getAllCategories().size() == partsByCategory.size();
+    }
+
+    bool isValidDirectoryLibrary(const std::filesystem::path &path) {
+        if (!std::filesystem::exists(path)
+            || !std::filesystem::is_directory(path)) {
+            spdlog::warn("{} not found or not a directory", path.string());
+            return false;
+        }
+        if (!std::filesystem::exists(path / "LDConfig.ldr")) {
+            spdlog::warn("LDConfig.ldr not found in {}, therefore it's not a valid ldraw library directory", path.string());
+            return false;
+        }
+        return true;
+    }
+
+    bool isValidZipLibrary(const std::filesystem::path &path) {
+        if (!std::filesystem::exists(path)
+            || !std::filesystem::is_regular_file(path)
+            || ".zip" != path.filename().extension().string()) {
+            spdlog::warn("{} is not a .zip file", path.string());
+            return false;
+        }
+        int err;
+        zip_t *za = zip_open(path.string().c_str(), 0, &err);
+        if (za == nullptr) {
+            char errBuf[100];
+            zip_error_to_str(errBuf, sizeof(errBuf), err, errno);
+            spdlog::warn("cannot open .zip file: {}", errBuf);
+            zip_close(za);
+            return false;
+        }
+        if (zip_name_locate(za, "LDConfig.ldr", ZIP_FL_ENC_GUESS) == -1) {
+            spdlog::warn("LDConfig.ldr not in {}", path.string());
+            zip_close(za);
+            return false;
+        }
+        spdlog::debug("{} is a valid zip library.", path.string());
+        zip_close(za);
+        return true;
     }
 }

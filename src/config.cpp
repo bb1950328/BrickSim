@@ -23,22 +23,22 @@ namespace config {
 
         void setStringNoMutex(const StringKey &key, const std::string &value) {
             db::config::setString(key.name, value);
-            stringsCache.emplace(key.name, value);
+            stringsCache[key.name] = value;
         }
 
         void setIntNoMutex(const IntKey &key, int value) {
             db::config::setInt(key.name, value);
-            intsCache.emplace(key.name, value);
+            intsCache[key.name] = value;
         }
 
         void setDoubleNoMutex(const DoubleKey &key, double value) {
             db::config::setDouble(key.name, value);
-            doublesCache.emplace(key.name, value);
+            doublesCache[key.name] = value;
         }
 
         void setBoolNoMutex(const BoolKey &key, bool value) {
             db::config::setBool(key.name, value);
-            boolsCache.emplace(key.name, value);
+            boolsCache[key.name] = value;
         }
     }
 

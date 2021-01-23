@@ -8,4 +8,6 @@ target_sources(BrickSim PUBLIC
         camera.cpp
         util.cpp
         util.h
+        parts_library_downloader.cpp
+        parts_library_downloader.h
         )

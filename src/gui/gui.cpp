@@ -19,6 +19,7 @@
 #include <imgui_internal.h>
 #include <spdlog/spdlog.h>
 #include "../helpers/platform_detection.h"
+#include "../helpers/parts_library_downloader.h"
 
 namespace gui {
     namespace {
@@ -356,7 +357,7 @@ namespace gui {
         ImGui::DestroyContext();
     }
 
-    bool loopPartsLibraryInstallationScreen() {
+    PartsLibrarySetupResponse drawPartsLibrarySetupScreen() {
         static char state = 'A';
         /** States:
          * A show info
@@ -364,12 +365,11 @@ namespace gui {
          * D Download in progress
          * Z Finished
          */
-        static std::atomic<float> downlaodPercent;
-        static std::atomic<long long int> downloadBytes;
-        //static std::thread downloadThread;//todo make this work
+        static long bytesDownloaded = 0, bytesTotal = 0;
+        static std::thread downloadThread;//todo make this work
         static char pathBuffer[255];
         if (state == 'A') {
-            if (ImGui::BeginPopupModal("ldraw library not found.", nullptr,
+            if (ImGui::Begin("LDraw library not found.", nullptr,
                                        ImGuiWindowFlags_AlwaysAutoResize)) {//todo this gives a segmentation fault because of some imgui id stack thing
                 ImGui::Text("Currently, the path for the ldraw parts library is set to");
                 auto parts_lib_raw = config::getString(config::LDRAW_PARTS_LIBRARY);
@@ -406,34 +406,57 @@ namespace gui {
                 if (ImGui::Button("Start")) {
                     state = 'D';
                 }
-                ImGui::EndPopup();
             }
+            ImGui::End();
         } else if (state == 'B') {
-            ImGui::InputText("ldraw parts directory path", pathBuffer, 255);
-            ImGui::Text("'~' will be replaced with '%s' (the current home directory)", util::extendHomeDir("~").c_str());
-            if (std::filesystem::exists(std::filesystem::path(pathBuffer))) {
-                ImGui::TextColored(ImVec4(0, 1, 0, 1), "Good! Path exists.");
-            } else {
-                ImGui::TextColored(ImVec4(1, 0, 0, 1), "No! This path doesn't exist.");
+            if (ImGui::Begin("Set LDraw parts library path")) {
+                ImGui::InputText("LDraw parts directory or zip path", pathBuffer, 255);
+                //todo make button for file dialog
+                ImGui::Text("'~' will be replaced with '%s' (the current home directory)", util::extendHomeDir("~").c_str());
+                auto enteredPath = std::filesystem::path(util::extendHomeDirPath(pathBuffer));
+                if (ldr_file_repo::isValidDirectoryLibrary(enteredPath) || ldr_file_repo::isValidZipLibrary(enteredPath)) {
+                    ImGui::TextColored(ImVec4(0, 1, 0, 1), "Good! This is a valid path to a LDraw parts library.");
+                } else {
+                    ImGui::TextColored(ImVec4(1, 0, 0, 1), "No! This path doesn't exist.");
+                }
+                if (ImGui::Button("Cancel")) {
+                    state = 'A';
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("OK")) {
+                    state = 'Z';
+                    config::setString(config::LDRAW_PARTS_LIBRARY, std::string(pathBuffer));
+                }
             }
-            if (ImGui::Button("Cancel")) {
-                state = 'A';
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("OK")) {
-                state = 'Z';
-                config::setString(config::LDRAW_PARTS_LIBRARY, std::string(pathBuffer));
-            }
+            ImGui::End();
         } else if (state == 'D') {
-            //todo implement (start thread somehow)
+            if (ImGui::Begin("Downloading LDraw parts library")) {
+                switch (parts_library_downloader::getStatus()) {
+                    case parts_library_downloader::DOING_NOTHING:downloadThread = std::thread(parts_library_downloader::downloadPartsLibrary);
+                        break;
+                    case parts_library_downloader::IN_PROGRESS: {
+                        auto progress = parts_library_downloader::getProgress();
+                        ImGui::Text("Downloading ldraw parts library...");
+                        ImGui::ProgressBar(1.0f * progress.first / progress.second);
+                        if (ImGui::Button("Cancel and exit program")) {
+                            parts_library_downloader::stopDownload();
+                            downloadThread.join();
+                            return REQUEST_EXIT;
+                        }
+                        break;
+                    }
+                    case parts_library_downloader::FINISHED:state = 'Z';
+                        parts_library_downloader::reset();
+                        break;
+                }
+            }
+            ImGui::End();
         }
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         const auto finished = state == 'Z';
         if (finished) {
             state = 'A';
         }
-        return finished;
+        return finished?FINISHED:RUNNING;
     }
 
     void drawWaitMessage(const std::string &message, float progress) {

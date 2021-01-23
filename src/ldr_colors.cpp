@@ -107,8 +107,6 @@ namespace ldr_color_repo {
     void initialize() {
         static bool initialized = false;
         if (!initialized) {
-            //auto lib_path = util::extendHomeDir(config::getString(config::LDRAW_PARTS_LIBRARY));
-            //auto input = std::ifstream(util::pathjoin({lib_path, }));
             std::stringstream inpStream;
             const std::string *contentString = ldr_file_repo::readFileFromLdrawDirectory("LDConfig.ldr");
             inpStream << *contentString;

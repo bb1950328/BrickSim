@@ -20,6 +20,8 @@ namespace controller {
         void checkForFinishedBackgroundTasks();
         void glfwErrorCallback(int code, const char* message);
         void initialize();
+        void cleanup();
+        void loopPartsLibrarySetupPrompt();
     }
 
     int run();

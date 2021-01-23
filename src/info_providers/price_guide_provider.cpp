@@ -40,6 +40,7 @@ namespace price_guide_provider {
             auto it = idItems.find(partCode);
             if (it == idItems.end()) {
                 auto res = util::requestGET("https://www.bricklink.com/v2/catalog/catalogitem.page?P=" + partCode);
+                // todo http error handling
                 std::regex rgx("idItem:\\s+(\\d+)");
                 std::smatch matches;
                 if (std::regex_search(res.second, matches, rgx)) {

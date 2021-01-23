@@ -31,7 +31,7 @@ namespace controller {
         bool userWantsToExit = false;
         std::set<etree::Node *> selectedNodes;
         etree::Node *currentlyEditingNode;
-        std::map<unsigned int, Task*> backgroundTasks;
+        std::map<unsigned int, Task *> backgroundTasks;
         std::queue<Task *> foregroundTasks;
 
         std::chrono::milliseconds idle_sleep(25);
@@ -80,8 +80,8 @@ namespace controller {
         void checkForFinishedBackgroundTasks() {
             static double lastCheck = 0;
             auto now = glfwGetTime();
-            if (now-lastCheck>0.5) {
-                for(auto iter = backgroundTasks.begin(); iter != backgroundTasks.end(); ) {
+            if (now - lastCheck > 0.5) {
+                for (auto iter = backgroundTasks.begin(); iter != backgroundTasks.end();) {
                     if (iter->second->isDone()) {
                         iter->second->joinThread();
                         delete iter->second;
@@ -91,6 +91,25 @@ namespace controller {
                     }
                 }
                 lastCheck = now;
+            }
+        }
+
+        void loopPartsLibrarySetupPrompt() {
+            auto status = gui::PartsLibrarySetupResponse::RUNNING;
+            while (status == gui::PartsLibrarySetupResponse::RUNNING
+                   && !glfwWindowShouldClose(window)) {
+                gui::beginFrame();
+                status = gui::drawPartsLibrarySetupScreen();
+                gui::endFrame();
+                {
+                    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+                    glfwSwapBuffers(window);
+                    glfwPollEvents();
+                }
+            }
+            if (status==gui::PartsLibrarySetupResponse::REQUEST_EXIT || glfwWindowShouldClose(window)) {
+                cleanup();
+                throw std::invalid_argument("user requested exit in parts library setup screen");//todo make cleaner solution
             }
         }
 
@@ -116,12 +135,16 @@ namespace controller {
             renderer.setWindowSize(view3dWidth, view3dHeight);
             renderer.setup();
 
+            while (!ldr_file_repo::checkLdrawLibraryLocation()) {
+                loopPartsLibrarySetupPrompt();
+            }
+
             Task steps[]{
-                    {"load color definitions", [](){ldr_color_repo::initialize();}},
-                    {"initialize file list", [](float *progress){ldr_file_repo::initializeFileList(progress);}},
-                    {"initialize price guide provider", [](){price_guide_provider::initialize();}},
-                    {"initialize thumbnail generator", [](){thumbnailGenerator.initialize();}},
-                    {"initialize BrickLink constants", [](float *progress){ bricklink_constants_provider::initialize(progress);}},
+                    {"load color definitions",          []() { ldr_color_repo::initialize(); }},
+                    {"initialize file list",            [](float *progress) { ldr_file_repo::initializeFileList(progress); }},
+                    {"initialize price guide provider", []() { price_guide_provider::initialize(); }},
+                    {"initialize thumbnail generator",  []() { thumbnailGenerator.initialize(); }},
+                    {"initialize BrickLink constants",  [](float *progress) { bricklink_constants_provider::initialize(progress); }},
                     //{"initialize orientation cube generator", [](){orientation_cube::initialize();}},
             };
             for (auto &initStep : steps) {
@@ -150,6 +173,19 @@ namespace controller {
             }
         }
 
+        void cleanup() {
+            renderer.cleanup();
+            auto &bgTasks = getBackgroundTasks();
+            spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
+            for (auto &task : bgTasks) {
+                task.second->joinThread();
+            }
+            spdlog::info("all background tasks finished, exiting now");
+            gui::cleanup();
+            spdlog::shutdown();
+            glfwTerminate();
+        }
+
         void handleForegroundTasks() {
             while (!foregroundTasks.empty()) {
                 Task *&frontTask = foregroundTasks.front();
@@ -165,6 +201,7 @@ namespace controller {
                 }
             }
         }
+
         void glfwErrorCallback(int code, const char *message) {
             spdlog::error("GLFW Error: {} {}", code, message);
         }
@@ -172,7 +209,6 @@ namespace controller {
 
     int run() {
         spdlog::info("BrickSim started.");
-        //todo check if parts library found (method in ldr_file_repo::)
         initialize();
 
         //openFile("test_files/mpd_test.mpd");
@@ -180,7 +216,7 @@ namespace controller {
         //openFile("3001.dat");
 
         while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
-            if (foregroundTasks.empty() && backgroundTasks.empty() && thumbnailGenerator.renderQueueEmpty() && glfwGetWindowAttrib(window, GLFW_FOCUSED)==0) {
+            if (foregroundTasks.empty() && backgroundTasks.empty() && thumbnailGenerator.renderQueueEmpty() && glfwGetWindowAttrib(window, GLFW_FOCUSED) == 0) {
                 std::this_thread::sleep_for(idle_sleep);
                 glfwPollEvents();
                 continue;
@@ -224,16 +260,7 @@ namespace controller {
         }
         config::setInt(config::SCREEN_WIDTH, windowWidth);
         config::setInt(config::SCREEN_HEIGHT, windowHeight);
-        renderer.cleanup();
-        auto &bgTasks = getBackgroundTasks();
-        spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
-        for (auto &task : bgTasks) {
-            task.second->joinThread();
-        }
-        spdlog::info("all background tasks finished, exiting now");
-        gui::cleanup();
-        spdlog::shutdown();
-        glfwTerminate();
+        cleanup();
         return 0;
     }
 
@@ -253,7 +280,7 @@ namespace controller {
     }
 
     void openFile(const std::string &path) {
-        foregroundTasks.push(new Task(std::string("Open ")+path, [path](){
+        foregroundTasks.push(new Task(std::string("Open ") + path, [path]() {
             insertLdrElement(ldr_file_repo::getFile(path));
         }));
     }
@@ -388,12 +415,12 @@ namespace controller {
         return openGlMutex;
     }
 
-    std::map<unsigned int, Task*> &getBackgroundTasks() {
+    std::map<unsigned int, Task *> &getBackgroundTasks() {
         checkForFinishedBackgroundTasks();
         return backgroundTasks;
     }
 
-    void addBackgroundTask(std::string name, const std::function<void()>& function) {
+    void addBackgroundTask(std::string name, const std::function<void()> &function) {
         static unsigned int sId = 0;
         unsigned int id = sId++;
         auto *task = new Task(std::move(name), function);
@@ -401,7 +428,7 @@ namespace controller {
         task->startThread();
     }
 
-    std::queue<Task *>& getForegroundTasks() {
+    std::queue<Task *> &getForegroundTasks() {
         return foregroundTasks;
     }
 }

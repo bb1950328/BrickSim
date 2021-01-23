@@ -32,5 +32,12 @@
         </library>
       </libraries>
     </data-source>
+    <data-source source="LOCAL" name="config.db3" uuid="4d0b68bc-c676-4e01-9397-0e9c32888427">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/config.db3</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

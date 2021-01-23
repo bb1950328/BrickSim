@@ -69,13 +69,6 @@ namespace controller {
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
 
-            /*GLenum err = glewInit();
-            spdlog::info("err={}", err);
-            if (err != GLEW_OK) {
-                spdlog::error("glewInit(): {}", glewGetErrorString(err));
-                return false;
-            }*/
-
             spdlog::info("OpenGL initialized");
             return true;
         }

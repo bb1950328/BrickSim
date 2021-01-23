@@ -36,7 +36,6 @@
 /imgui.ini
 
 #libraries which are saved in a zip
-/src/lib/glew/
 /src/lib/rapidjson/
 /src/lib/include/
 /src/lib/glad.c

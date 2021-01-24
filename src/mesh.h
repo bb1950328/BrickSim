@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <set>
+#include <cstring>
 #include "ldr_files.h"
 #include "shaders/shader.h"
 #include "helpers/camera.h"
@@ -22,15 +23,18 @@ struct TriangleVertex {
 
     //glm::vec3 color;
     bool operator==(const TriangleVertex &other) const {
-        return position == other.position && normal == other.normal;
+        //return position == other.position && normal == other.normal;
+        return std::memcmp(this, &other, sizeof(TriangleVertex)) == 0;
     }
 };
 
 struct LineVertex {
     glm::vec4 position;
     glm::vec3 color;
+
     bool operator==(const LineVertex &other) const {
-        return position == other.position && color == other.color;
+        //return position == other.position && color == other.color;
+        return std::memcmp(this, &other, sizeof(LineVertex)) == 0;
     }
 };
 

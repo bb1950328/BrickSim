@@ -28,16 +28,18 @@ void Task::startThread() {
     spdlog::info("starting task {}", name);
     thread = std::thread([this](){
         spdlog::debug("thread of task {} started", name);
+        auto before = std::chrono::high_resolution_clock::now();
         function(&progress);
+        auto after = std::chrono::high_resolution_clock::now();
         progress=1;
-        spdlog::debug("thread of task {} finishing", name);
+        duration_us.store(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count());
         is_done.store(true);
     });
-    spdlog::info("task {} finished", name);
 }
 
 void Task::joinThread() {
     thread->join();
+    spdlog::info("thread of task {} joined. task used {}ms.", name, duration_us/1000.0f);
 }
 
 bool Task::isStarted() const {

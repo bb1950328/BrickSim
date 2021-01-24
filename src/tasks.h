@@ -26,6 +26,7 @@ private:
     std::function<void(float*)> function;
     std::optional<std::thread> thread;
     std::atomic<bool> is_done{false};
+    std::atomic<long> duration_us{0};
     float progress=0;
 };
 

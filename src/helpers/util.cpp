@@ -70,9 +70,19 @@ namespace util {
         return extendHomeDirPath(input).string();
     }
 
+    std::string replaceHomeDir(const std::string &input) {
+        const std::string homeDir = getenv(USER_ENV_VAR);
+        if (startsWith(input, homeDir)) {
+            return homeDir + input.substr(homeDir.size());
+        }
+        return input;
+    }
+
     std::filesystem::path extendHomeDirPath(const std::string &input) {
         if (input[0] == '~' && (input[1] == '/' || input[1] == '\\')) {
             return std::filesystem::path(getenv(USER_ENV_VAR)) / std::filesystem::path(input.substr(2));
+        } else if (input[0] == '~' && input.size()==1) {
+            return std::filesystem::path(getenv(USER_ENV_VAR));
         } else {
             return std::filesystem::path(input);
         }
@@ -583,6 +593,7 @@ namespace util {
         curl_easy_setopt(curl, CURLOPT_USERAGENT,"Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.10136");//sorry microsoft ;)
         curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
         curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
         /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, [sizeLimit](void *ptr, size_t size, size_t nmemb, std::string *data) -> size_t {
             data->append((char *) ptr, size * nmemb);

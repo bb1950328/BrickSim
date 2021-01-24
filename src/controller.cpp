@@ -149,7 +149,6 @@ namespace controller {
             };
             for (auto &initStep : steps) {
                 spdlog::info("Starting init step {}", initStep.getName());
-                auto before = std::chrono::high_resolution_clock::now();
                 initStep.startThread();
                 while (!initStep.isDone()) {
                     if (gui::isSetupDone()) {
@@ -168,8 +167,7 @@ namespace controller {
                     }
                 }
                 initStep.joinThread();
-                auto after = std::chrono::high_resolution_clock::now();
-                spdlog::info("finished init step {} in {} ms.", initStep.getName(), std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count());
+                spdlog::info("finished init step {}", initStep.getName());
             }
         }
 

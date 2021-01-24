@@ -10,6 +10,11 @@
 #include "ldr_files.h"
 
 namespace ldr_file_repo {
+    enum class LibraryType {
+        NOT_FOUND,
+        DIRECTORY,
+        ZIP,
+    };
     LdrFile *getFile(const std::string& filename);
     LdrFile* getFile(const std::pair<LdrFileType, std::stringstream&> &resolvedPair, const std::string& filename);
     LdrFile* getFileInLdrawDirectory(const std::string& filename);
@@ -29,7 +34,8 @@ namespace ldr_file_repo {
     std::set<std::string> getAllCategories();
     std::set<LdrFile*> getAllFilesOfCategory(const std::string& categoryName);
 
-    bool isValidDirectoryLibrary(const std::filesystem::path &path);
-    bool isValidZipLibrary(const std::filesystem::path &path);
+    LibraryType checkLibraryValid(const std::filesystem::path &path);
+    LibraryType checkDirectoryLibraryValid(const std::filesystem::path &path);
+    LibraryType checkZipLibraryValid(const std::filesystem::path &path);
 };
 #endif //BRICKSIM_LDR_FILE_REPOSITORY_H

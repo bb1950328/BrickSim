@@ -27,7 +27,7 @@ namespace ldr_file_repo {
         std::map<const std::string *, bool> otherFileCacheLock;
         std::mutex otherFileCacheLockMutex;
 
-        bool isZipLibrary;
+        LibraryType libraryType = LibraryType::NOT_FOUND;
 
         //key is name lowercase, value is name in original case
         std::map<std::string, std::string> primitiveNames;
@@ -210,19 +210,19 @@ namespace ldr_file_repo {
 
         bool tryLibraryPath(const std::filesystem::path &path) {
             if (std::filesystem::is_regular_file(path)) {
-                if (isValidZipLibrary(path)) {
-                    isZipLibrary = true;
-                    zipLibrary = zip_buffer::openZipFile(path);
-                    return true;
+                auto type = checkZipLibraryValid(path);
+                if (type != LibraryType::NOT_FOUND) {
+                    libraryType = type;
+                    zipLibrary = zip_buffer::openZipFile(path, {}, false, "ldraw");
                 }
             } else {
-                if (isValidDirectoryLibrary(path)) {
-                    isZipLibrary = false;
+                auto type = checkDirectoryLibraryValid(path);
+                if (type != LibraryType::NOT_FOUND) {
+                    libraryType = type;
                     ldrawDirectory = path;
-                    return true;
                 }
             }
-            return false;
+            return libraryType != LibraryType::NOT_FOUND;
         }
     }
 
@@ -273,11 +273,11 @@ namespace ldr_file_repo {
             } else if (util::endsWith(strPath, ".zip")) {
                 auto zipEndingRemoved = strPath.substr(0, strPath.size() - 4);
                 if (tryLibraryPath(zipEndingRemoved)) {
-                    config::setString(config::LDRAW_PARTS_LIBRARY, zipEndingRemoved);
+                    config::setString(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(zipEndingRemoved));
                     found = true;
                 }
             } else if (tryLibraryPath(strPath + ".zip")) {
-                config::setString(config::LDRAW_PARTS_LIBRARY, strPath + ".zip");
+                config::setString(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(strPath + ".zip"));
                 found = true;
             }
         }
@@ -291,10 +291,10 @@ namespace ldr_file_repo {
             if (db::fileList::getSize() == 0) {
                 spdlog::debug("starting to fill fileList");
                 auto before = std::chrono::high_resolution_clock::now();
-                if (isZipLibrary) {
-                    fillFileListFromZip(progress);//todo testing
-                } else {
+                if (libraryType == LibraryType::DIRECTORY) {
                     fillFileListFromDirectory(progress);
+                } else {
+                    fillFileListFromZip(progress);
                 }
                 auto after = std::chrono::high_resolution_clock::now();
                 auto durationMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0;
@@ -398,10 +398,11 @@ namespace ldr_file_repo {
 
     const std::string *readFileFromLdrawDirectory(const std::string &filename) {
         checkLdrawLibraryLocation();
-        if (isZipLibrary) {
-            return zipLibrary->getFileAsString(filename);
-        } else {
-            return readFileToString(ldrawDirectory / filename);
+        switch (libraryType) {
+            case LibraryType::DIRECTORY:return readFileToString(ldrawDirectory / filename);
+            case LibraryType::ZIP:return zipLibrary->getFileAsString(filename);
+            case LibraryType::NOT_FOUND:
+            default: return nullptr;//will never happen
         }
     }
 
@@ -409,25 +410,31 @@ namespace ldr_file_repo {
         return getAllCategories().size() == partsByCategory.size();
     }
 
-    bool isValidDirectoryLibrary(const std::filesystem::path &path) {
+    LibraryType checkLibraryValid(const std::filesystem::path &path) {
+        const auto dirResult = checkDirectoryLibraryValid(path);
+        const auto zipResult = checkZipLibraryValid(path);
+        return dirResult != LibraryType::NOT_FOUND ? dirResult : zipResult;
+    }
+
+    LibraryType checkDirectoryLibraryValid(const std::filesystem::path &path) {
         if (!std::filesystem::exists(path)
             || !std::filesystem::is_directory(path)) {
             spdlog::warn("{} not found or not a directory", path.string());
-            return false;
+            return LibraryType::NOT_FOUND;
         }
         if (!std::filesystem::exists(path / "LDConfig.ldr")) {
             spdlog::warn("LDConfig.ldr not found in {}, therefore it's not a valid ldraw library directory", path.string());
-            return false;
+            return LibraryType::NOT_FOUND;
         }
-        return true;
+        return LibraryType::DIRECTORY;
     }
 
-    bool isValidZipLibrary(const std::filesystem::path &path) {
+    LibraryType checkZipLibraryValid(const std::filesystem::path &path) {
         if (!std::filesystem::exists(path)
             || !std::filesystem::is_regular_file(path)
             || ".zip" != path.filename().extension().string()) {
             spdlog::warn("{} is not a .zip file", path.string());
-            return false;
+            return LibraryType::NOT_FOUND;
         }
         int err;
         zip_t *za = zip_open(path.string().c_str(), 0, &err);
@@ -436,15 +443,18 @@ namespace ldr_file_repo {
             zip_error_to_str(errBuf, sizeof(errBuf), err, errno);
             spdlog::warn("cannot open .zip file: {}", errBuf);
             zip_close(za);
-            return false;
+            return LibraryType::NOT_FOUND;
         }
-        if (zip_name_locate(za, "LDConfig.ldr", ZIP_FL_ENC_GUESS) == -1) {
+        LibraryType type;
+        if (zip_name_locate(za, "LDConfig.ldr", ZIP_FL_ENC_GUESS) == -1
+            && zip_name_locate(za, "ldraw/LDConfig.ldr", ZIP_FL_ENC_GUESS) == -1) {
             spdlog::warn("LDConfig.ldr not in {}", path.string());
-            zip_close(za);
-            return false;
+            type = LibraryType::NOT_FOUND;
+        } else {
+            spdlog::debug("{} is a valid zip library.", path.string());
+            type = LibraryType::ZIP;
         }
-        spdlog::debug("{} is a valid zip library.", path.string());
         zip_close(za);
-        return true;
+        return type;
     }
 }

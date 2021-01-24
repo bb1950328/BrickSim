@@ -15,8 +15,8 @@ namespace zip_buffer {
         std::map<std::filesystem::path, BufferedZip> zips;
     }
 
-    BufferedZip *openZipFile(const std::filesystem::path &path, const std::optional<std::string> &password) {
-        zips.emplace(path, BufferedZip(path, password));
+    BufferedZip *openZipFile(const std::filesystem::path &path, const std::optional<std::string> &password, bool caseSensitive, const std::optional<std::string>& prefixToReplace) {
+        zips.emplace(path, BufferedZip(path, password, caseSensitive, prefixToReplace));
         return &(zips.find(path)->second);
     }
 
@@ -27,7 +27,8 @@ namespace zip_buffer {
         }
     }
 
-    BufferedZip::BufferedZip(const std::filesystem::path& path, const std::optional<std::string>& password={}) {
+    BufferedZip::BufferedZip(const std::filesystem::path& path, const std::optional<std::string>& password, bool caseSensitive, const std::optional<std::string>& prefixToReplace) {
+        this->caseSensitive = caseSensitive;
         auto zipNameStem = path.stem().string();
         int errCode;
         struct zip *zArchive = zip_open(path.string().c_str(), 0, &errCode);
@@ -54,18 +55,24 @@ namespace zip_buffer {
                     std::string fileNameToSave(sb.name);
                     if (util::startsWith(fileNameToSave, zipNameStem)) {
                         fileNameToSave.erase(0, zipNameStem.size()+1);//plus 1 is for slash
+                    } else if (prefixToReplace.has_value() && util::startsWith(fileNameToSave, prefixToReplace.value())) {
+                        fileNameToSave.erase(0, prefixToReplace->size()+1);
                     }
-                    if (util::endsWith(fileNameToSave, ".txt") || util::endsWith(fileNameToSave, ".dat") || util::endsWith(fileNameToSave, ".ldr") ||
-                        util::endsWith(fileNameToSave, ".mpd")) {
+                    const auto fileNameToSaveLower = util::asLower(fileNameToSave);
+                    const auto& key = caseSensitive?fileNameToSave:fileNameToSaveLower;
+                    if (util::endsWith(fileNameToSaveLower, ".txt")
+                        || util::endsWith(fileNameToSaveLower, ".dat")
+                        || util::endsWith(fileNameToSaveLower, ".ldr")
+                        || util::endsWith(fileNameToSaveLower, ".mpd")) {
                         std::string content;
                         content.resize(sb.size);
                         zip_fread(zFile, content.data(), sb.size);
-                        textFiles.emplace(fileNameToSave, content);
+                        textFiles.emplace(key, content);
                     } else {
                         std::vector<char> content;
                         content.resize(sb.size);
                         zip_fread(zFile, content.data(), sb.size);
-                        binaryFiles.emplace(fileNameToSave, content);
+                        binaryFiles.emplace(key, content);
                     }
                     zip_fclose(zFile);
                 }
@@ -80,7 +87,7 @@ namespace zip_buffer {
     }
 
     std::stringstream BufferedZip::getFileAsStream(const std::string& filename) {
-        auto it = textFiles.find(filename);
+        auto it = textFiles.find(convertFilenameToKey(filename));
         if (it != textFiles.end()) {
             std::string buffer(it->second.begin(), it->second.end());
             std::stringstream stream;
@@ -92,11 +99,15 @@ namespace zip_buffer {
     }
 
     const std::string* BufferedZip::getFileAsString(const std::string& filename) {
-        auto it = textFiles.find(filename);
+        auto it = textFiles.find(convertFilenameToKey(filename));
         if (it != textFiles.end()) {
             return &it->second;
         } else {
             throw std::invalid_argument(std::string("no such file in this zip! ")+filename);
         }
+    }
+
+    std::string BufferedZip::convertFilenameToKey(const std::string& filename) const {
+        return caseSensitive?filename:util::asLower(filename);
     }
 }

@@ -25,6 +25,7 @@ namespace gui {
     namespace {
         char const * lFilterPatterns[NUM_LDR_FILTER_PATTERNS] = {"*.ldr", "*.dat", "*.mpd", "*.io"};
         char const * imageFilterPatterns[NUM_IMAGE_FILTER_PATTERNS] = {"*.png", "*.jpg", "*.bmp", "*.tga"};
+        char const * zipFilterPatterns[NUM_ZIP_FILTER_PATTERNS] = {"*.zip"};
         bool setupDone = false;
         GLFWwindow *window;
         double lastScrollDeltaY;
@@ -367,29 +368,31 @@ namespace gui {
          */
         static long bytesDownloaded = 0, bytesTotal = 0;
         static std::thread downloadThread;//todo make this work
-        static char pathBuffer[255];
+        static char pathBuffer[1023];
+        static auto windowFlags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize;
+        ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
         if (state == 'A') {
-            if (ImGui::Begin("LDraw library not found.", nullptr,
-                                       ImGuiWindowFlags_AlwaysAutoResize)) {//todo this gives a segmentation fault because of some imgui id stack thing
-                ImGui::Text("Currently, the path for the ldraw parts library is set to");
+            if (ImGui::Begin(ICON_FA_EXCLAMATION_TRIANGLE" LDraw library not found.", nullptr, windowFlags)) {
                 auto parts_lib_raw = config::getString(config::LDRAW_PARTS_LIBRARY);
                 auto parts_lib_extended = util::extendHomeDir(parts_lib_raw);
-                ImGui::Text("'%s'", parts_lib_raw.c_str());
+
+                ImGui::Text("Currently, the path for the ldraw parts library is set to \"%s\"", parts_lib_raw.c_str());
                 if (parts_lib_extended != parts_lib_raw) {
-                    ImGui::Text("'~' is the users home directory, which currently is : '%s'", util::extendHomeDir("~").c_str());
+                    ImGui::TextDisabled("'~' is the users home directory, which currently is : '%s'", util::extendHomeDir("~").c_str());
                 }
                 ImGui::Text(" ");
                 ImGui::Text("But this directory isn't recognized as a valid ldraw parts library.");
                 ImGui::Text("Your options are:");
-                ImGui::BulletText(" ");
+                //ImGui::BulletText(" ");
+                ImGui::Bullet();
                 ImGui::SameLine();
-                if (ImGui::Button("Change the path manually to point to your ldraw directory")) {
+                if (ImGui::Button(ICON_FA_EDIT" Change the path manually to point to your ldraw directory")) {
                     state = 'B';
                     strcpy(pathBuffer, parts_lib_raw.c_str());
                 }
                 ImGui::BulletText("Move the ldraw parts directory to the path above");
                 ImGui::SameLine();
-                if (ImGui::Button("Done##1")) {
+                if (ImGui::Button(ICON_FA_CHECK" Done##1")) {
                     state = 'Z';
                 }
                 ImGui::BulletText("Download");
@@ -398,54 +401,89 @@ namespace gui {
                 ImGui::SameLine();
                 ImGui::Text("and unzip it to the path above");
                 ImGui::SameLine();
-                if (ImGui::Button("Done##2")) {
+                if (ImGui::Button(ICON_FA_CHECK" Done##2")) {
                     state = 'Z';
                 }
                 ImGui::BulletText("Automatically download the parts library");
                 ImGui::SameLine();
-                if (ImGui::Button("Start")) {
+                if (ImGui::Button(ICON_FA_DOWNLOAD" Start")) {
                     state = 'D';
                 }
             }
             ImGui::End();
         } else if (state == 'B') {
-            if (ImGui::Begin("Set LDraw parts library path")) {
-                ImGui::InputText("LDraw parts directory or zip path", pathBuffer, 255);
-                //todo make button for file dialog
-                ImGui::Text("'~' will be replaced with '%s' (the current home directory)", util::extendHomeDir("~").c_str());
-                auto enteredPath = std::filesystem::path(util::extendHomeDirPath(pathBuffer));
-                if (ldr_file_repo::isValidDirectoryLibrary(enteredPath) || ldr_file_repo::isValidZipLibrary(enteredPath)) {
-                    ImGui::TextColored(ImVec4(0, 1, 0, 1), "Good! This is a valid path to a LDraw parts library.");
-                } else {
-                    ImGui::TextColored(ImVec4(1, 0, 0, 1), "No! This path doesn't exist.");
+            if (ImGui::Begin("Set LDraw parts library path", nullptr, windowFlags)) {
+                ImGui::InputText("LDraw parts directory or zip path", pathBuffer, sizeof(pathBuffer));
+                ImGui::SameLine();
+                if(ImGui::Button(ICON_FA_FOLDER_OPEN)) {
+                    char *folderNameChars = tinyfd_selectFolderDialog("Select LDraw parts library folder", pathBuffer);
+                    std::strcpy(pathBuffer, folderNameChars);
                 }
-                if (ImGui::Button("Cancel")) {
+                ImGui::SameLine();
+                if(ImGui::Button(ICON_FA_FILE_ARCHIVE)) {
+                    char *fileNameChars = tinyfd_openFileDialog(
+                            "Select LDraw parts library .zip",
+                            pathBuffer,
+                            NUM_ZIP_FILTER_PATTERNS,
+                            zipFilterPatterns,
+                            "LDraw parts library",
+                            0);
+                    std::strcpy(pathBuffer, fileNameChars);
+                }
+                //todo make button for file dialog
+                ImGui::TextDisabled("'~' will be replaced with '%s' (the current home directory)", util::extendHomeDir("~").c_str());
+                auto enteredPath = std::filesystem::path(util::extendHomeDirPath(pathBuffer));
+                static std::filesystem::path lastCheckedPath;
+                static ldr_file_repo::LibraryType libraryType;
+                if (lastCheckedPath!=enteredPath) {
+                    lastCheckedPath = enteredPath;
+                    libraryType = ldr_file_repo::checkLibraryValid(enteredPath);
+                }
+                if (libraryType == ldr_file_repo::LibraryType::NOT_FOUND) {
+                    ImGui::TextColored(ImVec4(1, 0, 0, 1), ICON_FA_TIMES_CIRCLE" This path doesn't exist or isn't a valid LDraw parts library");
+                } else if (libraryType==ldr_file_repo::LibraryType::DIRECTORY){
+                    ImGui::TextColored(ImVec4(0, 1, 0, 1), ICON_FA_CHECK"This is a valid path to an LDraw parts library directory.");
+                } else {
+                    ImGui::TextColored(ImVec4(0, 1, 0, 1), ICON_FA_CHECK" This is a valid path to an LDraw parts library zip.");
+                }
+                if (ImGui::Button(ICON_FA_BAN" Cancel")) {
                     state = 'A';
                 }
                 ImGui::SameLine();
-                if (ImGui::Button("OK")) {
+                if (ImGui::Button(ICON_FA_CHECK_CIRCLE" OK")) {
                     state = 'Z';
-                    config::setString(config::LDRAW_PARTS_LIBRARY, std::string(pathBuffer));
+                    config::setString(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(pathBuffer));
                 }
             }
             ImGui::End();
         } else if (state == 'D') {
-            if (ImGui::Begin("Downloading LDraw parts library")) {
+            if (ImGui::Begin(ICON_FA_DOWNLOAD" Downloading LDraw parts library", nullptr, windowFlags)) {
                 switch (parts_library_downloader::getStatus()) {
                     case parts_library_downloader::DOING_NOTHING:downloadThread = std::thread(parts_library_downloader::downloadPartsLibrary);
                         break;
                     case parts_library_downloader::IN_PROGRESS: {
                         auto progress = parts_library_downloader::getProgress();
-                        ImGui::Text("Downloading ldraw parts library...");
-                        ImGui::ProgressBar(1.0f * progress.first / progress.second);
-                        if (ImGui::Button("Cancel and exit program")) {
+                        ImGui::Text(ICON_FA_DOWNLOAD" Downloading ldraw parts library...");
+
+                        float progressFraction = 1.0f * progress.first / progress.second;
+                        std::string speedTxt = std::to_string(progressFraction) + "%" + util::formatBytesValue(parts_library_downloader::getSpeedBytesPerSecond())+"/s";
+                        ImGui::ProgressBar(progressFraction, ImVec2(-FLT_MIN, 0), speedTxt.c_str());
+                        if (ImGui::Button(ICON_FA_STOP_CIRCLE" Cancel and exit program")) {
                             parts_library_downloader::stopDownload();
                             downloadThread.join();
+                            ImGui::End();
                             return REQUEST_EXIT;
                         }
                         break;
                     }
-                    case parts_library_downloader::FINISHED:state = 'Z';
+                    case parts_library_downloader::FAILED:
+                        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), ICON_FA_TIMES_CIRCLE" Download failed with error code %d", parts_library_downloader::getErrorCode());
+                        if (ImGui::Button(ICON_FA_CHEVRON_LEFT" Back")) {
+                            parts_library_downloader::reset();
+                            state = 'Z';
+                        }
+                        break;
+                    case parts_library_downloader::FINISHED: state = 'Z';
                         parts_library_downloader::reset();
                         break;
                 }
@@ -466,7 +504,7 @@ namespace gui {
             //ImGui::SetNextWindowSize(ImVec2(fontSize * 18, fontSize * 6));
             ImGui::Begin("Please wait", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::Image(gui_internal::convertTextureId(logoTexture.textureId), ImVec2(logoTexture.width, logoTexture.height), ImVec2(0, 1), ImVec2(1, 0));
-            ImGui::Text("%c %s", gui_internal::getLoFiSpinner(), message.c_str());
+            ImGui::Text("%s %s", gui_internal::getAnimatedHourglassIcon(), message.c_str());
             ImGui::ProgressBar(progress);
             ImGui::End();
         }

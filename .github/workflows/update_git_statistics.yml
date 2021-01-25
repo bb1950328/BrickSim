@@ -7,6 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'updated git_stats.h')"
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE
       - uses: actions/checkout@v2
@@ -16,15 +17,9 @@ jobs:
         run: ./update_git_statistics.sh
       - name: Commit the changes
         run: |
-          CHANGED=0
-          git diff --no-ext-diff --quiet || CHANGED=1
-          if [[ "$CHANGED" -eq "1" ]]; then
-            echo "changes detected"
-            git config --global user.email "action@github.com"
-            git config --global user.name "GitHub Actions Bot"
-            git add src/constant_data/git_stats.cpp
-            git commit -m "GitHub Actions: updated git_stats.h"
-            git push
-          else
-            echo "no changes detected, doing nothing"
-          fi
+          echo "changes detected"
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Actions Bot"
+          git add src/constant_data/git_stats.cpp
+          git commit -m "GitHub Actions: updated git_stats.h"
+          git push

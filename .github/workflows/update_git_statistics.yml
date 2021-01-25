@@ -1,8 +1,8 @@
 name: Update Git Statistic
 on:
-  push:
-    paths-ignore:
-      - "docs/**"
+  schedule:
+    # At 03:43 on every sunday
+    - cron: '43 3 * * SUN'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,8 +15,13 @@ jobs:
         run: ./update_git_statistics.sh
       - name: Commit the changes
         run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Actions Bot"
-          git add src/constant_data/git_stats.cpp
-          git commit -m "GitHub Actions: updated git_stats.h"
-          git push
+          if [[ git status --porcelain --untracked-files=no ]]; then
+            echo "changes detected"
+            git config --global user.email "action@github.com"
+            git config --global user.name "GitHub Actions Bot"
+            git add src/constant_data/git_stats.cpp
+            git commit -m "GitHub Actions: updated git_stats.h"
+            git push
+          else
+            echo "no changes detected, doing nothing"
+          fi

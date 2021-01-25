@@ -36,14 +36,63 @@ namespace controller {
 
         std::chrono::milliseconds idle_sleep(25);
 
+        void openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
+        {
+            if (id==1282) {
+                //there's a to do for that in thumbnail_generator
+                return;
+            }
+            spdlog::level::level_enum level;
+            switch (severity) {
+                case GL_DEBUG_SEVERITY_NOTIFICATION: level = spdlog::level::info; break;
+                case GL_DEBUG_SEVERITY_LOW: level = spdlog::level::debug; break;
+                case GL_DEBUG_SEVERITY_MEDIUM: level = spdlog::level::warn; break;
+                case GL_DEBUG_SEVERITY_HIGH: level = spdlog::level::err; break;
+                default: level = spdlog::level::info;
+            }
+
+            const char* sourceStr;
+            switch (source) {
+                case GL_DEBUG_SOURCE_API: sourceStr = "API"; break;
+                case GL_DEBUG_SOURCE_WINDOW_SYSTEM: sourceStr = "WINDOW_SYSTEM"; break;
+                case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "SHADER_COMPILER"; break;
+                case GL_DEBUG_SOURCE_THIRD_PARTY: sourceStr = "THIRD_PARTY"; break;
+                case GL_DEBUG_SOURCE_APPLICATION: sourceStr = "APPLICATION"; break;
+                case GL_DEBUG_SOURCE_OTHER:
+                default: sourceStr = "OTHER"; break;
+            }
+
+            const char* typeStr;
+            switch (type) {
+                case GL_DEBUG_TYPE_ERROR: typeStr = "ERROR"; break;
+                case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "DEPRECATED_BEHAVIOR"; break;
+                case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: typeStr = "UNDEFINED_BEHAVIOR"; break;
+                case GL_DEBUG_TYPE_PORTABILITY: typeStr = "PORTABILITY"; break;
+                case GL_DEBUG_TYPE_PERFORMANCE: typeStr = "PERFORMANCE"; break;
+                case GL_DEBUG_TYPE_MARKER: typeStr = "MARKER"; break;
+                case GL_DEBUG_TYPE_PUSH_GROUP: typeStr = "PUSH_GROUP"; break;
+                case GL_DEBUG_TYPE_POP_GROUP: typeStr = "POP_GROUP"; break;
+                case GL_DEBUG_TYPE_OTHER:
+                default: typeStr = "OTHER"; break;
+            }
+
+            spdlog::log(level, "OpenGL debug message: source={}, type={}, id={}: {}", sourceStr, typeStr, id, message);
+        }
+
         bool initializeGL() {
             std::lock_guard<std::recursive_mutex> lg(getOpenGlMutex());
+            const auto enableDebugOutput = config::getBool(config::ENABLE_GL_DEBUG_OUTPUT);
             glfwSetErrorCallback(glfwErrorCallback);
             glfwInit();
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, enableDebugOutput?4:3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
             glfwWindowHint(GLFW_SAMPLES, (int) (config::getInt(config::MSAA_SAMPLES)));
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+            if (enableDebugOutput) {
+                spdlog::debug("OpenGL debug context is enabled");
+                glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+            }
 
 #ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -68,6 +117,16 @@ namespace controller {
             glEnable(GL_DEPTH_TEST);
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
+
+            GLint flags;
+            glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+
+            if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+                glEnable(GL_DEBUG_OUTPUT);
+                glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+                glDebugMessageCallback(openGlDebugMessageCallback, nullptr);
+                glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+            }
 
             spdlog::info("OpenGL initialized");
             return true;

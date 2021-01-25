@@ -37,7 +37,8 @@ if [[ "$OS" == "windows" ]]; then
   pacman -S mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain --noconfirm --needed
   pacman -S base-devel mingw-w64-x86_64-cmake mingw-w64-i686-cmake --noconfirm --needed
   pacman -S libcurl-devel --noconfirm --needed
-  pacman -S "$(pacman -Ssq freeglut)" --noconfirm --needed
+  #pacman -S "$(pacman -Ssq freeglut)" --noconfirm --needed
+  pacman -S mingw-w64-i686-freeglut mingw-w64-x86_64-freeglut --noconfirm --needed
   pacman -S mingw-w64-x86_64-glm mingw-w64-i686-glm --noconfirm --needed
   pacman -S mingw-w64-x86_64-libzip mingw-w64-i686-libzip --noconfirm --needed
   pacman -S mingw-w64-x86_64-spdlog --noconfirm --needed

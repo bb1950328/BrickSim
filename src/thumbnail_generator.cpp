@@ -100,7 +100,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile, const LdrC
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);//todo this causes source=API, type=ERROR, id=1282: Error has been generated. GL error GL_INVALID_OPERATION in FramebufferTexture2D: (ID: 2333930068) Generic error
             images[fileKey] = textureId;
             mesh->instances = instanceBackup;
             mesh->instancesHaveChanged = true;

@@ -80,6 +80,7 @@ namespace config {
     const BoolKey ENABLE_VIEWPORTS("enableViewports", false);
     const StringKey FONT("font", "Roboto");
     const IntKey NOT_IMPORTANT_LOG_MESSAGE_KEEP_COUNT("notImportantLogMessageKeepCount", 10);
+    const BoolKey ENABLE_GL_DEBUG_OUTPUT("enableGlDebugOutput", false);
 }
 
 #endif //BRICKSIM_CONFIG_H

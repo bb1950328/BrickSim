@@ -1,5 +1,6 @@
 name: Update Git Statistic
 on:
+  workflow_dispatch:
   schedule:
     # At 03:43 on every sunday
     - cron: '43 3 * * SUN'

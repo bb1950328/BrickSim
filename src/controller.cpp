@@ -116,6 +116,7 @@ namespace controller {
         void initialize() {
             const std::shared_ptr<latest_log_messages_tank::Sink<std::mutex>> x(new latest_log_messages_tank::Sink<std::mutex>);
             spdlog::default_logger()->sinks().push_back(x);
+            spdlog::set_level(spdlog::level::trace);
 
             db::initialize();
 
@@ -169,6 +170,13 @@ namespace controller {
                 initStep.joinThread();
                 spdlog::info("finished init step {}", initStep.getName());
             }
+
+            spdlog::log(spdlog::level::trace, "a trace message");
+            spdlog::log(spdlog::level::debug, "a debug message");
+            spdlog::log(spdlog::level::info, "a info message");
+            spdlog::log(spdlog::level::warn, "a warn message");
+            spdlog::log(spdlog::level::err, "a err message");
+            spdlog::log(spdlog::level::critical, "a critical message");
         }
 
         void cleanup() {

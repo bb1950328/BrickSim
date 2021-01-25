@@ -78,3 +78,4 @@ target_sources(BrickSim PUBLIC
         )
 
 target_include_directories(BrickSim PUBLIC imgui)
+add_compile_definitions(IMGUI_DISABLE_OBSOLETE_FUNCTIONS)

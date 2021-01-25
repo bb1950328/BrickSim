@@ -16,7 +16,9 @@ jobs:
         run: ./update_git_statistics.sh
       - name: Commit the changes
         run: |
-          if [[ git status --porcelain --untracked-files=no ]]; then
+          CHANGED=0
+          git diff --no-ext-diff --quiet || CHANGED=1
+          if [[ "$CHANGED" -eq "1" ]]; then
             echo "changes detected"
             git config --global user.email "action@github.com"
             git config --global user.name "GitHub Actions Bot"

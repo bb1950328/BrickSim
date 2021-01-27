@@ -4,9 +4,12 @@
 
 #include "gui.h"
 #include "../latest_log_messages_tank.h"
+#include "../lib/tinyfiledialogs.h"
 
 namespace gui {
     namespace {
+        constexpr int NUM_LOG_FILTER_PATTERNS = 2;
+        char const * logFilterPatterns[NUM_LOG_FILTER_PATTERNS] = {"*.log", "*.txt"};
         ImVec4 levelToColor(const unsigned char level) {
             switch (level) {
                 case 0:
@@ -34,10 +37,22 @@ namespace gui {
     void windows::drawLogWindow(bool *show){
         if (ImGui::Begin(WINDOW_NAME_LOG, show)) {
             static int minLevel;
+            static float fontSize = ImGui::GetFontSize();
             ImGui::PushStyleColor(ImGuiCol_FrameBg, levelToColor(minLevel));
+            ImGui::SetNextItemWidth(fontSize * 5);
             ImGui::DragInt("Level", &minLevel, 0.02f, 0, 5, levelToText(minLevel));
             ImGui::PopStyleColor();
 
+            ImGui::SameLine();
+            bool copyClicked = ImGui::Button(ICON_FA_CLIPBOARD" Copy");
+            ImGui::SameLine();
+            bool saveClicked = ImGui::Button(ICON_FA_SAVE" Save");
+            ImGui::SameLine();
+            if(ImGui::Button(ICON_FA_BAN" Clear")) {
+                latest_log_messages_tank::clear();
+            }
+
+            std::string exportResult;
             auto tableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY;
             if (ImGui::BeginTable("Log", 3, tableFlags)) {
                 ImGui::TableSetupColumn("Time");
@@ -64,9 +79,29 @@ namespace gui {
                     ImGui::TableSetColumnIndex(2);
                     ImGui::Text("%s", *message.message);
 
+                    if (copyClicked || saveClicked) {
+                        exportResult += (*message.formattedTime
+                                         + std::string("\t")
+                                         + levelToText(message.level)
+                                         + "\t"
+                                         + *message.message
+                                         + "\n");
+                    }
                 }
 
                 ImGui::EndTable();
+
+                if (copyClicked)  {
+                    glfwSetClipboardString(getWindow(), exportResult.c_str());
+                    spdlog::debug("log copied to clipboard");
+                }
+                if (saveClicked) {
+                    const auto path = std::filesystem::path(tinyfd_saveFileDialog("Save log to file", nullptr, NUM_LOG_FILTER_PATTERNS, logFilterPatterns, nullptr));
+                    std::ofstream outFile(path);
+                    outFile << exportResult;
+                    outFile.close();
+                    spdlog::debug("log saved to {}", path.string());
+                }
             }
         }
         ImGui::End();

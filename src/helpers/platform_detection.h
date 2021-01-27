@@ -25,6 +25,7 @@
     #else
     #   error "Unknown Apple platform"
     #endif
+    #define BRICKSIM_PLATFORM_SOME_APPLE
 #elif __linux__
     #define BRICKSIM_PLATFORM_LINUX
 #elif __unix__ // all unices not caught above

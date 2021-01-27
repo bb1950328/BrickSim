@@ -6,6 +6,7 @@
 #define BRICKSIM_CONSTANTS_H
 
 #include "../types.h"
+#include "../helpers/platform_detection.h"
 
 namespace constants {
     constexpr float LDU_TO_OPENGL_SCALE = 0.01f;

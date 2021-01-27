@@ -633,6 +633,4 @@ namespace util {
 
         return {response_code, response_string};
     }
-
-
 }

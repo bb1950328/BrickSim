@@ -54,6 +54,8 @@ namespace latest_log_messages_tank {
 
     iterator getIterator();
 
+    void clear();
+
     template<typename Mutex>
     class Sink : public spdlog::sinks::base_sink<Mutex> {
     protected:
@@ -61,13 +63,13 @@ namespace latest_log_messages_tank {
             constexpr auto timeBufSize = sizeof("12:34:56.789");
             char* time = new char[timeBufSize];
             const time_t timestamp = std::chrono::system_clock::to_time_t(msg.time);
-            const auto time_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(msg.time);
             std::strftime(time, timeBufSize, "%H:%M:%S", std::localtime(&timestamp));
-            snprintf(&time[8], 5, ".%03d", time_ms.time_since_epoch().count()%1000);
+            const auto timeMs = std::chrono::time_point_cast<std::chrono::milliseconds>(msg.time).time_since_epoch().count();
+            snprintf(&time[8], 5, ".%03d", timeMs % 1000);
             char* message = new char[msg.payload.size()+1];
             std::memcpy(message, msg.payload.data(), msg.payload.size()+1);
             addMessage(LogMessage(
-                    static_cast<long>(timestamp),
+                    static_cast<long>(timeMs),
                     (const unsigned char) msg.level,
                     std::make_shared<const char *>(time),
                     std::make_shared<const char *>(message)));

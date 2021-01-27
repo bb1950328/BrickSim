@@ -39,7 +39,7 @@ namespace gui {
         bool showElementTreeWindow = true;
         bool showElementPropertiesWindow = true;
         bool showSettingsWindow = false;
-        bool showDemoWindow = true;
+        bool showDemoWindow = false;
         bool showDebugWindow = true;
         bool showAboutWindow = false;
         bool showSysInfoWindow = false;

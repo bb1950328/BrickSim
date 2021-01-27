@@ -27,6 +27,12 @@ namespace latest_log_messages_tank {
         return iterator();
     }
 
+    void clear() {
+        lastNMessages.clear();
+        alwaysKeepingMessages.clear();
+    }
+
+
     iterator::iterator() : itA(alwaysKeepingMessages.cbegin()), itB(lastNMessages.cbegin()), endA(alwaysKeepingMessages.cend()), endB(lastNMessages.cend()) {
         this->operator++();
     }

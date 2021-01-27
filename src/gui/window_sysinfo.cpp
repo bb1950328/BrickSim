@@ -6,7 +6,7 @@
 
 namespace gui {
     void windows::drawSysInfoWindow(bool *show) {
-        if (ImGui::Begin(ICON_FA_MICROCHIP " System Info", show, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::Begin(WINDOW_NAME_SYSTEM_INFO, show, ImGuiWindowFlags_AlwaysAutoResize)) {
             static const auto infoLines = util::getSystemInfo();
             for (const auto &line: infoLines) {
                 ImGui::Text("%s", line.c_str());

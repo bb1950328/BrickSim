@@ -10,7 +10,7 @@
 
 namespace gui {
     void windows::drawPartPaletteWindow(bool *show) {
-        ImGui::Begin(ICON_FA_TH" Part Palette", show);
+        ImGui::Begin(WINDOW_NAME_PART_PALETTE, show);
 
         static char searchTextBuffer[128] = {'\0'};
         ImGui::InputText(ICON_FA_SEARCH"##search", searchTextBuffer, 128);

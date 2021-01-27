@@ -7,7 +7,7 @@
 
 namespace gui {
     void windows::drawSettingsWindow(bool *show) {
-        ImGui::Begin(ICON_FA_SLIDERS_H" Settings", show);
+        ImGui::Begin(WINDOW_NAME_SETTINGS, show);
         static auto guiScale = (float) (config::getDouble(config::GUI_SCALE));
         static int initialWindowSize[2]{
                 static_cast<int>(config::getInt(config::SCREEN_WIDTH)),

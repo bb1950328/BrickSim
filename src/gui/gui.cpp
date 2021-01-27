@@ -22,7 +22,31 @@
 #include "../helpers/parts_library_downloader.h"
 
 namespace gui {
+    const char* WINDOW_NAME_3D_VIEW = ICON_FA_CUBES" 3D View";
+    const char* WINDOW_NAME_ELEMENT_TREE = ICON_FA_LIST" Element Tree";
+    const char* WINDOW_NAME_ELEMENT_PROPERTIES = ICON_FA_WRENCH" Element Properties";
+    const char* WINDOW_NAME_PART_PALETTE = ICON_FA_TH" Part Palette";
+    const char* WINDOW_NAME_SETTINGS = ICON_FA_SLIDERS_H" Settings";
+    const char* WINDOW_NAME_ABOUT = ICON_FA_INFO_CIRCLE " About";
+    const char* WINDOW_NAME_SYSTEM_INFO = ICON_FA_MICROCHIP " System Info";
+    const char* WINDOW_NAME_DEBUG = ICON_FA_BUG" Debug";
+    const char* WINDOW_NAME_IMGUI_DEMO = ICON_FA_IMAGE" ImGui Demo";
+    const char* WINDOW_NAME_ORIENTATION_CUBE = ICON_FA_CUBE" Orientation Cube";
+    const char* WINDOW_NAME_LOG = ICON_FA_LIST" Log";
+
     namespace {
+        bool show3dWindow = true;
+        bool showElementTreeWindow = true;
+        bool showElementPropertiesWindow = true;
+        bool showSettingsWindow = false;
+        bool showDemoWindow = true;
+        bool showDebugWindow = true;
+        bool showAboutWindow = false;
+        bool showSysInfoWindow = false;
+        bool showPartPaletteWindow = true;
+        bool showOrientationCube = true;
+        bool showLogWindow = false;
+
         char const * lFilterPatterns[NUM_LDR_FILTER_PATTERNS] = {"*.ldr", "*.dat", "*.mpd", "*.io"};
         char const * imageFilterPatterns[NUM_IMAGE_FILTER_PATTERNS] = {"*.png", "*.jpg", "*.bmp", "*.tga"};
         char const * zipFilterPatterns[NUM_ZIP_FILTER_PATTERNS] = {"*.zip"};
@@ -35,6 +59,48 @@ namespace gui {
         float blockingMessageProgress = 0;
 
         util::TextureLoadResult logoTexture;
+
+        ImGuiID dockspaceId = 0;
+
+        void applyDefaultWindowLayout() {
+            ImGui::DockBuilderRemoveNodeChildNodes(dockspaceId);
+
+            show3dWindow = true;
+            showElementTreeWindow = true;
+            showElementPropertiesWindow = true;
+            showSettingsWindow = false;
+            showDemoWindow = false;
+            showDebugWindow = true;
+            showAboutWindow = false;
+            showSysInfoWindow = false;
+            showPartPaletteWindow = true;
+            showOrientationCube = true;
+            showLogWindow = false;
+
+            ImGuiID level0left, level0right;
+            ImGui::DockBuilderSplitNode(dockspaceId, ImGuiDir_Right, 0.4, &level0right, &level0left);
+
+            ImGuiID level1rightTop, level1rightBottom;
+            ImGui::DockBuilderSplitNode(level0right, ImGuiDir_Down, 0.6, &level1rightBottom, &level1rightTop);
+
+            ImGuiID level2rightTopLeft, level2rightTopRight;
+            ImGui::DockBuilderSplitNode(level1rightTop, ImGuiDir_Left, 0.4, &level2rightTopLeft, &level2rightTopRight);
+
+            ImGui::DockBuilderDockWindow(WINDOW_NAME_ORIENTATION_CUBE, level2rightTopLeft);
+            ImGui::DockBuilderDockWindow(WINDOW_NAME_DEBUG, level2rightTopRight);
+            ImGui::DockBuilderDockWindow(WINDOW_NAME_ELEMENT_PROPERTIES, level1rightBottom);
+
+
+            ImGuiID level1leftBottom, level1leftTop;
+            ImGui::DockBuilderSplitNode(level0left, ImGuiDir_Down, 0.4, &level1leftBottom, &level1leftTop);
+
+            ImGuiID level2leftTopLeft, level2leftTopRight;
+            ImGui::DockBuilderSplitNode(level1leftTop, ImGuiDir_Left, 0.3, &level2leftTopLeft, &level2leftTopRight);
+
+            ImGui::DockBuilderDockWindow(WINDOW_NAME_PART_PALETTE, level1leftBottom);
+            ImGui::DockBuilderDockWindow(WINDOW_NAME_ELEMENT_TREE, level2leftTopLeft);
+            ImGui::DockBuilderDockWindow(WINDOW_NAME_3D_VIEW, level2leftTopRight);
+        }
     }
 
     void setup() {
@@ -180,17 +246,19 @@ namespace gui {
     }
 
     void drawMainWindows() {
-        static bool show3dWindow = true;
-        static bool showElementTreeWindow = true;
-        static bool showElementPropertiesWindow = true;
-        static bool showSettingsWindow = false;
-        static bool showDemoWindow = true;
-        static bool showDebugWindow = true;
-        static bool showAboutWindow = false;
-        static bool showSysInfoWindow = false;
-        static bool showPartPaletteWindow = true;
-        static bool showOrientationCube = true;
-        static bool showLogWindow = false;
+        static std::tuple<std::string, bool *, std::function<void(bool *)>> windowFuncsAndState[]{
+                {WINDOW_NAME_3D_VIEW,             &show3dWindow,                windows::draw3dWindow},
+                {WINDOW_NAME_ELEMENT_TREE,        &showElementTreeWindow,       windows::drawElementTreeWindow},
+                {WINDOW_NAME_ELEMENT_PROPERTIES,  &showElementPropertiesWindow, windows::drawElementPropertiesWindow},
+                {WINDOW_NAME_PART_PALETTE,        &showPartPaletteWindow,       windows::drawPartPaletteWindow},
+                {WINDOW_NAME_SETTINGS,            &showSettingsWindow,          windows::drawSettingsWindow},
+                {WINDOW_NAME_ABOUT,               &showAboutWindow,             windows::drawAboutWindow},
+                {WINDOW_NAME_SYSTEM_INFO,         &showSysInfoWindow,           windows::drawSysInfoWindow},
+                {WINDOW_NAME_DEBUG,               &showDebugWindow,             windows::drawDebugWindow},
+                {WINDOW_NAME_IMGUI_DEMO,          &showDemoWindow,              ImGui::ShowDemoWindow},
+                {WINDOW_NAME_ORIENTATION_CUBE,    &showOrientationCube,         windows::drawOrientationCube},
+                {WINDOW_NAME_LOG,                 &showLogWindow,               windows::drawLogWindow},
+        };
 
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
@@ -225,19 +293,23 @@ namespace gui {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("View")) {
-                ImGui::MenuItem(ICON_FA_CUBES" 3D View", "ALT+V", &show3dWindow);
-                ImGui::MenuItem(ICON_FA_CUBE" Orientation Cube", "", &showOrientationCube);
+                ImGui::MenuItem(WINDOW_NAME_3D_VIEW, "ALT+V", &show3dWindow);
+                ImGui::MenuItem(WINDOW_NAME_ORIENTATION_CUBE, "", &showOrientationCube);
                 ImGui::Separator();
-                ImGui::MenuItem(ICON_FA_LIST" Element Tree", "ALT+T", &showElementTreeWindow);
-                ImGui::MenuItem(ICON_FA_WRENCH" Element Properties", "ALT+P", &showElementPropertiesWindow);
+                ImGui::MenuItem(WINDOW_NAME_ELEMENT_TREE, "ALT+T", &showElementTreeWindow);
+                ImGui::MenuItem(WINDOW_NAME_ELEMENT_PROPERTIES, "ALT+P", &showElementPropertiesWindow);
                 ImGui::Separator();
-                ImGui::MenuItem(ICON_FA_TH" Part Palette", "ALT+N", &showPartPaletteWindow);
+                ImGui::MenuItem(WINDOW_NAME_PART_PALETTE, "ALT+N", &showPartPaletteWindow);
                 ImGui::Separator();
-                ImGui::MenuItem(ICON_FA_SLIDERS_H" Settings", "ALT+S", &showSettingsWindow);
+                ImGui::MenuItem(WINDOW_NAME_SETTINGS, "ALT+S", &showSettingsWindow);
                 ImGui::Separator();
-                ImGui::MenuItem(ICON_FA_IMAGE" ImGui Demo", "", &showDemoWindow);
-                ImGui::MenuItem(ICON_FA_BUG" Debug", "ALT+D", &showDebugWindow);
-                ImGui::MenuItem(ICON_FA_LIST" Log", nullptr, &showLogWindow);
+                ImGui::MenuItem(WINDOW_NAME_IMGUI_DEMO, "", &showDemoWindow);
+                ImGui::MenuItem(WINDOW_NAME_DEBUG, "ALT+D", &showDebugWindow);
+                ImGui::MenuItem(WINDOW_NAME_LOG, nullptr, &showLogWindow);
+                ImGui::Separator();
+                if (ImGui::MenuItem("Apply default window layout")) {
+                    applyDefaultWindowLayout();
+                }
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Selection")) {
@@ -276,25 +348,13 @@ namespace gui {
             ImGui::EndMainMenuBar();
         }
 
-        static std::tuple<std::string, bool*, std::function<void(bool*)>> windowFuncsAndState[]{
-                {ICON_FA_CUBES" 3D View", &show3dWindow, windows::draw3dWindow},
-                {ICON_FA_LIST" Element Tree", &showElementTreeWindow, windows::drawElementTreeWindow},
-                {ICON_FA_WRENCH" Element Properties", &showElementPropertiesWindow, windows::drawElementPropertiesWindow},
-                {ICON_FA_TH" Part Palette", &showPartPaletteWindow, windows::drawPartPaletteWindow},
-                {ICON_FA_SLIDERS_H" Settings", &showSettingsWindow, windows::drawSettingsWindow},
-                {ICON_FA_INFO_CIRCLE " About", &showAboutWindow, windows::drawAboutWindow},
-                {ICON_FA_MICROCHIP " System Info", &showSysInfoWindow, windows::drawSysInfoWindow},
-                {ICON_FA_BUG" Debug", &showDebugWindow, windows::drawDebugWindow},
-                {ICON_FA_IMAGE" ImGui Demo", &showDemoWindow, ImGui::ShowDemoWindow},
-                {ICON_FA_CUBE" Orientation Cube", &showOrientationCube, windows::drawOrientationCube},
-                {ICON_FA_LIST" Log", &showLogWindow, windows::drawLogWindow},
-        };
+        dockspaceId = ImGui::DockSpaceOverViewport();
 
         std::vector<std::pair<std::string, float>> drawingTimes;
         for (const auto &winFuncState : windowFuncsAndState) {
-            const auto& windowName = std::get<0>(winFuncState);
-            const auto& windowState = std::get<1>(winFuncState);
-            const auto& windowFunc = std::get<2>(winFuncState);
+            const auto &windowName = std::get<0>(winFuncState);
+            const auto &windowState = std::get<1>(winFuncState);
+            const auto &windowFunc = std::get<2>(winFuncState);
 
             if (*windowState) {
                 auto before = std::chrono::high_resolution_clock::now();

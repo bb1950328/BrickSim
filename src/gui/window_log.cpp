@@ -32,7 +32,7 @@ namespace gui {
     }
     
     void windows::drawLogWindow(bool *show){
-        if (ImGui::Begin(ICON_FA_LIST " Log", show)) {
+        if (ImGui::Begin(WINDOW_NAME_LOG, show)) {
             static int minLevel;
             ImGui::PushStyleColor(ImGuiCol_FrameBg, levelToColor(minLevel));
             ImGui::DragInt("Level", &minLevel, 0.02f, 0, 5, levelToText(minLevel));

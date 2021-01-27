@@ -14,7 +14,7 @@
 namespace gui {
     void windows::drawElementPropertiesWindow(bool *show) {
         static etree::Node *lastSelectedNode = nullptr;
-        ImGui::Begin(ICON_FA_WRENCH" Element Properties", show);
+        ImGui::Begin(WINDOW_NAME_ELEMENT_PROPERTIES, show);
         if (controller::getSelectedNodes().empty()) {
             ImGui::Text("Select an element to view its properties here");
         } else if (controller::getSelectedNodes().size() == 1) {

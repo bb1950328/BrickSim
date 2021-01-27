@@ -7,7 +7,7 @@
 
 namespace gui {
     void windows::drawDebugWindow(bool* show) {
-        ImGui::Begin(ICON_FA_BUG" Debug", show);
+        ImGui::Begin(WINDOW_NAME_DEBUG, show);
         long lastFrameTime = controller::getLastFrameTime();
         ImGui::Text(ICON_FA_CHART_LINE" Application average %.3f ms/frame (%.1f FPS)", lastFrameTime / 1000.0, 1000000.0 / lastFrameTime);
         ImGui::Text(ICON_FA_MEMORY" Total graphics buffer size: %s", util::formatBytesValue(statistic::vramUsageBytes).c_str());

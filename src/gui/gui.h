@@ -17,6 +17,18 @@ constexpr int NUM_IMAGE_FILTER_PATTERNS = 4;
 constexpr int NUM_ZIP_FILTER_PATTERNS = 1;
 
 namespace gui {
+    extern const char* WINDOW_NAME_3D_VIEW;
+    extern const char* WINDOW_NAME_ELEMENT_TREE;
+    extern const char* WINDOW_NAME_ELEMENT_PROPERTIES;
+    extern const char* WINDOW_NAME_PART_PALETTE;
+    extern const char* WINDOW_NAME_SETTINGS;
+    extern const char* WINDOW_NAME_ABOUT;
+    extern const char* WINDOW_NAME_SYSTEM_INFO;
+    extern const char* WINDOW_NAME_DEBUG;
+    extern const char* WINDOW_NAME_IMGUI_DEMO;
+    extern const char* WINDOW_NAME_ORIENTATION_CUBE;
+    extern const char* WINDOW_NAME_LOG;
+
     namespace windows {
         void draw3dWindow(bool* show);
         void drawElementTreeWindow(bool* show);

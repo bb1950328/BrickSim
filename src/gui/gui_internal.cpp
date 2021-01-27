@@ -16,6 +16,8 @@ namespace gui_internal {
                 ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);
                 realThumbnailAvailable = true;
             }
+        } else {
+            controller::getThumbnailGenerator().removeFromRenderQueue(part, color);
         }
         if (!realThumbnailAvailable) {
             ImGui::Button(part->metaInfo.name.c_str(), actualThumbSizeSquared);

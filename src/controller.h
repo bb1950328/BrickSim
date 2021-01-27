@@ -49,7 +49,6 @@ namespace controller {
     Renderer* getRenderer();
     etree::ElementTree& getElementTree();
     ThumbnailGenerator& getThumbnailGenerator();
-    long getLastFrameTime();
     std::recursive_mutex & getOpenGlMutex();
 
     std::map<unsigned int, Task *> & getBackgroundTasks();
@@ -58,6 +57,8 @@ namespace controller {
     std::queue<Task *>& getForegroundTasks();
 
     [[nodiscard]] bool doesUserWantToExit();
+
+    std::tuple<unsigned short, float *, unsigned short> getLastFrameTimes();
 };
 
 #endif //BRICKSIM_CONTROLLER_H

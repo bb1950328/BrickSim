@@ -8,8 +8,13 @@
 namespace gui {
     void windows::drawDebugWindow(bool* show) {
         ImGui::Begin(WINDOW_NAME_DEBUG, show);
-        long lastFrameTime = controller::getLastFrameTime();
-        ImGui::Text(ICON_FA_CHART_LINE" Application average %.3f ms/frame (%.1f FPS)", lastFrameTime / 1000.0, 1000000.0 / lastFrameTime);
+        const auto lastFrameTimes = controller::getLastFrameTimes();
+        const auto count = std::get<0>(lastFrameTimes);
+        const auto arrPtr = std::get<1>(lastFrameTimes);
+        const auto startIdx = std::get<2>(lastFrameTimes);
+        ImGui::Text(ICON_FA_CHART_LINE" Application average %.3f ms/frame (%.1f FPS)", arrPtr[startIdx], 1000.0 / arrPtr[startIdx]);
+        //ImGui::PlotLines("ms/frame", [arrPtr, startIdx, count](void*data, int idx) { return const_cast<const float*>(&(arrPtr[(startIdx+idx)%count])); }, nullptr, count);
+        ImGui::PlotLines("ms/frame", arrPtr, count, startIdx);
         ImGui::Text(ICON_FA_MEMORY" Total graphics buffer size: %s", util::formatBytesValue(statistic::vramUsageBytes).c_str());
         ImGui::Text(ICON_FA_IMAGES" Total thumbnail buffer size: %s", util::formatBytesValue(statistic::thumbnailBufferUsageBytes).c_str());
         ImGui::Text(ICON_FA_SYNC" Last element tree reread: %.2f ms", statistic::lastElementTreeRereadMs);

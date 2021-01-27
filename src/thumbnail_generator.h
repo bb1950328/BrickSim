@@ -24,19 +24,21 @@ private:
     int framebufferSize = 0;
     [[nodiscard]] unsigned int copyFramebufferToTexture() const;
     glm::vec3 renderedRotationDegrees;
-    std::list<std::pair<const LdrFile*, const LdrColor*>> renderRequests;
+    std::list<std::pair<const LdrFile*, const LdrColor*>> renderRequests;//TODO check if this can be made a set (maybe faster)
 public:
     unsigned int framebuffer, textureBuffer, renderBuffer;
     int size;
     glm::vec3 rotationDegrees;
     unsigned int getThumbnail(const LdrFile* ldrFile, const LdrColor *color);
     std::optional<unsigned int> getThumbnailNonBlocking(const LdrFile *ldrFile, const LdrColor *color);
+    bool isThumbnailAvailable(const LdrFile *ldrFile, const LdrColor *color);
     void cleanup();
     void discardOldestImages(int reserve_space_for=1);
     explicit ThumbnailGenerator(Renderer *renderer);
     void discardAllImages();
     bool workOnRenderQueue();
     bool renderQueueEmpty();
+    void removeFromRenderQueue(const LdrFile *ldrFile, const LdrColor *color);
 
     void saveFramebufferToBMP(const std::string &filename) const;
     void initialize();

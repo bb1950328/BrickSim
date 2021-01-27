@@ -27,7 +27,7 @@ namespace controller {
         unsigned int view3dHeight = 600;
         unsigned int windowWidth;
         unsigned int windowHeight;
-        long lastFrameTime = 0;//in µs
+
         bool userWantsToExit = false;
         std::set<etree::Node *> selectedNodes;
         etree::Node *currentlyEditingNode;
@@ -35,6 +35,10 @@ namespace controller {
         std::queue<Task *> foregroundTasks;
 
         std::chrono::milliseconds idle_sleep(25);
+
+        constexpr unsigned short lastFrameTimesSize = 256;
+        float lastFrameTimes[lastFrameTimesSize] = {0};//in ms
+        unsigned short lastFrameTimesStartIdx = 0;
 
         void openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
         {
@@ -319,7 +323,8 @@ namespace controller {
                 moreWork = thumbnailGenerator.workOnRenderQueue();
             } while (glfwGetTime() - loopStart < 1.0 / 60 && moreWork);
             auto after = std::chrono::high_resolution_clock::now();
-            lastFrameTime = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
+            lastFrameTimes[lastFrameTimesStartIdx] = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()/1000.0f;
+            lastFrameTimesStartIdx = (lastFrameTimesStartIdx+1)%lastFrameTimesSize;
             glfwSwapBuffers(window);
             glfwPollEvents();
         }
@@ -471,10 +476,6 @@ namespace controller {
         return thumbnailGenerator;
     }
 
-    long getLastFrameTime() {
-        return lastFrameTime;
-    }
-
     std::recursive_mutex &getOpenGlMutex() {
         static std::recursive_mutex openGlMutex;
         return openGlMutex;
@@ -495,5 +496,9 @@ namespace controller {
 
     std::queue<Task *> &getForegroundTasks() {
         return foregroundTasks;
+    }
+
+    std::tuple<unsigned short, float*, unsigned short> getLastFrameTimes() {
+        return std::make_tuple(lastFrameTimesSize, lastFrameTimes, lastFrameTimesStartIdx);
     }
 }

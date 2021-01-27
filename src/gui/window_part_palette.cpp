@@ -2,6 +2,7 @@
 // Created by bb1950328 on 15.11.2020.
 //
 
+#include <spdlog/spdlog.h>
 #include "gui.h"
 #include "../ldr_file_repository.h"
 #include "../controller.h"

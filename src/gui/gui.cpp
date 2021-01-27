@@ -63,6 +63,7 @@ namespace gui {
         ImGuiID dockspaceId = 0;
 
         void applyDefaultWindowLayout() {
+            spdlog::debug("applying default window layout");
             ImGui::DockBuilderRemoveNodeChildNodes(dockspaceId);
 
             show3dWindow = true;

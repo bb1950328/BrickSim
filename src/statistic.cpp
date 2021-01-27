@@ -15,5 +15,4 @@ namespace statistic {
     float lastElementTreeRereadMs = 0;
     float lastThumbnailRenderingTimeMs = 0;
     std::vector<std::pair<std::string, float>> lastWindowDrawingTimesMs = {};
-
 }

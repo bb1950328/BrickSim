@@ -12,6 +12,7 @@
 #include "config.h"
 #include "ldr_colors.h"
 #include "controller.h"
+#include "latest_log_messages_tank.h"
 
 unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile, const LdrColor *color) {
     if (renderedRotationDegrees != rotationDegrees) {
@@ -21,6 +22,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile, const LdrC
     std::pair<const LdrFile*, const LdrColor*> fileKey = {ldrFile, color}; 
     auto imgIt = images.find(fileKey);
     if (imgIt == images.end()) {
+        spdlog::debug("rendering thumbnail {} in {}", ldrFile->getDescription(), color->name);
         auto before = std::chrono::high_resolution_clock::now();
         if (framebufferSize != size) {
             renderer->createFramebuffer(&framebuffer, &textureBuffer, &renderBuffer, size, size);
@@ -220,4 +222,17 @@ unsigned int ThumbnailGenerator::copyFramebufferToTexture() const {
 
 bool ThumbnailGenerator::renderQueueEmpty() {
     return renderRequests.empty();
+}
+
+bool ThumbnailGenerator::isThumbnailAvailable(const LdrFile *ldrFile, const LdrColor *color) {
+    std::pair<const LdrFile*, const LdrColor*> fileKey = {ldrFile, color};
+    return images.find(fileKey) != images.end();
+}
+
+void ThumbnailGenerator::removeFromRenderQueue(const LdrFile *ldrFile, const LdrColor *color) {
+    std::pair<const LdrFile*, const LdrColor*> fileKey = {ldrFile, color};
+    auto it = std::find(renderRequests.begin(), renderRequests.end(), fileKey);
+    if (it != renderRequests.end()) {
+        renderRequests.erase(it);
+    }
 }

@@ -5,7 +5,7 @@ const showId = 'show';
 const menu = 'menu';
 
 // defined in config.toml
-const parentURL = 'https://bb1950328.github.io/BrickSim';
+const parentURL = 'https://BrickSim.org';
 
 // defined in i18n / translation files
 const quickLinks = 'Quick links';
@@ -667,7 +667,7 @@ function loadActions() {
   headingNodes.forEach(function(node){
     link = createEl('a');
     icon = createEl('img');
-    icon.src = 'https://bb1950328.github.io/BrickSim/icons/link.svg';
+    icon.src = 'https://BrickSim.org/icons/link.svg';
     link.className = 'link icon';
     link.appendChild(icon);
     id = node.getAttribute('id');
@@ -741,6 +741,9 @@ function loadActions() {
     return mode.join('');
   }
 
+  /**
+   * @param isDarkMode true means from dark to light, false means from light to dark
+   */
   function changeMode(isDarkMode) {
     if(isDarkMode) {
       bank.setItem(storageKey, light)
@@ -796,6 +799,7 @@ function loadActions() {
   function setUserColorMode(mode = false) {
     const isDarkMode = currentMode() == dark;
     const storedMode = bank.getItem(storageKey);
+    const sysMode = systemMode();
     if(storedMode) {
       if(mode) {
         changeMode(isDarkMode);
@@ -805,9 +809,10 @@ function loadActions() {
     } else {
       if(mode === true) {
         changeMode(isDarkMode)
+      } else {
+        changeMode(sysMode!==dark);
       }
     }
-    const sysMode = systemMode();
     const userMode = doc.dataset.mode;
     doc.dataset.systemmode = sysMode;
     if(userMode) {

@@ -110,11 +110,6 @@ const idx = [
     "body": "[This Program is currently under development and shouldn't be used in a productive environment yet. If you want to help, look at the contribution section in the docs. BrickSim lorem ipsum Read the Docs Look at the screenshots]".toLowerCase(),
   },
   {
-    "link": "https://BrickSim.org/screenshots/",
-    "title": "",
-    "body": "[Here you can see how BrickSim looks and what the main features are.]".toLowerCase(),
-  },
-  {
     "link": "https://BrickSim.org/categories/",
     "title": "Categories",
     "body": "[]".toLowerCase(),
@@ -123,6 +118,11 @@ const idx = [
     "link": "https://BrickSim.org/docs/",
     "title": "Docs",
     "body": "[All Knowledge about BrickSim is placed inside this Section.]".toLowerCase(),
+  },
+  {
+    "link": "https://BrickSim.org/screenshots/",
+    "title": "Screenshots",
+    "body": "[Here you can see how BrickSim looks and what the main features are.]".toLowerCase(),
   },
   {
     "link": "https://BrickSim.org/tags/",

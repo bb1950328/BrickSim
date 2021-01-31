@@ -161,3 +161,7 @@ void Shader::checkCompileErrors(GLuint shader, const std::string &type) {
         }
     }
 }
+
+Shader::~Shader() {
+    glDeleteProgram(ID);
+}

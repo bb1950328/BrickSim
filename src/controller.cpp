@@ -195,9 +195,9 @@ namespace controller {
 
             renderer.window = window;
             gui::setWindow(window);
-            gui::setup();
+            gui::initialize();
             renderer.setWindowSize(view3dWidth, view3dHeight);
-            renderer.setup();
+            renderer.initialize();
 
             while (!ldr_file_repo::checkLdrawLibraryLocation()) {
                 loopPartsLibrarySetupPrompt();
@@ -244,6 +244,7 @@ namespace controller {
 
         void cleanup() {
             renderer.cleanup();
+            ldr_file_repo::cleanup();
             auto &bgTasks = getBackgroundTasks();
             spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
             for (auto &task : bgTasks) {
@@ -421,7 +422,7 @@ namespace controller {
     void insertLdrElement(LdrFile *ldrFile) {
         auto currentlyEditingLdrNode = dynamic_cast<etree::LdrNode *>(currentlyEditingNode);
         switch (ldrFile->metaInfo.type) {
-            case MODEL:currentlyEditingNode = new etree::MpdNode(ldrFile, ldr_color_repo::get_color(2), &elementTree.rootNode);
+            case MODEL: currentlyEditingNode = new etree::MpdNode(ldrFile, ldr_color_repo::get_color(2), &elementTree.rootNode);
                 elementTree.rootNode.addChild(currentlyEditingNode);
                 break;
             case MPD_SUBFILE:

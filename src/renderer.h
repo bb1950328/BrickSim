@@ -54,7 +54,7 @@ public:
     unsigned int currentSelectionBuffersWidth = 0;
     unsigned int currentSelectionBuffersHeight = 0;
 
-    bool setup();
+    bool initialize();
 
     void updateProjectionMatrix();
 

@@ -63,6 +63,7 @@ public:
     unsigned int referenceCount = 0;
 
     LdrFile() = default;
+    virtual ~LdrFile();
 
     std::vector<LdrFileElement *> elements;
     std::set<LdrFile*> mpdSubFiles;

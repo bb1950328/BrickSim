@@ -48,18 +48,6 @@ namespace ldr_file_repo {
 
         LdrFile *openFile(LdrFileType fileType, const std::string *content, const std::string &fileName) {
             LdrFile *file = LdrFile::parseFile(fileType, fileName, content);
-            /*std::vector<std::string> fileNames = {fileName};
-            while (util::startsWith(util::trim(file->metaInfo.title), "~Moved to ")) {
-                fileName = util::trim(file->metaInfo.title).substr(10) + ".dat";
-                auto typeNamePair = findAndReadFileContent(fileName);
-                file = LdrFile::parseFile(typeNamePair.first, fileName, typeNamePair.second);
-                fileNames.push_back(fileName);
-            }
-            auto filePair = std::make_pair(fileType, file);
-            for (const auto &fname : fileNames) {
-                files[fname] = filePair;
-            }*///todo put that somewhere else
-
             files[fileName] = {fileType, file};
             return file;
         }
@@ -259,8 +247,14 @@ namespace ldr_file_repo {
         files[filename] = std::make_pair(type, file);
     }
 
-    void clearCache() {
+    void cleanup() {
+        for (const auto &file : files) {
+            delete file.second.second;
+        }
         files.clear();
+        if (zipLibrary!= nullptr) {
+            delete zipLibrary;
+        }
     }
 
     bool checkLdrawLibraryLocation() {

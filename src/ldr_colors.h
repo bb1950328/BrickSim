@@ -31,7 +31,7 @@ public:
         NONE, CHROME, PEARLESCENT, RUBBER, MATTE_METALLIC, METAL, MATERIAL
     };
 
-    std::string getGroupDisplayName() const;
+    [[nodiscard]] std::string getGroupDisplayName() const;
 
     LdrColor() = default;
 

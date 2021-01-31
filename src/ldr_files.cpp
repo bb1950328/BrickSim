@@ -187,6 +187,12 @@ bool LdrFile::isComplexEnoughForOwnMesh() const {
     return (metaInfo.type!=SUBPART && metaInfo.type!=PRIMITIVE);// todo spend more time here, I think there's much more potential here
 }
 
+LdrFile::~LdrFile(){
+    for (const auto element : elements) {
+        delete element;
+    }
+}
+
 LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
     content = line;
 }

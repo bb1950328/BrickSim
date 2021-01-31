@@ -18,9 +18,9 @@ public:
 
     void rereadElementTree();
 
-    void drawTriangleGraphics(const layer_t layer) const;
-    void drawLineGraphics(const layer_t layer) const;
-    void drawOptionalLineGraphics(const layer_t layer) const;
+    void drawTriangleGraphics(layer_t layer) const;
+    void drawLineGraphics(layer_t layer) const;
+    void drawOptionalLineGraphics(layer_t layer) const;
 
     etree::Node* getElementById(unsigned int id);
 
@@ -28,6 +28,8 @@ public:
 
     std::pair<glm::vec3, glm::vec3> getBoundingBox(const etree::MeshNode *node) const;
     [[nodiscard]] const std::set<layer_t> &getLayersInUse() const;
+
+    virtual ~MeshCollection();
 private:
     std::vector<etree::Node*> elementsSortedById;
 

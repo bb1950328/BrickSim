@@ -12,7 +12,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "lib/stb_image_write.h"
 
-bool Renderer::setup() {
+bool Renderer::initialize() {
     if (setupCalled) {
         return true;
     }
@@ -125,6 +125,12 @@ bool Renderer::loop() {
 
 bool Renderer::cleanup() {
     meshCollection.deallocateGraphics();
+    delete lineShader;
+    delete optionalLineShader;
+    delete triangleShader;
+    delete textureShader;
+    deleteFramebuffer(&imageFramebuffer, &imageTextureColorbuffer, &imageRenderBufferObject);
+    deleteFramebuffer(&selectionFramebuffer, &selectionTextureColorbuffer, &selectionRenderBufferObject);
     return true;
 }
 

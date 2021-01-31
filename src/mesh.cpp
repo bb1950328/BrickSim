@@ -174,8 +174,8 @@ void Mesh::addLdrOptionalLine(const LdrColor *mainColor, const LdrOptionalLine &
 void Mesh::addOptionalLineVertex(const LineVertex &vertex) {
     if (!optionalLineVertices.empty()) {
         const auto stop = optionalLineVertices.size() >= 8 ? 8 : optionalLineVertices.size();
-        for (size_t i = 0; i < stop; ++i) {
-            size_t index = optionalLineVertices.size() - i;
+        for (size_t i = 1; i < stop; ++i) {
+            const auto index = optionalLineVertices.size() - i;
             if (optionalLineVertices[index] == vertex) {
                 optionalLineIndices.push_back(index);
                 return;
@@ -187,7 +187,7 @@ void Mesh::addOptionalLineVertex(const LineVertex &vertex) {
 }
 
 void Mesh::addLineVertex(const LineVertex &vertex) {
-    for (int i = lineVertices.size(); i > lineVertices.size() - 12; --i) {
+    for (int i = (int)lineVertices.size() - 1; i >= std::max((int)lineVertices.size() - 12, 0); --i) {
         if (vertex.position == lineVertices[i].position && vertex.color == lineVertices[i].color) {
             lineIndices.push_back(i);
             return;

@@ -24,7 +24,7 @@ namespace ldr_file_repo {
     std::pair<LdrFileType, const std::string *> findAndReadFileContent(const std::string &filename);
     const std::string* readFileFromLdrawDirectory(const std::string& filename);
 
-    void clearCache();
+    void cleanup();
     void initializeFileList(float *progress);
     bool checkLdrawLibraryLocation();
 

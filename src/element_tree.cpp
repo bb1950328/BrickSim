@@ -65,14 +65,16 @@ namespace etree {
         }
         if (it != children.end()) {
             //delete *it;//todo do this to free memory but it throws some corrupted list errors....
+            delete *it;
             children.erase(it);
         }
     }
 
     Node::~Node() {
-        for (const auto &child : children) {
+        for (const Node* child : children) {
             delete child;
         }
+        children.clear();
     }
 
     bool MeshNode::isColorUserEditable() const {

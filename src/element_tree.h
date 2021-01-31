@@ -142,7 +142,6 @@ namespace etree {
         RootNode rootNode;
         Node * loadLdrFile(const std::string &filename);
         void print();
-
     private:
         void printFromNode(int indent, Node *node);
     };

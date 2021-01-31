@@ -633,4 +633,10 @@ namespace util {
 
         return {response_code, response_string};
     }
+
+    DestructorNotifier::DestructorNotifier(const char *name) : name(name) {}
+
+    DestructorNotifier::~DestructorNotifier() {
+        std::cout << "destructer of " << name << " called." << std::endl;
+    }
 }

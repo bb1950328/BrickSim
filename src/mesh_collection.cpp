@@ -256,3 +256,13 @@ std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBoxInternal(const etr
 const std::set<layer_t> &MeshCollection::getLayersInUse() const {
     return layersInUse;
 }
+
+MeshCollection::~MeshCollection() {
+    std::cout << "elementTree* = " << static_cast<void*>(elementTree) << std::endl;
+    //todo this gives a free(): invalid pointer but is a big memory leak (47MB)
+    // delete elementTree;
+    // for (const auto &mesh : meshes) {
+    //     delete mesh.second;
+    // }
+    // meshes.clear();
+}

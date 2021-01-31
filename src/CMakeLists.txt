@@ -26,8 +26,6 @@ target_sources(BrickSim PUBLIC
         tools/gears.h
         constant_data/constants.h
 
-        #file_downloader.cpp
-        #file_downloader.h
         constant_data/git_stats.h
         thumbnail_generator.cpp
         thumbnail_generator.h

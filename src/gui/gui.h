@@ -41,15 +41,20 @@ namespace gui {
         void drawOrientationCube(bool *show);
         void drawLogWindow(bool *show);
     }
+
+    namespace {
+        void applyDefaultWindowLayout();
+        void setupStyle();
+        void setupFont(float scaleFactor, ImGuiIO &io);
+    }
+
     void drawMenuBar(bool* show);
 
     void setWindow(GLFWwindow* value);
     GLFWwindow* getWindow();
     void setLastScrollDeltaY(double value);
     double getLastScrollDeltaY();
-    void setup();
-    void setupStyle();
-    void setupFont(float scaleFactor, ImGuiIO &io);
+    void initialize();
     [[nodiscard]] bool isSetupDone();
 
     void beginFrame();

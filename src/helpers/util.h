@@ -135,5 +135,16 @@ namespace util {
      * @return (responseCode, responseString)
      */
     std::pair<int, std::string> requestGET(const std::string &url, bool useCache = true, size_t sizeLimit = 0, int (*progressFunc)(void *, long, long, long, long) = nullptr);
+
+    class DestructorNotifier {
+    public:
+        virtual ~DestructorNotifier();
+        DestructorNotifier(const char *name);
+    private:
+        const char* name;
+    };
 }
+
+
+
 #endif //BRICKSIM_UTIL_H

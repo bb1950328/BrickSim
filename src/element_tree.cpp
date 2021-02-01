@@ -4,8 +4,8 @@
 
 #include "element_tree.h"
 #include "config.h"
-#include "ldr_file_repository.h"
-#include "ldr_colors.h"
+#include "ldr_files/ldr_file_repository.h"
+#include "ldr_files/ldr_colors.h"
 
 namespace etree {
 

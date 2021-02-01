@@ -8,7 +8,7 @@
 #include <map>
 #include <glm/glm.hpp>
 #include <vector>
-#include "helpers/util.h"
+#include "../helpers/util.h"
 
 
 struct LdrColorMaterial {

@@ -1,7 +1,7 @@
 target_sources(BrickSim PUBLIC
         main.cpp
-        ldr_files.cpp
-        ldr_files.h
+        ldr_files/ldr_files.cpp
+        ldr_files/ldr_files.h
         config.cpp
         config.h
         mesh.cpp
@@ -13,10 +13,10 @@ target_sources(BrickSim PUBLIC
         mesh_collection.h
         statistic.cpp
         statistic.h
-        ldr_file_repository.cpp
-        ldr_file_repository.h
-        ldr_colors.cpp
-        ldr_colors.h
+        ldr_files/ldr_file_repository.cpp
+        ldr_files/ldr_file_repository.h
+        ldr_files/ldr_colors.cpp
+        ldr_files/ldr_colors.h
         renderer.cpp
         renderer.h
 

@@ -9,7 +9,7 @@
 #include <vector>
 #include <set>
 #include <cstring>
-#include "ldr_files.h"
+#include "ldr_files/ldr_files.h"
 #include "shaders/shader.h"
 #include "helpers/camera.h"
 #include "constant_data/constants.h"

@@ -9,8 +9,8 @@
 #include <cstring>
 #include <spdlog/spdlog.h>
 #include "ldr_files.h"
-#include "helpers/util.h"
-#include "config.h"
+#include "../helpers/util.h"
+#include "../config.h"
 #include "ldr_file_repository.h"
 #include "ldr_colors.h"
 

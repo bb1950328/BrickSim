@@ -4,7 +4,7 @@
 
 #include <spdlog/spdlog.h>
 #include "gui.h"
-#include "../ldr_file_repository.h"
+#include "../ldr_files/ldr_file_repository.h"
 #include "../controller.h"
 #include "gui_internal.h"
 #include "../part_finder.h"

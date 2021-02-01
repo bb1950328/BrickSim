@@ -9,9 +9,9 @@
 #include <spdlog/spdlog.h>
 #include <zip.h>
 #include "ldr_file_repository.h"
-#include "config.h"
-#include "helpers/zip_buffer.h"
-#include "db.h"
+#include "../config.h"
+#include "../helpers/zip_buffer.h"
+#include "../db.h"
 
 namespace ldr_file_repo {
     namespace {

@@ -6,7 +6,7 @@
 #include <spdlog/spdlog.h>
 #include "renderer.h"
 #include "controller.h"
-#include "ldr_colors.h"
+#include "ldr_files/ldr_colors.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "lib/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION

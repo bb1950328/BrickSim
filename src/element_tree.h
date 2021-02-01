@@ -8,7 +8,7 @@
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
-#include "ldr_files.h"
+#include "ldr_files/ldr_files.h"
 #include "mesh.h"
 #include "helpers/util.h"
 

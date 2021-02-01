@@ -10,7 +10,7 @@
 #include <mutex>
 #include "thumbnail_generator.h"
 #include "config.h"
-#include "ldr_colors.h"
+#include "ldr_files/ldr_colors.h"
 #include "controller.h"
 #include "latest_log_messages_tank.h"
 

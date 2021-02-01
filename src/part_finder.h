@@ -6,7 +6,7 @@
 #define BRICKSIM_PART_FINDER_H
 
 #include <string>
-#include "ldr_files.h"
+#include "ldr_files/ldr_files.h"
 
 namespace part_finder {
     class Predicate {

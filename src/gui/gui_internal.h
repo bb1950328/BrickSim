@@ -9,8 +9,8 @@
 #include <utility>
 #include <string>
 #include <vector>
-#include "../ldr_colors.h"
-#include "../ldr_files.h"
+#include "../ldr_files/ldr_colors.h"
+#include "../ldr_files/ldr_files.h"
 #include "../element_tree.h"
 
 namespace gui_internal {

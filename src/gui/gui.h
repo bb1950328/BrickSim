@@ -6,7 +6,7 @@
 #define BRICKSIM_GUI_H
 
 
-#include "../ldr_files.h"
+#include "../ldr_files/ldr_files.h"
 #include "../element_tree.h"
 #include <imgui.h>
 #include <GLFW/glfw3.h>

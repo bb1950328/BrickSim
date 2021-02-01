@@ -9,7 +9,7 @@
 
 #include "mesh.h"
 #include "config.h"
-#include "ldr_colors.h"
+#include "ldr_files/ldr_colors.h"
 #include <glm/gtx/normal.hpp>
 #include <mutex>
 #include "statistic.h"

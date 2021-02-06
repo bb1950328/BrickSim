@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Own Source Files" pattern="file[BrickSim1]:src//*&amp;&amp;!file[BrickSim1]:src/lib//*" />
+</component>

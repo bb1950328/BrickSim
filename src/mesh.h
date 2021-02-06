@@ -16,8 +16,6 @@
 #include "types.h"
 
 struct TriangleVertex {
-    //TriangleVertex(const glm::vec4 &position, const glm::vec3 &normal, const glm::vec3 &color);
-
     glm::vec4 position;
     glm::vec3 normal;
 
@@ -48,7 +46,7 @@ struct TriangleInstance {
 };
 
 struct MeshInstance {
-    const LdrColor * color;
+    std::shared_ptr<const LdrColor> color;
     glm::mat4 transformation;
     unsigned int elementId;
     bool selected;
@@ -59,8 +57,8 @@ struct MeshInstance {
 
 class Mesh {
 public:
-    std::map<const LdrColor *, std::vector<TriangleVertex> *> triangleVertices;
-    std::map<const LdrColor *, std::vector<unsigned int> *> triangleIndices;
+    std::map<std::shared_ptr<const LdrColor>, std::vector<TriangleVertex>> triangleVertices;
+    std::map<std::shared_ptr<const LdrColor>, std::vector<unsigned int>> triangleIndices;
 
     std::vector<LineVertex> lineVertices;
     std::vector<unsigned int> lineIndices;
@@ -68,7 +66,7 @@ public:
     std::vector<LineVertex> optionalLineVertices;
     std::vector<unsigned int> optionalLineIndices;
 
-    std::map<const LdrColor *, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
+    std::map<std::shared_ptr<const LdrColor>, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
 
     std::vector<MeshInstance> instances;
     bool instancesHaveChanged = false;
@@ -78,15 +76,15 @@ public:
 
     Mesh()=default;
 
-    void addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transformation, const LdrColor *mainColor, bool bfcInverted);
-    void addLdrSubfileReference(const LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation, bool bfcInverted);
-    void addLdrLine(const LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation);
-    void addLdrTriangle(const LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted);
-    void addLdrQuadrilateral(const LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted);
-    void addLdrOptionalLine(const LdrColor *mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation);
+    void addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transformation, const std::shared_ptr<const LdrColor>& mainColor, bool bfcInverted);
+    void addLdrSubfileReference(std::shared_ptr<const LdrColor> mainColor, std::shared_ptr<LdrSubfileReference> sfElement, glm::mat4 transformation, bool bfcInverted);
+    void addLdrLine(const std::shared_ptr<const LdrColor>& mainColor, const LdrLine &lineElement, glm::mat4 transformation);
+    void addLdrTriangle(const std::shared_ptr<const LdrColor>& mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted);
+    void addLdrQuadrilateral(std::shared_ptr<const LdrColor> mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted);
+    void addLdrOptionalLine(const std::shared_ptr<const LdrColor>& mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation);
 
-    std::vector<unsigned int> *getIndicesList(const LdrColor *color);
-    std::vector<TriangleVertex> *getVerticesList(const LdrColor *color);
+    std::vector<unsigned int> & getIndicesList(const std::shared_ptr<const LdrColor>& color);
+    std::vector<TriangleVertex> & getVerticesList(const std::shared_ptr<const LdrColor>& color);
 
     void writeGraphicsData();
 
@@ -112,9 +110,9 @@ private:
 
     size_t lastInstanceBufferSize = 0;
 
-    static void setInstanceColor(TriangleInstance *instance, const LdrColor *color) ;
+    static void setInstanceColor(TriangleInstance *instance, const std::shared_ptr<const LdrColor>& color) ;
 
-    TriangleInstance * generateInstancesArray(const LdrColor *color);
+    TriangleInstance * generateInstancesArray(const std::shared_ptr<const LdrColor>& color);
 
     void initializeTriangleGraphics();
     void initializeLineGraphics();

@@ -16,11 +16,11 @@
 #include "lib/Miniball.hpp"
 #include "controller.h"
 
-void Mesh::addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transformation = glm::mat4(1.0f), const LdrColor *mainColor = nullptr, bool bfcInverted = false) {
-    for (auto element : file->elements) {
+void Mesh::addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transformation = glm::mat4(1.0f), const std::shared_ptr<const LdrColor>& mainColor = nullptr, bool bfcInverted = false) {
+    for (const auto& element : file->elements) {
         switch (element->getType()) {
             case 0: break;
-            case 1: addLdrSubfileReference(mainColor, dynamic_cast<LdrSubfileReference *>(element), transformation, bfcInverted);break;
+            case 1: addLdrSubfileReference(mainColor, std::dynamic_pointer_cast<LdrSubfileReference>(element), transformation, bfcInverted);break;
             case 2: addLdrLine(mainColor, dynamic_cast<LdrLine &&>(*element), transformation);break;
             case 3: addLdrTriangle(mainColor, dynamic_cast<LdrTriangle &&>(*element), transformation, bfcInverted);break;
             case 4: addLdrQuadrilateral(mainColor, dynamic_cast<LdrQuadrilateral &&>(*element), transformation, bfcInverted);break;
@@ -29,10 +29,10 @@ void Mesh::addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transforma
     }
 }
 
-void Mesh::addLdrTriangle(const LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted) {
-    const LdrColor *color = triangleElement.color->code == LdrColor::MAIN_COLOR_CODE ? mainColor : triangleElement.color;
-    auto *verticesList = getVerticesList(color);
-    auto *indicesList = getIndicesList(color);
+void Mesh::addLdrTriangle(const std::shared_ptr<const LdrColor>& mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted) {
+    const auto color = triangleElement.color->code == LdrColor::MAIN_COLOR_CODE ? mainColor : triangleElement.color;
+    auto& verticesList = getVerticesList(color);
+    auto& indicesList = getIndicesList(color);
     auto p1 = glm::vec3(triangleElement.x1, triangleElement.y1, triangleElement.z1);
     auto p2 = glm::vec3(triangleElement.x2, triangleElement.y2, triangleElement.z2);
     auto p3 = glm::vec3(triangleElement.x3, triangleElement.y3, triangleElement.z3);
@@ -46,13 +46,13 @@ void Mesh::addLdrTriangle(const LdrColor *mainColor, const LdrTriangle &triangle
         std::swap(vertex2, vertex3);
     }
 
-    auto idx1 = verticesList->size();
-    verticesList->push_back(vertex1);
-    verticesList->push_back(vertex2);
-    verticesList->push_back(vertex3);
-    indicesList->push_back(idx1);
-    indicesList->push_back(idx1 + 1);
-    indicesList->push_back(idx1 + 2);
+    auto idx1 = verticesList.size();
+    verticesList.push_back(vertex1);
+    verticesList.push_back(vertex2);
+    verticesList.push_back(vertex3);
+    indicesList.push_back(idx1);
+    indicesList.push_back(idx1 + 1);
+    indicesList.push_back(idx1 + 2);
 
     if (config::getBool(config::SHOW_NORMALS)) {
         auto lp1 = glm::vec4(util::triangleCentroid(p1, p2, p3), 1.0f) * transformation;
@@ -64,18 +64,18 @@ void Mesh::addLdrTriangle(const LdrColor *mainColor, const LdrTriangle &triangle
     }
 }
 
-void Mesh::addLdrSubfileReference(const LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation, bool bfcInverted) {
+void Mesh::addLdrSubfileReference(std::shared_ptr<const LdrColor> mainColor, std::shared_ptr<LdrSubfileReference> sfElement, glm::mat4 transformation, bool bfcInverted) {
     auto sub_transformation = sfElement->getTransformationMatrix();
-    const LdrColor *color = sfElement->color->code == LdrColor::MAIN_COLOR_CODE ? mainColor : sfElement->color;
+    const auto color = sfElement->color->code == LdrColor::MAIN_COLOR_CODE ? mainColor : sfElement->color;
     addLdrFile(sfElement->getFile(), sub_transformation * transformation, color, sfElement->bfcInverted ^ bfcInverted);
 }
 
-void Mesh::addLdrQuadrilateral(const LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted) {
+void Mesh::addLdrQuadrilateral(std::shared_ptr<const LdrColor> mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted) {
     auto p1 = glm::vec3(quadrilateral.x1, quadrilateral.y1, quadrilateral.z1);
     auto p2 = glm::vec3(quadrilateral.x2, quadrilateral.y2, quadrilateral.z2);
     auto p3 = glm::vec3(quadrilateral.x3, quadrilateral.y3, quadrilateral.z3);
     auto p4 = glm::vec3(quadrilateral.x4, quadrilateral.y4, quadrilateral.z4);
-    const LdrColor *color = quadrilateral.color->code == LdrColor::MAIN_COLOR_CODE ? mainColor : quadrilateral.color;
+    const auto color = quadrilateral.color->code == LdrColor::MAIN_COLOR_CODE ? mainColor : quadrilateral.color;
     auto normal = glm::triangleNormal(p1, p2, p3);
     auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f) * transformation);
 
@@ -88,23 +88,23 @@ void Mesh::addLdrQuadrilateral(const LdrColor *mainColor, LdrQuadrilateral &&qua
         std::swap(vertex2, vertex4);
     }
 
-    auto vertices_list = getVerticesList(color);
-    unsigned int idx = vertices_list->size();
-    vertices_list->push_back(vertex1);
-    vertices_list->push_back(vertex2);
-    vertices_list->push_back(vertex3);
-    vertices_list->push_back(vertex4);
+    auto& vertices_list = getVerticesList(color);
+    unsigned int idx = vertices_list.size();
+    vertices_list.push_back(vertex1);
+    vertices_list.push_back(vertex2);
+    vertices_list.push_back(vertex3);
+    vertices_list.push_back(vertex4);
 
-    auto indices_list = getIndicesList(color);
+    auto& indices_list = getIndicesList(color);
     //triangle 1
-    indices_list->push_back(idx);
-    indices_list->push_back(idx + 1);
-    indices_list->push_back(idx + 2);
+    indices_list.push_back(idx);
+    indices_list.push_back(idx + 1);
+    indices_list.push_back(idx + 2);
 
     //triangle 2
-    indices_list->push_back(idx + 2);
-    indices_list->push_back(idx + 3);
-    indices_list->push_back(idx);
+    indices_list.push_back(idx + 2);
+    indices_list.push_back(idx + 3);
+    indices_list.push_back(idx);
 
     if (config::getBool(config::SHOW_NORMALS)) {
         auto lp1 = glm::vec4(util::quadrilateralCentroid(p1, p2, p3, p4), 1.0f) * transformation;
@@ -116,28 +116,24 @@ void Mesh::addLdrQuadrilateral(const LdrColor *mainColor, LdrQuadrilateral &&qua
     }
 }
 
-std::vector<unsigned int> *Mesh::getIndicesList(const LdrColor *color) {
+std::vector<unsigned int> & Mesh::getIndicesList(const std::shared_ptr<const LdrColor>& color) {
     auto entry = triangleIndices.find(color);
     if (entry == triangleIndices.end()) {
-        auto vec = new std::vector<unsigned int>;
-        triangleIndices[color] = vec;
-        return vec;
+        return triangleIndices[color] = std::vector<unsigned int>();
     }
     return entry->second;
 }
 
 
-std::vector<TriangleVertex> *Mesh::getVerticesList(const LdrColor *color) {
+std::vector<TriangleVertex> & Mesh::getVerticesList(const std::shared_ptr<const LdrColor>& color) {
     auto entry = triangleVertices.find(color);
     if (entry == triangleVertices.end()) {
-        auto vec = new std::vector<TriangleVertex>;
-        triangleVertices[color] = vec;
-        return vec;
+        return triangleVertices[color] = std::vector<TriangleVertex>();
     }
     return entry->second;
 }
 
-void Mesh::addLdrLine(const LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation) {
+void Mesh::addLdrLine(const std::shared_ptr<const LdrColor>& mainColor, const LdrLine &lineElement, glm::mat4 transformation) {
     glm::vec3 color;
     if (lineElement.color->code == LdrColor::MAIN_COLOR_CODE) {
         color = mainColor->edge.asGlmVector();
@@ -152,7 +148,7 @@ void Mesh::addLdrLine(const LdrColor *mainColor, const LdrLine &lineElement, glm
     addLineVertex(lv2);
 }
 
-void Mesh::addLdrOptionalLine(const LdrColor *mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation) {
+void Mesh::addLdrOptionalLine(const std::shared_ptr<const LdrColor>& mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation) {
     glm::vec3 color;
     if (optionalLineElement.color->code == LdrColor::MAIN_COLOR_CODE) {
         color = mainColor->edge.asGlmVector();
@@ -230,9 +226,9 @@ void Mesh::addMinEnclosingBallLines() {
 void Mesh::initializeTriangleGraphics() {
     std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     for (const auto &entry: triangleIndices) {
-        const LdrColor *color = entry.first;
-        std::vector<unsigned int> *indices = entry.second;
-        std::vector<TriangleVertex> *vertices = triangleVertices.find(color)->second;
+        const auto color = entry.first;
+        const std::vector<unsigned int>& indices = entry.second;
+        const std::vector<TriangleVertex>& vertices = triangleVertices.find(color)->second;
 
         unsigned int vao, vertexVbo, instanceVbo, ebo;
 
@@ -244,8 +240,8 @@ void Mesh::initializeTriangleGraphics() {
         glGenBuffers(1, &vertexVbo);
         glBindBuffer(GL_ARRAY_BUFFER, vertexVbo);
         size_t vertex_size = sizeof(TriangleVertex);
-        glBufferData(GL_ARRAY_BUFFER, vertices->size() * vertex_size, &(*vertices)[0], GL_STATIC_DRAW);
-        statistic::vramUsageBytes += vertices->size() * vertex_size;
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * vertex_size, &(vertices[0]), GL_STATIC_DRAW);
+        statistic::vramUsageBytes += vertices.size() * vertex_size;
 
         // position attribute
         glEnableVertexAttribArray(0);
@@ -286,8 +282,8 @@ void Mesh::initializeTriangleGraphics() {
         //ebo
         glGenBuffers(1, &ebo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices->size(), &(*indices)[0], GL_STATIC_DRAW);
-        statistic::vramUsageBytes += sizeof(unsigned int) * indices->size();
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &(indices[0]), GL_STATIC_DRAW);
+        statistic::vramUsageBytes += sizeof(unsigned int) * indices.size();
 
         VAOs[color] = vao;
         vertexVBOs[color] = vertexVbo;
@@ -309,7 +305,7 @@ void Mesh::rewriteInstanceBuffer() {
         statistic::vramUsageBytes += newBufferSize;
         lastInstanceBufferSize = newBufferSize;
         for (const auto &entry: triangleIndices) {
-            const LdrColor *color = entry.first;
+            const auto color = entry.first;
             auto instanceVbo = instanceVBOs[color];
             auto instancesArray = generateInstancesArray(color);
             size_t instance_size = sizeof(TriangleInstance);
@@ -376,7 +372,7 @@ void Mesh::initializeLineGraphics() {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(LineVertex, color));
 
     //instanceVbo
-    auto *instancesArray = new glm::mat4[instances.size()];
+    auto *instancesArray = new glm::mat4[instances.size()];//todo smart pointer/array
     for (int i = 0; i < instances.size(); ++i) {
         instancesArray[i] = glm::transpose(instances[i].transformation * globalModel);
     }
@@ -452,10 +448,10 @@ void Mesh::drawTriangleGraphics(layer_t layer) {
     if (it != instanceCountOfLayerAndGreater.cend()) {
         std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
         for (const auto &entry: triangleIndices) {
-            const LdrColor *color = entry.first;
-            std::vector<unsigned int> *indices = entry.second;
+            const auto color = entry.first;
+            const std::vector<unsigned int>& indices = entry.second;
             glBindVertexArray(VAOs[color]);
-            glDrawElementsInstanced(GL_TRIANGLES, indices->size(), GL_UNSIGNED_INT, nullptr, it->second);
+            glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, it->second);
         }
     }
 }
@@ -481,7 +477,7 @@ void Mesh::drawOptionalLineGraphics(layer_t layer) {
 void Mesh::deallocateGraphics() {
     std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     for (const auto &entry: triangleIndices) {
-        const LdrColor *color = entry.first;
+        const auto color = entry.first;
         unsigned int vao = VAOs[color];
         unsigned int vertexVbo = vertexVBOs[color];
         unsigned int instanceVbo = instanceVBOs[color];
@@ -497,16 +493,9 @@ void Mesh::deallocateGraphics() {
     glDeleteBuffers(1, &lineEBO);
 }
 
-Mesh::~Mesh() {
-    for (const auto &entry: triangleIndices) {
-        delete entry.second;
-    }
-    for (const auto &entry: triangleVertices) {
-        delete entry.second;
-    }
-}
+Mesh::~Mesh() = default;
 
-void Mesh::setInstanceColor(TriangleInstance *instance, const LdrColor *color) {
+void Mesh::setInstanceColor(TriangleInstance *instance, const std::shared_ptr<const LdrColor>& color) {
     instance->diffuseColor = color->value.asGlmVector();
     instance->shininess = 32.0f;
     //useful tool: http://www.cs.toronto.edu/~jacobson/phong-demo/
@@ -531,10 +520,10 @@ void Mesh::setInstanceColor(TriangleInstance *instance, const LdrColor *color) {
     }
 }
 
-TriangleInstance *Mesh::generateInstancesArray(const LdrColor *color) {
+TriangleInstance *Mesh::generateInstancesArray(const std::shared_ptr<const LdrColor>& color) {
     auto *instancesArray = new TriangleInstance[instances.size()];
     unsigned int arr_cursor = 0;
-    if (color == &ldr_color_repo::getInstanceDummyColor()) {
+    if (color == ldr_color_repo::getInstanceDummyColor()) {
         for (auto &instance : instances) {
             instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * globalModel);
             setInstanceColor(&instancesArray[arr_cursor], instance.color);
@@ -559,9 +548,9 @@ std::pair<glm::vec3, float> Mesh::getMinimalEnclosingBall() {
         if (triangleVertices.empty()) {
             minimalEnclosingBall = std::make_pair(glm::vec3(0.0f), 0.0f);
         } else {
-            std::list<std::vector<float> > lp;
+            std::list<std::vector<float>> lp;
             for (const auto &entry : triangleVertices) {
-                for (const auto &vertex : *entry.second) {
+                for (const auto &vertex : entry.second) {
                     lp.push_back((std::vector<float>) {vertex.position.x, vertex.position.y, vertex.position.z});
                 }
             }
@@ -569,6 +558,7 @@ std::pair<glm::vec3, float> Mesh::getMinimalEnclosingBall() {
             typedef std::list<std::vector<float> >::const_iterator PointIterator;
             typedef std::vector<float>::const_iterator CoordIterator;
 
+            auto tmp = lp.size();
             Miniball::Miniball<Miniball::CoordAccessor<PointIterator, CoordIterator>> mb(3, lp.begin(), lp.end());
             glm::vec3 center(mb.center()[0], mb.center()[1], mb.center()[2]);
             minimalEnclosingBall = std::make_pair(center, std::sqrt(mb.squared_radius()));

@@ -7,17 +7,17 @@
 #include "../info_providers/part_color_availability_provider.h"
 
 namespace gui_internal {
-    void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<LdrFile> &part, LdrColor *color) {
+    void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<LdrFile> &part, const std::shared_ptr<const LdrColor>& color) {
         bool realThumbnailAvailable = false;
         if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
-            auto optTexId = controller::getThumbnailGenerator().getThumbnailNonBlocking(part, color);
+            auto optTexId = controller::getThumbnailGenerator()->getThumbnailNonBlocking(part, color);
             if (optTexId.has_value()) {
                 auto texId = convertTextureId(optTexId.value());
                 ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);
                 realThumbnailAvailable = true;
             }
         } else {
-            controller::getThumbnailGenerator().removeFromRenderQueue(part, color);
+            controller::getThumbnailGenerator()->removeFromRenderQueue(part, color);
         }
         if (!realThumbnailAvailable) {
             ImGui::Button(part->metaInfo.name.c_str(), actualThumbSizeSquared);
@@ -45,10 +45,10 @@ namespace gui_internal {
         return util::vectorSum(col) > 1.5 ? ImVec4(0, 0, 0, 1) : ImVec4(1, 1, 1, 1);
     }
 
-    void drawColorGroup(etree::MeshNode *ldrNode, const ImVec2 &buttonSize, const int columnCount, const std::pair<const std::string, std::vector<const LdrColor *>> &colorGroup) {
+    void drawColorGroup(std::shared_ptr<etree::MeshNode> ldrNode, const ImVec2 &buttonSize, const int columnCount, const std::pair<const std::string, std::vector<std::shared_ptr<const LdrColor>>> &colorGroup) {
         if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
             int i = 0;
-            for (const auto *color : colorGroup.second) {
+            for (const auto &color : colorGroup.second) {
                 if (i % columnCount > 0) {
                     ImGui::SameLine();
                 }

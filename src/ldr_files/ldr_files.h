@@ -5,8 +5,6 @@
 #ifndef BRICKSIM_LDR_FILES_H
 #define BRICKSIM_LDR_FILES_H
 
-static const int MAX_LDR_FILENAME_LENGTH = 255;
-
 #include <vector>
 #include <map>
 #include <filesystem>
@@ -65,7 +63,7 @@ public:
     LdrFile() = default;
     virtual ~LdrFile();
 
-    std::vector<LdrFileElement *> elements;
+    std::vector<std::shared_ptr<LdrFileElement>> elements;
     std::set<std::shared_ptr<LdrFile>> mpdSubFiles;
 
     void printStructure(int indent=0);
@@ -93,7 +91,7 @@ private:
 
 class LdrFileElement {
 public:
-    static LdrFileElement *parse_line(std::string line, BfcState bfcState);
+    static std::shared_ptr<LdrFileElement> parse_line(std::string line, BfcState bfcState);
 
     [[nodiscard]] virtual int getType() const = 0;
 
@@ -117,7 +115,7 @@ class LdrSubfileReference : public LdrFileElement {
 public:
     explicit LdrSubfileReference(std::string &line, bool bfcInverted);
     bool bfcInverted;
-    LdrColor *color;
+    std::shared_ptr<const LdrColor> color;
     double x, y, z, a, b, c, d, e, f, g, h, i;
     std::string filename;
     [[nodiscard]] int getType() const override;
@@ -130,7 +128,7 @@ private:
 
 class LdrLine : public LdrFileElement {
 public:
-    LdrColor *color;
+    std::shared_ptr<const LdrColor> color;
     double x1, y1, z1, x2, y2, z2;
 
     explicit LdrLine(std::string &line);
@@ -140,7 +138,7 @@ public:
 
 class LdrTriangle : public LdrFileElement {
 public:
-    LdrColor *color;
+    std::shared_ptr<const LdrColor> color;
     double x1, y1, z1, x2, y2, z2, x3, y3, z3;
 
     explicit LdrTriangle(std::string &line, WindingOrder order);
@@ -150,7 +148,7 @@ public:
 
 class LdrQuadrilateral : public LdrFileElement {
 public:
-    LdrColor *color;
+    std::shared_ptr<const LdrColor> color;
     double x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
 
     explicit LdrQuadrilateral(std::string &line, WindingOrder order);
@@ -160,7 +158,7 @@ public:
 
 class LdrOptionalLine : public LdrFileElement {
 public:
-    LdrColor *color;
+    std::shared_ptr<const LdrColor> color;
 
     double x1, y1, z1, x2, y2, z2, controlX1, controlY1, controlZ1, controlX2, controlY2, controlZ2;
 

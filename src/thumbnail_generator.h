@@ -13,13 +13,13 @@
 #include "mesh_collection.h"
 #include "renderer.h"
 class ThumbnailGenerator {
-    typedef std::pair<std::shared_ptr<LdrFile>, const LdrColor *> file_key_t;
+    typedef std::pair<std::shared_ptr<LdrFile>, std::shared_ptr<const LdrColor>> file_key_t;
 private:
     std::map<file_key_t, unsigned int> images;
-    std::map<const Mesh*, std::vector<float>> meshDimensions;
+    std::map<std::shared_ptr<const Mesh>, std::vector<float>> meshDimensions;
     std::list<file_key_t> lastAccessed;
-    MeshCollection* meshCollection;
-    Renderer* renderer;
+    std::shared_ptr<MeshCollection> meshCollection;
+    std::shared_ptr<Renderer> renderer;
     glm::mat4 projection;
     int maxCachedThumbnails;
     int framebufferSize = 0;
@@ -30,16 +30,16 @@ public:
     unsigned int framebuffer, textureBuffer, renderBuffer;
     int size;
     glm::vec3 rotationDegrees;
-    unsigned int getThumbnail(std::shared_ptr<LdrFile> ldrFile, const LdrColor *color);
-    std::optional<unsigned int> getThumbnailNonBlocking(const std::shared_ptr<LdrFile>& ldrFile, const LdrColor *color);
-    bool isThumbnailAvailable(const std::shared_ptr<LdrFile>& ldrFile, const LdrColor *color);
+    unsigned int getThumbnail(const std::shared_ptr<LdrFile>& ldrFile, const std::shared_ptr<const LdrColor>& color);
+    std::optional<unsigned int> getThumbnailNonBlocking(const std::shared_ptr<LdrFile>& ldrFile, std::shared_ptr<const LdrColor> color);
+    bool isThumbnailAvailable(const std::shared_ptr<LdrFile>& ldrFile, std::shared_ptr<const LdrColor> color);
     void cleanup();
     void discardOldestImages(int reserve_space_for=1);
-    explicit ThumbnailGenerator(Renderer *renderer);
+    explicit ThumbnailGenerator(std::shared_ptr<Renderer> renderer, std::shared_ptr<MeshCollection> meshCollection);
     void discardAllImages();
     bool workOnRenderQueue();
     bool renderQueueEmpty();
-    void removeFromRenderQueue(const std::shared_ptr<LdrFile>& ldrFile, const LdrColor *color);
+    void removeFromRenderQueue(const std::shared_ptr<LdrFile>& ldrFile, std::shared_ptr<const LdrColor> color);
 
     void saveFramebufferToBMP(const std::string &filename) const;
     void initialize();

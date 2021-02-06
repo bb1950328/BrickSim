@@ -4,6 +4,7 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
+#include <utility>
 #include "mesh_collection.h"
 #include "statistic.h"
 #include "helpers/util.h"
@@ -35,27 +36,28 @@ void MeshCollection::drawTriangleGraphics(const layer_t layer) const {
 }
 
 void MeshCollection::deallocateGraphics() {
+    /* todo integrate this into destructor
     for (const auto &pair: meshes) {
         pair.second->deallocateGraphics();
-    }
+    }*/
 }
 
-void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation, LdrColor *parentColor, std::optional<unsigned int> selectionTargetElementId) {
-    etree::Node *nodeToParseChildren = node;
+void MeshCollection::readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4 &parentAbsoluteTransformation, std::shared_ptr<const LdrColor> parentColor, std::optional<unsigned int> selectionTargetElementId) {
+    std::shared_ptr<etree::Node> nodeToParseChildren = node;
     glm::mat4 absoluteTransformation = parentAbsoluteTransformation;
     if (node->visible) {
         if ((node->getType() & etree::TYPE_MESH) > 0) {
-            etree::MeshNode *meshNode;
-            LdrColor *color;
-            etree::MeshNode *nodeToGetColorFrom;
+            std::shared_ptr<etree::MeshNode> meshNode;
+            std::shared_ptr<const LdrColor> color;
+            std::shared_ptr<etree::MeshNode> nodeToGetColorFrom;
             if (node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE) {
-                const auto instanceNode = dynamic_cast<etree::MpdSubfileInstanceNode *>(node);
+                const auto instanceNode = std::dynamic_pointer_cast<etree::MpdSubfileInstanceNode>(node);
                 meshNode = instanceNode->mpdSubfileNode;
                 absoluteTransformation = instanceNode->getRelativeTransformation() * parentAbsoluteTransformation;
                 nodeToGetColorFrom = instanceNode;
                 nodeToParseChildren = meshNode;
             } else {
-                meshNode = dynamic_cast<etree::MeshNode *>(node);
+                meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node);
                 absoluteTransformation = node->getRelativeTransformation() * parentAbsoluteTransformation;
                 nodeToGetColorFrom = meshNode;
             }
@@ -74,7 +76,7 @@ void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentA
             auto meshesKey = std::make_pair(identifier, windingInversed);
             auto it = meshes.find(meshesKey);
             if (it == meshes.end()) {
-                Mesh *mesh = new Mesh();
+                const std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
                 meshes[meshesKey] = mesh;
                 mesh->name = meshNode->getDescription();
                 meshNode->addToMesh(mesh, windingInversed);
@@ -102,8 +104,8 @@ void MeshCollection::readElementTree(etree::Node *node, const glm::mat4 &parentA
     }
 }
 
-MeshCollection::MeshCollection(etree::ElementTree *elementTree) {
-    this->elementTree = elementTree;
+MeshCollection::MeshCollection(std::shared_ptr<etree::ElementTree> elementTree) {
+    this->elementTree = std::move(elementTree);
 }
 
 void MeshCollection::rereadElementTree() {
@@ -111,7 +113,7 @@ void MeshCollection::rereadElementTree() {
     elementsSortedById.push_back(nullptr);
     layersInUse.clear();
     auto before = std::chrono::high_resolution_clock::now();
-    readElementTree(&elementTree->rootNode, glm::mat4(1.0f), nullptr, std::nullopt);
+    readElementTree(elementTree->rootNode, glm::mat4(1.0f), nullptr, std::nullopt);
     updateMeshInstances();
     nodesWithChildrenAlreadyVisited.clear();
     for (const auto &mesh: meshes) {
@@ -135,7 +137,7 @@ void MeshCollection::updateMeshInstances() {
     newMeshInstances.clear();
 }
 
-etree::Node *MeshCollection::getElementById(unsigned int id) {
+std::shared_ptr<etree::Node> MeshCollection::getElementById(unsigned int id) {
     if (elementsSortedById.size() > id) {
         return elementsSortedById[id];
     }
@@ -143,11 +145,11 @@ etree::Node *MeshCollection::getElementById(unsigned int id) {
 }
 
 void MeshCollection::updateSelectionContainerBox() {
-    static Mesh *selectionBoxMesh = nullptr;
+    static std::shared_ptr<Mesh> selectionBoxMesh = nullptr;
     if (selectionBoxMesh == nullptr) {
-        selectionBoxMesh = new Mesh();
-        meshes[std::make_pair(reinterpret_cast<void*>(selectionBoxMesh), false)] = selectionBoxMesh;
-        selectionBoxMesh->addLdrFile(ldr_file_repo::get().getFile("box0.dat"), glm::mat4(1.0f), &ldr_color_repo::getInstanceDummyColor(), false);
+        selectionBoxMesh = std::make_shared<Mesh>();
+        meshes[std::make_pair(selectionBoxMesh.get(), false)] = selectionBoxMesh;
+        selectionBoxMesh->addLdrFile(ldr_file_repo::get().getFile("box0.dat"), glm::mat4(1.0f), ldr_color_repo::getInstanceDummyColor(), false);
     }
     selectionBoxMesh->instances.clear();
     if (!controller::getSelectedNodes().empty()) {
@@ -155,7 +157,7 @@ void MeshCollection::updateSelectionContainerBox() {
             if (node->getType() & etree::TYPE_MESH) {
                 //todo draw selection as line if only one part is selected
                 // fix the transformation (click the red 2x4 tile for example)
-                auto boxDimensions = controller::getRenderer()->meshCollection.getBoundingBox(dynamic_cast<const etree::MeshNode *>(node));
+                auto boxDimensions = controller::getRenderer()->meshCollection->getBoundingBox(std::dynamic_pointer_cast<const etree::MeshNode>(node));
                 auto p1 = boxDimensions.first;
                 auto p2 = boxDimensions.second;
                 auto center = (p1 + p2) / 2.0f;
@@ -179,7 +181,7 @@ void MeshCollection::updateSelectionContainerBox() {
     controller::getRenderer()->unrenderedChanges = true;
 }
 
-std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(const etree::MeshNode* node) const {
+std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(std::shared_ptr<const etree::MeshNode> node) const {
     auto result = getBoundingBoxInternal(node);
     return {
         glm::vec4(result.first, 1.0f) * node->getAbsoluteTransformation(),
@@ -188,7 +190,7 @@ std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(const etree::Mesh
 }
 
 //relative to parameter node
-std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBoxInternal(const etree::MeshNode* node) const {
+std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBoxInternal(std::shared_ptr<const etree::MeshNode> node) const {
     //todo something here is wrong for subfile instances
     glm::mat4 absoluteTransformation;
     absoluteTransformation = node->getAbsoluteTransformation();
@@ -197,9 +199,9 @@ std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBoxInternal(const etr
     float x1=0, x2=0, y1=0, y2=0, z1=0, z2=0;
     bool first = true;
     if (it != meshes.end()) {
-        Mesh *mesh = it->second;
+        const auto mesh = it->second;
         for (const auto &colorPair : mesh->triangleVertices) {
-            for (const auto &triangleVertex : *colorPair.second) {//todo check if iterating over line vertices is faster
+            for (const auto &triangleVertex : colorPair.second) {//todo check if iterating over line vertices is faster
                 const glm::vec4 &position = triangleVertex.position;
                 if (first) {
                     first = false;
@@ -218,12 +220,12 @@ std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBoxInternal(const etr
         }
     }
     bool isSubfileInstance = node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE;
-    const std::vector<etree::Node *> &children = isSubfileInstance
-            ? dynamic_cast<const etree::MpdSubfileInstanceNode*>(node)->mpdSubfileNode->getChildren()
+    const auto &children = isSubfileInstance
+            ? std::dynamic_pointer_cast<const etree::MpdSubfileInstanceNode>(node)->mpdSubfileNode->getChildren()
             : node->getChildren();
     for (const auto &child : children) {
         if (child->getType()&etree::TYPE_MESH) {
-            auto childResult = getBoundingBoxInternal(dynamic_cast<const etree::MeshNode*>(child));
+            auto childResult = getBoundingBoxInternal(std::dynamic_pointer_cast<const etree::MeshNode>(child));
             childResult.first = glm::vec4(childResult.first, 1.0f)*child->getRelativeTransformation();
             childResult.second = glm::vec4(childResult.second, 1.0f)*child->getRelativeTransformation();
             //std::cout << glm::to_string(childResult.first) << ", " << glm::to_string(childResult.second) << std::endl;
@@ -259,11 +261,5 @@ const std::set<layer_t> &MeshCollection::getLayersInUse() const {
 }
 
 MeshCollection::~MeshCollection() {
-    std::cout << "elementTree* = " << static_cast<void*>(elementTree) << std::endl;
-    //todo this gives a free(): invalid pointer but is a big memory leak (47MB)
-    // delete elementTree;
-    // for (const auto &mesh : meshes) {
-    //     delete mesh.second;
-    // }
-    // meshes.clear();
+    deallocateGraphics();
 }

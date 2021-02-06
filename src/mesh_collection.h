@@ -11,9 +11,9 @@ typedef std::pair<void *, bool> mesh_key_t;
 
 class MeshCollection {
 public:
-    explicit MeshCollection(etree::ElementTree *elementTree);
+    explicit MeshCollection(std::shared_ptr<etree::ElementTree> elementTree);
 
-    std::map<mesh_key_t, Mesh*> meshes;
+    std::map<mesh_key_t, std::shared_ptr<Mesh>> meshes;
 
     void initializeGraphics();
     void deallocateGraphics();
@@ -24,24 +24,24 @@ public:
     void drawLineGraphics(layer_t layer) const;
     void drawOptionalLineGraphics(layer_t layer) const;
 
-    etree::Node* getElementById(unsigned int id);
+    std::shared_ptr<etree::Node> getElementById(unsigned int id);
 
     void updateSelectionContainerBox();
 
-    std::pair<glm::vec3, glm::vec3> getBoundingBox(const etree::MeshNode *node) const;
+    [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBox(std::shared_ptr<const etree::MeshNode> node) const;
     [[nodiscard]] const std::set<layer_t> &getLayersInUse() const;
 
-    virtual ~MeshCollection();
+    ~MeshCollection();
 private:
-    std::vector<etree::Node*> elementsSortedById;
+    std::vector<std::shared_ptr<etree::Node>> elementsSortedById;
 
-    etree::ElementTree *elementTree;
-    std::set<etree::Node*> nodesWithChildrenAlreadyVisited;
+    std::shared_ptr<etree::ElementTree> elementTree;
+    std::set<std::shared_ptr<etree::Node>> nodesWithChildrenAlreadyVisited;
 
     std::map<mesh_key_t, std::vector<MeshInstance>> newMeshInstances;
     std::set<layer_t> layersInUse;
     void updateMeshInstances();
-    void readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation, LdrColor *parentColor, std::optional<unsigned int> selectionTargetElementId);
-    std::pair<glm::vec3, glm::vec3> getBoundingBoxInternal(const etree::MeshNode *node) const;
+    void readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4 &parentAbsoluteTransformation, std::shared_ptr<const LdrColor> parentColor, std::optional<unsigned int> selectionTargetElementId);
+    [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBoxInternal(std::shared_ptr<const etree::MeshNode> node) const;
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

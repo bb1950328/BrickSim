@@ -19,18 +19,18 @@ WindingOrder inverseWindingOrder(WindingOrder order) {
     return order == CW ? CCW : CW;
 }
 
-LdrFileElement *LdrFileElement::parse_line(std::string line, BfcState bfcState) {
+std::shared_ptr<LdrFileElement> LdrFileElement::parse_line(std::string line, BfcState bfcState) {
     std::string line_content = line.length() > 2 ? line.substr(2) : "";
     switch (line[0] - '0') {
         //@formatter:off
-        case 0: return new LdrCommentOrMetaElement(line_content);
-        case 1: return new LdrSubfileReference(line_content, bfcState.invertNext);
-        case 2: return new LdrLine(line_content);
-        case 3: return new LdrTriangle(line_content, bfcState.windingOrder);
-        case 4: return new LdrQuadrilateral(line_content, bfcState.windingOrder);
-        case 5: return new LdrOptionalLine(line_content);
+        case 0: return std::make_shared<LdrCommentOrMetaElement>(line_content);
+        case 1: return std::make_shared<LdrSubfileReference>(line_content, bfcState.invertNext);
+        case 2: return std::make_shared<LdrLine>(line_content);
+        case 3: return std::make_shared<LdrTriangle>(line_content, bfcState.windingOrder);
+        case 4: return std::make_shared<LdrQuadrilateral>(line_content, bfcState.windingOrder);
+        case 5: return std::make_shared<LdrOptionalLine>(line_content);
         default: /*throw std::invalid_argument("The line is not valid: \"" + line + "\"");*/ spdlog::warn("invalid line: {}", line); return nullptr;
-        //@formatter:off
+        //@formatter:on
     }
 }
 LdrFileElement::~LdrFileElement()= default;
@@ -97,13 +97,12 @@ void LdrFile::addTextLine(const std::string &line) {
     auto trimmed = util::trim(line);
     unsigned int currentStep = elements.empty()?0:elements.back()->step;
     if (!trimmed.empty()) {
-        LdrFileElement *element = LdrFileElement::parse_line(trimmed, bfcState);
+        auto element = LdrFileElement::parse_line(trimmed, bfcState);
         if (element!=nullptr) {
             bfcState.invertNext = false;
             if (element->getType()==0) {
-                auto *metaElement = dynamic_cast<LdrCommentOrMetaElement *>(element);
+                auto metaElement = std::dynamic_pointer_cast<LdrCommentOrMetaElement>(element);
                 if (metaInfo.addLine(metaElement->content)) {
-                    delete element;
                     element = nullptr;
                 } else if (metaElement->content=="STEP") {
                     currentStep++;
@@ -142,9 +141,9 @@ void LdrFile::addTextLine(const std::string &line) {
     }
 }
 void LdrFile::printStructure(int indent) {
-    for (auto elem : elements) {
+    for (const auto& elem : elements) {
         if (elem->getType()==1) {
-            auto *subfileRef = dynamic_cast<LdrSubfileReference *>(elem);
+            auto subfileRef = std::dynamic_pointer_cast<LdrSubfileReference>(elem);
             for (int i = 0; i < indent; ++i) {
                 std::cout << "\t";
             }
@@ -161,9 +160,9 @@ void LdrFile::preLoadSubfilesAndEstimateComplexity() {
 void LdrFile::preLoadSubfilesAndEstimateComplexityInternal(){
     referenceCount++;
     if (!subfilesPreloadedAndComplexityEstimated) {
-        for (LdrFileElement *elem: elements) {
+        for (const auto &elem: elements) {
             if (elem->getType()==1) {
-                std::shared_ptr<LdrFile> subFile = dynamic_cast<LdrSubfileReference *>(elem)->getFile();
+                std::shared_ptr<LdrFile> subFile = std::dynamic_pointer_cast<LdrSubfileReference>(elem)->getFile();
                 subFile->preLoadSubfilesAndEstimateComplexityInternal();
                 estimatedComplexity += subFile->estimatedComplexity;
             } else if (elem->getType()==2) {
@@ -192,11 +191,7 @@ bool LdrFile::isComplexEnoughForOwnMesh() const {
     return (metaInfo.type!=SUBPART && metaInfo.type!=PRIMITIVE);// todo spend more time here, I think there's much more potential here
 }
 
-LdrFile::~LdrFile(){
-    for (const auto element : elements) {
-        delete element;
-    }
-}
+LdrFile::~LdrFile()= default;
 
 LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
     content = line;

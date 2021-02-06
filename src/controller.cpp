@@ -19,20 +19,21 @@
 namespace controller {
     namespace {
         GLFWwindow *window;
-        etree::ElementTree elementTree;
+        std::shared_ptr<etree::ElementTree> elementTree;
         bool elementTreeChanged = false;
         bool selectionChanged = false;
-        Renderer renderer(&elementTree);
-        ThumbnailGenerator thumbnailGenerator(&renderer);
+        std::shared_ptr<Renderer> renderer;
+        std::shared_ptr<ThumbnailGenerator> thumbnailGenerator;
+        std::shared_ptr<MeshCollection> meshCollection;
         unsigned int view3dWidth = 800;
         unsigned int view3dHeight = 600;
         unsigned int windowWidth;
         unsigned int windowHeight;
 
         bool userWantsToExit = false;
-        std::set<etree::Node *> selectedNodes;
-        etree::Node *currentlyEditingNode;
-        std::map<unsigned int, Task *> backgroundTasks;
+        std::set<std::shared_ptr<etree::Node>> selectedNodes;
+        std::shared_ptr<etree::Node> currentlyEditingNode;
+        std::map<unsigned int, Task *> backgroundTasks;//todo smart pointer
         std::queue<Task *> foregroundTasks;
 
         std::chrono::milliseconds idle_sleep(25);
@@ -194,11 +195,15 @@ namespace controller {
 
             util::setStbiFlipVertically(true);
 
-            renderer.window = window;
+            elementTree = std::make_shared<etree::ElementTree>();
+            meshCollection = std::make_shared<MeshCollection>(elementTree);
+            renderer = std::make_shared<Renderer>(meshCollection);
+
+            renderer->window = window;
             gui::setWindow(window);
             gui::initialize();
-            renderer.setWindowSize(view3dWidth, view3dHeight);
-            renderer.initialize();
+            renderer->setWindowSize(view3dWidth, view3dHeight);
+            renderer->initialize();
 
             while (!ldr_file_repo::checkLdrawLibraryLocation()) {
                 loopPartsLibrarySetupPrompt();
@@ -208,7 +213,7 @@ namespace controller {
                     {"load color definitions",          []() { ldr_color_repo::initialize(); }},
                     {"initialize file list",            [](float *progress) { ldr_file_repo::get().initialize(progress); }},
                     {"initialize price guide provider", []() { price_guide_provider::initialize(); }},
-                    {"initialize thumbnail generator",  []() { thumbnailGenerator.initialize(); }},
+                    {"initialize thumbnail generator",  []() { thumbnailGenerator = std::make_shared<ThumbnailGenerator>(renderer, meshCollection); thumbnailGenerator->initialize(); }},
                     {"initialize BrickLink constants",  [](float *progress) { bricklink_constants_provider::initialize(progress); }},
                     //{"initialize orientation cube generator", [](){orientation_cube::initialize();}},
             };
@@ -244,8 +249,7 @@ namespace controller {
         }
 
         void cleanup() {
-            renderer.cleanup();
-            //todo ldr_file_repo::cleanup();
+            renderer->cleanup();
             auto &bgTasks = getBackgroundTasks();
             spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
             for (auto &task : bgTasks) {
@@ -287,7 +291,7 @@ namespace controller {
         //openFile("3001.dat");
 
         while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
-            if (foregroundTasks.empty() && backgroundTasks.empty() && thumbnailGenerator.renderQueueEmpty() && glfwGetWindowAttrib(window, GLFW_FOCUSED) == 0) {
+            if (foregroundTasks.empty() && backgroundTasks.empty() && thumbnailGenerator->renderQueueEmpty() && glfwGetWindowAttrib(window, GLFW_FOCUSED) == 0) {
                 std::this_thread::sleep_for(idle_sleep);
                 glfwPollEvents();
                 continue;
@@ -297,15 +301,15 @@ namespace controller {
             auto before = std::chrono::high_resolution_clock::now();
 
             if (elementTreeChanged || selectionChanged) {
-                renderer.meshCollection.updateSelectionContainerBox();
+                renderer->meshCollection->updateSelectionContainerBox();
                 selectionChanged = false;
                 elementTreeChanged = true;
             }
             if (elementTreeChanged) {
-                renderer.elementTreeChanged();
+                renderer->elementTreeChanged();
                 elementTreeChanged = false;
             }
-            renderer.loop();
+            renderer->loop();
 
             gui::beginFrame();
             gui::drawMainWindows();
@@ -319,10 +323,10 @@ namespace controller {
 
             gui::endFrame();
 
-            thumbnailGenerator.discardOldestImages(0);
+            thumbnailGenerator->discardOldestImages(0);
             bool moreWork;
             do {
-                moreWork = thumbnailGenerator.workOnRenderQueue();
+                moreWork = thumbnailGenerator->workOnRenderQueue();
             } while (glfwGetTime() - loopStart < 1.0 / 60 && moreWork);
             auto after = std::chrono::high_resolution_clock::now();
             lastFrameTimes[lastFrameTimesStartIdx] = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()/1000.0f;
@@ -343,7 +347,7 @@ namespace controller {
     void set3dViewSize(unsigned int width, unsigned int height) {
         view3dWidth = width;
         view3dHeight = height;
-        renderer.setWindowSize(width, height);
+        renderer->setWindowSize(width, height);
     }
 
     void setWindowSize(unsigned int width, unsigned int height) {
@@ -357,7 +361,7 @@ namespace controller {
         }));
     }
 
-    void nodeSelectAddRemove(etree::Node *node) {
+    void nodeSelectAddRemove(const std::shared_ptr<etree::Node>& node) {
         auto iterator = selectedNodes.find(node);
         node->selected = iterator == selectedNodes.end();
         if (node->selected) {
@@ -368,7 +372,7 @@ namespace controller {
         selectionChanged = true;
     }
 
-    void nodeSelectSet(etree::Node *node) {
+    void nodeSelectSet(const std::shared_ptr<etree::Node>& node) {
         for (const auto &selectedNode : selectedNodes) {
             selectedNode->selected = false;
         }
@@ -378,13 +382,13 @@ namespace controller {
         selectionChanged = true;
     }
 
-    void nodeSelectUntil(etree::Node *node) {
+    void nodeSelectUntil(const std::shared_ptr<etree::Node>& node) {
         auto rangeActive = false;
         auto keepGoing = true;
         for (auto iterator = node->parent->getChildren().rbegin();
              iterator != node->parent->getChildren().rend() && keepGoing;
              iterator++) {
-            etree::Node *itNode = *iterator;
+            auto itNode = *iterator;
             if (itNode == node || itNode->selected) {
                 if (rangeActive) {
                     keepGoing = false;
@@ -402,8 +406,8 @@ namespace controller {
 
     void nodeSelectAll() {
         nodeSelectNone();
-        elementTree.rootNode.selected = true;
-        selectedNodes.insert(&elementTree.rootNode);
+        elementTree->rootNode->selected = true;
+        selectedNodes.insert(elementTree->rootNode);
         selectionChanged = true;
     }
 
@@ -416,15 +420,18 @@ namespace controller {
     }
 
     void setStandard3dView(int i) {
-        renderer.camera.setStandardView(i);
-        renderer.unrenderedChanges = true;
+        renderer->camera.setStandardView(i);
+        renderer->unrenderedChanges = true;
     }
 
     void insertLdrElement(const std::shared_ptr<LdrFile>& ldrFile) {
-        auto currentlyEditingLdrNode = dynamic_cast<etree::LdrNode *>(currentlyEditingNode);
+        auto currentlyEditingLdrNode = std::dynamic_pointer_cast<etree::LdrNode>(currentlyEditingNode);
         switch (ldrFile->metaInfo.type) {
-            case MODEL: currentlyEditingNode =/*todo smart pointer*/ new etree::MpdNode(ldrFile, ldr_color_repo::get_color(2), &elementTree.rootNode);
-                elementTree.rootNode.addChild(currentlyEditingNode);
+            case MODEL:
+                currentlyEditingLdrNode = std::make_shared<etree::MpdNode>(ldrFile, ldr_color_repo::get_color(2), elementTree->rootNode);
+                currentlyEditingNode = currentlyEditingLdrNode;
+                currentlyEditingLdrNode->createChildNodes();
+                elementTree->rootNode->addChild(currentlyEditingNode);
                 break;
             case MPD_SUBFILE:
                 if (nullptr != currentlyEditingLdrNode) {
@@ -433,7 +440,7 @@ namespace controller {
                 break;
             case PART:
                 if (nullptr != currentlyEditingLdrNode) {
-                    currentlyEditingLdrNode->addChild(new etree::PartNode(ldrFile, ldr_color_repo::get_color(1), currentlyEditingNode));
+                    currentlyEditingLdrNode->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr_color_repo::get_color(1), currentlyEditingNode));
                 }
                 break;
             default: return;
@@ -441,7 +448,7 @@ namespace controller {
         elementTreeChanged = true;
     }
 
-    void deleteElement(etree::Node *nodeToDelete) {
+    void deleteElement(const std::shared_ptr<etree::Node>& nodeToDelete) {
         nodeToDelete->parent->deleteChild(nodeToDelete);
         selectedNodes.erase(nodeToDelete);
         elementTreeChanged = true;
@@ -462,19 +469,19 @@ namespace controller {
         userWantsToExit = val;
     }
 
-    std::set<etree::Node *> &getSelectedNodes() {
+    std::set<std::shared_ptr<etree::Node>> & getSelectedNodes() {
         return selectedNodes;
     }
 
-    Renderer *getRenderer() {
-        return &renderer;
+    std::shared_ptr<Renderer> getRenderer() {
+        return renderer;
     }
 
-    etree::ElementTree &getElementTree() {
+    std::shared_ptr<etree::ElementTree> getElementTree() {
         return elementTree;
     }
 
-    ThumbnailGenerator &getThumbnailGenerator() {
+    std::shared_ptr<ThumbnailGenerator> getThumbnailGenerator() {
         return thumbnailGenerator;
     }
 

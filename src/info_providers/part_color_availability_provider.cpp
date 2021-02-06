@@ -10,8 +10,8 @@
 namespace part_color_availability_provider {
 
     namespace {
-        std::map<std::string, const LdrColor*> colorsByName;
-        std::map<const std::string, std::set<const LdrColor*>> colorsAvailable;
+        std::map<std::string, std::shared_ptr<const LdrColor>> colorsByName;
+        std::map<const std::string, std::set<std::shared_ptr<const LdrColor>>> colorsAvailable;
 
         bool isDataAvailable = false;
 
@@ -26,7 +26,7 @@ namespace part_color_availability_provider {
                     isDataAvailable = true;
 
                     for (const auto &item : ldr_color_repo::getColors()) {
-                        colorsByName[item.second.name] = &item.second;
+                        colorsByName[item.second->name] = item.second;
                     }
 
                     std::string line;
@@ -56,7 +56,7 @@ namespace part_color_availability_provider {
 
     }
 
-    std::optional<std::set<const LdrColor *>> getAvailableColorsForPart(const std::shared_ptr<LdrFile>& part) {
+    std::optional<std::set<std::shared_ptr<const LdrColor>>> getAvailableColorsForPart(const std::shared_ptr<LdrFile>& part) {
         ensureDataLoaded();
         std::string partCode = part->metaInfo.name;
         util::replaceAll(partCode, ".dat", "");

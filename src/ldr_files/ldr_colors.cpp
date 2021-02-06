@@ -42,7 +42,7 @@ LdrColor::LdrColor(const std::string &line) {
             finish = METAL;
         } else if (keyword == "MATERIAL") {
             finish = MATERIAL;
-            material = new LdrColorMaterial();
+            material = {LdrColorMaterial()};
             std::string typeStr;
             linestream >> typeStr;
             material->type = typeStr == "GLITTER" ? LdrColorMaterial::GLITTER : LdrColorMaterial::SPECKLE;
@@ -93,16 +93,16 @@ std::string LdrColor::getGroupDisplayName() const {
 
 namespace ldr_color_repo {
     namespace {
-        std::map<int, LdrColor> colors;
+        std::map<int, std::shared_ptr<LdrColor>> colors;
         std::vector<int> hueSortedCodes;
     }
 
-    LdrColor *get_color(const int colorCode) {
+    std::shared_ptr<const LdrColor> get_color(const int colorCode) {
         auto iterator = colors.find(colorCode);
         if (iterator == colors.end()) {
             throw std::invalid_argument("unknown color code: " + std::to_string(colorCode));
         }
-        return &(iterator->second);
+        return iterator->second;
     }
 
     void initialize() {
@@ -114,12 +114,12 @@ namespace ldr_color_repo {
             for (std::string line; getline(inpStream, line);) {
                 auto trimmed = util::trim(line);
                 if (!trimmed.empty() && trimmed.rfind("0 !COLOUR", 0) == 0) {
-                    LdrColor col(line.substr(10));
-                    colors[col.code] = col;
-                    hueSortedCodes.push_back(col.code);
+                    auto col = std::make_shared<LdrColor>(line.substr(10));
+                    colors[col->code] = col;
+                    hueSortedCodes.push_back(col->code);
                 }
             }
-            colors[getInstanceDummyColor().code] = getInstanceDummyColor();
+            colors[getInstanceDummyColor()->code] = getInstanceDummyColor();
             std::sort(hueSortedCodes.begin(), hueSortedCodes.end(),
                       [](const int &a, const int &b) {
                           return util::HSVcolor(get_color(a)->value).hue < util::HSVcolor(get_color(b)->value).hue;
@@ -128,24 +128,24 @@ namespace ldr_color_repo {
         }
     }
 
-    std::map<std::string, std::vector<const LdrColor *>> getAllColorsGroupedAndSortedByHue() {
-        std::map<std::string, std::vector<const LdrColor *>> result;
+    std::map<std::string, std::vector<std::shared_ptr<const LdrColor>>> getAllColorsGroupedAndSortedByHue() {
+        std::map<std::string, std::vector<std::shared_ptr<const LdrColor>>> result;
         for (const auto &colorPair : colors) {
-            if (colorPair.first != getInstanceDummyColor().code
+            if (colorPair.first != getInstanceDummyColor()->code
                 && colorPair.first != LdrColor::MAIN_COLOR_CODE
                 && colorPair.first != LdrColor::LINE_COLOR_CODE) {
-                result[colorPair.second.getGroupDisplayName()].push_back(&colorPair.second);
+                result[colorPair.second->getGroupDisplayName()].push_back(colorPair.second);
             }
         }
         return result;
     }
 
-    std::map<int, LdrColor> &getColors() {
+    std::map<int, std::shared_ptr<LdrColor>> &getColors() {
         return colors;
     }
 
-    LdrInstanceDummyColor &getInstanceDummyColor() {
-        static LdrInstanceDummyColor instDummyColor;
+    std::shared_ptr<LdrInstanceDummyColor> getInstanceDummyColor() {
+        static auto instDummyColor = std::make_shared<LdrInstanceDummyColor>();
         return instDummyColor;
     }
 

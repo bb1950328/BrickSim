@@ -31,7 +31,7 @@ public:
     Shader *lineShader;
     Shader *optionalLineShader;
     Shader *textureShader;
-    MeshCollection meshCollection;
+    std::shared_ptr<MeshCollection> meshCollection;
 
     unsigned int windowWidth = 0;
     unsigned int windowHeight = 0;
@@ -64,7 +64,7 @@ public:
 
     bool cleanup();
 
-    explicit Renderer(etree::ElementTree *elementTree);
+    explicit Renderer(std::shared_ptr<MeshCollection> meshCollection);
 
     void setWindowSize(unsigned int width, unsigned int height);
 

@@ -27,12 +27,13 @@ namespace etree {
     const char *getDisplayNameOfType(const NodeType &type);
     util::RGBcolor getColorOfType(const NodeType &type);
 
-    class Node {
+    class Node : public std::enable_shared_from_this<Node> {
     public:
-        explicit Node(Node *parent);
+        explicit Node(std::shared_ptr<Node> parent);
+        Node(const Node&) = delete;
         bool visible = true;
         bool visibleInElementTree = true;
-        Node *parent;
+        std::shared_ptr<Node> parent;
         std::string displayName;
         bool selected = false;
         NodeType type = TYPE_OTHER;
@@ -48,13 +49,13 @@ namespace etree {
         [[nodiscard]] virtual bool isDisplayNameUserEditable() const = 0;
         virtual std::string getDescription();
 
-        [[nodiscard]] const std::vector<Node *> &getChildren() const;
-        void addChild(Node *newChild);
+        [[nodiscard]] const std::vector<std::shared_ptr<Node>> &getChildren() const;
+        void addChild(const std::shared_ptr<Node>& newChild);
 
-        void deleteChild(Node *childToDelete);
+        void deleteChild(const std::shared_ptr<Node>& childToDelete);
         virtual ~Node();
     protected:
-        std::vector<Node *> children;
+        std::vector<std::shared_ptr<Node>> children;
         glm::mat4 relativeTransformation = glm::mat4(1.0f);
         mutable glm::mat4 absoluteTransformation;
         mutable bool absoluteTransformationValid = false;
@@ -71,59 +72,66 @@ namespace etree {
 
     class MeshNode : public Node {
     public:
-        MeshNode(LdrColor *color, Node *parent);
+        MeshNode(std::shared_ptr<const LdrColor> color, std::shared_ptr<Node> parent);
 
         virtual void *getMeshIdentifier() const = 0;
-        virtual void addToMesh(Mesh *mesh, bool windingInversed) = 0;
+        virtual void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) = 0;
         [[nodiscard]] virtual bool isColorUserEditable() const;
-        [[nodiscard]] LdrColor *getDisplayColor() const;
-        void setColor(LdrColor *newColor);
-        LdrColor *getElementColor() const;
+        [[nodiscard]] std::shared_ptr<const LdrColor> getDisplayColor() const;
+        void setColor(std::shared_ptr<const LdrColor> newColor);
+        std::shared_ptr<const LdrColor> getElementColor() const;
     private:
-        LdrColor *color;
+        std::shared_ptr<const LdrColor> color;
     };
 
     class LdrNode : public MeshNode {
     public:
-        LdrNode(NodeType nodeType, std::shared_ptr<LdrFile> ldrFile, LdrColor *ldrColor, Node *parent);
+        LdrNode(NodeType nodeType, const std::shared_ptr<LdrFile>& ldrFile, const std::shared_ptr<const LdrColor>& ldrColor, const std::shared_ptr<Node>& parent);
+        /**
+         * This function is necessary because shared_from_this() doesn't work inside the constructor. so this function should be called immediately after creating
+         * an object of type LdrNode. todo find a better solution for this
+         */
+        void createChildNodes();
 
         void *getMeshIdentifier() const override;
-        void addToMesh(Mesh *mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
         std::string getDescription() override;
         std::shared_ptr<LdrFile> ldrFile;
-        std::set<LdrSubfileReference *> childrenWithOwnNode;
+        std::set<std::shared_ptr<LdrSubfileReference>> childrenWithOwnNode;
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
 
         /**
          * finds the subfileNode and creates a MpdSubfileInstanceNode as child of this
          */
-        void addSubfileInstanceNode(std::shared_ptr<LdrFile> subFile, LdrColor* instanceColor);
+        void addSubfileInstanceNode(const std::shared_ptr<LdrFile>& subFile, const std::shared_ptr<const LdrColor>& instanceColor);
+    private:
+        bool childNodesCreated;
     };
 
     class MpdSubfileNode;
 
     class MpdSubfileInstanceNode : public MeshNode {
     public:
-        MpdSubfileInstanceNode(MpdSubfileNode *mpdSubfileNode, LdrColor *color, Node *parent);
+        MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, std::shared_ptr<const LdrColor> color, std::shared_ptr<Node> parent);
 
-        MpdSubfileNode *mpdSubfileNode;
+        std::shared_ptr<MpdSubfileNode> mpdSubfileNode;
         void *getMeshIdentifier() const override;
-        void addToMesh(Mesh *mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
         std::string getDescription() override;
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };
 
     class MpdNode : public LdrNode {
     public:
-        MpdNode(std::shared_ptr<LdrFile> ldrFile, LdrColor *ldrColor, Node *parent);
+        MpdNode(const std::shared_ptr<LdrFile>& ldrFile, const std::shared_ptr<const LdrColor>& ldrColor, const std::shared_ptr<Node>& parent);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };
 
     class MpdSubfileNode : public LdrNode {
     public:
-        MpdSubfileNode(std::shared_ptr<LdrFile> ldrFile, LdrColor *color, Node *parent);
+        MpdSubfileNode(const std::shared_ptr<LdrFile>& ldrFile, const std::shared_ptr<const LdrColor>& color, const std::shared_ptr<Node>& parent);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
         [[nodiscard]] bool isTransformationUserEditable() const override;
@@ -132,18 +140,19 @@ namespace etree {
 
     class PartNode : public LdrNode {
     public:
-        PartNode(std::shared_ptr<LdrFile> ldrFile, LdrColor *ldrColor, Node *parent);
+        PartNode(const std::shared_ptr<LdrFile>& ldrFile, const std::shared_ptr<const LdrColor>& ldrColor, const std::shared_ptr<Node>& parent);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };
 
-    class ElementTree {
+    class ElementTree: public std::enable_shared_from_this<ElementTree> {
     public:
-        RootNode rootNode;
-        Node * loadLdrFile(const std::string &filename);
+        ElementTree();
+        std::shared_ptr<RootNode> rootNode;
+        std::shared_ptr<Node> loadLdrFile(const std::string &filename);
         void print();
     private:
-        void printFromNode(int indent, Node *node);
+        void printFromNode(int indent, const std::shared_ptr<Node>& node);
     };
 }
 

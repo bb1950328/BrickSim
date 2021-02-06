@@ -19,14 +19,14 @@ namespace gui {
             static int thumbnailZoomPercent = 100;//todo get from config
             ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8);
             ImGui::DragInt("##Zoom", &thumbnailZoomPercent, 5, 10, 500, " Zoom: %d%%");
-            static LdrColor *color = ldr_color_repo::get_color(1);//todo save in config
+            static auto color = ldr_color_repo::get_color(1);//todo save in config
             const glm::vec3 &col = color->value.asGlmVector();
             const ImVec4 &txtColor = gui_internal::getWhiteOrBlackBetterContrast(col);
             ImGui::PushStyleColor(ImGuiCol_Text, txtColor);
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(col.x, col.y, col.z, 1));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(col.x, col.y, col.z, .8));
 
-            static LdrColor *colorChosenInPopup;
+            static std::shared_ptr<const LdrColor> colorChosenInPopup;
             ImGui::SameLine();
             if (ImGui::Button(color->name.c_str())) {
                 colorChosenInPopup = color;
@@ -42,7 +42,7 @@ namespace gui {
                 for (const auto &colorGroup: ldr_color_repo::getAllColorsGroupedAndSortedByHue()) {
                     if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
                         int i = 0;
-                        for (const auto *currentColor : colorGroup.second) {
+                        for (const auto &currentColor : colorGroup.second) {
                             if (i % columnCount > 0) {
                                 ImGui::SameLine();
                             }
@@ -119,7 +119,7 @@ namespace gui {
             ImGui::BeginChild("##thumbnailsContainer", ImVec2(thumbnailContainerWidth, 0), ImGuiWindowFlags_AlwaysVerticalScrollbar);
             const static auto thumbnailSpacing = 4;
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(thumbnailSpacing, thumbnailSpacing));
-            auto actualThumbSize = std::floor(controller::getThumbnailGenerator().size / 100.0 * thumbnailZoomPercent);
+            auto actualThumbSize = std::floor(controller::getThumbnailGenerator()->size / 100.0 * thumbnailZoomPercent);
             auto actualThumbSizeSquared = ImVec2(actualThumbSize, actualThumbSize);
             int columns = std::max(1.0, std::floor((ImGui::GetContentRegionAvailWidth() + thumbnailSpacing) / (actualThumbSize + thumbnailSpacing)));
             int currentCol = 0;

@@ -25,7 +25,7 @@ struct LdrColorMaterial {
     int maxsize = 0;
 };
 
-class LdrColor {
+class LdrColor: public std::enable_shared_from_this<LdrColor> {
 public:
     enum Finish {
         NONE, CHROME, PEARLESCENT, RUBBER, MATTE_METALLIC, METAL, MATERIAL
@@ -44,7 +44,7 @@ public:
     unsigned char alpha = 255;
     unsigned char luminance = 0;
     Finish finish = NONE;
-    LdrColorMaterial *material = nullptr;
+    std::optional<LdrColorMaterial> material{};
     const static int MAIN_COLOR_CODE = 16;
     const static int LINE_COLOR_CODE = 24;
 };
@@ -58,9 +58,9 @@ namespace ldr_color_repo {
     };
     void initialize();
 
-    LdrColor *get_color(int colorCode);
-    std::map<std::string, std::vector<const LdrColor *>> getAllColorsGroupedAndSortedByHue();
-    std::map<int, LdrColor> &getColors();
-    LdrInstanceDummyColor& getInstanceDummyColor();
+    std::shared_ptr<const LdrColor> get_color(int colorCode);
+    std::map<std::string, std::vector<std::shared_ptr<const LdrColor>>> getAllColorsGroupedAndSortedByHue();
+    std::map<int, std::shared_ptr<LdrColor>> &getColors();
+    std::shared_ptr<LdrInstanceDummyColor> getInstanceDummyColor();
 };
 #endif //BRICKSIM_LDR_COLORS_H

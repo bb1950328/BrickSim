@@ -13,7 +13,7 @@
 
 namespace gui {
     void windows::drawElementPropertiesWindow(bool *show) {
-        static etree::Node *lastSelectedNode = nullptr;
+        static std::shared_ptr<etree::Node> lastSelectedNode = nullptr;
         ImGui::Begin(WINDOW_NAME_ELEMENT_PROPERTIES, show);
         if (controller::getSelectedNodes().empty()) {
             ImGui::Text("Select an element to view its properties here");
@@ -89,7 +89,7 @@ namespace gui {
                 ImGui::DragFloat3(ICON_FA_EXPAND_ARROWS_ALT" Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
             }
             if ((node->getType() & etree::NodeType::TYPE_MESH) > 0) {
-                auto *meshNode = dynamic_cast<etree::MeshNode *>(node);
+                auto meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node);
                 if (meshNode->isColorUserEditable() && ImGui::TreeNodeEx(ICON_FA_PALETTE" Color", ImGuiTreeNodeFlags_DefaultOpen)) {
                     static bool isColor16, savedIsColor16;
                     if (lastSelectedNode == node) {
@@ -110,10 +110,9 @@ namespace gui {
                         const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
                         const int columnCount = std::floor(ImGui::GetContentRegionAvailWidth() / (buttonWidth + ImGui::GetStyle().ItemSpacing.x));
 
-                        std::optional<std::set<const LdrColor *>> availableColors = std::nullopt;
+                        std::optional<std::set<std::shared_ptr<const LdrColor>>> availableColors = std::nullopt;
                         if (meshNode->getType() == etree::TYPE_PART) {
-                            availableColors = part_color_availability_provider::getAvailableColorsForPart(
-                                    dynamic_cast<etree::LdrNode *>(meshNode)->ldrFile);
+                            availableColors = part_color_availability_provider::getAvailableColorsForPart(std::dynamic_pointer_cast<etree::LdrNode>(meshNode)->ldrFile);
                         }
                         bool showAllColors;
                         if (availableColors.has_value() && !availableColors.value().empty()) {
@@ -121,7 +120,7 @@ namespace gui {
                             ImGui::Checkbox("Only show available Colors", &onlyAvailableChecked);
                             showAllColors = !onlyAvailableChecked;
                             if (onlyAvailableChecked) {
-                                std::pair<std::string, std::vector<const LdrColor *>> group = std::make_pair("Available", std::vector<const LdrColor *>());
+                                std::pair<std::string, std::vector<std::shared_ptr<const LdrColor>>> group = std::make_pair("Available", std::vector<std::shared_ptr<const LdrColor>>());
                                 for (const auto &color : availableColors.value()) {
                                     group.second.push_back(color);
                                 }
@@ -149,7 +148,7 @@ namespace gui {
             }
             if (node->getType() == etree::NodeType::TYPE_PART) {
                 if (ImGui::TreeNodeEx(ICON_FA_MONEY_BILL_WAVE" Price Guide")) {
-                    auto *partNode = dynamic_cast<etree::PartNode *>(node);
+                    auto partNode = std::dynamic_pointer_cast<etree::PartNode>(node);
                     auto partCode = partNode->ldrFile->metaInfo.name;
                     util::replaceAll(partCode, ".dat", "");
                     const auto color = partNode->getDisplayColor();
@@ -165,7 +164,7 @@ namespace gui {
                             }
                         }
                     }
-                    std::map<const LdrColor *, const price_guide_provider::PriceGuide> pGuides;
+                    std::map<std::shared_ptr<const LdrColor>, const price_guide_provider::PriceGuide> pGuides;
                     if (availableColors.has_value()) {
                         for (const auto &item : availableColors.value()) {
                             auto pg = price_guide_provider::getPriceGuideIfCached(partCode, currencyCode,
@@ -195,7 +194,7 @@ namespace gui {
 
                         const auto windowBgImVec = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
                         const auto windowBg = glm::vec3(windowBgImVec.x, windowBgImVec.y, windowBgImVec.z);
-                        auto drawColoredValueText = [&windowBg](const char *text, const LdrColor *color) {
+                        auto drawColoredValueText = [&windowBg](const char *text, std::shared_ptr<const LdrColor> color) {
                             //ImGui::SameLine();
                             auto col = color->value.asGlmVector();
                             if (util::vectorSum(glm::abs(windowBg - col)) < 0.3) {

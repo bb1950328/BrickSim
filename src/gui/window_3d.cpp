@@ -60,7 +60,7 @@ namespace gui {
                         if (elementIdUnderMouse == 0) {
                             controller::nodeSelectNone();
                         } else {
-                            auto *clickedNode = controller::getRenderer()->meshCollection.getElementById(elementIdUnderMouse);
+                            auto clickedNode = controller::getRenderer()->meshCollection->getElementById(elementIdUnderMouse);
                             if (clickedNode != nullptr) {
                                 if (ImGui::GetIO().KeyCtrl) {
                                     controller::nodeSelectAddRemove(clickedNode);

@@ -5,7 +5,7 @@
 #include "gui.h"
 #include "../controller.h"
 
-void draw_element_tree_node(etree::Node *node) {
+void draw_element_tree_node(std::shared_ptr<etree::Node> node) {
     if (node->visibleInElementTree) {
         auto colorVec = glm::vec4(getColorOfType(node->getType()).asGlmVector(), 1.0);
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(colorVec.x, colorVec.y, colorVec.z, colorVec.w));
@@ -45,7 +45,7 @@ void draw_element_tree_node(etree::Node *node) {
 namespace gui {
     void windows::drawElementTreeWindow(bool *show) {
         ImGui::Begin(WINDOW_NAME_ELEMENT_TREE, show);
-        for (auto *rootChild : controller::getElementTree().rootNode.getChildren()) {
+        for (const auto &rootChild : controller::getElementTree()->rootNode->getChildren()) {
             draw_element_tree_node(rootChild);
         }
         ImGui::End();

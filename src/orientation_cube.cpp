@@ -140,7 +140,7 @@ namespace orientation_cube {
         auto pitch = glm::radians(camera.getPitch());
         auto yaw = glm::radians(camera.getYaw());
         if (pitch != lastPitch || yaw != lastYaw) {
-            Renderer *renderer = controller::getRenderer();
+            auto renderer = controller::getRenderer();
             if (framebufferSize != size) {
                 renderer->createFramebuffer(&fbo, &tbo, &rbo, size, size);
                 framebufferSize = size;

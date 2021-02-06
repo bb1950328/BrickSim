@@ -4,6 +4,8 @@
 
 #include <imgui.h>
 #include <spdlog/spdlog.h>
+
+#include <utility>
 #include "renderer.h"
 #include "controller.h"
 #include "ldr_files/ldr_colors.h"
@@ -23,8 +25,8 @@ bool Renderer::initialize() {
     optionalLineShader = new Shader("src/shaders/optional_line_shader.vsh", "src/shaders/line_shader.fsh", "src/shaders/optional_line_shader.gsh");
     textureShader = new Shader("src/shaders/texture_shader.vsh", "src/shaders/texture_shader.fsh");
 
-    meshCollection.rereadElementTree();
-    meshCollection.initializeGraphics();
+    meshCollection->rereadElementTree();
+    meshCollection->initializeGraphics();
 
     updateProjectionMatrix();
 
@@ -99,21 +101,21 @@ bool Renderer::loop() {
         glm::mat4 view = camera.getViewMatrix();
         const glm::mat4 &projectionView = projection * view;
 
-        for (const auto &layer : meshCollection.getLayersInUse()) {
+        for (const auto &layer : meshCollection->getLayersInUse()) {
             glClear(GL_DEPTH_BUFFER_BIT);
             triangleShader->use();
             triangleShader->setVec3("viewPos", camera.getCameraPos());
             triangleShader->setMat4("projectionView", projectionView);
             triangleShader->setInt("drawSelection", 0);
-            meshCollection.drawTriangleGraphics(layer);
+            meshCollection->drawTriangleGraphics(layer);
 
             lineShader->use();
             lineShader->setMat4("projectionView", projectionView);
-            meshCollection.drawLineGraphics(layer);
+            meshCollection->drawLineGraphics(layer);
 
             optionalLineShader->use();
             optionalLineShader->setMat4("projectionView", projectionView);
-            meshCollection.drawOptionalLineGraphics(layer);
+            meshCollection->drawOptionalLineGraphics(layer);
         }
 
 
@@ -124,7 +126,6 @@ bool Renderer::loop() {
 }
 
 bool Renderer::cleanup() {
-    meshCollection.deallocateGraphics();
     delete lineShader;
     delete optionalLineShader;
     delete triangleShader;
@@ -134,7 +135,7 @@ bool Renderer::cleanup() {
     return true;
 }
 
-Renderer::Renderer(etree::ElementTree *elementTree) : meshCollection(elementTree) {
+Renderer::Renderer(std::shared_ptr<MeshCollection> meshCollection) : meshCollection(std::move(meshCollection)) {
     triangleShader = nullptr;
     lineShader = nullptr;
 }
@@ -153,7 +154,7 @@ void Renderer::setWindowSize(unsigned int width, unsigned int height) {
 }
 
 void Renderer::elementTreeChanged() {
-    meshCollection.rereadElementTree();
+    meshCollection->rereadElementTree();
     unrenderedChanges = true;
 }
 
@@ -176,9 +177,9 @@ unsigned int Renderer::getSelectionPixel(unsigned int x, unsigned int y) {
 
     triangleShader->use();
     triangleShader->setInt("drawSelection", 1);
-    for (const auto &layer : meshCollection.getLayersInUse()) {
+    for (const auto &layer : meshCollection->getLayersInUse()) {
         glClear(GL_DEPTH_BUFFER_BIT);
-        meshCollection.drawTriangleGraphics(layer);
+        meshCollection->drawTriangleGraphics(layer);
     }
 
     GLubyte  middlePixel[3];

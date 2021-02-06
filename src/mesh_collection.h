@@ -5,13 +5,15 @@
 #ifndef BRICKSIM_MESH_COLLECTION_H
 #define BRICKSIM_MESH_COLLECTION_H
 
+typedef std::pair<void *, bool> mesh_key_t;
+
 #include "element_tree.h"
 
 class MeshCollection {
 public:
     explicit MeshCollection(etree::ElementTree *elementTree);
 
-    std::map<std::pair<void *, bool>, Mesh*> meshes;
+    std::map<mesh_key_t, Mesh*> meshes;
 
     void initializeGraphics();
     void deallocateGraphics();
@@ -36,7 +38,7 @@ private:
     etree::ElementTree *elementTree;
     std::set<etree::Node*> nodesWithChildrenAlreadyVisited;
 
-    std::map<std::pair<void *, bool>, std::vector<MeshInstance>> newMeshInstances;
+    std::map<mesh_key_t, std::vector<MeshInstance>> newMeshInstances;
     std::set<layer_t> layersInUse;
     void updateMeshInstances();
     void readElementTree(etree::Node *node, const glm::mat4 &parentAbsoluteTransformation, LdrColor *parentColor, std::optional<unsigned int> selectionTargetElementId);

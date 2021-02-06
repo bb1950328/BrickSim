@@ -20,6 +20,7 @@
 #include <spdlog/spdlog.h>
 #include "../helpers/platform_detection.h"
 #include "../helpers/parts_library_downloader.h"
+#include "../ldr_files/ldr_file_repo.h"
 
 namespace gui {
     const char* WINDOW_NAME_3D_VIEW = ICON_FA_CUBES" 3D View";
@@ -498,9 +499,9 @@ namespace gui {
                 static ldr_file_repo::LibraryType libraryType;
                 if (lastCheckedPath!=enteredPath) {
                     lastCheckedPath = enteredPath;
-                    libraryType = ldr_file_repo::checkLibraryValid(enteredPath);
+                    libraryType = ldr_file_repo::getLibraryType(enteredPath);
                 }
-                if (libraryType == ldr_file_repo::LibraryType::NOT_FOUND) {
+                if (libraryType == ldr_file_repo::LibraryType::INVALID) {
                     ImGui::TextColored(ImVec4(1, 0, 0, 1), ICON_FA_TIMES_CIRCLE" This path doesn't exist or isn't a valid LDraw parts library");
                 } else if (libraryType==ldr_file_repo::LibraryType::DIRECTORY){
                     ImGui::TextColored(ImVec4(0, 1, 0, 1), ICON_FA_CHECK"This is a valid path to an LDraw parts library directory.");

@@ -88,6 +88,8 @@ add_subdirectory(src)
 
 if (WIN32)
     target_link_libraries(BrickSim -lssp) # stack smashing protection
+elseif (UNIX)
+    target_link_libraries(BrickSim -ltbb)
 endif ()
 
 target_include_directories(BrickSim PUBLIC

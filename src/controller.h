@@ -38,7 +38,7 @@ namespace controller {
     void nodeSelectNone();
 
     void setStandard3dView(int i);
-    void insertLdrElement(LdrFile* ldrFile);
+    void insertLdrElement(const std::shared_ptr<LdrFile>& ldrFile);
     void deleteElement(etree::Node *nodeToDelete);
 
     void deleteSelectedElements();

@@ -27,7 +27,8 @@ if [[ "$OS" == "linux" ]]; then
   sudo apt-get update
   sudo apt-get install -y build-essential mesa-utils freeglut3-dev libxinerama-dev \
                           libxrandr-dev libxcursor-dev libxi-dev libcurl4-openssl-dev \
-                          libglm-dev libzip-dev gcc-10 g++-10 libspdlog-dev cmake libzip5
+                          libglm-dev libzip-dev gcc-10 g++-10 libspdlog-dev cmake libzip5 \
+                          libtbb-dev
   echo "packages installed."
 fi
 

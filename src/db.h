@@ -36,6 +36,7 @@ namespace db {
         std::set<std::string> getAllFiles();
         std::set<std::string> getAllPartsForCategory(const std::string& category);
         std::optional<std::string> containsFile(const std::string& name);
+        std::optional<Entry> findFile(const std::string& name);
     }
 
     namespace config {

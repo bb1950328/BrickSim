@@ -66,7 +66,7 @@ public:
     virtual ~LdrFile();
 
     std::vector<LdrFileElement *> elements;
-    std::set<LdrFile*> mpdSubFiles;
+    std::set<std::shared_ptr<LdrFile>> mpdSubFiles;
 
     void printStructure(int indent=0);
 
@@ -78,7 +78,7 @@ public:
 
     LdrFileMetaInfo metaInfo;
 
-    static LdrFile *parseFile(LdrFileType fileType, const std::filesystem::path &path, const std::string *content);
+    static std::shared_ptr<LdrFile> parseFile(LdrFileType fileType, const std::string &name, const std::string& content);
 private:
 
     bool subfilesPreloadedAndComplexityEstimated = false;
@@ -122,10 +122,10 @@ public:
     std::string filename;
     [[nodiscard]] int getType() const override;
     [[nodiscard]] glm::mat4 getTransformationMatrix() const;
-    LdrFile *getFile();
+    std::shared_ptr<LdrFile> getFile();
 
 private:
-    LdrFile *file = nullptr;
+    std::shared_ptr<LdrFile> file = nullptr;
 };
 
 class LdrLine : public LdrFileElement {

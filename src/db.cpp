@@ -307,6 +307,20 @@ namespace db {
             }
         }
 
+        std::optional<Entry> findFile(const std::string &name) {
+            SQLite::Statement stmt(cacheDb.value(), "SELECT name, title, category FROM files WHERE name=?;");
+            stmt.bind(1, name);
+            if (stmt.executeStep()) {
+                return {{
+                    stmt.getColumn(0),
+                    stmt.getColumn(1),
+                    stmt.getColumn(2)
+                }};
+            } else {
+                return {};
+            }
+        }
+
         void put(const std::vector<Entry> &entries) {
             std::string command = "INSERT INTO files (name, title, category) VALUES ";
             std::string name, title, category;

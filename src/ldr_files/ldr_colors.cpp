@@ -9,7 +9,8 @@
 #include "ldr_colors.h"
 #include "../helpers/util.h"
 #include "../config.h"
-#include "ldr_file_repository.h"
+#include "ldr_file_repo.h"
+
 
 LdrColor::LdrColor(const std::string &line) {
     std::stringstream linestream(line);//todo optimize this one day (using strtok instead of stringstream)
@@ -108,8 +109,8 @@ namespace ldr_color_repo {
         static bool initialized = false;
         if (!initialized) {
             std::stringstream inpStream;
-            const std::string *contentString = ldr_file_repo::readFileFromLdrawDirectory("LDConfig.ldr");
-            inpStream << *contentString;
+            std::string contentString = ldr_file_repo::get().getLibraryFileContent("LDConfig.ldr");
+            inpStream << contentString;
             for (std::string line; getline(inpStream, line);) {
                 auto trimmed = util::trim(line);
                 if (!trimmed.empty() && trimmed.rfind("0 !COLOUR", 0) == 0) {

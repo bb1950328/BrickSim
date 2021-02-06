@@ -78,7 +78,7 @@ public:
 
     Mesh()=default;
 
-    void addLdrFile(const LdrFile &file, glm::mat4 transformation, const LdrColor *mainColor, bool bfcInverted);
+    void addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transformation, const LdrColor *mainColor, bool bfcInverted);
     void addLdrSubfileReference(const LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation, bool bfcInverted);
     void addLdrLine(const LdrColor *mainColor, const LdrLine &lineElement, glm::mat4 transformation);
     void addLdrTriangle(const LdrColor *mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted);

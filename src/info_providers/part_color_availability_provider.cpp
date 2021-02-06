@@ -56,7 +56,7 @@ namespace part_color_availability_provider {
 
     }
 
-    std::optional<std::set<const LdrColor *>> getAvailableColorsForPart(LdrFile *part) {
+    std::optional<std::set<const LdrColor *>> getAvailableColorsForPart(const std::shared_ptr<LdrFile>& part) {
         ensureDataLoaded();
         std::string partCode = part->metaInfo.name;
         util::replaceAll(partCode, ".dat", "");

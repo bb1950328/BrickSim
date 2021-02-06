@@ -7,7 +7,7 @@
 #include "../info_providers/part_color_availability_provider.h"
 
 namespace gui_internal {
-    void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, LdrFile *const &part, LdrColor *color) {
+    void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<LdrFile> &part, LdrColor *color) {
         bool realThumbnailAvailable = false;
         if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
             auto optTexId = controller::getThumbnailGenerator().getThumbnailNonBlocking(part, color);

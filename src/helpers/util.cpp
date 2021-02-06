@@ -33,6 +33,10 @@
 #include <fstream>
 #include <mutex>
 #include <spdlog/spdlog.h>
+#include <fcntl.h>
+#include <ftw.h>
+#include <sys/mman.h>
+#include <execution>
 
 namespace util {
     namespace {
@@ -634,9 +638,23 @@ namespace util {
         return {response_code, response_string};
     }
 
-    DestructorNotifier::DestructorNotifier(const char *name) : name(name) {}
+    std::string readFileToString(const std::filesystem::path &path) {
+        FILE *f = fopen(path.c_str(), "rb");
 
-    DestructorNotifier::~DestructorNotifier() {
-        std::cout << "destructer of " << name << " called." << std::endl;
+        if (f) {
+            fseek(f, 0, SEEK_END);
+            long length = ftell(f);
+            fseek(f, 0, SEEK_SET);
+            char *buffer = static_cast<char *>(malloc(length + 1));
+            if (buffer) {
+                fread(buffer, 1, length, f);
+                buffer[length] = '\0';
+            }
+            fclose(f);
+            return std::string(buffer);
+        } else {
+            spdlog::error("can't read file {}: ", path.string(), strerror(errno));
+            throw std::invalid_argument(strerror(errno));
+        }
     }
 }

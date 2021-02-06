@@ -85,12 +85,12 @@ namespace etree {
 
     class LdrNode : public MeshNode {
     public:
-        LdrNode(NodeType nodeType, LdrFile *ldrFile, LdrColor *ldrColor, Node *parent);
+        LdrNode(NodeType nodeType, std::shared_ptr<LdrFile> ldrFile, LdrColor *ldrColor, Node *parent);
 
         void *getMeshIdentifier() const override;
         void addToMesh(Mesh *mesh, bool windingInversed) override;
         std::string getDescription() override;
-        LdrFile *ldrFile;
+        std::shared_ptr<LdrFile> ldrFile;
         std::set<LdrSubfileReference *> childrenWithOwnNode;
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
@@ -98,7 +98,7 @@ namespace etree {
         /**
          * finds the subfileNode and creates a MpdSubfileInstanceNode as child of this
          */
-        void addSubfileInstanceNode(LdrFile* subFile, LdrColor* instanceColor);
+        void addSubfileInstanceNode(std::shared_ptr<LdrFile> subFile, LdrColor* instanceColor);
     };
 
     class MpdSubfileNode;
@@ -116,14 +116,14 @@ namespace etree {
 
     class MpdNode : public LdrNode {
     public:
-        MpdNode(LdrFile *ldrFile, LdrColor *ldrColor, Node *parent);
+        MpdNode(std::shared_ptr<LdrFile> ldrFile, LdrColor *ldrColor, Node *parent);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };
 
     class MpdSubfileNode : public LdrNode {
     public:
-        MpdSubfileNode(LdrFile *ldrFile, LdrColor *color, Node *parent);
+        MpdSubfileNode(std::shared_ptr<LdrFile> ldrFile, LdrColor *color, Node *parent);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
         [[nodiscard]] bool isTransformationUserEditable() const override;
@@ -132,7 +132,7 @@ namespace etree {
 
     class PartNode : public LdrNode {
     public:
-        PartNode(LdrFile *ldrFile, LdrColor *ldrColor, Node *parent);
+        PartNode(std::shared_ptr<LdrFile> ldrFile, LdrColor *ldrColor, Node *parent);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };

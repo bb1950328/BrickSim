@@ -4,10 +4,11 @@
 
 #include <spdlog/spdlog.h>
 #include "gui.h"
-#include "../ldr_files/ldr_file_repository.h"
+
 #include "../controller.h"
 #include "gui_internal.h"
 #include "../part_finder.h"
+#include "../ldr_files/ldr_file_repo.h"
 
 namespace gui {
     void windows::drawPartPaletteWindow(bool *show) {
@@ -79,7 +80,7 @@ namespace gui {
             const auto itemSpacingX = ImGui::GetStyle().ItemSpacing.x;
             float thumbnailContainerWidth = totalWidth - categorySelectWidth - itemSpacingX;
             //static const auto partsGrouped = ldr_file_repo::getAllPartsGroupedByCategory();
-            static const auto partCategories = ldr_file_repo::getAllCategories();
+            static const auto partCategories = ldr_file_repo::get().getAllCategories();
             static std::set<std::string> selectedCategories = {*partCategories.begin()};//first category preselected
 
             ImGui::BeginChild("##categorySelectTree", ImVec2(categorySelectWidth, 0));
@@ -129,7 +130,7 @@ namespace gui {
             if (selectedCategories.size() > 1) {
                 for (const auto &category : selectedCategories) {
                     ImGui::Text("%s", category.c_str());
-                    for (const auto &part : ldr_file_repo::getAllFilesOfCategory(category)) {
+                    for (const auto &part : ldr_file_repo::get().getAllFilesOfCategory(category)) {
                         if (searchEmpty || searchPredicate.matches(*part)) {
                             gui_internal::drawPartThumbnail(actualThumbSizeSquared, part, color);
                             currentCol++;
@@ -146,7 +147,7 @@ namespace gui {
                     currentCol = 0;
                 }
             } else if (selectedCategories.size() == 1) {
-                for (const auto &part : ldr_file_repo::getAllFilesOfCategory(*selectedCategories.begin())) {
+                for (const auto &part : ldr_file_repo::get().getAllFilesOfCategory(*selectedCategories.begin())) {
                     if (searchEmpty || searchPredicate.matches(*part)) {
                         gui_internal::drawPartThumbnail(actualThumbSizeSquared, part, color);
                         currentCol++;
@@ -158,8 +159,8 @@ namespace gui {
                     }
                 }
             } else {
-                if (ldr_file_repo::areAllPartsLoaded()) {
-                    for (const auto &category : ldr_file_repo::getAllPartsGroupedByCategory()) {
+                if (ldr_file_repo::get().areAllPartsLoaded()) {
+                    for (const auto &category : ldr_file_repo::get().getAllPartsGroupedByCategory()) {
                         bool textWritten = false;
                         for (const auto &part : category.second) {
                             if (searchEmpty || searchPredicate.matches(*part)) {
@@ -185,12 +186,12 @@ namespace gui {
                     static bool taskAdded = false;
                     if (!taskAdded) {
                         controller::addBackgroundTask("Load remaining Parts", []() {
-                            ldr_file_repo::getAllPartsGroupedByCategory();
+                            ldr_file_repo::get().getAllPartsGroupedByCategory();
                         });
                         taskAdded = true;
                     }
-                    const auto loaded = ldr_file_repo::getLoadedPartsGroupedByCategory().size();
-                    const auto all = ldr_file_repo::getAllCategories().size();
+                    const auto loaded = ldr_file_repo::get().getLoadedPartsGroupedByCategory().size();
+                    const auto all = ldr_file_repo::get().getAllCategories().size();
                     ImGui::ProgressBar(loaded * 1.0f / all);
                     ImGui::Text("%c %lu of %lu categories loaded, please wait", gui_internal::getLoFiSpinner(), loaded, all);
                 }

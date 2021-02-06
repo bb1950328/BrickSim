@@ -16,8 +16,8 @@
 #include "lib/Miniball.hpp"
 #include "controller.h"
 
-void Mesh::addLdrFile(const LdrFile &file, glm::mat4 transformation = glm::mat4(1.0f), const LdrColor *mainColor = nullptr, bool bfcInverted = false) {
-    for (auto element : file.elements) {
+void Mesh::addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transformation = glm::mat4(1.0f), const LdrColor *mainColor = nullptr, bool bfcInverted = false) {
+    for (auto element : file->elements) {
         switch (element->getType()) {
             case 0: break;
             case 1: addLdrSubfileReference(mainColor, dynamic_cast<LdrSubfileReference *>(element), transformation, bfcInverted);break;
@@ -67,7 +67,7 @@ void Mesh::addLdrTriangle(const LdrColor *mainColor, const LdrTriangle &triangle
 void Mesh::addLdrSubfileReference(const LdrColor *mainColor, LdrSubfileReference *sfElement, glm::mat4 transformation, bool bfcInverted) {
     auto sub_transformation = sfElement->getTransformationMatrix();
     const LdrColor *color = sfElement->color->code == LdrColor::MAIN_COLOR_CODE ? mainColor : sfElement->color;
-    addLdrFile(*sfElement->getFile(), sub_transformation * transformation, color, sfElement->bfcInverted ^ bfcInverted);
+    addLdrFile(sfElement->getFile(), sub_transformation * transformation, color, sfElement->bfcInverted ^ bfcInverted);
 }
 
 void Mesh::addLdrQuadrilateral(const LdrColor *mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted) {

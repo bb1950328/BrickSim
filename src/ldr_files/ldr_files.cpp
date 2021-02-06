@@ -11,8 +11,9 @@
 #include "ldr_files.h"
 #include "../helpers/util.h"
 #include "../config.h"
-#include "ldr_file_repository.h"
+
 #include "ldr_colors.h"
+#include "ldr_file_repo.h"
 
 WindingOrder inverseWindingOrder(WindingOrder order) {
     return order == CW ? CCW : CW;
@@ -34,15 +35,16 @@ LdrFileElement *LdrFileElement::parse_line(std::string line, BfcState bfcState) 
 }
 LdrFileElement::~LdrFileElement()= default;
 
-LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &path, const std::string* content) {
-    auto mainFile = new LdrFile();
+std::shared_ptr<LdrFile> LdrFile::parseFile(LdrFileType fileType, const std::string &name, const std::string& content) {
+    auto mainFile = std::make_shared<LdrFile>();
     mainFile->metaInfo.type = fileType;
-    bool isMpd = path.extension() == ".mpd";
     std::stringstream contentStream;
-    contentStream << *content;
-    if (isMpd) {
-        std::string currentSubFileName = path.string();
-        std::map<std::string, std::list<std::string>> fileLines;
+    //todo refactor this function. i think this is faster without stringstream...
+    // also the content is copied twice (content -> fileLines -> addTextLine param)
+    contentStream << content;
+    if (fileType==MODEL) {
+        std::string currentSubFileName = name;
+        std::map<std::string, std::string> fileLines;
         bool firstFile = true;
         for (std::string line; getline(contentStream, line);) {
             if (util::startsWith(line, "0 FILE")) {
@@ -53,31 +55,34 @@ LdrFile* LdrFile::parseFile(LdrFileType fileType, const std::filesystem::path &p
                 }
             } else if (util::startsWith(line, "0 !DATA")) {
                 currentSubFileName = util::trim(line.substr(8));
-            } else {
-                fileLines[currentSubFileName].push_back(line);
+            } else if (util::startsWith(line, "0 NOFILE")) {
+                currentSubFileName = "";
+            } else if (!currentSubFileName.empty()) {
+                fileLines[currentSubFileName] += ("\n" + line);
             }
         }
         for (auto const& entry: fileLines) {
-            LdrFile* currentFile;
-            if (entry.first == path) {
+            std::shared_ptr<LdrFile> currentFile;
+            if (entry.first == name) {
                 currentFile = mainFile;
             } else {
-                if (util::startsWith(entry.second.front(), "0 !: ")) {
+                if (util::startsWith(entry.second, "0 !: ")) {
                     //todo parse base64 data and store it somewhere
                     continue;
                 } else {
-                    currentFile = new LdrFile();
-                    currentFile->metaInfo.type = MPD_SUBFILE;
+                    currentFile = ldr_file_repo::get().addFileWithContent(entry.first, MPD_SUBFILE, "");
                     mainFile->mpdSubFiles.insert(currentFile);
-                    ldr_file_repo::addFile(entry.first, currentFile, MPD_SUBFILE);
                 }
             }
-            unsigned long lineCount = entry.second.size();
-            currentFile->elements.reserve(lineCount);
-            for (const auto& line : entry.second) {
-                currentFile->addTextLine(line);
-            }
 
+            const std::string& currentFileContent = entry.second;
+            std::string::size_type pos;
+            std::string::size_type prev = 0;
+            while ((pos = currentFileContent.find('\n', prev)) != std::string::npos) {
+                currentFile->addTextLine(currentFileContent.substr(prev, pos-prev));
+                prev = pos+1;
+            }
+            currentFile->addTextLine(currentFileContent.substr(prev));
         }
     } else {
         for (std::string line; getline(contentStream, line);) {
@@ -158,7 +163,7 @@ void LdrFile::preLoadSubfilesAndEstimateComplexityInternal(){
     if (!subfilesPreloadedAndComplexityEstimated) {
         for (LdrFileElement *elem: elements) {
             if (elem->getType()==1) {
-                LdrFile *subFile = dynamic_cast<LdrSubfileReference *>(elem)->getFile();
+                std::shared_ptr<LdrFile> subFile = dynamic_cast<LdrSubfileReference *>(elem)->getFile();
                 subFile->preLoadSubfilesAndEstimateComplexityInternal();
                 estimatedComplexity += subFile->estimatedComplexity;
             } else if (elem->getType()==2) {
@@ -307,9 +312,9 @@ int LdrCommentOrMetaElement::getType() const{
 int LdrSubfileReference::getType() const{
     return 1;
 }
-LdrFile * LdrSubfileReference::getFile() {
+std::shared_ptr<LdrFile> LdrSubfileReference::getFile() {
     if (file==nullptr) {
-        file = ldr_file_repo::getFile(filename);
+        file = ldr_file_repo::get().getFile(filename);
     }
     return file;
 }

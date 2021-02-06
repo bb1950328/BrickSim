@@ -14,12 +14,12 @@
 #include "controller.h"
 #include "latest_log_messages_tank.h"
 
-unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile, const LdrColor *color) {
+unsigned int ThumbnailGenerator::getThumbnail(std::shared_ptr<LdrFile> ldrFile, const LdrColor *color) {
     if (renderedRotationDegrees != rotationDegrees) {
         discardAllImages();
         renderedRotationDegrees = rotationDegrees;
     }
-    std::pair<const LdrFile*, const LdrColor*> fileKey = {ldrFile, color}; 
+    file_key_t fileKey = {ldrFile, color};
     auto imgIt = images.find(fileKey);
     if (imgIt == images.end()) {
         spdlog::debug("rendering thumbnail {} in {}", ldrFile->getDescription(), color->name);
@@ -27,7 +27,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile, const LdrC
         if (framebufferSize != size) {
             renderer->createFramebuffer(&framebuffer, &textureBuffer, &renderBuffer, size, size);
         }
-        auto meshKey = std::make_pair((void *) ldrFile, false);
+        auto meshKey = std::make_pair((void *) ldrFile.get(), false);
         auto it = meshCollection->meshes.find(meshKey);
         Mesh *mesh;
         std::vector<MeshInstance> instanceBackup;
@@ -39,7 +39,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const LdrFile *ldrFile, const LdrC
             mesh = new Mesh();
             meshCollection->meshes[meshKey] = mesh;
             mesh->name = ldrFile->getDescription();
-            mesh->addLdrFile(*ldrFile, glm::mat4(1.0f), &ldr_color_repo::getInstanceDummyColor(), false);
+            mesh->addLdrFile(ldrFile, glm::mat4(1.0f), &ldr_color_repo::getInstanceDummyColor(), false);
         }
 
         const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
@@ -162,12 +162,12 @@ void ThumbnailGenerator::cleanup() {
     Renderer::deleteFramebuffer(&framebuffer, &textureBuffer, &renderBuffer);
 }
 
-std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const LdrFile *ldrFile, const LdrColor *color) {
+std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const std::shared_ptr<LdrFile>& ldrFile, const LdrColor *color) {
     if (renderedRotationDegrees != rotationDegrees) {
         discardAllImages();
         renderedRotationDegrees = rotationDegrees;
     }
-    std::pair<const LdrFile*, const LdrColor*> fileKey = {ldrFile, color};
+    file_key_t fileKey = {ldrFile, color};
     auto imgIt = images.find(fileKey);
     if (imgIt == images.end()) {
         if (std::find(renderRequests.begin(), renderRequests.end(), fileKey)==renderRequests.end()) {
@@ -181,7 +181,7 @@ std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const Ld
 
 bool ThumbnailGenerator::workOnRenderQueue() {
     if (!renderRequests.empty()) {
-        const std::pair<const LdrFile *, const LdrColor *> &request = renderRequests.front();
+        const auto &request = renderRequests.front();
         getThumbnail(request.first, request.second);
         renderRequests.pop_front();
     }
@@ -224,13 +224,13 @@ bool ThumbnailGenerator::renderQueueEmpty() {
     return renderRequests.empty();
 }
 
-bool ThumbnailGenerator::isThumbnailAvailable(const LdrFile *ldrFile, const LdrColor *color) {
-    std::pair<const LdrFile*, const LdrColor*> fileKey = {ldrFile, color};
+bool ThumbnailGenerator::isThumbnailAvailable(const std::shared_ptr<LdrFile>& ldrFile, const LdrColor *color) {
+    file_key_t fileKey = {ldrFile, color};
     return images.find(fileKey) != images.end();
 }
 
-void ThumbnailGenerator::removeFromRenderQueue(const LdrFile *ldrFile, const LdrColor *color) {
-    std::pair<const LdrFile*, const LdrColor*> fileKey = {ldrFile, color};
+void ThumbnailGenerator::removeFromRenderQueue(const std::shared_ptr<LdrFile>& ldrFile, const LdrColor *color) {
+    file_key_t fileKey = {ldrFile, color};
     auto it = std::find(renderRequests.begin(), renderRequests.end(), fileKey);
     if (it != renderRequests.end()) {
         renderRequests.erase(it);

@@ -13,6 +13,7 @@
 #include "lib/stb_image.h"
 #include "info_providers/bricklink_constants_provider.h"
 #include "latest_log_messages_tank.h"
+#include "ldr_files/ldr_file_repo.h"
 #include <spdlog/spdlog.h>
 
 namespace controller {
@@ -205,7 +206,7 @@ namespace controller {
 
             Task steps[]{
                     {"load color definitions",          []() { ldr_color_repo::initialize(); }},
-                    {"initialize file list",            [](float *progress) { ldr_file_repo::initializeFileList(progress); }},
+                    {"initialize file list",            [](float *progress) { ldr_file_repo::get().initialize(progress); }},
                     {"initialize price guide provider", []() { price_guide_provider::initialize(); }},
                     {"initialize thumbnail generator",  []() { thumbnailGenerator.initialize(); }},
                     {"initialize BrickLink constants",  [](float *progress) { bricklink_constants_provider::initialize(progress); }},
@@ -234,17 +235,17 @@ namespace controller {
                 spdlog::info("finished init step {}", initStep.getName());
             }
 
-            spdlog::log(spdlog::level::trace, "a trace message");
-            spdlog::log(spdlog::level::debug, "a debug message");
-            spdlog::log(spdlog::level::info, "a info message");
-            spdlog::log(spdlog::level::warn, "a warn message");
-            spdlog::log(spdlog::level::err, "a err message");
-            spdlog::log(spdlog::level::critical, "a critical message");
+            //spdlog::log(spdlog::level::trace, "a trace message");
+            //spdlog::log(spdlog::level::debug, "a debug message");
+            //spdlog::log(spdlog::level::info, "a info message");
+            //spdlog::log(spdlog::level::warn, "a warn message");
+            //spdlog::log(spdlog::level::err, "a err message");
+            //spdlog::log(spdlog::level::critical, "a critical message");
         }
 
         void cleanup() {
             renderer.cleanup();
-            ldr_file_repo::cleanup();
+            //todo ldr_file_repo::cleanup();
             auto &bgTasks = getBackgroundTasks();
             spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
             for (auto &task : bgTasks) {
@@ -352,7 +353,7 @@ namespace controller {
 
     void openFile(const std::string &path) {
         foregroundTasks.push(new Task(std::string("Open ") + path, [path]() {
-            insertLdrElement(ldr_file_repo::getFile(path));
+            insertLdrElement(ldr_file_repo::get().getFile(path));
         }));
     }
 
@@ -419,10 +420,10 @@ namespace controller {
         renderer.unrenderedChanges = true;
     }
 
-    void insertLdrElement(LdrFile *ldrFile) {
+    void insertLdrElement(const std::shared_ptr<LdrFile>& ldrFile) {
         auto currentlyEditingLdrNode = dynamic_cast<etree::LdrNode *>(currentlyEditingNode);
         switch (ldrFile->metaInfo.type) {
-            case MODEL: currentlyEditingNode = new etree::MpdNode(ldrFile, ldr_color_repo::get_color(2), &elementTree.rootNode);
+            case MODEL: currentlyEditingNode =/*todo smart pointer*/ new etree::MpdNode(ldrFile, ldr_color_repo::get_color(2), &elementTree.rootNode);
                 elementTree.rootNode.addChild(currentlyEditingNode);
                 break;
             case MPD_SUBFILE:

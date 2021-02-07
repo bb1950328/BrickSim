@@ -85,7 +85,16 @@ namespace ldr_file_repo {
     std::string LdrZipFileRepo::getLibraryFileContent(std::string nameRelativeToRoot) {
         struct zip_stat stat{};
         std::string entryName = rootFolderName + nameRelativeToRoot;
-        zip_stat(zipArchive, entryName.c_str(), ZIP_FL_NOCASE, &stat);
+
+        //try to find it with case sensitive first because it's faster
+        auto found = zip_stat(zipArchive, entryName.c_str(), 0, &stat);
+        if (found==-1) {
+            //if not found with exact case, try again with case insensitive
+            found = zip_stat(zipArchive, entryName.c_str(), ZIP_FL_NOCASE, &stat);
+        }
+        if (found == -1) {
+            spdlog::error("file {} not found in zip library", entryName);
+        }
         auto file = zip_fopen_index(zipArchive, stat.index, 0);
 
         if (file == nullptr) {

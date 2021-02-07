@@ -57,6 +57,10 @@ namespace gui {
     void drawMainWindows();
     void endFrame();
 
+    void showOpenFileDialog();
+    void showSaveFileAsDialog();
+    void showSaveCopyAsDialog();
+
     void cleanup();
 
     enum PartsLibrarySetupResponse {

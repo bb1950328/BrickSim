@@ -44,6 +44,10 @@ target_sources(BrickSim PUBLIC
         overlay_2d.h
         latest_log_messages_tank.cpp
         latest_log_messages_tank.h
+        user_actions.cpp
+        user_actions.h
+        keyboard_shortcut_manager.cpp
+        keyboard_shortcut_manager.h
         )
 
 add_subdirectory(info_providers)

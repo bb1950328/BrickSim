@@ -112,6 +112,7 @@ namespace controller {
             }
             glfwSetFramebufferSizeCallback(window, window_size_callback);
             glfwSetScrollCallback(window, scroll_callback);
+            glfwSetKeyCallback(window, keyCallback);
 
             if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
                 std::cerr << "Failed to initialize GLAD" << std::endl;
@@ -139,6 +140,12 @@ namespace controller {
         void window_size_callback(GLFWwindow *window, int width, int height) {
             setWindowSize(width, height);
         }
+
+        void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+            const char *keyName = glfwGetKeyName(key, scancode);
+            spdlog::info("keyCallback(key={}, scancode={}, action={}, mods={})\nkeyName={}", key, scancode, action, mods, keyName?keyName:"nullptr");
+        }
+
 
         void checkForFinishedBackgroundTasks() {
             static double lastCheck = 0;
@@ -360,6 +367,43 @@ namespace controller {
         }));
     }
 
+    void saveFile() {
+        //todo implement
+    }
+
+    void saveFileAs(const std::string &path) {
+        //todo implement
+    }
+
+    void saveCopyAs(const std::string &path) {
+        //todo implement
+    }
+
+    void createNewFile() {
+        //todo implement
+    }
+
+    void undoLastAction() {
+        //todo implement
+    }
+
+    void redoLastAction() {
+        //todo implement
+    }
+
+    void cutSelectedObject(){
+        //todo implement
+    }
+
+    void copySelectedObject(){
+        //todo implement
+    }
+
+    void pasteObject(){
+        //todo implement
+    }
+
+
     void nodeSelectAddRemove(const std::shared_ptr<etree::Node>& node) {
         auto iterator = selectedNodes.find(node);
         node->selected = iterator == selectedNodes.end();
@@ -424,6 +468,16 @@ namespace controller {
         renderer->unrenderedChanges = true;
     }
 
+    //todo test these values
+    void rotateViewUp(){renderer->camera.mouseRotate(0, -1);}
+    void rotateViewDown(){renderer->camera.mouseRotate(0, +1);}
+    void rotateViewLeft(){renderer->camera.mouseRotate(-1, 0);}
+    void rotateViewRight(){renderer->camera.mouseRotate(+1, 0);}
+    void panViewUp(){renderer->camera.mousePan(0, -1);}
+    void panViewDown(){renderer->camera.mousePan(0, +1);}
+    void panViewLeft(){renderer->camera.mousePan(-1, 0);}
+    void panViewRight(){renderer->camera.mousePan(+1, 0);}
+
     void insertLdrElement(const std::shared_ptr<LdrFile>& ldrFile) {
         auto currentlyEditingLdrNode = std::dynamic_pointer_cast<etree::LdrNode>(currentlyEditingNode);
         switch (ldrFile->metaInfo.type) {
@@ -459,6 +513,23 @@ namespace controller {
         for (const auto &node : selectedNodes) {
             deleteElement(node);
         }
+    }
+
+    void hideSelectedElements() {
+        for (const auto &node : selectedNodes) {
+            node->visible = false;
+        }
+    }
+
+    void unhideElementRecursively(const std::shared_ptr<etree::Node>& node) {
+        node->visible = false;
+        for (const auto &child : node->getChildren()) {
+            unhideElementRecursively(child);
+        }
+    }
+
+    void unhideAllElements() {
+        unhideElementRecursively(elementTree->rootNode);
     }
 
     void setElementTreeChanged(bool val) {

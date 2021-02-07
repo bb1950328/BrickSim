@@ -244,6 +244,46 @@ namespace gui {
         setupDone = true;
     }
 
+    void showOpenFileDialog() {
+        char *fileNameChars = tinyfd_openFileDialog(
+                "Open File",
+                "",
+                NUM_LDR_FILTER_PATTERNS,
+                lFilterPatterns,
+                nullptr,
+                0);
+        if (fileNameChars != nullptr) {
+            std::string fileName(fileNameChars);
+            controller::openFile(fileName);
+        }
+    }
+
+    void showSaveFileAsDialog() {
+        char *fileNameChars = tinyfd_saveFileDialog(
+                "Save File As",
+                "",
+                NUM_LDR_FILTER_PATTERNS,
+                lFilterPatterns,
+                nullptr);
+        if (fileNameChars != nullptr) {
+            std::string fileName(fileNameChars);
+            controller::saveFileAs(fileName);
+        }
+    }
+
+    void showSaveCopyAsDialog() {
+        char *fileNameChars = tinyfd_saveFileDialog(
+                "Save Copy As",
+                "",
+                NUM_LDR_FILTER_PATTERNS,
+                lFilterPatterns,
+                nullptr);
+        if (fileNameChars != nullptr) {
+            std::string fileName(fileNameChars);
+            controller::saveCopyAs(fileName);
+        }
+    }
+
     void drawMainWindows() {
         static std::tuple<std::string, bool *, std::function<void(bool *)>> windowFuncsAndState[]{
                 {WINDOW_NAME_3D_VIEW,             &show3dWindow,                windows::draw3dWindow},
@@ -262,17 +302,7 @@ namespace gui {
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
                 if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN " Open", "CTRL+O")) {
-                    char *fileNameChars = tinyfd_openFileDialog(
-                            "Open File",
-                            "",
-                            NUM_LDR_FILTER_PATTERNS,
-                            lFilterPatterns,
-                            nullptr,
-                            0);
-                    if (fileNameChars != nullptr) {
-                        std::string fileName(fileNameChars);
-                        controller::openFile(fileName);
-                    }
+                    showOpenFileDialog();
                 }
                 if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Exit", "CTRL+W")) {
                     controller::setUserWantsToExit(true);

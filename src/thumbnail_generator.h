@@ -1,6 +1,4 @@
-// thumbnail_generator.h
-// Created by bab21 on 23.10.20.
-//
+
 
 #ifndef BRICKSIM_THUMBNAIL_GENERATOR_H
 #define BRICKSIM_THUMBNAIL_GENERATOR_H

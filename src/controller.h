@@ -1,6 +1,4 @@
-// controller.h
-// Created by bb1950328 on 09.10.20.
-//
+
 
 #ifndef BRICKSIM_CONTROLLER_H
 #define BRICKSIM_CONTROLLER_H

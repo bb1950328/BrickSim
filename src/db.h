@@ -1,6 +1,4 @@
-//
-// Created by bb1950328 on 10.11.2020.
-//
+
 
 #ifndef BRICKSIM_DB_H
 #define BRICKSIM_DB_H

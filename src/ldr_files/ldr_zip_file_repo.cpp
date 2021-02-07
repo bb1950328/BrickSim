@@ -1,6 +1,4 @@
-// ldr_zip_file_repository.cpp.c
-// Created by bab21 on 01.02.21.
-//
+
 
 #include <spdlog/spdlog.h>
 #include <zip.h>

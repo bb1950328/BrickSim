@@ -1,6 +1,3 @@
-//
-// Created by bb1950328 on 09.10.2020.
-//
 #define GLM_ENABLE_EXPERIMENTAL
 
 #include <glad/glad.h>

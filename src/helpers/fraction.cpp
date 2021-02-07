@@ -1,6 +1,4 @@
-// fraction.cpp
-// Created by bb1950328 on 17.10.20.
-//
+
 
 #include <stdexcept>
 #include "fraction.h"

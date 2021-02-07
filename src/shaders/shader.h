@@ -1,6 +1,4 @@
-// shader.h
-// Created by bb1950328 on 20.09.20.
-//
+
 
 #ifndef BRICKSIM_SHADER_H
 #define BRICKSIM_SHADER_H

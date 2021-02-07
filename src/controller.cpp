@@ -1,6 +1,4 @@
-// controller.cpp
-// Created by bb1950328 on 09.10.20.
-//
+
 
 #include "controller.h"
 

@@ -1,6 +1,4 @@
-// ldr_base_file_repository.cpp.c
-// Created by bab21 on 01.02.21.
-//
+
 
 #include "ldr_file_repo.h"
 #include "../db.h"

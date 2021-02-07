@@ -1,6 +1,4 @@
-// util.cpp
-// Created by bb1950328 on 20.09.20.
-//
+
 
 #define GLM_ENABLE_EXPERIMENTAL
 #define USE_SSLEAY

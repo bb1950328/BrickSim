@@ -1,6 +1,4 @@
-// part_finder.cpp
-// Created by bab21 on 15.11.20.
-//
+
 
 #include "part_finder.h"
 

@@ -1,6 +1,4 @@
-//
-// Created by bb1950328 on 19.09.20.
-//
+
 
 #ifndef BRICKSIM_LDR_FILES_H
 #define BRICKSIM_LDR_FILES_H

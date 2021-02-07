@@ -1,7 +1,3 @@
-//
-// Created by bb1950328 on 09.10.2020.
-//
-
 #ifndef BRICKSIM_GUI_H
 #define BRICKSIM_GUI_H
 

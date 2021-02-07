@@ -1,6 +1,4 @@
-// thumbnail_generator.cpp
-// Created by bab21 on 23.10.20.
-//
+
 
 #define GLM_ENABLE_EXPERIMENTAL
 

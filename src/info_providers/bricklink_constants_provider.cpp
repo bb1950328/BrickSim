@@ -1,6 +1,4 @@
-//
-// Created by Bader on 07.01.2021.
-//
+
 
 #include <iostream>
 #include <spdlog/spdlog.h>

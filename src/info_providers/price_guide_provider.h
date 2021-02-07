@@ -1,6 +1,4 @@
-// price_guide_provider.h
-// Created by bab21 on 03.11.20.
-//
+
 
 #ifndef BRICKSIM_PRICE_GUIDE_PROVIDER_H
 #define BRICKSIM_PRICE_GUIDE_PROVIDER_H

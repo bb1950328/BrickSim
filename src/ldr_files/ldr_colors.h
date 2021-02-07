@@ -1,6 +1,4 @@
-// ldr_colors.h
-// Created by bb1950328 on 06.10.20.
-//
+
 
 #ifndef BRICKSIM_LDR_COLORS_H
 #define BRICKSIM_LDR_COLORS_H

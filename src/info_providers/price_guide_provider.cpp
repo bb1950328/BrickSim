@@ -1,6 +1,4 @@
-// price_guide_provider.cpp
-// Created by bab21 on 03.11.20.
-//
+
 
 #include <string>
 #include <set>

@@ -1,6 +1,4 @@
-// ldr_zip_file_repository.h
-// Created by bab21 on 01.02.21.
-//
+
 
 #ifndef BRICKSIM_LDR_ZIP_FILE_REPO_H
 #define BRICKSIM_LDR_ZIP_FILE_REPO_H

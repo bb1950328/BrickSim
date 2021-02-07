@@ -1,6 +1,4 @@
-// element_tree.cpp
-// Created by bb1950328 on 02.10.20.
-//
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "misc-no-recursion"
 

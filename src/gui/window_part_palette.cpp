@@ -1,6 +1,4 @@
-//
-// Created by bb1950328 on 15.11.2020.
-//
+
 
 #include <spdlog/spdlog.h>
 #include "gui.h"

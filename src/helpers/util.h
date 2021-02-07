@@ -1,6 +1,4 @@
-// util.h
-// Created by bb1950328 on 20.09.20.
-//
+
 
 #ifndef BRICKSIM_UTIL_H
 #define BRICKSIM_UTIL_H

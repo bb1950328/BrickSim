@@ -1,6 +1,4 @@
-//
-// Created by bb1950328 on 02.11.2020.
-//
+
 
 #include "zip_buffer.h"
 #include <zip.h>

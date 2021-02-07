@@ -1,6 +1,4 @@
-// mesh.h
-// Created by bb1950328 on 20.09.20.
-//
+
 
 #ifndef BRICKSIM_MESH_H
 #define BRICKSIM_MESH_H

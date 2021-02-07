@@ -1,6 +1,4 @@
-// counters.cpp
-// Created by bb1950328 on 05.10.20.
-//
+
 
 #include <iostream>
 #include <map>

@@ -1,6 +1,4 @@
-// part_library_downloader.h
-// Created by bab21 on 23.01.21.
-//
+
 
 #ifndef BRICKSIM_PARTS_LIBRARY_DOWNLOADER_H
 #define BRICKSIM_PARTS_LIBRARY_DOWNLOADER_H

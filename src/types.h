@@ -1,6 +1,4 @@
-// types.h
-// Created by bab21 on 09.12.20.
-//
+
 
 #ifndef BRICKSIM_TYPES_H
 #define BRICKSIM_TYPES_H

@@ -1,6 +1,4 @@
-//
-// Created by bb1950328 on 07.10.2020.
-//
+
 
 #ifndef BRICKSIM_RENDERER_H
 #define BRICKSIM_RENDERER_H

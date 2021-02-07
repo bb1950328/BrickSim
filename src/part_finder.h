@@ -1,6 +1,4 @@
-// part_finder.h
-// Created by bab21 on 15.11.20.
-//
+
 
 #ifndef BRICKSIM_PART_FINDER_H
 #define BRICKSIM_PART_FINDER_H

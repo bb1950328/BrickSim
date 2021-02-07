@@ -1,6 +1,4 @@
-//
-// Created by bb1950328 on 29.09.2020.
-//
+
 #include <mutex>
 #include <spdlog/spdlog.h>
 #include "shader.h"

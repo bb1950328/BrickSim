@@ -1,6 +1,4 @@
-//
-// Created by Bader on 05.01.2021.
-//
+
 
 #ifndef BRICKSIM_PLATFORM_DETECTION_H
 #define BRICKSIM_PLATFORM_DETECTION_H

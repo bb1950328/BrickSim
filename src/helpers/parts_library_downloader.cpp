@@ -1,6 +1,4 @@
-// part_library_downloader.cpp.c
-// Created by bab21 on 23.01.21.
-//
+
 
 #include <fstream>
 #include <spdlog/spdlog.h>

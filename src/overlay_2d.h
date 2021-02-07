@@ -1,6 +1,4 @@
-// overlay_2d.h
-// Created by bab21 on 26.12.20.
-//
+
 
 #ifndef BRICKSIM_OVERLAY_2D_H
 #define BRICKSIM_OVERLAY_2D_H

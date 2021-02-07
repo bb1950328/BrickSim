@@ -1,6 +1,4 @@
-//
-// Created by bb1950328 on 15.11.2020.
-//
+
 
 #ifndef BRICKSIM_GUI_INTERNAL_H
 #define BRICKSIM_GUI_INTERNAL_H

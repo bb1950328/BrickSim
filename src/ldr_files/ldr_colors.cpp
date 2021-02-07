@@ -1,6 +1,4 @@
-// ldr_colors.cpp
-// Created by bb1950328 on 06.10.20.
-//
+
 
 #include <fstream>
 #include <sstream>

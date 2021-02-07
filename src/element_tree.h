@@ -1,6 +1,4 @@
-// element_tree.h
-// Created by bb1950328 on 02.10.20.
-//
+
 
 #ifndef BRICKSIM_ELEMENT_TREE_H
 #define BRICKSIM_ELEMENT_TREE_H

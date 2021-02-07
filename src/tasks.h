@@ -1,6 +1,4 @@
-//
-// Created by Bader on 09.12.2020.
-//
+
 
 #ifndef BRICKSIM_TASKS_H
 #define BRICKSIM_TASKS_H

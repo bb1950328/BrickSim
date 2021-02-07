@@ -1,6 +1,4 @@
-// ldr_regular_file_repository.cpp
-// Created by bab21 on 01.02.21.
-//
+
 
 #include <spdlog/spdlog.h>
 #include "ldr_regular_file_repo.h"

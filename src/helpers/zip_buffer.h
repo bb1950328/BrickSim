@@ -1,6 +1,4 @@
-//
-// Created by bb1950328 on 02.11.2020.
-//
+
 
 #ifndef BRICKSIM_ZIP_BUFFER_H
 #define BRICKSIM_ZIP_BUFFER_H

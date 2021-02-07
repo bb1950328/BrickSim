@@ -1,6 +1,4 @@
-// fraction.h
-// Created by bb1950328 on 17.10.20.
-//
+
 
 #ifndef BRICKSIM_FRACTION_H
 #define BRICKSIM_FRACTION_H

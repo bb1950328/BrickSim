@@ -1,6 +1,4 @@
-// part_color_availability_provider.cpp
-// Created by bab21 on 01.11.20.
-//
+
 
 #include <fstream>
 #include <iostream>

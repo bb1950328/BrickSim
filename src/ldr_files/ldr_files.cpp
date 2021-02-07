@@ -1,6 +1,4 @@
-//
-// Created by bb1950328 on 19.09.20.
-//
+
 
 #include <fstream>
 #include <algorithm>

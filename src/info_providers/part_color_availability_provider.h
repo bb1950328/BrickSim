@@ -1,6 +1,4 @@
-// part_color_availability_provider.h
-// Created by bab21 on 01.11.20.
-//
+
 
 #ifndef BRICKSIM_PART_COLOR_AVAILABILITY_PROVIDER_H
 #define BRICKSIM_PART_COLOR_AVAILABILITY_PROVIDER_H

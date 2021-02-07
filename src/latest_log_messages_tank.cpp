@@ -1,6 +1,4 @@
-//
-// Created by bb1950328 on 20.01.2021.
-//
+
 
 #include "latest_log_messages_tank.h"
 

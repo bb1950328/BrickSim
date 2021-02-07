@@ -1,6 +1,4 @@
-//
-// Created by bb1950328 on 10.11.2020.
-//
+
 
 #include <SQLiteCpp/Database.h>
 #include <vector>

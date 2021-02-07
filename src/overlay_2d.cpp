@@ -1,6 +1,4 @@
-// overlay_2d.cpp.c
-// Created by bab21 on 26.12.20.
-//
+
 
 #include "overlay_2d.h"
 

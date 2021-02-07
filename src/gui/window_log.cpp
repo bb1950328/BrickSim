@@ -71,20 +71,20 @@ namespace gui {
                     ImGui::TableNextRow();
 
                     ImGui::TableSetColumnIndex(0);
-                    ImGui::Text("%s", *message.formattedTime);
+                    ImGui::Text("%s", message.formattedTime.c_str());
                     
                     ImGui::TableSetColumnIndex(1);
                     ImGui::TextColored(levelToColor(message.level), "%s", levelToText(message.level));
 
                     ImGui::TableSetColumnIndex(2);
-                    ImGui::Text("%s", *message.message);
+                    ImGui::Text("%s", message.message.c_str());
 
                     if (copyClicked || saveClicked) {
-                        exportResult += (*message.formattedTime
-                                         + std::string("\t")
+                        exportResult += (message.formattedTime
+                                         + "\t"
                                          + levelToText(message.level)
                                          + "\t"
-                                         + *message.message
+                                         + message.message
                                          + "\n");
                     }
                 }

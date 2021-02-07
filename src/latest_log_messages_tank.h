@@ -15,11 +15,9 @@ namespace latest_log_messages_tank {
     struct LogMessage {
         const long timestamp;
         const unsigned char level;
-        std::shared_ptr<const char *> formattedTime;
-        std::shared_ptr<const char *> message;
-
-        LogMessage(long timestamp, unsigned char level, std::shared_ptr<const char *> formattedTime,
-                   std::shared_ptr<const char *> message);
+        std::string formattedTime;
+        std::string message;
+        LogMessage(const long timestamp, const unsigned char level, const std::string &formattedTime, const std::string &message);
     };
 
     namespace {
@@ -61,18 +59,18 @@ namespace latest_log_messages_tank {
     protected:
         void sink_it_(const spdlog::details::log_msg &msg) override {
             constexpr auto timeBufSize = sizeof("12:34:56.789");
-            char* time = new char[timeBufSize];
+            static char timeBuf[timeBufSize];
             const time_t timestamp = std::chrono::system_clock::to_time_t(msg.time);
-            std::strftime(time, timeBufSize, "%H:%M:%S", std::localtime(&timestamp));
+            std::strftime(timeBuf, timeBufSize, "%H:%M:%S", std::localtime(&timestamp));
             const auto timeMs = std::chrono::time_point_cast<std::chrono::milliseconds>(msg.time).time_since_epoch().count();
-            snprintf(&time[8], 5, ".%03ld", timeMs % 1000);
-            char* message = new char[msg.payload.size()+1];
-            std::memcpy(message, msg.payload.data(), msg.payload.size()+1);
+            snprintf(&timeBuf[8], 5, ".%03ld", timeMs % 1000);
+            std::string message = msg.payload.data();
+            //todo std::strcpy(message.get(), msg.payload.data());
             addMessage(LogMessage(
                     static_cast<long>(timeMs),
                     (const unsigned char) msg.level,
-                    std::make_shared<const char *>(time),
-                    std::make_shared<const char *>(message)));
+                    timeBuf,
+                    message));
         }
 
         void flush_() override {}

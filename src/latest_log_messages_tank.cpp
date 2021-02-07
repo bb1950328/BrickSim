@@ -55,12 +55,5 @@ namespace latest_log_messages_tank {
         return current;
     }
 
-    LogMessage::LogMessage(const long timestamp,
-                           const unsigned char level,
-                           std::shared_ptr<const char *> formattedTime,
-                           std::shared_ptr<const char *> message)
-                           : timestamp(timestamp),
-                           level(level),
-                           formattedTime(std::move(formattedTime)),
-                           message(std::move(message)) {}
+    LogMessage::LogMessage(const long timestamp, const unsigned char level, const std::string &formattedTime, const std::string &message) : timestamp(timestamp), level(level), formattedTime(formattedTime), message(message) {}
 }

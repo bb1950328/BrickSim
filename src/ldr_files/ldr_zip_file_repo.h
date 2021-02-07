@@ -19,6 +19,8 @@ namespace ldr_file_repo {
         std::string getLibraryFileContent(std::string nameRelativeToRoot) override;
     private:
         struct zip* zipArchive;
+        std::string rootFolderName;
+        static std::string getZipRootFolder(zip_t* archive);//including / at the end
     };
 }
 #endif //BRICKSIM_LDR_ZIP_FILE_REPO_H

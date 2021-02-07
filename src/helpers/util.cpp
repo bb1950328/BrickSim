@@ -646,7 +646,11 @@ namespace util {
             fseek(f, 0, SEEK_SET);
             std::string buffer;
             buffer.resize(length);
-            fread(&buffer[0], 1, length, f);
+            size_t bytesRead = fread(&buffer[0], 1, length, f);
+            if (bytesRead!=length) {
+                spdlog::warn("reading file {}: {} bytes read, but reported size is {} bytes.", path.string(), bytesRead, length);
+                buffer.resize(bytesRead);
+            }
             fclose(f);
             return buffer;
         } else {

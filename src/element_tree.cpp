@@ -32,7 +32,7 @@ namespace etree {
 
     const glm::mat4 &Node::getAbsoluteTransformation() const {
         if (!absoluteTransformationValid) {
-            absoluteTransformation = relativeTransformation * parent->getAbsoluteTransformation();
+            absoluteTransformation = relativeTransformation * parent.lock()->getAbsoluteTransformation();
             absoluteTransformationValid = true;
         }
         return absoluteTransformation;
@@ -118,10 +118,10 @@ namespace etree {
             addedNode->createChildNodes();
             actualNode->addChild(addedNode);
             return addedNode;
-        } else if (actualNode->parent == nullptr) {
+        } else if (actualNode->parent.expired()) {
             return nullptr;
         } else {
-            return findMpdNodeAndAddSubfileNode(ldrFile, ldrColor, actualNode->parent);
+            return findMpdNodeAndAddSubfileNode(ldrFile, ldrColor, actualNode->parent.lock());
         }
     }
 
@@ -271,11 +271,13 @@ namespace etree {
     }
 
     LdrColorReference MeshNode::getDisplayColor() const {
-        if (color.get()->code == LdrColor::MAIN_COLOR_CODE && parent != nullptr && (parent->getType() & TYPE_MESH) > 0) {
-            return std::dynamic_pointer_cast<MeshNode>(parent)->getDisplayColor();
-        } else {
-            return color;
+        if (!parent.expired()) {
+            const auto parentValue = parent.lock();
+            if (color.get()->code == LdrColor::MAIN_COLOR_CODE && (parentValue->getType() & TYPE_MESH) > 0) {
+                return std::dynamic_pointer_cast<MeshNode>(parentValue)->getDisplayColor();
+            }
         }
+        return color;
     }
 
     void MeshNode::setColor(LdrColorReference newColor) {

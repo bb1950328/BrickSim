@@ -268,6 +268,11 @@ namespace ldr_file_repo {
         return partsByCategory;
     }
 
+    void LdrFileRepo::cleanup() {
+        //files.clear();
+        //partsByCategory.clear();
+    }
+
     LdrFileRepo::~LdrFileRepo() = default;
 }
 

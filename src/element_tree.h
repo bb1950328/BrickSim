@@ -33,7 +33,7 @@ namespace etree {
         Node(const Node&) = delete;
         bool visible = true;
         bool visibleInElementTree = true;
-        std::shared_ptr<Node> parent;
+        std::weak_ptr<Node> parent;
         std::string displayName;
         bool selected = false;
         NodeType type = TYPE_OTHER;

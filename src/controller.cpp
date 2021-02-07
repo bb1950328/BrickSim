@@ -249,6 +249,7 @@ namespace controller {
         }
 
         void cleanup() {
+            ldr_file_repo::get().cleanup();
             renderer->cleanup();
             auto &bgTasks = getBackgroundTasks();
             spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
@@ -385,8 +386,9 @@ namespace controller {
     void nodeSelectUntil(const std::shared_ptr<etree::Node>& node) {
         auto rangeActive = false;
         auto keepGoing = true;
-        for (auto iterator = node->parent->getChildren().rbegin();
-             iterator != node->parent->getChildren().rend() && keepGoing;
+        const auto& parentChildren = node->parent.lock()->getChildren();
+        for (auto iterator = parentChildren.rbegin();
+             iterator != parentChildren.rend() && keepGoing;
              iterator++) {
             auto itNode = *iterator;
             if (itNode == node || itNode->selected) {
@@ -449,7 +451,7 @@ namespace controller {
     }
 
     void deleteElement(const std::shared_ptr<etree::Node>& nodeToDelete) {
-        nodeToDelete->parent->deleteChild(nodeToDelete);
+        nodeToDelete->parent.lock()->deleteChild(nodeToDelete);
         selectedNodes.erase(nodeToDelete);
         elementTreeChanged = true;
         selectionChanged = true;

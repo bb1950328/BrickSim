@@ -36,6 +36,7 @@ namespace ldr_file_repo {
 
         std::set<std::shared_ptr<LdrFile>> getAllFilesOfCategory(const std::string &categoryName);
         bool areAllPartsLoaded();
+        void cleanup();
 
         /**
          * @return vector of file names relative to root of library

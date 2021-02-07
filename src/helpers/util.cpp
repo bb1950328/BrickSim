@@ -640,18 +640,15 @@ namespace util {
 
     std::string readFileToString(const std::filesystem::path &path) {
         FILE *f = fopen(path.c_str(), "rb");
-
         if (f) {
             fseek(f, 0, SEEK_END);
             long length = ftell(f);
             fseek(f, 0, SEEK_SET);
-            char *buffer = static_cast<char *>(malloc(length + 1));
-            if (buffer) {
-                fread(buffer, 1, length, f);
-                buffer[length] = '\0';
-            }
+            std::string buffer;
+            buffer.resize(length);
+            fread(&buffer[0], 1, length, f);
             fclose(f);
-            return std::string(buffer);
+            return buffer;
         } else {
             spdlog::error("can't read file {}: ", path.string(), strerror(errno));
             throw std::invalid_argument(strerror(errno));

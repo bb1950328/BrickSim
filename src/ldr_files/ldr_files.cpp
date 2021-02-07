@@ -176,13 +176,14 @@ void LdrFile::preLoadSubfilesAndEstimateComplexityInternal(){
         subfilesPreloadedAndComplexityEstimated = true;
     }
 }
-std::string LdrFile::getDescription() const {
+const std::string & LdrFile::getDescription() const {
     if (!metaInfo.title.empty()) {
         return metaInfo.title;
     } else if (!metaInfo.name.empty()) {
         return metaInfo.name;
     }
-    return "?";
+    static std::string unknown = "?";
+    return unknown;
 }
 
 long LdrFile::instancedMinComplexity = -1;
@@ -200,7 +201,7 @@ LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {
 LdrSubfileReference::LdrSubfileReference(std::string& line, bool bfcInverted) : bfcInverted(bfcInverted) {
     char* rest = &line[0];
     char* pch = strtok_r(rest, " \t", &rest);
-    color = ldr_color_repo::get_color(atoi(pch));
+    color = atoi(pch);
     pch = strtok_r(rest, " \t", &rest); x = atof(pch);
     pch = strtok_r(rest, " \t", &rest); y = atof(pch);
     pch = strtok_r(rest, " \t", &rest); z = atof(pch);
@@ -219,7 +220,7 @@ LdrSubfileReference::LdrSubfileReference(std::string& line, bool bfcInverted) : 
 LdrLine::LdrLine(std::string& line) {
     char* rest = &line[0];
     char* pch = strtok_r(rest, " \t", &rest);
-    color = ldr_color_repo::get_color(atoi(pch));
+    color = atoi(pch);
     pch = strtok_r(rest, " \t", &rest); x1 = atof(pch);
     pch = strtok_r(rest, " \t", &rest); y1 = atof(pch);
     pch = strtok_r(rest, " \t", &rest); z1 = atof(pch);
@@ -231,7 +232,7 @@ LdrLine::LdrLine(std::string& line) {
 LdrTriangle::LdrTriangle(std::string &line, WindingOrder order) {
     char* rest = &line[0];
     char* pch = strtok_r(rest, " \t", &rest);
-    color = ldr_color_repo::get_color(atoi(pch));
+    color = atoi(pch);
     pch = strtok_r(rest, " \t", &rest); x1 = atof(pch);
     pch = strtok_r(rest, " \t", &rest); y1 = atof(pch);
     pch = strtok_r(rest, " \t", &rest); z1 = atof(pch);
@@ -255,7 +256,7 @@ LdrTriangle::LdrTriangle(std::string &line, WindingOrder order) {
 LdrQuadrilateral::LdrQuadrilateral(std::string &line, WindingOrder order) {
     char* rest = &line[0];
     char* pch = strtok_r(rest, " \t", &rest);
-    color = ldr_color_repo::get_color(atoi(pch));
+    color = atoi(pch);
     pch = strtok_r(rest, " \t", &rest); x1 = atof(pch);
     pch = strtok_r(rest, " \t", &rest); y1 = atof(pch);
     pch = strtok_r(rest, " \t", &rest); z1 = atof(pch);
@@ -285,7 +286,7 @@ LdrQuadrilateral::LdrQuadrilateral(std::string &line, WindingOrder order) {
 LdrOptionalLine::LdrOptionalLine(std::string& line) {
     char* rest = &line[0];
     char* pch = strtok_r(rest, " \t", &rest);
-    color = ldr_color_repo::get_color(atoi(pch));
+    color = atoi(pch);
     pch = strtok_r(rest, " \t", &rest); x1 = atof(pch);
     pch = strtok_r(rest, " \t", &rest); y1 = atof(pch);
     pch = strtok_r(rest, " \t", &rest); z1 = atof(pch);

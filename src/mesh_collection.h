@@ -28,7 +28,7 @@ public:
 
     void updateSelectionContainerBox();
 
-    [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBox(std::shared_ptr<const etree::MeshNode> node) const;
+    [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBox(const std::shared_ptr<const etree::MeshNode>& node) const;
     [[nodiscard]] const std::set<layer_t> &getLayersInUse() const;
 
     ~MeshCollection();
@@ -41,7 +41,7 @@ private:
     std::map<mesh_key_t, std::vector<MeshInstance>> newMeshInstances;
     std::set<layer_t> layersInUse;
     void updateMeshInstances();
-    void readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4 &parentAbsoluteTransformation, std::shared_ptr<const LdrColor> parentColor, std::optional<unsigned int> selectionTargetElementId);
+    void readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4 &parentAbsoluteTransformation, std::optional<LdrColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId);
     [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBoxInternal(std::shared_ptr<const etree::MeshNode> node) const;
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

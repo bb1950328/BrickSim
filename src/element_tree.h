@@ -72,21 +72,21 @@ namespace etree {
 
     class MeshNode : public Node {
     public:
-        MeshNode(std::shared_ptr<const LdrColor> color, std::shared_ptr<Node> parent);
+        MeshNode(LdrColorReference color, std::shared_ptr<Node> parent);
 
         virtual void *getMeshIdentifier() const = 0;
         virtual void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) = 0;
         [[nodiscard]] virtual bool isColorUserEditable() const;
-        [[nodiscard]] std::shared_ptr<const LdrColor> getDisplayColor() const;
-        void setColor(std::shared_ptr<const LdrColor> newColor);
-        std::shared_ptr<const LdrColor> getElementColor() const;
+        [[nodiscard]] LdrColorReference getDisplayColor() const;
+        void setColor(LdrColorReference newColor);
+        LdrColorReference getElementColor() const;
     private:
-        std::shared_ptr<const LdrColor> color;
+        LdrColorReference color;
     };
 
     class LdrNode : public MeshNode {
     public:
-        LdrNode(NodeType nodeType, const std::shared_ptr<LdrFile>& ldrFile, const std::shared_ptr<const LdrColor>& ldrColor, const std::shared_ptr<Node>& parent);
+        LdrNode(NodeType nodeType, const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference ldrColor, const std::shared_ptr<Node>& parent);
         /**
          * This function is necessary because shared_from_this() doesn't work inside the constructor. so this function should be called immediately after creating
          * an object of type LdrNode. todo find a better solution for this
@@ -104,16 +104,16 @@ namespace etree {
         /**
          * finds the subfileNode and creates a MpdSubfileInstanceNode as child of this
          */
-        void addSubfileInstanceNode(const std::shared_ptr<LdrFile>& subFile, const std::shared_ptr<const LdrColor>& instanceColor);
+        void addSubfileInstanceNode(const std::shared_ptr<LdrFile>& subFile, LdrColorReference instanceColor);
     private:
-        bool childNodesCreated;
+        bool childNodesCreated = false;
     };
 
     class MpdSubfileNode;
 
     class MpdSubfileInstanceNode : public MeshNode {
     public:
-        MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, std::shared_ptr<const LdrColor> color, std::shared_ptr<Node> parent);
+        MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, LdrColorReference color, std::shared_ptr<Node> parent);
 
         std::shared_ptr<MpdSubfileNode> mpdSubfileNode;
         void *getMeshIdentifier() const override;
@@ -124,14 +124,14 @@ namespace etree {
 
     class MpdNode : public LdrNode {
     public:
-        MpdNode(const std::shared_ptr<LdrFile>& ldrFile, const std::shared_ptr<const LdrColor>& ldrColor, const std::shared_ptr<Node>& parent);
+        MpdNode(const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference ldrColor, const std::shared_ptr<Node>& parent);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };
 
     class MpdSubfileNode : public LdrNode {
     public:
-        MpdSubfileNode(const std::shared_ptr<LdrFile>& ldrFile, const std::shared_ptr<const LdrColor>& color, const std::shared_ptr<Node>& parent);
+        MpdSubfileNode(const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference color, const std::shared_ptr<Node>& parent);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
         [[nodiscard]] bool isTransformationUserEditable() const override;
@@ -140,7 +140,7 @@ namespace etree {
 
     class PartNode : public LdrNode {
     public:
-        PartNode(const std::shared_ptr<LdrFile>& ldrFile, const std::shared_ptr<const LdrColor>& ldrColor, const std::shared_ptr<Node>& parent);
+        PartNode(const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference ldrColor, const std::shared_ptr<Node>& parent);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };

@@ -26,10 +26,10 @@ namespace gui {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(col.x, col.y, col.z, 1));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(col.x, col.y, col.z, .8));
 
-            static std::shared_ptr<const LdrColor> colorChosenInPopup;
+            LdrColorReference static colorChosenInPopup;
             ImGui::SameLine();
             if (ImGui::Button(color->name.c_str())) {
-                colorChosenInPopup = color;
+                colorChosenInPopup = color->asReference();
                 ImGui::OpenPopup(ICON_FA_SWATCHBOOK" Part Palette Color");
             }
             ImGui::PopStyleColor(3);
@@ -43,20 +43,21 @@ namespace gui {
                     if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
                         int i = 0;
                         for (const auto &currentColor : colorGroup.second) {
+                            const auto currentColorValue = currentColor.get();
                             if (i % columnCount > 0) {
                                 ImGui::SameLine();
                             }
-                            ImGui::PushID(currentColor->code);
-                            const ImColor imColor = ImColor(currentColor->value.red, currentColor->value.green, currentColor->value.blue);
+                            ImGui::PushID(currentColorValue->code);
+                            const ImColor imColor = ImColor(currentColorValue->value.red, currentColorValue->value.green, currentColorValue->value.blue);
                             ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4) imColor);
-                            if (ImGui::Button(colorChosenInPopup->code == currentColor->code ? ICON_FA_CHECK : "", buttonSize)) {
-                                colorChosenInPopup = ldr_color_repo::get_color(currentColor->code);
+                            if (ImGui::Button(colorChosenInPopup.code == currentColorValue->code ? ICON_FA_CHECK : "", buttonSize)) {
+                                colorChosenInPopup = currentColorValue->code;
                             }
                             ImGui::PopStyleColor(/*3*/1);
                             ImGui::PopID();
                             if (ImGui::IsItemHovered()) {
                                 ImGui::BeginTooltip();
-                                ImGui::Text("%s", currentColor->name.c_str());
+                                ImGui::Text("%s", currentColorValue->name.c_str());
                                 ImGui::EndTooltip();
                             }
                             ++i;
@@ -69,7 +70,7 @@ namespace gui {
                 }
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_CHECK_SQUARE" Apply")) {
-                    color = colorChosenInPopup;
+                    color = colorChosenInPopup.get();
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
@@ -132,7 +133,7 @@ namespace gui {
                     ImGui::Text("%s", category.c_str());
                     for (const auto &part : ldr_file_repo::get().getAllFilesOfCategory(category)) {
                         if (searchEmpty || searchPredicate.matches(*part)) {
-                            gui_internal::drawPartThumbnail(actualThumbSizeSquared, part, color);
+                            gui_internal::drawPartThumbnail(actualThumbSizeSquared, part, color->asReference());
                             currentCol++;
                             if (currentCol == columns) {
                                 currentCol = 0;
@@ -149,7 +150,7 @@ namespace gui {
             } else if (selectedCategories.size() == 1) {
                 for (const auto &part : ldr_file_repo::get().getAllFilesOfCategory(*selectedCategories.begin())) {
                     if (searchEmpty || searchPredicate.matches(*part)) {
-                        gui_internal::drawPartThumbnail(actualThumbSizeSquared, part, color);
+                        gui_internal::drawPartThumbnail(actualThumbSizeSquared, part, color->asReference());
                         currentCol++;
                         if (currentCol == columns) {
                             currentCol = 0;
@@ -168,7 +169,7 @@ namespace gui {
                                     ImGui::Text("%s", category.first.c_str());
                                     textWritten = true;
                                 }
-                                gui_internal::drawPartThumbnail(actualThumbSizeSquared, part, color);
+                                gui_internal::drawPartThumbnail(actualThumbSizeSquared, part, color->asReference());
                                 currentCol++;
                                 if (currentCol == columns) {
                                     currentCol = 0;

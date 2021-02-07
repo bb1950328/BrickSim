@@ -42,13 +42,13 @@ void MeshCollection::deallocateGraphics() {
     }*/
 }
 
-void MeshCollection::readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4 &parentAbsoluteTransformation, std::shared_ptr<const LdrColor> parentColor, std::optional<unsigned int> selectionTargetElementId) {
+void MeshCollection::readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4 &parentAbsoluteTransformation, std::optional<LdrColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId) {
     std::shared_ptr<etree::Node> nodeToParseChildren = node;
     glm::mat4 absoluteTransformation = parentAbsoluteTransformation;
     if (node->visible) {
         if ((node->getType() & etree::TYPE_MESH) > 0) {
             std::shared_ptr<etree::MeshNode> meshNode;
-            std::shared_ptr<const LdrColor> color;
+            LdrColorReference color;
             std::shared_ptr<etree::MeshNode> nodeToGetColorFrom;
             if (node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE) {
                 const auto instanceNode = std::dynamic_pointer_cast<etree::MpdSubfileInstanceNode>(node);
@@ -61,8 +61,8 @@ void MeshCollection::readElementTree(const std::shared_ptr<etree::Node>& node, c
                 absoluteTransformation = node->getRelativeTransformation() * parentAbsoluteTransformation;
                 nodeToGetColorFrom = meshNode;
             }
-            if (nodeToGetColorFrom->getElementColor()->code == LdrColor::MAIN_COLOR_CODE && parentColor != nullptr) {
-                color = parentColor;
+            if (nodeToGetColorFrom->getElementColor().get()->code == LdrColor::MAIN_COLOR_CODE && parentColor.has_value()) {
+                color = parentColor.value();
             } else {
                 color = nodeToGetColorFrom->getDisplayColor();
             }
@@ -113,7 +113,7 @@ void MeshCollection::rereadElementTree() {
     elementsSortedById.push_back(nullptr);
     layersInUse.clear();
     auto before = std::chrono::high_resolution_clock::now();
-    readElementTree(elementTree->rootNode, glm::mat4(1.0f), nullptr, std::nullopt);
+    readElementTree(elementTree->rootNode, glm::mat4(1.0f), {}, std::nullopt);
     updateMeshInstances();
     nodesWithChildrenAlreadyVisited.clear();
     for (const auto &mesh: meshes) {
@@ -172,7 +172,7 @@ void MeshCollection::updateSelectionContainerBox() {
                 transformation = glm::translate(transformation, center);
                 transformation = glm::scale(transformation, size / 2.0f);//the /2 is because box0.dat has 2ldu edge length
                 transformation = glm::transpose(transformation);
-                selectionBoxMesh->instances.push_back({ldr_color_repo::get_color(1), transformation, 0, true});
+                selectionBoxMesh->instances.push_back({{1}, transformation, 0, true});
             }
         }
     }
@@ -181,7 +181,7 @@ void MeshCollection::updateSelectionContainerBox() {
     controller::getRenderer()->unrenderedChanges = true;
 }
 
-std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(std::shared_ptr<const etree::MeshNode> node) const {
+std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(const std::shared_ptr<const etree::MeshNode>& node) const {
     auto result = getBoundingBoxInternal(node);
     return {
         glm::vec4(result.first, 1.0f) * node->getAbsoluteTransformation(),

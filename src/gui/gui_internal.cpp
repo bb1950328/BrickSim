@@ -7,7 +7,7 @@
 #include "../info_providers/part_color_availability_provider.h"
 
 namespace gui_internal {
-    void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<LdrFile> &part, const std::shared_ptr<const LdrColor>& color) {
+    void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<LdrFile> &part, const LdrColorReference color) {
         bool realThumbnailAvailable = false;
         if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
             auto optTexId = controller::getThumbnailGenerator()->getThumbnailNonBlocking(part, color);
@@ -27,7 +27,7 @@ namespace gui_internal {
             std::string availText;
             if (availableColors.has_value() && !availableColors.value().empty()) {
                 if (availableColors.value().size() == 1) {
-                    availText = std::string("\nOnly available in ") + (*availableColors.value().begin())->name;
+                    availText = std::string("\nOnly available in ") + availableColors.value().begin()->get()->name;
                 } else {
                     availText = std::string("\nAvailable in ") + std::to_string(availableColors.value().size()) + " Colors";
                 }
@@ -45,25 +45,26 @@ namespace gui_internal {
         return util::vectorSum(col) > 1.5 ? ImVec4(0, 0, 0, 1) : ImVec4(1, 1, 1, 1);
     }
 
-    void drawColorGroup(std::shared_ptr<etree::MeshNode> ldrNode, const ImVec2 &buttonSize, const int columnCount, const std::pair<const std::string, std::vector<std::shared_ptr<const LdrColor>>> &colorGroup) {
+    void drawColorGroup(const std::shared_ptr<etree::MeshNode>& ldrNode, const ImVec2 &buttonSize, const int columnCount, const std::pair<const std::string, std::vector<LdrColorReference>> &colorGroup) {
         if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
             int i = 0;
             for (const auto &color : colorGroup.second) {
+                const auto colorValue = color.get();
                 if (i % columnCount > 0) {
                     ImGui::SameLine();
                 }
-                ImGui::PushID(color->code);
-                const ImColor imColor = ImColor(color->value.red, color->value.green, color->value.blue);
+                ImGui::PushID(colorValue->code);
+                const ImColor imColor = ImColor(colorValue->value.red, colorValue->value.green, colorValue->value.blue);
                 ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4) imColor);
-                if (ImGui::Button(ldrNode->getDisplayColor()->code == color->code ? "#" : "", buttonSize)) {
-                    ldrNode->setColor(ldr_color_repo::get_color(color->code));
+                if (ImGui::Button(ldrNode->getDisplayColor().code == color.code ? ICON_FA_CHECK : "", buttonSize)) {
+                    ldrNode->setColor(color);
                     controller::setElementTreeChanged(true);
                 }
                 ImGui::PopStyleColor(/*3*/1);
                 ImGui::PopID();
                 if (ImGui::IsItemHovered()) {
                     ImGui::BeginTooltip();
-                    ImGui::Text("%s", color->name.c_str());
+                    ImGui::Text("%s", color.get()->name.c_str());
                     ImGui::EndTooltip();
                 }
                 ++i;

@@ -428,19 +428,19 @@ namespace controller {
         auto currentlyEditingLdrNode = std::dynamic_pointer_cast<etree::LdrNode>(currentlyEditingNode);
         switch (ldrFile->metaInfo.type) {
             case MODEL:
-                currentlyEditingLdrNode = std::make_shared<etree::MpdNode>(ldrFile, ldr_color_repo::get_color(2), elementTree->rootNode);
+                currentlyEditingLdrNode = std::make_shared<etree::MpdNode>(ldrFile, LdrColorReference{2}, elementTree->rootNode);
                 currentlyEditingNode = currentlyEditingLdrNode;
                 currentlyEditingLdrNode->createChildNodes();
                 elementTree->rootNode->addChild(currentlyEditingNode);
                 break;
             case MPD_SUBFILE:
                 if (nullptr != currentlyEditingLdrNode) {
-                    currentlyEditingLdrNode->addSubfileInstanceNode(ldrFile, ldr_color_repo::get_color(1));
+                    currentlyEditingLdrNode->addSubfileInstanceNode(ldrFile, {1});
                 }
                 break;
             case PART:
                 if (nullptr != currentlyEditingLdrNode) {
-                    currentlyEditingLdrNode->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr_color_repo::get_color(1), currentlyEditingNode));
+                    currentlyEditingLdrNode->addChild(std::make_shared<etree::PartNode>(ldrFile, LdrColorReference{1}, currentlyEditingNode));
                 }
                 break;
             default: return;

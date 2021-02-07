@@ -95,14 +95,14 @@ namespace gui {
                     if (lastSelectedNode == node) {
                         if (isColor16 != savedIsColor16) {
                             if (isColor16) {
-                                meshNode->setColor(ldr_color_repo::get_color(LdrColor::MAIN_COLOR_CODE));
+                                meshNode->setColor(LdrColor::MAIN_COLOR_CODE);
                             } else {
                                 meshNode->setColor(meshNode->getDisplayColor());
                             }
                             savedIsColor16 = isColor16;
                         }
                     } else {
-                        savedIsColor16 = isColor16 = meshNode->getElementColor()->code == LdrColor::MAIN_COLOR_CODE;
+                        savedIsColor16 = isColor16 = meshNode->getElementColor().code == LdrColor::MAIN_COLOR_CODE;
                     }
                     ImGui::Checkbox(ICON_FA_ARROW_DOWN" Take color from parent element", &isColor16);
                     if (!isColor16) {
@@ -110,7 +110,7 @@ namespace gui {
                         const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
                         const int columnCount = std::floor(ImGui::GetContentRegionAvailWidth() / (buttonWidth + ImGui::GetStyle().ItemSpacing.x));
 
-                        std::optional<std::set<std::shared_ptr<const LdrColor>>> availableColors = std::nullopt;
+                        std::optional<std::set<LdrColorReference>> availableColors = std::nullopt;
                         if (meshNode->getType() == etree::TYPE_PART) {
                             availableColors = part_color_availability_provider::getAvailableColorsForPart(std::dynamic_pointer_cast<etree::LdrNode>(meshNode)->ldrFile);
                         }
@@ -120,7 +120,7 @@ namespace gui {
                             ImGui::Checkbox("Only show available Colors", &onlyAvailableChecked);
                             showAllColors = !onlyAvailableChecked;
                             if (onlyAvailableChecked) {
-                                std::pair<std::string, std::vector<std::shared_ptr<const LdrColor>>> group = std::make_pair("Available", std::vector<std::shared_ptr<const LdrColor>>());
+                                std::pair<std::string, std::vector<LdrColorReference>> group = std::make_pair("Available", std::vector<LdrColorReference>());
                                 for (const auto &color : availableColors.value()) {
                                     group.second.push_back(color);
                                 }
@@ -151,24 +151,25 @@ namespace gui {
                     auto partNode = std::dynamic_pointer_cast<etree::PartNode>(node);
                     auto partCode = partNode->ldrFile->metaInfo.name;
                     util::replaceAll(partCode, ".dat", "");
-                    const auto color = partNode->getDisplayColor();
+                    const auto color = partNode->getDisplayColor().get();
                     const auto currencyCode = config::getString(config::BRICKLINK_CURRENCY_CODE);
                     const auto colorBricklinkName = util::translateLDrawColorNameToBricklink(color->name);
                     auto availableColors = part_color_availability_provider::getAvailableColorsForPart(partNode->ldrFile);
                     if (availableColors.has_value()) {
                         if (ImGui::Button(ICON_FA_SYNC" (Re)load all available colors")) {
                             for (const auto &item : availableColors.value()) {
-                                controller::addBackgroundTask("Reload price guide for " + partCode + " in " + item->name, [partCode, item, currencyCode]() {
-                                    price_guide_provider::getPriceGuide(partCode, currencyCode, util::translateLDrawColorNameToBricklink(item->name), true);
+                                const auto itemValue = item.get();
+                                controller::addBackgroundTask("Reload price guide for " + partCode + " in " + itemValue->name, [partCode, itemValue, currencyCode]() {
+                                    price_guide_provider::getPriceGuide(partCode, currencyCode, util::translateLDrawColorNameToBricklink(itemValue->name), true);
                                 });
                             }
                         }
                     }
-                    std::map<std::shared_ptr<const LdrColor>, const price_guide_provider::PriceGuide> pGuides;
+                    std::map<LdrColorReference, const price_guide_provider::PriceGuide> pGuides;
                     if (availableColors.has_value()) {
                         for (const auto &item : availableColors.value()) {
                             auto pg = price_guide_provider::getPriceGuideIfCached(partCode, currencyCode,
-                                                                                  util::translateLDrawColorNameToBricklink(item->name));
+                                                                                  util::translateLDrawColorNameToBricklink(item.get()->name));
                             if (pg.has_value()) {
                                 pGuides.emplace(item, pg.value());
                             }
@@ -176,11 +177,11 @@ namespace gui {
                     } else {
                         auto pg = price_guide_provider::getPriceGuideIfCached(partCode, currencyCode, colorBricklinkName);
                         if (pg.has_value()) {
-                            pGuides.emplace(color, pg.value());
+                            pGuides.emplace(color->asReference(), pg.value());
                         }
                     }
                     if (!pGuides.empty()) {
-                        if (pGuides.find(color) != pGuides.end()) {
+                        if (pGuides.find(color->asReference()) != pGuides.end()) {
                             if (ImGui::Button((ICON_FA_SYNC" Reload for " + color->name).c_str())) {
                                 controller::addBackgroundTask("Reload price guide for " + partCode, [partCode, colorBricklinkName, currencyCode]() {
                                     price_guide_provider::getPriceGuide(partCode, currencyCode, colorBricklinkName, true);
@@ -194,9 +195,10 @@ namespace gui {
 
                         const auto windowBgImVec = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
                         const auto windowBg = glm::vec3(windowBgImVec.x, windowBgImVec.y, windowBgImVec.z);
-                        auto drawColoredValueText = [&windowBg](const char *text, std::shared_ptr<const LdrColor> color) {
+                        auto drawColoredValueText = [&windowBg](const char *text, LdrColorReference color) {
                             //ImGui::SameLine();
-                            auto col = color->value.asGlmVector();
+                            auto colorValue = color.get();
+                            auto col = colorValue->value.asGlmVector();
                             if (util::vectorSum(glm::abs(windowBg - col)) < 0.3) {
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(col.x, col.y, col.z, 1.0f));
                                 auto bgColor = gui_internal::getWhiteOrBlackBetterContrast(col);
@@ -211,7 +213,7 @@ namespace gui {
                                 ImGui::PopStyleColor();
                             }
                             if (ImGui::IsItemHovered()) {
-                                ImGui::SetTooltip("%s", color->name.c_str());
+                                ImGui::SetTooltip("%s", colorValue->name.c_str());
                             }
                         };
 
@@ -221,14 +223,14 @@ namespace gui {
                         ImVec2 outer_size = ImVec2(-FLT_MIN, ImGui::GetTextLineHeightWithSpacing()*9);
                         auto tableId = std::string("##priceGuideTable") + partCode;
                         for (const auto &pGuide : pGuides) {
-                            tableId += std::string(";") + std::to_string(pGuide.first->code);
+                            tableId += std::string(";") + std::to_string(pGuide.first.code);
                         }
                         if (ImGui::BeginTable(tableId.c_str(), pGuides.size() + 1, tableFlags, outer_size))
                         {
                             ImGui::TableSetupScrollFreeze(1, 1);
                             ImGui::TableSetupColumn(ICON_FA_MONEY_BILL, ImGuiTableColumnFlags_NoHide);
                             for (const auto &pGuide : pGuides) {
-                                ImGui::TableSetupColumn(pGuide.first->name.c_str());
+                                ImGui::TableSetupColumn(pGuide.first.get()->name.c_str());
                             }
                             ImGui::TableHeadersRow();
 
@@ -305,9 +307,9 @@ namespace gui {
                         if (availableColors.has_value() &&
                             ImGui::Button((ICON_FA_DOWNLOAD" Get for all " + std::to_string(availableColors.value().size()) + " available colors").c_str())) {
                             for (const auto &avCol : availableColors.value()) {
-                                controller::addBackgroundTask("Get Price Guide for " + partCode + " in " + avCol->name, [partCode, avCol, currencyCode]() {
-                                    price_guide_provider::getPriceGuide(partCode, currencyCode, util::translateLDrawColorNameToBricklink(avCol->name),
-                                                                        false);
+                                const auto avColValue = avCol.get();
+                                controller::addBackgroundTask("Get Price Guide for " + partCode + " in " + avColValue->name, [partCode, avColValue, currencyCode]() {
+                                    price_guide_provider::getPriceGuide(partCode, currencyCode, util::translateLDrawColorNameToBricklink(avColValue->name),false);
                                 });
                             }
                         }

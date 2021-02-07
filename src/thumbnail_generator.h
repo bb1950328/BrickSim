@@ -13,7 +13,7 @@
 #include "mesh_collection.h"
 #include "renderer.h"
 class ThumbnailGenerator {
-    typedef std::pair<std::shared_ptr<LdrFile>, std::shared_ptr<const LdrColor>> file_key_t;
+    typedef std::pair<std::shared_ptr<LdrFile>, LdrColorReference> file_key_t;
 private:
     std::map<file_key_t, unsigned int> images;
     std::map<std::shared_ptr<const Mesh>, std::vector<float>> meshDimensions;
@@ -30,16 +30,16 @@ public:
     unsigned int framebuffer, textureBuffer, renderBuffer;
     int size;
     glm::vec3 rotationDegrees;
-    unsigned int getThumbnail(const std::shared_ptr<LdrFile>& ldrFile, const std::shared_ptr<const LdrColor>& color);
-    std::optional<unsigned int> getThumbnailNonBlocking(const std::shared_ptr<LdrFile>& ldrFile, std::shared_ptr<const LdrColor> color);
-    bool isThumbnailAvailable(const std::shared_ptr<LdrFile>& ldrFile, std::shared_ptr<const LdrColor> color);
+    unsigned int getThumbnail(const std::shared_ptr<LdrFile>& ldrFile, const LdrColorReference color);
+    std::optional<unsigned int> getThumbnailNonBlocking(const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference color);
+    bool isThumbnailAvailable(const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference color);
     void cleanup();
     void discardOldestImages(int reserve_space_for=1);
     explicit ThumbnailGenerator(std::shared_ptr<Renderer> renderer, std::shared_ptr<MeshCollection> meshCollection);
     void discardAllImages();
     bool workOnRenderQueue();
     bool renderQueueEmpty();
-    void removeFromRenderQueue(const std::shared_ptr<LdrFile>& ldrFile, std::shared_ptr<const LdrColor> color);
+    void removeFromRenderQueue(const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference color);
 
     void saveFramebufferToBMP(const std::string &filename) const;
     void initialize();

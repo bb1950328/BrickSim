@@ -70,7 +70,7 @@ public:
 
     void preLoadSubfilesAndEstimateComplexity();
 
-    [[nodiscard]] std::string getDescription() const ;
+    [[nodiscard]] const std::string & getDescription() const ;
 
     [[nodiscard]] bool isComplexEnoughForOwnMesh() const;
 
@@ -115,7 +115,7 @@ class LdrSubfileReference : public LdrFileElement {
 public:
     explicit LdrSubfileReference(std::string &line, bool bfcInverted);
     bool bfcInverted;
-    std::shared_ptr<const LdrColor> color;
+    LdrColorReference color;
     double x, y, z, a, b, c, d, e, f, g, h, i;
     std::string filename;
     [[nodiscard]] int getType() const override;
@@ -128,7 +128,7 @@ private:
 
 class LdrLine : public LdrFileElement {
 public:
-    std::shared_ptr<const LdrColor> color;
+    LdrColorReference color;
     double x1, y1, z1, x2, y2, z2;
 
     explicit LdrLine(std::string &line);
@@ -138,7 +138,7 @@ public:
 
 class LdrTriangle : public LdrFileElement {
 public:
-    std::shared_ptr<const LdrColor> color;
+    LdrColorReference color;
     double x1, y1, z1, x2, y2, z2, x3, y3, z3;
 
     explicit LdrTriangle(std::string &line, WindingOrder order);
@@ -148,7 +148,7 @@ public:
 
 class LdrQuadrilateral : public LdrFileElement {
 public:
-    std::shared_ptr<const LdrColor> color;
+    LdrColorReference color;
     double x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
 
     explicit LdrQuadrilateral(std::string &line, WindingOrder order);
@@ -158,7 +158,7 @@ public:
 
 class LdrOptionalLine : public LdrFileElement {
 public:
-    std::shared_ptr<const LdrColor> color;
+    LdrColorReference color;
 
     double x1, y1, z1, x2, y2, z2, controlX1, controlY1, controlZ1, controlX2, controlY2, controlZ2;
 

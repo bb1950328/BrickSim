@@ -10,7 +10,7 @@
 #include "../ldr_files/ldr_files.h"
 
 namespace part_color_availability_provider {
-    std::optional<std::set<std::shared_ptr<const LdrColor>>> getAvailableColorsForPart(const std::shared_ptr<LdrFile>& part);
+    std::optional<std::set<LdrColorReference>> getAvailableColorsForPart(const std::shared_ptr<LdrFile>& part);
 }
 
 #endif //BRICKSIM_PART_COLOR_AVAILABILITY_PROVIDER_H

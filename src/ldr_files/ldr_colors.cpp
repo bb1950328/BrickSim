@@ -91,13 +91,18 @@ std::string LdrColor::getGroupDisplayName() const {
     }
 }
 
+LdrColorReference LdrColor::asReference() const {
+    return LdrColorReference(code);
+}
+
 namespace ldr_color_repo {
     namespace {
-        std::map<int, std::shared_ptr<LdrColor>> colors;
-        std::vector<int> hueSortedCodes;
+        std::map<LdrColor::code_t, std::shared_ptr<LdrColor>> colors;
+        std::vector<LdrColor::code_t> hueSortedCodes;
+        std::shared_ptr<LdrInstanceDummyColor> instDummyColor;
     }
 
-    std::shared_ptr<const LdrColor> get_color(const int colorCode) {
+    std::shared_ptr<const LdrColor> get_color(const LdrColor::code_t colorCode) {
         auto iterator = colors.find(colorCode);
         if (iterator == colors.end()) {
             throw std::invalid_argument("unknown color code: " + std::to_string(colorCode));
@@ -119,7 +124,8 @@ namespace ldr_color_repo {
                     hueSortedCodes.push_back(col->code);
                 }
             }
-            colors[getInstanceDummyColor()->code] = getInstanceDummyColor();
+            instDummyColor = std::make_shared<LdrInstanceDummyColor>();
+            colors[INSTANCE_DUMMY_COLOR_CODE] = instDummyColor;
             std::sort(hueSortedCodes.begin(), hueSortedCodes.end(),
                       [](const int &a, const int &b) {
                           return util::HSVcolor(get_color(a)->value).hue < util::HSVcolor(get_color(b)->value).hue;
@@ -128,13 +134,13 @@ namespace ldr_color_repo {
         }
     }
 
-    std::map<std::string, std::vector<std::shared_ptr<const LdrColor>>> getAllColorsGroupedAndSortedByHue() {
-        std::map<std::string, std::vector<std::shared_ptr<const LdrColor>>> result;
+    std::map<std::string, std::vector<LdrColorReference>> getAllColorsGroupedAndSortedByHue() {
+        std::map<std::string, std::vector<LdrColorReference>> result;
         for (const auto &colorPair : colors) {
-            if (colorPair.first != getInstanceDummyColor()->code
+            if (colorPair.first != INSTANCE_DUMMY_COLOR_CODE
                 && colorPair.first != LdrColor::MAIN_COLOR_CODE
                 && colorPair.first != LdrColor::LINE_COLOR_CODE) {
-                result[colorPair.second->getGroupDisplayName()].push_back(colorPair.second);
+                result[colorPair.second->getGroupDisplayName()].push_back(colorPair.second->asReference());
             }
         }
         return result;
@@ -144,14 +150,47 @@ namespace ldr_color_repo {
         return colors;
     }
 
-    std::shared_ptr<LdrInstanceDummyColor> getInstanceDummyColor() {
-        static auto instDummyColor = std::make_shared<LdrInstanceDummyColor>();
-        return instDummyColor;
+    LdrColorReference getInstanceDummyColor() {
+        return LdrColorReference(INSTANCE_DUMMY_COLOR_CODE);
     }
 
     LdrInstanceDummyColor::LdrInstanceDummyColor() {
         name = "Instance Dummy Color";
-        code = -1;
+        code = INSTANCE_DUMMY_COLOR_CODE;
         value = edge = util::RGBcolor("#FFB39B");
     }
 }
+
+std::shared_ptr<const LdrColor> LdrColorReference::get() const {
+    return ldr_color_repo::get_color(code);
+}
+
+bool LdrColorReference::operator==(const LdrColorReference &rhs) const {
+    return code == rhs.code;
+}
+
+bool LdrColorReference::operator!=(const LdrColorReference &rhs) const {
+    return !(rhs == *this);
+}
+
+bool LdrColorReference::operator<(const LdrColorReference &rhs) const {
+    return code < rhs.code;
+}
+
+bool LdrColorReference::operator>(const LdrColorReference &rhs) const {
+    return rhs < *this;
+}
+
+bool LdrColorReference::operator<=(const LdrColorReference &rhs) const {
+    return !(rhs < *this);
+}
+
+bool LdrColorReference::operator>=(const LdrColorReference &rhs) const {
+    return !(*this < rhs);
+}
+
+LdrColorReference::LdrColorReference(int code) : code(code) {}
+
+LdrColorReference::LdrColorReference() : code(ldr_color_repo::NO_COLOR_CODE) {}
+
+LdrColorReference::LdrColorReference(const std::shared_ptr<LdrColor>& fromColor) : code(fromColor->code) {}

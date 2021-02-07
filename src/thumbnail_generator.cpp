@@ -15,7 +15,7 @@
 #include "controller.h"
 #include "latest_log_messages_tank.h"
 
-unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile>& ldrFile, const std::shared_ptr<const LdrColor>& color) {
+unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile>& ldrFile, const LdrColorReference color) {
     if (renderedRotationDegrees != rotationDegrees) {
         discardAllImages();
         renderedRotationDegrees = rotationDegrees;
@@ -23,7 +23,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile>& ld
     file_key_t fileKey = {ldrFile, color};
     auto imgIt = images.find(fileKey);
     if (imgIt == images.end()) {
-        spdlog::debug("rendering thumbnail {} in {}", ldrFile->getDescription(), color->name);
+        spdlog::debug("rendering thumbnail {} in {}", ldrFile->getDescription(), color.get()->name);
         auto before = std::chrono::high_resolution_clock::now();
         if (framebufferSize != size) {
             renderer->createFramebuffer(&framebuffer, &textureBuffer, &renderBuffer, size, size);
@@ -163,7 +163,7 @@ void ThumbnailGenerator::cleanup() {
     Renderer::deleteFramebuffer(&framebuffer, &textureBuffer, &renderBuffer);
 }
 
-std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const std::shared_ptr<LdrFile>& ldrFile, std::shared_ptr<const LdrColor> color) {
+std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference color) {
     if (renderedRotationDegrees != rotationDegrees) {
         discardAllImages();
         renderedRotationDegrees = rotationDegrees;
@@ -225,12 +225,12 @@ bool ThumbnailGenerator::renderQueueEmpty() {
     return renderRequests.empty();
 }
 
-bool ThumbnailGenerator::isThumbnailAvailable(const std::shared_ptr<LdrFile>& ldrFile, std::shared_ptr<const LdrColor> color) {
+bool ThumbnailGenerator::isThumbnailAvailable(const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference color) {
     file_key_t fileKey = {ldrFile, color};
     return images.find(fileKey) != images.end();
 }
 
-void ThumbnailGenerator::removeFromRenderQueue(const std::shared_ptr<LdrFile>& ldrFile, std::shared_ptr<const LdrColor> color) {
+void ThumbnailGenerator::removeFromRenderQueue(const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference color) {
     file_key_t fileKey = {ldrFile, color};
     auto it = std::find(renderRequests.begin(), renderRequests.end(), fileKey);
     if (it != renderRequests.end()) {

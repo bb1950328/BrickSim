@@ -25,42 +25,61 @@ struct LdrColorMaterial {
     int maxsize = 0;
 };
 
+class LdrColorReference;
+
 class LdrColor: public std::enable_shared_from_this<LdrColor> {
 public:
     enum Finish {
         NONE, CHROME, PEARLESCENT, RUBBER, MATTE_METALLIC, METAL, MATERIAL
     };
 
+    typedef int code_t;
+
     [[nodiscard]] std::string getGroupDisplayName() const;
+    [[nodiscard]] LdrColorReference asReference() const;
 
     LdrColor() = default;
 
     explicit LdrColor(const std::string &line);
-
     std::string name;
-    int code;
+    code_t code;
     util::RGBcolor value;
     util::RGBcolor edge;
     unsigned char alpha = 255;
     unsigned char luminance = 0;
     Finish finish = NONE;
     std::optional<LdrColorMaterial> material{};
-    const static int MAIN_COLOR_CODE = 16;
-    const static int LINE_COLOR_CODE = 24;
+    constexpr static int MAIN_COLOR_CODE = 16;
+    constexpr static int LINE_COLOR_CODE = 24;
 };
 
-
+class LdrColorReference {
+public:
+    LdrColorReference();
+    LdrColor::code_t code;
+    LdrColorReference(LdrColor::code_t code); // NOLINT(google-explicit-constructor)
+    explicit LdrColorReference(const std::shared_ptr<LdrColor>& fromColor);
+    [[nodiscard]] std::shared_ptr<const LdrColor> get() const;
+    bool operator==(const LdrColorReference &rhs) const;
+    bool operator!=(const LdrColorReference &rhs) const;
+    bool operator<(const LdrColorReference &rhs) const;
+    bool operator>(const LdrColorReference &rhs) const;
+    bool operator<=(const LdrColorReference &rhs) const;
+    bool operator>=(const LdrColorReference &rhs) const;
+};
 
 namespace ldr_color_repo {
+    constexpr LdrColor::code_t INSTANCE_DUMMY_COLOR_CODE = -1;
+    constexpr LdrColor::code_t NO_COLOR_CODE = -2;
     class LdrInstanceDummyColor : public LdrColor {
     public:
         LdrInstanceDummyColor();
     };
-    void initialize();
 
-    std::shared_ptr<const LdrColor> get_color(int colorCode);
-    std::map<std::string, std::vector<std::shared_ptr<const LdrColor>>> getAllColorsGroupedAndSortedByHue();
+    void initialize();
+    std::shared_ptr<const LdrColor> get_color(LdrColor::code_t colorCode);
+    std::map<std::string, std::vector<LdrColorReference>> getAllColorsGroupedAndSortedByHue();
     std::map<int, std::shared_ptr<LdrColor>> &getColors();
-    std::shared_ptr<LdrInstanceDummyColor> getInstanceDummyColor();
+    LdrColorReference getInstanceDummyColor();
 };
 #endif //BRICKSIM_LDR_COLORS_H

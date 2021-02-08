@@ -49,17 +49,23 @@ namespace db {
             configDb.value().exec("CREATE TABLE strings ("
                                   "   key TEXT PRIMARY KEY,"
                                   "   value TEXT NOT NULL);"
-                                  "CREATE UNIQUE INDEX idx_strings ON strings (key);"
+                                  //"CREATE UNIQUE INDEX idx_strings ON strings (key);"
 
                                   "CREATE TABLE ints ("
                                   "   key TEXT PRIMARY KEY,"
                                   "   value INTEGER NOT NULL);"
-                                  "CREATE UNIQUE INDEX idx_ints ON ints (key);"
+                                  //"CREATE UNIQUE INDEX idx_ints ON ints (key);"
 
                                   "CREATE TABLE doubles ("
                                   "   key TEXT PRIMARY KEY,"
                                   "   value REAL NOT NULL);"
-                                  "CREATE UNIQUE INDEX idx_doubles ON doubles (key);"
+                                  //"CREATE UNIQUE INDEX idx_doubles ON doubles (key);"
+
+                                  "CREATE TABLE key_shortcuts ("
+                                  "   action INTEGER PRIMARY KEY,"
+                                  "   key INTEGER,"
+                                  "   modifier INTEGER,"
+                                  "   event INTEGER);"
 
                                   "CREATE TABLE meta (version INTEGER);");
 
@@ -340,6 +346,32 @@ namespace db {
             command.pop_back();//last comma
             command.push_back(';');
             SQLite::Statement stmt(cacheDb.value(), command);
+            stmt.exec();
+        }
+    }
+
+    namespace key_shortcuts {
+
+        std::vector<record_t> loadShortcuts() {
+            SQLite::Statement stmt(cacheDb.value(), "SELECT (action, key, modifier, event) FROM key_shortcuts;");
+            auto result = std::vector<record_t>();
+            while (stmt.executeStep()) {
+                result.emplace_back(
+                        stmt.getColumn(0).getInt(),
+                        stmt.getColumn(1).getInt(),
+                        stmt.getColumn(2).getInt(),
+                        stmt.getColumn(3).getInt()
+                        );
+            }
+            return result;
+        }
+
+        void saveShortcut(record_t record) {
+            SQLite::Statement stmt(cacheDb.value(), "INSERT INTO key_shortcuts (action, key, modifier_and_event) VALUES (?, ?, ?, ?);");
+            stmt.bind(1, std::get<0>(record));
+            stmt.bind(2, std::get<1>(record));
+            stmt.bind(3, std::get<2>(record));
+            stmt.bind(4, std::get<3>(record));
             stmt.exec();
         }
     }

@@ -48,6 +48,12 @@ namespace db {
         void setBool(const std::string& key, bool value);
         void setDouble(const std::string& key, double value);
     }
+    
+    namespace key_shortcuts {
+        typedef std::tuple<int, int, uint8_t, uint8_t> record_t;
+        std::vector<record_t> loadShortcuts();
+        void saveShortcut(record_t record);
+    }
 }
 
 #endif //BRICKSIM_DB_H

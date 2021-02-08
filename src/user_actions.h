@@ -17,7 +17,6 @@ namespace user_actions {
     };
     // add new user actions here and in user_actions.cpp
     // IMPORTANT: only append at the end, because otherwise the id's get messed up
-    int aId=0;
     const Action EXIT{0, "Exit", ICON_FA_SIGN_OUT_ALT " Exit", [](){controller::setUserWantsToExit(true);}};
     const Action OPEN_FILE{1, "Open", ICON_FA_FOLDER_OPEN " Open", gui::showOpenFileDialog};
     const Action SAVE_FILE{2, "Save", ICON_FA_SAVE" Save", controller::saveFile};

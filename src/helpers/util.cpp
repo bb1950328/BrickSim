@@ -33,7 +33,6 @@
 #include <spdlog/spdlog.h>
 #include <fcntl.h>
 #include <ftw.h>
-#include <sys/mman.h>
 #include <execution>
 
 namespace util {
@@ -637,7 +636,7 @@ namespace util {
     }
 
     std::string readFileToString(const std::filesystem::path &path) {
-        FILE *f = fopen(path.c_str(), "rb");
+        FILE *f = fopen(path.string().c_str(), "rb");
         if (f) {
             fseek(f, 0, SEEK_END);
             long length = ftell(f);

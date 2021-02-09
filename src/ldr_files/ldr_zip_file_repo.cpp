@@ -49,7 +49,7 @@ namespace ldr_file_repo {
             const std::string nameString(fileStat.name+nameCutOff);
             if (shouldFileBeSavedInList(nameString)) {
                 result.emplace_back(nameString);
-                *progress = std::min(1.0f, 0.99f * i / numEntries);
+                *progress = std::min(1.0f, 0.5f * i / numEntries);
             }
         }
         return result;
@@ -105,7 +105,7 @@ namespace ldr_file_repo {
         const auto readBytes = zip_fread(file, &result[0], stat.size);
         if (readBytes != stat.size) {
             spdlog::warn("file {} in zip library has reported size of {} bytes, but only {} bytes read", entryName, stat.size, readBytes);
-            result.resize(std::max(0L, readBytes));
+            result.resize(std::max(static_cast<typeof(readBytes)>(0), readBytes));
         }
 
         zip_fclose(file);

@@ -1,5 +1,4 @@
 #include <map>
-#include <GLFW/glfw3.h>
 #include "keyboard_shortcut_manager.h"
 #include "helpers/platform_detection.h"
 #include "user_actions.h"

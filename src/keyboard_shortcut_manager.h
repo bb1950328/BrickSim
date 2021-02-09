@@ -2,12 +2,13 @@
 #define BRICKSIM_KEYBOARD_SHORTCUT_MANAGER_H
 #include <vector>
 #include <string>
+//#include <GLFW/glfw3.h>
 
 namespace keyboard_shortcut_manager {
     enum class Event {
-        ON_PRESS = GLFW_PRESS,
-        ON_REPEAT = GLFW_REPEAT,
-        ON_RELEASE = GLFW_RELEASE,
+        ON_PRESS = 1/*GLFW_PRESS*/,
+        ON_REPEAT = 2/*GLFW_REPEAT*/,
+        ON_RELEASE = 0/*GLFW_RELEASE*/,
     };
 
     class KeyboardShortcut {

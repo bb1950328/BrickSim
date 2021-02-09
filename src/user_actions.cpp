@@ -60,7 +60,7 @@ namespace user_actions {
             lastName = name;
             results.clear();
             for (const auto &action : ALL_ACTIONS) {
-                if (strcasestr(action.name, name.c_str())) {
+                if (util::containsIgnoreCase(action.name, name)) {
                     results.push_back(action);
                 }
             }

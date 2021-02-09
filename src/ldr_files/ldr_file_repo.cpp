@@ -10,6 +10,7 @@
 #include <fstream>
 #include <zip.h>
 #include <spdlog/spdlog.h>
+#include <thread>
 
 namespace ldr_file_repo {
     const char* PSEUDO_CATEGORY_SUBPART = "__SUBPART";
@@ -189,35 +190,61 @@ namespace ldr_file_repo {
         if (db::fileList::getSize()==0) {
             spdlog::info("LdrFileRepo: file list in db is empty, going to fill it");
             auto before = std::chrono::high_resolution_clock::now();
-            std::vector<db::fileList::Entry> entries;
-            for (const auto &fileName : listAllFileNames(progress)) {
-                LdrFileType type;
-                std::string name;
-                std::tie(type, name) = getTypeAndNameFromPathRelativeToBase(fileName);
-                auto ldrFile = addFileWithContent(name, type, getLibraryFileContent(fileName));
 
+            auto fileNames = listAllFileNames(progress);
+            const auto numFiles = fileNames.size();
+            const auto numCores = std::thread::hardware_concurrency()*8;// *8 was determined empirically
+            const auto filesPerThread = numFiles / numCores;
+            std::vector<std::thread> threads;
+            for (int threadNum = 0; threadNum < numCores; ++threadNum) {
+                const auto iStart = threadNum*filesPerThread;//inclusive
+                const auto iEnd = (threadNum==numCores-1)?numFiles:iStart+filesPerThread;//exclusive
+                threads.emplace_back([this, iStart, iEnd, &fileNames, progress](){
+                    std::vector<db::fileList::Entry> entries;
+                    for (auto fileName = fileNames.cbegin() + iStart; fileName < fileNames.cbegin() + iEnd; ++fileName) {
+                        LdrFileType type;
+                        std::string name;
+                        std::tie(type, name) = getTypeAndNameFromPathRelativeToBase(*fileName);
+                        auto ldrFile = addFileWithContent(name, type, getLibraryFileContent(*fileName));
 
-                std::string category;
-                if (type == LdrFileType::PART) {
-                    char &firstChar = ldrFile->metaInfo.title[0];
-                    if ((firstChar == '~' && ldrFile->metaInfo.title[1] != '|') || firstChar == '=' || firstChar == '_') {
-                        category = PSEUDO_CATEGORY_HIDDEN_PART;
-                    } else {
-                        category = ldrFile->metaInfo.getCategory();
+                        std::string category;
+                        if (type == LdrFileType::PART) {
+                            char &firstChar = ldrFile->metaInfo.title[0];
+                            if ((firstChar == '~' && ldrFile->metaInfo.title[1] != '|') || firstChar == '=' || firstChar == '_') {
+                                category = PSEUDO_CATEGORY_HIDDEN_PART;
+                            } else {
+                                category = ldrFile->metaInfo.getCategory();
+                            }
+                        } else if (type == LdrFileType::SUBPART) {
+                            category = PSEUDO_CATEGORY_SUBPART;
+                        } else if (type == LdrFileType::PRIMITIVE) {
+                            category = PSEUDO_CATEGORY_PRIMITIVE;
+                        } else if (type == LdrFileType::MODEL) {
+                            category = PSEUDO_CATEGORY_MODEL;
+                        }
+                        entries.push_back({name, ldrFile->metaInfo.title, category});
+                        if (iStart==0) {
+                            *progress = 0.4f * entries.size() / iEnd + 0.5f;
+                        }
                     }
-                } else if (type == LdrFileType::SUBPART) {
-                    category = PSEUDO_CATEGORY_SUBPART;
-                } else if (type == LdrFileType::PRIMITIVE) {
-                    category = PSEUDO_CATEGORY_PRIMITIVE;
-                } else if (type == LdrFileType::MODEL) {
-                    category = PSEUDO_CATEGORY_MODEL;
-                }
-                entries.push_back({name, ldrFile->metaInfo.title, category});
+                    db::fileList::put(entries);
+                    if (iStart==0) {
+                        *progress = 1.0f;
+                    }
+                });
             }
-            db::fileList::put(entries);
+
+            for (auto &t : threads) {
+                t.join();
+            }
+
             auto after = std::chrono::high_resolution_clock::now();
             auto durationMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0;
-            spdlog::info("filled fileList in {} ms. Size: {}", durationMs, db::fileList::getSize());
+
+            if (numFiles != db::fileList::getSize()) {
+                spdlog::error("had {} fileNames, but only {} are in db", numFiles, db::fileList::getSize());
+            }
+            spdlog::info("filled fileList in {} ms using {} threads. Size: {}", durationMs, numCores, numFiles);
         }
     }
 

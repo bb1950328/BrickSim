@@ -27,7 +27,7 @@ namespace ldr_file_repo {
 
             if (shouldFileBeSavedInList(pathWithForwardSlash)) {
                 files.push_back(pathWithForwardSlash);
-                *progress = std::min(1.0f, 0.99f * files.size() / ESTIMATE_PART_LIBRARY_FILE_COUNT);
+                *progress = std::min(1.0f, 0.5f * files.size() / ESTIMATE_PART_LIBRARY_FILE_COUNT);
             }
         }
         return files;

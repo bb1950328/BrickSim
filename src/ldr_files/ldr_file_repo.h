@@ -37,6 +37,7 @@ namespace ldr_file_repo {
         void cleanup();
 
         /**
+         * @param progress range from 0.0f to 0.5f
          * @return vector of file names relative to root of library
          */
         virtual std::vector<std::string> listAllFileNames(float *progress) = 0;

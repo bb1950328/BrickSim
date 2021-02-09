@@ -5,6 +5,7 @@
 
 #include "ldr_file_repo.h"
 #include <zip.h>
+#include <mutex>
 
 namespace ldr_file_repo {
     class LdrZipFileRepo: public LdrFileRepo {
@@ -18,6 +19,7 @@ namespace ldr_file_repo {
     private:
         struct zip* zipArchive;
         std::string rootFolderName;
+        std::mutex libzipLock;
         static std::string getZipRootFolder(zip_t* archive);//including / at the end
     };
 }

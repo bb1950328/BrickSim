@@ -204,13 +204,16 @@ namespace util {
         spdlog::info("openDefaultBrowser(\"{}\")", link);
 #ifdef BRICKSIM_PLATFORM_WIN32_OR_64
         ShellExecute(nullptr, "open", link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);//todo testing
-#endif
-#ifdef __APPLE__
-        std::string command = std::string("open ") + link;//todo testing
-        system(command.c_str());
-#elif __linux
+#elif defined(BRICKSIM_PLATFORM_SOME_APPLE)
+        std::string command = std::string("open ") + link;
+#elif defined(BRICKSIM_PLATFORM_LINUX)
         std::string command = std::string("xdg-open ") + link;
-        system(command.c_str());
+#endif
+#if defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_SOME_APPLE)
+        int exitCode = system(command.c_str());
+        if (exitCode != 0) {
+            spdlog::warn("command \"{}\" exited with code {}", command, exitCode);
+        }
 #endif
     }
 

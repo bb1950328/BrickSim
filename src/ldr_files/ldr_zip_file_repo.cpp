@@ -40,6 +40,7 @@ namespace ldr_file_repo {
     }
 
     std::vector<std::string> LdrZipFileRepo::listAllFileNames(float *progress) {
+        std::lock_guard<std::mutex> lg(libzipLock);
         std::vector<std::string> result;
         struct zip_stat fileStat{};
         int nameCutOff = rootFolderName.size();
@@ -81,6 +82,7 @@ namespace ldr_file_repo {
     }
 
     std::string LdrZipFileRepo::getLibraryFileContent(std::string nameRelativeToRoot) {
+        std::lock_guard<std::mutex> lg(libzipLock);
         struct zip_stat stat{};
         std::string entryName = rootFolderName + nameRelativeToRoot;
 

@@ -4,6 +4,7 @@
 #define BRICKSIM_DB_H
 
 #include <set>
+#include <vector>
 #include "info_providers/price_guide_provider.h"
 
 namespace db {

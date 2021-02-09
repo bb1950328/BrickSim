@@ -1,9 +1,4 @@
-
-
 #include <SQLiteCpp/Database.h>
-#include <vector>
-#include <iostream>
-#include <filesystem>
 #include <spdlog/spdlog.h>
 #include "db.h"
 

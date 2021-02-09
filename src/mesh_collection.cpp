@@ -1,11 +1,9 @@
 
 
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 #include <utility>
 #include "mesh_collection.h"
 #include "statistic.h"
-#include "helpers/util.h"
 #include "controller.h"
 #include "ldr_files/ldr_file_repo.h"
 

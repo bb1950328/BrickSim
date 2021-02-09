@@ -1,13 +1,8 @@
-
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "misc-no-recursion"
 
 #include "element_tree.h"
-
-#include <utility>
 #include "config.h"
-
-#include "ldr_files/ldr_colors.h"
 #include "ldr_files/ldr_file_repo.h"
 
 namespace etree {

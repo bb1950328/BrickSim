@@ -1,5 +1,4 @@
 
-#define GLM_ENABLE_EXPERIMENTAL
 #include <iostream>
 #include <glm/gtx/normal.hpp>
 #include <spdlog/spdlog.h>

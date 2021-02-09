@@ -1,9 +1,4 @@
 
-
-#define GLM_ENABLE_EXPERIMENTAL
-#define USE_SSLEAY
-#define USE_OPENSSL
-
 #include <algorithm>
 #include <iostream>
 #include <filesystem>
@@ -24,16 +19,11 @@
 
 #endif
 
-#include <stdlib.h>
-#include <GL/gl.h>
+#include <cstdlib>
 #include <imgui.h>
-#include <GLFW/glfw3.h>
-#include <fstream>
 #include <mutex>
 #include <spdlog/spdlog.h>
 #include <fcntl.h>
-#include <ftw.h>
-#include <execution>
 
 namespace util {
     namespace {
@@ -319,7 +309,7 @@ namespace util {
         return glm::vec3(red / 255.0f, green / 255.0f, blue / 255.0f);
     }
 
-    RGBcolor::RGBcolor(HSVcolor hsv) {
+    RGBcolor::RGBcolor(const HSVcolor& hsv) {
         if (hsv.saturation == 0) {
             red = hsv.value;
             green = hsv.value;

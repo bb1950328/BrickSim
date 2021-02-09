@@ -1,13 +1,7 @@
-
-
-#define GLM_ENABLE_EXPERIMENTAL
-
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
 #include "mesh.h"
 #include "config.h"
-#include "ldr_files/ldr_colors.h"
 #include <glm/gtx/normal.hpp>
 #include <mutex>
 #include "statistic.h"

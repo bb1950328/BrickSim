@@ -3,13 +3,12 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
-#include <utility>
 #include "renderer.h"
 #include "controller.h"
-#include "ldr_files/ldr_colors.h"
+
 #define STB_IMAGE_IMPLEMENTATION
-#include "lib/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "lib/stb_image.h"
 #include "lib/stb_image_write.h"
 
 bool Renderer::initialize() {

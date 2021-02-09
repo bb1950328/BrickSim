@@ -1,11 +1,7 @@
-
-
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include "orientation_cube.h"
 #include "controller.h"
-#include "lib/stb_image.h"
 #include "constant_data/resources.h"
 
 namespace orientation_cube {

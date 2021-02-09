@@ -1,15 +1,7 @@
-
-
-#define GLM_ENABLE_EXPERIMENTAL
-
 #include "lib/stb_image_write.h"
 #include <glm/gtx/string_cast.hpp>
-#include <glm/gtx/euler_angles.hpp>
 #include <mutex>
-#include <utility>
 #include "thumbnail_generator.h"
-#include "config.h"
-#include "ldr_files/ldr_colors.h"
 #include "controller.h"
 #include "latest_log_messages_tank.h"
 

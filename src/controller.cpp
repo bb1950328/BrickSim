@@ -1,18 +1,11 @@
-
-
 #include "controller.h"
 
-#include <GLFW/glfw3.h>
-#include <utility>
 #include "info_providers/price_guide_provider.h"
 #include "db.h"
-#include "orientation_cube.h"
-#include "tasks.h"
 #include "lib/stb_image.h"
 #include "info_providers/bricklink_constants_provider.h"
 #include "latest_log_messages_tank.h"
 #include "ldr_files/ldr_file_repo.h"
-#include <spdlog/spdlog.h>
 
 namespace controller {
     namespace {

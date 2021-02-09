@@ -83,7 +83,7 @@ namespace util {
 
         explicit RGBcolor(const std::string &htmlCode);
         explicit RGBcolor(glm::vec3 vector);
-        explicit RGBcolor(HSVcolor hsv);
+        explicit RGBcolor(const HSVcolor& hsv);
 
         RGBcolor(color_component_t red, color_component_t green, color_component_t blue);
 

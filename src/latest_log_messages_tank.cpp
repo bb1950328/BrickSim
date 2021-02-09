@@ -2,7 +2,6 @@
 
 #include "latest_log_messages_tank.h"
 
-#include <utility>
 #include "config.h"
 
 namespace latest_log_messages_tank {

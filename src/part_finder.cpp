@@ -2,9 +2,6 @@
 
 #include "part_finder.h"
 
-#include <utility>
-#include <algorithm>
-
 namespace part_finder {
     namespace {
         std::map<std::string, Predicate> predicates;

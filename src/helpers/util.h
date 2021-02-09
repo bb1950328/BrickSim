@@ -36,6 +36,7 @@ namespace util {
     //string functions
     std::string trim(const std::string &input);
     std::string asLower(const std::string &string);
+    void toUpperInPlace(char* string);
     bool endsWith(std::string const &fullString, std::string const &ending);
     bool startsWith(std::string const &fullString, std::string const &start);
     void replaceAll(std::string &str, const std::string &from, const std::string &to);

@@ -86,7 +86,6 @@ bool Renderer::loop() {
     if (!setupCalled) {
         throw std::invalid_argument("call setup first!");
     }
-    processInput(window);
 
     if (unrenderedChanges) {
         std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
@@ -212,12 +211,6 @@ bool Renderer::saveImage(const std::string& path) const {
     const bool success = util::writeImage(path.c_str(), pixels, windowWidth, windowHeight, channels);
     delete [] pixels;
     return success;
-}
-
-void processInput(GLFWwindow *window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
-    }
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {

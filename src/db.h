@@ -48,6 +48,8 @@ namespace db {
         void setInt(const std::string& key, int value);
         void setBool(const std::string& key, bool value);
         void setDouble(const std::string& key, double value);
+
+        void deleteAll();
     }
     
     namespace key_shortcuts {

@@ -23,6 +23,26 @@ namespace keyboard_shortcut_manager {
         };
         uint8_t ALL_MODIFIERS[] = {GLFW_MOD_SHIFT, GLFW_MOD_CONTROL, GLFW_MOD_ALT, GLFW_MOD_SUPER};
         uint8_t ALL_MODIFIERS_MASK = GLFW_MOD_SHIFT | GLFW_MOD_CONTROL | GLFW_MOD_ALT | GLFW_MOD_SUPER;
+        const int ALL_MODIFIER_KEYS[] = {GLFW_KEY_LEFT_SHIFT, GLFW_KEY_RIGHT_SHIFT, GLFW_KEY_LEFT_CONTROL, GLFW_KEY_RIGHT_CONTROL, GLFW_KEY_LEFT_ALT, GLFW_KEY_RIGHT_ALT, GLFW_KEY_LEFT_SUPER, GLFW_KEY_RIGHT_SUPER};
+
+        std::map<int, const char*> MISC_KEY_DISPLAY_NAMES = { // NOLINT(cert-err58-cpp)
+                {GLFW_KEY_BACKSPACE, "Backspace"},
+                {GLFW_KEY_ENTER, "Enter"},
+                {GLFW_KEY_INSERT, "Ins"},
+                {GLFW_KEY_DELETE, "Del"},
+                {GLFW_KEY_HOME, "Home"},
+                {GLFW_KEY_END, "End"},
+                {GLFW_KEY_PAGE_UP, "PageUp"},
+                {GLFW_KEY_PAGE_DOWN, "PageDown"},
+                {GLFW_KEY_PRINT_SCREEN, "PrintScreen"},
+                {GLFW_KEY_UP, "ArrowUp"},
+                {GLFW_KEY_DOWN, "ArrowDown"},
+                {GLFW_KEY_LEFT, "ArrowLeft"},
+                {GLFW_KEY_RIGHT, "ArrowRight"},
+                {GLFW_KEY_PAUSE, "Pause"},
+                {GLFW_KEY_MENU, "Menu"},
+                {GLFW_KEY_ESCAPE, "Esc"},
+        };
 
         std::vector<KeyboardShortcut> shortcuts;
 
@@ -41,7 +61,12 @@ namespace keyboard_shortcut_manager {
         }
     }
 
-    void shortcutPressed(int key, int scancode, int keyAction, int modifiers) {
+    void shortcutPressed(int key, int keyAction, int modifiers) {
+        for (const auto &modifierKey : ALL_MODIFIER_KEYS) {
+            if (modifierKey==key) {
+                return;
+            }
+        }
         auto event = static_cast<Event>(keyAction);
         if (shouldCatchNextShortcut) {
             shouldCatchNextShortcut = false;
@@ -55,7 +80,7 @@ namespace keyboard_shortcut_manager {
                 return;
             }
         }
-        spdlog::debug("event {} did not match any shortcut", KeyboardShortcut(-1, key, modifiers, event).getDisplayName());
+        spdlog::debug("event {} did not match any shortcut (key={}, modifiers={:b})", KeyboardShortcut(-1, key, modifiers, event).getDisplayName(), key, modifiers);
     }
 
     std::vector<KeyboardShortcut> &getAllShortcuts() {
@@ -70,8 +95,25 @@ namespace keyboard_shortcut_manager {
                     displayName += '+';
                 }
             }
-            displayName += glfwGetKeyName(key, 0);
+            if (GLFW_KEY_KP_0 <= key && key <= GLFW_KEY_KP_EQUAL) {
+                displayName += "NUM";
+            }
+
+            const auto *keyName = glfwGetKeyName(key, 0);
+            std::map<int, const char*>::iterator miscNameIt;
+            if (keyName) {
+                displayName += keyName;
+            } else if (GLFW_KEY_F1 <= key && key <= GLFW_KEY_F25) {
+                displayName += 'F';
+                displayName += std::to_string(key-GLFW_KEY_F1+1);
+            } else if ((miscNameIt=MISC_KEY_DISPLAY_NAMES.find(key))!=MISC_KEY_DISPLAY_NAMES.end()) {
+                displayName += miscNameIt->second;
+            }
+            else {
+                displayName += '?';
+            }
         }
+        util::toUpperInPlace(displayName.data());
         return displayName;
     }
 

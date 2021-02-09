@@ -54,6 +54,8 @@ namespace config {
 
     void exportToTxt();
     void importFromTxt();
+
+    void resetAllToDefault();
     
     const StringKey LDRAW_PARTS_LIBRARY("ldrawPartsLibrary", "~/ldraw");
     const IntKey SCREEN_WIDTH("screenWidth", 1280);

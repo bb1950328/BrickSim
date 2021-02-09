@@ -632,4 +632,8 @@ namespace gui {
             blockingMessageShowing = false;
         }
     }
+
+    bool areKeysCaptured() {
+        return ImGui::GetIO().WantCaptureKeyboard;
+    }
 }

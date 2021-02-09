@@ -24,7 +24,7 @@ namespace keyboard_shortcut_manager {
     };
 
     void initialize();
-    void shortcutPressed(int key, int scancode, int keyAction, int modifiers);
+    void shortcutPressed(int key, int keyAction, int modifiers);
     std::vector<KeyboardShortcut>& getAllShortcuts();
     void catchNextShortcut();
     std::optional<KeyboardShortcut>& getCaughtShortcut();

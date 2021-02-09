@@ -248,6 +248,11 @@ namespace db {
             query.bind(2, value);
             query.exec();
         }
+
+        void deleteAll() {
+            SQLite::Statement query(configDb.value(), "DELETE FROM strings; DELETE FROM ints; DELETE FROM doubles;");
+            query.exec();
+        }
     }
 
     namespace fileList {

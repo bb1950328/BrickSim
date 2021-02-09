@@ -71,4 +71,8 @@ namespace user_actions {
     const std::vector<Action> &getAllActions() {
         return ALL_ACTIONS;
     }
+
+    const Action &getAction(int id) {
+        return ALL_ACTIONS[id];
+    }
 }

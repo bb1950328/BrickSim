@@ -21,8 +21,6 @@
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
-void processInput(GLFWwindow *window);
-
 class Renderer {
 public:
     Shader *triangleShader;

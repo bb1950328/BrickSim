@@ -136,6 +136,18 @@ namespace config {
         setBoolNoMutex(key, value);
     }
 
+    void resetAllToDefault() {
+        std::lock_guard<std::mutex> stringsLG(stringsCacheMtx);
+        std::lock_guard<std::mutex> intsLG(intsCacheMtx);
+        std::lock_guard<std::mutex> boolsLG(boolsCacheMtx);
+        std::lock_guard<std::mutex> doublesLG(doublesCacheMtx);
+        stringsCache.clear();
+        intsCache.clear();
+        boolsCache.clear();
+        doublesCache.clear();
+        db::config::deleteAll();
+    }
+
     bool Key::operator==(const Key &other) const {
         return other.name == name;
     }

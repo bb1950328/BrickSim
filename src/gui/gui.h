@@ -50,6 +50,7 @@ namespace gui {
     GLFWwindow* getWindow();
     void setLastScrollDeltaY(double value);
     double getLastScrollDeltaY();
+    bool areKeysCaptured();
     void initialize();
     [[nodiscard]] bool isSetupDone();
 

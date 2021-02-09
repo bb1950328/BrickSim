@@ -6,6 +6,7 @@
 #include "info_providers/bricklink_constants_provider.h"
 #include "latest_log_messages_tank.h"
 #include "ldr_files/ldr_file_repo.h"
+#include "keyboard_shortcut_manager.h"
 
 namespace controller {
     namespace {
@@ -130,13 +131,14 @@ namespace controller {
             return true;
         }
 
-        void window_size_callback(GLFWwindow *window, int width, int height) {
+        void window_size_callback(GLFWwindow *_, int width, int height) {
             setWindowSize(width, height);
         }
 
-        void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-            const char *keyName = glfwGetKeyName(key, scancode);
-            spdlog::info("keyCallback(key={}, scancode={}, action={}, mods={})\nkeyName={}", key, scancode, action, mods, keyName?keyName:"nullptr");
+        void keyCallback(GLFWwindow *_, int key, int scancode, int action, int mods) {
+            if (!gui::areKeysCaptured()) {
+                keyboard_shortcut_manager::shortcutPressed(key, action, mods);
+            }
         }
 
 

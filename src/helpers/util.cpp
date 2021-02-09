@@ -648,4 +648,10 @@ namespace util {
             throw std::invalid_argument(strerror(errno));
         }
     }
+
+    void toUpperInPlace(char *string) {
+        for (int i = 0; string[i]!=0; ++i) {
+            string[i] = toupper(string[i]);
+        }
+    }
 }

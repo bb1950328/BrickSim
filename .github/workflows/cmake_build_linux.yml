@@ -46,20 +46,10 @@ jobs:
         whereis gcc
         echo "runner.workspace: \"${{runner.workspace}}\""
 
-    - name: get infos 2
-      run: |
-        apt list --installed | grep zip
-
-
     - name: Build
       working-directory: ${{runner.workspace}}/build
       shell: bash
       run: cmake --build . --config $BUILD_TYPE
-
-    - name: Test
-      working-directory: ${{runner.workspace}}/build
-      shell: bash
-      run: ctest -C $BUILD_TYPE
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
@@ -71,16 +61,8 @@ jobs:
         sudo ldconfig
         cpack --config ${{runner.workspace}}/build/CPackConfig.cmake
 
-    - name: Trying to get the artifact location
-      run: |
-        find ${{runner.workspace}} -type f -name "*.deb"
-        find ${{runner.workspace}} -type f -name "*.md"
-
     - name: Copy the .deb file
       run: cp -f ${{runner.workspace}}/BrickSim/_CPack_Packages/Linux/DEB/BrickSim.deb ${{runner.workspace}}/BrickSim/BrickSim.deb
-
-    - name: run ldd
-      run: ldd ${{runner.workspace}}/build/BrickSim
 
     - name: Upload Binary
       uses: actions/upload-artifact@v2

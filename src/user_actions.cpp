@@ -57,13 +57,13 @@ namespace user_actions {
         static std::vector<Action> results;
         static std::string lastName;
         if (lastName != name) {
-            lastName = name;
             results.clear();
             for (const auto &action : ALL_ACTIONS) {
                 if (util::containsIgnoreCase(action.name, name)) {
                     results.push_back(action);
                 }
             }
+            lastName = name;
         }
         return results;
     }

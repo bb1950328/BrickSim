@@ -3,6 +3,7 @@
 #include "gui_internal.h"
 #include "../controller.h"
 #include "../info_providers/part_color_availability_provider.h"
+#include "../keyboard_shortcut_manager.h"
 
 namespace gui_internal {
     void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<LdrFile> &part, const LdrColorReference color) {
@@ -95,5 +96,19 @@ namespace gui_internal {
 #pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
         return (ImTextureID) textureId;
 #pragma GCC diagnostic pop
+    }
+
+    const char *getShortcutText(const user_actions::Action &action) {
+        return keyboard_shortcut_manager::getShortcutForAction(action.id).c_str();
+    }
+
+    void actionMenuItem(const user_actions::Action &action) {
+        actionMenuItem(action, action.nameWithIcon);
+    }
+
+    void actionMenuItem(const user_actions::Action &action, const char *alternativeDescription) {
+        if (ImGui::MenuItem(alternativeDescription, gui_internal::getShortcutText(action))) {
+            user_actions::executeAction(action.id);
+        }
     }
 }

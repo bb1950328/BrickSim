@@ -17,6 +17,8 @@
 #include "../helpers/platform_detection.h"
 #include "../helpers/parts_library_downloader.h"
 #include "../ldr_files/ldr_file_repo.h"
+#include "../user_actions.h"
+#include "../keyboard_shortcut_manager.h"
 
 namespace gui {
     const char* WINDOW_NAME_3D_VIEW = ICON_FA_CUBES" 3D View";
@@ -58,47 +60,6 @@ namespace gui {
         util::TextureLoadResult logoTexture;
 
         ImGuiID dockspaceId = 0;
-
-        void applyDefaultWindowLayout() {
-            spdlog::debug("applying default window layout");
-            ImGui::DockBuilderRemoveNodeChildNodes(dockspaceId);
-
-            show3dWindow = true;
-            showElementTreeWindow = true;
-            showElementPropertiesWindow = true;
-            showSettingsWindow = false;
-            showDemoWindow = false;
-            showDebugWindow = true;
-            showAboutWindow = false;
-            showSysInfoWindow = false;
-            showPartPaletteWindow = true;
-            showOrientationCube = true;
-            showLogWindow = false;
-
-            ImGuiID level0left, level0right;
-            ImGui::DockBuilderSplitNode(dockspaceId, ImGuiDir_Right, 0.4, &level0right, &level0left);
-
-            ImGuiID level1rightTop, level1rightBottom;
-            ImGui::DockBuilderSplitNode(level0right, ImGuiDir_Down, 0.6, &level1rightBottom, &level1rightTop);
-
-            ImGuiID level2rightTopLeft, level2rightTopRight;
-            ImGui::DockBuilderSplitNode(level1rightTop, ImGuiDir_Left, 0.4, &level2rightTopLeft, &level2rightTopRight);
-
-            ImGui::DockBuilderDockWindow(WINDOW_NAME_ORIENTATION_CUBE, level2rightTopLeft);
-            ImGui::DockBuilderDockWindow(WINDOW_NAME_DEBUG, level2rightTopRight);
-            ImGui::DockBuilderDockWindow(WINDOW_NAME_ELEMENT_PROPERTIES, level1rightBottom);
-
-
-            ImGuiID level1leftBottom, level1leftTop;
-            ImGui::DockBuilderSplitNode(level0left, ImGuiDir_Down, 0.4, &level1leftBottom, &level1leftTop);
-
-            ImGuiID level2leftTopLeft, level2leftTopRight;
-            ImGui::DockBuilderSplitNode(level1leftTop, ImGuiDir_Left, 0.3, &level2leftTopLeft, &level2leftTopRight);
-
-            ImGui::DockBuilderDockWindow(WINDOW_NAME_PART_PALETTE, level1leftBottom);
-            ImGui::DockBuilderDockWindow(WINDOW_NAME_ELEMENT_TREE, level2leftTopLeft);
-            ImGui::DockBuilderDockWindow(WINDOW_NAME_3D_VIEW, level2leftTopRight);
-        }
 
         void setupFont(float scaleFactor, ImGuiIO &io) {
             auto fontName = config::getString(config::FONT);
@@ -283,6 +244,60 @@ namespace gui {
         }
     }
 
+    void showScreenshotDialog() {
+        char *fileNameChars = tinyfd_saveFileDialog(
+                ICON_FA_CAMERA" Save Screenshot",
+                "",
+                NUM_IMAGE_FILTER_PATTERNS,
+                imageFilterPatterns,
+                nullptr);
+        if (fileNameChars != nullptr) {
+            std::string fileNameString(fileNameChars);
+            controller::getRenderer()->saveImage(fileNameString);
+        }
+    }
+
+    void applyDefaultWindowLayout() {
+        spdlog::debug("applying default window layout");
+        ImGui::DockBuilderRemoveNodeChildNodes(dockspaceId);
+
+        show3dWindow = true;
+        showElementTreeWindow = true;
+        showElementPropertiesWindow = true;
+        showSettingsWindow = false;
+        showDemoWindow = false;
+        showDebugWindow = true;
+        showAboutWindow = false;
+        showSysInfoWindow = false;
+        showPartPaletteWindow = true;
+        showOrientationCube = true;
+        showLogWindow = false;
+
+        ImGuiID level0left, level0right;
+        ImGui::DockBuilderSplitNode(dockspaceId, ImGuiDir_Right, 0.4, &level0right, &level0left);
+
+        ImGuiID level1rightTop, level1rightBottom;
+        ImGui::DockBuilderSplitNode(level0right, ImGuiDir_Down, 0.6, &level1rightBottom, &level1rightTop);
+
+        ImGuiID level2rightTopLeft, level2rightTopRight;
+        ImGui::DockBuilderSplitNode(level1rightTop, ImGuiDir_Left, 0.4, &level2rightTopLeft, &level2rightTopRight);
+
+        ImGui::DockBuilderDockWindow(WINDOW_NAME_ORIENTATION_CUBE, level2rightTopLeft);
+        ImGui::DockBuilderDockWindow(WINDOW_NAME_DEBUG, level2rightTopRight);
+        ImGui::DockBuilderDockWindow(WINDOW_NAME_ELEMENT_PROPERTIES, level1rightBottom);
+
+
+        ImGuiID level1leftBottom, level1leftTop;
+        ImGui::DockBuilderSplitNode(level0left, ImGuiDir_Down, 0.4, &level1leftBottom, &level1leftTop);
+
+        ImGuiID level2leftTopLeft, level2leftTopRight;
+        ImGui::DockBuilderSplitNode(level1leftTop, ImGuiDir_Left, 0.3, &level2leftTopLeft, &level2leftTopRight);
+
+        ImGui::DockBuilderDockWindow(WINDOW_NAME_PART_PALETTE, level1leftBottom);
+        ImGui::DockBuilderDockWindow(WINDOW_NAME_ELEMENT_TREE, level2leftTopLeft);
+        ImGui::DockBuilderDockWindow(WINDOW_NAME_3D_VIEW, level2leftTopRight);
+    }
+
     void drawMainWindows() {
         static std::tuple<std::string, bool *, std::function<void(bool *)>> windowFuncsAndState[]{
                 {WINDOW_NAME_3D_VIEW,             &show3dWindow,                windows::draw3dWindow},
@@ -300,40 +315,43 @@ namespace gui {
 
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
-                if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN " Open", "CTRL+O")) {
-                    showOpenFileDialog();
-                }
-                if (ImGui::MenuItem(ICON_FA_SIGN_OUT_ALT " Exit", "CTRL+W")) {
-                    controller::setUserWantsToExit(true);
-                }
+                gui_internal::actionMenuItem(user_actions::NEW_FILE);
+                gui_internal::actionMenuItem(user_actions::OPEN_FILE);
+                gui_internal::actionMenuItem(user_actions::SAVE_FILE);
+                gui_internal::actionMenuItem(user_actions::SAVE_FILE_AS);
+                gui_internal::actionMenuItem(user_actions::SAVE_COPY_AS);
+
+                ImGui::Separator();
+
+                gui_internal::actionMenuItem(user_actions::EXIT);
+
                 ImGui::MenuItem(ICON_FA_INFO_CIRCLE " About", "", &showAboutWindow);
                 ImGui::MenuItem(ICON_FA_MICROCHIP " System Info", "", &showSysInfoWindow);
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Edit")) {
-                //todo implement these functions
-                if (ImGui::MenuItem(ICON_FA_UNDO" Undo", "CTRL+Z")) {}
-                if (ImGui::MenuItem(ICON_FA_REDO" Redo", "CTRL+Y", false, false)) {}
+                gui_internal::actionMenuItem(user_actions::UNDO);
+                gui_internal::actionMenuItem(user_actions::REDO);
                 ImGui::Separator();
-                if (ImGui::MenuItem(ICON_FA_CUT" Cut", "CTRL+X")) {}
-                if (ImGui::MenuItem(ICON_FA_COPY" Copy", "CTRL+C")) {}
-                if (ImGui::MenuItem(ICON_FA_PASTE" Paste", "CTRL+V")) {}
+                gui_internal::actionMenuItem(user_actions::CUT);
+                gui_internal::actionMenuItem(user_actions::COPY);
+                gui_internal::actionMenuItem(user_actions::PASTE);
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("View")) {
-                ImGui::MenuItem(WINDOW_NAME_3D_VIEW, "ALT+V", &show3dWindow);
+                ImGui::MenuItem(WINDOW_NAME_3D_VIEW, "", &show3dWindow);
                 ImGui::MenuItem(WINDOW_NAME_ORIENTATION_CUBE, "", &showOrientationCube);
                 ImGui::Separator();
-                ImGui::MenuItem(WINDOW_NAME_ELEMENT_TREE, "ALT+T", &showElementTreeWindow);
-                ImGui::MenuItem(WINDOW_NAME_ELEMENT_PROPERTIES, "ALT+P", &showElementPropertiesWindow);
+                ImGui::MenuItem(WINDOW_NAME_ELEMENT_TREE, "", &showElementTreeWindow);
+                ImGui::MenuItem(WINDOW_NAME_ELEMENT_PROPERTIES, "", &showElementPropertiesWindow);
                 ImGui::Separator();
-                ImGui::MenuItem(WINDOW_NAME_PART_PALETTE, "ALT+N", &showPartPaletteWindow);
+                ImGui::MenuItem(WINDOW_NAME_PART_PALETTE, "", &showPartPaletteWindow);
                 ImGui::Separator();
-                ImGui::MenuItem(WINDOW_NAME_SETTINGS, "ALT+S", &showSettingsWindow);
+                ImGui::MenuItem(WINDOW_NAME_SETTINGS, "", &showSettingsWindow);
                 ImGui::Separator();
                 ImGui::MenuItem(WINDOW_NAME_IMGUI_DEMO, "", &showDemoWindow);
-                ImGui::MenuItem(WINDOW_NAME_DEBUG, "ALT+D", &showDebugWindow);
-                ImGui::MenuItem(WINDOW_NAME_LOG, nullptr, &showLogWindow);
+                ImGui::MenuItem(WINDOW_NAME_DEBUG, "", &showDebugWindow);
+                ImGui::MenuItem(WINDOW_NAME_LOG, "", &showLogWindow);
                 ImGui::Separator();
                 if (ImGui::MenuItem("Apply default window layout")) {
                     applyDefaultWindowLayout();
@@ -341,35 +359,20 @@ namespace gui {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Selection")) {
-                if (ImGui::MenuItem("Select All", "CTRL+A")) {
-                    controller::nodeSelectAll();
-                }
-                if (ImGui::MenuItem("Select Nothing", "CTRL+U")) {
-                    controller::nodeSelectNone();
-                }
-                ImGui::TextDisabled("%llu Elements currently selected", controller::getSelectedNodes().size());
+                gui_internal::actionMenuItem(user_actions::SELECT_ALL);
+                gui_internal::actionMenuItem(user_actions::SELECT_NOTHING);
+                ImGui::TextDisabled("%lu Elements currently selected", controller::getSelectedNodes().size());
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("3D")) {
-                if (ImGui::MenuItem("Front", "ALT+1")) { controller::setStandard3dView(1); }
-                if (ImGui::MenuItem("Top", "ALT+2")) { controller::setStandard3dView(2); }
-                if (ImGui::MenuItem("Right", "ALT+3")) { controller::setStandard3dView(3); }
-                if (ImGui::MenuItem("Rear", "ALT+4")) { controller::setStandard3dView(4); }
-                if (ImGui::MenuItem("Bottom", "ALT+5")) { controller::setStandard3dView(5); }
-                if (ImGui::MenuItem("Left", "ALT+6")) { controller::setStandard3dView(6); }
+                gui_internal::actionMenuItem(user_actions::VIEW_3D_FRONT, "Front");
+                gui_internal::actionMenuItem(user_actions::VIEW_3D_TOP, "Top");
+                gui_internal::actionMenuItem(user_actions::VIEW_3D_RIGHT, "Right");
+                gui_internal::actionMenuItem(user_actions::VIEW_3D_REAR, "Rear");
+                gui_internal::actionMenuItem(user_actions::VIEW_3D_BOTTOM, "Bottom");
+                gui_internal::actionMenuItem(user_actions::VIEW_3D_LEFT, "Left");
                 ImGui::Separator();
-                if (ImGui::MenuItem(ICON_FA_CAMERA" Screenshot", "CTRL+P")) {
-                    char *fileNameChars = tinyfd_saveFileDialog(
-                            ICON_FA_CAMERA" Save Screenshot",
-                            "",
-                            NUM_IMAGE_FILTER_PATTERNS,
-                            imageFilterPatterns,
-                            nullptr);
-                    if (fileNameChars != nullptr) {
-                        std::string fileNameString(fileNameChars);
-                        controller::getRenderer()->saveImage(fileNameString);
-                    }
-                }
+                gui_internal::actionMenuItem(user_actions::TAKE_SCREENSHOT);
                 ImGui::EndMenu();
             }
 

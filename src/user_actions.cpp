@@ -35,6 +35,8 @@ namespace user_actions {
                 DELETE_SELECTED,
                 HIDE_SELECTED,
                 UNHIDE_EVERYTHING,
+                APPLY_DEFAULT_WINDOW_LAYOUT,
+                TAKE_SCREENSHOT,
         };
     }
 

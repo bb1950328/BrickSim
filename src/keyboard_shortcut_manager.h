@@ -25,6 +25,7 @@ namespace keyboard_shortcut_manager {
     void shortcutPressed(int key, int keyAction, int modifiers, bool isCapturedByGui);
     std::vector<KeyboardShortcut>& getAllShortcuts();
     void replaceAllShortcuts(std::vector<KeyboardShortcut>& newShortcuts);
+    const std::string & getShortcutForAction(int actionId);
 
     void setCatchNextShortcut(bool doCatch);
     std::optional<KeyboardShortcut>& getCaughtShortcut();

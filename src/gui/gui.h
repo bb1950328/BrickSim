@@ -39,7 +39,6 @@ namespace gui {
     }
 
     namespace {
-        void applyDefaultWindowLayout();
         void setupStyle();
         void setupFont(float scaleFactor, ImGuiIO &io);
     }
@@ -61,6 +60,9 @@ namespace gui {
     void showOpenFileDialog();
     void showSaveFileAsDialog();
     void showSaveCopyAsDialog();
+    void showScreenshotDialog();
+
+    void applyDefaultWindowLayout();
 
     void cleanup();
 

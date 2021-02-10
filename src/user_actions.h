@@ -47,6 +47,8 @@ namespace user_actions {
     const Action DELETE_SELECTED{27, "Delete selected element(s)", ICON_FA_TRASH_ALT" Delete selected element(s)", controller::deleteSelectedElements};
     const Action HIDE_SELECTED{28, "Hide selected element(s)", ICON_FA_EYE_SLASH" Hide selected element(s)", controller::hideSelectedElements};
     const Action UNHIDE_EVERYTHING{29, "Unhide all elements", ICON_FA_EYE" Unhide all elements", controller::unhideAllElements};
+    const Action APPLY_DEFAULT_WINDOW_LAYOUT{30, "Apply default window layout", ICON_FA_TH_LARGE" Apply default window layout", gui::applyDefaultWindowLayout};
+    const Action TAKE_SCREENSHOT{31, "Take screenshot", ICON_FA_CAMERA" Take screenshot", gui::showScreenshotDialog};
 
     void initialize();
     void executeAction(int id);

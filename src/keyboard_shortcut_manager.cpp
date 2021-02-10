@@ -135,6 +135,20 @@ namespace keyboard_shortcut_manager {
         caughtShortcut = {};
     }
 
+    const std::string & getShortcutForAction(int actionId) {
+        static std::map<int, std::string> cache;
+        auto it = cache.find(actionId);
+        if (it == cache.end()) {
+            for (auto &shortcut : shortcuts) {
+                if (shortcut.actionId==actionId) {
+                    return cache[actionId] = shortcut.getDisplayName();
+                }
+            }
+            return cache[actionId] = "";
+        }
+        return it->second;
+    }
+
     std::string KeyboardShortcut::getDisplayName() {
         std::string displayName;
             for (const auto &mod : ALL_MODIFIERS) {

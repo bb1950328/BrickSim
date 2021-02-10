@@ -4,10 +4,11 @@
 #include "../config.h"
 #include "../keyboard_shortcut_manager.h"
 #include "../user_actions.h"
+#include "../info_providers/bricklink_constants_provider.h"
 
 namespace gui {
     namespace settings {
-        const char* GUI_STYLE_VALUES[] = {
+        const char *GUI_STYLE_VALUES[] = {
                 "BrickSim",
                 "ImGuiLight",
                 "ImGuiClassic",
@@ -31,7 +32,20 @@ namespace gui {
         glm::vec3 unofficalPartColor;
         bool displaySelectionBuffer;
         bool showNormals;
+        int thumbnailSize;
+        int thumbnailSizeLog;
+        double thumbnailCacheSizeGB;
+        bool drawMinEnclosingBallLines;
+        int enableViewportsInt;
+        bool enableGlDebugOutput;
+
+        int currencyCodeIndex;
+        static std::vector<char> currencyCodeStrings;
+        static std::vector<int> currencyCodeInts;
+
         std::vector<keyboard_shortcut_manager::KeyboardShortcut> allShortcuts;
+
+        constexpr long BYTES_PER_GB = 1073741824;
 
         void load() {
             guiScale = (float) (config::getDouble(config::GUI_SCALE));
@@ -40,9 +54,9 @@ namespace gui {
             ldrawDirString = config::getString(config::LDRAW_PARTS_LIBRARY);
             ldrawDir = ldrawDirString.c_str();
             guiStyleString = config::getString(config::GUI_STYLE);
-            int i=0;
+            int i = 0;
             for (const auto &value : GUI_STYLE_VALUES) {
-                if (value==guiStyleString) {
+                if (value == guiStyleString) {
                     guiStyle = i;
                     break;
                 }
@@ -61,6 +75,38 @@ namespace gui {
             displaySelectionBuffer = config::getBool(config::DISPLAY_SELECTION_BUFFER);
             showNormals = config::getBool(config::SHOW_NORMALS);
             allShortcuts = keyboard_shortcut_manager::getAllShortcuts();
+            thumbnailSize = config::getInt(config::THUMBNAIL_SIZE);
+            thumbnailSizeLog = std::log2(thumbnailSize);
+            thumbnailCacheSizeGB = (float) config::getInt(config::THUMBNAIL_CACHE_SIZE_BYTES) / BYTES_PER_GB;
+            drawMinEnclosingBallLines = config::getBool(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES);
+            enableViewportsInt = config::getBool(config::ENABLE_VIEWPORTS) ? 1 : 0;
+            enableGlDebugOutput = config::getBool(config::ENABLE_GL_DEBUG_OUTPUT);
+
+            //ISO 4217 guarantees that all currency codes are 3 chars in length
+            if (currencyCodeStrings.empty()) {
+                const auto &currencies = bricklink_constants_provider::getCurrencies();
+                currencyCodeStrings.reserve(4 * currencies.size());
+                currencyCodeInts.reserve(currencies.size());
+                for (const auto &currency : currencies) {
+                    currencyCodeInts.push_back(currency.first);
+                    for (const auto &item : currency.second.codeCurrency) {
+                        currencyCodeStrings.push_back(item);
+                    }
+                    currencyCodeStrings.push_back('\0');
+                }
+                currencyCodeStrings.push_back('\0');
+            }
+            auto settingCurrencyCode = config::getString(config::BRICKLINK_CURRENCY_CODE);
+            currencyCodeIndex = 0;
+            for (int j = 0; j < currencyCodeStrings.size(); j += 4) {
+                if (settingCurrencyCode[0] == currencyCodeStrings[j]
+                    && settingCurrencyCode[1] == currencyCodeStrings[j + 1]
+                    && settingCurrencyCode[2] == currencyCodeStrings[j + 2]) {
+                    currencyCodeIndex = j/4;
+                    break;
+                }
+            }
+            int x = 0;
         }
 
         void save() {
@@ -79,6 +125,15 @@ namespace gui {
             config::setColor(config::COLOR_UNOFFICAL_PART, util::RGBcolor(unofficalPartColor));
             config::setBool(config::DISPLAY_SELECTION_BUFFER, displaySelectionBuffer);
             config::setBool(config::SHOW_NORMALS, showNormals);
+            config::setInt(config::THUMBNAIL_SIZE, (int) std::pow(2, thumbnailSizeLog));
+            const auto sizeBytes = thumbnailCacheSizeGB * BYTES_PER_GB;
+            config::setInt(config::THUMBNAIL_CACHE_SIZE_BYTES, std::round(sizeBytes));
+            config::setBool(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES, drawMinEnclosingBallLines);
+            config::setBool(config::ENABLE_VIEWPORTS, enableViewportsInt > 0);
+            config::setBool(config::ENABLE_GL_DEBUG_OUTPUT, enableGlDebugOutput);
+            char currencyCodeBuffer[4];
+            memcpy(currencyCodeBuffer, &currencyCodeStrings[currencyCodeIndex*4], 4);
+            config::setString(config::BRICKLINK_CURRENCY_CODE, currencyCodeBuffer);
             keyboard_shortcut_manager::replaceAllShortcuts(allShortcuts);
         }
 
@@ -88,9 +143,14 @@ namespace gui {
                 ImGui::InputInt2(ICON_FA_WINDOW_MAXIMIZE" Initial Window Size", initialWindowSize);
                 ImGui::InputText("Ldraw path", const_cast<char *>(ldrawDir), 256);
                 ImGui::Combo("GUI Theme", &guiStyle, "BrickSim Default\0ImGui Light\0ImGui Classic\0ImGui Dark\0");
-                ImGui::Combo("Font", &font, "Roboto\0Roboto Mono\0");
+                ImGui::Combo(ICON_FA_FONT" Font", &font, "Roboto\0Roboto Mono\0");
                 ImGui::SliderInt("MSAA Samples", &msaaElem, 0, 4, std::to_string((int) std::pow(2, msaaElem)).c_str());
                 ImGui::ColorEdit3(ICON_FA_FILL" Background Color", &backgroundColor.x);
+                ImGui::SliderInt(ICON_FA_VECTOR_SQUARE" Part thumbnail size", &thumbnailSizeLog, 4, 11,
+                                 (std::to_string((int) std::pow(2, thumbnailSizeLog)) + "px").c_str());
+                ImGui::InputDouble(ICON_FA_TH" Thumbnail cache size in GB", &thumbnailCacheSizeGB, 0.1f);
+                ImGui::Combo(ICON_FA_WINDOW_RESTORE" Viewports", &enableViewportsInt, "Disabled\0Enabled\0");
+                ImGui::Combo(ICON_FA_MONEY_BILL_ALT" Bricklink currency code", &currencyCodeIndex, currencyCodeStrings.data());
                 ImGui::EndTabItem();
             }
         }
@@ -110,6 +170,8 @@ namespace gui {
             if (ImGui::BeginTabItem(ICON_FA_BUG" Debug")) {
                 ImGui::Checkbox(ICON_FA_HAND_POINTER" Display Selection Buffer", &displaySelectionBuffer);
                 ImGui::Checkbox(ICON_FA_LONG_ARROW_ALT_UP" Show Normals", &showNormals);
+                ImGui::Checkbox(ICON_FA_GLOBE" Draw minimal enclosing ball lines", &drawMinEnclosingBallLines);
+                ImGui::Checkbox("Enable OpenGL debug output", &enableGlDebugOutput);
                 ImGui::EndTabItem();
             }
         }
@@ -121,21 +183,26 @@ namespace gui {
             static bool isWaitingOnKeyCatch = false;
             if (ImGui::BeginTabItem(ICON_FA_KEYBOARD" Shortcuts")) {
                 if (ImGui::BeginTable("##key_shortucts", 3)) {
-                    for (auto &shortcut : allShortcuts) {
+                    auto shortcut = allShortcuts.begin();
+                    while (shortcut != allShortcuts.end()) {
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
-                        if (ImGui::Button(user_actions::getAction(shortcut.actionId).nameWithIcon)) {
-                            currentlyEditingShortcut = shortcut;
+                        const auto action = user_actions::getAction(shortcut->actionId);
+                        if (ImGui::Button(action.nameWithIcon)) {
+                            currentlyEditingShortcut = *shortcut;
                             shouldOpenSelectActionModal = true;
                         }
                         ImGui::TableNextColumn();
-                        if (ImGui::Button(shortcut.getDisplayName().c_str())) {
-                            currentlyEditingShortcut = shortcut;
+                        if (ImGui::Button(shortcut->getDisplayName().c_str())) {
+                            currentlyEditingShortcut = *shortcut;
                             shouldOpenSelectKeyModal = true;
                         }
                         ImGui::TableNextColumn();
-                        if (ImGui::Button(ICON_FA_TRASH_ALT)) {
-                            //todo remove
+                        std::string btnName = ICON_FA_TRASH_ALT + std::string("##") + shortcut->getDisplayName() + action.name;
+                        if (ImGui::Button(btnName.c_str())) {
+                            allShortcuts.erase(shortcut);
+                        } else {
+                            ++shortcut;
                         }
                     }
                     ImGui::EndTable();

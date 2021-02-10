@@ -56,6 +56,7 @@ namespace db {
         typedef std::tuple<int, int, uint8_t, uint8_t> record_t;
         std::vector<record_t> loadShortcuts();
         void saveShortcut(record_t record);
+        void deleteAll();
     }
 }
 

@@ -44,51 +44,99 @@ namespace keyboard_shortcut_manager {
                 {GLFW_KEY_ESCAPE, "Esc"},
         };
 
+        const std::vector<KeyboardShortcut> DEFAULT_SHORTCUTS = { // NOLINT(cert-err58-cpp)
+                {user_actions::COPY.id, GLFW_KEY_C, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
+                {user_actions::CUT.id, GLFW_KEY_X, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
+                {user_actions::PASTE.id, GLFW_KEY_V, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
+                {user_actions::SAVE_FILE.id, GLFW_KEY_S, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
+                {user_actions::SAVE_FILE_AS.id, GLFW_KEY_S, (uint8_t)(GLFW_MOD_CONTROL|GLFW_MOD_SHIFT), (Event)Event::ON_PRESS},
+                {user_actions::SELECT_ALL.id, GLFW_KEY_A, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
+                {user_actions::SELECT_NOTHING.id, GLFW_KEY_A, (uint8_t)(GLFW_MOD_CONTROL|GLFW_MOD_SHIFT), (Event)Event::ON_PRESS},
+                {user_actions::UNDO.id, GLFW_KEY_Z, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
+                //todo add more
+        };
+
         std::vector<KeyboardShortcut> shortcuts;
 
         bool shouldCatchNextShortcut;
         std::optional<KeyboardShortcut> caughtShortcut;
-    }
 
-    void initialize() {
-        for (const auto &record : db::key_shortcuts::loadShortcuts()) {
-            shortcuts.emplace_back(
-                    std::get<0>(record),
-                    std::get<1>(record),
-                    std::get<2>(record),
-                    (Event) std::get<3>(record)
-            );
+        void saveDefaultToDb() {
+            for (const auto &shortcut : DEFAULT_SHORTCUTS) {
+                db::key_shortcuts::saveShortcut({shortcut.actionId, shortcut.key, shortcut.modifiers, (uint8_t)shortcut.event});
+            }
         }
     }
 
-    void shortcutPressed(int key, int keyAction, int modifiers) {
+    void initialize() {
+        auto dbShortcuts = db::key_shortcuts::loadShortcuts();
+        if (dbShortcuts.empty()) {
+            saveDefaultToDb();
+            shortcuts = DEFAULT_SHORTCUTS;
+            spdlog::info("key_shortcuts were empty in DB, load default shortcuts");
+        } else {
+            for (const auto &record : dbShortcuts) {
+                shortcuts.emplace_back(
+                        std::get<0>(record),
+                        std::get<1>(record),
+                        std::get<2>(record),
+                        (Event) std::get<3>(record)
+                );
+            }
+        }
+    }
+
+    void shortcutPressed(int key, int keyAction, int modifiers, bool isCapturedByGui) {
         for (const auto &modifierKey : ALL_MODIFIER_KEYS) {
             if (modifierKey==key) {
                 return;
             }
         }
+        modifiers &= ALL_MODIFIERS_MASK;
         auto event = static_cast<Event>(keyAction);
         if (shouldCatchNextShortcut) {
-            shouldCatchNextShortcut = false;
             caughtShortcut = std::make_optional<KeyboardShortcut>(-1, key, modifiers, event);
+            spdlog::debug("caught key shortcut {}", caughtShortcut->getDisplayName());
             return;
         }
-        for (auto &shortcut : shortcuts) {
-            if (shortcut.key == key && shortcut.event == event && (shortcut.modifiers & modifiers) == shortcut.modifiers) {
-                spdlog::debug("event {} matched shortcut, executing action", shortcut.getDisplayName());
-                user_actions::executeAction(shortcut.actionId);
-                return;
+        if (!isCapturedByGui) {
+            for (auto &shortcut : shortcuts) {
+                if (shortcut.key == key && shortcut.event == event && (shortcut.modifiers & modifiers) == shortcut.modifiers) {
+                    spdlog::debug("event {} matched shortcut, executing action", shortcut.getDisplayName());
+                    user_actions::executeAction(shortcut.actionId);
+                    return;
+                }
             }
+            spdlog::debug("event {} did not match any shortcut (key={}, modifiers={:b})", KeyboardShortcut(-1, key, modifiers, event).getDisplayName(), key, modifiers);
         }
-        spdlog::debug("event {} did not match any shortcut (key={}, modifiers={:b})", KeyboardShortcut(-1, key, modifiers, event).getDisplayName(), key, modifiers);
     }
 
     std::vector<KeyboardShortcut> &getAllShortcuts() {
         return shortcuts;
     }
 
-    std::string &KeyboardShortcut::getDisplayName() {
-        if (displayName.empty()) {
+    void replaceAllShortcuts(std::vector<KeyboardShortcut> &newShortcuts) {
+        db::key_shortcuts::deleteAll();
+        for (const auto &shortcut : newShortcuts) {
+            db::key_shortcuts::saveShortcut({shortcut.actionId, shortcut.key, shortcut.modifiers, (uint8_t)shortcut.event});
+        }
+        shortcuts = newShortcuts;
+    }
+
+    void setCatchNextShortcut(bool doCatch) {
+        shouldCatchNextShortcut = doCatch;
+    }
+
+    std::optional<KeyboardShortcut> &getCaughtShortcut() {
+        return caughtShortcut;
+    }
+
+    void clearCaughtShortcut() {
+        caughtShortcut = {};
+    }
+
+    std::string KeyboardShortcut::getDisplayName() {
+        std::string displayName;
             for (const auto &mod : ALL_MODIFIERS) {
                 if (modifiers & mod) {
                     displayName += MODIFIER_DISPLAY_NAMES[mod];
@@ -112,7 +160,6 @@ namespace keyboard_shortcut_manager {
             else {
                 displayName += '?';
             }
-        }
         util::toUpperInPlace(displayName.data());
         return displayName;
     }

@@ -52,7 +52,10 @@ namespace user_actions {
         ALL_ACTIONS[id].function();
     }
 
-    std::vector<Action> & findActionsByName(const std::string& name) {
+    const std::vector<Action> & findActionsByName(const std::string& name) {
+        if (name.empty()){
+            return ALL_ACTIONS;
+        }
         //todo make better algorithm using leventshein distance or something similar
         static std::vector<Action> results;
         static std::string lastName;

@@ -136,9 +136,7 @@ namespace controller {
         }
 
         void keyCallback(GLFWwindow *_, int key, int scancode, int action, int mods) {
-            if (!gui::areKeysCaptured()) {
-                keyboard_shortcut_manager::shortcutPressed(key, action, mods);
-            }
+            keyboard_shortcut_manager::shortcutPressed(key, action, mods, gui::areKeysCaptured());
         }
 
 
@@ -210,12 +208,13 @@ namespace controller {
             }
 
             Task steps[]{
-                    {"load color definitions",          []() { ldr_color_repo::initialize(); }},
+                    {"load color definitions",          ldr_color_repo::initialize},
                     {"initialize file list",            [](float *progress) { ldr_file_repo::get().initialize(progress); }},
-                    {"initialize price guide provider", []() { price_guide_provider::initialize(); }},
+                    {"initialize price guide provider", price_guide_provider::initialize},
                     {"initialize thumbnail generator",  []() { thumbnailGenerator = std::make_shared<ThumbnailGenerator>(renderer, meshCollection); thumbnailGenerator->initialize(); }},
                     {"initialize BrickLink constants",  [](float *progress) { bricklink_constants_provider::initialize(progress); }},
-                    //{"initialize orientation cube generator", [](){orientation_cube::initialize();}},
+                    {"initialize keyboard shortcuts",  keyboard_shortcut_manager::initialize},
+                    //{"initialize orientation cube generator", orientation_cube::initialize},
             };
             for (auto &initStep : steps) {
                 spdlog::info("Starting init step {}", initStep.getName());

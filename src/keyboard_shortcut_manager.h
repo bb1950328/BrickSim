@@ -17,16 +17,16 @@ namespace keyboard_shortcut_manager {
         int key;
         uint8_t modifiers;
         Event event;
-        std::string& getDisplayName();
+        std::string getDisplayName();
         KeyboardShortcut(int actionId, int key, uint8_t modifiers, Event event);
-    private:
-        std::string displayName;
     };
 
     void initialize();
-    void shortcutPressed(int key, int keyAction, int modifiers);
+    void shortcutPressed(int key, int keyAction, int modifiers, bool isCapturedByGui);
     std::vector<KeyboardShortcut>& getAllShortcuts();
-    void catchNextShortcut();
+    void replaceAllShortcuts(std::vector<KeyboardShortcut>& newShortcuts);
+
+    void setCatchNextShortcut(bool doCatch);
     std::optional<KeyboardShortcut>& getCaughtShortcut();
     void clearCaughtShortcut();
 }

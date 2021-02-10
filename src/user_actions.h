@@ -50,7 +50,7 @@ namespace user_actions {
 
     void initialize();
     void executeAction(int id);
-    std::vector<Action> & findActionsByName(const std::string& name);
+    const std::vector<Action> & findActionsByName(const std::string& name);
     const std::vector<Action>& getAllActions();
     const Action& getAction(int id);
 }

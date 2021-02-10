@@ -8,28 +8,43 @@ namespace db {
         std::optional<SQLite::Database> configDb;
         std::optional<SQLite::Database> cacheDb;
 
-        const int NEWEST_CONFIG_DB_VERSION = 1;
+        const int NEWEST_CONFIG_DB_VERSION = 2;
         const int NEWEST_CACHE_DB_VERSION = 1;
 
         void upgradeConfigDbToVersion(int newVersion) {
             spdlog::info("Upgrading config.db3 to version {}", newVersion);
             switch (newVersion) {
-                default: break;
+                case 2: {
+                    configDb->exec("CREATE TABLE key_shortcuts ("
+                                   "   action INTEGER PRIMARY KEY,"
+                                   "   key INTEGER,"
+                                   "   modifier INTEGER,"
+                                   "   event INTEGER);");
+                }
+                default:
+                    break;
             }
+            SQLite::Statement stmt(configDb.value(), "UPDATE meta SET version=?");
+            stmt.bind(1, newVersion);
+            stmt.exec();
         }
 
         void upgradeCacheDbToVersion(int newVersion) {
             spdlog::info("Upgrading cache.db3 to version {}", newVersion);
             switch (newVersion) {
-                default: break;
+                default:
+                    break;
             }
+            SQLite::Statement stmt(cacheDb.value(), "UPDATE meta SET version=?");
+            stmt.bind(1, newVersion);
+            stmt.exec();
         }
 
-        void escapeSqlStringLiterals(std::string& str) {
+        void escapeSqlStringLiterals(std::string &str) {
             auto it = str.find('\'');
             while (it != std::string::npos) {
                 str.insert(it, 1, '\'');
-                it = str.find('\'', it+2);//it+1 is the one we just inserted
+                it = str.find('\'', it + 2);//it+1 is the one we just inserted
             }
         }
     }
@@ -41,6 +56,7 @@ namespace db {
         cacheDb = SQLite::Database("cache.db3", SQLite::OPEN_CREATE | SQLite::OPEN_READWRITE);
 
         if (configDbNew) {
+            // !! DO NOT EDIT THIS SCRIPT ANYMORE -> add it in upgradeConfigDbToVersion and increment NEWEST_CONFIG_DB_VERSION by 1 !!
             configDb.value().exec("CREATE TABLE strings ("
                                   "   key TEXT PRIMARY KEY,"
                                   "   value TEXT NOT NULL);"
@@ -56,24 +72,15 @@ namespace db {
                                   "   value REAL NOT NULL);"
                                   //"CREATE UNIQUE INDEX idx_doubles ON doubles (key);"
 
-                                  "CREATE TABLE key_shortcuts ("
-                                  "   action INTEGER PRIMARY KEY,"
-                                  "   key INTEGER,"
-                                  "   modifier INTEGER,"
-                                  "   event INTEGER);"
-
-                                  "CREATE TABLE meta (version INTEGER);");
-
-            SQLite::Statement stmt(configDb.value(), "INSERT INTO meta (version) VALUES (?)");
-            stmt.bind(1, NEWEST_CONFIG_DB_VERSION);
-            stmt.exec();
+                                  "CREATE TABLE meta (version INTEGER);"
+                                  "INSERT INTO meta (version) VALUES (1)");
         }
         while (true) {
             SQLite::Statement stmt(configDb.value(), "SELECT version FROM meta");
             if (stmt.executeStep()) {
                 int currentDbVersion = stmt.getColumn(0);
                 if (currentDbVersion < NEWEST_CONFIG_DB_VERSION) {
-                    upgradeConfigDbToVersion(currentDbVersion+1);
+                    upgradeConfigDbToVersion(currentDbVersion + 1);
                 } else {
                     break;
                 }
@@ -83,44 +90,43 @@ namespace db {
         }
 
         if (cacheDbNew) {
+            // !! DO NOT EDIT THIS SCRIPT ANYMORE -> add it in upgradeCacheDbToVersion and increment NEWEST_CACHE_DB_VERSION by 1 !!
             cacheDb.value().exec("CREATE TABLE files ("
-                                "   name TEXT PRIMARY KEY COLLATE NOCASE,"
-                                "   title TEXT,"
-                                "   category TEXT NOT NULL"
-                                ");"
-                                "CREATE UNIQUE INDEX idx_files ON files (name);"
+                                 "   name TEXT PRIMARY KEY COLLATE NOCASE,"
+                                 "   title TEXT,"
+                                 "   category TEXT NOT NULL"
+                                 ");"
+                                 "CREATE UNIQUE INDEX idx_files ON files (name);"
 
-                                "CREATE TABLE requestCache ("
-                                "   url TEXT PRIMARY KEY COLLATE NOCASE,"
-                                "   response TEXT"
-                                ");"
-                                "CREATE UNIQUE INDEX idx_requestCache ON requestCache (url);"
+                                 "CREATE TABLE requestCache ("
+                                 "   url TEXT PRIMARY KEY COLLATE NOCASE,"
+                                 "   response TEXT"
+                                 ");"
+                                 "CREATE UNIQUE INDEX idx_requestCache ON requestCache (url);"
 
-                                "CREATE TABLE priceGuideCache ("
-                                "   partCode TEXT COLLATE NOCASE,"
-                                "   currencyCode TEXT NOT NULL,"
-                                "   colorName TEXT NOT NULL,"
-                                "   available INTEGER,"
-                                "   totalLots INTEGER NOT NULL,"
-                                "   totalQty INTEGER NOT NULL,"
-                                "   minPrice REAL NOT NULL,"
-                                "   avgPrice REAL NOT NULL,"
-                                "   qtyAvgPrice REAL NOT NULL,"
-                                "   maxPrice REAL NOT NULL"
-                                ");"
-                                "CREATE UNIQUE INDEX idx_priceGuideCache ON priceGuideCache(partCode, currencyCode, colorName);"
+                                 "CREATE TABLE priceGuideCache ("
+                                 "   partCode TEXT COLLATE NOCASE,"
+                                 "   currencyCode TEXT NOT NULL,"
+                                 "   colorName TEXT NOT NULL,"
+                                 "   available INTEGER,"
+                                 "   totalLots INTEGER NOT NULL,"
+                                 "   totalQty INTEGER NOT NULL,"
+                                 "   minPrice REAL NOT NULL,"
+                                 "   avgPrice REAL NOT NULL,"
+                                 "   qtyAvgPrice REAL NOT NULL,"
+                                 "   maxPrice REAL NOT NULL"
+                                 ");"
+                                 "CREATE UNIQUE INDEX idx_priceGuideCache ON priceGuideCache(partCode, currencyCode, colorName);"
 
-                                "CREATE TABLE meta (version INTEGER)");
-            SQLite::Statement stmt(cacheDb.value(), "INSERT INTO meta (version) VALUES (?)");
-            stmt.bind(1, NEWEST_CACHE_DB_VERSION);
-            stmt.exec();
+                                 "CREATE TABLE meta (version INTEGER)"
+                                 "INSERT INTO meta (version) VALUES (1)");
         }
         while (true) {
             SQLite::Statement stmt(cacheDb.value(), "SELECT version FROM meta");
             if (stmt.executeStep()) {
                 int currentDbVersion = stmt.getColumn(0);
                 if (currentDbVersion < NEWEST_CACHE_DB_VERSION) {
-                    upgradeCacheDbToVersion(currentDbVersion+1);
+                    upgradeCacheDbToVersion(currentDbVersion + 1);
                 } else {
                     break;
                 }
@@ -140,7 +146,7 @@ namespace db {
             return {};
         }
 
-        void put(const std::string& url, const std::string& response) {
+        void put(const std::string &url, const std::string &response) {
             SQLite::Statement stmt(cacheDb.value(), "INSERT INTO requestCache (url, response) VALUES (?, ?);");
             stmt.bind(1, url);
             stmt.bind(2, response);
@@ -149,31 +155,33 @@ namespace db {
     }
 
     namespace priceGuideCache {
-        std::optional<price_guide_provider::PriceGuide> get(const std::string& partCode, const std::string& currencyCode, const std::string& colorName) {
+        std::optional<price_guide_provider::PriceGuide> get(const std::string &partCode, const std::string &currencyCode, const std::string &colorName) {
             SQLite::Statement stmt(cacheDb.value(), "SELECT * FROM priceGuideCache WHERE partCode=? AND currencyCode=? AND colorName=?");
             stmt.bind(1, partCode);
             stmt.bind(2, currencyCode);
             stmt.bind(3, colorName);
             if (stmt.executeStep()) {
                 return price_guide_provider::PriceGuide{
-                    stmt.getColumn("available").getInt()!=0,
-                    stmt.getColumn("currencyCode"),
-                    stmt.getColumn("totalLots"),
-                    stmt.getColumn("totalQty"),
-                    static_cast<float>(stmt.getColumn("minPrice").getDouble()),
-                    static_cast<float>(stmt.getColumn("avgPrice").getDouble()),
-                    static_cast<float>(stmt.getColumn("qtyAvgPrice").getDouble()),
-                    static_cast<float>(stmt.getColumn("maxPrice").getDouble())
+                        stmt.getColumn("available").getInt() != 0,
+                        stmt.getColumn("currencyCode"),
+                        stmt.getColumn("totalLots"),
+                        stmt.getColumn("totalQty"),
+                        static_cast<float>(stmt.getColumn("minPrice").getDouble()),
+                        static_cast<float>(stmt.getColumn("avgPrice").getDouble()),
+                        static_cast<float>(stmt.getColumn("qtyAvgPrice").getDouble()),
+                        static_cast<float>(stmt.getColumn("maxPrice").getDouble())
                 };
             }
             return {};
         }
-        void put(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, const price_guide_provider::PriceGuide &value) {
-            SQLite::Statement stmt(cacheDb.value(), "REPLACE INTO priceGuideCache (partCode,currencyCode,colorName,available,totalLots,totalQty,minPrice,avgPrice,qtyAvgPrice,maxPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+
+        void put(const std::string &partCode, const std::string &currencyCode, const std::string &colorName, const price_guide_provider::PriceGuide &value) {
+            SQLite::Statement stmt(cacheDb.value(),
+                                   "REPLACE INTO priceGuideCache (partCode,currencyCode,colorName,available,totalLots,totalQty,minPrice,avgPrice,qtyAvgPrice,maxPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
             stmt.bind(1, partCode);
             stmt.bind(2, currencyCode);
             stmt.bind(3, colorName);
-            stmt.bind(4, value.available?1:0);
+            stmt.bind(4, value.available ? 1 : 0);
             stmt.bind(5, value.totalLots);
             stmt.bind(6, value.totalQty);
             stmt.bind(7, value.minPrice);
@@ -238,7 +246,7 @@ namespace db {
         void setBool(const std::string &key, bool value) {
             SQLite::Statement query(configDb.value(), "REPLACE INTO ints (key, value) VALUES (?, ?)");
             query.bind(1, key);
-            query.bind(2, value?1:0);
+            query.bind(2, value ? 1 : 0);
             query.exec();
         }
 
@@ -316,10 +324,10 @@ namespace db {
             stmt.bind(1, name);
             if (stmt.executeStep()) {
                 return {{
-                    stmt.getColumn(0),
-                    stmt.getColumn(1),
-                    stmt.getColumn(2)
-                }};
+                                stmt.getColumn(0),
+                                stmt.getColumn(1),
+                                stmt.getColumn(2)
+                        }};
             } else {
                 return {};
             }
@@ -353,7 +361,7 @@ namespace db {
     namespace key_shortcuts {
 
         std::vector<record_t> loadShortcuts() {
-            SQLite::Statement stmt(cacheDb.value(), "SELECT (action, key, modifier, event) FROM key_shortcuts;");
+            SQLite::Statement stmt(configDb.value(), "SELECT action, key, modifier, event FROM key_shortcuts;");
             auto result = std::vector<record_t>();
             while (stmt.executeStep()) {
                 result.emplace_back(
@@ -361,18 +369,22 @@ namespace db {
                         stmt.getColumn(1).getInt(),
                         stmt.getColumn(2).getInt(),
                         stmt.getColumn(3).getInt()
-                        );
+                );
             }
             return result;
         }
 
         void saveShortcut(record_t record) {
-            SQLite::Statement stmt(cacheDb.value(), "INSERT INTO key_shortcuts (action, key, modifier_and_event) VALUES (?, ?, ?, ?);");
+            SQLite::Statement stmt(configDb.value(), "INSERT INTO key_shortcuts (action, key, modifier, event) VALUES (?, ?, ?, ?);");
             stmt.bind(1, std::get<0>(record));
             stmt.bind(2, std::get<1>(record));
             stmt.bind(3, std::get<2>(record));
             stmt.bind(4, std::get<3>(record));
             stmt.exec();
+        }
+
+        void deleteAll() {
+            configDb->exec("DELETE FROM key_shortcuts");
         }
     }
 }

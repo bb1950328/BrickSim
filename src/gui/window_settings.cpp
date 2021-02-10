@@ -7,10 +7,16 @@
 
 namespace gui {
     namespace settings {
+        const char* GUI_STYLE_VALUES[] = {
+                "BrickSim",
+                "ImGuiLight",
+                "ImGuiClassic",
+                "ImGuiDark",
+        };
         float guiScale;
         int initialWindowSize[2];
         std::string ldrawDirString;
-        const char* ldrawDir;
+        const char *ldrawDir;
         std::string guiStyleString;
         int guiStyle;
         std::string fontString;
@@ -25,6 +31,7 @@ namespace gui {
         glm::vec3 unofficalPartColor;
         bool displaySelectionBuffer;
         bool showNormals;
+        std::vector<keyboard_shortcut_manager::KeyboardShortcut> allShortcuts;
 
         void load() {
             guiScale = (float) (config::getDouble(config::GUI_SCALE));
@@ -33,7 +40,14 @@ namespace gui {
             ldrawDirString = config::getString(config::LDRAW_PARTS_LIBRARY);
             ldrawDir = ldrawDirString.c_str();
             guiStyleString = config::getString(config::GUI_STYLE);
-            guiStyle = guiStyleString == "light" ? 0 : (guiStyleString == "classic" ? 1 : 2);
+            int i=0;
+            for (const auto &value : GUI_STYLE_VALUES) {
+                if (value==guiStyleString) {
+                    guiStyle = i;
+                    break;
+                }
+                ++i;
+            }
             fontString = config::getString(config::FONT);
             font = fontString == "Roboto" ? 0 : 1;
             msaaSamples = (int) (config::getInt(config::MSAA_SAMPLES));
@@ -46,22 +60,15 @@ namespace gui {
             unofficalPartColor = config::getColor(config::COLOR_UNOFFICAL_PART).asGlmVector();
             displaySelectionBuffer = config::getBool(config::DISPLAY_SELECTION_BUFFER);
             showNormals = config::getBool(config::SHOW_NORMALS);
+            allShortcuts = keyboard_shortcut_manager::getAllShortcuts();
         }
+
         void save() {
             config::setDouble(config::GUI_SCALE, guiScale);
             config::setInt(config::SCREEN_WIDTH, initialWindowSize[0]);
             config::setInt(config::SCREEN_HEIGHT, initialWindowSize[1]);
             config::setString(config::LDRAW_PARTS_LIBRARY, ldrawDir);
-            switch (guiStyle) {
-                case 1:config::setString(config::GUI_STYLE, "ImGuiLight");
-                    break;
-                case 2:config::setString(config::GUI_STYLE, "ImGuiClassic");
-                    break;
-                case 3:config::setString(config::GUI_STYLE, "ImGuiDark");
-                    break;
-                default:config::setString(config::GUI_STYLE, "BrickSim");
-                    break;
-            }
+            config::setString(config::GUI_STYLE, GUI_STYLE_VALUES[guiStyle]);
             config::setString(config::FONT, font == 0 ? "Roboto" : "RobotoMono");
             config::setInt(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));
             config::setColor(config::BACKGROUND_COLOR, util::RGBcolor(backgroundColor));
@@ -72,6 +79,7 @@ namespace gui {
             config::setColor(config::COLOR_UNOFFICAL_PART, util::RGBcolor(unofficalPartColor));
             config::setBool(config::DISPLAY_SELECTION_BUFFER, displaySelectionBuffer);
             config::setBool(config::SHOW_NORMALS, showNormals);
+            keyboard_shortcut_manager::replaceAllShortcuts(allShortcuts);
         }
 
         void drawGeneralTab() {
@@ -107,16 +115,23 @@ namespace gui {
         }
 
         void drawShortcutsTab() {
+            static std::optional<std::reference_wrapper<keyboard_shortcut_manager::KeyboardShortcut>> currentlyEditingShortcut;
+            bool shouldOpenSelectActionModal = false;
+            bool shouldOpenSelectKeyModal = false;
+            static bool isWaitingOnKeyCatch = false;
             if (ImGui::BeginTabItem(ICON_FA_KEYBOARD" Shortcuts")) {
                 if (ImGui::BeginTable("##key_shortucts", 3)) {
-                    for (auto &shortcut : keyboard_shortcut_manager::getAllShortcuts()) {
+                    for (auto &shortcut : allShortcuts) {
                         ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
                         if (ImGui::Button(user_actions::getAction(shortcut.actionId).nameWithIcon)) {
-                            //todo action chooser
+                            currentlyEditingShortcut = shortcut;
+                            shouldOpenSelectActionModal = true;
                         }
                         ImGui::TableNextColumn();
                         if (ImGui::Button(shortcut.getDisplayName().c_str())) {
-                            //todo trap next keystroke
+                            currentlyEditingShortcut = shortcut;
+                            shouldOpenSelectKeyModal = true;
                         }
                         ImGui::TableNextColumn();
                         if (ImGui::Button(ICON_FA_TRASH_ALT)) {
@@ -126,15 +141,85 @@ namespace gui {
                     ImGui::EndTable();
                 }
                 if (ImGui::Button(ICON_FA_PLUS" Add new")) {
-                    //todo add new
+                    allShortcuts.emplace_back(0, 0, 0, keyboard_shortcut_manager::Event::ON_PRESS);
                 }
                 ImGui::EndTabItem();
+            }
+            if (shouldOpenSelectActionModal) {
+                ImGui::OpenPopup("Select action");
+            }
+            if (ImGui::BeginPopupModal("Select action", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+                constexpr int searchBufSize = 32;
+                static char searchBuf[searchBufSize];
+                static int currentlySelectedActionId;
+                if (shouldOpenSelectActionModal) {
+                    currentlySelectedActionId = currentlyEditingShortcut.value().get().actionId;
+                }
+                ImGui::InputTextWithHint(ICON_FA_SEARCH, "type to filter actions...", searchBuf, searchBufSize);
+                if (ImGui::BeginListBox("##actionListBox")) {
+                    for (const auto &action : user_actions::findActionsByName(searchBuf)) {
+                        const bool is_selected = (action.id == currentlySelectedActionId);
+                        if (ImGui::Selectable(action.nameWithIcon, is_selected)) {
+                            currentlySelectedActionId = action.id;
+                        }
+
+                        if (is_selected) {
+                            ImGui::SetItemDefaultFocus();
+                        }
+                    }
+                    ImGui::EndListBox();
+                }
+                if (ImGui::Button(ICON_FA_CHECK" OK##actionChooser")) {
+                    currentlyEditingShortcut.value().get().actionId = currentlySelectedActionId;
+                    currentlyEditingShortcut = {};
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(ICON_FA_WINDOW_CLOSE" Cancel##actionChooser")) {
+                    currentlyEditingShortcut = {};
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
+            if (shouldOpenSelectKeyModal) {
+                keyboard_shortcut_manager::setCatchNextShortcut(true);
+                ImGui::OpenPopup("Press keys");
+            }
+            if (ImGui::BeginPopupModal("Press keys")) {
+                ImGui::Text("Press the keys which you want to assign to this action.");
+                auto caught = keyboard_shortcut_manager::getCaughtShortcut();
+                if (caught.has_value()) {
+                    ImGui::Text("Currently selected: %s", caught->getDisplayName().c_str());
+                } else {
+                    ImGui::Text("Currently selected: %s", currentlyEditingShortcut.value().get().getDisplayName().c_str());
+                }
+
+                bool close = false;
+                if (ImGui::Button(ICON_FA_CHECK" OK")) {
+                    if (caught.has_value()) {
+                        currentlyEditingShortcut.value().get().key = caught->key;
+                        currentlyEditingShortcut.value().get().modifiers = caught->modifiers;
+                    }
+                    close = true;
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(ICON_FA_WINDOW_CLOSE" Cancel")) {
+                    close = true;
+                }
+                if (close) {
+                    isWaitingOnKeyCatch = false;
+                    currentlyEditingShortcut = {};
+                    keyboard_shortcut_manager::setCatchNextShortcut(false);
+                    keyboard_shortcut_manager::clearCaughtShortcut();
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
             }
         }
 
         void draw() {
             static bool firstTime = true;
-            static float buttonLineHeight = ImGui::GetFontSize()+ImGui::GetStyle().FramePadding.y*5+1;
+            static float buttonLineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 5 + 1;
             if (firstTime) {
                 load();
                 firstTime = false;
@@ -164,6 +249,7 @@ namespace gui {
             }
         }
     }
+
     void windows::drawSettingsWindow(bool *show) {
         ImGui::Begin(WINDOW_NAME_SETTINGS, show);
         settings::draw();

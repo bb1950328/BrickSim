@@ -37,6 +37,7 @@ namespace user_actions {
                 UNHIDE_EVERYTHING,
                 APPLY_DEFAULT_WINDOW_LAYOUT,
                 TAKE_SCREENSHOT,
+                EXECUTE_ACTION_BY_NAME,
         };
     }
 

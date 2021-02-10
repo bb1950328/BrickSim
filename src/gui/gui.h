@@ -61,6 +61,7 @@ namespace gui {
     void showSaveFileAsDialog();
     void showSaveCopyAsDialog();
     void showScreenshotDialog();
+    void showExecuteActionByNameDialog();
 
     void applyDefaultWindowLayout();
 

@@ -49,6 +49,7 @@ namespace user_actions {
     const Action UNHIDE_EVERYTHING{29, "Unhide all elements", ICON_FA_EYE" Unhide all elements", controller::unhideAllElements};
     const Action APPLY_DEFAULT_WINDOW_LAYOUT{30, "Apply default window layout", ICON_FA_TH_LARGE" Apply default window layout", gui::applyDefaultWindowLayout};
     const Action TAKE_SCREENSHOT{31, "Take screenshot", ICON_FA_CAMERA" Take screenshot", gui::showScreenshotDialog};
+    const Action EXECUTE_ACTION_BY_NAME{32, "Find action", ICON_FA_SEARCH" Find action", gui::showExecuteActionByNameDialog};
 
     void initialize();
     void executeAction(int id);

@@ -1,6 +1,5 @@
-
-
 #include <string>
+#include <sstream>
 #include <set>
 #include <regex>
 #include "price_guide_provider.h"

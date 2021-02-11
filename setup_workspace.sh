@@ -50,14 +50,15 @@ if [[ "$OS" == "windows" ]]; then
 fi
 
 if [[ "$OS" == "mac" ]]; then
-  if hash brew 2>/dev/null; then
+  which -s brew
+  if [[ $? != 0 ]] ; then
     echo "installing homebrew"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
   else
     echo "brew already installed."
   fi
 
-  brew install glm
+  brew install glm spdlog libzip
 fi
 ###########################################
 

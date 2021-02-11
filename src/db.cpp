@@ -73,7 +73,7 @@ namespace db {
                                   //"CREATE UNIQUE INDEX idx_doubles ON doubles (key);"
 
                                   "CREATE TABLE meta (version INTEGER);"
-                                  "INSERT INTO meta (version) VALUES (1)");
+                                  "INSERT INTO meta (version) VALUES (1);");
         }
         while (true) {
             SQLite::Statement stmt(configDb.value(), "SELECT version FROM meta");
@@ -118,8 +118,8 @@ namespace db {
                                  ");"
                                  "CREATE UNIQUE INDEX idx_priceGuideCache ON priceGuideCache(partCode, currencyCode, colorName);"
 
-                                 "CREATE TABLE meta (version INTEGER)"
-                                 "INSERT INTO meta (version) VALUES (1)");
+                                 "CREATE TABLE meta (version INTEGER);"
+                                 "INSERT INTO meta (version) VALUES (1);");
         }
         while (true) {
             SQLite::Statement stmt(cacheDb.value(), "SELECT version FROM meta");

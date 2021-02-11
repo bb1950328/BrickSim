@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_OSX_SYSROOT /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk)
 project(BrickSim)
 
 file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)#prevent profiles from loading in parallel, causes problems with submodules
@@ -63,7 +64,11 @@ endif ()
 message("LIBZIP_INCLUDE_DIRS = ${LIBZIP_INCLUDE_DIRS}")
 include_directories(zip)
 if (UNIX)
-    target_link_libraries(BrickSim libzip.so.5)
+    if (APPLE)
+        target_link_libraries(BrickSim /usr/local/Cellar/libzip/1.7.3/lib/libzip.5.3.dylib)
+    else()
+        target_link_libraries(BrickSim libzip.so.5)
+    endif()
 else ()#todo find out which one for apple
     target_link_libraries(BrickSim zip)
 endif ()
@@ -88,9 +93,11 @@ add_subdirectory(src)
 
 if (WIN32)
     target_link_libraries(BrickSim -lssp) # stack smashing protection
-elseif (UNIX)
+elseif (UNIX AND NOT APPLE)
     target_link_libraries(BrickSim -ltbb)
 endif ()
+
+#set(CMAKE_VERBOSE_MAKEFILE ON) # useful for fixing build errors
 
 add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 add_compile_definitions(USE_SSLEAY)

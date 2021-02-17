@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_OSX_SYSROOT /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk)
+
+foreach(SDKPATH IN LISTS /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk)
+    if (EXISTS "${SDKPATH}")
+        set(CMAKE_OSX_SYSROOT ${SDKPATH})
+    endif()
+endforeach()
 project(BrickSim)
 
 file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)#prevent profiles from loading in parallel, causes problems with submodules
@@ -69,7 +74,7 @@ if (UNIX)
     else()
         target_link_libraries(BrickSim libzip.so.5)
     endif()
-else ()#todo find out which one for apple
+else ()
     target_link_libraries(BrickSim zip)
 endif ()
 

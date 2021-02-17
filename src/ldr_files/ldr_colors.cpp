@@ -103,7 +103,9 @@ namespace ldr_color_repo {
     std::shared_ptr<const LdrColor> get_color(const LdrColor::code_t colorCode) {
         auto iterator = colors.find(colorCode);
         if (iterator == colors.end()) {
-            throw std::invalid_argument("unknown color code: " + std::to_string(colorCode));
+            return colors[1];
+            //todo make this configurable
+            // throw std::invalid_argument("unknown color code: " + std::to_string(colorCode));
         }
         return iterator->second;
     }

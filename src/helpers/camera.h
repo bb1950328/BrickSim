@@ -35,9 +35,9 @@ private:
 
     glm::vec3 front, target, cameraPos;
     const glm::vec3 worldUp = glm::vec3(0.0f,  1.0f, 0.0f);
-    float mouseMoveSensitivity = 0.1f;//todo config for these three
-    float mouseScrollSensitivity = 0.1f;
-    float mousePanSensitivity = 0.033f;
+    float mouseRotateSensitivity;
+    float mouseZoomSensitivity;
+    float mousePanSensitivity;
     glm::mat4 viewMatrix;
     void updateVectors();
 };

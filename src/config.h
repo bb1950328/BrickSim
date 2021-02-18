@@ -81,6 +81,9 @@ namespace config {
     const StringKey FONT("font", "Roboto");
     const IntKey NOT_IMPORTANT_LOG_MESSAGE_KEEP_COUNT("notImportantLogMessageKeepCount", 10);
     const BoolKey ENABLE_GL_DEBUG_OUTPUT("enableGlDebugOutput", false);
+    const DoubleKey MOUSE_3DVIEW_ROTATE_SENSITIVITY("mouse3dViewRotateSensitivity", 1);
+    const DoubleKey MOUSE_3DVIEW_PAN_SENSITIVITY("mouse3dViewPanSensitivity", 1);
+    const DoubleKey MOUSE_3DVIEW_ZOOM_SENSITIVITY("mouse3dViewZoomSensitivity", 1);
 }
 
 #endif //BRICKSIM_CONFIG_H

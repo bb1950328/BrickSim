@@ -38,6 +38,7 @@ namespace gui {
         bool drawMinEnclosingBallLines;
         int enableViewportsInt;
         bool enableGlDebugOutput;
+        float mouseSensitivityRotation, mouseSensitivityPan, mouseSensitivityZoom;
 
         int currencyCodeIndex;
         static std::vector<char> currencyCodeStrings;
@@ -106,7 +107,9 @@ namespace gui {
                     break;
                 }
             }
-            int x = 0;
+            mouseSensitivityRotation = config::getDouble(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY)*100;
+            mouseSensitivityPan = config::getDouble(config::MOUSE_3DVIEW_PAN_SENSITIVITY)*100;
+            mouseSensitivityZoom = config::getDouble(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY)*100;
         }
 
         void save() {
@@ -135,6 +138,9 @@ namespace gui {
             memcpy(currencyCodeBuffer, &currencyCodeStrings[currencyCodeIndex*4], 4);
             config::setString(config::BRICKLINK_CURRENCY_CODE, currencyCodeBuffer);
             keyboard_shortcut_manager::replaceAllShortcuts(allShortcuts);
+            config::setDouble(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY, mouseSensitivityRotation/100);
+            config::setDouble(config::MOUSE_3DVIEW_PAN_SENSITIVITY, mouseSensitivityPan/100);
+            config::setDouble(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY, mouseSensitivityZoom/100);
         }
 
         void drawGeneralTab() {
@@ -144,7 +150,6 @@ namespace gui {
                 ImGui::InputText("Ldraw path", const_cast<char *>(ldrawDir), 256);
                 ImGui::Combo("GUI Theme", &guiStyle, "BrickSim Default\0ImGui Light\0ImGui Classic\0ImGui Dark\0");
                 ImGui::Combo(ICON_FA_FONT" Font", &font, "Roboto\0Roboto Mono\0");
-                ImGui::SliderInt("MSAA Samples", &msaaElem, 0, 4, std::to_string((int) std::pow(2, msaaElem)).c_str());
                 ImGui::ColorEdit3(ICON_FA_FILL" Background Color", &backgroundColor.x);
                 ImGui::SliderInt(ICON_FA_VECTOR_SQUARE" Part thumbnail size", &thumbnailSizeLog, 4, 11,
                                  (std::to_string((int) std::pow(2, thumbnailSizeLog)) + "px").c_str());
@@ -156,13 +161,22 @@ namespace gui {
         }
 
         void drawElementTreeTab() {
-            if (ImGui::BeginTabItem(ICON_FA_PALETTE" Element Tree")) {
+            if (ImGui::BeginTabItem(WINDOW_NAME_ELEMENT_TREE)) {
                 ImGui::ColorEdit3(ICON_FA_PALETTE" Multi-Part Document Color", &multiPartDocumentColor.x);
                 ImGui::ColorEdit3(ICON_FA_PALETTE" MPD Subfile Color", &mpdSubfileColor.x);
                 ImGui::ColorEdit3(ICON_FA_PALETTE" MPD Subfile Instance Color", &mpdSubfileInstanceColor.x);
                 ImGui::ColorEdit3(ICON_FA_PALETTE" Offical Part Color", &officalPartColor.x);
                 ImGui::ColorEdit3(ICON_FA_PALETTE" Unoffical Part Color", &unofficalPartColor.x);
                 ImGui::EndTabItem();
+            }
+        }
+
+        void draw3DViewTab() {
+            if (ImGui::BeginTabItem(WINDOW_NAME_3D_VIEW)) {
+                ImGui::DragFloat(ICON_FA_SYNC_ALT" Rotation Sensitivity", &mouseSensitivityRotation, 1.0f, 10.0f, 1000.0f, "%.0f%%");
+                ImGui::DragFloat(ICON_FA_ARROWS_ALT" Pan Sensitivity", &mouseSensitivityPan, 1.0f, 10.0f, 1000.0f, "%.0f%%");
+                ImGui::DragFloat(ICON_FA_SEARCH" Zoom Sensitivity", &mouseSensitivityRotation, 1.0f, 10.0f, 1000.0f, "%.0f%%");
+                ImGui::SliderInt("MSAA Samples", &msaaElem, 0, 4, std::to_string((int) std::pow(2, msaaElem)).c_str());
             }
         }
 
@@ -295,6 +309,7 @@ namespace gui {
                 if (ImGui::BeginTabBar("##settingsTabBar", ImGuiTabBarFlags_Reorderable)) {
                     drawGeneralTab();
                     drawElementTreeTab();
+                    draw3DViewTab();
                     drawDebugTab();
                     drawShortcutsTab();
                     ImGui::EndTabBar();

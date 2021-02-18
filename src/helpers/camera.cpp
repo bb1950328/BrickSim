@@ -25,7 +25,7 @@ glm::mat4 CadCamera::getViewMatrix() const {
 
 void CadCamera::mouseRotate(float x_delta, float y_delta) {
     yaw += x_delta * mouseMoveSensitivity;
-    pitch -= y_delta * mouseMoveSensitivity;
+    pitch += y_delta * mouseMoveSensitivity;
     pitch = std::min(89.99f, std::max(-89.99f, pitch));
     updateVectors();
 }
@@ -37,10 +37,9 @@ void CadCamera::mousePan(float x_delta, float y_delta) {
                 sin(glm::radians(pitch+90)),
                 sin(glm::radians(yaw)) * cos(glm::radians(pitch+90))
         };
-
         glm::vec3 right{-sin(glm::radians(yaw)),0,cos(glm::radians(yaw))};
 
-        glm::vec3 move = x_delta * mousePanSensitivity * right - y_delta * mousePanSensitivity * up;
+        glm::vec3 move = x_delta * mousePanSensitivity * right + y_delta * mousePanSensitivity * up;
         target += move;
         cameraPos += move;
 
@@ -49,8 +48,8 @@ void CadCamera::mousePan(float x_delta, float y_delta) {
 }
 
 void CadCamera::moveForwardBackward(float delta) {
-    distance-= delta * mouseScrollSensitivity;
-    distance = std::max(1.0f, distance);
+    distance *= 1-(delta * mouseScrollSensitivity);
+    distance = std::max(1.1f, distance);
     updateVectors();
 }
 

@@ -11,7 +11,7 @@ namespace statistic {
     extern size_t thumbnailBufferUsageBytes;
     extern float lastElementTreeRereadMs;
     extern float lastThumbnailRenderingTimeMs;
-    extern std::vector<std::pair<std::string, float>> lastWindowDrawingTimesMs;
+    extern std::vector<std::pair<std::string, float>> lastWindowDrawingTimesUs;
 }
 
 #endif //BRICKSIM_STATISTIC_H

@@ -26,8 +26,8 @@ namespace gui {
         }
 
         ImGui::BeginChild(ICON_FA_WINDOW_RESTORE" Window drawing times", ImVec2(0, ImGui::GetFontSize()*7), true);
-        for (const auto &item : statistic::lastWindowDrawingTimesMs) {
-            ImGui::Text("%s: %.3f ms", item.first.c_str(), item.second);
+        for (const auto &item : statistic::lastWindowDrawingTimesUs) {
+            ImGui::Text("%s: %.1f µs", item.first.c_str(), item.second);
         }
         ImGui::EndChild();
 

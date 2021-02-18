@@ -390,7 +390,7 @@ namespace gui {
 
         dockspaceId = ImGui::DockSpaceOverViewport();
 
-        std::vector<std::pair<std::string, float>> drawingTimes;
+        std::vector<std::pair<std::string, float>> drawingTimesMicroseconds;
         for (const auto &winFuncState : windowFuncsAndState) {
             const auto &windowName = std::get<0>(winFuncState);
             const auto &windowState = std::get<1>(winFuncState);
@@ -400,10 +400,10 @@ namespace gui {
                 auto before = std::chrono::high_resolution_clock::now();
                 windowFunc(windowState);
                 auto after = std::chrono::high_resolution_clock::now();
-                drawingTimes.emplace_back(windowName, std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0);
+                drawingTimesMicroseconds.emplace_back(windowName, std::chrono::duration_cast<std::chrono::nanoseconds>(after - before).count() / 1000.0);
             }
         }
-        statistic::lastWindowDrawingTimesMs = drawingTimes;
+        statistic::lastWindowDrawingTimesUs = drawingTimesMicroseconds;
         lastScrollDeltaY = 0.0f;
 
         if (ImGui::BeginPopupModal("Please wait##Modal", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {

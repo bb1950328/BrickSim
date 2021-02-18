@@ -12,5 +12,5 @@ namespace statistic {
     size_t thumbnailBufferUsageBytes = 0;
     float lastElementTreeRereadMs = 0;
     float lastThumbnailRenderingTimeMs = 0;
-    std::vector<std::pair<std::string, float>> lastWindowDrawingTimesMs = {};
+    std::vector<std::pair<std::string, float>> lastWindowDrawingTimesUs = {};
 }

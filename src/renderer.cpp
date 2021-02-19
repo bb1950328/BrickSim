@@ -88,6 +88,7 @@ bool Renderer::loop() {
     }
 
     if (unrenderedChanges) {
+        auto before = std::chrono::high_resolution_clock::now();
         std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
         glBindFramebuffer(GL_FRAMEBUFFER, imageFramebuffer);
         const util::RGBcolor &bgColor = util::RGBcolor(config::getString(config::BACKGROUND_COLOR));
@@ -116,7 +117,11 @@ bool Renderer::loop() {
 
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glFinish();
         unrenderedChanges = false;
+
+        auto after = std::chrono::high_resolution_clock::now();
+        statistic::last3DViewRenderTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0f;
     }
     return true;
 }

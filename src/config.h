@@ -84,6 +84,7 @@ namespace config {
     const DoubleKey MOUSE_3DVIEW_ROTATE_SENSITIVITY("mouse3dViewRotateSensitivity", 1);
     const DoubleKey MOUSE_3DVIEW_PAN_SENSITIVITY("mouse3dViewPanSensitivity", 1);
     const DoubleKey MOUSE_3DVIEW_ZOOM_SENSITIVITY("mouse3dViewZoomSensitivity", 1);
+    const BoolKey ENABLE_VSYNC("enableVsync", true);
 }
 
 #endif //BRICKSIM_CONFIG_H

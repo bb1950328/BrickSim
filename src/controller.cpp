@@ -33,6 +33,8 @@ namespace controller {
         constexpr unsigned short lastFrameTimesSize = 256;
         float lastFrameTimes[lastFrameTimesSize] = {0};//in ms
         unsigned short lastFrameTimesStartIdx = 0;
+        std::chrono::time_point<std::chrono::high_resolution_clock> lastMainloopTimePoint;
+        std::vector<std::pair<const char*, unsigned int>> mainloopTimePointsUsTmp;
 
         void openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
         {
@@ -98,11 +100,14 @@ namespace controller {
 
             //glfwWindowHint(GLFW_DECORATED, false);//removes the title bar
             window = glfwCreateWindow(windowWidth, windowHeight, "BrickSim", nullptr, nullptr);
-            glfwMakeContextCurrent(window);
             if (window == nullptr) {
                 spdlog::critical("Failed to create GLFW window");
                 glfwTerminate();
                 return false;
+            }
+            glfwMakeContextCurrent(window);
+            if (!config::getBool(config::ENABLE_VSYNC)) {
+                glfwSwapInterval(0);
             }
             glfwSetFramebufferSizeCallback(window, window_size_callback);
             glfwSetScrollCallback(window, scroll_callback);
@@ -280,6 +285,17 @@ namespace controller {
         void glfwErrorCallback(int code, const char *message) {
             spdlog::error("GLFW Error: {} {}", code, message);
         }
+        
+        void copyMainloopTimePoints() {
+            statistic::mainloopTimePointsUs = mainloopTimePointsUsTmp;
+            mainloopTimePointsUsTmp.clear();
+        }
+        
+        void addMainloopTimePoint(const char* name) {
+            const auto now = std::chrono::high_resolution_clock::now();
+            mainloopTimePointsUsTmp.emplace_back(name, std::chrono::duration_cast<std::chrono::microseconds>(now - lastMainloopTimePoint).count());
+            lastMainloopTimePoint = now;
+        }
     }
 
     int run() {
@@ -291,9 +307,12 @@ namespace controller {
         //openFile("3001.dat");
 
         while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
+            copyMainloopTimePoints();
             if (foregroundTasks.empty() && backgroundTasks.empty() && thumbnailGenerator->renderQueueEmpty() && glfwGetWindowAttrib(window, GLFW_FOCUSED) == 0) {
                 std::this_thread::sleep_for(idle_sleep);
+                addMainloopTimePoint("idle sleep");
                 glfwPollEvents();
+                addMainloopTimePoint("glfwPollEvents();");
                 continue;
             }
 
@@ -304,15 +323,20 @@ namespace controller {
                 renderer->meshCollection->updateSelectionContainerBox();
                 selectionChanged = false;
                 elementTreeChanged = true;
+                addMainloopTimePoint("meshCollection->updateSelectionContainerBox()");
             }
             if (elementTreeChanged) {
                 renderer->elementTreeChanged();
                 elementTreeChanged = false;
+                addMainloopTimePoint("renderer->elementTreeChanged()");
             }
             renderer->loop();
+            addMainloopTimePoint("renderer->loop()");
 
             gui::beginFrame();
+            addMainloopTimePoint("gui::beginFrame()");
             gui::drawMainWindows();
+            addMainloopTimePoint("gui::drawMainWindows()");
 
             handleForegroundTasks();
             if (foregroundTasks.empty()) {
@@ -320,19 +344,27 @@ namespace controller {
             } else {
                 gui::updateBlockingMessage(foregroundTasks.front()->getName(), foregroundTasks.front()->getProgress());
             }
+            addMainloopTimePoint("handle foreground tasks");
 
             gui::endFrame();
+            addMainloopTimePoint("gui::endFrame()");
 
             thumbnailGenerator->discardOldestImages(0);
             bool moreWork;
             do {
                 moreWork = thumbnailGenerator->workOnRenderQueue();
             } while (glfwGetTime() - loopStart < 1.0 / 60 && moreWork);
+            addMainloopTimePoint("work on thumbnails");
             auto after = std::chrono::high_resolution_clock::now();
             lastFrameTimes[lastFrameTimesStartIdx] = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()/1000.0f;
             lastFrameTimesStartIdx = (lastFrameTimesStartIdx+1)%lastFrameTimesSize;
+            addMainloopTimePoint("add frame time");
+            glFinish();
+            addMainloopTimePoint("glFinish");
             glfwSwapBuffers(window);
+            addMainloopTimePoint("glfwSwapBuffers");
             glfwPollEvents();
+            addMainloopTimePoint("glfwPollEvents");
         }
         config::setInt(config::SCREEN_WIDTH, windowWidth);
         config::setInt(config::SCREEN_HEIGHT, windowHeight);

@@ -10,19 +10,24 @@ namespace gui {
         const auto count = std::get<0>(lastFrameTimes);
         const auto arrPtr = std::get<1>(lastFrameTimes);
         const auto startIdx = std::get<2>(lastFrameTimes);
-        ImGui::Text(ICON_FA_CHART_LINE" Application average %.3f ms/frame (%.1f FPS)", arrPtr[startIdx], 1000.0 / arrPtr[startIdx]);
-        //ImGui::PlotLines("ms/frame", [arrPtr, startIdx, count](void*data, int idx) { return const_cast<const float*>(&(arrPtr[(startIdx+idx)%count])); }, nullptr, count);
+        const auto endIdx = (startIdx - 1) % count;
+        ImGui::Text(ICON_FA_CHART_LINE" Application render average %.3f ms/frame (%.1f FPS)", arrPtr[endIdx], 1000.0 / arrPtr[endIdx]);
         ImGui::PlotLines("ms/frame", arrPtr, count, startIdx);
+        ImGui::Text(ICON_FA_STOPWATCH" Last 3D View render time: %.3f ms", statistic::last3DViewRenderTimeMs);
         ImGui::Text(ICON_FA_MEMORY" Total graphics buffer size: %s", util::formatBytesValue(statistic::vramUsageBytes).c_str());
         ImGui::Text(ICON_FA_IMAGES" Total thumbnail buffer size: %s", util::formatBytesValue(statistic::thumbnailBufferUsageBytes).c_str());
         ImGui::Text(ICON_FA_SYNC" Last element tree reread: %.2f ms", statistic::lastElementTreeRereadMs);
         ImGui::Text(ICON_FA_HISTORY" Last thumbnail render time: %.2f ms", statistic::lastThumbnailRenderingTimeMs);
         const auto &bgTasks = controller::getBackgroundTasks();
         if (!bgTasks.empty()) {
-            ImGui::Text("%llu background tasks:", bgTasks.size());
+            ImGui::Text("%lu background tasks:", bgTasks.size());
             for (const auto &task : bgTasks) {
                 ImGui::BulletText("%s", task.second->getName().c_str());
             }
+        }
+
+        for (const auto &timePointsUs : statistic::mainloopTimePointsUs) {
+            ImGui::BulletText("%s: %u µs", timePointsUs.first, timePointsUs.second);
         }
 
         ImGui::BeginChild(ICON_FA_WINDOW_RESTORE" Window drawing times", ImVec2(0, ImGui::GetFontSize()*7), true);

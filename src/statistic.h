@@ -12,6 +12,8 @@ namespace statistic {
     extern float lastElementTreeRereadMs;
     extern float lastThumbnailRenderingTimeMs;
     extern std::vector<std::pair<std::string, float>> lastWindowDrawingTimesUs;
+    extern float last3DViewRenderTimeMs;
+    extern std::vector<std::pair<const char*, unsigned int>> mainloopTimePointsUs;
 }
 
 #endif //BRICKSIM_STATISTIC_H

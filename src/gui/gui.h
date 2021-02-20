@@ -72,9 +72,6 @@ namespace gui {
         FINISHED,//installation is finsi
         REQUEST_EXIT//the user wants to exit the application
     };
-    /**
-     * @return true -> finished, false -> call this again in the next frame
-     */
     PartsLibrarySetupResponse drawPartsLibrarySetupScreen();
 
     void drawWaitMessage(const std::string &message, float progress);

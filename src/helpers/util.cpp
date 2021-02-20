@@ -251,22 +251,24 @@ namespace util {
         return result;
     }
 
-    std::vector<std::string> getSystemInfo() {
-        std::vector<std::string> result;
+    std::vector<std::pair<const char *, std::string>> getSystemInfo() {
+        std::vector<std::pair<const char *, std::string>> result;
         const GLubyte *vendor = glGetString(GL_VENDOR);
         const GLubyte *renderer = glGetString(GL_RENDERER);
-        result.push_back(std::string("sizeof(void*):\t") + std::to_string(sizeof(void *)) + " Bytes or " + std::to_string(sizeof(void *) * 8) + " Bits");
-        result.push_back(std::string("sizeof(char):\t") + std::to_string(sizeof(char)) + " Bytes or " + std::to_string(sizeof(char) * 8) + " Bits");
-        result.push_back(std::string("sizeof(int):\t") + std::to_string(sizeof(int)) + " Bytes or " + std::to_string(sizeof(int) * 8) + " Bits");
-        result.push_back(std::string("sizeof(long):\t") + std::to_string(sizeof(long)) + " Bytes or " + std::to_string(sizeof(long) * 8) + " Bits");
-        result.push_back(std::string("sizeof(float):\t") + std::to_string(sizeof(float)) + " Bytes or " + std::to_string(sizeof(float) * 8) + " Bits");
-        result.push_back(std::string("sizeof(double):\t") + std::to_string(sizeof(double)) + " Bytes or " + std::to_string(sizeof(double) * 8) + " Bits");
-        result.push_back(std::string("GPU Vendor:\t") + std::string(reinterpret_cast<const char *>(vendor)));
-        result.push_back(std::string("GPU Renderer:\t") + std::string(reinterpret_cast<const char *>(renderer)));
-        result.push_back(std::string("Git Commit Hash:\t")+git_stats::lastCommitHash);
-        result.push_back(std::string("Dear ImGUI Version:\t")+IMGUI_VERSION);
-        //result.push_back(std::string("GLM Version:\t")+GLM_VERSION_MESSAGE);//todo
-        result.push_back(std::string("GLFW Version:\t")+std::to_string(GLFW_VERSION_MAJOR)+"."+std::to_string(GLFW_VERSION_MINOR)+"."+std::to_string(GLFW_VERSION_REVISION));
+        result.emplace_back("sizeof(void*):",  std::to_string(sizeof(void *)) + " Bytes or " + std::to_string(sizeof(void *) * 8) + " Bits");
+        result.emplace_back("sizeof(char):",  std::to_string(sizeof(char)) + " Bytes or " + std::to_string(sizeof(char) * 8) + " Bits");
+        result.emplace_back("sizeof(int):",  std::to_string(sizeof(int)) + " Bytes or " + std::to_string(sizeof(int) * 8) + " Bits");
+        result.emplace_back("sizeof(long):",  std::to_string(sizeof(long)) + " Bytes or " + std::to_string(sizeof(long) * 8) + " Bits");
+        result.emplace_back("sizeof(float):",  std::to_string(sizeof(float)) + " Bytes or " + std::to_string(sizeof(float) * 8) + " Bits");
+        result.emplace_back("sizeof(double):",  std::to_string(sizeof(double)) + " Bytes or " + std::to_string(sizeof(double) * 8) + " Bits");
+        result.emplace_back("GPU Vendor:",  std::string(reinterpret_cast<const char *>(vendor)));
+        result.emplace_back("GPU Renderer:",  std::string(reinterpret_cast<const char *>(renderer)));
+        result.emplace_back("Git Commit Hash:", git_stats::lastCommitHash);
+        result.emplace_back("Dear ImGui Version:", IMGUI_VERSION);
+        result.emplace_back("Libcurl Version:", LIBCURL_VERSION);
+        result.emplace_back("Spdlog Version:", std::to_string(SPDLOG_VER_MAJOR)+'.'+std::to_string(SPDLOG_VER_MINOR)+'.'+std::to_string(SPDLOG_VER_PATCH));
+        result.emplace_back("STBI Version:", std::to_string(STBI_VERSION));
+        result.emplace_back("GLFW Version:", std::to_string(GLFW_VERSION_MAJOR)+"."+std::to_string(GLFW_VERSION_MINOR)+"."+std::to_string(GLFW_VERSION_REVISION));
         return result;
     }
 

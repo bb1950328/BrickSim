@@ -6,9 +6,10 @@
 #include "../keyboard_shortcut_manager.h"
 
 namespace gui_internal {
-    void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<LdrFile> &part, const LdrColorReference color) {
+    bool drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<LdrFile> &part, const LdrColorReference color) {
         bool realThumbnailAvailable = false;
-        if (ImGui::IsRectVisible(actualThumbSizeSquared)) {
+        const bool visible = ImGui::IsRectVisible(actualThumbSizeSquared);
+        if (visible) {
             auto optTexId = controller::getThumbnailGenerator()->getThumbnailNonBlocking(part, color);
             if (optTexId.has_value()) {
                 auto texId = convertTextureId(optTexId.value());
@@ -38,6 +39,7 @@ namespace gui_internal {
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
             controller::insertLdrElement(part);
         }
+        return visible;
     }
 
     ImVec4 getWhiteOrBlackBetterContrast(const glm::vec3 &col) {

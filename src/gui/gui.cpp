@@ -32,6 +32,7 @@ namespace gui {
     const char *WINDOW_NAME_IMGUI_DEMO = ICON_FA_IMAGE" ImGui Demo";
     const char *WINDOW_NAME_ORIENTATION_CUBE = ICON_FA_CUBE" Orientation Cube";
     const char *WINDOW_NAME_LOG = ICON_FA_LIST" Log";
+    const char *WINDOW_NAME_GEAR_RATIO_CALCULATOR = "Gear Ratio Calculator";//todo icon
 
     namespace {
         bool show3dWindow = true;
@@ -45,6 +46,7 @@ namespace gui {
         bool showPartPaletteWindow = true;
         bool showOrientationCube = true;
         bool showLogWindow = false;
+        bool showGearRatioCalculatorWindow = false;
 
         char const *lFilterPatterns[NUM_LDR_FILTER_PATTERNS] = {"*.ldr", "*.dat", "*.mpd", "*.io"};
         char const *imageFilterPatterns[NUM_IMAGE_FILTER_PATTERNS] = {"*.png", "*.jpg", "*.bmp", "*.tga"};
@@ -277,6 +279,7 @@ namespace gui {
         showPartPaletteWindow = true;
         showOrientationCube = true;
         showLogWindow = false;
+        showGearRatioCalculatorWindow = false;
 
         ImGuiID level0left, level0right;
         ImGui::DockBuilderSplitNode(dockspaceId, ImGuiDir_Right, 0.4, &level0right, &level0left);
@@ -305,17 +308,18 @@ namespace gui {
 
     void drawMainWindows() {
         static std::tuple<std::string, bool *, std::function<void(bool *)>> windowFuncsAndState[]{
-                {WINDOW_NAME_3D_VIEW,            &show3dWindow,                windows::draw3dWindow},
-                {WINDOW_NAME_ELEMENT_TREE,       &showElementTreeWindow,       windows::drawElementTreeWindow},
-                {WINDOW_NAME_ELEMENT_PROPERTIES, &showElementPropertiesWindow, windows::drawElementPropertiesWindow},
-                {WINDOW_NAME_PART_PALETTE,       &showPartPaletteWindow,       windows::drawPartPaletteWindow},
-                {WINDOW_NAME_SETTINGS,           &showSettingsWindow,          windows::drawSettingsWindow},
-                {WINDOW_NAME_ABOUT,              &showAboutWindow,             windows::drawAboutWindow},
-                {WINDOW_NAME_SYSTEM_INFO,        &showSysInfoWindow,           windows::drawSysInfoWindow},
-                {WINDOW_NAME_DEBUG,              &showDebugWindow,             windows::drawDebugWindow},
-                {WINDOW_NAME_IMGUI_DEMO,         &showDemoWindow,              ImGui::ShowDemoWindow},
-                {WINDOW_NAME_ORIENTATION_CUBE,   &showOrientationCube,         windows::drawOrientationCube},
-                {WINDOW_NAME_LOG,                &showLogWindow,               windows::drawLogWindow},
+                {WINDOW_NAME_3D_VIEW,               &show3dWindow,                  windows::draw3dWindow},
+                {WINDOW_NAME_ELEMENT_TREE,          &showElementTreeWindow,         windows::drawElementTreeWindow},
+                {WINDOW_NAME_ELEMENT_PROPERTIES,    &showElementPropertiesWindow,   windows::drawElementPropertiesWindow},
+                {WINDOW_NAME_PART_PALETTE,          &showPartPaletteWindow,         windows::drawPartPaletteWindow},
+                {WINDOW_NAME_SETTINGS,              &showSettingsWindow,            windows::drawSettingsWindow},
+                {WINDOW_NAME_ABOUT,                 &showAboutWindow,               windows::drawAboutWindow},
+                {WINDOW_NAME_SYSTEM_INFO,           &showSysInfoWindow,             windows::drawSysInfoWindow},
+                {WINDOW_NAME_DEBUG,                 &showDebugWindow,               windows::drawDebugWindow},
+                {WINDOW_NAME_IMGUI_DEMO,            &showDemoWindow,                ImGui::ShowDemoWindow},
+                {WINDOW_NAME_ORIENTATION_CUBE,      &showOrientationCube,           windows::drawOrientationCube},
+                {WINDOW_NAME_LOG,                   &showLogWindow,                 windows::drawLogWindow},
+                {WINDOW_NAME_GEAR_RATIO_CALCULATOR, &showGearRatioCalculatorWindow, windows::drawGearRatioCalculatorWindow},
         };
 
         if (ImGui::BeginMainMenuBar()) {
@@ -378,6 +382,10 @@ namespace gui {
                 gui_internal::actionMenuItem(user_actions::VIEW_3D_LEFT, "Left");
                 ImGui::Separator();
                 gui_internal::actionMenuItem(user_actions::TAKE_SCREENSHOT);
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Tools")) {
+                ImGui::MenuItem(WINDOW_NAME_GEAR_RATIO_CALCULATOR, "", &showGearRatioCalculatorWindow);
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Help")) {

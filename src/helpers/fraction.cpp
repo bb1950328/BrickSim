@@ -142,3 +142,11 @@ std::string Fraction::to_multiline_string() const {
     auto strB = std::to_string(b);
     return strA + "\n" + std::string(std::max(strA.size(), strB.size()), '-') + "\n" + strB;
 }
+
+long Fraction::getA() const {
+    return a;
+}
+
+long Fraction::getB() const {
+    return b;
+}

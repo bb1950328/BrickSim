@@ -24,6 +24,7 @@ namespace gui {
     extern const char* WINDOW_NAME_IMGUI_DEMO;
     extern const char* WINDOW_NAME_ORIENTATION_CUBE;
     extern const char* WINDOW_NAME_LOG;
+    extern const char* WINDOW_NAME_GEAR_RATIO_CALCULATOR;
 
     namespace windows {
         void draw3dWindow(bool* show);
@@ -36,6 +37,7 @@ namespace gui {
         void drawDebugWindow(bool* show);
         void drawOrientationCube(bool *show);
         void drawLogWindow(bool *show);
+        void drawGearRatioCalculatorWindow(bool *show);
     }
 
     namespace {

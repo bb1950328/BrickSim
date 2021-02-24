@@ -69,6 +69,14 @@ namespace gears {
         return (driver.radiusLDU + follower.radiusLDU) % 20 == 0;
     }
 
+    const Gear &GearPair::getDriver() const {
+        return driver;
+    }
+
+    const Gear &GearPair::getFollower() const {
+        return follower;
+    }
+
 
     std::vector<const Gear *> get_all_gears() {
         //todo google how to make this a constant

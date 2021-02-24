@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_GEARS_H
 #define BRICKSIM_GEARS_H
 
@@ -47,6 +45,10 @@ namespace gears {
 
         [[nodiscard]] bool is_valid() const;
         [[nodiscard]] bool is_possible_on_liftbeam() const;
+
+        const Gear &getDriver() const;
+
+        const Gear &getFollower() const;
     };
 
     [[maybe_unused]] const Gear WORM_GEAR                   (0, 1, 10, GearType::WORM, {"15457.dat", "4716.dat", "32905.dat"});

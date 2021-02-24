@@ -13,7 +13,10 @@
 #include "../user_actions.h"
 
 namespace gui_internal {
-    void drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<LdrFile> &part, LdrColorReference color);
+    /**
+     * @return true if the thumbnail is visible, false if it's clipped
+     */
+    bool drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<LdrFile> &part, const LdrColorReference color);
     ImVec4 getWhiteOrBlackBetterContrast(const glm::vec3 &col);
     void drawColorGroup(const std::shared_ptr<etree::MeshNode>& ldrNode, const ImVec2 &buttonSize, int columnCount, const std::pair<const std::string, std::vector<LdrColorReference>> &colorGroup);
     void draw_hyperlink_button(const std::string &url);

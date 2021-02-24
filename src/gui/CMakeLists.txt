@@ -14,4 +14,5 @@ target_sources(BrickSim PUBLIC
         window_debug.cpp
         window_orientation_cube.cpp
         window_log.cpp
+        window_gear_ratio_calculator.cpp
         )

@@ -1,3 +1,5 @@
-"ignoredFiles": [
-    "docs/*"
-]
+{
+    "ignoredFiles": [
+        "docs/*"
+    ]
+}

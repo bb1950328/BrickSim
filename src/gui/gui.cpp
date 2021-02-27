@@ -411,7 +411,7 @@ namespace gui {
                 drawingTimesMicroseconds.emplace_back(windowName, std::chrono::duration_cast<std::chrono::nanoseconds>(after - before).count() / 1000.0);
             }
         }
-        statistic::lastWindowDrawingTimesUs = drawingTimesMicroseconds;
+        metrics::lastWindowDrawingTimesUs = drawingTimesMicroseconds;
         lastScrollDeltaY = 0.0f;
 
         if (ImGui::BeginPopupModal("Please wait##Modal", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {

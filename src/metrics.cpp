@@ -3,10 +3,10 @@
 #include <iostream>
 #include <map>
 #include <spdlog/spdlog.h>
-#include "statistic.h"
+#include "metrics.h"
 #include "helpers/util.h"
 
-namespace statistic {
+namespace metrics {
     long individualBrickCount = 0;
     size_t vramUsageBytes = 0;
     size_t thumbnailBufferUsageBytes = 0;

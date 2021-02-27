@@ -83,7 +83,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile>& ld
             mesh->drawOptionalLineGraphics();
 
             const auto totalBufferSize = size * size * 3;
-            statistic::thumbnailBufferUsageBytes += totalBufferSize;
+            metrics::thumbnailBufferUsageBytes += totalBufferSize;
             auto buffer = std::make_unique<GLbyte[]>(totalBufferSize);
             glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -102,7 +102,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile>& ld
             glViewport(0, 0, renderer->windowWidth, renderer->windowHeight);
         }
         auto after = std::chrono::high_resolution_clock::now();
-        statistic::lastThumbnailRenderingTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0;
+        metrics::lastThumbnailRenderingTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0;
     }
     lastAccessed.remove(fileKey);
     lastAccessed.push_back(fileKey);
@@ -146,7 +146,7 @@ void ThumbnailGenerator::discardOldestImages(int reserve_space_for) {
         images.erase(lastAccessedIt);
         deletedCount++;
     }
-    statistic::thumbnailBufferUsageBytes -= size * size * 3 * deletedCount;
+    metrics::thumbnailBufferUsageBytes -= size * size * 3 * deletedCount;
 }
 
 void ThumbnailGenerator::cleanup() {

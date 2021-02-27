@@ -32,8 +32,8 @@ target_sources(BrickSim PUBLIC
         scene.cpp
         scene.h
         shaders/shader.cpp
-        statistic.cpp
-        statistic.h
+        metrics.cpp
+        metrics.h
         tasks.cpp
         tasks.h
         thumbnail_generator.cpp

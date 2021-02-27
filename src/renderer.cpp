@@ -121,7 +121,7 @@ bool Renderer::loop() {
         unrenderedChanges = false;
 
         auto after = std::chrono::high_resolution_clock::now();
-        statistic::last3DViewRenderTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0f;
+        metrics::last3DViewRenderTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0f;
     }
     return true;
 }

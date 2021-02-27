@@ -13,7 +13,7 @@
 #include "config.h"
 #include "element_tree.h"
 #include "mesh_collection.h"
-#include "statistic.h"
+#include "metrics.h"
 
 
 #include <iostream>

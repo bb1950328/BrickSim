@@ -3,7 +3,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include <utility>
 #include "mesh_collection.h"
-#include "statistic.h"
+#include "metrics.h"
 #include "controller.h"
 #include "ldr_files/ldr_file_repo.h"
 
@@ -110,7 +110,7 @@ void MeshCollection::rereadElementTree() {
     }
     auto after = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
-    statistic::lastElementTreeRereadMs = duration / 1000.0f;
+    metrics::lastElementTreeRereadMs = duration / 1000.0f;
 }
 
 void MeshCollection::updateMeshInstances() {

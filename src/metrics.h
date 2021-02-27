@@ -1,11 +1,11 @@
 
 
-#ifndef BRICKSIM_STATISTIC_H
-#define BRICKSIM_STATISTIC_H
+#ifndef BRICKSIM_METRICS_H
+#define BRICKSIM_METRICS_H
 
 #include <vector>
 
-namespace statistic {
+namespace metrics {
     extern long individualBrickCount;
     extern size_t vramUsageBytes;
     extern size_t thumbnailBufferUsageBytes;
@@ -16,4 +16,4 @@ namespace statistic {
     extern std::vector<std::pair<const char*, unsigned int>> mainloopTimePointsUs;
 }
 
-#endif //BRICKSIM_STATISTIC_H
+#endif //BRICKSIM_METRICS_H

@@ -13,11 +13,11 @@ namespace gui {
         const auto endIdx = (startIdx - 1) % count;
         ImGui::Text(ICON_FA_CHART_LINE" Application render average %.3f ms/frame (%.1f FPS)", arrPtr[endIdx], 1000.0 / arrPtr[endIdx]);
         ImGui::PlotLines("ms/frame", arrPtr, count, startIdx);
-        ImGui::Text(ICON_FA_STOPWATCH" Last 3D View render time: %.3f ms", statistic::last3DViewRenderTimeMs);
-        ImGui::Text(ICON_FA_MEMORY" Total graphics buffer size: %s", util::formatBytesValue(statistic::vramUsageBytes).c_str());
-        ImGui::Text(ICON_FA_IMAGES" Total thumbnail buffer size: %s", util::formatBytesValue(statistic::thumbnailBufferUsageBytes).c_str());
-        ImGui::Text(ICON_FA_SYNC" Last element tree reread: %.2f ms", statistic::lastElementTreeRereadMs);
-        ImGui::Text(ICON_FA_HISTORY" Last thumbnail render time: %.2f ms", statistic::lastThumbnailRenderingTimeMs);
+        ImGui::Text(ICON_FA_STOPWATCH" Last 3D View render time: %.3f ms", metrics::last3DViewRenderTimeMs);
+        ImGui::Text(ICON_FA_MEMORY" Total graphics buffer size: %s", util::formatBytesValue(metrics::vramUsageBytes).c_str());
+        ImGui::Text(ICON_FA_IMAGES" Total thumbnail buffer size: %s", util::formatBytesValue(metrics::thumbnailBufferUsageBytes).c_str());
+        ImGui::Text(ICON_FA_SYNC" Last element tree reread: %.2f ms", metrics::lastElementTreeRereadMs);
+        ImGui::Text(ICON_FA_HISTORY" Last thumbnail render time: %.2f ms", metrics::lastThumbnailRenderingTimeMs);
         const auto &bgTasks = controller::getBackgroundTasks();
         if (!bgTasks.empty()) {
             ImGui::Text("%lu background tasks:", bgTasks.size());
@@ -26,12 +26,12 @@ namespace gui {
             }
         }
 
-        for (const auto &timePointsUs : statistic::mainloopTimePointsUs) {
+        for (const auto &timePointsUs : metrics::mainloopTimePointsUs) {
             ImGui::BulletText("%s: %u µs", timePointsUs.first, timePointsUs.second);
         }
 
         ImGui::BeginChild(ICON_FA_WINDOW_RESTORE" Window drawing times", ImVec2(0, ImGui::GetFontSize()*7), true);
-        for (const auto &item : statistic::lastWindowDrawingTimesUs) {
+        for (const auto &item : metrics::lastWindowDrawingTimesUs) {
             ImGui::Text("%s: %.1f µs", item.first.c_str(), item.second);
         }
         ImGui::EndChild();

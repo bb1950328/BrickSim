@@ -288,7 +288,7 @@ namespace controller {
         }
         
         void copyMainloopTimePoints() {
-            statistic::mainloopTimePointsUs = mainloopTimePointsUsTmp;
+            metrics::mainloopTimePointsUs = mainloopTimePointsUsTmp;
             mainloopTimePointsUsTmp.clear();
         }
         

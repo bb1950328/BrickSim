@@ -7,6 +7,7 @@
 #include <optional>
 #include "shaders/shader.h"
 #include "element_tree.h"
+#include "mesh_collection.h"
 
 typedef unsigned short framebuffer_size_t;
 
@@ -27,9 +28,11 @@ public:
 
 class Scene {
 private:
+    scene_id_t id;
     CompleteFramebuffer image;
     std::optional<CompleteFramebuffer> selection;
     std::shared_ptr<etree::Node> rootNode;
+    SceneMeshCollection meshCollection;
 
     static std::unique_ptr<Shader> triangleShader;
     static std::unique_ptr<Shader> lineShader;
@@ -37,7 +40,11 @@ private:
     static std::unique_ptr<Shader> textureShader;
     static std::unique_ptr<Shader> overlayShader;
 public:
-    Scene();
+    explicit Scene(scene_id_t sceneId);
 };
+
+namespace scenes {
+    std::weak_ptr<Scene> createScene(scene_id_t sceneId);
+}
 
 #endif //BRICKSIM_SCENE_H

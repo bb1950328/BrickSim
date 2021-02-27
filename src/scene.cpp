@@ -83,7 +83,7 @@ std::unique_ptr<Shader> Scene::optionalLineShader = nullptr;
 std::unique_ptr<Shader> Scene::textureShader = nullptr;
 std::unique_ptr<Shader> Scene::overlayShader = nullptr;
 
-Scene::Scene() : image(64, 64) {
+Scene::Scene(scene_id_t sceneId) : image(64, 64), meshCollection(sceneId), id(sceneId) {
     if (textureShader == nullptr) {
         textureShader = std::make_unique<Shader>("src/shaders/triangle_shader.vsh", "src/shaders/triangle_shader.fsh");
         lineShader = std::make_unique<Shader>("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");

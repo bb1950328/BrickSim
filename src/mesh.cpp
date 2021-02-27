@@ -566,9 +566,11 @@ std::pair<glm::vec3, float> Mesh::getMinimalEnclosingBall() {
 }
 
 bool MeshInstance::operator==(const MeshInstance &other) const {
-    return transformation == other.transformation && color.get() == other.color.get() && elementId == other.elementId && selected == other.selected && layer == other.layer;
+    return memcmp(this, &other, sizeof(*this))==0;
+    //return transformation == other.transformation && color.get() == other.color.get() && elementId == other.elementId && selected == other.selected && layer == other.layer && scene == other.scene;
 }
 
 bool MeshInstance::operator!=(const MeshInstance &other) const {
-    return transformation != other.transformation || color.get() != other.color.get() || elementId != other.elementId || selected != other.selected || layer != other.layer;
+    return memcmp(this, &other, sizeof(*this))!=0;
+    //return transformation != other.transformation || color.get() != other.color.get() || elementId != other.elementId || selected != other.selected || layer != other.layer || scene != other.scene;
 }

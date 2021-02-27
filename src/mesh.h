@@ -49,6 +49,7 @@ struct MeshInstance {
     unsigned int elementId;
     bool selected;
     layer_t layer;
+    scene_id_t scene;
     bool operator==(const MeshInstance& other) const;
     bool operator!=(const MeshInstance& other) const;
 };

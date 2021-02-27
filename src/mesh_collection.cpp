@@ -7,31 +7,36 @@
 #include "controller.h"
 #include "ldr_files/ldr_file_repo.h"
 
-void MeshCollection::initializeGraphics() {
-    for (const auto &pair: meshes) {
-        pair.second->writeGraphicsData();
+namespace mesh_collection {
+    std::shared_ptr<etree::Node> getElementById(unsigned int id) {
+        if (elementsSortedById.size() > id) {
+            return elementsSortedById[id];
+        }
+        return nullptr;
     }
 }
 
-void MeshCollection::drawLineGraphics(const layer_t layer) const {
-    for (const auto &pair: meshes) {
+void SceneMeshCollection::drawLineGraphics(const layer_t layer) const {
+    for (const auto &pair: usedMeshes) {
         pair.second->drawLineGraphics(layer);
     }
 }
 
-void MeshCollection::drawOptionalLineGraphics(const layer_t layer) const {
-    for (const auto &pair: meshes) {
+void SceneMeshCollection::drawOptionalLineGraphics(const layer_t layer) const {
+    for (const auto &pair: usedMeshes) {
         pair.second->drawOptionalLineGraphics(layer);
     }
 }
 
-void MeshCollection::drawTriangleGraphics(const layer_t layer) const {
-    for (const auto &pair: meshes) {
+void SceneMeshCollection::drawTriangleGraphics(const layer_t layer) const {
+    for (const auto &pair: usedMeshes) {
         pair.second->drawTriangleGraphics(layer);
     }
 }
 
-void MeshCollection::readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4 &parentAbsoluteTransformation, std::optional<LdrColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId) {
+SceneMeshCollection::SceneMeshCollection(scene_id_t scene) : scene(scene) {}
+
+void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4 &parentAbsoluteTransformation, std::optional<LdrColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId) {
     std::shared_ptr<etree::Node> nodeToParseChildren = node;
     glm::mat4 absoluteTransformation = parentAbsoluteTransformation;
     if (node->visible) {
@@ -93,16 +98,16 @@ void MeshCollection::readElementTree(const std::shared_ptr<etree::Node>& node, c
     }
 }
 
-MeshCollection::MeshCollection(std::shared_ptr<etree::RootNode> elementTree) {
+mesh_collection::MeshCollection(std::shared_ptr<etree::RootNode> elementTree) {
     this->elementTree = std::move(elementTree);
 }
 
-void MeshCollection::rereadElementTree() {
+void SceneMeshCollection::rereadElementTree() {
     elementsSortedById.clear();
     elementsSortedById.push_back(nullptr);
     layersInUse.clear();
     auto before = std::chrono::high_resolution_clock::now();
-    readElementTree(elementTree, glm::mat4(1.0f), {}, std::nullopt);
+    readElementTree(rootNode, glm::mat4(1.0f), {}, std::nullopt);
     updateMeshInstances();
     nodesWithChildrenAlreadyVisited.clear();
     for (const auto &mesh: meshes) {
@@ -113,11 +118,11 @@ void MeshCollection::rereadElementTree() {
     metrics::lastElementTreeRereadMs = duration / 1000.0f;
 }
 
-void MeshCollection::updateMeshInstances() {
+void SceneMeshCollection::updateMeshInstances() {
     for (const auto &pair : newMeshInstances) {
         auto meshKey = pair.first;
         auto newVector = pair.second;
-        auto mesh = meshes[meshKey];
+        auto mesh = usedMeshes[meshKey];
         if (mesh->instances != newVector) {
             mesh->instances = newVector;
             mesh->instancesHaveChanged = true;
@@ -126,18 +131,11 @@ void MeshCollection::updateMeshInstances() {
     newMeshInstances.clear();
 }
 
-std::shared_ptr<etree::Node> MeshCollection::getElementById(unsigned int id) {
-    if (elementsSortedById.size() > id) {
-        return elementsSortedById[id];
-    }
-    return nullptr;
-}
-
-void MeshCollection::updateSelectionContainerBox() {
+void SceneMeshCollection::updateSelectionContainerBox() {
     static std::shared_ptr<Mesh> selectionBoxMesh = nullptr;
     if (selectionBoxMesh == nullptr) {
         selectionBoxMesh = std::make_shared<Mesh>();
-        meshes[std::make_pair(selectionBoxMesh.get(), false)] = selectionBoxMesh;
+        usedMeshes[std::make_pair(selectionBoxMesh.get(), false)] = selectionBoxMesh;
         selectionBoxMesh->addLdrFile(ldr_file_repo::get().getFile("box0.dat"), glm::mat4(1.0f), ldr_color_repo::getInstanceDummyColor(), false);
     }
     selectionBoxMesh->instances.clear();
@@ -170,7 +168,7 @@ void MeshCollection::updateSelectionContainerBox() {
     controller::getRenderer()->unrenderedChanges = true;
 }
 
-std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(const std::shared_ptr<const etree::MeshNode>& node) const {
+std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBox(const std::shared_ptr<const etree::MeshNode>& node) const {
     auto result = getBoundingBoxInternal(node);
     return {
         glm::vec4(result.first, 1.0f) * node->getAbsoluteTransformation(),
@@ -179,15 +177,15 @@ std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBox(const std::shared
 }
 
 //relative to parameter node
-std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBoxInternal(std::shared_ptr<const etree::MeshNode> node) const {
+std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBoxInternal(std::shared_ptr<const etree::MeshNode> node) const {
     //todo something here is wrong for subfile instances
     glm::mat4 absoluteTransformation;
     absoluteTransformation = node->getAbsoluteTransformation();
     bool windingInversed = util::doesTransformationInverseWindingOrder(absoluteTransformation);
-    auto it = meshes.find(std::make_pair(node->getMeshIdentifier(), windingInversed));
+    auto it = usedMeshes.find(std::make_pair(node->getMeshIdentifier(), windingInversed));
     float x1=0, x2=0, y1=0, y2=0, z1=0, z2=0;
     bool first = true;
-    if (it != meshes.end()) {
+    if (it != usedMeshes.end()) {
         const auto mesh = it->second;
         for (const auto &colorPair : mesh->triangleVertices) {
             for (const auto &triangleVertex : colorPair.second) {//todo check if iterating over line vertices is faster
@@ -245,6 +243,6 @@ std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBoxInternal(std::shar
     };
 }
 
-const std::set<layer_t> &MeshCollection::getLayersInUse() const {
+const std::set<layer_t> &SceneMeshCollection::getLayersInUse() const {
     return layersInUse;
 }

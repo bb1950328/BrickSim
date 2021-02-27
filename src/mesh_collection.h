@@ -9,12 +9,13 @@ typedef std::pair<void *, bool> mesh_key_t;
 
 class MeshCollection {
 public:
-    explicit MeshCollection(std::shared_ptr<etree::ElementTree> elementTree);
+    explicit MeshCollection(std::shared_ptr<etree::RootNode> elementTree);
+    MeshCollection(const MeshCollection&) = delete;
+    MeshCollection& operator=(MeshCollection&) = delete;
 
     std::map<mesh_key_t, std::shared_ptr<Mesh>> meshes;
 
     void initializeGraphics();
-    void deallocateGraphics();
 
     void rereadElementTree();
 
@@ -28,12 +29,10 @@ public:
 
     [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBox(const std::shared_ptr<const etree::MeshNode>& node) const;
     [[nodiscard]] const std::set<layer_t> &getLayersInUse() const;
-
-    ~MeshCollection();
 private:
     std::vector<std::shared_ptr<etree::Node>> elementsSortedById;
 
-    std::shared_ptr<etree::ElementTree> elementTree;
+    std::shared_ptr<etree::RootNode> elementTree;
     std::set<std::shared_ptr<etree::Node>> nodesWithChildrenAlreadyVisited;
 
     std::map<mesh_key_t, std::vector<MeshInstance>> newMeshInstances;

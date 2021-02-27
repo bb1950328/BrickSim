@@ -74,15 +74,15 @@ public:
 
     Mesh()=default;
 
-    void addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transformation, const LdrColorReference mainColor, bool bfcInverted);
+    void addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transformation, LdrColorReference mainColor, bool bfcInverted);
     void addLdrSubfileReference(LdrColorReference mainColor, const std::shared_ptr<LdrSubfileReference>& sfElement, glm::mat4 transformation, bool bfcInverted);
-    void addLdrLine(const LdrColorReference mainColor, const LdrLine &lineElement, glm::mat4 transformation);
-    void addLdrTriangle(const LdrColorReference mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted);
+    void addLdrLine(LdrColorReference mainColor, const LdrLine &lineElement, glm::mat4 transformation);
+    void addLdrTriangle(LdrColorReference mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted);
     void addLdrQuadrilateral(LdrColorReference mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted);
-    void addLdrOptionalLine(const LdrColorReference mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation);
+    void addLdrOptionalLine(LdrColorReference mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation);
 
-    std::vector<unsigned int> & getIndicesList(const LdrColorReference color);
-    std::vector<TriangleVertex> & getVerticesList(const LdrColorReference color);
+    std::vector<unsigned int> & getIndicesList(LdrColorReference color);
+    std::vector<TriangleVertex> & getVerticesList(LdrColorReference color);
 
     void writeGraphicsData();
 
@@ -108,9 +108,9 @@ private:
 
     size_t lastInstanceBufferSize = 0;
 
-    static void setInstanceColor(TriangleInstance *instance, const LdrColorReference color) ;
+    static void setInstanceColor(TriangleInstance *instance, LdrColorReference color) ;
 
-    std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> generateInstancesArray(const LdrColorReference color);
+    std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> generateInstancesArray(LdrColorReference color);
 
     void initializeTriangleGraphics();
     void initializeLineGraphics();

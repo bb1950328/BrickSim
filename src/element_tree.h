@@ -142,16 +142,6 @@ namespace etree {
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };
-
-    class ElementTree: public std::enable_shared_from_this<ElementTree> {
-    public:
-        ElementTree();
-        std::shared_ptr<RootNode> rootNode;
-        std::shared_ptr<Node> loadLdrFile(const std::string &filename);
-        void print();
-    private:
-        void printFromNode(int indent, const std::shared_ptr<Node>& node);
-    };
 }
 
 

@@ -25,6 +25,8 @@ namespace ldr_file_repo {
     class LdrFileRepo {
     public:
         explicit LdrFileRepo(std::filesystem::path basePath);
+        LdrFileRepo & operator=(LdrFileRepo&) = delete;
+        LdrFileRepo(const LdrFileRepo&) = delete;
         void initialize(float* progress);
 
         std::shared_ptr<LdrFile> getFile(const std::string& name);

@@ -43,7 +43,7 @@ void draw_element_tree_node(std::shared_ptr<etree::Node> node) {
 namespace gui {
     void windows::drawElementTreeWindow(bool *show) {
         ImGui::Begin(WINDOW_NAME_ELEMENT_TREE, show);
-        for (const auto &rootChild : controller::getElementTree()->rootNode->getChildren()) {
+        for (const auto &rootChild : controller::getElementTree()->getChildren()) {
             draw_element_tree_node(rootChild);
         }
         ImGui::End();

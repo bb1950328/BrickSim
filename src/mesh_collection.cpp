@@ -31,13 +31,6 @@ void MeshCollection::drawTriangleGraphics(const layer_t layer) const {
     }
 }
 
-void MeshCollection::deallocateGraphics() {
-    /* todo integrate this into destructor
-    for (const auto &pair: meshes) {
-        pair.second->deallocateGraphics();
-    }*/
-}
-
 void MeshCollection::readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4 &parentAbsoluteTransformation, std::optional<LdrColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId) {
     std::shared_ptr<etree::Node> nodeToParseChildren = node;
     glm::mat4 absoluteTransformation = parentAbsoluteTransformation;
@@ -100,7 +93,7 @@ void MeshCollection::readElementTree(const std::shared_ptr<etree::Node>& node, c
     }
 }
 
-MeshCollection::MeshCollection(std::shared_ptr<etree::ElementTree> elementTree) {
+MeshCollection::MeshCollection(std::shared_ptr<etree::RootNode> elementTree) {
     this->elementTree = std::move(elementTree);
 }
 
@@ -109,7 +102,7 @@ void MeshCollection::rereadElementTree() {
     elementsSortedById.push_back(nullptr);
     layersInUse.clear();
     auto before = std::chrono::high_resolution_clock::now();
-    readElementTree(elementTree->rootNode, glm::mat4(1.0f), {}, std::nullopt);
+    readElementTree(elementTree, glm::mat4(1.0f), {}, std::nullopt);
     updateMeshInstances();
     nodesWithChildrenAlreadyVisited.clear();
     for (const auto &mesh: meshes) {
@@ -254,8 +247,4 @@ std::pair<glm::vec3, glm::vec3> MeshCollection::getBoundingBoxInternal(std::shar
 
 const std::set<layer_t> &MeshCollection::getLayersInUse() const {
     return layersInUse;
-}
-
-MeshCollection::~MeshCollection() {
-    deallocateGraphics();
 }

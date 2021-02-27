@@ -68,7 +68,7 @@ namespace controller {
     void setUserWantsToExit(bool val);
     std::set<std::shared_ptr<etree::Node>> & getSelectedNodes();
     std::shared_ptr<Renderer> getRenderer();
-    std::shared_ptr<etree::ElementTree> getElementTree();
+    std::shared_ptr<etree::RootNode> getElementTree();
     std::shared_ptr<ThumbnailGenerator> getThumbnailGenerator();
     std::recursive_mutex & getOpenGlMutex();
 

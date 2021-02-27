@@ -172,31 +172,6 @@ namespace etree {
         }
     }
 
-    std::shared_ptr<Node> ElementTree::loadLdrFile(const std::string &filename) {
-        auto newNode = std::make_shared<MpdNode>(ldr_file_repo::get().getFile(filename), LdrColorReference(2), rootNode);
-        newNode->createChildNodes();
-        rootNode->addChild(newNode);
-        return newNode;
-    }
-
-    void ElementTree::print() {
-        printFromNode(0, rootNode);
-    }
-
-    void ElementTree::printFromNode(int indent, const std::shared_ptr<Node>& node) {
-        for (int i = 0; i < indent; ++i) {
-            std::cout << ' ';
-        }
-        std::cout << node->displayName << std::endl;
-        for (const auto &child: node->getChildren()) {
-            printFromNode(indent + 2, child);
-        }
-    }
-
-    ElementTree::ElementTree() {
-        rootNode = std::make_shared<RootNode>();
-    }
-
     RootNode::RootNode() : Node(nullptr) {
         type = TYPE_ROOT;
         displayName = "Root";

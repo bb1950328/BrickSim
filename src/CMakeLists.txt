@@ -1,53 +1,48 @@
 target_sources(BrickSim PUBLIC
-        main.cpp
         config.cpp
         config.h
-        mesh.cpp
-        mesh.h
-        shaders/shader.cpp
-        element_tree.cpp
-        element_tree.h
-        mesh_collection.cpp
-        mesh_collection.h
-        statistic.cpp
-        statistic.h
-        renderer.cpp
-        renderer.h
-
-        controller.cpp
-        controller.h
-        tools/gears.cpp
-        tools/gears.h
         constant_data/constants.h
-
-        constant_data/git_stats.h
-        thumbnail_generator.cpp
-        thumbnail_generator.h
         constant_data/git_stats.cpp
-
-
-
-        db.cpp
-        db.h
-
-        part_finder.cpp
-        part_finder.h
-        orientation_cube.cpp
-        orientation_cube.h
-        tasks.cpp
-        tasks.h
-        types.h
+        constant_data/git_stats.h
         constant_data/resources.cpp
         constant_data/resources.h
-
-        overlay_2d.cpp
-        overlay_2d.h
-        latest_log_messages_tank.cpp
-        latest_log_messages_tank.h
-        user_actions.cpp
-        user_actions.h
+        controller.cpp
+        controller.h
+        db.cpp
+        db.h
+        element_tree.cpp
+        element_tree.h
         keyboard_shortcut_manager.cpp
         keyboard_shortcut_manager.h
+        latest_log_messages_tank.cpp
+        latest_log_messages_tank.h
+        main.cpp
+        mesh.cpp
+        mesh.h
+        mesh_collection.cpp
+        mesh_collection.h
+        orientation_cube.cpp
+        orientation_cube.h
+        overlay_2d.cpp
+        overlay_2d.h
+        part_finder.cpp
+        part_finder.h
+        renderer.cpp
+        renderer.h
+        scene.cpp
+        scene.h
+        shaders/shader.cpp
+        statistic.cpp
+        statistic.h
+        tasks.cpp
+        tasks.h
+        thumbnail_generator.cpp
+        thumbnail_generator.h
+        tools/gears.cpp
+        tools/gears.h
+        types.h
+        user_actions.cpp
+        user_actions.h
         )
 
 add_subdirectory(info_providers)

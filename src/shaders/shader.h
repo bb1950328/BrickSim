@@ -42,6 +42,8 @@ public:
     void setMat4(const std::string &name, const glm::mat4 &mat) const;
 
     virtual ~Shader();
+    Shader & operator=(const Shader&) = delete;
+    Shader(const Shader&) = delete;
 private:
     // utility function for checking shader compilation/linking errors.
     static void checkCompileErrors(GLuint shader, const std::string& type);

@@ -11,7 +11,7 @@
 namespace controller {
     namespace {
         GLFWwindow *window;
-        std::shared_ptr<etree::ElementTree> elementTree;
+        std::shared_ptr<etree::RootNode> elementTree;
         bool elementTreeChanged = false;
         bool selectionChanged = false;
         std::shared_ptr<Renderer> renderer;
@@ -199,7 +199,7 @@ namespace controller {
 
             util::setStbiFlipVertically(true);
 
-            elementTree = std::make_shared<etree::ElementTree>();
+            elementTree = std::make_shared<etree::RootNode>();
             meshCollection = std::make_shared<MeshCollection>(elementTree);
             renderer = std::make_shared<Renderer>(meshCollection);
 
@@ -477,8 +477,8 @@ namespace controller {
 
     void nodeSelectAll() {
         nodeSelectNone();
-        elementTree->rootNode->selected = true;
-        selectedNodes.insert(elementTree->rootNode);
+        elementTree->selected = true;
+        selectedNodes.insert(elementTree);
         selectionChanged = true;
     }
 
@@ -509,10 +509,10 @@ namespace controller {
         auto currentlyEditingLdrNode = std::dynamic_pointer_cast<etree::LdrNode>(currentlyEditingNode);
         switch (ldrFile->metaInfo.type) {
             case MODEL:
-                currentlyEditingLdrNode = std::make_shared<etree::MpdNode>(ldrFile, LdrColorReference{2}, elementTree->rootNode);
+                currentlyEditingLdrNode = std::make_shared<etree::MpdNode>(ldrFile, LdrColorReference{2}, elementTree);
                 currentlyEditingNode = currentlyEditingLdrNode;
                 currentlyEditingLdrNode->createChildNodes();
-                elementTree->rootNode->addChild(currentlyEditingNode);
+                elementTree->addChild(currentlyEditingNode);
                 break;
             case MPD_SUBFILE:
                 if (nullptr != currentlyEditingLdrNode) {
@@ -556,7 +556,7 @@ namespace controller {
     }
 
     void unhideAllElements() {
-        unhideElementRecursively(elementTree->rootNode);
+        unhideElementRecursively(elementTree);
     }
 
     void setElementTreeChanged(bool val) {
@@ -575,7 +575,7 @@ namespace controller {
         return renderer;
     }
 
-    std::shared_ptr<etree::ElementTree> getElementTree() {
+    std::shared_ptr<etree::RootNode> getElementTree() {
         return elementTree;
     }
 

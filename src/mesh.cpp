@@ -195,7 +195,7 @@ void Mesh::writeGraphicsData() {
             addMinEnclosingBallLines();
         }
         sortInstancesByLayer();
-        updateInstanceCountOfLayerAndGreater();
+        updateInstanceCountOfLayer();
 
         initializeTriangleGraphics();
         initializeLineGraphics();
@@ -291,7 +291,7 @@ void Mesh::rewriteInstanceBuffer() {
     std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     if (instancesHaveChanged) {
         sortInstancesByLayer();
-        updateInstanceCountOfLayerAndGreater();
+        updateInstanceCountOfLayer();
 
         //todo just clear buffer data when no instances
 
@@ -331,18 +331,21 @@ void Mesh::sortInstancesByLayer() {
               });
 }
 
-void Mesh::updateInstanceCountOfLayerAndGreater() {
-    instanceCountOfLayerAndGreater.clear();
+void Mesh::updateInstanceCountOfLayer() {
+    instanceCountOfLayer.clear();
     if (!instances.empty()) {
         layer_t layerNum = instances.begin()->layer;
-        unsigned count = 0;
+        unsigned int count = 0, totalCount = 0;
         for (const auto &inst : instances) {
             if (inst.layer!=layerNum) {
-                instanceCountOfLayerAndGreater.emplace(layerNum, count);
+                instanceCountOfLayer.emplace(layerNum, std::make_pair(count, totalCount));
+                layerNum = inst.layer;
+                totalCount += count;
+                count = 0;
             }
             count++;
         }
-        instanceCountOfLayerAndGreater.emplace(layerNum, count);
+        instanceCountOfLayer.emplace(layerNum, std::make_pair(count, totalCount));
     }
 }
 
@@ -439,33 +442,33 @@ void Mesh::initializeOptionalLineGraphics() {
 }
 
 void Mesh::drawTriangleGraphics(layer_t layer) {
-    const auto it = instanceCountOfLayerAndGreater.find(layer);
-    if (it != instanceCountOfLayerAndGreater.cend()) {
+    const auto it = instanceCountOfLayer.find(layer);
+    if (it != instanceCountOfLayer.cend()) {
         std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
         for (const auto &entry: triangleIndices) {
             const auto color = entry.first;
             const std::vector<unsigned int>& indices = entry.second;
             glBindVertexArray(VAOs[color]);
-            glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, it->second);
+            glDrawElementsInstancedBaseInstance(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, it->second.first, it->second.second);
         }
     }
 }
 
 void Mesh::drawLineGraphics(layer_t layer) {
-    const auto it = instanceCountOfLayerAndGreater.find(layer);
-    if (it != instanceCountOfLayerAndGreater.cend()) {
+    const auto it = instanceCountOfLayer.find(layer);
+    if (it != instanceCountOfLayer.cend()) {
         std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
         glBindVertexArray(lineVAO);
-        glDrawElementsInstanced(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, it->second);
+        glDrawElementsInstancedBaseInstance(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, it->second.first, it->second.second);
     }
 }
 
 void Mesh::drawOptionalLineGraphics(layer_t layer) {
-    const auto it = instanceCountOfLayerAndGreater.find(layer);
-    if (it != instanceCountOfLayerAndGreater.cend()) {
+    const auto it = instanceCountOfLayer.find(layer);
+    if (it != instanceCountOfLayer.cend()) {
         std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
         glBindVertexArray(optionalLineVAO);
-        glDrawElementsInstanced(GL_LINES_ADJACENCY, optionalLineIndices.size(), GL_UNSIGNED_INT, nullptr, it->second);
+        glDrawElementsInstancedBaseInstance(GL_LINES_ADJACENCY, optionalLineIndices.size(), GL_UNSIGNED_INT, nullptr, it->second.first, it->second.second);
     }
 }
 
@@ -564,9 +567,9 @@ std::pair<glm::vec3, float> Mesh::getMinimalEnclosingBall() {
 }
 
 bool MeshInstance::operator==(const MeshInstance &other) const {
-    return transformation == other.transformation && color.get() == other.color.get() && elementId == other.elementId && selected == other.selected;
+    return transformation == other.transformation && color.get() == other.color.get() && elementId == other.elementId && selected == other.selected && layer == other.layer;
 }
 
 bool MeshInstance::operator!=(const MeshInstance &other) const {
-    return transformation != other.transformation || color.get() != other.color.get() || elementId != other.elementId || selected != other.selected;
+    return transformation != other.transformation || color.get() != other.color.get() || elementId != other.elementId || selected != other.selected || layer != other.layer;
 }

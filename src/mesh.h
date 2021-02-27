@@ -68,7 +68,7 @@ public:
 
     std::vector<MeshInstance> instances;
     bool instancesHaveChanged = false;
-    std::map<layer_t, unsigned int> instanceCountOfLayerAndGreater;//for example element with key 4 is the number of elements in layer 4 and above
+    std::map<layer_t, std::pair<unsigned int, unsigned int>> instanceCountOfLayer;//value.first is instance count in this layer, value.second is instance count sum of all layers before
 
     std::string name = "?";
 
@@ -122,7 +122,7 @@ private:
     void addOptionalLineVertex(const LineVertex &vertex);
 
     void addMinEnclosingBallLines();
-    void updateInstanceCountOfLayerAndGreater();
+    void updateInstanceCountOfLayer();
     void sortInstancesByLayer();
 };
 

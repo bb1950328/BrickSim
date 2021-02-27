@@ -84,8 +84,8 @@ namespace controller {
             const auto enableDebugOutput = config::getBool(config::ENABLE_GL_DEBUG_OUTPUT);
             glfwSetErrorCallback(glfwErrorCallback);
             glfwInit();
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, enableDebugOutput?4:3);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, enableDebugOutput?3:2);
             glfwWindowHint(GLFW_SAMPLES, (int) (config::getInt(config::MSAA_SAMPLES)));
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
@@ -303,8 +303,8 @@ namespace controller {
         spdlog::info("BrickSim started.");
         initialize();
 
-        //openFile("test_files/mpd_test.mpd");
-        openFile("~/Downloads/arocs.mpd");
+        openFile("test_files/bricks_test.ldr");
+        //openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
 
         while (!(glfwWindowShouldClose(window) || userWantsToExit)) {

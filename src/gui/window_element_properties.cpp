@@ -316,6 +316,13 @@ namespace gui {
             }
 
             ImGui::DragScalar(ICON_FA_LAYER_GROUP" Layer", ImGuiDataType_U8, &node->layer, 0.2f, nullptr, nullptr);
+            static layer_t lastLayer = node->layer;
+            if (lastSelectedNode != node) {
+                lastLayer = node->layer;
+            } else if (lastLayer != node->layer) {
+                controller::setElementTreeChanged(true);
+                lastLayer = node->layer;
+            }
 
             lastSelectedNode = node;
         } else {

@@ -46,10 +46,6 @@ namespace util {
     bool containsIgnoreCase(const std::string &full, const std::string &sub);
     bool equalsAlphanum(std::string a, std::string b);
 
-    //number functions
-    unsigned long gcd(unsigned long a, unsigned long b);
-    unsigned long lcm(unsigned long a, unsigned long b);
-
     //os functions
     void openDefaultBrowser(const std::string &link);
     std::vector<std::pair<const char *, std::string>> getSystemInfo();

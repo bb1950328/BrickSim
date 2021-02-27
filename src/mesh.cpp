@@ -56,7 +56,7 @@ void Mesh::addLdrTriangle(const LdrColorReference mainColor, const LdrTriangle &
     }
 }
 
-void Mesh::addLdrSubfileReference(LdrColorReference mainColor, std::shared_ptr<LdrSubfileReference> sfElement, glm::mat4 transformation, bool bfcInverted) {
+void Mesh::addLdrSubfileReference(LdrColorReference mainColor, const std::shared_ptr<LdrSubfileReference>& sfElement, glm::mat4 transformation, bool bfcInverted) {
     auto sub_transformation = sfElement->getTransformationMatrix();
     const auto color = sfElement->color.get()->code == LdrColor::MAIN_COLOR_CODE ? mainColor : sfElement->color;
     addLdrFile(sfElement->getFile(), sub_transformation * transformation, color, sfElement->bfcInverted ^ bfcInverted);

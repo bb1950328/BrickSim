@@ -1,6 +1,7 @@
 
 
 #include <stdexcept>
+#include <execution>
 #include "fraction.h"
 #include "util.h"
 
@@ -19,9 +20,9 @@ void Fraction::checkBnot0() const {
 }
 
 void Fraction::simplify() {
-    auto gcd_ = util::gcd(std::abs(a), std::abs(b));
-    a /= gcd_;
-    b /= gcd_;
+    auto gcd = std::gcd(std::abs(a), std::abs(b));
+    a /= gcd;
+    b /= gcd;
 }
 
 Fraction Fraction::operator+(const Fraction &other) const {

@@ -1,5 +1,6 @@
 
 #include <algorithm>
+#include <numeric>
 #include <iostream>
 #include <filesystem>
 #include <glm/gtx/string_cast.hpp>
@@ -162,42 +163,6 @@ namespace util {
 
     float biggestValue(glm::vec4 vector) {
         return std::max(std::max(vector.x, vector.y), std::max(vector.z, vector.w));
-    }
-
-    unsigned long gcd(unsigned long a, unsigned long b) {
-        //from https://www.geeksforgeeks.org/steins-algorithm-for-finding-gcd/
-        if (a == 0)
-            return b;
-        if (b == 0)
-            return a;
-
-        unsigned long k;
-        for (k = 0; (a | b) != 0 == 0; ++k) {
-            a >>= 1u;
-            b >>= 1u;
-        }
-
-        while ((a > 1) == 0) {
-            a >>= 1u;
-        }
-
-        do {
-            while ((b > 1) == 0) {
-                b >>= 1u;
-            }
-
-            if (a > b) {
-                std::swap(a, b);
-            }
-
-            b = (b - a);
-        } while (b != 0);
-
-        return a << k;
-    }
-
-    unsigned long lcm(unsigned long a, unsigned long b) {
-        return a / gcd(a, b) * b;//https://stackoverflow.com/a/3154503/8733066
     }
 
     void openDefaultBrowser(const std::string &link) {

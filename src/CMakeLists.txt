@@ -1,11 +1,8 @@
 target_sources(BrickSim PUBLIC
+        camera.cpp
+        camera.h
         config.cpp
         config.h
-        constant_data/constants.h
-        constant_data/git_stats.cpp
-        constant_data/git_stats.h
-        constant_data/resources.cpp
-        constant_data/resources.h
         controller.cpp
         controller.h
         db.cpp
@@ -27,8 +24,6 @@ target_sources(BrickSim PUBLIC
         overlay_2d.h
         part_finder.cpp
         part_finder.h
-        renderer.cpp
-        renderer.h
         scene.cpp
         scene.h
         shaders/shader.cpp
@@ -38,15 +33,15 @@ target_sources(BrickSim PUBLIC
         tasks.h
         thumbnail_generator.cpp
         thumbnail_generator.h
-        tools/gears.cpp
-        tools/gears.h
         types.h
         user_actions.cpp
         user_actions.h
         )
 
-add_subdirectory(info_providers)
-add_subdirectory(helpers)
+add_subdirectory(constant_data)
 add_subdirectory(gui)
-add_subdirectory(lib)
+add_subdirectory(helpers)
+add_subdirectory(info_providers)
 add_subdirectory(ldr_files)
+add_subdirectory(lib)
+add_subdirectory(tools)

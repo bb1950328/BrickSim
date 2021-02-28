@@ -7,6 +7,7 @@ typedef unsigned char layer_t;
 typedef unsigned char scene_id_t;
 typedef unsigned int element_id_t;
 typedef unsigned char color_component_t;
+typedef unsigned int texture_id_t;
 
 namespace glm {
     typedef vec<1, unsigned short, defaultp>	usvec1;

@@ -80,11 +80,10 @@ namespace orientation_cube {
         };
         constexpr auto cubeVertexCount = 36;
 
-        unsigned int fbo, tbo, rbo;
+        std::shared_ptr<Scene> scene;
         short framebufferSize = 0;
         unsigned int VBO, VAO;
         short size = 512;//todo config
-        unsigned int texture;
         float lastPitch = 1e9, lastYaw = 1e9;
         const glm::mat4 projection = glm::perspective(glm::radians(50.0f), 1.0f, 0.1f, 1000.0f);
 
@@ -99,11 +98,29 @@ namespace orientation_cube {
             return projection * view * constants::LDU_TO_OPENGL_ROTATION;
         }
 
+        class OrientationCubeMeshNode : public etree::MeshNode {
+        public:
+            void *getMeshIdentifier() const override {
+                return reinterpret_cast<void *>(12234);
+            }
+
+            void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override {
+                auto texture = std::make_shared<Texture>(resources::orientation_cube_jpg, resources::orientation_cube_jpg_len);
+                mesh->addTexturedTriangle(texture,
+                                          {+1, +1, +1}, {1.0f / 6, 1}, /*rearRightBottom*/
+                                          {+1, -1, -1}, {0, 0}, /*frontRightTop*/
+                                          {+1, +1, -1}, {0, 1}/*frontRightBottom*/
+                );// Right A
+                //todo copy/paste other 11 triangles here
+            }
+        };
+
         void initialize() {
             static bool initialized = false;
             if (initialized) {
                 return;
             }
+            std::make_shared<etree::MeshNode>()
 
             texture = util::loadTextureFromMemory(resources::orientation_cube_jpg, resources::orientation_cube_jpg_len).textureId;
 

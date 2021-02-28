@@ -31,6 +31,8 @@ target_sources(BrickSim PUBLIC
         metrics.h
         tasks.cpp
         tasks.h
+        texture.cpp
+        texture.h
         thumbnail_generator.cpp
         thumbnail_generator.h
         types.h

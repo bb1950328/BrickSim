@@ -163,6 +163,13 @@ void Mesh::addLdrOptionalLine(const LdrColorReference mainColor, const LdrOption
     addOptionalLineVertex(cv2);
 }
 
+void Mesh::addTexturedTriangle(const std::shared_ptr<Texture> &texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3) {
+    auto &vertices = textureVertices[texture->getID()];
+    vertices.emplace_back(pt1, tc1);
+    vertices.emplace_back(pt2, tc2);
+    vertices.emplace_back(pt3, tc3);
+}
+
 void Mesh::addOptionalLineVertex(const LineVertex &vertex) {
     if (!optionalLineVertices.empty()) {
         const auto stop = optionalLineVertices.size() >= 8 ? 8 : optionalLineVertices.size();
@@ -196,6 +203,7 @@ void Mesh::writeGraphicsData() {
         }
 
         initializeTriangleGraphics();
+        initializeTexturedTriangleGraphics();
         initializeLineGraphics();
         initializeOptionalLineGraphics();
 
@@ -245,7 +253,7 @@ void Mesh::initializeTriangleGraphics() {
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(TriangleVertex, normal));
 
         //instanceVbo
-        auto instancesArray = generateInstancesArray(color);
+        auto instancesArray = generateTriangleInstancesArray(color);
 
         glGenBuffers(1, &instanceVbo);
         glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
@@ -298,7 +306,7 @@ void Mesh::rewriteInstanceBuffer() {
         for (const auto &entry: triangleIndices) {
             const auto color = entry.first;
             auto instanceVbo = instanceVBOs[color];
-            auto instancesArray = generateInstancesArray(color);
+            auto instancesArray = generateTriangleInstancesArray(color);
             size_t instance_size = sizeof(TriangleInstance);
             glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
             glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
@@ -316,6 +324,11 @@ void Mesh::rewriteInstanceBuffer() {
 
         glBindBuffer(GL_ARRAY_BUFFER, optionalLineInstanceVBO);
         glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
+
+        for (const auto &item : textureTriangleVaoVertexVboInstanceVbo) {
+            glBindBuffer(GL_ARRAY_BUFFER, std::get<2>(item.second));
+            glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
+        }
         instancesHaveChanged = false;
     }
 }
@@ -412,6 +425,52 @@ void Mesh::initializeOptionalLineGraphics() {
     delete[] instancesArray;
 }
 
+void Mesh::initializeTexturedTriangleGraphics() {
+    auto instancesArray = generateTexturedTriangleInstancesArray();
+
+    for (const auto &item : textureVertices) {
+        const auto id = item.first;
+        const auto &vertices = item.second;
+
+        unsigned int vao, vertexVbo, instanceVbo;
+        glGenVertexArrays(1, &vao);
+        glGenBuffers(1, &vertexVbo);
+
+        glBindVertexArray(vao);
+
+        //vertexVbo
+        glBindBuffer(GL_ARRAY_BUFFER, vertexVbo);
+        constexpr auto vertexSize = sizeof(TexturedTriangleVertex);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * vertexSize, &vertices[0], GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, nullptr);
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize, (void *)(offsetof(TexturedTriangleVertex, textureCoord)));
+        glEnableVertexAttribArray(1);
+
+        //instanceVbo
+        glGenBuffers(1, &instanceVbo);
+        glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
+        size_t instance_size = sizeof(TexturedTriangleInstance);
+        glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TexturedTriangleInstance, idColor));
+        glVertexAttribDivisor(2, 1);
+
+        for (int j = 3; j < 6; ++j) {
+            glEnableVertexAttribArray(j);
+            glVertexAttribPointer(j, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (4 * (j - 3) * sizeof(float)));
+            glVertexAttribDivisor(j, 1);
+        }
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        textureTriangleVaoVertexVboInstanceVbo[id] = {vao, vertexVbo, instanceVbo};
+    }
+}
+
 void Mesh::drawTriangleGraphics(scene_id_t sceneId, layer_t layer) {
     auto range = getSceneLayerInstanceRange(sceneId, layer);
     if (range.has_value()) {
@@ -421,6 +480,18 @@ void Mesh::drawTriangleGraphics(scene_id_t sceneId, layer_t layer) {
             const std::vector<unsigned int>& indices = entry.second;
             glBindVertexArray(VAOs[color]);
             glDrawElementsInstancedBaseInstance(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
+        }
+    }
+}
+
+void Mesh::drawTexturedTriangleGraphics(scene_id_t sceneId, layer_t layer) {
+    auto range = getSceneLayerInstanceRange(sceneId, layer);
+    if (range.has_value()) {
+        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+        for (const auto &item : textureVertices) {
+            textures[item.first]->bind();
+            glBindVertexArray(std::get<0>(textureTriangleVaoVertexVboInstanceVbo[item.first]));
+            glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, item.second.size(), range->count, range->start);
         }
     }
 }
@@ -460,6 +531,18 @@ void Mesh::deallocateGraphics() {
     glDeleteBuffers(1, &lineVertexVBO);
     glDeleteBuffers(1, &lineInstanceVBO);
     glDeleteBuffers(1, &lineEBO);
+
+    glDeleteVertexArrays(1, &optionalLineVAO);
+    glDeleteBuffers(1, &optionalLineVertexVBO);
+    glDeleteBuffers(1, &optionalLineInstanceVBO);
+    glDeleteBuffers(1, &optionalLineEBO);
+
+    for (const auto &item : textureTriangleVaoVertexVboInstanceVbo) {
+        const auto &[vao, vertexVbo, instanceVbo] = item.second;
+        glDeleteVertexArrays(1, &vao);
+        glDeleteBuffers(1, &vertexVbo);
+        glDeleteBuffers(1, &instanceVbo);
+    }
 }
 
 Mesh::~Mesh() = default;
@@ -490,7 +573,7 @@ void Mesh::setInstanceColor(TriangleInstance *instance, const LdrColorReference 
     }
 }
 
-std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> Mesh::generateInstancesArray(const LdrColorReference color) {
+std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> Mesh::generateTriangleInstancesArray(const LdrColorReference color) {
     auto instancesArray = std::make_unique<TriangleInstance[]>(instances.size());
     unsigned int arr_cursor = 0;
     if (color.get()->code == ldr_color_repo::INSTANCE_DUMMY_COLOR_CODE) {
@@ -513,6 +596,16 @@ std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> Mes
     return instancesArray;
 }
 
+std::unique_ptr<TexturedTriangleInstance[], std::default_delete<TexturedTriangleInstance[]>> Mesh::generateTexturedTriangleInstancesArray() {
+    auto array = std::make_unique<TexturedTriangleInstance[]>(instances.size());
+    for (int i = 0; i < instances.size(); ++i) {
+        auto &instance = instances[i];
+        array[i].idColor = util::convertIntToColorVec3(instance.elementId);
+        array[i].transformation = glm::transpose(instance.transformation * globalModel);
+    }
+    return array;
+}
+
 std::pair<glm::vec3, float> Mesh::getMinimalEnclosingBall() {
     if (!minimalEnclosingBall.has_value()) {
         if (triangleVertices.empty()) {
@@ -521,6 +614,11 @@ std::pair<glm::vec3, float> Mesh::getMinimalEnclosingBall() {
             std::list<std::vector<float>> lp;
             for (const auto &entry : triangleVertices) {
                 for (const auto &vertex : entry.second) {
+                    lp.push_back((std::vector<float>) {vertex.position.x, vertex.position.y, vertex.position.z});
+                }
+            }
+            for (const auto &item : textureVertices) {
+                for (const auto &vertex : item.second) {
                     lp.push_back((std::vector<float>) {vertex.position.x, vertex.position.y, vertex.position.z});
                 }
             }

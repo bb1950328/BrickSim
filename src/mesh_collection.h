@@ -39,6 +39,7 @@ public:
     std::shared_ptr<etree::Node> getElementById(unsigned int id);
 
     void drawTriangleGraphics(layer_t layer) const;
+    void drawTexturedTriangleGraphics(layer_t layer) const;
     void drawLineGraphics(layer_t layer) const;
     void drawOptionalLineGraphics(layer_t layer) const;
 

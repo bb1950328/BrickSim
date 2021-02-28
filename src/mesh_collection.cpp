@@ -50,6 +50,12 @@ void SceneMeshCollection::drawTriangleGraphics(const layer_t layer) const {
     }
 }
 
+void SceneMeshCollection::drawTexturedTriangleGraphics(const layer_t layer) const {
+    for (const auto &pair: usedMeshes) {
+        pair.second->drawTexturedTriangleGraphics(scene, layer);
+    }
+}
+
 SceneMeshCollection::SceneMeshCollection(scene_id_t scene) : scene(scene) {}
 
 void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node> &node, const glm::mat4 &parentAbsoluteTransformation, std::optional<LdrColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId) {

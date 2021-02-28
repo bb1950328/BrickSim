@@ -12,6 +12,7 @@
 #include "shaders/shader.h"
 #include "constant_data/constants.h"
 #include "types.h"
+#include "texture.h"
 
 struct TriangleVertex {
     glm::vec4 position;
@@ -22,6 +23,16 @@ struct TriangleVertex {
         //return position == other.position && normal == other.normal;
         return std::memcmp(this, &other, sizeof(TriangleVertex)) == 0;
     }
+};
+
+struct TexturedTriangleVertex {
+    glm::vec3 position;
+    glm::vec2 textureCoord;
+    bool operator==(const TexturedTriangleVertex &other) const {
+        return std::memcmp(this, &other, sizeof(*this)) == 0;
+    }
+
+    TexturedTriangleVertex(const glm::vec3 &position, const glm::vec2 &textureCoord) : position(position), textureCoord(textureCoord) {}
 };
 
 struct LineVertex {
@@ -39,6 +50,11 @@ struct TriangleInstance {
     float ambientFactor;//ambient=diffuseColor*ambientFactor
     float specularBrightness;//specular=vec4(1.0)*specularBrightness
     float shininess;
+    glm::vec3 idColor;
+    glm::mat4 transformation;
+};
+
+struct TexturedTriangleInstance {
     glm::vec3 idColor;
     glm::mat4 transformation;
 };
@@ -101,12 +117,15 @@ public:
     void addLdrQuadrilateral(LdrColorReference mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted);
     void addLdrOptionalLine(LdrColorReference mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation);
 
+    void addTexturedTriangle(const std::shared_ptr<Texture> &texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3);
+
     std::vector<unsigned int> & getIndicesList(LdrColorReference color);
     std::vector<TriangleVertex> & getVerticesList(LdrColorReference color);
 
     void writeGraphicsData();
 
     void drawTriangleGraphics(scene_id_t sceneId, layer_t layer);
+    void drawTexturedTriangleGraphics(scene_id_t sceneId, layer_t layer);
     void drawLineGraphics(scene_id_t sceneId, layer_t layer);
     void drawOptionalLineGraphics(scene_id_t sceneId, layer_t layer);
 
@@ -122,17 +141,23 @@ private:
     std::optional<std::pair<glm::vec3, float>> minimalEnclosingBall;
 
     unsigned int lineVAO, lineVertexVBO, lineInstanceVBO, lineEBO;
-
     unsigned int optionalLineVAO, optionalLineVertexVBO, optionalLineInstanceVBO, optionalLineEBO;
+
+    std::map<texture_id_t, std::shared_ptr<Texture>> textures;
+    std::map<texture_id_t, std::vector<TexturedTriangleVertex>> textureVertices;
+    std::map<texture_id_t, std::tuple<unsigned int, unsigned int, unsigned int>> textureTriangleVaoVertexVboInstanceVbo;
+
     bool already_initialized = false;
 
     size_t lastInstanceBufferSize = 0;
 
-    static void setInstanceColor(TriangleInstance *instance, LdrColorReference color) ;
+    static void setInstanceColor(TriangleInstance *instance, LdrColorReference color);
 
-    std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> generateInstancesArray(LdrColorReference color);
+    std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> generateTriangleInstancesArray(LdrColorReference color);
+    std::unique_ptr<TexturedTriangleInstance[], std::default_delete<TexturedTriangleInstance[]>> generateTexturedTriangleInstancesArray();
 
     void initializeTriangleGraphics();
+    void initializeTexturedTriangleGraphics();
     void initializeLineGraphics();
     void initializeOptionalLineGraphics();
 

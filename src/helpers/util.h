@@ -12,9 +12,6 @@
 #include "../types.h"
 
 namespace util {
-    namespace {
-        unsigned int copyTextureToVram(int imgWidth, int imgHeight, int nrChannels, const unsigned char *data);
-    }
 
 #if _WIN32
     const char *const USER_ENV_VAR = "USERPROFILE";
@@ -101,19 +98,9 @@ namespace util {
 
 
     // texture/image functions
-    struct TextureLoadResult {
-        unsigned int textureId;
-        int width;
-        int height;
-        int nrChannels;
-    };
-
     std::string translateBrickLinkColorNameToLDraw(std::string colorName);
     std::string translateLDrawColorNameToBricklink(std::string colorName);
     bool writeImage(const char *path, unsigned char *pixels, unsigned int width, unsigned int height, int channels = 3);
-
-    TextureLoadResult loadTextureFromFile(const std::filesystem::path &image);
-    TextureLoadResult loadTextureFromMemory(const unsigned char *fileData, unsigned int dataSize);
 
     bool isStbiFlipVertically();
     void setStbiFlipVertically(bool value);

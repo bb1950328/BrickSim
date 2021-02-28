@@ -3,6 +3,8 @@
 #include "scene.h"
 #include "controller.h"
 #include "latest_log_messages_tank.h"
+#include "metrics.h"
+#include "config.h"
 
 CompleteFramebuffer::CompleteFramebuffer(glm::usvec2 size) { // NOLINT(cppcoreguidelines-pro-type-member-init)
     size = size;
@@ -135,7 +137,10 @@ unsigned int Scene::getSelectionPixel(framebuffer_size_t x, framebuffer_size_t y
     triangleShader->setInt("drawSelection", 1);//todo check if a dedicated selectionTriangleShader is faster
     for (const auto &layer : meshCollection.getLayersInUse()) {
         glClear(GL_DEPTH_BUFFER_BIT);
+        triangleShader->use();
         meshCollection.drawTriangleGraphics(layer);
+        textureShader->use();
+        meshCollection.drawTexturedTriangleGraphics(layer);
     }
 
     GLubyte middlePixel[3];
@@ -167,7 +172,7 @@ const glm::usvec2 &Scene::getImageSize() const {
 }
 
 void Scene::setImageSize(const glm::usvec2 &newImageSize) {
-    projectionMatrix = glm::perspective(glm::radians(50.0f), (float)newImageSize.x / newImageSize.y, 0.1f, 1000.0f);
+    projectionMatrix = glm::perspective(glm::radians(50.0f), (float)newImageSize.x / (float)newImageSize.y, 0.1f, 1000.0f);
     Scene::imageSize = newImageSize;
 }
 
@@ -200,6 +205,9 @@ void Scene::updateImage() {
             triangleShader->setMat4("projectionView", projectionView);
             triangleShader->setInt("drawSelection", 0);
             meshCollection.drawTriangleGraphics(layer);
+
+            textureShader->use();
+            meshCollection.drawTexturedTriangleGraphics(layer);
 
             lineShader->use();
             lineShader->setMat4("projectionView", projectionView);

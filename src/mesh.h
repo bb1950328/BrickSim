@@ -4,12 +4,12 @@
 #define BRICKSIM_MESH_H
 
 #include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp>
 #include <vector>
 #include <set>
 #include <cstring>
 #include "ldr_files/ldr_files.h"
 #include "shaders/shader.h"
-#include "helpers/camera.h"
 #include "constant_data/constants.h"
 #include "types.h"
 
@@ -67,9 +67,28 @@ public:
 
     std::map<LdrColorReference, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
 
+    /**
+       |      scene=0      | scene=1 |
+       | layer=0 | layer=1 | layer=0 |
+       | in | in | in | in | in | in |
+     idx 0    1    2    3    4    5
+     */
     std::vector<MeshInstance> instances;
     bool instancesHaveChanged = false;
-    std::map<layer_t, std::pair<unsigned int, unsigned int>> instanceCountOfLayer;//value.first is instance count in this layer, value.second is instance count sum of all layers before
+
+    struct InstanceRange {
+        unsigned int start;
+        unsigned int count;
+    };
+
+    std::map<scene_id_t, std::map<layer_t, InstanceRange>> instanceSceneLayerRanges;
+    std::optional<Mesh::InstanceRange> getSceneInstanceRange(scene_id_t sceneId);
+    std::optional<Mesh::InstanceRange> getSceneLayerInstanceRange(scene_id_t sceneId, layer_t layer);
+    /**
+     * @param sceneId
+     * @param newSceneInstances must be ordered by layer
+     */
+    void updateInstancesOfScene(scene_id_t sceneId, const std::vector<MeshInstance>& newSceneInstances);
 
     std::string name = "?";
 
@@ -87,9 +106,9 @@ public:
 
     void writeGraphicsData();
 
-    void drawTriangleGraphics(layer_t layer=constants::DEFAULT_LAYER);
-    void drawLineGraphics(layer_t layer=constants::DEFAULT_LAYER);
-    void drawOptionalLineGraphics(layer_t layer=constants::DEFAULT_LAYER);
+    void drawTriangleGraphics(scene_id_t sceneId, layer_t layer);
+    void drawLineGraphics(scene_id_t sceneId, layer_t layer);
+    void drawOptionalLineGraphics(scene_id_t sceneId, layer_t layer);
 
     void deallocateGraphics();
     virtual ~Mesh();
@@ -123,8 +142,7 @@ private:
     void addOptionalLineVertex(const LineVertex &vertex);
 
     void addMinEnclosingBallLines();
-    void updateInstanceCountOfLayer();
-    void sortInstancesByLayer();
+    void appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<MeshInstance> &newSceneInstances);
 };
 
 #endif //BRICKSIM_MESH_H

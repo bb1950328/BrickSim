@@ -3,7 +3,8 @@
 #include <glm/gtx/normal.hpp>
 #include <spdlog/spdlog.h>
 #include "camera.h"
-#include "../config.h"
+#include "config.h"
+#include "mesh_collection.h"
 
 void CadCamera::updateVectors() {
     front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -21,10 +22,6 @@ CadCamera::CadCamera() {
     mousePanSensitivity = (float)config::getDouble(config::MOUSE_3DVIEW_PAN_SENSITIVITY);
     mouseZoomSensitivity = (float)config::getDouble(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY);
     updateVectors();
-}
-
-glm::mat4 CadCamera::getViewMatrix() const {
-    return viewMatrix;
 }
 
 void CadCamera::mouseRotate(float x_delta, float y_delta) {
@@ -98,4 +95,39 @@ float CadCamera::getYaw() const {
 
 void CadCamera::setYaw(float value) {
     yaw = value;
+}
+
+const glm::mat4 & CadCamera::getViewMatrix() const {
+    return viewMatrix;
+}
+
+
+
+void FitContentCamera::setRootNode(const std::shared_ptr<etree::MeshNode> &node) {
+    //todo make this work for any node, not just simple parts
+    const auto &mesh = SceneMeshCollection::getMesh(SceneMeshCollection::getMeshKey(node, false), node);
+    const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
+    glm::vec3 center = glm::vec4(minimalEnclosingBall.first, 1.0f) * mesh->globalModel;
+    auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL_SCALE;
+
+    auto distance = meshRadius * 2.45f;
+    auto s = glm::radians(45.0f);//todo make variable
+    auto t = glm::radians(45.0f);
+    cameraPos = glm::vec3(
+            distance * std::cos(s) * std::cos(t),
+            distance * std::sin(s) * std::cos(t),
+            distance * std::sin(t)
+    ) + center;
+
+    viewMatrix = glm::lookAt(cameraPos,
+                            glm::vec3(0) + center,
+                             glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+const glm::mat4 &FitContentCamera::getViewMatrix() const {
+    return viewMatrix;
+}
+
+const glm::vec3 &FitContentCamera::getCameraPos() const {
+    return cameraPos;
 }

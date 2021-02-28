@@ -7,36 +7,52 @@
 #include "controller.h"
 #include "ldr_files/ldr_file_repo.h"
 
-namespace mesh_collection {
-    std::shared_ptr<etree::Node> getElementById(unsigned int id) {
-        if (elementsSortedById.size() > id) {
-            return elementsSortedById[id];
-        }
-        return nullptr;
+std::map<mesh_key_t, std::shared_ptr<Mesh>> SceneMeshCollection::allMeshes;
+
+mesh_key_t SceneMeshCollection::getMeshKey(const std::shared_ptr<etree::MeshNode> &node, bool windingOrderInverse) {
+    return std::make_pair(node->getMeshIdentifier(), windingOrderInverse);
+}
+
+std::shared_ptr<Mesh> SceneMeshCollection::getMesh(mesh_key_t key, const std::shared_ptr<etree::MeshNode> &node) {
+    auto it = allMeshes.find(key);
+    if (it == allMeshes.end()) {
+        std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+        allMeshes[key] = mesh;
+        mesh->name = node->getDescription();
+        node->addToMesh(mesh, key.second);
+        return mesh;
     }
+    return it->second;
+}
+
+std::shared_ptr<etree::Node> SceneMeshCollection::getElementById(unsigned int id) {
+    if (elementsSortedById.size() > id) {
+        return elementsSortedById[id];
+    }
+    return nullptr;
 }
 
 void SceneMeshCollection::drawLineGraphics(const layer_t layer) const {
     for (const auto &pair: usedMeshes) {
-        pair.second->drawLineGraphics(layer);
+        pair.second->drawLineGraphics(scene, layer);
     }
 }
 
 void SceneMeshCollection::drawOptionalLineGraphics(const layer_t layer) const {
     for (const auto &pair: usedMeshes) {
-        pair.second->drawOptionalLineGraphics(layer);
+        pair.second->drawOptionalLineGraphics(scene, layer);
     }
 }
 
 void SceneMeshCollection::drawTriangleGraphics(const layer_t layer) const {
     for (const auto &pair: usedMeshes) {
-        pair.second->drawTriangleGraphics(layer);
+        pair.second->drawTriangleGraphics(scene, layer);
     }
 }
 
 SceneMeshCollection::SceneMeshCollection(scene_id_t scene) : scene(scene) {}
 
-void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4 &parentAbsoluteTransformation, std::optional<LdrColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId) {
+void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node> &node, const glm::mat4 &parentAbsoluteTransformation, std::optional<LdrColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId) {
     std::shared_ptr<etree::Node> nodeToParseChildren = node;
     glm::mat4 absoluteTransformation = parentAbsoluteTransformation;
     if (node->visible) {
@@ -65,16 +81,8 @@ void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node>& no
                 parentColor = color;
             }
 
-            void *identifier = meshNode->getMeshIdentifier();
-            bool windingInversed = util::doesTransformationInverseWindingOrder(absoluteTransformation);
-            auto meshesKey = std::make_pair(identifier, windingInversed);
-            auto it = meshes.find(meshesKey);
-            if (it == meshes.end()) {
-                const std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
-                meshes[meshesKey] = mesh;
-                mesh->name = meshNode->getDescription();
-                meshNode->addToMesh(mesh, windingInversed);
-            }
+            auto meshKey = getMeshKey(meshNode, util::doesTransformationInverseWindingOrder(absoluteTransformation));
+            auto mesh = getMesh(meshKey, meshNode);
             unsigned int elementId;
             if (selectionTargetElementId.has_value()) {
                 elementId = selectionTargetElementId.value();
@@ -84,10 +92,10 @@ void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node>& no
                     selectionTargetElementId = elementId;//for the children
                 }
             }
-            MeshInstance newInstance{color, absoluteTransformation, elementId, meshNode->selected, node->layer};
+            MeshInstance newInstance{color, absoluteTransformation, elementId, meshNode->selected, node->layer, this->scene};
             layersInUse.emplace(node->layer);
             elementsSortedById.push_back(node);
-            newMeshInstances[meshesKey].push_back(newInstance);
+            newMeshInstances[meshKey].push_back(newInstance);
         }
         for (const auto &child: nodeToParseChildren->getChildren()) {
             if (child->visible) {
@@ -98,10 +106,6 @@ void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node>& no
     }
 }
 
-mesh_collection::MeshCollection(std::shared_ptr<etree::RootNode> elementTree) {
-    this->elementTree = std::move(elementTree);
-}
-
 void SceneMeshCollection::rereadElementTree() {
     elementsSortedById.clear();
     elementsSortedById.push_back(nullptr);
@@ -110,7 +114,7 @@ void SceneMeshCollection::rereadElementTree() {
     readElementTree(rootNode, glm::mat4(1.0f), {}, std::nullopt);
     updateMeshInstances();
     nodesWithChildrenAlreadyVisited.clear();
-    for (const auto &mesh: meshes) {
+    for (const auto &mesh: allMeshes) {
         mesh.second->writeGraphicsData();
     }
     auto after = std::chrono::high_resolution_clock::now();
@@ -121,12 +125,14 @@ void SceneMeshCollection::rereadElementTree() {
 void SceneMeshCollection::updateMeshInstances() {
     for (const auto &pair : newMeshInstances) {
         auto meshKey = pair.first;
-        auto newVector = pair.second;
+        auto newInstancesOfThisScene = pair.second;
         auto mesh = usedMeshes[meshKey];
-        if (mesh->instances != newVector) {
-            mesh->instances = newVector;
-            mesh->instancesHaveChanged = true;
-        }
+
+        std::sort(newInstancesOfThisScene.begin(), newInstancesOfThisScene.end(), [](MeshInstance& a, MeshInstance& b){
+            return a.layer > b.layer;
+        });
+
+        mesh->updateInstancesOfScene(scene, newInstancesOfThisScene);
     }
     newMeshInstances.clear();
 }
@@ -144,7 +150,7 @@ void SceneMeshCollection::updateSelectionContainerBox() {
             if (node->getType() & etree::TYPE_MESH) {
                 //todo draw selection as line if only one part is selected
                 // fix the transformation (click the red 2x4 tile for example)
-                auto boxDimensions = controller::getRenderer()->meshCollection->getBoundingBox(std::dynamic_pointer_cast<const etree::MeshNode>(node));
+                auto boxDimensions = getBoundingBox(std::dynamic_pointer_cast<const etree::MeshNode>(node));
                 auto p1 = boxDimensions.first;
                 auto p2 = boxDimensions.second;
                 auto center = (p1 + p2) / 2.0f;
@@ -159,21 +165,18 @@ void SceneMeshCollection::updateSelectionContainerBox() {
                 transformation = glm::translate(transformation, center);
                 transformation = glm::scale(transformation, size / 2.0f);//the /2 is because box0.dat has 2ldu edge length
                 transformation = glm::transpose(transformation);
-                selectionBoxMesh->instances.push_back({{1}, transformation, 0, true});
+                selectionBoxMesh->instances.push_back({{1}, transformation, 0, true, 0, scene});//todo update ranges
             }
         }
     }
     selectionBoxMesh->instancesHaveChanged = true;
     selectionBoxMesh->writeGraphicsData();
-    controller::getRenderer()->unrenderedChanges = true;
 }
 
-std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBox(const std::shared_ptr<const etree::MeshNode>& node) const {
+std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBox(const std::shared_ptr<const etree::MeshNode> &node) const {
     auto result = getBoundingBoxInternal(node);
-    return {
-        glm::vec4(result.first, 1.0f) * node->getAbsoluteTransformation(),
-        glm::vec4(result.second, 1.0f) * node->getAbsoluteTransformation(),
-    };
+    return {glm::vec4(result.first, 1.0f) * node->getAbsoluteTransformation(),
+            glm::vec4(result.second, 1.0f) * node->getAbsoluteTransformation()};
 }
 
 //relative to parameter node
@@ -183,7 +186,7 @@ std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBoxInternal(std:
     absoluteTransformation = node->getAbsoluteTransformation();
     bool windingInversed = util::doesTransformationInverseWindingOrder(absoluteTransformation);
     auto it = usedMeshes.find(std::make_pair(node->getMeshIdentifier(), windingInversed));
-    float x1=0, x2=0, y1=0, y2=0, z1=0, z2=0;
+    float x1 = 0, x2 = 0, y1 = 0, y2 = 0, z1 = 0, z2 = 0;
     bool first = true;
     if (it != usedMeshes.end()) {
         const auto mesh = it->second;
@@ -208,13 +211,13 @@ std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBoxInternal(std:
     }
     bool isSubfileInstance = node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE;
     const auto &children = isSubfileInstance
-            ? std::dynamic_pointer_cast<const etree::MpdSubfileInstanceNode>(node)->mpdSubfileNode->getChildren()
-            : node->getChildren();
+                           ? std::dynamic_pointer_cast<const etree::MpdSubfileInstanceNode>(node)->mpdSubfileNode->getChildren()
+                           : node->getChildren();
     for (const auto &child : children) {
-        if (child->getType()&etree::TYPE_MESH) {
+        if (child->getType() & etree::TYPE_MESH) {
             auto childResult = getBoundingBoxInternal(std::dynamic_pointer_cast<const etree::MeshNode>(child));
-            childResult.first = glm::vec4(childResult.first, 1.0f)*child->getRelativeTransformation();
-            childResult.second = glm::vec4(childResult.second, 1.0f)*child->getRelativeTransformation();
+            childResult.first = glm::vec4(childResult.first, 1.0f) * child->getRelativeTransformation();
+            childResult.second = glm::vec4(childResult.second, 1.0f) * child->getRelativeTransformation();
             //std::cout << glm::to_string(childResult.first) << ", " << glm::to_string(childResult.second) << std::endl;
             //std::cout << glm::to_string(child->getRelativeTransformation()) << std::endl;
             if (first) {
@@ -238,8 +241,8 @@ std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBoxInternal(std:
 
     //std::cout << node->displayName << ": (" << x1 << ", " << y1 << ", " << z1 << "), (" << x2 << ", " << y2 << ", " << z2 << ")" << std::endl;
     return {
-        glm::vec4(x1, y1, z1, 1.0f),
-        glm::vec4(x2, y2, z2, 1.0f)
+            glm::vec4(x1, y1, z1, 1.0f),
+            glm::vec4(x2, y2, z2, 1.0f)
     };
 }
 

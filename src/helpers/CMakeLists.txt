@@ -4,8 +4,8 @@ target_sources(BrickSim PUBLIC
         platform_detection.h
         fraction.cpp
         fraction.h
-        camera.h
-        camera.cpp
+        ../camera.h
+        ../camera.cpp
         util.cpp
         util.h
         parts_library_downloader.cpp

@@ -6,7 +6,6 @@
 #include <mutex>
 #include <atomic>
 #include "element_tree.h"
-#include "renderer.h"
 #include "gui/gui.h"
 #include "thumbnail_generator.h"
 #include "tasks.h"
@@ -15,7 +14,9 @@ namespace controller {
     namespace {
         bool initializeGL();
         void window_size_callback(GLFWwindow *window, int width, int height);
+        void setWindowSize(unsigned int width, unsigned int height);
         void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+        void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
         void checkForFinishedBackgroundTasks();
         void glfwErrorCallback(int code, const char* message);
         void initialize();
@@ -25,8 +26,6 @@ namespace controller {
 
     int run();
     void set3dViewSize(unsigned int width, unsigned int height);
-
-    void setWindowSize(unsigned int width, unsigned int height);
 
     void openFile(const std::string& path);
     void saveFile();
@@ -67,7 +66,6 @@ namespace controller {
     void setElementTreeChanged(bool val);
     void setUserWantsToExit(bool val);
     std::set<std::shared_ptr<etree::Node>> & getSelectedNodes();
-    std::shared_ptr<Renderer> getRenderer();
     std::shared_ptr<etree::RootNode> getElementTree();
     std::shared_ptr<ThumbnailGenerator> getThumbnailGenerator();
     std::recursive_mutex & getOpenGlMutex();

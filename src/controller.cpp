@@ -1,12 +1,16 @@
 #include "controller.h"
-
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "info_providers/price_guide_provider.h"
 #include "db.h"
 #include "lib/stb_image.h"
+#include "lib/stb_image_write.h"
 #include "info_providers/bricklink_constants_provider.h"
 #include "latest_log_messages_tank.h"
 #include "ldr_files/ldr_file_repo.h"
 #include "keyboard_shortcut_manager.h"
+#include "config.h"
+#include "metrics.h"
 
 namespace controller {
     namespace {
@@ -14,9 +18,9 @@ namespace controller {
         std::shared_ptr<etree::RootNode> elementTree;
         bool elementTreeChanged = false;
         bool selectionChanged = false;
-        std::shared_ptr<Renderer> renderer;
         std::shared_ptr<ThumbnailGenerator> thumbnailGenerator;
-        std::shared_ptr<MeshCollection> meshCollection;
+        std::shared_ptr<Scene> mainScene;
+        std::shared_ptr<CadCamera> camera;
         unsigned int view3dWidth = 800;
         unsigned int view3dHeight = 600;
         unsigned int windowWidth;
@@ -138,11 +142,25 @@ namespace controller {
         }
 
         void window_size_callback(GLFWwindow *_, int width, int height) {
-            setWindowSize(width, height);
+            if (windowWidth != width || windowHeight!=height) {
+                windowWidth = width;
+                windowHeight = height;
+                std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+                glViewport(0, 0, width, height);
+            }
         }
 
         void keyCallback(GLFWwindow *_, int key, int scancode, int action, int mods) {
             keyboard_shortcut_manager::shortcutPressed(key, action, mods, gui::areKeysCaptured());
+        }
+
+        void scroll_callback(GLFWwindow *_, double xoffset, double yoffset) {
+            //todo use xoffset to do something, maybe pan?
+            gui::setLastScrollDeltaY(yoffset);
+            if (ImGui::GetIO().WantCaptureMouse) {
+                return;
+            }
+            camera->moveForwardBackward((float)yoffset);
         }
 
 
@@ -200,14 +218,13 @@ namespace controller {
             util::setStbiFlipVertically(true);
 
             elementTree = std::make_shared<etree::RootNode>();
-            meshCollection = std::make_shared<MeshCollection>(elementTree);
-            renderer = std::make_shared<Renderer>(meshCollection);
+            camera = std::make_shared<CadCamera>();
+            mainScene = scenes::get(scenes::MAIN_SCENE_ID);
+            mainScene->setCamera(camera);
+            mainScene->setRootNode(elementTree);
 
-            renderer->window = window;
             gui::setWindow(window);
             gui::initialize();
-            renderer->setWindowSize(view3dWidth, view3dHeight);
-            renderer->initialize();
 
             while (!ldr_file_repo::checkLdrawLibraryLocation()) {
                 loopPartsLibrarySetupPrompt();
@@ -217,7 +234,7 @@ namespace controller {
                     {"load color definitions",          ldr_color_repo::initialize},
                     {"initialize file list",            [](float *progress) { ldr_file_repo::get().initialize(progress); }},
                     {"initialize price guide provider", price_guide_provider::initialize},
-                    {"initialize thumbnail generator",  []() { thumbnailGenerator = std::make_shared<ThumbnailGenerator>(renderer, meshCollection); thumbnailGenerator->initialize(); }},
+                    {"initialize thumbnail generator",  []() { thumbnailGenerator = std::make_shared<ThumbnailGenerator>(); }},
                     {"initialize BrickLink constants",  [](float *progress) { bricklink_constants_provider::initialize(progress); }},
                     {"initialize keyboard shortcuts",  keyboard_shortcut_manager::initialize},
                     //{"initialize orientation cube generator", orientation_cube::initialize},
@@ -255,7 +272,6 @@ namespace controller {
 
         void cleanup() {
             ldr_file_repo::get().cleanup();
-            renderer->cleanup();
             auto &bgTasks = getBackgroundTasks();
             spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
             for (auto &task : bgTasks) {
@@ -321,18 +337,18 @@ namespace controller {
             auto before = std::chrono::high_resolution_clock::now();
 
             if (elementTreeChanged || selectionChanged) {
-                renderer->meshCollection->updateSelectionContainerBox();
+                //todo mainScene->meshCollection->updateSelectionContainerBox();
                 selectionChanged = false;
                 elementTreeChanged = true;
                 addMainloopTimePoint("meshCollection->updateSelectionContainerBox()");
             }
             if (elementTreeChanged) {
-                renderer->elementTreeChanged();
+                mainScene->elementTreeChanged();
                 elementTreeChanged = false;
                 addMainloopTimePoint("renderer->elementTreeChanged()");
             }
-            renderer->loop();
-            addMainloopTimePoint("renderer->loop()");
+            mainScene->updateImage();
+            addMainloopTimePoint("mainScene->updateImage()");
 
             gui::beginFrame();
             addMainloopTimePoint("gui::beginFrame()");
@@ -380,12 +396,6 @@ namespace controller {
     void set3dViewSize(unsigned int width, unsigned int height) {
         view3dWidth = width;
         view3dHeight = height;
-        renderer->setWindowSize(width, height);
-    }
-
-    void setWindowSize(unsigned int width, unsigned int height) {
-        windowWidth = width;
-        windowHeight = height;
     }
 
     void openFile(const std::string &path) {
@@ -491,19 +501,18 @@ namespace controller {
     }
 
     void setStandard3dView(int i) {
-        renderer->camera.setStandardView(i);
-        renderer->unrenderedChanges = true;
+        camera->setStandardView(i);
     }
 
     //todo test these values
-    void rotateViewUp(){renderer->camera.mouseRotate(0, -1);}
-    void rotateViewDown(){renderer->camera.mouseRotate(0, +1);}
-    void rotateViewLeft(){renderer->camera.mouseRotate(-1, 0);}
-    void rotateViewRight(){renderer->camera.mouseRotate(+1, 0);}
-    void panViewUp(){renderer->camera.mousePan(0, -1);}
-    void panViewDown(){renderer->camera.mousePan(0, +1);}
-    void panViewLeft(){renderer->camera.mousePan(-1, 0);}
-    void panViewRight(){renderer->camera.mousePan(+1, 0);}
+    void rotateViewUp(){camera->mouseRotate(0, -1);}
+    void rotateViewDown(){camera->mouseRotate(0, +1);}
+    void rotateViewLeft(){camera->mouseRotate(-1, 0);}
+    void rotateViewRight(){camera->mouseRotate(+1, 0);}
+    void panViewUp(){camera->mousePan(0, -1);}
+    void panViewDown(){camera->mousePan(0, +1);}
+    void panViewLeft(){camera->mousePan(-1, 0);}
+    void panViewRight(){camera->mousePan(+1, 0);}
 
     void insertLdrElement(const std::shared_ptr<LdrFile>& ldrFile) {
         auto currentlyEditingLdrNode = std::dynamic_pointer_cast<etree::LdrNode>(currentlyEditingNode);
@@ -569,10 +578,6 @@ namespace controller {
 
     std::set<std::shared_ptr<etree::Node>> & getSelectedNodes() {
         return selectedNodes;
-    }
-
-    std::shared_ptr<Renderer> getRenderer() {
-        return renderer;
     }
 
     std::shared_ptr<etree::RootNode> getElementTree() {

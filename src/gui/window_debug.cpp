@@ -13,7 +13,7 @@ namespace gui {
         const auto endIdx = (startIdx - 1) % count;
         ImGui::Text(ICON_FA_CHART_LINE" Application render average %.3f ms/frame (%.1f FPS)", arrPtr[endIdx], 1000.0 / arrPtr[endIdx]);
         ImGui::PlotLines("ms/frame", arrPtr, count, startIdx);
-        ImGui::Text(ICON_FA_STOPWATCH" Last 3D View render time: %.3f ms", metrics::last3DViewRenderTimeMs);
+        ImGui::Text(ICON_FA_STOPWATCH" Last 3D View render time: %.3f ms", metrics::lastSceneRenderTimeMs);
         ImGui::Text(ICON_FA_MEMORY" Total graphics buffer size: %s", util::formatBytesValue(metrics::vramUsageBytes).c_str());
         ImGui::Text(ICON_FA_IMAGES" Total thumbnail buffer size: %s", util::formatBytesValue(metrics::thumbnailBufferUsageBytes).c_str());
         ImGui::Text(ICON_FA_SYNC" Last element tree reread: %.2f ms", metrics::lastElementTreeRereadMs);

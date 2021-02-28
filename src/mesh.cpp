@@ -194,8 +194,6 @@ void Mesh::writeGraphicsData() {
         if (config::getBool(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES)) {
             addMinEnclosingBallLines();
         }
-        sortInstancesByLayer();
-        updateInstanceCountOfLayer();
 
         initializeTriangleGraphics();
         initializeLineGraphics();
@@ -290,13 +288,11 @@ void Mesh::initializeTriangleGraphics() {
 void Mesh::rewriteInstanceBuffer() {
     std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     if (instancesHaveChanged) {
-        sortInstancesByLayer();
-        updateInstanceCountOfLayer();
 
         //todo just clear buffer data when no instances
 
         size_t newBufferSize = (sizeof(TriangleInstance) * triangleIndices.size() + 2 * sizeof(glm::mat4)) * instances.size();
-        metrics::vramUsageBytes -= this->lastInstanceBufferSize;
+        metrics::vramUsageBytes -= lastInstanceBufferSize;
         metrics::vramUsageBytes += newBufferSize;
         lastInstanceBufferSize = newBufferSize;
         for (const auto &entry: triangleIndices) {
@@ -321,31 +317,6 @@ void Mesh::rewriteInstanceBuffer() {
         glBindBuffer(GL_ARRAY_BUFFER, optionalLineInstanceVBO);
         glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
         instancesHaveChanged = false;
-    }
-}
-
-void Mesh::sortInstancesByLayer() {
-    std::sort(instances.begin(), instances.end(),
-              [](const MeshInstance &a, const MeshInstance &b) {
-                  return a.layer > b.layer;
-              });
-}
-
-void Mesh::updateInstanceCountOfLayer() {
-    instanceCountOfLayer.clear();
-    if (!instances.empty()) {
-        layer_t layerNum = instances.begin()->layer;
-        unsigned int count = 0, totalCount = 0;
-        for (const auto &inst : instances) {
-            if (inst.layer!=layerNum) {
-                instanceCountOfLayer.emplace(layerNum, std::make_pair(count, totalCount));
-                layerNum = inst.layer;
-                totalCount += count;
-                count = 0;
-            }
-            count++;
-        }
-        instanceCountOfLayer.emplace(layerNum, std::make_pair(count, totalCount));
     }
 }
 
@@ -441,34 +412,34 @@ void Mesh::initializeOptionalLineGraphics() {
     delete[] instancesArray;
 }
 
-void Mesh::drawTriangleGraphics(layer_t layer) {
-    const auto it = instanceCountOfLayer.find(layer);
-    if (it != instanceCountOfLayer.cend()) {
+void Mesh::drawTriangleGraphics(scene_id_t sceneId, layer_t layer) {
+    auto range = getSceneLayerInstanceRange(sceneId, layer);
+    if (range.has_value()) {
         std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
         for (const auto &entry: triangleIndices) {
             const auto color = entry.first;
             const std::vector<unsigned int>& indices = entry.second;
             glBindVertexArray(VAOs[color]);
-            glDrawElementsInstancedBaseInstance(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, it->second.first, it->second.second);
+            glDrawElementsInstancedBaseInstance(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
         }
     }
 }
 
-void Mesh::drawLineGraphics(layer_t layer) {
-    const auto it = instanceCountOfLayer.find(layer);
-    if (it != instanceCountOfLayer.cend()) {
+void Mesh::drawLineGraphics(scene_id_t sceneId, layer_t layer) {
+    auto range = getSceneLayerInstanceRange(sceneId, layer);
+    if (range.has_value()) {
         std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
         glBindVertexArray(lineVAO);
-        glDrawElementsInstancedBaseInstance(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, it->second.first, it->second.second);
+        glDrawElementsInstancedBaseInstance(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
     }
 }
 
-void Mesh::drawOptionalLineGraphics(layer_t layer) {
-    const auto it = instanceCountOfLayer.find(layer);
-    if (it != instanceCountOfLayer.cend()) {
+void Mesh::drawOptionalLineGraphics(scene_id_t sceneId, layer_t layer) {
+    auto range = getSceneLayerInstanceRange(sceneId, layer);
+    if (range.has_value()) {
         std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
         glBindVertexArray(optionalLineVAO);
-        glDrawElementsInstancedBaseInstance(GL_LINES_ADJACENCY, optionalLineIndices.size(), GL_UNSIGNED_INT, nullptr, it->second.first, it->second.second);
+        glDrawElementsInstancedBaseInstance(GL_LINES_ADJACENCY, optionalLineIndices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
     }
 }
 
@@ -563,6 +534,107 @@ std::pair<glm::vec3, float> Mesh::getMinimalEnclosingBall() {
         }
     }
     return minimalEnclosingBall.value();
+}
+
+std::optional<Mesh::InstanceRange> Mesh::getSceneInstanceRange(scene_id_t sceneId) {
+    auto it = instanceSceneLayerRanges.find(sceneId);
+    if (it==instanceSceneLayerRanges.end()) {
+        return {};
+    }
+    const auto& layerMap = it->second;
+    auto start = layerMap.cbegin()->second.start;
+    auto count = layerMap.cend()->second.start-start+layerMap.cend()->second.count;
+    return {{start, count}};
+}
+
+std::optional<Mesh::InstanceRange> Mesh::getSceneLayerInstanceRange(scene_id_t sceneId, layer_t layer) {
+    const auto& it = instanceSceneLayerRanges.find(sceneId);
+    if (it != instanceSceneLayerRanges.end()) {
+        const auto& it2 = it->second.find(layer);
+        if (it2 != it->second.end()) {
+            return it2->second;
+        }
+    }
+    return {};
+}
+
+void Mesh::updateInstancesOfScene(scene_id_t sceneId, const std::vector<MeshInstance> &newSceneInstances) {
+    auto sceneRange = getSceneInstanceRange(sceneId);
+    if (sceneRange.has_value()) {
+        if (sceneRange->count != newSceneInstances.size()) {
+            //can't update in-place, going to add at the end
+            auto firstIndex = sceneRange->start;
+            auto afterLastIndex = firstIndex + sceneRange->count;
+            instances.erase(instances.begin() + firstIndex, instances.begin() + afterLastIndex);
+            for (auto &item : instanceSceneLayerRanges) {
+                auto& layerMap = item.second;
+                if (layerMap.cbegin()->second.start >= afterLastIndex) {
+                    //the instances of this scene are located after the sceneId, we have to update the ranges
+                    for (auto &layerRange : layerMap) {
+                        layerRange.second.start -= sceneRange->count;
+                    }
+                }
+            }
+            appendNewSceneInstancesAtEnd(sceneId, newSceneInstances);
+        } else {
+            //maybe the instances haven't changed at all
+            //going to replace the existing ones
+            auto destinationIt = instances.begin() + sceneRange->start;
+            auto sourceIt = newSceneInstances.begin();
+            layer_t currentLayer = sourceIt->layer;
+            unsigned int layerStart = sceneRange->start;
+            unsigned int currentLayerInstanceCount = 0;
+            auto& thisSceneRanges = instanceSceneLayerRanges[sceneId];
+            thisSceneRanges.clear();
+            while (sourceIt != newSceneInstances.end()) {
+                if (destinationIt->operator!=(*sourceIt)) {
+                    instancesHaveChanged = true;
+                    *destinationIt = *sourceIt;
+                }
+                if (currentLayer == sourceIt->layer) {
+                    currentLayerInstanceCount++;
+                } else {
+                    thisSceneRanges.emplace(currentLayer, InstanceRange{layerStart, currentLayerInstanceCount});
+                    currentLayer = sourceIt->layer;
+                    layerStart += currentLayerInstanceCount;
+                    currentLayerInstanceCount = 1;
+                }
+                ++destinationIt;
+                ++sourceIt;
+            }
+            thisSceneRanges.emplace(currentLayer, InstanceRange{layerStart, currentLayerInstanceCount});
+        }
+    } else {
+        appendNewSceneInstancesAtEnd(sceneId, newSceneInstances);
+    }
+}
+
+void Mesh::appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<MeshInstance> &newSceneInstances) {
+    auto& thisSceneRanges = instanceSceneLayerRanges[sceneId];
+    thisSceneRanges.clear();
+
+    auto sourceIt = newSceneInstances.cbegin();
+    layer_t currentLayer = sourceIt->layer;
+    unsigned int layerStart = instances.size();
+    unsigned int currentLayerInstanceCount = 0;
+    instances.reserve(instances.size()+newSceneInstances.size());
+
+    while (sourceIt != newSceneInstances.end()) {
+        instances.push_back(*sourceIt);
+        if (currentLayer == sourceIt->layer) {
+            currentLayerInstanceCount++;
+        } else {
+            thisSceneRanges.emplace(currentLayer, InstanceRange{layerStart, currentLayerInstanceCount});
+            currentLayer = sourceIt->layer;
+            layerStart += currentLayerInstanceCount;
+            currentLayerInstanceCount = 1;
+        }
+        ++sourceIt;
+    }
+    thisSceneRanges.emplace(currentLayer, InstanceRange{layerStart, currentLayerInstanceCount});
+
+    instances.insert(instances.end(), newSceneInstances.begin(), newSceneInstances.end());
+    instancesHaveChanged = true;
 }
 
 bool MeshInstance::operator==(const MeshInstance &other) const {

@@ -8,9 +8,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <vector>
+#include "element_tree.h"
 
+class Camera {
+public:
+    [[nodiscard]] virtual const glm::mat4 &getViewMatrix() const = 0;
+    [[nodiscard]] virtual const glm::vec3 &getCameraPos() const = 0;
+};
 
-class CadCamera {
+class CadCamera : public Camera {
 public:
     CadCamera();
 
@@ -21,8 +27,8 @@ public:
     void setYaw(float value);//degrees
     void setDistance(float value);
 
-    [[nodiscard]] glm::mat4 getViewMatrix() const;
-    [[nodiscard]] const glm::vec3 &getCameraPos() const;
+    [[nodiscard]] const glm::mat4 &getViewMatrix() const override;
+    [[nodiscard]] const glm::vec3 &getCameraPos() const override;
 
     void mouseRotate(float x_delta, float y_delta);
     void mousePan(float x_delta, float y_delta);
@@ -41,4 +47,15 @@ private:
     glm::mat4 viewMatrix;
     void updateVectors();
 };
+
+class FitContentCamera : public Camera {
+public:
+    void setRootNode(const std::shared_ptr<etree::MeshNode>& node);
+    [[nodiscard]] const glm::mat4 &getViewMatrix() const override;
+    [[nodiscard]] const glm::vec3 &getCameraPos() const override;
+private:
+    glm::mat4 viewMatrix;
+    glm::vec3 cameraPos;
+};
+
 #endif //BRICKSIM_CAMERA_H

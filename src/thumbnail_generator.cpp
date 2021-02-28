@@ -5,7 +5,7 @@
 #include "controller.h"
 #include "latest_log_messages_tank.h"
 
-unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile>& ldrFile, const LdrColorReference color) {
+unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile> &ldrFile, const LdrColorReference color) {
     if (renderedRotationDegrees != rotationDegrees) {
         discardAllImages();
         renderedRotationDegrees = rotationDegrees;
@@ -15,91 +15,34 @@ unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile>& ld
     if (imgIt == images.end()) {
         spdlog::debug("rendering thumbnail {} in {}", ldrFile->getDescription(), color.get()->name);
         auto before = std::chrono::high_resolution_clock::now();
-        if (framebufferSize != size) {
-            renderer->createFramebuffer(&framebuffer, &textureBuffer, &renderBuffer, size, size);
-        }
-        auto meshKey = std::make_pair((void *) ldrFile.get(), false);
-        auto it = meshCollection->meshes.find(meshKey);
-        std::shared_ptr<Mesh> mesh;
-        std::vector<MeshInstance> instanceBackup;
-        if (it != meshCollection->meshes.end()) {
-            mesh = it->second;
-            instanceBackup = mesh->instances;
-            mesh->instances.clear();
-        } else {
-            mesh = std::make_shared<Mesh>();
-            meshCollection->meshes[meshKey] = mesh;
-            mesh->name = ldrFile->getDescription();
-            mesh->addLdrFile(ldrFile, glm::mat4(1.0f), ldr_color_repo::getInstanceDummyColor(), false);
-        }
+        scene->setImageSize({size, size});
 
-        const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
-        glm::vec3 center = glm::vec4(minimalEnclosingBall.first, 1.0f) * mesh->globalModel;
-        auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL_SCALE;
+        auto partNode = std::make_shared<etree::PartNode>(ldrFile, color, nullptr);
+        scene->setRootNode(partNode);
+        camera->setRootNode(partNode);
 
-        MeshInstance tmpInstance{
-                color,
-                glm::mat4(1.0f),
-                0,
-                false,
-                constants::DEFAULT_LAYER
-        };
-        mesh->instances.push_back(tmpInstance);
-        mesh->instancesHaveChanged = true;
-        mesh->writeGraphicsData();
+        scene->updateImage();
 
-        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-        auto distance = meshRadius*2.45f;
-        auto s = glm::radians(45.0f);//todo make variable
-        auto t = glm::radians(45.0f);
-        glm::vec3 viewPos = glm::vec3(
-                distance * std::cos(s) * std::cos(t),
-                distance * std::sin(s) * std::cos(t),
-                distance * std::sin(t)
-        ) + center;
-
-        auto view = glm::lookAt(viewPos,
-                                glm::vec3(0) + center,
-                                glm::vec3(0.0f, 1.0f, 0.0f));
-        auto projectionView = projection * view;
-
+        const auto totalBufferSize = size * size * 3;
+        metrics::thumbnailBufferUsageBytes += totalBufferSize;
+        auto buffer = std::make_unique<GLbyte[]>(totalBufferSize);
         {
-            renderer->triangleShader->use();
-            renderer->triangleShader->setInt("drawSelection", 0);
-            glViewport(0, 0, size, size);
-            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
 
-            renderer->triangleShader->setVec3("viewPos", viewPos);
-            renderer->triangleShader->setMat4("projectionView", projectionView);
-            mesh->drawTriangleGraphics();
-
-            renderer->lineShader->use();
-            renderer->lineShader->setMat4("projectionView", projectionView);
-            mesh->drawLineGraphics();
-            renderer->optionalLineShader->use();
-            renderer->optionalLineShader->setMat4("projectionView", projectionView);
-            mesh->drawOptionalLineGraphics();
-
-            const auto totalBufferSize = size * size * 3;
-            metrics::thumbnailBufferUsageBytes += totalBufferSize;
-            auto buffer = std::make_unique<GLbyte[]>(totalBufferSize);
+            //todo copy image directrly (VRAM -> VRAM instead of VRAM -> RAM -> VRAM)
+            glBindFramebuffer(GL_FRAMEBUFFER, scene->getImage().getFBO());
             glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
             unsigned int textureId;
             glGenTextures(1, &textureId);
             glBindTexture(GL_TEXTURE_2D, textureId);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);//todo this causes source=API, type=ERROR, id=1282: Error has been generated. GL error GL_INVALID_OPERATION in FramebufferTexture2D: (ID: 2333930068) Generic error
+            //todo this causes source=API, type=ERROR, id=1282: Error has been generated. GL error GL_INVALID_OPERATION in FramebufferTexture2D: (ID: 2333930068) Generic error
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
             images[fileKey] = textureId;
-            mesh->instances = instanceBackup;
-            mesh->instancesHaveChanged = true;
-            mesh->writeGraphicsData();
-
-            glViewport(0, 0, renderer->windowWidth, renderer->windowHeight);
         }
         auto after = std::chrono::high_resolution_clock::now();
         metrics::lastThumbnailRenderingTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0;
@@ -109,14 +52,6 @@ unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile>& ld
     return images[fileKey];
 }
 
-void ThumbnailGenerator::saveFramebufferToBMP(const std::string &filename) const {
-    std::filesystem::create_directories(std::filesystem::path(filename).parent_path());
-    auto *pixels = new GLubyte[size * size * 4];
-    glReadPixels(0, 0, size, size, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-    stbi_write_bmp(filename.c_str(), size, size, 4, pixels);
-    delete[] pixels;
-}
-
 void ThumbnailGenerator::discardAllImages() {
     std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     for (const auto &item : images) {
@@ -124,16 +59,6 @@ void ThumbnailGenerator::discardAllImages() {
     }
     images.clear();
     lastAccessed.clear();
-}
-
-ThumbnailGenerator::ThumbnailGenerator(std::shared_ptr<Renderer> renderer, std::shared_ptr<MeshCollection> meshCollection) : renderer(std::move(renderer)), meshCollection(std::move(meshCollection)) {
-}
-
-void ThumbnailGenerator::initialize() {
-    size = config::getInt(config::THUMBNAIL_SIZE);
-    maxCachedThumbnails = config::getInt(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
-    projection = glm::perspective(glm::radians(50.0f), 1.0f, 0.001f, 1000.0f);
-    rotationDegrees = glm::vec3(45, -45, 0);
 }
 
 void ThumbnailGenerator::discardOldestImages(int reserve_space_for) {
@@ -149,11 +74,7 @@ void ThumbnailGenerator::discardOldestImages(int reserve_space_for) {
     metrics::thumbnailBufferUsageBytes -= size * size * 3 * deletedCount;
 }
 
-void ThumbnailGenerator::cleanup() {
-    Renderer::deleteFramebuffer(&framebuffer, &textureBuffer, &renderBuffer);
-}
-
-std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference color) {
+std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const std::shared_ptr<LdrFile> &ldrFile, LdrColorReference color) {
     if (renderedRotationDegrees != rotationDegrees) {
         discardAllImages();
         renderedRotationDegrees = rotationDegrees;
@@ -161,7 +82,7 @@ std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const st
     file_key_t fileKey = {ldrFile, color};
     auto imgIt = images.find(fileKey);
     if (imgIt == images.end()) {
-        if (std::find(renderRequests.begin(), renderRequests.end(), fileKey)==renderRequests.end()) {
+        if (std::find(renderRequests.begin(), renderRequests.end(), fileKey) == renderRequests.end()) {
             renderRequests.push_back(fileKey);
         }
         return {};
@@ -179,19 +100,20 @@ bool ThumbnailGenerator::workOnRenderQueue() {
     return !renderRequests.empty();
 }
 
-unsigned int ThumbnailGenerator::copyFramebufferToTexture() const {
+unsigned int ThumbnailGenerator::copyImageToTexture() const {
     std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     //todo this is from https://stackoverflow.com/questions/15306899/is-it-possible-to-copy-data-from-one-framebuffer-to-another-in-opengl but it didn't work
     unsigned int destinationTextureId;
     glGenTextures(1, &destinationTextureId);
 
     // bind fbo as read / draw fbo
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+    const auto &image = scene->getImage();
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, image.getFBO());
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, image.getFBO());
 
     // bind source texture to color attachment
-    glBindTexture(GL_TEXTURE_2D, textureBuffer);
-    glFramebufferTexture2D(GL_TEXTURE_2D, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureBuffer, 0);
+    glBindTexture(GL_TEXTURE_2D, image.getTexBO());
+    glFramebufferTexture2D(GL_TEXTURE_2D, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, image.getTexBO(), 0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     // bind destination texture to another color attachment
@@ -215,15 +137,25 @@ bool ThumbnailGenerator::renderQueueEmpty() {
     return renderRequests.empty();
 }
 
-bool ThumbnailGenerator::isThumbnailAvailable(const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference color) {
+bool ThumbnailGenerator::isThumbnailAvailable(const std::shared_ptr<LdrFile> &ldrFile, LdrColorReference color) {
     file_key_t fileKey = {ldrFile, color};
     return images.find(fileKey) != images.end();
 }
 
-void ThumbnailGenerator::removeFromRenderQueue(const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference color) {
+void ThumbnailGenerator::removeFromRenderQueue(const std::shared_ptr<LdrFile> &ldrFile, LdrColorReference color) {
     file_key_t fileKey = {ldrFile, color};
     auto it = std::find(renderRequests.begin(), renderRequests.end(), fileKey);
     if (it != renderRequests.end()) {
         renderRequests.erase(it);
     }
+}
+
+ThumbnailGenerator::ThumbnailGenerator()
+        : scene(scenes::create(scenes::THUMBNAIL_SCENE_ID)),
+          camera(std::make_shared<FitContentCamera>()),
+          size(config::getInt(config::THUMBNAIL_SIZE)),
+          projection(glm::perspective(glm::radians(50.0f), 1.0f, 0.001f, 1000.0f)),
+          rotationDegrees(glm::vec3(45, -45, 0)) {
+    maxCachedThumbnails = config::getInt(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
+    scene->setCamera(camera);
 }

@@ -13,6 +13,6 @@ namespace metrics {
     float lastElementTreeRereadMs = 0;
     float lastThumbnailRenderingTimeMs = 0;
     std::vector<std::pair<std::string, float>> lastWindowDrawingTimesUs = {};
-    float last3DViewRenderTimeMs;
+    float lastSceneRenderTimeMs;
     std::vector<std::pair<const char*, unsigned int>> mainloopTimePointsUs;
 }

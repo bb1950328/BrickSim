@@ -84,4 +84,4 @@ function clearSearchResults(){let searchResults=hasSearchResults();let actionabl
 function onEscape(fn){window.addEventListener('keydown',function(event){if(event.code==="Escape"){fn();}});}
 let main=elem('main');if(!main){main=elem('.main');}
 searchPageElement?false:liveSearch();passiveSearch();wrapText(findQuery(),main);onEscape(clearSearchResults);window.addEventListener('click',function(event){const target=event.target;const isSearch=target.closest('.search')||target.matches('.search');if(!isSearch&&!searchPageElement){clearSearchResults();}});}
-window.addEventListener('load',function(){fetch(`${rootURL}index.json`).then(response=>response.json()).then(function(data){data=data.length?data:[];initializeSearch(data);}).catch((error)=>console.error(error));});
+window.addEventListener('load',function(){fetch(new URL("index.json",rootURL).href).then(response=>response.json()).then(function(data){data=data.length?data:[];initializeSearch(data);}).catch((error)=>console.error(error));});

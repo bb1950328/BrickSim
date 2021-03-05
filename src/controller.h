@@ -68,7 +68,10 @@ namespace controller {
     std::set<std::shared_ptr<etree::Node>> & getSelectedNodes();
     std::shared_ptr<etree::RootNode> getElementTree();
     std::shared_ptr<ThumbnailGenerator> getThumbnailGenerator();
-    std::recursive_mutex & getOpenGlMutex();
+    std::shared_ptr<Scene> getMainScene();
+    std::shared_ptr<CadCamera> getMainSceneCamera();
+
+    void executeOpenGL(std::function<void()> const &functor);
 
     std::map<unsigned int, Task *> & getBackgroundTasks();
     void addBackgroundTask(std::string name, const std::function<void()>& function);

@@ -3,6 +3,7 @@
 #include "gui.h"
 #include "../controller.h"
 #include "gui_internal.h"
+#include "../config.h"
 
 namespace gui {
     void windows::draw3dWindow(bool *show) {
@@ -36,22 +37,20 @@ namespace gui {
 
                     if (isDragging && mouseHasMoved) {
                         if (lastLeftDown && nowLeftDown) {
-                            controller::getRenderer()->camera.mouseRotate(deltaX, deltaY);
-                            controller::getRenderer()->unrenderedChanges = true;
+                            controller::getMainSceneCamera()->mouseRotate(deltaX, deltaY);
                         }
                         if (lastRightDown && nowRightDown) {
-                            controller::getRenderer()->camera.mousePan(deltaX, deltaY);
-                            controller::getRenderer()->unrenderedChanges = true;
+                            controller::getMainSceneCamera()->mousePan(deltaX, deltaY);
                         }
                     }
                     if ((lastLeftDown && !nowLeftDown) && !isDragging) {
                         const auto relCursorPosX = mousePos.x - windowPos.x - regionMin.x;
                         const auto relCursorPosY = mousePos.y - windowPos.y - regionMin.y;
-                        const auto elementIdUnderMouse = controller::getRenderer()->getSelectionPixel(relCursorPosX, relCursorPosY);
+                        const auto elementIdUnderMouse = controller::getMainScene()->getSelectionPixel(relCursorPosX, relCursorPosY);
                         if (elementIdUnderMouse == 0) {
                             controller::nodeSelectNone();
                         } else {
-                            auto clickedNode = controller::getRenderer()->meshCollection->getElementById(elementIdUnderMouse);
+                            auto clickedNode = controller::getMainScene()->getMeshCollection().getElementById(elementIdUnderMouse);
                             if (clickedNode != nullptr) {
                                 if (imGuiIo.KeyCtrl) {
                                     controller::nodeSelectAddRemove(clickedNode);
@@ -73,14 +72,13 @@ namespace gui {
 
                     auto lastScrollDeltaY = getLastScrollDeltaY();
                     if (std::abs(lastScrollDeltaY) > 0.01) {
-                        controller::getRenderer()->camera.moveForwardBackward((float) lastScrollDeltaY);
-                        controller::getRenderer()->unrenderedChanges = true;
+                        controller::getMainSceneCamera()->moveForwardBackward((float) lastScrollDeltaY);
                     }
                 }
             }
             auto texture3dView = gui_internal::convertTextureId(config::getBool(config::DISPLAY_SELECTION_BUFFER)
-                                                ? controller::getRenderer()->selectionTextureColorbuffer
-                                                : controller::getRenderer()->imageTextureColorbuffer);
+                                                ? controller::getMainScene()->getSelectionImage()->getTexBO()
+                                                : controller::getMainScene()->getImage().getTexBO());
             ImGui::ImageButton(texture3dView, regionAvail, ImVec2(0, 1), ImVec2(1, 0), 0);
             ImGui::EndChild();
         }

@@ -6,52 +6,52 @@
 #include "metrics.h"
 #include "config.h"
 
-CompleteFramebuffer::CompleteFramebuffer(glm::usvec2 size) { // NOLINT(cppcoreguidelines-pro-type-member-init)
-    size = size;
-    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-    glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+CompleteFramebuffer::CompleteFramebuffer(glm::usvec2 size_): size(size_) { // NOLINT(cppcoreguidelines-pro-type-member-init)
+    controller::executeOpenGL([this](){
+        glGenFramebuffers(1, &framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-    // create a color attachment texture
-    glGenTextures(1, &textureColorbuffer);
-    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+        // create a color attachment texture
+        glGenTextures(1, &textureColorbuffer);
+        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
 
-    // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-    glGenRenderbuffers(1, &renderBufferObject);
-    glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size.x, size.y); // use a single renderbuffer object for both a depth AND stencil buffer.
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject); // now actually attach it
+        // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+        glGenRenderbuffers(1, &renderBufferObject);
+        glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size.x, size.y); // use a single renderbuffer object for both a depth AND stencil buffer.
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject); // now actually attach it
 
-    // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        spdlog::error("Framebuffer is not complete");
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            spdlog::error("Framebuffer is not complete");
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    });
 }
 
 CompleteFramebuffer::~CompleteFramebuffer() {
-    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-    glDeleteRenderbuffers(1, &renderBufferObject);
-    glDeleteTextures(1, &textureColorbuffer);
-    glDeleteFramebuffers(1, &framebuffer);
+    controller::executeOpenGL([this](){
+        glDeleteRenderbuffers(1, &renderBufferObject);
+        glDeleteTextures(1, &textureColorbuffer);
+        glDeleteFramebuffers(1, &framebuffer);
+    });
 }
 
-void CompleteFramebuffer::saveImage(const std::filesystem::path &path) {
+void CompleteFramebuffer::saveImage(const std::filesystem::path &path) const {
     spdlog::info("saveImage(\"{}\")", path.string());
     const int channels = 3;
 
     auto data = std::vector<GLubyte>();
     data.resize(size.x * size.y * channels);
-    {
-        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+    controller::executeOpenGL([this, &data](){
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glReadPixels(0, 0, size.x, size.y, GL_RGB, GL_UNSIGNED_BYTE, &data[0]);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
+    });
 
     const bool success = util::writeImage(path.c_str(), &data[0], size.x, size.y, channels);
     if (!success) {
@@ -72,17 +72,19 @@ void CompleteFramebuffer::setSize(const glm::usvec2 &newSize) {
         return;
     }
     size = newSize;
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    controller::executeOpenGL([this](){
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-    glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
-    glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size.x, size.y);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size.x, size.y);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    });
 }
 
 unsigned int CompleteFramebuffer::getTexBO() const {
@@ -93,59 +95,40 @@ unsigned int CompleteFramebuffer::getRBO() const {
     return renderBufferObject;
 }
 
-std::unique_ptr<Shader> Scene::triangleShader = nullptr;
-std::unique_ptr<Shader> Scene::lineShader = nullptr;
-std::unique_ptr<Shader> Scene::optionalLineShader = nullptr;
-std::unique_ptr<Shader> Scene::textureShader = nullptr;
-std::unique_ptr<Shader> Scene::overlayShader = nullptr;
-
-Scene::Scene(scene_id_t sceneId) : image(glm::usvec2()), meshCollection(sceneId), id(sceneId), imageUpToDate(false), elementTreeRereadNeeded(false) {
-    if (textureShader == nullptr) {
-        textureShader = std::make_unique<Shader>("src/shaders/triangle_shader.vsh", "src/shaders/triangle_shader.fsh");
-        lineShader = std::make_unique<Shader>("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");
-        optionalLineShader = std::make_unique<Shader>("src/shaders/optional_line_shader.vsh", "src/shaders/line_shader.fsh", "src/shaders/optional_line_shader.gsh");
-        textureShader = std::make_unique<Shader>("src/shaders/texture_shader.vsh", "src/shaders/texture_shader.fsh");
-        overlayShader = std::make_unique<Shader>("src/shaders/overlay_shader.vsh", "src/shaders/overlay_shader.fsh");
-
-        triangleShader->use();
-        triangleShader->setVec3("light.position", glm::vec3(0, 5, 0));//todo set to camera pos
-        glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
-        glm::vec3 ambientColor = diffuseColor * glm::vec3(1.3f);
-        triangleShader->setVec3("light.ambient", ambientColor);
-        triangleShader->setVec3("light.diffuse", diffuseColor);
-        triangleShader->setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-    }
+Scene::Scene(scene_id_t sceneId) : image({64, 64}), meshCollection(sceneId), id(sceneId), imageUpToDate(false), elementTreeRereadNeeded(false) {
     setImageSize({10, 10});
 }
 
 unsigned int Scene::getSelectionPixel(framebuffer_size_t x, framebuffer_size_t y) {
     //todo don't render the selection image again if nothing has changed
-    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     if (selection.has_value()) {
         selection->setSize(imageSize);
     } else {
         selection.emplace(imageSize);
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, selection->getFBO());
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    const glm::mat4 projectionView = projectionMatrix * camera->getViewMatrix();
-
-    triangleShader->use();
-    triangleShader->setInt("drawSelection", 1);//todo check if a dedicated selectionTriangleShader is faster
-    for (const auto &layer : meshCollection.getLayersInUse()) {
-        glClear(GL_DEPTH_BUFFER_BIT);
-        triangleShader->use();
-        meshCollection.drawTriangleGraphics(layer);
-        textureShader->use();
-        meshCollection.drawTexturedTriangleGraphics(layer);
-    }
-
     GLubyte middlePixel[3];
-    glReadPixels(x, (selection->getSize().y - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    const glm::mat4 projectionView = projectionMatrix * camera->getViewMatrix();
+    controller::executeOpenGL([this, &x, &y, &middlePixel](){
+        glBindFramebuffer(GL_FRAMEBUFFER, selection->getFBO());
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        const auto& triangleShader = shaders::get(shaders::TRIANGLE);
+        const auto& textureShader = shaders::get(shaders::TEXTURED_TRIANGLE);
+        triangleShader.use();
+        triangleShader.setInt("drawSelection", 1);//todo check if a dedicated selectionTriangleShader is faster
+        for (const auto &layer : meshCollection.getLayersInUse()) {
+            glClear(GL_DEPTH_BUFFER_BIT);
+            triangleShader.use();
+            meshCollection.drawTriangleGraphics(layer);
+            textureShader.use();
+            meshCollection.drawTexturedTriangleGraphics(layer);
+        }
+
+        glReadPixels(x, (selection->getSize().y - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    });
+
     return util::getIntFromColor(middlePixel[0], middlePixel[1], middlePixel[2]);
 }
 
@@ -155,6 +138,7 @@ const std::shared_ptr<etree::Node> &Scene::getRootNode() const {
 
 void Scene::setRootNode(const std::shared_ptr<etree::Node> &newRootNode) {
     rootNode = newRootNode;
+    meshCollection.setRootNode(rootNode);
     elementTreeChanged();
 }
 
@@ -189,37 +173,43 @@ void Scene::updateImage() {
 
     if (!imageUpToDate) {
         auto before = std::chrono::high_resolution_clock::now();
-        std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-        glBindFramebuffer(GL_FRAMEBUFFER, image.getFBO());
-        const auto &bgColor = util::RGBcolor(config::getString(config::BACKGROUND_COLOR)).asGlmVector();
-        glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        controller::executeOpenGL([this](){
+            glBindFramebuffer(GL_FRAMEBUFFER, image.getFBO());
+            const auto &bgColor = util::RGBcolor(config::getString(config::BACKGROUND_COLOR)).asGlmVector();
+            glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
 
-        glm::mat4 view = camera->getViewMatrix();
-        const glm::mat4 &projectionView = projectionMatrix * view;
+            glm::mat4 view = camera->getViewMatrix();
+            const glm::mat4 &projectionView = projectionMatrix * view;
 
-        for (const auto &layer : meshCollection.getLayersInUse()) {
-            glClear(GL_DEPTH_BUFFER_BIT);
-            triangleShader->use();
-            triangleShader->setVec3("viewPos", camera->getCameraPos());
-            triangleShader->setMat4("projectionView", projectionView);
-            triangleShader->setInt("drawSelection", 0);
-            meshCollection.drawTriangleGraphics(layer);
+            const auto& triangleShader = shaders::get(shaders::TRIANGLE);
+            const auto& textureShader = shaders::get(shaders::TEXTURED_TRIANGLE);
+            const auto& lineShader = shaders::get(shaders::LINE);
+            const auto& optionalLineShader = shaders::get(shaders::OPTIONAL_LINE);
+            for (const auto &layer : meshCollection.getLayersInUse()) {
+                glClear(GL_DEPTH_BUFFER_BIT);
+                triangleShader.use();
+                triangleShader.setVec3("viewPos", camera->getCameraPos());
+                triangleShader.setMat4("projectionView", projectionView);
+                triangleShader.setInt("drawSelection", 0);
+                meshCollection.drawTriangleGraphics(layer);
 
-            textureShader->use();
-            meshCollection.drawTexturedTriangleGraphics(layer);
+                textureShader.use();
+                meshCollection.drawTexturedTriangleGraphics(layer);
 
-            lineShader->use();
-            lineShader->setMat4("projectionView", projectionView);
-            meshCollection.drawLineGraphics(layer);
+                lineShader.use();
+                lineShader.setMat4("projectionView", projectionView);
+                meshCollection.drawLineGraphics(layer);
 
-            optionalLineShader->use();
-            optionalLineShader->setMat4("projectionView", projectionView);
-            meshCollection.drawOptionalLineGraphics(layer);
-        }
+                optionalLineShader.use();
+                optionalLineShader.setMat4("projectionView", projectionView);
+                meshCollection.drawOptionalLineGraphics(layer);
+            }
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glFinish();
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glFinish();
+        });
+
         imageUpToDate = true;
 
         auto after = std::chrono::high_resolution_clock::now();
@@ -233,6 +223,14 @@ void Scene::elementTreeChanged() {
 
 const CompleteFramebuffer &Scene::getImage() const {
     return image;
+}
+
+const std::optional<CompleteFramebuffer>& Scene::getSelectionImage() const {
+    return selection;
+}
+
+const SceneMeshCollection &Scene::getMeshCollection() const {
+    return meshCollection;
 }
 
 namespace scenes {
@@ -253,5 +251,9 @@ namespace scenes {
             throw std::invalid_argument("scene with this id not created yet");
         }
         return it->second;
+    }
+
+    void deleteAll() {
+        createdScenes.clear();
     }
 }

@@ -25,7 +25,7 @@ std::shared_ptr<Mesh> SceneMeshCollection::getMesh(mesh_key_t key, const std::sh
     return it->second;
 }
 
-std::shared_ptr<etree::Node> SceneMeshCollection::getElementById(unsigned int id) {
+std::shared_ptr<etree::Node> SceneMeshCollection::getElementById(unsigned int id) const {
     if (elementsSortedById.size() > id) {
         return elementsSortedById[id];
     }
@@ -33,26 +33,26 @@ std::shared_ptr<etree::Node> SceneMeshCollection::getElementById(unsigned int id
 }
 
 void SceneMeshCollection::drawLineGraphics(const layer_t layer) const {
-    for (const auto &pair: usedMeshes) {
-        pair.second->drawLineGraphics(scene, layer);
+    for (const auto &mesh: usedMeshes) {
+        mesh->drawLineGraphics(scene, layer);
     }
 }
 
 void SceneMeshCollection::drawOptionalLineGraphics(const layer_t layer) const {
-    for (const auto &pair: usedMeshes) {
-        pair.second->drawOptionalLineGraphics(scene, layer);
+    for (const auto &mesh: usedMeshes) {
+        mesh->drawOptionalLineGraphics(scene, layer);
     }
 }
 
 void SceneMeshCollection::drawTriangleGraphics(const layer_t layer) const {
-    for (const auto &pair: usedMeshes) {
-        pair.second->drawTriangleGraphics(scene, layer);
+    for (const auto &mesh: usedMeshes) {
+        mesh->drawTriangleGraphics(scene, layer);
     }
 }
 
 void SceneMeshCollection::drawTexturedTriangleGraphics(const layer_t layer) const {
-    for (const auto &pair: usedMeshes) {
-        pair.second->drawTexturedTriangleGraphics(scene, layer);
+    for (const auto &mesh: usedMeshes) {
+        mesh->drawTexturedTriangleGraphics(scene, layer);
     }
 }
 
@@ -120,8 +120,8 @@ void SceneMeshCollection::rereadElementTree() {
     readElementTree(rootNode, glm::mat4(1.0f), {}, std::nullopt);
     updateMeshInstances();
     nodesWithChildrenAlreadyVisited.clear();
-    for (const auto &mesh: allMeshes) {
-        mesh.second->writeGraphicsData();
+    for (const auto &mesh: usedMeshes) {
+        mesh->writeGraphicsData();
     }
     auto after = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
@@ -132,7 +132,7 @@ void SceneMeshCollection::updateMeshInstances() {
     for (const auto &pair : newMeshInstances) {
         auto meshKey = pair.first;
         auto newInstancesOfThisScene = pair.second;
-        auto mesh = usedMeshes[meshKey];
+        auto mesh = allMeshes[meshKey];
 
         std::sort(newInstancesOfThisScene.begin(), newInstancesOfThisScene.end(), [](MeshInstance& a, MeshInstance& b){
             return a.layer > b.layer;
@@ -147,7 +147,7 @@ void SceneMeshCollection::updateSelectionContainerBox() {
     static std::shared_ptr<Mesh> selectionBoxMesh = nullptr;
     if (selectionBoxMesh == nullptr) {
         selectionBoxMesh = std::make_shared<Mesh>();
-        usedMeshes[std::make_pair(selectionBoxMesh.get(), false)] = selectionBoxMesh;
+        usedMeshes.insert(selectionBoxMesh);
         selectionBoxMesh->addLdrFile(ldr_file_repo::get().getFile("box0.dat"), glm::mat4(1.0f), ldr_color_repo::getInstanceDummyColor(), false);
     }
     selectionBoxMesh->instances.clear();
@@ -186,15 +186,15 @@ std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBox(const std::s
 }
 
 //relative to parameter node
-std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBoxInternal(std::shared_ptr<const etree::MeshNode> node) const {
+std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBoxInternal(const std::shared_ptr<const etree::MeshNode>& node) const {
     //todo something here is wrong for subfile instances
     glm::mat4 absoluteTransformation;
     absoluteTransformation = node->getAbsoluteTransformation();
     bool windingInversed = util::doesTransformationInverseWindingOrder(absoluteTransformation);
-    auto it = usedMeshes.find(std::make_pair(node->getMeshIdentifier(), windingInversed));
+    auto it = allMeshes.find(std::make_pair(node->getMeshIdentifier(), windingInversed));
     float x1 = 0, x2 = 0, y1 = 0, y2 = 0, z1 = 0, z2 = 0;
     bool first = true;
-    if (it != usedMeshes.end()) {
+    if (it != allMeshes.end()) {
         const auto mesh = it->second;
         for (const auto &colorPair : mesh->triangleVertices) {
             for (const auto &triangleVertex : colorPair.second) {//todo check if iterating over line vertices is faster
@@ -254,4 +254,16 @@ std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBoxInternal(std:
 
 const std::set<layer_t> &SceneMeshCollection::getLayersInUse() const {
     return layersInUse;
+}
+
+const std::shared_ptr<etree::Node> &SceneMeshCollection::getRootNode() const {
+    return rootNode;
+}
+
+void SceneMeshCollection::setRootNode(const std::shared_ptr<etree::Node> &newRootNode) {
+    SceneMeshCollection::rootNode = newRootNode;
+}
+
+void SceneMeshCollection::deleteAllMeshes() {
+    allMeshes.clear();
 }

@@ -6,97 +6,9 @@
 
 namespace orientation_cube {
     namespace {
-/*
- 0      1/6      1/3    1/2    2/3   5/6      1
- ********************************************** 1
- * Right * Bottom * Back * Left * Top * Front *
- *  +X   *   +Y   *  +Z  *  -X  * -Y  *  -Z   *
- * ******************************************** 0
- * */
-
-        //const glm::vec3 frontLeftBottom{-1, +1, -1};
-        //const glm::vec3 frontLeftTop{-1, -1, -1};
-        //const glm::vec3 rearLeftTop{-1, -1, +1};
-        //const glm::vec3 rearLeftBottom{-1, +1, +1};
-        //const glm::vec3 rearRightBottom{+1, +1, +1};
-        //const glm::vec3 rearRightTop{+1, -1, +1};
-        //const glm::vec3 frontRightTop{+1, -1, -1};
-        //const glm::vec3 frontRightBottom{+1, +1, -1};
-
-/*
- * 2      1----3
- * | \     \ B |
- * | A \     \ |
- * 3----1      2
- */
-        const float cubeVertices[]{
-                /*rearRightBottom*/ +1, +1, +1, 1.0f / 6, 1,
-                /*frontRightTop*/   +1, -1, -1, 0, 0, // Right A
-                /*frontRightBottom*/+1, +1, -1, 0, 1,
-
-                /*frontRightTop*/   +1, -1, -1, 0, 0,
-                /*rearRightBottom*/ +1, +1, +1, 1.0f / 6, 1, // Right B
-                /*rearRightTop*/    +1, -1, +1, 1.0f / 6, 0,
-
-                /*rearRightBottom*/ +1, +1, +1, 5.0f / 6, 1,
-                /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 0,//Bottom A
-                /*rearLeftBottom*/  -1, +1, +1, 2.0f / 3, 1,
-
-                /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 0,
-                /*rearRightBottom*/ +1, +1, +1, 5.0f / 6, 1,//Bottom B
-                /*frontRightBottom*/+1, +1, -1, 5.0f / 6, 0,
-
-                /*rearLeftBottom*/  -1, +1, +1, 1.0f / 2, 1,
-                /*rearRightTop*/    +1, -1, +1, 1.0f / 3, 0,//Back A
-                /*rearRightBottom*/ +1, +1, +1, 1.0f / 3, 1,
-
-                /*rearRightTop*/    +1, -1, +1, 1.0f / 3, 0,
-                /*rearLeftBottom*/  -1, +1, +1, 1.0f / 2, 1,//Back B
-                /*rearLeftTop*/     -1, -1, +1, 1.0f / 2, 0,
-
-                /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 1,
-                /*rearLeftTop*/     -1, -1, +1, 1.0f / 2, 0,//Left A
-                /*rearLeftBottom*/  -1, +1, +1, 1.0f / 2, 1,
-
-                /*rearLeftTop*/     -1, -1, +1, 1.0f / 2, 0,
-                /*frontLeftBottom*/ -1, +1, -1, 2.0f / 3, 1,//Left B
-                /*frontLeftTop*/    -1, -1, -1, 2.0f / 3, 0,
-
-                /*frontRightTop*/   +1, -1, -1, 1.0f / 3, 1,
-                /*rearLeftTop*/     -1, -1, +1, 1.0f / 6, 0,//Top A
-                /*frontLeftTop*/    -1, -1, -1, 1.0f / 6, 1,
-
-                /*rearLeftTop*/     -1, -1, +1, 1.0f / 6, 0,
-                /*frontRightTop*/   +1, -1, -1, 1.0f / 3, 1,// Top B
-                /*rearRightTop*/    +1, -1, +1, 1.0f / 3, 0,
-
-                /*frontRightBottom*/+1, +1, -1, 1, 1,
-                /*frontLeftTop*/    -1, -1, -1, 5.0f / 6, 0,//Front A
-                /*frontLeftBottom*/ -1, +1, -1, 5.0f / 6, 1,
-
-                /*frontLeftTop*/    -1, -1, -1, 5.0f / 6, 0,
-                /*frontRightBottom*/+1, +1, -1, 1, 1,//Front B
-                /*frontRightTop*/   +1, -1, -1, 1, 0,
-        };
-        constexpr auto cubeVertexCount = 36;
-
         std::shared_ptr<Scene> scene;
-        short framebufferSize = 0;
-        unsigned int VBO, VAO;
         short size = 512;//todo config
         float lastPitch = 1e9, lastYaw = 1e9;
-        const glm::mat4 projection = glm::perspective(glm::radians(50.0f), 1.0f, 0.1f, 1000.0f);
-
-        glm::mat4 getMatrix(float pitch, float yaw) {
-            pitch *= -1;
-            glm::vec3 viewPos = glm::vec3(
-                    4.0f * std::cos(pitch) * std::cos(yaw),
-                    4.0f * std::sin(pitch),
-                    4.0f * std::sin(yaw) * std::cos(pitch)
-            );
-            const glm::mat4 view = glm::lookAt(viewPos, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
-            return projection * view * constants::LDU_TO_OPENGL_ROTATION;
-        }
 
         class OrientationCubeMeshNode : public etree::MeshNode {
         public:
@@ -104,84 +16,145 @@ namespace orientation_cube {
                 return reinterpret_cast<void *>(12234);
             }
 
+            bool isDisplayNameUserEditable() const override {
+                return false;
+            }
+
+            OrientationCubeMeshNode() : MeshNode(ldr_color_repo::getInstanceDummyColor(), nullptr) {}
+
             void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override {
                 auto texture = std::make_shared<Texture>(resources::orientation_cube_jpg, resources::orientation_cube_jpg_len);
+
+                /*
+                 0      1/6      1/3    1/2    2/3   5/6      1
+                 ********************************************** 1
+                 * Right * Bottom * Back * Left * Top * Front *
+                 *  +X   *   +Y   *  +Z  *  -X  * -Y  *  -Z   *
+                 * ******************************************** 0
+                 * */
+                /*
+                 * 2      1----3
+                 * | \     \ B |
+                 * | A \     \ |
+                 * 3----1      2
+                 */
                 mesh->addTexturedTriangle(texture,
                                           {+1, +1, +1}, {1.0f / 6, 1}, /*rearRightBottom*/
                                           {+1, -1, -1}, {0, 0}, /*frontRightTop*/
                                           {+1, +1, -1}, {0, 1}/*frontRightBottom*/
                 );// Right A
-                //todo copy/paste other 11 triangles here
+                mesh->addTexturedTriangle(texture,
+                                          {+1, -1, -1}, {0, 0}, /*frontRightTop*/
+                                          {+1, +1, +1}, {1.0f / 6, 1}, /*rearRightBottom*/
+                                          {+1, -1, +1}, {1.0f / 6, 0}/*rearRightTop*/
+                );// Right B
+                mesh->addTexturedTriangle(texture,
+                                          {+1, +1, +1}, {5.0f / 6, 1},//rearRightBottom
+                                          {-1, +1, -1}, {2.0f / 3, 0},//frontLeftBottom
+                                          {-1, +1, +1}, {2.0f / 3, 1}//rearLeftBottom
+                );//Bottom A
+                mesh->addTexturedTriangle(texture,
+                                          {-1, +1, -1}, {2.0f / 3, 0},//frontLeftBottom
+                                          {+1, +1, +1}, {5.0f / 6, 1},//rearRightBottom
+                                          {+1, +1, -1}, {5.0f / 6, 0}//frontRightBottom
+                );//Bottom B
+                mesh->addTexturedTriangle(texture,
+                                          {-1, +1, +1}, {1.0f / 2, 1},//rearLeftBottom
+                                          {+1, -1, +1}, {1.0f / 3, 0},//rearRightTop
+                                          {+1, +1, +1}, {1.0f / 3, 1}//rearRightBottom
+                );//Back A
+                mesh->addTexturedTriangle(texture,
+                                          {+1, -1, +1}, {1.0f / 3, 0},//rearRightTop
+                                          {-1, +1, +1}, {1.0f / 2, 1},//rearLeftBottom
+                                          {-1, -1, +1}, {1.0f / 2, 0}//rearLeftTop
+                );//Back B
+                mesh->addTexturedTriangle(texture,
+                                          {-1, +1, -1}, {2.0f / 3, 1},//frontLeftBottom
+                                          {-1, -1, +1}, {1.0f / 2, 0},//rearLeftTop
+                                          {-1, +1, +1}, {1.0f / 2, 1}//rearLeftBottom
+                );//Left A
+                mesh->addTexturedTriangle(texture,
+                                          {-1, -1, +1}, {1.0f / 2, 0},//rearLeftTop
+                                          {-1, +1, -1}, {2.0f / 3, 1},//frontLeftBottom
+                                          {-1, -1, -1}, {2.0f / 3, 0}//frontLeftTop
+                );//Left B
+                mesh->addTexturedTriangle(texture,
+                                          {+1, -1, -1}, {1.0f / 3, 1},//frontRightTop
+                                          {-1, -1, +1}, {1.0f / 6, 0},//rearLeftTop
+                                          {-1, -1, -1}, {1.0f / 6, 1}//frontLeftTop
+                );//Top A
+                mesh->addTexturedTriangle(texture,
+                                          {-1, -1, +1}, {1.0f / 6, 0},//rearLeftTop
+                                          {+1, -1, -1}, {1.0f / 3, 1},//frontRightTop
+                                          {+1, -1, +1}, {1.0f / 3, 0}//rearRightTop
+                );//Top B
+                mesh->addTexturedTriangle(texture,
+                                          {+1, +1, -1}, {1, 1},//frontRightBottom
+                                          {-1, -1, -1}, {5.0f / 6, 0},//frontLeftTop
+                                          {-1, +1, -1}, {5.0f / 6, 1}//frontLeftBottom
+                );//Front A
+                mesh->addTexturedTriangle(texture,
+                                          {-1, -1, -1}, {5.0f / 6, 0},//frontLeftTop
+                                          {+1, +1, -1}, {1, 1},//frontRightBottom
+                                          {+1, -1, -1}, {1, 0}//frontRightTop
+                );//Front B
             }
         };
 
-        void initialize() {
-            static bool initialized = false;
-            if (initialized) {
-                return;
+        class OrientationCubeCamera : public Camera {
+        private:
+            float pitch, yaw;
+            glm::vec3 viewPos;
+            glm::mat4 viewMatrix;
+        public:
+            void setPitchYaw(float newPitch, float newYaw) {
+                newPitch *= -1;
+                if (pitch != newPitch || yaw != newYaw) {
+                    pitch = newPitch;
+                    yaw = newYaw;
+                    viewPos = glm::vec3(
+                            4.0f * std::cos(pitch) * std::cos(yaw),
+                            4.0f * std::sin(pitch),
+                            4.0f * std::sin(yaw) * std::cos(pitch)
+                    );
+                    viewMatrix = glm::lookAt(viewPos, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
+                }
             }
-            std::make_shared<etree::MeshNode>()
 
-            texture = util::loadTextureFromMemory(resources::orientation_cube_jpg, resources::orientation_cube_jpg_len).textureId;
+            [[nodiscard]] const glm::mat4 &getViewMatrix() const override {
+                return viewMatrix;
+            }
 
-            glGenVertexArrays(1, &VAO);
-            glGenBuffers(1, &VBO);
-
-            glBindVertexArray(VAO);
-
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
-
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
-            glEnableVertexAttribArray(0);
-
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
-            glEnableVertexAttribArray(1);
-
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-
-            initialized = true;
-        }
+            [[nodiscard]] const glm::vec3 &getCameraPos() const override {
+                return viewPos;
+            }
+        };
     }
 
+    void initialize() {
+        static bool initialized = false;
+        if (initialized) {
+            return;
+        }
+        scene = scenes::create(scenes::ORIENTATION_CUBE_SCENE_ID);
+        scene->setRootNode(std::make_shared<OrientationCubeMeshNode>());
+        scene->setCamera(std::make_shared<OrientationCubeCamera>());
+
+        initialized = true;
+    }
 
     unsigned int getImage() {
-        const auto camera = controller::getRenderer()->camera;
-        auto pitch = glm::radians(camera.getPitch());
-        auto yaw = glm::radians(camera.getYaw());
+        const auto camera = controller::getMainSceneCamera();
+        auto pitch = glm::radians(camera->getPitch());
+        auto yaw = glm::radians(camera->getYaw());
         if (pitch != lastPitch || yaw != lastYaw) {
-            auto renderer = controller::getRenderer();
-            if (framebufferSize != size) {
-                renderer->createFramebuffer(&fbo, &tbo, &rbo, size, size);
-                framebufferSize = size;
-            }
-            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-            initialize();
-
-            glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-            glViewport(0, 0, size, size);
-            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
-
-            glBindTexture(GL_TEXTURE_2D, texture);
-
-            auto textureShader = renderer->textureShader;
-            textureShader->use();
-            textureShader->setMat4("modelView", getMatrix(pitch, yaw));
-
-            glBindVertexArray(VAO);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-            glDisable(GL_DEPTH_TEST);
-            glDrawArrays(GL_TRIANGLES, 0, cubeVertexCount);
-            glEnable(GL_DEPTH_TEST);
-
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            lastPitch = pitch;
-            lastYaw = yaw;
-            glViewport(0, 0, renderer->windowWidth, renderer->windowHeight);
+            std::dynamic_pointer_cast<OrientationCubeCamera>(scene->getCamera())->setPitchYaw(pitch, yaw);
         }
-        return tbo;
+        scene->updateImage();
+        return scene->getImage().getTexBO();
+    }
+
+    void cleanup() {
+        scene = nullptr;
     }
 }

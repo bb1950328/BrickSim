@@ -9,7 +9,7 @@
 #include <set>
 #include <cstring>
 #include "ldr_files/ldr_files.h"
-#include "shaders/shader.h"
+#include "shaders/shaders.h"
 #include "constant_data/constants.h"
 #include "types.h"
 #include "texture.h"

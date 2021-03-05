@@ -7,6 +7,7 @@
 #include "../info_providers/part_color_availability_provider.h"
 #include "../info_providers/price_guide_provider.h"
 #include "gui_internal.h"
+#include "../config.h"
 
 namespace gui {
     void windows::drawElementPropertiesWindow(bool *show) {

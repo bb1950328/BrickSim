@@ -1,7 +1,7 @@
 
 #include <mutex>
 #include <spdlog/spdlog.h>
-#include "shader.h"
+#include "shaders.h"
 #include "../controller.h"
 
 Shader::Shader(const char *vertexPath, const char *fragmentPath) : Shader(vertexPath, fragmentPath, nullptr) {
@@ -50,44 +50,45 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath, const char *geo
 }
 
 void Shader::compileShaders(const char *geometryPath, const std::string &vertexCode, const std::string &fragmentCode, const std::string &geometryCode) {
-    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-    const char *vShaderCode = vertexCode.c_str();
-    const char *fShaderCode = fragmentCode.c_str();
-    // 2. compile shaders
-    unsigned int vertex, fragment;
-    // vertex shader
-    vertex = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex, 1, &vShaderCode, nullptr);
-    glCompileShader(vertex);
-    checkCompileErrors(vertex, "VERTEX");
-    // fragment Shader
-    fragment = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment, 1, &fShaderCode, nullptr);
-    glCompileShader(fragment);
-    checkCompileErrors(fragment, "FRAGMENT");
-    // if geometry shader is given, compile geometry shader
-    unsigned int geometry;
-    if (geometryPath != nullptr) {
-        const char *gShaderCode = geometryCode.c_str();
-        geometry = glCreateShader(GL_GEOMETRY_SHADER);
-        glShaderSource(geometry, 1, &gShaderCode, nullptr);
-        glCompileShader(geometry);
-        checkCompileErrors(geometry, "GEOMETRY");
-    }
-    // shader Program
-    ID = glCreateProgram();
-    glAttachShader(ID, vertex);
-    glAttachShader(ID, fragment);
-    if (geometryPath != nullptr)
-        glAttachShader(ID, geometry);
-    glLinkProgram(ID);
-    checkCompileErrors(ID, "PROGRAM");
-    // delete the shaders as they're linked into our program now and no longer necessery
-    glDeleteShader(vertex);
-    glDeleteShader(fragment);
-    if (geometryPath != nullptr) {
-        glDeleteShader(geometry);
-    }
+    controller::executeOpenGL([&](){
+        const char *vShaderCode = vertexCode.c_str();
+        const char *fShaderCode = fragmentCode.c_str();
+        // 2. compile shaders
+        unsigned int vertex, fragment;
+        // vertex shader
+        vertex = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertex, 1, &vShaderCode, nullptr);
+        glCompileShader(vertex);
+        checkCompileErrors(vertex, "VERTEX");
+        // fragment Shader
+        fragment = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragment, 1, &fShaderCode, nullptr);
+        glCompileShader(fragment);
+        checkCompileErrors(fragment, "FRAGMENT");
+        // if geometry shader is given, compile geometry shader
+        unsigned int geometry;
+        if (geometryPath != nullptr) {
+            const char *gShaderCode = geometryCode.c_str();
+            geometry = glCreateShader(GL_GEOMETRY_SHADER);
+            glShaderSource(geometry, 1, &gShaderCode, nullptr);
+            glCompileShader(geometry);
+            checkCompileErrors(geometry, "GEOMETRY");
+        }
+        // shader Program
+        ID = glCreateProgram();
+        glAttachShader(ID, vertex);
+        glAttachShader(ID, fragment);
+        if (geometryPath != nullptr)
+            glAttachShader(ID, geometry);
+        glLinkProgram(ID);
+        checkCompileErrors(ID, "PROGRAM");
+        // delete the shaders as they're linked into our program now and no longer necessery
+        glDeleteShader(vertex);
+        glDeleteShader(fragment);
+        if (geometryPath != nullptr) {
+            glDeleteShader(geometry);
+        }
+    });
 }
 
 void Shader::use() const {
@@ -161,5 +162,38 @@ void Shader::checkCompileErrors(GLuint shader, const std::string &type) {
 }
 
 Shader::~Shader() {
-    glDeleteProgram(ID);
+    controller::executeOpenGL([this](){
+        glDeleteProgram(ID);
+    });
+}
+
+namespace shaders {
+    namespace {
+        std::map<shader_id_t, std::unique_ptr<Shader>> allShaders;
+    }
+    const Shader &get(shader_id_t id) {
+        return *allShaders[id];
+    }
+
+    void initialize() {
+        allShaders[TRIANGLE] = std::make_unique<Shader>("src/shaders/triangle_shader.vsh", "src/shaders/triangle_shader.fsh");
+        allShaders[TEXTURED_TRIANGLE] = std::make_unique<Shader>("src/shaders/texture_shader.vsh", "src/shaders/texture_shader.fsh");
+        allShaders[LINE] = std::make_unique<Shader>("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");
+        allShaders[OPTIONAL_LINE] = std::make_unique<Shader>("src/shaders/optional_line_shader.vsh", "src/shaders/line_shader.fsh", "src/shaders/optional_line_shader.gsh");
+        allShaders[OVERLAY] = std::make_unique<Shader>("src/shaders/overlay_shader.vsh", "src/shaders/overlay_shader.fsh");
+
+        const auto &triangleShader = get(TRIANGLE);
+        triangleShader.use();
+        triangleShader.setVec3("light.position", glm::vec3(0, 5, 0));//todo set to camera pos before rendering in Scene::
+        glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+        glm::vec3 ambientColor = diffuseColor * glm::vec3(1.3f);
+        triangleShader.setVec3("light.ambient", ambientColor);
+        triangleShader.setVec3("light.diffuse", diffuseColor);
+        triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+    }
+
+    void cleanup() {
+        allShaders.clear();
+    }
 }

@@ -19,6 +19,7 @@
 #include "../ldr_files/ldr_file_repo.h"
 #include "../user_actions.h"
 #include "../keyboard_shortcut_manager.h"
+#include "../metrics.h"
 
 namespace gui {
     const char *WINDOW_NAME_3D_VIEW = ICON_FA_CUBES" 3D View";
@@ -60,7 +61,7 @@ namespace gui {
         float blockingMessageProgress = 0;
         bool openFindActionPopup = false;
 
-        util::TextureLoadResult logoTexture;
+        std::shared_ptr<Texture> logoTexture;
 
         ImGuiID dockspaceId = 0;
 
@@ -202,7 +203,7 @@ namespace gui {
         // Setup Dear ImGui style
         setupStyle();
 
-        logoTexture = util::loadTextureFromMemory(resources::logo_fit_nobg_png, resources::logo_fit_nobg_png_len);
+        logoTexture = std::make_shared<Texture>(resources::logo_fit_nobg_png, resources::logo_fit_nobg_png_len);
 
         setupDone = true;
     }
@@ -256,7 +257,7 @@ namespace gui {
                 nullptr);
         if (fileNameChars != nullptr) {
             std::string fileNameString(fileNameChars);
-            controller::getRenderer()->saveImage(fileNameString);
+            controller::getMainScene()->getImage().saveImage(fileNameString);
         }
     }
 
@@ -415,7 +416,7 @@ namespace gui {
         lastScrollDeltaY = 0.0f;
 
         if (ImGui::BeginPopupModal("Please wait##Modal", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Image(gui_internal::convertTextureId(logoTexture.textureId), ImVec2(logoTexture.width, logoTexture.height), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image(gui_internal::convertTextureId(logoTexture->getID()), ImVec2(logoTexture->getSize().x, logoTexture->getSize().y), ImVec2(0, 1), ImVec2(1, 0));
             ImGui::Text("Please wait until this operation has finished.");
             ImGui::Separator();
             ImGui::Text("%s", blockingMessageText.c_str());
@@ -519,32 +520,24 @@ namespace gui {
                 ImGui::UpdatePlatformWindows();
                 ImGui::RenderPlatformWindowsDefault();
             }
-            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            controller::executeOpenGL([](){
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            });
         }
     }
 
     void beginFrame() {
-        static bool firstTime = true;
-        if (firstTime) {
-            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+        controller::executeOpenGL([](){
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-            firstTime = false;
-        } else {
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
-        }
-        {
-            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
-        }
+        });
     }
 
     void cleanup() {
+        logoTexture = nullptr;
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
@@ -694,7 +687,7 @@ namespace gui {
             //const float fontSize = ImGui::GetFontSize();
             //ImGui::SetNextWindowSize(ImVec2(fontSize * 18, fontSize * 6));
             ImGui::Begin("Please wait", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::Image(gui_internal::convertTextureId(logoTexture.textureId), ImVec2(logoTexture.width, logoTexture.height), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image(gui_internal::convertTextureId(logoTexture->getID()), ImVec2(logoTexture->getSize().x, logoTexture->getSize().y), ImVec2(0, 1), ImVec2(1, 0));
             ImGui::Text("%s %s", gui_internal::getAnimatedHourglassIcon(), message.c_str());
             ImGui::ProgressBar(progress);
             ImGui::End();

@@ -4,6 +4,8 @@
 #include "thumbnail_generator.h"
 #include "controller.h"
 #include "latest_log_messages_tank.h"
+#include "metrics.h"
+#include "config.h"
 
 unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile> &ldrFile, const LdrColorReference color) {
     if (renderedRotationDegrees != rotationDegrees) {
@@ -26,9 +28,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile> &ld
         const auto totalBufferSize = size * size * 3;
         metrics::thumbnailBufferUsageBytes += totalBufferSize;
         auto buffer = std::make_unique<GLbyte[]>(totalBufferSize);
-        {
-            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-
+        controller::executeOpenGL([&](){
             //todo copy image directrly (VRAM -> VRAM instead of VRAM -> RAM -> VRAM)
             glBindFramebuffer(GL_FRAMEBUFFER, scene->getImage().getFBO());
             glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
@@ -43,7 +43,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile> &ld
             //todo this causes source=API, type=ERROR, id=1282: Error has been generated. GL error GL_INVALID_OPERATION in FramebufferTexture2D: (ID: 2333930068) Generic error
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
             images[fileKey] = textureId;
-        }
+        });
         auto after = std::chrono::high_resolution_clock::now();
         metrics::lastThumbnailRenderingTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0;
     }
@@ -53,25 +53,28 @@ unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile> &ld
 }
 
 void ThumbnailGenerator::discardAllImages() {
-    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-    for (const auto &item : images) {
-        glDeleteTextures(1, &item.second);
-    }
+    controller::executeOpenGL([this](){
+        for (const auto &item : images) {
+            glDeleteTextures(1, &item.second);
+        }
+    });
+
     images.clear();
     lastAccessed.clear();
 }
 
 void ThumbnailGenerator::discardOldestImages(int reserve_space_for) {
-    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-    int deletedCount = 0;
-    while (lastAccessed.size() > maxCachedThumbnails - reserve_space_for) {
-        auto lastAccessedIt = lastAccessed.front();
-        glDeleteTextures(1, &images[lastAccessedIt]);
-        lastAccessed.remove(lastAccessedIt);
-        images.erase(lastAccessedIt);
-        deletedCount++;
-    }
-    metrics::thumbnailBufferUsageBytes -= size * size * 3 * deletedCount;
+    controller::executeOpenGL([this, &reserve_space_for](){
+        int deletedCount = 0;
+        while (lastAccessed.size() > maxCachedThumbnails - reserve_space_for) {
+            auto lastAccessedIt = lastAccessed.front();
+            glDeleteTextures(1, &images[lastAccessedIt]);
+            lastAccessed.remove(lastAccessedIt);
+            images.erase(lastAccessedIt);
+            deletedCount++;
+        }
+        metrics::thumbnailBufferUsageBytes -= size * size * 3 * deletedCount;
+    });
 }
 
 std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const std::shared_ptr<LdrFile> &ldrFile, LdrColorReference color) {
@@ -101,35 +104,36 @@ bool ThumbnailGenerator::workOnRenderQueue() {
 }
 
 unsigned int ThumbnailGenerator::copyImageToTexture() const {
-    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
     //todo this is from https://stackoverflow.com/questions/15306899/is-it-possible-to-copy-data-from-one-framebuffer-to-another-in-opengl but it didn't work
     unsigned int destinationTextureId;
-    glGenTextures(1, &destinationTextureId);
+    controller::executeOpenGL([this, &destinationTextureId](){
+        glGenTextures(1, &destinationTextureId);
 
-    // bind fbo as read / draw fbo
-    const auto &image = scene->getImage();
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, image.getFBO());
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, image.getFBO());
+        // bind fbo as read / draw fbo
+        const auto &image = scene->getImage();
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, image.getFBO());
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, image.getFBO());
 
-    // bind source texture to color attachment
-    glBindTexture(GL_TEXTURE_2D, image.getTexBO());
-    glFramebufferTexture2D(GL_TEXTURE_2D, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, image.getTexBO(), 0);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        // bind source texture to color attachment
+        glBindTexture(GL_TEXTURE_2D, image.getTexBO());
+        glFramebufferTexture2D(GL_TEXTURE_2D, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, image.getTexBO(), 0);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    // bind destination texture to another color attachment
-    glBindTexture(GL_TEXTURE_2D, destinationTextureId);
-    glFramebufferTexture2D(GL_TEXTURE_2D, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, destinationTextureId, 0);
-    glReadBuffer(GL_COLOR_ATTACHMENT1);
+        // bind destination texture to another color attachment
+        glBindTexture(GL_TEXTURE_2D, destinationTextureId);
+        glFramebufferTexture2D(GL_TEXTURE_2D, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, destinationTextureId, 0);
+        glReadBuffer(GL_COLOR_ATTACHMENT1);
 
 
-    // specify source, destination drawing (sub)rectangles.
-    glBlitFramebuffer(0, 0, size, size,
-                      0, 0, size, size, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        // specify source, destination drawing (sub)rectangles.
+        glBlitFramebuffer(0, 0, size, size,
+                          0, 0, size, size, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-    // release state
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        // release state
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    });
     return destinationTextureId;
 }
 
@@ -151,11 +155,11 @@ void ThumbnailGenerator::removeFromRenderQueue(const std::shared_ptr<LdrFile> &l
 }
 
 ThumbnailGenerator::ThumbnailGenerator()
-        : scene(scenes::create(scenes::THUMBNAIL_SCENE_ID)),
-          camera(std::make_shared<FitContentCamera>()),
+        : camera(std::make_shared<FitContentCamera>()),
           size(config::getInt(config::THUMBNAIL_SIZE)),
           projection(glm::perspective(glm::radians(50.0f), 1.0f, 0.001f, 1000.0f)),
           rotationDegrees(glm::vec3(45, -45, 0)) {
     maxCachedThumbnails = config::getInt(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
+    scene = scenes::create(scenes::THUMBNAIL_SCENE_ID);
     scene->setCamera(camera);
 }

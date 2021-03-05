@@ -12,7 +12,7 @@ typedef std::pair<void *, bool> mesh_key_t;
  */
 class SceneMeshCollection {
 private:
-    std::map<mesh_key_t, std::shared_ptr<Mesh>> usedMeshes;
+    std::set<std::shared_ptr<Mesh>> usedMeshes;
     std::set<layer_t> layersInUse;
     scene_id_t scene;
     std::shared_ptr<etree::Node> rootNode;
@@ -23,7 +23,7 @@ private:
 
     void updateMeshInstances();
     void readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4 &parentAbsoluteTransformation, std::optional<LdrColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId);
-    [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBoxInternal(std::shared_ptr<const etree::MeshNode> node) const;
+    [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBoxInternal(const std::shared_ptr<const etree::MeshNode>& node) const;
 
     static std::map<mesh_key_t, std::shared_ptr<Mesh>> allMeshes;
 public:
@@ -36,7 +36,9 @@ public:
 
     [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBox(const std::shared_ptr<const etree::MeshNode>& node) const;
     [[nodiscard]] const std::set<layer_t> &getLayersInUse() const;
-    std::shared_ptr<etree::Node> getElementById(unsigned int id);
+    [[nodiscard]] std::shared_ptr<etree::Node> getElementById(unsigned int id) const;
+    [[nodiscard]] const std::shared_ptr<etree::Node> &getRootNode() const;
+    void setRootNode(const std::shared_ptr<etree::Node> &newRootNode);
 
     void drawTriangleGraphics(layer_t layer) const;
     void drawTexturedTriangleGraphics(layer_t layer) const;
@@ -45,5 +47,6 @@ public:
 
     static mesh_key_t getMeshKey(const std::shared_ptr<etree::MeshNode>& node, bool windingOrderInverse);
     static std::shared_ptr<Mesh> getMesh(mesh_key_t key, const std::shared_ptr<etree::MeshNode>& node);
+    static void deleteAllMeshes();
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

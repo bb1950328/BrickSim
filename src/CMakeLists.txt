@@ -26,7 +26,7 @@ target_sources(BrickSim PUBLIC
         part_finder.h
         scene.cpp
         scene.h
-        shaders/shader.cpp
+        shaders/shaders.cpp
         metrics.cpp
         metrics.h
         tasks.cpp

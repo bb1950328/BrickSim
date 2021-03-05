@@ -1,7 +1,7 @@
 
 
-#ifndef BRICKSIM_SHADER_H
-#define BRICKSIM_SHADER_H
+#ifndef BRICKSIM_SHADERS_H
+#define BRICKSIM_SHADERS_H
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -50,4 +50,19 @@ private:
     void compileShaders(const char *geometryPath, const std::string &vertexCode, const std::string &fragmentCode, const std::string &geometryCode);
 };
 
-#endif //BRICKSIM_SHADER_H
+namespace shaders {
+    enum shader_id_t {
+        TRIANGLE,
+        TEXTURED_TRIANGLE,
+        LINE,
+        OPTIONAL_LINE,
+        OVERLAY,
+    };
+
+    const Shader& get(shader_id_t id);
+
+    void initialize();
+    void cleanup();
+}
+
+#endif //BRICKSIM_SHADERS_H

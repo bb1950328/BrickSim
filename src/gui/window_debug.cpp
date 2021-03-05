@@ -2,6 +2,7 @@
 
 #include "gui.h"
 #include "../controller.h"
+#include "../metrics.h"
 
 namespace gui {
     void windows::drawDebugWindow(bool* show) {

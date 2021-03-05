@@ -11,6 +11,7 @@
 #include "keyboard_shortcut_manager.h"
 #include "config.h"
 #include "metrics.h"
+#include "orientation_cube.h"
 
 namespace controller {
     namespace {
@@ -21,10 +22,10 @@ namespace controller {
         std::shared_ptr<ThumbnailGenerator> thumbnailGenerator;
         std::shared_ptr<Scene> mainScene;
         std::shared_ptr<CadCamera> camera;
-        unsigned int view3dWidth = 800;
-        unsigned int view3dHeight = 600;
         unsigned int windowWidth;
         unsigned int windowHeight;
+
+        bool openGlInitialized = false;
 
         bool userWantsToExit = false;
         std::set<std::shared_ptr<etree::Node>> selectedNodes;
@@ -42,8 +43,8 @@ namespace controller {
 
         void openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
         {
-            if (id==1282) {
-                //there's a to do for that in thumbnail_generator
+            if (id==131185) {
+                //Buffer detailed info: Buffer object 2 (bound to GL_ELEMENT_ARRAY_BUFFER_ARB, usage hint is GL_STREAM_DRAW) will use VIDEO memory as the source for buffer object operations.
                 return;
             }
             spdlog::level::level_enum level;
@@ -84,7 +85,9 @@ namespace controller {
         }
 
         bool initializeGL() {
-            std::lock_guard<std::recursive_mutex> lg(getOpenGlMutex());
+            if (openGlInitialized) {
+                throw std::invalid_argument("attempting to initialize OpenGL twice");
+            }
             const auto enableDebugOutput = config::getBool(config::ENABLE_GL_DEBUG_OUTPUT);
             glfwSetErrorCallback(glfwErrorCallback);
             glfwInit();
@@ -110,6 +113,11 @@ namespace controller {
                 return false;
             }
             glfwMakeContextCurrent(window);
+            if (!gladLoadGL()) {
+                spdlog::critical("gladLoadGL() failed");
+                glfwTerminate();
+                return false;
+            }
             if (!config::getBool(config::ENABLE_VSYNC)) {
                 glfwSwapInterval(0);
             }
@@ -138,6 +146,7 @@ namespace controller {
             }
 
             spdlog::info("OpenGL initialized");
+            openGlInitialized = true;
             return true;
         }
 
@@ -145,8 +154,9 @@ namespace controller {
             if (windowWidth != width || windowHeight!=height) {
                 windowWidth = width;
                 windowHeight = height;
-                std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
-                glViewport(0, 0, width, height);
+                controller::executeOpenGL([&](){
+                    glViewport(0, 0, width, height);
+                });
             }
         }
 
@@ -188,11 +198,10 @@ namespace controller {
                 gui::beginFrame();
                 status = gui::drawPartsLibrarySetupScreen();
                 gui::endFrame();
-                {
-                    std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+                executeOpenGL([](){
                     glfwSwapBuffers(window);
                     glfwPollEvents();
-                }
+                });
             }
             if (status==gui::PartsLibrarySetupResponse::REQUEST_EXIT || glfwWindowShouldClose(window)) {
                 cleanup();
@@ -217,9 +226,11 @@ namespace controller {
 
             util::setStbiFlipVertically(true);
 
+            shaders::initialize();
+
             elementTree = std::make_shared<etree::RootNode>();
             camera = std::make_shared<CadCamera>();
-            mainScene = scenes::get(scenes::MAIN_SCENE_ID);
+            mainScene = scenes::create(scenes::MAIN_SCENE_ID);
             mainScene->setCamera(camera);
             mainScene->setRootNode(elementTree);
 
@@ -237,7 +248,7 @@ namespace controller {
                     {"initialize thumbnail generator",  []() { thumbnailGenerator = std::make_shared<ThumbnailGenerator>(); }},
                     {"initialize BrickLink constants",  [](float *progress) { bricklink_constants_provider::initialize(progress); }},
                     {"initialize keyboard shortcuts",  keyboard_shortcut_manager::initialize},
-                    //{"initialize orientation cube generator", orientation_cube::initialize},
+                    {"initialize orientation cube generator", orientation_cube::initialize},
             };
             for (auto &initStep : steps) {
                 spdlog::info("Starting init step {}", initStep.getName());
@@ -248,11 +259,10 @@ namespace controller {
                         gui::drawWaitMessage(initStep.getName(), initStep.getProgress());
                         gui::endFrame();
 
-                        {
-                            std::lock_guard<std::recursive_mutex> lg(controller::getOpenGlMutex());
+                        executeOpenGL([](){
                             glfwSwapBuffers(window);
                             glfwPollEvents();
-                        }
+                        });
                     } else {
                         std::chrono::milliseconds sleepTime(16);
                         std::this_thread::sleep_for(sleepTime);
@@ -279,8 +289,18 @@ namespace controller {
             }
             spdlog::info("all background tasks finished, exiting now");
             gui::cleanup();
-            spdlog::shutdown();
+            orientation_cube::cleanup();
+            SceneMeshCollection::deleteAllMeshes();
+            scenes::deleteAll();
+            shaders::cleanup();
+            elementTree = nullptr;
+            thumbnailGenerator = nullptr;
+            mainScene = nullptr;
+            camera = nullptr;
             glfwTerminate();
+            openGlInitialized = false;
+            spdlog::info("GLFW terminated.");
+            spdlog::shutdown();
         }
 
         void handleForegroundTasks() {
@@ -394,8 +414,7 @@ namespace controller {
     }
 
     void set3dViewSize(unsigned int width, unsigned int height) {
-        view3dWidth = width;
-        view3dHeight = height;
+        mainScene->setImageSize({width, height});
     }
 
     void openFile(const std::string &path) {
@@ -588,11 +607,6 @@ namespace controller {
         return thumbnailGenerator;
     }
 
-    std::recursive_mutex &getOpenGlMutex() {
-        static std::recursive_mutex openGlMutex;
-        return openGlMutex;
-    }
-
     std::map<unsigned int, Task *> &getBackgroundTasks() {
         checkForFinishedBackgroundTasks();
         return backgroundTasks;
@@ -612,5 +626,23 @@ namespace controller {
 
     std::tuple<unsigned short, float*, unsigned short> getLastFrameTimes() {
         return std::make_tuple(lastFrameTimesSize, lastFrameTimes, lastFrameTimesStartIdx);
+    }
+
+    std::shared_ptr<Scene> getMainScene() {
+        return mainScene;
+    }
+
+    std::shared_ptr<CadCamera> getMainSceneCamera() {
+        return std::dynamic_pointer_cast<CadCamera>(mainScene->getCamera());
+    }
+
+    void executeOpenGL(std::function<void()> const &functor) {
+        if (!openGlInitialized) {
+            throw std::invalid_argument("attempting to use OpenGL, but OpenGL isn't initialized");
+        }
+        static std::recursive_mutex openGlMutex;
+        std::lock_guard<std::recursive_mutex> lg(openGlMutex);
+        glfwMakeContextCurrent(window);
+        functor();
     }
 }

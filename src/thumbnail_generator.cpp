@@ -30,7 +30,7 @@ unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile> &ld
         auto buffer = std::make_unique<GLbyte[]>(totalBufferSize);
         controller::executeOpenGL([&](){
             //todo copy image directrly (VRAM -> VRAM instead of VRAM -> RAM -> VRAM)
-            glBindFramebuffer(GL_FRAMEBUFFER, scene->getImage().getFBO());
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, scene->getImage().getFBO());
             glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -40,8 +40,9 @@ unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile> &ld
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            //todo this causes source=API, type=ERROR, id=1282: Error has been generated. GL error GL_INVALID_OPERATION in FramebufferTexture2D: (ID: 2333930068) Generic error
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
+            //glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, size, size, 0);
+            //t odo this causes source=API, type=ERROR, id=1282: Error has been generated. GL error GL_INVALID_OPERATION in FramebufferTexture2D: (ID: 2333930068) Generic error
+            //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
             images[fileKey] = textureId;
         });
         auto after = std::chrono::high_resolution_clock::now();

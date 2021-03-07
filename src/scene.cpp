@@ -30,6 +30,7 @@ CompleteFramebuffer::CompleteFramebuffer(glm::usvec2 size_): size(size_) { // NO
             spdlog::error("Framebuffer is not complete");
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        spdlog::debug("allocated CompleteFramebuffer. FBO={}, TexBO={}, RBO={}", framebuffer, textureColorbuffer, renderBufferObject);
     });
 }
 

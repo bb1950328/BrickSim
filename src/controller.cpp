@@ -43,8 +43,9 @@ namespace controller {
 
         void openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
         {
-            if (id==131185) {
+            if (id==131185 || id==131169) {
                 //Buffer detailed info: Buffer object 2 (bound to GL_ELEMENT_ARRAY_BUFFER_ARB, usage hint is GL_STREAM_DRAW) will use VIDEO memory as the source for buffer object operations.
+                //Framebuffer detailed info: The driver allocated storage for renderbuffer 1.
                 return;
             }
             spdlog::level::level_enum level;
@@ -644,5 +645,7 @@ namespace controller {
         std::lock_guard<std::recursive_mutex> lg(openGlMutex);
         glfwMakeContextCurrent(window);
         functor();
+        glfwMakeContextCurrent(nullptr);
+        //todo only move context when switching between threads, don't do anything if called two times from the same thread
     }
 }

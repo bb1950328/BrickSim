@@ -195,9 +195,6 @@ void Scene::updateImage() {
             glm::mat4 view = camera->getViewMatrix();
             const glm::mat4 &projectionView = projectionMatrix * view;
 
-            std::cout << "projectionView:" << std::endl;
-            util::coutMat4(projectionView);
-
             const auto& triangleShader = shaders::get(shaders::TRIANGLE);
             const auto& textureShader = shaders::get(shaders::TEXTURED_TRIANGLE);
             const auto& lineShader = shaders::get(shaders::LINE);

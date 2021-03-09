@@ -100,6 +100,7 @@ void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node> &no
             }
             MeshInstance newInstance{color, absoluteTransformation, elementId, meshNode->selected, node->layer, this->scene};
             layersInUse.emplace(node->layer);
+            usedMeshes.insert(mesh);
             elementsSortedById.push_back(node);
             newMeshInstances[meshKey].push_back(newInstance);
         }

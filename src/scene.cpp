@@ -5,6 +5,9 @@
 #include "latest_log_messages_tank.h"
 #include "metrics.h"
 #include "config.h"
+#ifdef BRICKSIM_USE_RENDERDOC
+#include <renderdoc.h>
+#endif
 
 CompleteFramebuffer::CompleteFramebuffer(glm::usvec2 size_): size(size_) { // NOLINT(cppcoreguidelines-pro-type-member-init)
     controller::executeOpenGL([this](){
@@ -157,7 +160,7 @@ const glm::usvec2 &Scene::getImageSize() const {
 }
 
 void Scene::setImageSize(const glm::usvec2 &newImageSize) {
-    projectionMatrix = glm::perspective(glm::radians(50.0f), (float)newImageSize.x / (float)newImageSize.y, 0.1f, 1000.0f);
+    projectionMatrix = glm::perspective(glm::radians(350.0f), (float)newImageSize.x / (float)newImageSize.y, 0.01f, 1000.0f);
     Scene::imageSize = newImageSize;
 }
 
@@ -175,7 +178,16 @@ void Scene::updateImage() {
     if (!imageUpToDate) {
         auto before = std::chrono::high_resolution_clock::now();
         controller::executeOpenGL([this](){
+#ifdef BRICKSIM_USE_RENDERDOC
+            const auto *renderdocApi = controller::getRenderdocAPI();
+            if (renderdocApi) {
+                renderdocApi->StartFrameCapture(nullptr, nullptr);
+            }
+#endif
+            image.setSize(imageSize);
             glBindFramebuffer(GL_FRAMEBUFFER, image.getFBO());
+            glViewport(0, 0, imageSize.x, imageSize.y);
+            spdlog::debug("rendering image {}x{} to FBO {}", imageSize.x, imageSize.y, image.getFBO());
             const auto &bgColor = util::RGBcolor(config::getString(config::BACKGROUND_COLOR)).asGlmVector();
             glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -183,16 +195,31 @@ void Scene::updateImage() {
             glm::mat4 view = camera->getViewMatrix();
             const glm::mat4 &projectionView = projectionMatrix * view;
 
+            std::cout << "projectionView:" << std::endl;
+            util::coutMat4(projectionView);
+
             const auto& triangleShader = shaders::get(shaders::TRIANGLE);
             const auto& textureShader = shaders::get(shaders::TEXTURED_TRIANGLE);
             const auto& lineShader = shaders::get(shaders::LINE);
             const auto& optionalLineShader = shaders::get(shaders::OPTIONAL_LINE);
+            triangleShader.use();
+            triangleShader.setVec3("viewPos", camera->getCameraPos());
+            triangleShader.setVec3("foo", 0.0f, 1.0f, 1.0f);
+            triangleShader.setMat4("projectionView", projectionView);
+            triangleShader.setInt("drawSelection", 0);
+            glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+            glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+            glm::vec3 ambientColor = diffuseColor * glm::vec3(1.3f);
+            triangleShader.setVec3("light.position", camera->getCameraPos());
+
+            //todo do not call these every time
+            triangleShader.setVec3("light.ambient", ambientColor);
+            triangleShader.setVec3("light.diffuse", diffuseColor);
+            triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
             for (const auto &layer : meshCollection.getLayersInUse()) {
                 glClear(GL_DEPTH_BUFFER_BIT);
                 triangleShader.use();
-                triangleShader.setVec3("viewPos", camera->getCameraPos());
-                triangleShader.setMat4("projectionView", projectionView);
-                triangleShader.setInt("drawSelection", 0);
                 meshCollection.drawTriangleGraphics(layer);
 
                 textureShader.use();
@@ -209,6 +236,11 @@ void Scene::updateImage() {
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glFinish();
+#ifdef BRICKSIM_USE_RENDERDOC
+            if (renderdocApi) {
+                renderdocApi->EndFrameCapture(nullptr, nullptr);
+            }
+#endif
         });
 
         imageUpToDate = true;

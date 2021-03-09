@@ -12,6 +12,7 @@ namespace gui {
             ImGui::BeginChild("3DRender");
             const ImVec2 &regionAvail = ImGui::GetContentRegionAvail();
             controller::set3dViewSize((unsigned int) regionAvail.x, (unsigned int) regionAvail.y);
+            const auto &mainScene = controller::getMainScene();
             if (ImGui::IsWindowFocused()) {
                 const ImVec2 &windowPos = ImGui::GetWindowPos();
                 const ImVec2 &regionMin = ImGui::GetWindowContentRegionMin();
@@ -46,11 +47,11 @@ namespace gui {
                     if ((lastLeftDown && !nowLeftDown) && !isDragging) {
                         const auto relCursorPosX = mousePos.x - windowPos.x - regionMin.x;
                         const auto relCursorPosY = mousePos.y - windowPos.y - regionMin.y;
-                        const auto elementIdUnderMouse = controller::getMainScene()->getSelectionPixel(relCursorPosX, relCursorPosY);
+                        const auto elementIdUnderMouse = mainScene->getSelectionPixel(relCursorPosX, relCursorPosY);
                         if (elementIdUnderMouse == 0) {
                             controller::nodeSelectNone();
                         } else {
-                            auto clickedNode = controller::getMainScene()->getMeshCollection().getElementById(elementIdUnderMouse);
+                            auto clickedNode = mainScene->getMeshCollection().getElementById(elementIdUnderMouse);
                             if (clickedNode != nullptr) {
                                 if (imGuiIo.KeyCtrl) {
                                     controller::nodeSelectAddRemove(clickedNode);
@@ -76,10 +77,11 @@ namespace gui {
                     }
                 }
             }
+            mainScene->setImageSize({regionAvail.x, regionAvail.y});
             auto texture3dView = gui_internal::convertTextureId(config::getBool(config::DISPLAY_SELECTION_BUFFER)
-                                                ? controller::getMainScene()->getSelectionImage()->getTexBO()
-                                                : controller::getMainScene()->getImage().getTexBO());
-            ImGui::ImageButton(texture3dView, regionAvail, ImVec2(0, 1), ImVec2(1, 0), 0);
+                                                ? mainScene->getSelectionImage()->getTexBO()
+                                                : mainScene->getImage().getTexBO());
+            ImGui::ImageButton(texture3dView, regionAvail, ImVec2(1, 0), ImVec2(0, 1), 0);
             ImGui::EndChild();
         }
         ImGui::End();

@@ -49,6 +49,7 @@ namespace util {
 
     //vector/glm functions
     void coutMat4(glm::mat4 mat);
+    void coutVec(glm::vec4 vec);
     float biggestValue(glm::vec2 vector);
     float biggestValue(glm::vec3 vector);
     float biggestValue(glm::vec4 vector);

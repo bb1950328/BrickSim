@@ -9,6 +9,9 @@
 #include "gui/gui.h"
 #include "thumbnail_generator.h"
 #include "tasks.h"
+#ifdef BRICKSIM_USE_RENDERDOC
+#include <renderdoc.h>
+#endif
 
 namespace controller {
     namespace {
@@ -81,6 +84,10 @@ namespace controller {
     [[nodiscard]] bool doesUserWantToExit();
 
     std::tuple<unsigned short, float *, unsigned short> getLastFrameTimes();
+
+#ifdef BRICKSIM_USE_RENDERDOC
+    RENDERDOC_API_1_1_2 *getRenderdocAPI();
+#endif
 };
 
 #endif //BRICKSIM_CONTROLLER_H

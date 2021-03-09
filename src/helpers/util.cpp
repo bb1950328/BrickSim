@@ -93,15 +93,20 @@ namespace util {
         return fullString.rfind(start, 0) == 0;
     }
 
-    void coutMat4(glm::mat4 mat) {/*
-        std::cout << "⌈" << glm::to_string(mat[0]) << "⌉\n";
-        std::cout << "|" << glm::to_string(mat[1]) << "|\n";
-        std::cout << "|" << glm::to_string(mat[2]) << "|\n";
-        std::cout << "⌊" << glm::to_string(mat[3]) << "⌋\n";*/
-        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
-        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
-        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
-        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+    void coutMat4(glm::mat4 mat) {
+        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
+        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
+        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
+        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+
+        printf("{{%8.4f, %8.4f, %8.4f, %8.4f},", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
+        printf("{%8.4f, %8.4f, %8.4f, %8.4f},", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
+        printf("{%8.4f, %8.4f, %8.4f, %8.4f},", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
+        printf("{%8.4f, %8.4f, %8.4f, %8.4f}}\n", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+    }
+
+    void coutVec(glm::vec4 vec) {
+        printf("{%8.4f, %8.4f, %8.4f, %8.4f}\n", vec[0], vec[1], vec[2], vec[3]);
     }
 
     void replaceAll(std::string &str, const std::string &from, const std::string &to) {

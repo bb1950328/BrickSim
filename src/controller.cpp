@@ -1,3 +1,5 @@
+#include <link.h>
+
 #include "controller.h"
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -40,6 +42,8 @@ namespace controller {
         unsigned short lastFrameTimesStartIdx = 0;
         std::chrono::time_point<std::chrono::high_resolution_clock> lastMainloopTimePoint;
         std::vector<std::pair<const char*, unsigned int>> mainloopTimePointsUsTmp;
+
+        RENDERDOC_API_1_1_2 *rdoc_api = NULL;
 
         void openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
         {
@@ -145,6 +149,15 @@ namespace controller {
                 glDebugMessageCallback(openGlDebugMessageCallback, nullptr);
                 glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
             }
+
+#ifdef BRICKSIM_USE_RENDERDOC
+            if(void *mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD))
+            {
+                pRENDERDOC_GetAPI RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
+                int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void **)&rdoc_api);
+                assert(ret == 1);
+            }
+#endif
 
             spdlog::info("OpenGL initialized");
             openGlInitialized = true;
@@ -648,4 +661,9 @@ namespace controller {
         glfwMakeContextCurrent(nullptr);
         //todo only move context when switching between threads, don't do anything if called two times from the same thread
     }
+#ifdef BRICKSIM_USE_RENDERDOC
+    RENDERDOC_API_1_1_2 *getRenderdocAPI() {
+        return rdoc_api;
+    }
+#endif
 }

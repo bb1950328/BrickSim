@@ -20,6 +20,8 @@ uniform vec3 viewPos;
 uniform Light light;
 uniform int drawSelection;
 
+uniform vec3 foo;
+
 void main()
 {
    if (drawSelection>0) {
@@ -42,5 +44,6 @@ void main()
 
       vec3 result = ambient + diffuse + specular;
       FragColor = vec4(result, 1.0);
+      //FragColor = vec4(foo, 1.0);
    }
 }

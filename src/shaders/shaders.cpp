@@ -181,16 +181,6 @@ namespace shaders {
         allShaders[LINE] = std::make_unique<Shader>("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");
         allShaders[OPTIONAL_LINE] = std::make_unique<Shader>("src/shaders/optional_line_shader.vsh", "src/shaders/line_shader.fsh", "src/shaders/optional_line_shader.gsh");
         allShaders[OVERLAY] = std::make_unique<Shader>("src/shaders/overlay_shader.vsh", "src/shaders/overlay_shader.fsh");
-
-        const auto &triangleShader = get(TRIANGLE);
-        triangleShader.use();
-        triangleShader.setVec3("light.position", glm::vec3(0, 5, 0));//todo set to camera pos before rendering in Scene::
-        glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
-        glm::vec3 ambientColor = diffuseColor * glm::vec3(1.3f);
-        triangleShader.setVec3("light.ambient", ambientColor);
-        triangleShader.setVec3("light.diffuse", diffuseColor);
-        triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
     }
 
     void cleanup() {

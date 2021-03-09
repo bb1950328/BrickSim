@@ -178,6 +178,7 @@ void Mesh::addTexturedTriangle(const std::shared_ptr<Texture> &texture, glm::vec
     vertices.emplace_back(pt1, tc1);
     vertices.emplace_back(pt2, tc2);
     vertices.emplace_back(pt3, tc3);
+    textures[texture->getID()] = texture;
 }
 
 void Mesh::addOptionalLineVertex(const LineVertex &vertex) {
@@ -489,14 +490,14 @@ void Mesh::initializeTexturedTriangleGraphics() {
 void Mesh::drawTriangleGraphics(scene_id_t sceneId, layer_t layer) {
     auto range = getSceneLayerInstanceRange(sceneId, layer);
     if (range.has_value()) {
-        controller::executeOpenGL([this, &range](){
+//        controller::executeOpenGL([this, &range](){
             for (const auto &entry: triangleIndices) {
                 const auto color = entry.first;
                 const std::vector<unsigned int> &indices = entry.second;
                 glBindVertexArray(VAOs[color]);
                 glDrawElementsInstancedBaseInstance(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
             }
-        });
+//        });
 
     }
 }
@@ -504,33 +505,33 @@ void Mesh::drawTriangleGraphics(scene_id_t sceneId, layer_t layer) {
 void Mesh::drawTexturedTriangleGraphics(scene_id_t sceneId, layer_t layer) {
     auto range = getSceneLayerInstanceRange(sceneId, layer);
     if (range.has_value()) {
-        controller::executeOpenGL([this, &range](){
+//        controller::executeOpenGL([this, &range](){
             for (const auto &item : textureVertices) {
                 textures[item.first]->bind();
                 glBindVertexArray(std::get<0>(textureTriangleVaoVertexVboInstanceVbo[item.first]));
                 glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, item.second.size(), range->count, range->start);
             }
-        });
+//        });
     }
 }
 
 void Mesh::drawLineGraphics(scene_id_t sceneId, layer_t layer) {
     auto range = getSceneLayerInstanceRange(sceneId, layer);
     if (range.has_value()) {
-        controller::executeOpenGL([this, &range](){
+//        controller::executeOpenGL([this, &range](){
             glBindVertexArray(lineVAO);
             glDrawElementsInstancedBaseInstance(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
-        });
+//        });
     }
 }
 
 void Mesh::drawOptionalLineGraphics(scene_id_t sceneId, layer_t layer) {
     auto range = getSceneLayerInstanceRange(sceneId, layer);
     if (range.has_value()) {
-        controller::executeOpenGL([this, &range]() {
+//        controller::executeOpenGL([this, &range]() {
             glBindVertexArray(optionalLineVAO);
             glDrawElementsInstancedBaseInstance(GL_LINES_ADJACENCY, optionalLineIndices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
-        });
+//        });
     }
 }
 
@@ -600,6 +601,8 @@ std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> Mes
     if (color.get()->code == ldr_color_repo::INSTANCE_DUMMY_COLOR_CODE) {
         for (auto &instance : instances) {
             instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * globalModel);
+            //std::cout << "instance: " << std::endl;
+            //util::coutMat4(instancesArray[arr_cursor].transformation);
             setInstanceColor(&instancesArray[arr_cursor], instance.color);
             instancesArray[arr_cursor].idColor = util::convertIntToColorVec3(instance.elementId);
             arr_cursor++;

@@ -107,7 +107,11 @@ endif ()
 add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 add_compile_definitions(USE_SSLEAY)
 add_compile_definitions(USE_OPENSSL)
-add_compile_definitions(BRICKSIM_USE_RENDERDOC)
+
+option(USE_RENDERDOC "Build with RenderDoc in-application API" OFF)
+if (USE_RENDERDOC)
+    add_compile_definitions(BRICKSIM_USE_RENDERDOC)
+endif ()
 
 target_include_directories(BrickSim PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>

@@ -1,5 +1,3 @@
-#include <link.h>
-
 #include "controller.h"
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -14,6 +12,10 @@
 #include "config.h"
 #include "metrics.h"
 #include "orientation_cube.h"
+
+#ifdef BRICKSIM_USE_RENDERDOC
+#include <link.h>
+#endif
 
 namespace controller {
     namespace {

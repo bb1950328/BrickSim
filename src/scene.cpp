@@ -57,7 +57,7 @@ void CompleteFramebuffer::saveImage(const std::filesystem::path &path) const {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     });
 
-    const bool success = util::writeImage(path.c_str(), &data[0], size.x, size.y, channels);
+    const bool success = util::writeImage(path.string().c_str(), &data[0], size.x, size.y, channels);
     if (!success) {
         throw std::invalid_argument("util::writeImage did not succeed");
     }

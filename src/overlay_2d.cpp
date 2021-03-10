@@ -77,7 +77,7 @@ namespace overlay2d {
     }
 
     void Graphics::addRegularPolygon(glm::vec2 center, float radius, short numEdges, util::RGBcolor color, element_id_t elementId) {
-        float angleStep = 2 * M_PIf32 / numEdges;
+        float angleStep = 2 * M_PI / numEdges;
         const glm::vec2 p0 = {radius + center.x, center.y};
         glm::vec2 lastP = {radius*std::cos(angleStep) + center.x, radius * std::sin(angleStep) + center.y};
         for (short i = 2; i < numEdges; ++i) {

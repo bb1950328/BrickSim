@@ -6,9 +6,16 @@
 
 namespace constants {
     constexpr float LDU_TO_OPENGL_SCALE = 0.01f;
-    const glm::mat4 LDU_TO_OPENGL_ROTATION = glm::rotate(glm::mat4(1.0f),//base
-                                                         glm::radians(180.0f),//rotate 180° around
-                                                         glm::vec3(1.0f, 0.0f, 0.0f));// x axis;
+    extern const glm::mat4 LDU_TO_OPENGL_ROTATION;
     constexpr layer_t DEFAULT_LAYER=0;
+
+    constexpr uint16_t versionMajor = BRICKSIM_VERSION_MAJOR;
+    constexpr uint16_t versionMinor = BRICKSIM_VERSION_MINOR;
+    constexpr uint16_t versionPatch = BRICKSIM_VERSION_PATCH;
+    extern const char* versionString;
+
+    constexpr float totalWorkHours = BRICKSIM_TOTAL_HOURS;
+    constexpr uint16_t gitCommitCount = BRICKSIM_GIT_COMMIT_COUNT;
+    extern const char* gitCommitHash;
 }
 #endif //BRICKSIM_CONSTANTS_H

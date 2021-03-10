@@ -1,7 +1,7 @@
 
 
 #include "gui.h"
-#include "../constant_data/git_stats.h"
+#include "../constant_data/constants.h"
 #include "gui_internal.h"
 
 namespace gui {
@@ -15,10 +15,7 @@ namespace gui {
             ImGui::Separator();
             ImGui::Text("This program is open source. It's source code is available on GitHub under the following link:");
             gui_internal::draw_hyperlink_button("https://www.github.com/bb1950328/BrickSim");
-            ImGui::TextWrapped("It's direct contributors have spent %.1f hours for this program. The following users have contributed:",
-                               git_stats::totalHours);
-            ImGui::TextWrapped("%s", git_stats::contributorLoc);
-            ImGui::Text("The numbers are the lines of code each contributer has committed. (Bigger number doesn't neccessarily mean more effort)");
+            ImGui::TextWrapped("It's direct contributors have spent %.1f hours for this program.", constants::totalWorkHours);
             ImGui::TextWrapped(
                     "If you got this program from a source which is not listed on GitHub, please uninstall it and report is on GitHub (Create a Issue)");
             ImGui::TextWrapped(

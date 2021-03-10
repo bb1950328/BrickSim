@@ -45,7 +45,6 @@ namespace util {
 
     //os functions
     void openDefaultBrowser(const std::string &link);
-    std::vector<std::pair<const char *, std::string>> getSystemInfo();
 
     //vector/glm functions
     void coutMat4(glm::mat4 mat);

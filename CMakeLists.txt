@@ -10,10 +10,6 @@ project(BrickSim)
 
 file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)#prevent profiles from loading in parallel, causes problems with submodules
 
-set(BRICKSIM_VERSION_MAJOR 1)
-set(BRICKSIM_VERSION_MINOR 0)
-set(BRICKSIM_VERSION_PATCH 0)
-
 add_executable(BrickSim)
 
 # OpenGL
@@ -109,7 +105,7 @@ add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 add_compile_definitions(USE_SSLEAY)
 add_compile_definitions(USE_OPENSSL)
 
-option(USE_RENDERDOC "Build with RenderDoc in-application API" OFF)
+option(USE_RENDERDOC "Build with RenderDoc in-application API (currently only working on linux)" OFF)
 if (USE_RENDERDOC)
     add_compile_definitions(BRICKSIM_USE_RENDERDOC)
 endif ()
@@ -120,6 +116,49 @@ target_include_directories(BrickSim PUBLIC
         $<INSTALL_INTERFACE:include>)
 target_link_libraries(BrickSim ${CMAKE_DL_LIBS})
 
+# git statistics
+execute_process(
+        COMMAND git log HEAD -n 1 --format=%H'
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_COMMIT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+target_compile_definitions(BrickSim PUBLIC BRICKSIM_GIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
+
+execute_process(
+        COMMAND bash "-c" "git log --oneline | wc -l"
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_COMMIT_COUNT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+target_compile_definitions(BrickSim PUBLIC BRICKSIM_GIT_COMMIT_COUNT=${GIT_COMMIT_COUNT})
+
+execute_process(
+        COMMAND bash "-c" "git log --no-merges --all | grep -oE \"t=[0-9]+\\\\.?[0-9]*\" | grep -oE \"[0-9]+\\\\.?[0-9]*\" | awk '{ SUM += $1} END { printf \"%f;\\n\", SUM }'"
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE TOTAL_HOURS
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+target_compile_definitions(BrickSim PUBLIC BRICKSIM_TOTAL_HOURS=${TOTAL_HOURS})
+
+#version
+execute_process(
+        COMMAND bash "-c" "git describe --tags --match v[0-9]*"
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_VERSION_TAG
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+string(REPLACE "v" "" VERSION_TAG_WITHOUT_V ${GIT_VERSION_TAG})
+string(REPLACE "." ";" VERSION_LIST ${VERSION_TAG_WITHOUT_V})
+list(GET VERSION_LIST 0 BRICKSIM_VERSION_MAJOR)
+list(GET VERSION_LIST 1 BRICKSIM_VERSION_MINOR)
+list(GET VERSION_LIST 2 BRICKSIM_VERSION_PATCH)
+
+target_compile_definitions(BrickSim PUBLIC BRICKSIM_VERSION_MAJOR=${BRICKSIM_VERSION_MAJOR})
+target_compile_definitions(BrickSim PUBLIC BRICKSIM_VERSION_MINOR=${BRICKSIM_VERSION_MINOR})
+target_compile_definitions(BrickSim PUBLIC BRICKSIM_VERSION_PATCH=${BRICKSIM_VERSION_PATCH})
+
+message(STATUS "BrickSim Version: ${BRICKSIM_VERSION_MAJOR}.${BRICKSIM_VERSION_MINOR}.${BRICKSIM_VERSION_PATCH}")
 
 #packaging
 if (UNIX)

@@ -143,13 +143,13 @@ target_compile_definitions(BrickSim PUBLIC BRICKSIM_TOTAL_HOURS=${TOTAL_HOURS})
 
 #version
 execute_process(
-        COMMAND bash "-c" "git describe --tags --match v[0-9]*"
+        COMMAND bash "-c" "git describe --tags --match v[0-9]* --abbrev=0"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_VERSION_TAG
         OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-string(REPLACE "v" "" VERSION_TAG_WITHOUT_V ${GIT_VERSION_TAG})
-string(REPLACE "." ";" VERSION_LIST ${VERSION_TAG_WITHOUT_V})
+string(REPLACE "v" "" VERSION_TAG_WITHOUT_V "${GIT_VERSION_TAG}")
+string(REPLACE "." ";" VERSION_LIST "${VERSION_TAG_WITHOUT_V}")
 list(GET VERSION_LIST 0 BRICKSIM_VERSION_MAJOR)
 list(GET VERSION_LIST 1 BRICKSIM_VERSION_MINOR)
 list(GET VERSION_LIST 2 BRICKSIM_VERSION_PATCH)

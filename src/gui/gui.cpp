@@ -585,7 +585,7 @@ namespace gui {
                 }
                 ImGui::BulletText("Download");
                 ImGui::SameLine();
-                gui_internal::draw_hyperlink_button("http://www.ldraw.org/library/updates/complete.zip");
+                gui_internal::drawHyperlinkButton("http://www.ldraw.org/library/updates/complete.zip");
                 ImGui::SameLine();
                 ImGui::Text("and unzip it to the path above");
                 ImGui::SameLine();

@@ -74,10 +74,24 @@ namespace gui_internal {
         }
     }
 
-    void draw_hyperlink_button(const std::string &url) {
-        if (ImGui::Button(url.c_str())) {
-            util::openDefaultBrowser(url);
+    void drawHyperlinkButton(const std::string &url) {
+        const auto buttonHoveredColor = ImGui::GetColorU32(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+        ImGui::PushStyleColor(ImGuiCol_Text, buttonHoveredColor);
+        ImGui::PushTextWrapPos(-1.0f);
+        ImGui::TextUnformatted(url.c_str());
+        ImGui::PopTextWrapPos();
+        ImGui::PopStyleColor();
+        if (ImGui::IsItemHovered()) {
+            //todo use this but also set cursor back to arrow when cursor leaves link
+            // ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+            if (ImGui::IsMouseClicked(0)) {
+                util::openDefaultBrowser(url);
+            }
         }
+        ImVec2 min = ImGui::GetItemRectMin();
+        ImVec2 max = ImGui::GetItemRectMax();
+        min.y = max.y;
+        ImGui::GetWindowDrawList()->AddLine(min, max, buttonHoveredColor, 1.0f);
     }
 
     char getLoFiSpinner() {

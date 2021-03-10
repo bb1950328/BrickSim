@@ -19,7 +19,7 @@ namespace gui_internal {
     bool drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<LdrFile> &part, const LdrColorReference color);
     ImVec4 getWhiteOrBlackBetterContrast(const glm::vec3 &col);
     void drawColorGroup(const std::shared_ptr<etree::MeshNode>& ldrNode, const ImVec2 &buttonSize, int columnCount, const std::pair<const std::string, std::vector<LdrColorReference>> &colorGroup);
-    void draw_hyperlink_button(const std::string &url);
+    void drawHyperlinkButton(const std::string &url);
     char getLoFiSpinner();
     const char* getAnimatedHourglassIcon();
     ImTextureID convertTextureId(unsigned int textureId);

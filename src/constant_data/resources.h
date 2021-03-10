@@ -22,5 +22,17 @@
     extern const unsigned int logo_fit_highres_png_len;
     extern const unsigned char logo_icon_png[];
     extern const unsigned int logo_icon_png_len;
+    extern const unsigned char licenses_Apache2_txt[];
+    extern const unsigned int licenses_Apache2_txt_len;
+    extern const unsigned char licenses_bsd2clause_txt[];
+    extern const unsigned int licenses_bsd2clause_txt_len;
+    extern const unsigned char licenses_bsd3clause_txt[];
+    extern const unsigned int licenses_bsd3clause_txt_len;
+    extern const unsigned char licenses_GPLv3_txt[];
+    extern const unsigned int licenses_GPLv3_txt_len;
+    extern const unsigned char licenses_MIT_txt[];
+    extern const unsigned int licenses_MIT_txt_len;
+    extern const unsigned char licenses_zlib_txt[];
+    extern const unsigned int licenses_zlib_txt_len;
 }
 #endif //BRICKSIM_RESOURCES_H

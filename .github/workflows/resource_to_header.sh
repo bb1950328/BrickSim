@@ -11,6 +11,12 @@ declare -a files=(
   "logo_square_nobg.png"
   "logo_fit_highres.png"
   "logo_icon.png"
+  "licenses/Apache2.txt"
+  "licenses/bsd2clause.txt"
+  "licenses/bsd3clause.txt"
+  "licenses/GPLv3.txt"
+  "licenses/MIT.txt"
+  "licenses/zlib.txt"
 )
 
 if [ ! -d "src" ]; then

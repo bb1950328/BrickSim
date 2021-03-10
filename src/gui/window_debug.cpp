@@ -5,7 +5,7 @@
 #include "../metrics.h"
 
 namespace gui {
-    void windows::drawDebugWindow(bool* show) {
+    void windows::drawDebugWindow(bool *show) {
         ImGui::Begin(WINDOW_NAME_DEBUG, show);
         const auto lastFrameTimes = controller::getLastFrameTimes();
         const auto count = std::get<0>(lastFrameTimes);
@@ -31,7 +31,7 @@ namespace gui {
             ImGui::BulletText("%s: %u µs", timePointsUs.first, timePointsUs.second);
         }
 
-        ImGui::BeginChild(ICON_FA_WINDOW_RESTORE" Window drawing times", ImVec2(0, ImGui::GetFontSize()*7), true);
+        ImGui::BeginChild(ICON_FA_WINDOW_RESTORE" Window drawing times", ImVec2(0, ImGui::GetFontSize() * 7), true);
         for (const auto &item : metrics::lastWindowDrawingTimesUs) {
             ImGui::Text("%s: %.1f µs", item.first.c_str(), item.second);
         }

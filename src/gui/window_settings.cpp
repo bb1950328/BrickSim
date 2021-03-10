@@ -103,13 +103,13 @@ namespace gui {
                 if (settingCurrencyCode[0] == currencyCodeStrings[j]
                     && settingCurrencyCode[1] == currencyCodeStrings[j + 1]
                     && settingCurrencyCode[2] == currencyCodeStrings[j + 2]) {
-                    currencyCodeIndex = j/4;
+                    currencyCodeIndex = j / 4;
                     break;
                 }
             }
-            mouseSensitivityRotation = config::getDouble(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY)*100;
-            mouseSensitivityPan = config::getDouble(config::MOUSE_3DVIEW_PAN_SENSITIVITY)*100;
-            mouseSensitivityZoom = config::getDouble(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY)*100;
+            mouseSensitivityRotation = config::getDouble(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY) * 100;
+            mouseSensitivityPan = config::getDouble(config::MOUSE_3DVIEW_PAN_SENSITIVITY) * 100;
+            mouseSensitivityZoom = config::getDouble(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY) * 100;
         }
 
         void save() {
@@ -135,12 +135,12 @@ namespace gui {
             config::setBool(config::ENABLE_VIEWPORTS, enableViewportsInt > 0);
             config::setBool(config::ENABLE_GL_DEBUG_OUTPUT, enableGlDebugOutput);
             char currencyCodeBuffer[4];
-            memcpy(currencyCodeBuffer, &currencyCodeStrings[currencyCodeIndex*4], 4);
+            memcpy(currencyCodeBuffer, &currencyCodeStrings[currencyCodeIndex * 4], 4);
             config::setString(config::BRICKLINK_CURRENCY_CODE, currencyCodeBuffer);
             keyboard_shortcut_manager::replaceAllShortcuts(allShortcuts);
-            config::setDouble(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY, mouseSensitivityRotation/100);
-            config::setDouble(config::MOUSE_3DVIEW_PAN_SENSITIVITY, mouseSensitivityPan/100);
-            config::setDouble(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY, mouseSensitivityZoom/100);
+            config::setDouble(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY, mouseSensitivityRotation / 100);
+            config::setDouble(config::MOUSE_3DVIEW_PAN_SENSITIVITY, mouseSensitivityPan / 100);
+            config::setDouble(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY, mouseSensitivityZoom / 100);
         }
 
         void drawGeneralTab() {

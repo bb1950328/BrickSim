@@ -218,13 +218,12 @@ namespace gui {
                         auto tableFlags =
                                 ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
                                 ImGuiTableFlags_BordersV | ImGuiTableFlags_ScrollX;
-                        ImVec2 outer_size = ImVec2(-FLT_MIN, ImGui::GetTextLineHeightWithSpacing()*9);
+                        ImVec2 outer_size = ImVec2(-FLT_MIN, ImGui::GetTextLineHeightWithSpacing() * 9);
                         auto tableId = std::string("##priceGuideTable") + partCode;
                         for (const auto &pGuide : pGuides) {
                             tableId += std::string(";") + std::to_string(pGuide.first.code);
                         }
-                        if (ImGui::BeginTable(tableId.c_str(), pGuides.size() + 1, tableFlags, outer_size))
-                        {
+                        if (ImGui::BeginTable(tableId.c_str(), pGuides.size() + 1, tableFlags, outer_size)) {
                             ImGui::TableSetupScrollFreeze(1, 1);
                             ImGui::TableSetupColumn(ICON_FA_MONEY_BILL, ImGuiTableColumnFlags_NoHide);
                             for (const auto &pGuide : pGuides) {

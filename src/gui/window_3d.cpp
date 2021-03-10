@@ -79,8 +79,8 @@ namespace gui {
             }
             mainScene->setImageSize({regionAvail.x, regionAvail.y});
             auto texture3dView = gui_internal::convertTextureId(config::getBool(config::DISPLAY_SELECTION_BUFFER)
-                                                ? mainScene->getSelectionImage()->getTexBO()
-                                                : mainScene->getImage().getTexBO());
+                                                                ? mainScene->getSelectionImage()->getTexBO()
+                                                                : mainScene->getImage().getTexBO());
             ImGui::ImageButton(texture3dView, regionAvail, ImVec2(1, 0), ImVec2(0, 1), 0);
             ImGui::EndChild();
         }

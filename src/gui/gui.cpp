@@ -89,7 +89,8 @@ namespace gui {
             iconsConfig.MergeMode = true;
             iconsConfig.PixelSnapH = true;
             iconsConfig.FontDataOwnedByAtlas = false;
-            io.Fonts->AddFontFromMemoryTTF((void *) resources::fonts_fa_solid_900_ttf, resources::fonts_fa_solid_900_ttf_len, 13.0f * scaleFactor, &iconsConfig, icons_ranges);
+            io.Fonts->AddFontFromMemoryTTF((void *) resources::fonts_fa_solid_900_ttf, resources::fonts_fa_solid_900_ttf_len,
+                                           13.0f * scaleFactor, &iconsConfig, icons_ranges);
         }
 
         void setupStyle() {
@@ -183,7 +184,8 @@ namespace gui {
         auto flipFlagBefore = util::isStbiFlipVertically();
         util::setStbiFlipVertically(false);
         GLFWimage images[1];
-        images[0].pixels = stbi_load_from_memory(resources::logo_icon_png, resources::logo_icon_png_len, &images[0].width, &images[0].height, nullptr, 4); //rgba channels
+        images[0].pixels = stbi_load_from_memory(resources::logo_icon_png, resources::logo_icon_png_len,
+                                                 &images[0].width, &images[0].height, nullptr,4); //rgba channels
         glfwSetWindowIcon(window, 1, images);
         stbi_image_free(images[0].pixels);
 
@@ -198,7 +200,7 @@ namespace gui {
         setupFont(scaleFactor, io);
 
         // Setup Platform/Renderer bindings
-        controller::executeOpenGL([](){
+        controller::executeOpenGL([]() {
             ImGui_ImplGlfw_InitForOpenGL(window, true);
             ImGui_ImplOpenGL3_Init("#version 330");
         });
@@ -419,7 +421,9 @@ namespace gui {
         lastScrollDeltaY = 0.0f;
 
         if (ImGui::BeginPopupModal("Please wait##Modal", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Image(gui_internal::convertTextureId(logoTexture->getID()), ImVec2(logoTexture->getSize().x, logoTexture->getSize().y), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image(gui_internal::convertTextureId(logoTexture->getID()),
+                         ImVec2(logoTexture->getSize().x, logoTexture->getSize().y),
+                         ImVec2(0, 1),ImVec2(1, 0));
             ImGui::Text("Please wait until this operation has finished.");
             ImGui::Separator();
             ImGui::Text("%s", blockingMessageText.c_str());
@@ -523,14 +527,14 @@ namespace gui {
                 ImGui::UpdatePlatformWindows();
                 ImGui::RenderPlatformWindowsDefault();
             }
-            controller::executeOpenGL([](){
+            controller::executeOpenGL([]() {
                 ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
             });
         }
     }
 
     void beginFrame() {
-        controller::executeOpenGL([](){
+        controller::executeOpenGL([]() {
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
@@ -647,14 +651,16 @@ namespace gui {
         } else if (state == 'D') {
             if (ImGui::Begin(ICON_FA_DOWNLOAD" Downloading LDraw parts library", nullptr, windowFlags)) {
                 switch (parts_library_downloader::getStatus()) {
-                    case parts_library_downloader::DOING_NOTHING:downloadThread = std::thread(parts_library_downloader::downloadPartsLibrary);
+                    case parts_library_downloader::DOING_NOTHING:
+                        downloadThread = std::thread(parts_library_downloader::downloadPartsLibrary);
                         break;
                     case parts_library_downloader::IN_PROGRESS: {
                         auto progress = parts_library_downloader::getProgress();
                         ImGui::Text(ICON_FA_DOWNLOAD" Downloading ldraw parts library...");
 
                         float progressFraction = 1.0f * progress.first / progress.second;
-                        std::string speedTxt = std::to_string(progressFraction) + "%" + util::formatBytesValue(parts_library_downloader::getSpeedBytesPerSecond()) + "/s";
+                        std::string speedTxt = std::to_string(progressFraction) + "%"
+                                + util::formatBytesValue(parts_library_downloader::getSpeedBytesPerSecond()) + "/s";
                         ImGui::ProgressBar(progressFraction, ImVec2(-FLT_MIN, 0), speedTxt.c_str());
                         if (ImGui::Button(ICON_FA_STOP_CIRCLE" Cancel and exit program")) {
                             parts_library_downloader::stopDownload();
@@ -664,13 +670,16 @@ namespace gui {
                         }
                         break;
                     }
-                    case parts_library_downloader::FAILED:ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), ICON_FA_TIMES_CIRCLE" Download failed with error code %d", parts_library_downloader::getErrorCode());
+                    case parts_library_downloader::FAILED:
+                        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
+                                           ICON_FA_TIMES_CIRCLE" Download failed with error code %d",parts_library_downloader::getErrorCode());
                         if (ImGui::Button(ICON_FA_CHEVRON_LEFT" Back")) {
                             parts_library_downloader::reset();
                             state = 'Z';
                         }
                         break;
-                    case parts_library_downloader::FINISHED: state = 'Z';
+                    case parts_library_downloader::FINISHED:
+                        state = 'Z';
                         parts_library_downloader::reset();
                         break;
                 }
@@ -690,7 +699,9 @@ namespace gui {
             //const float fontSize = ImGui::GetFontSize();
             //ImGui::SetNextWindowSize(ImVec2(fontSize * 18, fontSize * 6));
             ImGui::Begin("Please wait", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::Image(gui_internal::convertTextureId(logoTexture->getID()), ImVec2(logoTexture->getSize().x, logoTexture->getSize().y), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image(gui_internal::convertTextureId(logoTexture->getID()),
+                         ImVec2(logoTexture->getSize().x, logoTexture->getSize().y),
+                         ImVec2(0, 1),ImVec2(1, 0));
             ImGui::Text("%s %s", gui_internal::getAnimatedHourglassIcon(), message.c_str());
             ImGui::ProgressBar(progress);
             ImGui::End();

@@ -7,7 +7,7 @@ namespace gui {
     void windows::drawSysInfoWindow(bool *show) {
         if (ImGui::Begin(WINDOW_NAME_SYSTEM_INFO, show, ImGuiWindowFlags_AlwaysAutoResize)) {
             static const auto infoLines = system_info::getSystemInfo();
-            if(ImGui::BeginTable("##sysInfoTable", 2)) {
+            if (ImGui::BeginTable("##sysInfoTable", 2)) {
                 for (const auto &line: infoLines) {
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);

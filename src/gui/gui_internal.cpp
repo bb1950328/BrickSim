@@ -46,7 +46,8 @@ namespace gui_internal {
         return util::vectorSum(col) > 1.5 ? ImVec4(0, 0, 0, 1) : ImVec4(1, 1, 1, 1);
     }
 
-    void drawColorGroup(const std::shared_ptr<etree::MeshNode>& ldrNode, const ImVec2 &buttonSize, const int columnCount, const std::pair<const std::string, std::vector<LdrColorReference>> &colorGroup) {
+    void drawColorGroup(const std::shared_ptr<etree::MeshNode> &ldrNode, const ImVec2 &buttonSize, const int columnCount,
+                        const std::pair<const std::string, std::vector<LdrColorReference>> &colorGroup) {
         if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
             int i = 0;
             for (const auto &color : colorGroup.second) {
@@ -99,11 +100,15 @@ namespace gui_internal {
     }
 
     const char *getAnimatedHourglassIcon() {
-        switch ((int)(glfwGetTime() * 6) % 3) {
-            case 0: return ICON_FA_HOURGLASS_START;
-            case 1: return ICON_FA_HOURGLASS_HALF;
-            case 2: return ICON_FA_HOURGLASS_END;
-            default: return ICON_FA_HOURGLASS;//should never happen
+        switch ((int) (glfwGetTime() * 6) % 3) {
+            case 0:
+                return ICON_FA_HOURGLASS_START;
+            case 1:
+                return ICON_FA_HOURGLASS_HALF;
+            case 2:
+                return ICON_FA_HOURGLASS_END;
+            default:
+                return ICON_FA_HOURGLASS;//should never happen
         }
     }
 

@@ -7,7 +7,8 @@
 namespace gui {
     namespace {
         constexpr int NUM_LOG_FILTER_PATTERNS = 2;
-        char const * logFilterPatterns[NUM_LOG_FILTER_PATTERNS] = {"*.log", "*.txt"};
+        char const *logFilterPatterns[NUM_LOG_FILTER_PATTERNS] = {"*.log", "*.txt"};
+
         ImVec4 levelToColor(const unsigned char level) {
             switch (level) {
                 case 0:
@@ -19,6 +20,7 @@ namespace gui {
                 default: return ImVec4(1.0, 1.0, 1.0, 1.0);
             }
         }
+
         const char *levelToText(const unsigned char level) {
             switch (level) {
                 case 0: return "TRACE";
@@ -31,8 +33,8 @@ namespace gui {
             }
         }
     }
-    
-    void windows::drawLogWindow(bool *show){
+
+    void windows::drawLogWindow(bool *show) {
         if (ImGui::Begin(WINDOW_NAME_LOG, show)) {
             static int minLevel;
             static float fontSize = ImGui::GetFontSize();
@@ -46,7 +48,7 @@ namespace gui {
             ImGui::SameLine();
             bool saveClicked = ImGui::Button(ICON_FA_SAVE" Save");
             ImGui::SameLine();
-            if(ImGui::Button(ICON_FA_BAN" Clear")) {
+            if (ImGui::Button(ICON_FA_BAN" Clear")) {
                 latest_log_messages_tank::clear();
             }
 
@@ -58,7 +60,7 @@ namespace gui {
                 ImGui::TableSetupColumn("Message");
                 ImGui::TableSetupScrollFreeze(0, 1);
                 ImGui::TableHeadersRow();
-                
+
                 auto it = latest_log_messages_tank::getIterator();
                 while (it.getCurrent() != nullptr) {
                     const auto message = *it.getCurrent();
@@ -70,7 +72,7 @@ namespace gui {
 
                     ImGui::TableSetColumnIndex(0);
                     ImGui::Text("%s", message.formattedTime.c_str());
-                    
+
                     ImGui::TableSetColumnIndex(1);
                     ImGui::TextColored(levelToColor(message.level), "%s", levelToText(message.level));
 
@@ -89,12 +91,13 @@ namespace gui {
 
                 ImGui::EndTable();
 
-                if (copyClicked)  {
+                if (copyClicked) {
                     glfwSetClipboardString(getWindow(), exportResult.c_str());
                     spdlog::debug("log copied to clipboard");
                 }
                 if (saveClicked) {
-                    const auto path = std::filesystem::path(tinyfd_saveFileDialog("Save log to file", nullptr, NUM_LOG_FILTER_PATTERNS, logFilterPatterns, nullptr));
+                    const auto path = std::filesystem::path(tinyfd_saveFileDialog("Save log to file", nullptr,
+                                                            NUM_LOG_FILTER_PATTERNS, logFilterPatterns, nullptr));
                     std::ofstream outFile(path);
                     outFile << exportResult;
                     outFile.close();

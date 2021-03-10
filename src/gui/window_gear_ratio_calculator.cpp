@@ -11,7 +11,7 @@ namespace gui {
                 pairs.emplace_back(gears::GEAR_8T, gears::GEAR_8T);
             }
             auto totalRatio = Fraction(1, 1);
-            auto maxWidth = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().FramePadding.x*4;
+            auto maxWidth = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().FramePadding.x * 4;
             static char labelBuf[14];
 
             if (ImGui::BeginTable("##gearPairs", 3, ImGuiTableFlags_SizingFixedFit)) {
@@ -29,9 +29,9 @@ namespace gui {
                     if (it == pairs.begin()) {
                         const auto lastColWidth = ImGui::GetFontSize() * 1.8f;
                         ImGui::TableSetColumnIndex(0);
-                        ImGui::PushItemWidth((maxWidth-lastColWidth)/2);
+                        ImGui::PushItemWidth((maxWidth - lastColWidth) / 2);
                         ImGui::TableSetColumnIndex(1);
-                        ImGui::PushItemWidth((maxWidth-lastColWidth)/2);
+                        ImGui::PushItemWidth((maxWidth - lastColWidth) / 2);
                         ImGui::TableSetColumnIndex(2);
                         ImGui::PushItemWidth(lastColWidth);
                     }
@@ -60,7 +60,7 @@ namespace gui {
                     ImGui::TableSetColumnIndex(1);
                     if (ImGui::BeginCombo(labelBuf, it->getFollower()->description)) {
                         for (const auto &gear : gears::ALL_GEARS) {
-                            const bool is_selected = (it->getFollower()->id==gear->id);
+                            const bool is_selected = (it->getFollower()->id == gear->id);
                             if (ImGui::Selectable(gear->description, is_selected)) {
                                 const gears::gear_t driver = it->getDriver();
                                 it = pairs.erase(it);

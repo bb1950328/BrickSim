@@ -105,6 +105,7 @@ public:
      * @param newSceneInstances must be ordered by layer
      */
     void updateInstancesOfScene(scene_id_t sceneId, const std::vector<MeshInstance>& newSceneInstances);
+    void deleteInstancesOfScene(scene_id_t sceneId);
 
     std::string name = "?";
 

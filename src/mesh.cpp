@@ -665,7 +665,16 @@ std::optional<Mesh::InstanceRange> Mesh::getSceneInstanceRange(scene_id_t sceneI
     }
     const auto &layerMap = it->second;
     auto start = layerMap.cbegin()->second.start;
-    auto count = layerMap.cend()->second.start - start + layerMap.cend()->second.count;
+    unsigned int count;
+    if (layerMap.size()>1) {
+        count = 0;
+        for (const auto &item : layerMap) {
+            count += item.second.count;
+        }
+    } else {
+        count = layerMap.cbegin()->second.count;
+    }
+    
     return {{start, count}};
 }
 
@@ -681,6 +690,10 @@ std::optional<Mesh::InstanceRange> Mesh::getSceneLayerInstanceRange(scene_id_t s
 }
 
 void Mesh::updateInstancesOfScene(scene_id_t sceneId, const std::vector<MeshInstance> &newSceneInstances) {
+    if (newSceneInstances.empty()) {
+        deleteInstancesOfScene(sceneId);
+        return;
+    }
     auto sceneRange = getSceneInstanceRange(sceneId);
     if (sceneRange.has_value()) {
         if (sceneRange->count != newSceneInstances.size()) {
@@ -728,6 +741,20 @@ void Mesh::updateInstancesOfScene(scene_id_t sceneId, const std::vector<MeshInst
         }
     } else {
         appendNewSceneInstancesAtEnd(sceneId, newSceneInstances);
+    }
+}
+
+void Mesh::deleteInstancesOfScene(scene_id_t sceneId) {
+    auto sceneRange = getSceneInstanceRange(sceneId);
+    if (sceneRange.has_value()) {
+        if (instances.size()==sceneRange->start+sceneRange->count) {
+            instances.resize(sceneRange->start);
+        } else {
+            auto startIt = instances.begin() + sceneRange->start;
+            instances.erase(startIt, startIt+sceneRange->count-1);
+        }
+        instanceSceneLayerRanges.erase(sceneId);
+        instancesHaveChanged = true;
     }
 }
 

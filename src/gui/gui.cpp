@@ -499,7 +499,7 @@ namespace gui {
                 for (const auto &action : foundActions) {
                     bool selected = action.id == selectedActionId;
                     if (selected) {
-                        ImGui::SetScrollHere();
+                        ImGui::SetScrollHereY();
                     }
                     ImGui::Selectable(action.nameWithIcon, selected);
                 }

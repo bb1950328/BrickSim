@@ -12,7 +12,7 @@ typedef std::pair<void *, bool> mesh_key_t;
  */
 class SceneMeshCollection {
 private:
-    std::set<std::shared_ptr<Mesh>> usedMeshes;
+    std::set<std::shared_ptr<Mesh>> usedMeshes, lastUsedMeshes;
     std::set<layer_t> layersInUse;
     scene_id_t scene;
     std::shared_ptr<etree::Node> rootNode;

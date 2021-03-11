@@ -118,10 +118,15 @@ void SceneMeshCollection::rereadElementTree() {
     elementsSortedById.push_back(nullptr);
     layersInUse.clear();
     auto before = std::chrono::high_resolution_clock::now();
+    lastUsedMeshes = usedMeshes;
+    usedMeshes.clear();
     readElementTree(rootNode, glm::mat4(1.0f), {}, std::nullopt);
     updateMeshInstances();
     nodesWithChildrenAlreadyVisited.clear();
     for (const auto &mesh: usedMeshes) {
+        mesh->writeGraphicsData();
+    }
+    for (const auto &mesh: lastUsedMeshes) {
         mesh->writeGraphicsData();
     }
     auto after = std::chrono::high_resolution_clock::now();
@@ -140,6 +145,10 @@ void SceneMeshCollection::updateMeshInstances() {
         });
 
         mesh->updateInstancesOfScene(scene, newInstancesOfThisScene);
+        lastUsedMeshes.erase(mesh);
+    }
+    for (const auto &notUsedAnymoreMesh : lastUsedMeshes) {
+        notUsedAnymoreMesh->deleteInstancesOfScene(scene);
     }
     newMeshInstances.clear();
 }

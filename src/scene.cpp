@@ -174,6 +174,10 @@ void Scene::updateImage() {
         elementTreeRereadNeeded = false;
         imageUpToDate = false;
     }
+    if (imageSize != image.getSize()) {
+        image.setSize(imageSize);
+        imageUpToDate = false;
+    }
 
     if (!imageUpToDate) {
         auto before = std::chrono::high_resolution_clock::now();
@@ -184,7 +188,6 @@ void Scene::updateImage() {
                 renderdocApi->StartFrameCapture(nullptr, nullptr);
             }
 #endif
-            image.setSize(imageSize);
             glBindFramebuffer(GL_FRAMEBUFFER, image.getFBO());
             glViewport(0, 0, imageSize.x, imageSize.y);
             spdlog::debug("rendering image {}x{} to FBO {}", imageSize.x, imageSize.y, image.getFBO());

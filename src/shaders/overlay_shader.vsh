@@ -5,7 +5,7 @@ layout (location = 2) in vec3 aIdColor;
 
 out vec3 bColor;
 
-uniform int drawSelection;
+uniform int drawSelection;//todo make dedicated shader for that
 
 void main()
 {

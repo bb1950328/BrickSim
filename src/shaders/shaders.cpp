@@ -177,10 +177,12 @@ namespace shaders {
 
     void initialize() {
         allShaders[TRIANGLE] = std::make_unique<Shader>("src/shaders/triangle_shader.vsh", "src/shaders/triangle_shader.fsh");
-        allShaders[TEXTURED_TRIANGLE] = std::make_unique<Shader>("src/shaders/texture_shader.vsh", "src/shaders/texture_shader.fsh");
+        allShaders[TEXTURED_TRIANGLE] = std::make_unique<Shader>("src/shaders/textured_triangle_shader.vsh", "src/shaders/textured_triangle_shader.fsh");
         allShaders[LINE] = std::make_unique<Shader>("src/shaders/line_shader.vsh", "src/shaders/line_shader.fsh");
         allShaders[OPTIONAL_LINE] = std::make_unique<Shader>("src/shaders/optional_line_shader.vsh", "src/shaders/line_shader.fsh", "src/shaders/optional_line_shader.gsh");
-        allShaders[OVERLAY] = std::make_unique<Shader>("src/shaders/overlay_shader.vsh", "src/shaders/overlay_shader.fsh");
+        allShaders[OVERLAY] = std::make_unique<Shader>("src/shaders/overlay_shader.vsh", "src/shaders/simple_color_forwarding_shader.fsh");
+        allShaders[TRIANGLE_SELECTION] = std::make_unique<Shader>("src/shaders/triangle_selection_shader.vsh", "src/shaders/simple_color_forwarding_shader.fsh");
+        allShaders[TEXTURED_TRIANGLE_SELECTION] = std::make_unique<Shader>("src/shaders/textured_triangle_selection_shader.vsh", "src/shaders/simple_color_forwarding_shader.fsh");
     }
 
     void cleanup() {

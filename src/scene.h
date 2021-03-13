@@ -52,8 +52,9 @@ private:
     std::shared_ptr<Camera> camera;
     glm::usvec2 imageSize;
     glm::mat4 projectionMatrix;
-    glm::mat4 lastRenderedViewMatrix;
-    bool imageUpToDate, elementTreeRereadNeeded;
+    glm::mat4 currentImageViewMatrix, currentSelectionImageViewMatrix;
+    bool imageUpToDate, selectionImageUpToDate, elementTreeRereadNeeded;
+    void rereadElementTreeIfNeeded();
 public:
     explicit Scene(scene_id_t sceneId);//todo make constructor private and set scenes::create as a friend
     unsigned int getSelectionPixel(framebuffer_size_t x, framebuffer_size_t y);

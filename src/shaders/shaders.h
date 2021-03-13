@@ -57,6 +57,8 @@ namespace shaders {
         LINE,
         OPTIONAL_LINE,
         OVERLAY,
+        TRIANGLE_SELECTION,
+        TEXTURED_TRIANGLE_SELECTION
     };
 
     const Shader& get(shader_id_t id);

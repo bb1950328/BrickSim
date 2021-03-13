@@ -36,7 +36,7 @@ public:
 
     [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBox(const std::shared_ptr<const etree::MeshNode>& node) const;
     [[nodiscard]] const std::set<layer_t> &getLayersInUse() const;
-    [[nodiscard]] std::shared_ptr<etree::Node> getElementById(unsigned int id) const;
+    [[nodiscard]] std::shared_ptr<etree::Node> getElementById(element_id_t id) const;
     [[nodiscard]] const std::shared_ptr<etree::Node> &getRootNode() const;
     void setRootNode(const std::shared_ptr<etree::Node> &newRootNode);
 

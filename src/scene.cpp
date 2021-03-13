@@ -5,12 +5,15 @@
 #include "latest_log_messages_tank.h"
 #include "metrics.h"
 #include "config.h"
+
 #ifdef BRICKSIM_USE_RENDERDOC
+
 #include <renderdoc.h>
+
 #endif
 
-CompleteFramebuffer::CompleteFramebuffer(glm::usvec2 size_): size(size_) { // NOLINT(cppcoreguidelines-pro-type-member-init)
-    controller::executeOpenGL([this](){
+CompleteFramebuffer::CompleteFramebuffer(glm::usvec2 size_) : size(size_) { // NOLINT(cppcoreguidelines-pro-type-member-init)
+    controller::executeOpenGL([this]() {
         glGenFramebuffers(1, &framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
@@ -38,7 +41,7 @@ CompleteFramebuffer::CompleteFramebuffer(glm::usvec2 size_): size(size_) { // NO
 }
 
 CompleteFramebuffer::~CompleteFramebuffer() {
-    controller::executeOpenGL([this](){
+    controller::executeOpenGL([this]() {
         glDeleteRenderbuffers(1, &renderBufferObject);
         glDeleteTextures(1, &textureColorbuffer);
         glDeleteFramebuffers(1, &framebuffer);
@@ -51,7 +54,7 @@ void CompleteFramebuffer::saveImage(const std::filesystem::path &path) const {
 
     auto data = std::vector<GLubyte>();
     data.resize(size.x * size.y * channels);
-    controller::executeOpenGL([this, &data](){
+    controller::executeOpenGL([this, &data]() {
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glReadPixels(0, 0, size.x, size.y, GL_RGB, GL_UNSIGNED_BYTE, &data[0]);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -76,7 +79,7 @@ void CompleteFramebuffer::setSize(const glm::usvec2 &newSize) {
         return;
     }
     size = newSize;
-    controller::executeOpenGL([this](){
+    controller::executeOpenGL([this]() {
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
         glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
@@ -104,36 +107,77 @@ Scene::Scene(scene_id_t sceneId) : image({64, 64}), meshCollection(sceneId), id(
 }
 
 unsigned int Scene::getSelectionPixel(framebuffer_size_t x, framebuffer_size_t y) {
-    //todo don't render the selection image again if nothing has changed
-    if (selection.has_value()) {
-        selection->setSize(imageSize);
-    } else {
+    if (!selection.has_value()) {
         selection.emplace(imageSize);
+        selectionImageUpToDate = false;
+    } else if (selection->getSize() != imageSize) {
+        selection->setSize(imageSize);
+        selectionImageUpToDate = false;
     }
+
+    if (currentSelectionImageViewMatrix != camera->getViewMatrix()) {
+        selectionImageUpToDate = false;
+        currentSelectionImageViewMatrix = camera->getViewMatrix();
+    }
+
+    rereadElementTreeIfNeeded();
     GLubyte middlePixel[3];
-    const glm::mat4 projectionView = projectionMatrix * camera->getViewMatrix();
-    controller::executeOpenGL([this, &x, &y, &middlePixel](){
-        glBindFramebuffer(GL_FRAMEBUFFER, selection->getFBO());
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        const auto& triangleShader = shaders::get(shaders::TRIANGLE);
-        const auto& textureShader = shaders::get(shaders::TEXTURED_TRIANGLE);
-        triangleShader.use();
-        triangleShader.setInt("drawSelection", 1);//todo check if a dedicated selectionTriangleShader is faster
-        for (const auto &layer : meshCollection.getLayersInUse()) {
-            glClear(GL_DEPTH_BUFFER_BIT);
-            triangleShader.use();
-            meshCollection.drawTriangleGraphics(layer);
-            textureShader.use();
-            meshCollection.drawTexturedTriangleGraphics(layer);
-        }
+    if (selectionImageUpToDate) {
+        controller::executeOpenGL([&]() {
+            glBindFramebuffer(GL_FRAMEBUFFER, selection->getFBO());
+            glReadPixels(x, (selection->getSize().y - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        });
+    } else {
+        const glm::mat4 projectionView = projectionMatrix * camera->getViewMatrix();
+        controller::executeOpenGL([&]() {
+#ifdef BRICKSIM_USE_RENDERDOC
+            const auto *renderdocApi = controller::getRenderdocAPI();
+            if (renderdocApi) {
+                renderdocApi->StartFrameCapture(nullptr, nullptr);
+            }
+#endif
+            glBindFramebuffer(GL_FRAMEBUFFER, selection->getFBO());
+            glViewport(0, 0, imageSize.x, imageSize.y);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glReadPixels(x, (selection->getSize().y - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    });
+            const auto &triangleSelectionShader = shaders::get(shaders::TRIANGLE_SELECTION);
+            const auto &texturedTriangleSelectionShader = shaders::get(shaders::TEXTURED_TRIANGLE_SELECTION);
+            triangleSelectionShader.use();
+            triangleSelectionShader.setMat4("projectionView", projectionView);
+            texturedTriangleSelectionShader.use();
+            texturedTriangleSelectionShader.setMat4("projectionView", projectionView);
+            for (const auto &layer : meshCollection.getLayersInUse()) {
+                glClear(GL_DEPTH_BUFFER_BIT);
+                triangleSelectionShader.use();
+                meshCollection.drawTriangleGraphics(layer);
+                texturedTriangleSelectionShader.use();
+                meshCollection.drawTexturedTriangleGraphics(layer);
+            }
+            glUseProgram(0);
+            selectionImageUpToDate = true;
 
+            glReadPixels(x, (selection->getSize().y - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#ifdef BRICKSIM_USE_RENDERDOC
+            if (renderdocApi) {
+                renderdocApi->EndFrameCapture(nullptr, nullptr);
+            }
+#endif
+        });
+    }
     return util::getIntFromColor(middlePixel[0], middlePixel[1], middlePixel[2]);
+}
+
+void Scene::rereadElementTreeIfNeeded() {
+    if (elementTreeRereadNeeded) {
+        meshCollection.rereadElementTree();
+        elementTreeRereadNeeded = false;
+        imageUpToDate = false;
+        selectionImageUpToDate = false;
+    }
 }
 
 const std::shared_ptr<etree::Node> &Scene::getRootNode() const {
@@ -160,20 +204,18 @@ const glm::usvec2 &Scene::getImageSize() const {
 }
 
 void Scene::setImageSize(const glm::usvec2 &newImageSize) {
-    projectionMatrix = glm::perspective(glm::radians(50.0f), (float)newImageSize.x / (float)newImageSize.y, 0.01f, 1000.0f);
+    projectionMatrix = glm::perspective(glm::radians(50.0f), (float) newImageSize.x / (float) newImageSize.y, 0.01f, 1000.0f);
     Scene::imageSize = newImageSize;
 }
 
 void Scene::updateImage() {
-    if (lastRenderedViewMatrix != camera->getViewMatrix()) {
+    if (currentImageViewMatrix != camera->getViewMatrix()) {
         imageUpToDate = false;
-        lastRenderedViewMatrix = camera->getViewMatrix();
+        currentImageViewMatrix = camera->getViewMatrix();
     }
-    if (elementTreeRereadNeeded) {
-        meshCollection.rereadElementTree();
-        elementTreeRereadNeeded = false;
-        imageUpToDate = false;
-    }
+
+    rereadElementTreeIfNeeded();
+
     if (imageSize != image.getSize()) {
         image.setSize(imageSize);
         imageUpToDate = false;
@@ -181,7 +223,7 @@ void Scene::updateImage() {
 
     if (!imageUpToDate) {
         auto before = std::chrono::high_resolution_clock::now();
-        controller::executeOpenGL([this](){
+        controller::executeOpenGL([this]() {
 #ifdef BRICKSIM_USE_RENDERDOC
             const auto *renderdocApi = controller::getRenderdocAPI();
             if (renderdocApi) {
@@ -190,7 +232,6 @@ void Scene::updateImage() {
 #endif
             glBindFramebuffer(GL_FRAMEBUFFER, image.getFBO());
             glViewport(0, 0, imageSize.x, imageSize.y);
-            spdlog::debug("rendering image {}x{} to FBO {}", imageSize.x, imageSize.y, image.getFBO());
             const auto &bgColor = util::RGBcolor(config::getString(config::BACKGROUND_COLOR)).asGlmVector();
             glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -198,15 +239,14 @@ void Scene::updateImage() {
             glm::mat4 view = camera->getViewMatrix();
             const glm::mat4 &projectionView = projectionMatrix * view;
 
-            const auto& triangleShader = shaders::get(shaders::TRIANGLE);
-            const auto& textureShader = shaders::get(shaders::TEXTURED_TRIANGLE);
-            const auto& lineShader = shaders::get(shaders::LINE);
-            const auto& optionalLineShader = shaders::get(shaders::OPTIONAL_LINE);
+            const auto &triangleShader = shaders::get(shaders::TRIANGLE);
+            const auto &textureShader = shaders::get(shaders::TEXTURED_TRIANGLE);
+            const auto &lineShader = shaders::get(shaders::LINE);
+            const auto &optionalLineShader = shaders::get(shaders::OPTIONAL_LINE);
             triangleShader.use();
             triangleShader.setVec3("viewPos", camera->getCameraPos());
             triangleShader.setVec3("foo", 0.0f, 1.0f, 1.0f);
             triangleShader.setMat4("projectionView", projectionView);
-            triangleShader.setInt("drawSelection", 0);
             glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
             glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
             glm::vec3 ambientColor = diffuseColor * glm::vec3(1.3f);
@@ -238,6 +278,7 @@ void Scene::updateImage() {
             }
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glUseProgram(0);
             glFinish();
 #ifdef BRICKSIM_USE_RENDERDOC
             if (renderdocApi) {
@@ -261,7 +302,7 @@ const CompleteFramebuffer &Scene::getImage() const {
     return image;
 }
 
-const std::optional<CompleteFramebuffer>& Scene::getSelectionImage() const {
+const std::optional<CompleteFramebuffer> &Scene::getSelectionImage() const {
     return selection;
 }
 
@@ -273,6 +314,7 @@ namespace scenes {
     namespace {
         std::map<scene_id_t, std::shared_ptr<Scene>> createdScenes;
     }
+
     std::shared_ptr<Scene> create(scene_id_t sceneId) {
         auto it = createdScenes.find(sceneId);
         if (it != createdScenes.end()) {

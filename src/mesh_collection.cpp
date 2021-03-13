@@ -25,7 +25,7 @@ std::shared_ptr<Mesh> SceneMeshCollection::getMesh(mesh_key_t key, const std::sh
     return it->second;
 }
 
-std::shared_ptr<etree::Node> SceneMeshCollection::getElementById(unsigned int id) const {
+std::shared_ptr<etree::Node> SceneMeshCollection::getElementById(element_id_t id) const {
     if (elementsSortedById.size() > id) {
         return elementsSortedById[id];
     }
@@ -93,7 +93,7 @@ void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node> &no
             if (selectionTargetElementId.has_value()) {
                 elementId = selectionTargetElementId.value();
             } else {
-                elementId = static_cast<unsigned int>(elementsSortedById.size());
+                elementId = elementsSortedById.size();
                 if (node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE) {
                     selectionTargetElementId = elementId;//for the children
                 }

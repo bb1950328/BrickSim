@@ -14,7 +14,7 @@
 class Shader
 {
 public:
-    unsigned int ID;
+    unsigned int id;
     /**
      * constructor generates the shader on the fly
      * @param vertexPath
@@ -22,9 +22,7 @@ public:
      */
     Shader(const char *vertexPath, const char *fragmentPath);
     Shader(const char *vertexPath, const char *fragmentPath, const char *geometryPath);
-    /**
-     * activate the shader
-     */
+
     void use() const;
 
     // utility uniform functions

@@ -11,10 +11,13 @@ namespace gui {
         ImGui::Begin(WINDOW_NAME_ORIENTATION_CUBE, show);
         const ImVec2 &cursorPos = ImGui::GetCursorScreenPos();
 
-        const static auto size = ImVec2(orientation_cube::getSize(), orientation_cube::getSize());
-        if (ImGui::ImageButton(gui_internal::convertTextureId(orientation_cube::getImage()), size, ImVec2(0, 0), ImVec2(1, 1), 0)) {
+        const auto renderedSize = orientation_cube::getSize();
+        const auto displaySize = std::min(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
+        if (ImGui::ImageButton(gui_internal::convertTextureId(orientation_cube::getImage()), ImVec2(displaySize, displaySize), ImVec2(0, 0), ImVec2(1, 1), 0)) {
             const ImVec2 &mousePos = ImGui::GetMousePos();
-            glm::usvec2 imgCoords = {mousePos.x - cursorPos.x, mousePos.y - cursorPos.y};
+            const auto scale = (float) renderedSize / displaySize;
+            glm::usvec2 imgCoords = {(mousePos.x - cursorPos.x)*scale,
+                                     (mousePos.y - cursorPos.y)*scale};
             auto clickedSide = orientation_cube::getSide(imgCoords);
             if (clickedSide.has_value()) {
                 switch (clickedSide.value()) {
@@ -40,9 +43,9 @@ namespace gui {
             }
         }
 
-        if (config::getBool(config::DISPLAY_SELECTION_BUFFER) || true) {
-            ImGui::ImageButton(gui_internal::convertTextureId(orientation_cube::getSelectionImage()), size, ImVec2(0, 0), ImVec2(1, 1), 0);
-        }
+        /*if (config::getBool(config::DISPLAY_SELECTION_BUFFER)) {
+            ImGui::ImageButton(gui_internal::convertTextureId(orientation_cube::getSelectionImage()), ImVec2(displaySize, displaySize), ImVec2(0, 0), ImVec2(1, 1), 0);
+        }*/
 
         ImGui::End();
     }

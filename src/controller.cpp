@@ -357,8 +357,8 @@ namespace controller {
         spdlog::info("BrickSim started.");
         initialize();
 
-        openFile("test_files/bricks_test.ldr");
-        //openFile("~/Downloads/arocs.mpd");
+        //openFile("test_files/bricks_test.ldr");
+        openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
 
         while (!(glfwWindowShouldClose(window) || userWantsToExit)) {

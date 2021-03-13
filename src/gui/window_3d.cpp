@@ -81,7 +81,7 @@ namespace gui {
             auto texture3dView = gui_internal::convertTextureId(config::getBool(config::DISPLAY_SELECTION_BUFFER)
                                                                 ? mainScene->getSelectionImage()->getTexBO()
                                                                 : mainScene->getImage().getTexBO());
-            ImGui::ImageButton(texture3dView, regionAvail, ImVec2(1, 0), ImVec2(0, 1), 0);
+            ImGui::ImageButton(texture3dView, regionAvail, ImVec2(0, 1), ImVec2(1, 0), 0);
             ImGui::EndChild();
         }
         ImGui::End();

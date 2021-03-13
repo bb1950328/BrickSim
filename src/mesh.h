@@ -119,6 +119,7 @@ public:
     void addLdrOptionalLine(LdrColorReference mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation);
 
     void addTexturedTriangle(const std::shared_ptr<Texture> &texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3);
+    void addRawTriangle(LdrColorReference color, const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3);
 
     std::vector<unsigned int> & getIndicesList(LdrColorReference color);
     std::vector<TriangleVertex> & getVerticesList(LdrColorReference color);

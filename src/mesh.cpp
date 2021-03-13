@@ -12,20 +12,15 @@ void Mesh::addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transforma
     for (const auto &element : file->elements) {
         switch (element->getType()) {
             case 0: break;
-            case 1:
-                addLdrSubfileReference(mainColor, std::dynamic_pointer_cast<LdrSubfileReference>(element), transformation, bfcInverted);
+            case 1:addLdrSubfileReference(mainColor, std::dynamic_pointer_cast<LdrSubfileReference>(element), transformation, bfcInverted);
                 break;
-            case 2:
-                addLdrLine(mainColor, dynamic_cast<LdrLine &&>(*element), transformation);
+            case 2:addLdrLine(mainColor, dynamic_cast<LdrLine &&>(*element), transformation);
                 break;
-            case 3:
-                addLdrTriangle(mainColor, dynamic_cast<LdrTriangle &&>(*element), transformation, bfcInverted);
+            case 3:addLdrTriangle(mainColor, dynamic_cast<LdrTriangle &&>(*element), transformation, bfcInverted);
                 break;
-            case 4:
-                addLdrQuadrilateral(mainColor, dynamic_cast<LdrQuadrilateral &&>(*element), transformation, bfcInverted);
+            case 4:addLdrQuadrilateral(mainColor, dynamic_cast<LdrQuadrilateral &&>(*element), transformation, bfcInverted);
                 break;
-            case 5:
-                addLdrOptionalLine(mainColor, dynamic_cast<LdrOptionalLine &&>(*element), transformation);
+            case 5:addLdrOptionalLine(mainColor, dynamic_cast<LdrOptionalLine &&>(*element), transformation);
                 break;
         }
     }
@@ -58,6 +53,33 @@ void Mesh::addLdrTriangle(const LdrColorReference mainColor, const LdrTriangle &
 
     if (config::getBool(config::SHOW_NORMALS)) {
         auto lp1 = glm::vec4(util::triangleCentroid(p1, p2, p3), 1.0f) * transformation;
+        auto lp2 = lp1 + (transformedNormal * 5.0f);
+        LineVertex lv1{lp1, transformedNormal};
+        LineVertex lv2{lp2, transformedNormal};
+        addLineVertex(lv1);
+        addLineVertex(lv2);
+    }
+}
+
+void Mesh::addRawTriangle(const LdrColorReference color, const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3) {
+    auto &verticesList = getVerticesList(color);
+    auto &indicesList = getIndicesList(color);
+    auto normal = glm::triangleNormal(p1, p2, p3);
+    auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f));
+    TriangleVertex vertex1{glm::vec4(p1, 1.0f), transformedNormal};
+    TriangleVertex vertex2{glm::vec4(p2, 1.0f), transformedNormal};
+    TriangleVertex vertex3{glm::vec4(p3, 1.0f), transformedNormal};
+
+    auto idx1 = verticesList.size();
+    verticesList.push_back(vertex1);
+    verticesList.push_back(vertex2);
+    verticesList.push_back(vertex3);
+    indicesList.push_back(idx1);
+    indicesList.push_back(idx1 + 1);
+    indicesList.push_back(idx1 + 2);
+
+    if (config::getBool(config::SHOW_NORMALS)) {
+        auto lp1 = glm::vec4(util::triangleCentroid(p1, p2, p3), 1.0f);
         auto lp2 = lp1 + (transformedNormal * 5.0f);
         LineVertex lv1{lp1, transformedNormal};
         LineVertex lv2{lp2, transformedNormal};
@@ -305,6 +327,74 @@ void Mesh::initializeTriangleGraphics() {
     });
 }
 
+void Mesh::initializeTexturedTriangleGraphics() {
+    if (textureVertices.empty()) {
+        return;
+    }
+    auto instancesArray = generateTexturedTriangleInstancesArray();
+
+    controller::executeOpenGL([this, &instancesArray]() {
+        for (const auto &item : textureVertices) {
+            const auto id = item.first;
+            const auto &vertices = item.second;
+
+            unsigned int vao, vertexVbo, instanceVbo;
+
+            //vao
+            glGenVertexArrays(1, &vao);
+            glBindVertexArray(vao);
+
+            //vertexVbo
+            glGenBuffers(1, &vertexVbo);
+            glBindBuffer(GL_ARRAY_BUFFER, vertexVbo);
+            constexpr auto vertexSize = sizeof(TexturedTriangleVertex);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * vertexSize, &vertices[0], GL_STATIC_DRAW);
+            metrics::vramUsageBytes += vertices.size() * vertexSize;
+
+            //position attribute
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, (void *) (offsetof(TexturedTriangleVertex, position)));
+
+            //texCoord attribute
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize, (void *) (offsetof(TexturedTriangleVertex, textureCoord)));
+
+            //instanceVbo
+            glGenBuffers(1, &instanceVbo);
+            glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
+            size_t instance_size = sizeof(TexturedTriangleInstance);
+            glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TexturedTriangleInstance, idColor));
+            glVertexAttribDivisor(2, 1);
+
+            glEnableVertexAttribArray(3);
+            glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(TexturedTriangleInstance, transformation) + 0 * sizeof(float)));
+            glVertexAttribDivisor(3, 1);
+            glEnableVertexAttribArray(4);
+            glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(TexturedTriangleInstance, transformation) + 4 * sizeof(float)));
+            glVertexAttribDivisor(4, 1);
+            glEnableVertexAttribArray(5);
+            glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(TexturedTriangleInstance, transformation) + 8 * sizeof(float)));
+            glVertexAttribDivisor(5, 1);
+            glEnableVertexAttribArray(6);
+            glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(TexturedTriangleInstance, transformation) + 12 * sizeof(float)));
+            glVertexAttribDivisor(6, 1);
+
+            /*for (int j = 3; j < 7; ++j) {
+                glEnableVertexAttribArray(j);
+                glVertexAttribPointer(j, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (4 * (j - 3) * sizeof(float)));
+                glVertexAttribDivisor(j, 1);
+            }*/
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+            textureTriangleVaoVertexVboInstanceVbo[id] = {vao, vertexVbo, instanceVbo};
+        }
+    });
+}
+
 void Mesh::rewriteInstanceBuffer() {
     if (instancesHaveChanged) {
         //todo just clear buffer data when no instances
@@ -335,9 +425,12 @@ void Mesh::rewriteInstanceBuffer() {
             glBindBuffer(GL_ARRAY_BUFFER, optionalLineInstanceVBO);
             glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
 
-            for (const auto &item : textureTriangleVaoVertexVboInstanceVbo) {
-                glBindBuffer(GL_ARRAY_BUFFER, std::get<2>(item.second));
-                glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
+            if (!textureTriangleVaoVertexVboInstanceVbo.empty()) {
+                const auto &texturedTriangleInstancesArray = generateTexturedTriangleInstancesArray();
+                for (const auto &item : textureTriangleVaoVertexVboInstanceVbo) {
+                    glBindBuffer(GL_ARRAY_BUFFER, std::get<2>(item.second));
+                    glBufferData(GL_ARRAY_BUFFER, instances.size() * sizeof(TexturedTriangleInstance), &texturedTriangleInstancesArray[0], GL_STATIC_DRAW);
+                }
             }
         });
 
@@ -393,7 +486,7 @@ void Mesh::initializeLineGraphics() {
 }
 
 void Mesh::initializeOptionalLineGraphics() {
-    controller::executeOpenGL([this](){
+    controller::executeOpenGL([this]() {
         //vao
         glGenVertexArrays(1, &optionalLineVAO);
         glBindVertexArray(optionalLineVAO);
@@ -439,99 +532,42 @@ void Mesh::initializeOptionalLineGraphics() {
     });
 }
 
-void Mesh::initializeTexturedTriangleGraphics() {
-    auto instancesArray = generateTexturedTriangleInstancesArray();
-
-    controller::executeOpenGL([this, &instancesArray](){
-        for (const auto &item : textureVertices) {
-            const auto id = item.first;
-            const auto &vertices = item.second;
-
-            unsigned int vao, vertexVbo, instanceVbo;
-            glGenVertexArrays(1, &vao);
-            glGenBuffers(1, &vertexVbo);
-
-            glBindVertexArray(vao);
-
-            //vertexVbo
-            glBindBuffer(GL_ARRAY_BUFFER, vertexVbo);
-            constexpr auto vertexSize = sizeof(TexturedTriangleVertex);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * vertexSize, &vertices[0], GL_STATIC_DRAW);
-
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, nullptr);
-            glEnableVertexAttribArray(0);
-
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize, (void *) (offsetof(TexturedTriangleVertex, textureCoord)));
-            glEnableVertexAttribArray(1);
-
-            //instanceVbo
-            glGenBuffers(1, &instanceVbo);
-            glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
-            size_t instance_size = sizeof(TexturedTriangleInstance);
-            glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
-
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TexturedTriangleInstance, idColor));
-            glVertexAttribDivisor(2, 1);
-
-            for (int j = 3; j < 6; ++j) {
-                glEnableVertexAttribArray(j);
-                glVertexAttribPointer(j, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (4 * (j - 3) * sizeof(float)));
-                glVertexAttribDivisor(j, 1);
-            }
-
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-            textureTriangleVaoVertexVboInstanceVbo[id] = {vao, vertexVbo, instanceVbo};
-        }
-    });
-}
-
 void Mesh::drawTriangleGraphics(scene_id_t sceneId, layer_t layer) {
     auto range = getSceneLayerInstanceRange(sceneId, layer);
     if (range.has_value()) {
-//        controller::executeOpenGL([this, &range](){
-            for (const auto &entry: triangleIndices) {
-                const auto color = entry.first;
-                const std::vector<unsigned int> &indices = entry.second;
-                glBindVertexArray(VAOs[color]);
-                glDrawElementsInstancedBaseInstance(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
-            }
-//        });
-
+        for (const auto &entry: triangleIndices) {
+            const auto color = entry.first;
+            const std::vector<unsigned int> &indices = entry.second;
+            glBindVertexArray(VAOs[color]);
+            glDrawElementsInstancedBaseInstance(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
+        }
     }
 }
 
 void Mesh::drawTexturedTriangleGraphics(scene_id_t sceneId, layer_t layer) {
     auto range = getSceneLayerInstanceRange(sceneId, layer);
     if (range.has_value()) {
-//        controller::executeOpenGL([this, &range](){
-            for (const auto &item : textureVertices) {
-                textures[item.first]->bind();
-                glBindVertexArray(std::get<0>(textureTriangleVaoVertexVboInstanceVbo[item.first]));
-                glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, item.second.size(), range->count, range->start);
-            }
-//        });
+        for (const auto &item : textureVertices) {
+            textures[item.first]->bind();
+            glBindVertexArray(std::get<0>(textureTriangleVaoVertexVboInstanceVbo[item.first]));
+            glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, item.second.size(), range->count, range->start);
+        }
     }
 }
 
 void Mesh::drawLineGraphics(scene_id_t sceneId, layer_t layer) {
     auto range = getSceneLayerInstanceRange(sceneId, layer);
     if (range.has_value()) {
-//        controller::executeOpenGL([this, &range](){
-            glBindVertexArray(lineVAO);
-            glDrawElementsInstancedBaseInstance(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
-//        });
+        glBindVertexArray(lineVAO);
+        glDrawElementsInstancedBaseInstance(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
     }
 }
 
 void Mesh::drawOptionalLineGraphics(scene_id_t sceneId, layer_t layer) {
     auto range = getSceneLayerInstanceRange(sceneId, layer);
     if (range.has_value()) {
-//        controller::executeOpenGL([this, &range]() {
-            glBindVertexArray(optionalLineVAO);
-            glDrawElementsInstancedBaseInstance(GL_LINES_ADJACENCY, optionalLineIndices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
-//        });
+        glBindVertexArray(optionalLineVAO);
+        glDrawElementsInstancedBaseInstance(GL_LINES_ADJACENCY, optionalLineIndices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
     }
 }
 
@@ -666,7 +702,7 @@ std::optional<Mesh::InstanceRange> Mesh::getSceneInstanceRange(scene_id_t sceneI
     const auto &layerMap = it->second;
     auto start = layerMap.cbegin()->second.start;
     unsigned int count;
-    if (layerMap.size()>1) {
+    if (layerMap.size() > 1) {
         count = 0;
         for (const auto &item : layerMap) {
             count += item.second.count;
@@ -674,7 +710,7 @@ std::optional<Mesh::InstanceRange> Mesh::getSceneInstanceRange(scene_id_t sceneI
     } else {
         count = layerMap.cbegin()->second.count;
     }
-    
+
     return {{start, count}};
 }
 
@@ -747,11 +783,11 @@ void Mesh::updateInstancesOfScene(scene_id_t sceneId, const std::vector<MeshInst
 void Mesh::deleteInstancesOfScene(scene_id_t sceneId) {
     auto sceneRange = getSceneInstanceRange(sceneId);
     if (sceneRange.has_value()) {
-        if (instances.size()==sceneRange->start+sceneRange->count) {
+        if (instances.size() == sceneRange->start + sceneRange->count) {
             instances.resize(sceneRange->start);
         } else {
             auto startIt = instances.begin() + sceneRange->start;
-            instances.erase(startIt, startIt+sceneRange->count-1);
+            instances.erase(startIt, startIt + sceneRange->count - 1);
         }
         instanceSceneLayerRanges.erase(sceneId);
         instancesHaveChanged = true;
@@ -768,7 +804,7 @@ void Mesh::appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<Me
     unsigned int currentLayerInstanceCount = 0;
     instances.reserve(instances.size() + newSceneInstances.size());
 
-    while (sourceIt != newSceneInstances.end()) {
+    while (sourceIt != newSceneInstances.cend()) {
         instances.push_back(*sourceIt);
         if (currentLayer == sourceIt->layer) {
             currentLayerInstanceCount++;
@@ -782,7 +818,7 @@ void Mesh::appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<Me
     }
     thisSceneRanges.emplace(currentLayer, InstanceRange{layerStart, currentLayerInstanceCount});
 
-    instances.insert(instances.end(), newSceneInstances.begin(), newSceneInstances.end());
+    //instances.insert(instances.end(), newSceneInstances.begin(), newSceneInstances.end());
     instancesHaveChanged = true;
 }
 

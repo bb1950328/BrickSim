@@ -160,7 +160,7 @@ const glm::usvec2 &Scene::getImageSize() const {
 }
 
 void Scene::setImageSize(const glm::usvec2 &newImageSize) {
-    projectionMatrix = glm::perspective(glm::radians(350.0f), (float)newImageSize.x / (float)newImageSize.y, 0.01f, 1000.0f);
+    projectionMatrix = glm::perspective(glm::radians(50.0f), (float)newImageSize.x / (float)newImageSize.y, 0.01f, 1000.0f);
     Scene::imageSize = newImageSize;
 }
 
@@ -216,6 +216,9 @@ void Scene::updateImage() {
             triangleShader.setVec3("light.ambient", ambientColor);
             triangleShader.setVec3("light.diffuse", diffuseColor);
             triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+            textureShader.use();
+            textureShader.setMat4("projectionView", projectionView);
 
             for (const auto &layer : meshCollection.getLayersInUse()) {
                 glClear(GL_DEPTH_BUFFER_BIT);

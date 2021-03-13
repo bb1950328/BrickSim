@@ -3,6 +3,7 @@
 #include "orientation_cube.h"
 #include "controller.h"
 #include "constant_data/resources.h"
+#include "ldr_files/ldr_file_repo.h"
 
 namespace orientation_cube {
     namespace {
@@ -98,6 +99,8 @@ namespace orientation_cube {
                                           {+1, +1, -1}, {1, 1},//frontRightBottom
                                           {+1, -1, -1}, {1, 0}//frontRightTop
                 );//Front B
+
+                mesh->name = "Orientation Cube";
             }
         };
 
@@ -112,10 +115,11 @@ namespace orientation_cube {
                 if (pitch != newPitch || yaw != newYaw) {
                     pitch = newPitch;
                     yaw = newYaw;
+                    const auto distance = 0.040f;
                     viewPos = glm::vec3(
-                            4.0f * std::cos(pitch) * std::cos(yaw),
-                            4.0f * std::sin(pitch),
-                            4.0f * std::sin(yaw) * std::cos(pitch)
+                            distance * std::cos(pitch) * std::cos(yaw),
+                            distance * std::sin(pitch),
+                            distance * std::sin(yaw) * std::cos(pitch)
                     );
                     viewMatrix = glm::lookAt(viewPos, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
                 }
@@ -138,7 +142,9 @@ namespace orientation_cube {
         }
         scene = scenes::create(scenes::ORIENTATION_CUBE_SCENE_ID);
         scene->setRootNode(std::make_shared<OrientationCubeMeshNode>());
+        //scene->setRootNode(std::make_shared<etree::PartNode>(ldr_file_repo::get().getFile("3001.dat"), LdrColorReference(1), nullptr));
         scene->setCamera(std::make_shared<OrientationCubeCamera>());
+        scene->setImageSize({size, size});
 
         initialized = true;
     }

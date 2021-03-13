@@ -111,7 +111,7 @@ void FitContentCamera::setRootNode(const std::shared_ptr<etree::MeshNode> &node)
     auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL_SCALE;
 
     //todo calculate the distance from fov instead of this
-    auto distance = meshRadius * 11.0f;
+    auto distance = meshRadius * 2.45f;
     auto s = glm::radians(45.0f);//todo make variable
     auto t = glm::radians(45.0f);
     cameraPos = glm::vec3(

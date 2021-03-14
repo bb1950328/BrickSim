@@ -17,6 +17,7 @@ namespace overlay2d {
         glm::vec2 position;
         glm::vec3 color;
         Vertex(const glm::vec2 &position, const glm::vec3 &color);
+        Vertex() = default;
     };
 
     struct VertexRange {

@@ -9,6 +9,7 @@
 #include "element_tree.h"
 #include "mesh_collection.h"
 #include "camera.h"
+#include "overlay_2d.h"
 
 typedef unsigned short framebuffer_size_t;
 
@@ -49,6 +50,7 @@ private:
     std::optional<CompleteFramebuffer> selection;
     std::shared_ptr<etree::Node> rootNode;
     SceneMeshCollection meshCollection;
+    overlay2d::ElementCollection overlayCollection;
     std::shared_ptr<Camera> camera;
     glm::usvec2 imageSize;
     glm::mat4 projectionMatrix;
@@ -70,6 +72,7 @@ public:
     [[nodiscard]] const CompleteFramebuffer &getImage() const;
     [[nodiscard]] const std::optional<CompleteFramebuffer> & getSelectionImage() const;
     [[nodiscard]] const SceneMeshCollection &getMeshCollection() const;
+    [[nodiscard]] const overlay2d::ElementCollection &getOverlayCollection() const;
 };
 
 #endif //BRICKSIM_SCENE_H

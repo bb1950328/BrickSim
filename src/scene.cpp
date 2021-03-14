@@ -245,7 +245,6 @@ void Scene::updateImage() {
             const auto &optionalLineShader = shaders::get(shaders::OPTIONAL_LINE);
             triangleShader.use();
             triangleShader.setVec3("viewPos", camera->getCameraPos());
-            triangleShader.setVec3("foo", 0.0f, 1.0f, 1.0f);
             triangleShader.setMat4("projectionView", projectionView);
             glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
             glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
@@ -308,6 +307,10 @@ const std::optional<CompleteFramebuffer> &Scene::getSelectionImage() const {
 
 const SceneMeshCollection &Scene::getMeshCollection() const {
     return meshCollection;
+}
+
+const overlay2d::ElementCollection &Scene::getOverlayCollection() const {
+    return overlayCollection;
 }
 
 namespace scenes {

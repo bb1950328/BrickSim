@@ -663,7 +663,6 @@ namespace controller {
         glfwMakeContextCurrent(window);
         functor();
         glfwMakeContextCurrent(nullptr);
-        //todo only move context when switching between threads, don't do anything if called two times from the same thread
     }
 #ifdef BRICKSIM_USE_RENDERDOC
     RENDERDOC_API_1_1_2 *getRenderdocAPI() {

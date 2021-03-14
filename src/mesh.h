@@ -110,6 +110,8 @@ public:
     std::string name = "?";
 
     Mesh()=default;
+    Mesh & operator=(Mesh&) = delete;
+    Mesh(const Mesh&) = delete;
 
     void addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transformation, LdrColorReference mainColor, bool bfcInverted);
     void addLdrSubfileReference(LdrColorReference mainColor, const std::shared_ptr<LdrSubfileReference>& sfElement, glm::mat4 transformation, bool bfcInverted);

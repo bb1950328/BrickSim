@@ -750,6 +750,8 @@ void Mesh::updateInstancesOfScene(scene_id_t sceneId, const std::vector<MeshInst
         } else {
             //maybe the instances haven't changed at all
             //going to replace the existing ones
+
+            //todo use glBufferSubData
             auto destinationIt = instances.begin() + sceneRange->start;
             auto sourceIt = newSceneInstances.begin();
             layer_t currentLayer = sourceIt->layer;

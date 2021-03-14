@@ -1,31 +1,87 @@
 
 
 #include "overlay_2d.h"
+#include "controller.h"
+
+#include <utility>
 
 namespace overlay2d {
-    Vertex::Vertex(const glm::vec2 &position, const glm::vec3 &color, element_id_t elementId) : position(position), color(color), elementId(elementId) {}
+    Vertex::Vertex(const glm::vec2 &position, const glm::vec3 &color) : position(position), color(color) {}
 
-    void Collection::rebuild(element_id_t firstUnusedElementId) {
-        firstElementId = firstUnusedElementId;
-        lastElementIds.clear();
-        for (const auto &overlay : overlays) {
-            auto lastId = overlay->rebuild(firstUnusedElementId);
-            lastElementIds.push_back(lastId);
-            firstUnusedElementId = lastId + 1;
-        }
+
+    Element::Element(std::weak_ptr<ElementCollection> collection) : collection(std::move(collection)) {}
+
+    void Element::verticesHaveChanged() {
+        collection.lock()->verticesHaveChanged(shared_from_this());
     }
 
-    bool Collection::clickEvent(element_id_t elementId) {
-        if (elementId < firstElementId || elementId > lastElementIds.back()) {
-            return false;
-        }
-        for (int i = 0; i < overlays.size(); ++i) {
-
-        }
-        return false;
+    void ElementCollection::verticesHaveChanged(const std::shared_ptr<Element>& changedElement) {
+        changedElements.insert(changedElement);
     }
 
-    void Graphics::addLine(glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color, element_id_t elementId) {
+    void ElementCollection::updateVertices() {
+        bool needToRewriteEverything = false;
+        std::vector<VertexRange> changedRanges;
+        const auto &firstVertex = vertices.begin();
+        for (const auto &elem : changedElements) {
+            auto &range = vertexRanges.find(elem)->second;
+            const auto newVertexCount = elem->getVertexCount();
+            if (range.count != newVertexCount) {
+                needToRewriteEverything = true;
+                vertices.erase(firstVertex+range.start, firstVertex+range.start+range.count-1);
+                const auto firstToWrite = vertices.end();
+                vertices.resize(vertices.size()+newVertexCount);
+                elem->writeVertices(firstToWrite);
+                range.start = firstToWrite-firstVertex;
+                range.count = newVertexCount;
+            } else {
+                elem->writeVertices(firstVertex+range.count);
+                if (!needToRewriteEverything) {
+                    changedRanges.push_back(range);
+                }
+            }
+        }
+        controller::executeOpenGL([&]() {
+            //todo update metrics::vramUsageBytes
+            glBindVertexArray(vao);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            if (needToRewriteEverything) {
+                glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+            } else {
+                for (const auto &range : changedRanges) {
+                    glBufferSubData(GL_ARRAY_BUFFER, range.start*sizeof(Vertex), range.count*sizeof(Vertex), &vertices[range.start]);//todo maybe last param is &vertices[0]
+                }
+            }
+        });
+    }
+
+    ElementCollection::ElementCollection() { // NOLINT(cppcoreguidelines-pro-type-member-init)
+        controller::executeOpenGL([&](){
+            glGenVertexArrays(1, &vao);
+            glBindVertexArray(vao);
+
+            glGenBuffers(1, &vbo);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+        });
+    }
+
+    ElementCollection::~ElementCollection() {
+        controller::executeOpenGL([&](){
+            glDeleteVertexArrays(1, &vao);
+            glDeleteBuffers(1, &vbo);
+        });
+    }
+
+    void generateVerticesForLine(std::vector<Vertex>::iterator& firstVertexLocation, glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color) {
         // 1----------------------------------2
         // |                                  |
         // + start                        end +
@@ -37,55 +93,73 @@ namespace overlay2d {
         const glm::vec2 p2 = end - halfEdge;
         const glm::vec2 p3 = end + halfEdge;
         const glm::vec2 p4 = start + halfEdge;
-        addQuad(color, elementId, p1, p2, p3, p4);
+        generateVerticesForQuad(firstVertexLocation, p1, p2, p3, p4, color);
+    }
+    constexpr unsigned int getVertexCountForLine() {
+        return 6;
     }
 
-    /**
-     * p1 -- p2
-     * |     |
-     * p4 -- p3
-     */
-    void Graphics::addQuad(const util::RGBcolor &color, element_id_t elementId, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4) {
-        vertices.emplace_back(p1, color.asGlmVector(), elementId);
-        vertices.emplace_back(p4, color.asGlmVector(), elementId);
-        vertices.emplace_back(p3, color.asGlmVector(), elementId);
-        vertices.emplace_back(p3, color.asGlmVector(), elementId);
-        vertices.emplace_back(p2, color.asGlmVector(), elementId);
-        vertices.emplace_back(p1, color.asGlmVector(), elementId);
-    }
-
-    void Graphics::addTriangle(glm::vec2 a, glm::vec2 b, glm::vec2 c, util::RGBcolor color, element_id_t elementId) {
-        vertices.emplace_back(a, color.asGlmVector(), elementId);
-        if (((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)) > 0) {
+    void generateVerticesForTriangle(std::vector<Vertex>::iterator& firstVertexLocation, glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, util::RGBcolor color) {
+        *firstVertexLocation = {p0, color.asGlmVector()};
+        if (((p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y)) > 0) {
             //already counterclockwise
-            vertices.emplace_back(b, color.asGlmVector(), elementId);
-            vertices.emplace_back(c, color.asGlmVector(), elementId);
+            *(firstVertexLocation+1) = {p1, color.asGlmVector()};
+            *(firstVertexLocation+2) = {p2, color.asGlmVector()};
         } else {
             //clockwise, we have to swap two edges
-            vertices.emplace_back(c, color.asGlmVector(), elementId);
-            vertices.emplace_back(b, color.asGlmVector(), elementId);
+            *(firstVertexLocation+1) = {p2, color.asGlmVector()};
+            *(firstVertexLocation+2) = {p1, color.asGlmVector()};
         }
+        firstVertexLocation += 3;
+    }
+    constexpr unsigned int getVertexCountForTriangle() {
+        return 3;
     }
 
-    void Graphics::addSquare(glm::vec2 center, float sideLength, util::RGBcolor color, element_id_t elementId) {
+    void generateVerticesForSquare(std::vector<Vertex>::iterator& firstVertexLocation, glm::vec2 center, float sideLength, util::RGBcolor color) {
         const float halfSideLength = sideLength / 2;
         auto p1 = center + glm::vec2{-halfSideLength, -halfSideLength};
         auto p2 = center + glm::vec2{halfSideLength, -halfSideLength};
         auto p3 = center + glm::vec2{halfSideLength, halfSideLength};
         auto p4 = center + glm::vec2{-halfSideLength, halfSideLength};
-        addQuad(color, elementId, p1, p2, p3, p4);
+        generateVerticesForQuad(firstVertexLocation, p1, p2, p3, p4, color);
+    }
+    constexpr unsigned int getVertexCountForSquare() {
+        return 6;
     }
 
-    void Graphics::addRegularPolygon(glm::vec2 center, float radius, short numEdges, util::RGBcolor color, element_id_t elementId) {
+    void generateVerticesForRegularPolygon(std::vector<Vertex>::iterator& firstVertexLocation, glm::vec2 center, float radius, short numEdges, util::RGBcolor color) {
         float angleStep = 2 * M_PI / numEdges;
         const glm::vec2 p0 = {radius + center.x, center.y};
         glm::vec2 lastP = {radius*std::cos(angleStep) + center.x, radius * std::sin(angleStep) + center.y};
         for (short i = 2; i < numEdges; ++i) {
             glm::vec2 currentP = {radius*std::cos(angleStep * i) + center.x, radius * std::sin(angleStep * i) + center.y};
-            vertices.emplace_back(p0, color.asGlmVector(), elementId);
-            vertices.emplace_back(lastP, color.asGlmVector(), elementId);
-            vertices.emplace_back(currentP, color.asGlmVector(), elementId);
+
+            *firstVertexLocation = {p0, color.asGlmVector()};
+            ++firstVertexLocation;
+
+            *firstVertexLocation = {lastP, color.asGlmVector()};
+            ++firstVertexLocation;
+
+            *firstVertexLocation = {currentP, color.asGlmVector()};
+            ++firstVertexLocation;
+
             lastP = currentP;
         }
+    }
+    constexpr unsigned int getVertexCountForRegularPolygon(short numEdges) {
+        return numEdges-2;
+    }
+
+    void generateVerticesForQuad(std::vector<Vertex>::iterator& firstVertexLocation, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4, util::RGBcolor color) {
+        *firstVertexLocation = {p1, color.asGlmVector()}; ++firstVertexLocation;
+        *firstVertexLocation = {p4, color.asGlmVector()}; ++firstVertexLocation;
+        *firstVertexLocation = {p3, color.asGlmVector()}; ++firstVertexLocation;
+        *firstVertexLocation = {p3, color.asGlmVector()}; ++firstVertexLocation;
+        *firstVertexLocation = {p2, color.asGlmVector()}; ++firstVertexLocation;
+        *firstVertexLocation = {p1, color.asGlmVector()}; ++firstVertexLocation;
+    }
+    constexpr unsigned int getVertexCountForQuad() {
+        return 6;
     }
 }

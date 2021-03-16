@@ -30,7 +30,7 @@ jobs:
         echo "runner.workspace: \"${{runner.workspace}}\""
 
     - name: Setup workspace
-      run: ${{runner.workspace}}/BrickSim/setup_workspace.sh
+      run: ./setup_workspace.sh
 
     - name: Build
       env:

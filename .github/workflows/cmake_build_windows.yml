@@ -1,5 +1,7 @@
 name: CMake Windows Build
 on:
+  pull_request:
+  workflow_dispatch:
   push:
     paths-ignore:
       - "docs/**"

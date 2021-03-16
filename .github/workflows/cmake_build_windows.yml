@@ -24,6 +24,11 @@ jobs:
         submodules: recursive
         fetch-depth: 0
 
+    - name: Get info
+      run: |
+        echo $PWD
+        echo "runner.workspace: \"${{runner.workspace}}\""
+
     - name: Setup workspace
       run: ${{runner.workspace}}/BrickSim/setup_workspace.sh
 

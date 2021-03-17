@@ -129,8 +129,13 @@ execute_process(
         COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_commit_hash.sh"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_COMMIT_HASH
+        RESULT_VARIABLE EXIT_CODE
         OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+if(EXIT_CODE AND NOT EXIT_CODE EQUAL 0)
+    message(STATUS "execute_process failed: ${EXIT_CODE}")
+endif()
+
 target_compile_definitions(BrickSim PUBLIC BRICKSIM_GIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
 message(STATUS "BRICKSIM_GIT_COMMIT_HASH=${GIT_COMMIT_HASH}")
 

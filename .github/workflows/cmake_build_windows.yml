@@ -9,6 +9,7 @@ env:
   BUILD_TYPE: Release
 jobs:
   build:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: windows-latest
 
     defaults:
@@ -26,7 +27,20 @@ jobs:
         update: true
         install: >-
           git
-        #  todo look what happens if i copy the packages from setup_workspace here
+          unzip
+          mingw-w64-x86_64-toolchain
+          mingw-w64-i686-toolchain
+          base-devel
+          mingw-w64-x86_64-cmake
+          mingw-w64-i686-cmake
+          libcurl-devel
+          mingw-w64-i686-freeglut
+          mingw-w64-x86_64-freeglut
+          mingw-w64-x86_64-glm
+          mingw-w64-i686-glm
+          mingw-w64-x86_64-libzip
+          mingw-w64-i686-libzip
+          mingw-w64-x86_64-spdlog
 
     - name: Setup workspace
       run: ./setup_workspace.sh

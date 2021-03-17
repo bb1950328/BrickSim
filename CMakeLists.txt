@@ -126,38 +126,39 @@ message(STATUS "bash executable: ${BASH_EXECUTABLE}")
 
 # git statistics
 execute_process(
-        COMMAND git log HEAD -n 1 --format=%H'
+        COMMAND ${BASH_EXECUTABLE} "scripts/get_git_commit_hash.sh"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_COMMIT_HASH
         OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 target_compile_definitions(BrickSim PUBLIC BRICKSIM_GIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
+message(STATUS "BRICKSIM_GIT_COMMIT_HASH=${GIT_COMMIT_HASH}")
 
 execute_process(
-        COMMAND ${BASH_EXECUTABLE} "-c" "git log --oneline | wc -l"
+        COMMAND ${BASH_EXECUTABLE} "scripts/get_git_commit_count.sh"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_COMMIT_COUNT
         OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 target_compile_definitions(BrickSim PUBLIC BRICKSIM_GIT_COMMIT_COUNT=${GIT_COMMIT_COUNT})
+message(STATUS "BRICKSIM_GIT_COMMIT_COUNT=${GIT_COMMIT_COUNT}")
 
 execute_process(
-        COMMAND ${BASH_EXECUTABLE} "-c" "git log --no-merges --all | grep -oE \"t=[0-9]+\\\\.?[0-9]*\" | grep -oE \"[0-9]+\\\\.?[0-9]*\" | awk '{ SUM += $1} END { printf \"%f;\\n\", SUM }'"
+        COMMAND ${BASH_EXECUTABLE} "scripts/get_git_total_hours.sh"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE TOTAL_HOURS
         OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 target_compile_definitions(BrickSim PUBLIC BRICKSIM_TOTAL_HOURS=${TOTAL_HOURS})
+message(STATUS "BRICKSIM_TOTAL_HOURS=${TOTAL_HOURS}")
 
 #version
-if (NOT DEFINED GIT_VERSION_TAG)
-    execute_process(
-            COMMAND ${BASH_EXECUTABLE} "-c" "git describe --tags --match v[0-9]* --abbrev=0"
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            OUTPUT_VARIABLE GIT_VERSION_TAG
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-endif()
+execute_process(
+        COMMAND ${BASH_EXECUTABLE} "scripts/get_git_tag.sh"
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_VERSION_TAG
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 message(STATUS "GIT_VERSION_TAG=${GIT_VERSION_TAG}")
 string(REPLACE "v" "" VERSION_TAG_WITHOUT_V "${GIT_VERSION_TAG}")
 string(REPLACE "." ";" VERSION_LIST "${VERSION_TAG_WITHOUT_V}")

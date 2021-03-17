@@ -71,7 +71,8 @@ if (UNIX)
         target_link_libraries(BrickSim libzip.so.5)
     endif()
 else ()
-    target_link_libraries(BrickSim zip)
+    find_library(LIBZIP_LIBRARY_LOCATION libzip)
+    target_link_libraries(BrickSim ${LIBZIP_LIBRARY_LOCATION})
 endif ()
 
 # SqliteCpp

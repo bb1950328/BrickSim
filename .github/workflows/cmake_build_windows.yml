@@ -35,6 +35,7 @@ jobs:
         echo $PWD
         echo "runner.workspace: \"${{runner.workspace}}\""
         git describe --tags
+        ls -l /c/msys64/mingw64/bin | grep zip
 
     - name: Setup workspace
       run: ./setup_workspace.sh
@@ -44,7 +45,7 @@ jobs:
         CC: /C/msys64/mingw64/bin/gcc.exe
         CXX: /C/msys64/mingw64/bin/g++.exe
       run: |
-        cmake -G "MinGW Makefiles" . -DCMAKE_PREFIX_PATH=/C/mingw64 -DCMAKE_LINKER=/usr/bin/ld -DCMAKE_CXX_LINK_EXECUTABLE="<CMAKE_LINKER> <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>" -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(./scripts/get_git_commit_count.sh) -DTOTAL_HOURS:STRING=$(./scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(./scripts/get_git_tag.sh)
+        cmake -G "MinGW Makefiles" . -DCMAKE_PREFIX_PATH=/C/mingw64 -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(./scripts/get_git_commit_count.sh) -DTOTAL_HOURS:STRING=$(./scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(./scripts/get_git_tag.sh)
         cmake --build . --config Release
 
     - name: Upload Binary

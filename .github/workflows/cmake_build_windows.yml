@@ -34,6 +34,7 @@ jobs:
       run: |
         echo $PWD
         echo "runner.workspace: \"${{runner.workspace}}\""
+        git describe
 
     - name: Setup workspace
       run: ./setup_workspace.sh

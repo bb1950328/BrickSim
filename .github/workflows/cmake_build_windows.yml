@@ -47,7 +47,8 @@ jobs:
         cmake --build . --config Release
 
     - name: Try to find binary
-      run: find ${{runner.workspace}} -name "*.exe"
+      working-directory: ${{runner.workspace}}
+      run: find . -name "*.exe"
 
     - name: Upload Binary
       uses: actions/upload-artifact@v2

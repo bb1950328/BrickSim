@@ -27,6 +27,7 @@ jobs:
         #install: >-
         #  base-devel
         #  git
+        #  todo look what happens if i copy the packages from setup_workspace here
 
     - name: Get info
       run: |

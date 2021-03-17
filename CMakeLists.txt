@@ -116,6 +116,14 @@ target_include_directories(BrickSim PUBLIC
         $<INSTALL_INTERFACE:include>)
 target_link_libraries(BrickSim ${CMAKE_DL_LIBS})
 
+#bash executable
+if (EXISTS "C:\\msys64\\usr\\bin\\bash.exe")
+    set(BASH_EXECUTABLE "C:\\msys64\\usr\\bin\\bash.exe")
+else()
+    set(BASH_EXECUTABLE "bash")
+endif ()
+message(STATUS "bash executable: ${BASH_EXECUTABLE}")
+
 # git statistics
 execute_process(
         COMMAND git log HEAD -n 1 --format=%H'
@@ -126,7 +134,7 @@ execute_process(
 target_compile_definitions(BrickSim PUBLIC BRICKSIM_GIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
 
 execute_process(
-        COMMAND bash "-c" "git log --oneline | wc -l"
+        COMMAND ${BASH_EXECUTABLE} "-c" "git log --oneline | wc -l"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_COMMIT_COUNT
         OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -134,7 +142,7 @@ execute_process(
 target_compile_definitions(BrickSim PUBLIC BRICKSIM_GIT_COMMIT_COUNT=${GIT_COMMIT_COUNT})
 
 execute_process(
-        COMMAND bash "-c" "git log --no-merges --all | grep -oE \"t=[0-9]+\\\\.?[0-9]*\" | grep -oE \"[0-9]+\\\\.?[0-9]*\" | awk '{ SUM += $1} END { printf \"%f;\\n\", SUM }'"
+        COMMAND ${BASH_EXECUTABLE} "-c" "git log --no-merges --all | grep -oE \"t=[0-9]+\\\\.?[0-9]*\" | grep -oE \"[0-9]+\\\\.?[0-9]*\" | awk '{ SUM += $1} END { printf \"%f;\\n\", SUM }'"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE TOTAL_HOURS
         OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -143,7 +151,7 @@ target_compile_definitions(BrickSim PUBLIC BRICKSIM_TOTAL_HOURS=${TOTAL_HOURS})
 
 #version
 execute_process(
-        COMMAND bash "-c" "git describe --tags --match v[0-9]* --abbrev=0"
+        COMMAND ${BASH_EXECUTABLE} "-c" "git describe --tags --match v[0-9]* --abbrev=0"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_VERSION_TAG
         OUTPUT_STRIP_TRAILING_WHITESPACE

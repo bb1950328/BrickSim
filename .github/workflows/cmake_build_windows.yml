@@ -26,9 +26,10 @@ jobs:
         update: true
         install: >-
           git
-        #  base-devel
-        #  git
         #  todo look what happens if i copy the packages from setup_workspace here
+
+    - name: Setup workspace
+      run: ./setup_workspace.sh
 
     - name: Get info
       run: |
@@ -36,9 +37,6 @@ jobs:
         echo "runner.workspace: \"${{runner.workspace}}\""
         git describe --tags
         ls -l /c/msys64/mingw64/bin | grep zip
-
-    - name: Setup workspace
-      run: ./setup_workspace.sh
 
     - name: Build
       env:

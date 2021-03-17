@@ -125,45 +125,54 @@ endif ()
 message(STATUS "bash executable: ${BASH_EXECUTABLE}")
 
 # git statistics
-execute_process(
-        COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_commit_hash.sh"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        OUTPUT_VARIABLE GIT_COMMIT_HASH
-        RESULT_VARIABLE EXIT_CODE
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-if(EXIT_CODE AND NOT EXIT_CODE EQUAL 0)
-    message(STATUS "execute_process failed: ${EXIT_CODE}")
-endif()
+if (NOT DEFINED GIT_COMMIT_HASH)
+    execute_process(
+            COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_commit_hash.sh"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            OUTPUT_VARIABLE GIT_COMMIT_HASH
+            RESULT_VARIABLE EXIT_CODE
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if(EXIT_CODE AND NOT EXIT_CODE EQUAL 0)
+        message(STATUS "execute_process failed: ${EXIT_CODE}")
+    endif()
+endif ()
 
 target_compile_definitions(BrickSim PUBLIC BRICKSIM_GIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
 message(STATUS "BRICKSIM_GIT_COMMIT_HASH=${GIT_COMMIT_HASH}")
 
-execute_process(
-        COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_commit_count.sh"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        OUTPUT_VARIABLE GIT_COMMIT_COUNT
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+if(NOT DEFINED GIT_COMMIT_COUNT)
+    execute_process(
+            COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_commit_count.sh"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            OUTPUT_VARIABLE GIT_COMMIT_COUNT
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+endif()
 target_compile_definitions(BrickSim PUBLIC BRICKSIM_GIT_COMMIT_COUNT=${GIT_COMMIT_COUNT})
 message(STATUS "BRICKSIM_GIT_COMMIT_COUNT=${GIT_COMMIT_COUNT}")
 
-execute_process(
-        COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_total_hours.sh"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        OUTPUT_VARIABLE TOTAL_HOURS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+if(NOT DEFINED TOTAL_HOURS)
+    execute_process(
+            COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_total_hours.sh"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            OUTPUT_VARIABLE TOTAL_HOURS
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+endif()
 target_compile_definitions(BrickSim PUBLIC BRICKSIM_TOTAL_HOURS=${TOTAL_HOURS})
 message(STATUS "BRICKSIM_TOTAL_HOURS=${TOTAL_HOURS}")
 
 #version
-execute_process(
-        COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_tag.sh"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        OUTPUT_VARIABLE GIT_VERSION_TAG
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+if (NOT DEFINED GIT_VERSION_TAG)
+    execute_process(
+            COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_tag.sh"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            OUTPUT_VARIABLE GIT_VERSION_TAG
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+endif ()
+
 message(STATUS "GIT_VERSION_TAG=${GIT_VERSION_TAG}")
 string(REPLACE "v" "" VERSION_TAG_WITHOUT_V "${GIT_VERSION_TAG}")
 string(REPLACE "." ";" VERSION_LIST "${VERSION_TAG_WITHOUT_V}")

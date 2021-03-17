@@ -44,7 +44,7 @@ jobs:
         CC: /C/msys64/mingw64/bin/gcc.exe
         CXX: /C/msys64/mingw64/bin/g++.exe
       run: |
-        cmake -G "MinGW Makefiles" . -DCMAKE_PREFIX_PATH=/C/mingw64
+        cmake -G "MinGW Makefiles" . -DCMAKE_PREFIX_PATH=/C/mingw64 -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(./scripts/get_git_commit_count.sh) -DTOTAL_HOURS:STRING=$(./scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(./scripts/get_git_tag.sh)
         cmake --build . --config Release
 
     - name: Upload Binary

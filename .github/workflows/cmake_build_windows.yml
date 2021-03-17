@@ -55,4 +55,4 @@ jobs:
       with:
         name: BrickSimWindows
         # todo include README.md
-        path: ${{runner.workspace}}/build/BrickSim
+        path: ${{runner.workspace}}\BrickSim\BrickSim.exe

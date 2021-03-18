@@ -71,7 +71,8 @@ if (UNIX)
         target_link_libraries(BrickSim libzip.so.5)
     endif()
 else ()
-    target_link_libraries(BrickSim zip)
+    find_library(LIBZIP_LIBRARY_LOCATION libzip)
+    target_link_libraries(BrickSim ${LIBZIP_LIBRARY_LOCATION})
 endif ()
 
 # SqliteCpp
@@ -116,38 +117,64 @@ target_include_directories(BrickSim PUBLIC
         $<INSTALL_INTERFACE:include>)
 target_link_libraries(BrickSim ${CMAKE_DL_LIBS})
 
+#bash executable
+if (EXISTS "C:\\msys64\\usr\\bin\\bash.exe")
+    set(BASH_EXECUTABLE "C:\\msys64\\usr\\bin\\bash.exe")
+else()
+    set(BASH_EXECUTABLE "bash")
+endif ()
+message(STATUS "bash executable: ${BASH_EXECUTABLE}")
+
 # git statistics
-execute_process(
-        COMMAND git log HEAD -n 1 --format=%H'
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE GIT_COMMIT_HASH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+if (NOT DEFINED GIT_COMMIT_HASH)
+    execute_process(
+            COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_commit_hash.sh"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            OUTPUT_VARIABLE GIT_COMMIT_HASH
+            RESULT_VARIABLE EXIT_CODE
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if(EXIT_CODE AND NOT EXIT_CODE EQUAL 0)
+        message(STATUS "execute_process failed: ${EXIT_CODE}")
+    endif()
+endif ()
+
 target_compile_definitions(BrickSim PUBLIC BRICKSIM_GIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
+message(STATUS "BRICKSIM_GIT_COMMIT_HASH=${GIT_COMMIT_HASH}")
 
-execute_process(
-        COMMAND bash "-c" "git log --oneline | wc -l"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE GIT_COMMIT_COUNT
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+if(NOT DEFINED GIT_COMMIT_COUNT)
+    execute_process(
+            COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_commit_count.sh"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            OUTPUT_VARIABLE GIT_COMMIT_COUNT
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+endif()
 target_compile_definitions(BrickSim PUBLIC BRICKSIM_GIT_COMMIT_COUNT=${GIT_COMMIT_COUNT})
+message(STATUS "BRICKSIM_GIT_COMMIT_COUNT=${GIT_COMMIT_COUNT}")
 
-execute_process(
-        COMMAND bash "-c" "git log --no-merges --all | grep -oE \"t=[0-9]+\\\\.?[0-9]*\" | grep -oE \"[0-9]+\\\\.?[0-9]*\" | awk '{ SUM += $1} END { printf \"%f;\\n\", SUM }'"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE TOTAL_HOURS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+if(NOT DEFINED TOTAL_HOURS)
+    execute_process(
+            COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_total_hours.sh"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            OUTPUT_VARIABLE TOTAL_HOURS
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+endif()
 target_compile_definitions(BrickSim PUBLIC BRICKSIM_TOTAL_HOURS=${TOTAL_HOURS})
+message(STATUS "BRICKSIM_TOTAL_HOURS=${TOTAL_HOURS}")
 
 #version
-execute_process(
-        COMMAND bash "-c" "git describe --tags --match v[0-9]* --abbrev=0"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE GIT_VERSION_TAG
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+if (NOT DEFINED GIT_VERSION_TAG)
+    execute_process(
+            COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_tag.sh"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            OUTPUT_VARIABLE GIT_VERSION_TAG
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+endif ()
+
+message(STATUS "GIT_VERSION_TAG=${GIT_VERSION_TAG}")
 string(REPLACE "v" "" VERSION_TAG_WITHOUT_V "${GIT_VERSION_TAG}")
 string(REPLACE "." ";" VERSION_LIST "${VERSION_TAG_WITHOUT_V}")
 list(GET VERSION_LIST 0 BRICKSIM_VERSION_MAJOR)

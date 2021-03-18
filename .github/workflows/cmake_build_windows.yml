@@ -1,5 +1,7 @@
 name: CMake Windows Build
 on:
+  pull_request:
+  workflow_dispatch:
   push:
     paths-ignore:
       - "docs/**"
@@ -7,132 +9,64 @@ env:
   BUILD_TYPE: Release
 jobs:
   build:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: windows-latest
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include: [
-#          { msystem: MINGW64, arch: x86_64 },
-#          { msystem: MINGW32, arch: i686 }
-#        ]
-    strategy:
-      matrix:
-        mingw: [ "MINGW32", "MINGW64" ]
-        include:
-          - mingw: "MINGW32"
-            package: "mingw-w64-i686"
-            directory: "/C/msys64/mingw32"
-          - mingw: "MINGW64"
-            package: "mingw-w64-x86_64"
-            directory: "/C/msys64/mingw64"
 
     defaults:
       run:
-        shell: bash.exe --login -eo pipefail "{0}"
-
-    env:
-      MSYSTEM: ${{ matrix.mingw }}
-      CHERE_INVOKING: 1
-      name: MSYS2 ${{ matrix.mingw }}
+        shell: msys2 {0}
 
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
-#    - run: echo "::add-path::C:\msys64"
-#       shell: cmd
+        fetch-depth: 0
 
-    - name: Set up shell
-      run: echo ::add-path::C:\msys64\usr\bin\
-      shell: pwsh
-    - name: Print system version
+    - uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          git
+          unzip
+          mingw-w64-x86_64-toolchain
+          mingw-w64-i686-toolchain
+          base-devel
+          mingw-w64-x86_64-cmake
+          mingw-w64-i686-cmake
+          libcurl-devel
+          mingw-w64-i686-freeglut
+          mingw-w64-x86_64-freeglut
+          mingw-w64-x86_64-glm
+          mingw-w64-i686-glm
+          mingw-w64-x86_64-libzip
+          mingw-w64-i686-libzip
+          mingw-w64-x86_64-spdlog
+
+    - name: Setup workspace
+      run: ./setup_workspace.sh
+
+    - name: Get info
       run: |
-        uname
+        echo $PWD
+        echo "runner.workspace: \"${{runner.workspace}}\""
+        git describe --tags
+        ls -l /c/msys64/mingw64/bin | grep zip
 
-
-    - name: Add glad includes
-      run: |
-        unzip glad.zip -d glad
-        mkdir ${{ matrix.directory }}/include/c++/10.2.0/glad
-        cp  -R glad/include/. ${{ matrix.directory }}/include/glad
-        rm -rf glad
-    - run: |
-        echo "${{ matrix.directory }}"
-        find ${{ matrix.directory }}/include -maxdepth 2 -type d -exec ls -ld "{}" \;
-
-#    - run: pacman -Syu --noconfirm
-    - run: pacman -S libcurl-devel --noconfirm
-    - run: pacman -S $(pacman -Ssq freeglut) --noconfirm
-#    - run: choco uninstall mingw
-    - run: rm -rf /C/Strawberry
-    - run: rm -rf /C/ProgramData/chocolatey
-    - run: ls -l /C/msys64
-
-#    - name: Create Build Environment
-#      run: cmake -E make_directory ${{runner.workspace}}/build
-#
-#    - name: Configure CMake
-#      shell: bash
-#      working-directory: ${{runner.workspace}}/build
-#      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release
-#      env:
-#        CC: gcc-10
-#        CXX: g++-10
-#
-#    - name: get infos
-#      run: |
-#        gcc --version
-#        whereis gcc
-    #- run: find /C/msys64/ -name 'make'
-    #- run: g++ -v -c src/gui.cpp 2>&1 | sed ':1;s,/[^/.][^/]*/\.\./,/,;t 1'
     - name: Build
-      #working-directory: ${{runner.workspace}}/build
-      shell: bash
       env:
-        CC: ${{ matrix.directory }}/bin/gcc.exe
-        CXX: ${{ matrix.directory }}/bin/g++.exe
+        CC: /C/msys64/mingw64/bin/gcc.exe
+        CXX: /C/msys64/mingw64/bin/g++.exe
       run: |
-        cmake -G "MinGW Makefiles" . -DCMAKE_PREFIX_PATH=/C/mingw64
+        cmake -G "MinGW Makefiles" . -DCMAKE_PREFIX_PATH=/C/mingw64 -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(./scripts/get_git_commit_count.sh) -DTOTAL_HOURS:STRING=$(./scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(./scripts/get_git_tag.sh)
         cmake --build . --config Release
 
-    - name: Test
-      working-directory: ${{runner.workspace}}/build
-      shell: bash
-      run: ctest -C $BUILD_TYPE
+    - name: Try to find binary
+      working-directory: ${{runner.workspace}}
+      run: find . -name "*.exe"
 
-#    - name: Add glad includes
-#      run: unzip -o glad.zip "include/*" -d "/usr"
-
-#    - name: Create Build Environment
-#      run: cmake -E make_directory ${{runner.workspace}}/build
-#
-#    - name: Configure CMake
-#      shell: bash
-#      working-directory: ${{runner.workspace}}/build
-#      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-#      env:
-#        CC: gcc-10
-#        CXX: g++-10
-#
-#    - name: get infos
-#      run: |
-#        gcc --version
-#        whereis gcc
-#
-#    - name: Build
-#      working-directory: ${{runner.workspace}}/build
-#      shell: bash
-#
-#      run: cmake --build . --config $BUILD_TYPE
-#
-#    - name: Test
-#      working-directory: ${{runner.workspace}}/build
-#      shell: bash
-#      run: ctest -C $BUILD_TYPE
-#
-#    - name: Upload Binary
-#      uses: actions/upload-artifact@v2
-#      with:
-#        name: BrickSimWindows
-#        # todo include config.txt and README.md
-#        path: ${{runner.workspace}}/build/BrickSim
+    - name: Upload Binary
+      uses: actions/upload-artifact@v2
+      with:
+        name: BrickSimWindows
+        # todo include README.md
+        path: ${{runner.workspace}}\BrickSim\BrickSim.exe

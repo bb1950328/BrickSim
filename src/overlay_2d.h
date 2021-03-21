@@ -29,7 +29,7 @@ namespace overlay2d {
 
     class ElementCollection {
     private:
-        std::vector<std::shared_ptr<Element>> elements;
+        std::set<std::shared_ptr<Element>> elements;
         std::set<std::shared_ptr<Element>> changedElements;
         std::map<std::shared_ptr<Element>, VertexRange> vertexRanges;
         std::vector<Vertex> vertices;
@@ -39,6 +39,10 @@ namespace overlay2d {
         void updateVertices();
     public:
         void verticesHaveChanged(const std::shared_ptr<Element>& changedElement);
+        void draw();
+
+        void addElement(const std::shared_ptr<Element>& element);
+        void removeElement(const std::shared_ptr<Element>& element);
 
         ElementCollection();
         ElementCollection & operator=(ElementCollection&) = delete;
@@ -53,9 +57,23 @@ namespace overlay2d {
         void verticesHaveChanged();
     public:
         explicit Element(std::weak_ptr<ElementCollection> collection);
-        virtual bool isPointInside(glm::usvec2 point) = 0;
+        void addToCollection();
+        void removeFromCollection();
+        virtual bool isPointInside(glm::vec2 point) = 0;
         virtual unsigned int getVertexCount() = 0;
         virtual void writeVertices(std::vector<Vertex>::iterator firstVertexLocation) = 0;
+    };
+
+    class LineElement: public Element {
+    private:
+        glm::vec2 start, end;
+        float width;
+        util::RGBcolor color;
+    public:
+        LineElement(std::weak_ptr<ElementCollection> collection, glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color);
+        bool isPointInside(glm::vec2 point) override;
+        unsigned int getVertexCount() override;
+        void writeVertices(std::vector<Vertex>::iterator firstVertexLocation) override;
     };
 
     void generateVerticesForLine(std::vector<Vertex>::iterator& firstVertexLocation, glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color);

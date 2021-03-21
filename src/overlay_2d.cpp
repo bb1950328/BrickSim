@@ -15,6 +15,14 @@ namespace overlay2d {
         collection.lock()->verticesHaveChanged(shared_from_this());
     }
 
+    void Element::addToCollection() {
+        collection.lock()->addElement(shared_from_this());
+    }
+
+    void Element::removeFromCollection() {
+        collection.lock()->removeElement(shared_from_this());
+    }
+
     void ElementCollection::verticesHaveChanged(const std::shared_ptr<Element>& changedElement) {
         changedElements.insert(changedElement);
     }
@@ -24,18 +32,34 @@ namespace overlay2d {
         std::vector<VertexRange> changedRanges;
         const auto &firstVertex = vertices.begin();
         for (const auto &elem : changedElements) {
-            auto &range = vertexRanges.find(elem)->second;
+            auto vertexRangesIt = vertexRanges.find(elem);
+            const bool elementIsNew = vertexRangesIt == vertexRanges.end();
+            VertexRange &range = elementIsNew ? vertexRanges[elem] = {} : vertexRangesIt->second;
+            const bool elementIsDeleted = elements.find(elem) == elements.end();
             const auto newVertexCount = elem->getVertexCount();
-            if (range.count != newVertexCount) {
-                needToRewriteEverything = true;
-                vertices.erase(firstVertex+range.start, firstVertex+range.start+range.count-1);
+            const bool elementVertexCountChanged = range.count != newVertexCount;
+
+            const bool needToAppendAtEnd = elementVertexCountChanged || elementIsNew || elementIsDeleted;
+            needToRewriteEverything |= needToAppendAtEnd;
+            
+            if (elementVertexCountChanged || elementIsDeleted) {
+                vertices.erase(firstVertex + range.start, firstVertex + range.start + range.count - 1);
+
+                //adjust ranges after current
+                for (auto &item : vertexRanges) {
+                    if (item.second.start > range.start) {
+                        item.second.count -= range.count;
+                    }
+                }
+            }
+            if (needToAppendAtEnd) {
                 const auto firstToWrite = vertices.end();
                 vertices.resize(vertices.size()+newVertexCount);
                 elem->writeVertices(firstToWrite);
-                range.start = firstToWrite-firstVertex;
+                range.start = firstToWrite - firstVertex;
                 range.count = newVertexCount;
             } else {
-                elem->writeVertices(firstVertex+range.count);
+                elem->writeVertices(firstVertex + range.count);
                 if (!needToRewriteEverything) {
                     changedRanges.push_back(range);
                 }
@@ -53,6 +77,7 @@ namespace overlay2d {
                 }
             }
         });
+        changedElements.clear();
     }
 
     ElementCollection::ElementCollection() { // NOLINT(cppcoreguidelines-pro-type-member-init)
@@ -79,6 +104,22 @@ namespace overlay2d {
             glDeleteVertexArrays(1, &vao);
             glDeleteBuffers(1, &vbo);
         });
+    }
+
+    void ElementCollection::draw() {
+        updateVertices();
+        glBindVertexArray(vao);
+        glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    }
+
+    void ElementCollection::addElement(const std::shared_ptr<Element> &element) {
+        elements.insert(element);
+        verticesHaveChanged(element);
+    }
+
+    void ElementCollection::removeElement(const std::shared_ptr<Element> &element) {
+        elements.erase(element);
+        verticesHaveChanged(element);
     }
 
     void generateVerticesForLine(std::vector<Vertex>::iterator& firstVertexLocation, glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color) {
@@ -161,5 +202,21 @@ namespace overlay2d {
     }
     constexpr unsigned int getVertexCountForQuad() {
         return 6;
+    }
+
+    bool LineElement::isPointInside(glm::vec2 point) {
+        return util::calculateDistanceOfPointToLine(start, end, point) <= width/2;
+    }
+
+    unsigned int LineElement::getVertexCount() {
+        return getVertexCountForLine();
+    }
+
+    void LineElement::writeVertices(std::vector<Vertex>::iterator firstVertexLocation) {
+        generateVerticesForLine(firstVertexLocation, start, end, width, color);
+    }
+
+    LineElement::LineElement(std::weak_ptr<ElementCollection> collection, glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color) : Element(collection), start(start), end(end), width(width), color(color) {
+
     }
 }

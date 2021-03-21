@@ -276,6 +276,9 @@ void Scene::updateImage() {
                 meshCollection.drawOptionalLineGraphics(layer);
             }
 
+            shaders::get(shaders::OVERLAY).use();
+            overlayCollection.draw();
+
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glUseProgram(0);
             glFinish();

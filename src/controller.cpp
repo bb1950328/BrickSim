@@ -361,6 +361,7 @@ namespace controller {
         openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
 
+
         while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
             copyMainloopTimePoints();
             if (foregroundTasks.empty() && backgroundTasks.empty() && thumbnailGenerator->renderQueueEmpty() && glfwGetWindowAttrib(window, GLFW_FOCUSED) == 0) {

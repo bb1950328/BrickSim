@@ -544,4 +544,11 @@ namespace util {
             string[i] = toupper(string[i]);
         }
     }
+
+    float calculateDistanceOfPointToLine(const glm::vec2 &line_start, const glm::vec2 &line_end, const glm::vec2 &point) {
+        //https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points
+        float numerator = std::abs((line_end.x - line_start.x) * (line_start.y - point.y) - (line_start.x - point.x) * (line_end.y - line_start.y));
+        float denominator = std::sqrt(std::pow(line_end.x - line_start.x, 2.0f) + std::pow(line_end.y - line_start.y, 2.0f));
+        return numerator / denominator;
+    }
 }

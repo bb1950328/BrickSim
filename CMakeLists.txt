@@ -39,6 +39,7 @@ if (UNIX)# todo check if this is necessary
         target_link_libraries(BrickSim ${X11_LIBRARIES})
     endif ()
 endif ()
+target_compile_definitions(BrickSim PUBLIC GLFW_INCLUDE_NONE)
 
 # GLUT
 find_package(GLUT REQUIRED)

@@ -74,7 +74,7 @@ void ThumbnailGenerator::discardOldestImages(int reserve_space_for) {
             images.erase(lastAccessedIt);
             deletedCount++;
         }
-        metrics::thumbnailBufferUsageBytes -= size * size * 3 * deletedCount;
+        metrics::thumbnailBufferUsageBytes -= (size_t)size * size * 3 * deletedCount;
     });
 }
 

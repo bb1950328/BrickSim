@@ -53,7 +53,7 @@ void CompleteFramebuffer::saveImage(const std::filesystem::path &path) const {
     const int channels = 3;
 
     auto data = std::vector<GLubyte>();
-    data.resize(size.x * size.y * channels);
+    data.resize((size_t)size.x * size.y * channels);
     controller::executeOpenGL([this, &data]() {
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glReadPixels(0, 0, size.x, size.y, GL_RGB, GL_UNSIGNED_BYTE, &data[0]);

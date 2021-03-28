@@ -122,6 +122,10 @@ namespace overlay2d {
         verticesHaveChanged(element);
     }
 
+    bool ElementCollection::hasElements() {
+        return !elements.empty();
+    }
+
     void generateVerticesForLine(std::vector<Vertex>::iterator& firstVertexLocation, glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color) {
         // 1----------------------------------2
         // |                                  |

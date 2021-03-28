@@ -125,6 +125,7 @@ unsigned int Scene::getSelectionPixel(framebuffer_size_t x, framebuffer_size_t y
 
     if (selectionImageUpToDate) {
         controller::executeOpenGL([&]() {
+            glUseProgram(0);
             glBindFramebuffer(GL_FRAMEBUFFER, selection->getFBO());
             glReadPixels(x, (selection->getSize().y - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -276,8 +277,11 @@ void Scene::updateImage() {
                 meshCollection.drawOptionalLineGraphics(layer);
             }
 
-            shaders::get(shaders::OVERLAY).use();
-            overlayCollection.draw();
+            if (overlayCollection.hasElements()) {
+                glClear(GL_DEPTH_BUFFER_BIT);
+                shaders::get(shaders::OVERLAY).use();
+                overlayCollection.draw();
+            }
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glUseProgram(0);

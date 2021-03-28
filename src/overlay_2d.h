@@ -48,6 +48,7 @@ namespace overlay2d {
         ElementCollection & operator=(ElementCollection&) = delete;
         ElementCollection(const ElementCollection&) = delete;
         virtual ~ElementCollection();
+        bool hasElements();
     };
 
     class Element : std::enable_shared_from_this<Element> {

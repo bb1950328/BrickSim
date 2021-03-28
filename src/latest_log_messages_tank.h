@@ -7,10 +7,8 @@
 #include <spdlog/sinks/base_sink.h>
 #include <queue>
 #include <list>
-
-//to make localtime_r available on MinGW
-#define _POSIX_THREAD_SAFE_FUNCTIONS // NOLINT(bugprone-reserved-identifier)
 #include <ctime>
+#include "helpers/platform_detection.h"
 
 namespace latest_log_messages_tank {
     struct LogMessage {
@@ -63,7 +61,11 @@ namespace latest_log_messages_tank {
             static char timeBuf[timeBufSize];
             const time_t timestamp = spdlog::log_clock::to_time_t(msg.time);
             tm tmpTm{};
+#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
+            localtime_s(&timestamp, &tmpTm);
+#else
             localtime_r(&timestamp, &tmpTm);
+#endif
             std::strftime(timeBuf, timeBufSize, "%H:%M:%S", &tmpTm);
             const auto timeMs = std::chrono::time_point_cast<std::chrono::milliseconds>(msg.time).time_since_epoch().count();
             snprintf(&timeBuf[8], 5, ".%03ld", timeMs % 1000);

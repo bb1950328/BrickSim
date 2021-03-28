@@ -62,7 +62,7 @@ namespace latest_log_messages_tank {
             const time_t timestamp = spdlog::log_clock::to_time_t(msg.time);
             tm tmpTm{};
 #ifdef BRICKSIM_PLATFORM_WIN32_OR_64
-            localtime_s(&timestamp, &tmpTm);
+            localtime_s(&tmpTm, &timestamp);
 #else
             localtime_r(&timestamp, &tmpTm);
 #endif

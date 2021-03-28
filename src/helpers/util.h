@@ -85,6 +85,23 @@ namespace util {
         color_component_t red, green, blue;
         [[nodiscard]] glm::vec3 asGlmVector() const;
         [[nodiscard]] std::string asHtmlCode() const;
+
+        const static RGBcolor BLACK;
+        const static RGBcolor WHITE;
+        const static RGBcolor RED;
+        const static RGBcolor LIME;
+        const static RGBcolor BLUE;
+        const static RGBcolor YELLOW;
+        const static RGBcolor CYAN;
+        const static RGBcolor MAGENTA;
+        const static RGBcolor SILVER;
+        const static RGBcolor GRAY;
+        const static RGBcolor MAROON;
+        const static RGBcolor OLIVE;
+        const static RGBcolor GREEN;
+        const static RGBcolor PURPLE;
+        const static RGBcolor TEAL;
+        const static RGBcolor NAVY;
     };
 
     class HSVcolor {

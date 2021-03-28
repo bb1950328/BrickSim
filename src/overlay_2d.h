@@ -36,9 +36,9 @@ namespace overlay2d {
 
         unsigned int vao, vbo;
 
-        void updateVertices();
-    public:
         void verticesHaveChanged(const std::shared_ptr<Element>& changedElement);
+    public:
+        void updateVertices();
         void draw();
 
         void addElement(const std::shared_ptr<Element>& element);
@@ -49,20 +49,19 @@ namespace overlay2d {
         ElementCollection(const ElementCollection&) = delete;
         virtual ~ElementCollection();
         bool hasElements();
+        bool hasChangedElements();
     };
 
     class Element : std::enable_shared_from_this<Element> {
     private:
-        const std::weak_ptr<ElementCollection> collection;
-    protected:
-        void verticesHaveChanged();
+        bool verticesHaveChanged = false;
     public:
-        explicit Element(std::weak_ptr<ElementCollection> collection);
-        void addToCollection();
-        void removeFromCollection();
+        explicit Element();
+        bool haveVerticesChanged() const;
+        void setVerticesHaveChanged(bool value);
         virtual bool isPointInside(glm::vec2 point) = 0;
         virtual unsigned int getVertexCount() = 0;
-        virtual void writeVertices(std::vector<Vertex>::iterator firstVertexLocation) = 0;
+        virtual Vertex * writeVertices(Vertex *firstVertexLocation) = 0;
     };
 
     class LineElement: public Element {
@@ -71,22 +70,30 @@ namespace overlay2d {
         float width;
         util::RGBcolor color;
     public:
-        LineElement(std::weak_ptr<ElementCollection> collection, glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color);
+        LineElement(glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color);
         bool isPointInside(glm::vec2 point) override;
         unsigned int getVertexCount() override;
-        void writeVertices(std::vector<Vertex>::iterator firstVertexLocation) override;
+        Vertex * writeVertices(Vertex *firstVertexLocation) override;
+        const glm::vec2 &getStart() const;
+        void setStart(const glm::vec2 &value);
+        const glm::vec2 &getEnd() const;
+        void setEnd(const glm::vec2 &value);
+        float getWidth() const;
+        void setWidth(float value);
+        const util::RGBcolor &getColor() const;
+        void setColor(const util::RGBcolor &value);
     };
 
-    void generateVerticesForLine(std::vector<Vertex>::iterator& firstVertexLocation, glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color);
+    Vertex * generateVerticesForLine(Vertex *firstVertexLocation, glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color);
     constexpr unsigned int getVertexCountForLine();
 
-    void generateVerticesForTriangle(std::vector<Vertex>::iterator& firstVertexLocation, glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, util::RGBcolor color);
+    Vertex * generateVerticesForTriangle(Vertex *firstVertexLocation, glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, util::RGBcolor color);
     constexpr unsigned int getVertexCountForTriangle();
 
-    void generateVerticesForSquare(std::vector<Vertex>::iterator& firstVertexLocation, glm::vec2 center, float sideLength, util::RGBcolor color);
+    Vertex * generateVerticesForSquare(Vertex *firstVertexLocation, glm::vec2 center, float sideLength, util::RGBcolor color);
     constexpr unsigned int getVertexCountForSquare();
 
-    void generateVerticesForRegularPolygon(std::vector<Vertex>::iterator& firstVertexLocation, glm::vec2 center, float radius, short numEdges, util::RGBcolor color);
+    Vertex * generateVerticesForRegularPolygon(Vertex *firstVertexLocation, glm::vec2 center, float radius, short numEdges, util::RGBcolor color);
     constexpr unsigned int getVertexCountForRegularPolygon(short numEdges);
 
     /**
@@ -94,7 +101,7 @@ namespace overlay2d {
      * |     |
      * p4 -- p3
      */
-    void generateVerticesForQuad(std::vector<Vertex>::iterator& firstVertexLocation, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4, util::RGBcolor color);
+    Vertex * generateVerticesForQuad(Vertex *firstVertexLocation, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4, util::RGBcolor color);
     constexpr unsigned int getVertexCountForQuad();
 }
 #endif //BRICKSIM_OVERLAY_2D_H

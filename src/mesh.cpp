@@ -534,30 +534,34 @@ void Mesh::initializeOptionalLineGraphics() {
 
 void Mesh::drawTriangleGraphics(scene_id_t sceneId, layer_t layer) {
     auto range = getSceneLayerInstanceRange(sceneId, layer);
-    if (range.has_value()) {
+    if (range.has_value() && range->count > 0) {
         for (const auto &entry: triangleIndices) {
-            const auto color = entry.first;
             const std::vector<unsigned int> &indices = entry.second;
-            glBindVertexArray(VAOs[color]);
-            glDrawElementsInstancedBaseInstance(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
+            if (!indices.empty()) {
+                const auto color = entry.first;
+                glBindVertexArray(VAOs[color]);
+                glDrawElementsInstancedBaseInstance(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
+            }
         }
     }
 }
 
 void Mesh::drawTexturedTriangleGraphics(scene_id_t sceneId, layer_t layer) {
     auto range = getSceneLayerInstanceRange(sceneId, layer);
-    if (range.has_value()) {
+    if (range.has_value() && range->count > 0) {
         for (const auto &item : textureVertices) {
-            textures[item.first]->bind();
-            glBindVertexArray(std::get<0>(textureTriangleVaoVertexVboInstanceVbo[item.first]));
-            glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, item.second.size(), range->count, range->start);
+            if (!item.second.empty()) {
+                textures[item.first]->bind();
+                glBindVertexArray(std::get<0>(textureTriangleVaoVertexVboInstanceVbo[item.first]));
+                glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, item.second.size(), range->count, range->start);
+            }
         }
     }
 }
 
 void Mesh::drawLineGraphics(scene_id_t sceneId, layer_t layer) {
     auto range = getSceneLayerInstanceRange(sceneId, layer);
-    if (range.has_value()) {
+    if (range.has_value() && range->count > 0 && !lineIndices.empty()) {
         glBindVertexArray(lineVAO);
         glDrawElementsInstancedBaseInstance(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
     }
@@ -565,7 +569,7 @@ void Mesh::drawLineGraphics(scene_id_t sceneId, layer_t layer) {
 
 void Mesh::drawOptionalLineGraphics(scene_id_t sceneId, layer_t layer) {
     auto range = getSceneLayerInstanceRange(sceneId, layer);
-    if (range.has_value()) {
+    if (range.has_value() && range->count > 0 && !optionalLineIndices.empty()) {
         glBindVertexArray(optionalLineVAO);
         glDrawElementsInstancedBaseInstance(GL_LINES_ADJACENCY, optionalLineIndices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
     }

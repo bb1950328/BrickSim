@@ -291,6 +291,23 @@ namespace util {
 
     }
 
+    const RGBcolor RGBcolor::BLACK{0,0,0};
+    const RGBcolor RGBcolor::WHITE{255,255,255};
+    const RGBcolor RGBcolor::RED{255,0,0};
+    const RGBcolor RGBcolor::LIME{0,255,0};
+    const RGBcolor RGBcolor::BLUE{0,0,255};
+    const RGBcolor RGBcolor::YELLOW{255,255,0};
+    const RGBcolor RGBcolor::CYAN{0,255,255};
+    const RGBcolor RGBcolor::MAGENTA{255,0,255};
+    const RGBcolor RGBcolor::SILVER{192,192,192};
+    const RGBcolor RGBcolor::GRAY{128,128,128};
+    const RGBcolor RGBcolor::MAROON{128,0,0};
+    const RGBcolor RGBcolor::OLIVE{128,128,0};
+    const RGBcolor RGBcolor::GREEN{0,128,0};
+    const RGBcolor RGBcolor::PURPLE{128,0,128};
+    const RGBcolor RGBcolor::TEAL{0,128,128};
+    const RGBcolor RGBcolor::NAVY{0,0,128};
+
     HSVcolor::HSVcolor(glm::vec3 vector) {
         hue = vector.x * 255;
         saturation = vector.y * 255;

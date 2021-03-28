@@ -14,38 +14,48 @@
 
 CompleteFramebuffer::CompleteFramebuffer(glm::usvec2 size_) : size(size_) { // NOLINT(cppcoreguidelines-pro-type-member-init)
     controller::executeOpenGL([this]() {
-        glGenFramebuffers(1, &framebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-        // create a color attachment texture
-        glGenTextures(1, &textureColorbuffer);
-        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
-
-        // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-        glGenRenderbuffers(1, &renderBufferObject);
-        glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size.x, size.y); // use a single renderbuffer object for both a depth AND stencil buffer.
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject); // now actually attach it
-
-        // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            spdlog::error("Framebuffer is not complete");
-        }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        spdlog::debug("allocated CompleteFramebuffer. FBO={}, TexBO={}, RBO={}", framebuffer, textureColorbuffer, renderBufferObject);
+        allocate();
     });
+}
+
+void CompleteFramebuffer::allocate() {
+    // create a color attachment texture
+    glGenTextures(1, &textureColorbuffer);
+    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+    glGenRenderbuffers(1, &renderBufferObject);
+    glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size.x, size.y); // use a single renderbuffer object for both a depth AND stencil buffer.
+
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject); // now actually attach it
+
+
+    // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        spdlog::error("Framebuffer is not complete");
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    spdlog::debug("allocated CompleteFramebuffer. FBO={}, TexBO={}, RBO={}", framebuffer, textureColorbuffer, renderBufferObject);
 }
 
 CompleteFramebuffer::~CompleteFramebuffer() {
     controller::executeOpenGL([this]() {
-        glDeleteRenderbuffers(1, &renderBufferObject);
-        glDeleteTextures(1, &textureColorbuffer);
-        glDeleteFramebuffers(1, &framebuffer);
+        deallocate();
     });
+}
+
+void CompleteFramebuffer::deallocate() const {
+    glDeleteRenderbuffers(1, &renderBufferObject);
+    glDeleteTextures(1, &textureColorbuffer);
+    glDeleteFramebuffers(1, &framebuffer);
+    spdlog::debug("deleted CompleteFramebuffer. FBO={}, TexBO={}, RBO={}", framebuffer, textureColorbuffer, renderBufferObject);
 }
 
 void CompleteFramebuffer::saveImage(const std::filesystem::path &path) const {
@@ -80,7 +90,7 @@ void CompleteFramebuffer::setSize(const glm::usvec2 &newSize) {
     }
     size = newSize;
     controller::executeOpenGL([this]() {
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        /*glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
         glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
@@ -90,7 +100,9 @@ void CompleteFramebuffer::setSize(const glm::usvec2 &newSize) {
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size.x, size.y);
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);*/
+        deallocate();
+        allocate();
     });
 }
 
@@ -222,6 +234,10 @@ void Scene::updateImage() {
         imageUpToDate = false;
     }
 
+    if (overlayCollection.hasChangedElements()) {
+        overlayCollection.updateVertices();
+    }
+
     if (!imageUpToDate) {
         auto before = std::chrono::high_resolution_clock::now();
         controller::executeOpenGL([this]() {
@@ -232,6 +248,7 @@ void Scene::updateImage() {
             }
 #endif
             glBindFramebuffer(GL_FRAMEBUFFER, image.getFBO());
+            //spdlog::error("rendering to texture {}", image.getTexBO());
             glViewport(0, 0, imageSize.x, imageSize.y);
             const auto &bgColor = util::RGBcolor(config::getString(config::BACKGROUND_COLOR)).asGlmVector();
             glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.0f);
@@ -316,7 +333,7 @@ const SceneMeshCollection &Scene::getMeshCollection() const {
     return meshCollection;
 }
 
-const overlay2d::ElementCollection &Scene::getOverlayCollection() const {
+overlay2d::ElementCollection & Scene::getOverlayCollection() {
     return overlayCollection;
 }
 

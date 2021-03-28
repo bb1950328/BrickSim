@@ -19,6 +19,8 @@ private:
     unsigned int textureColorbuffer;
     unsigned int renderBufferObject;
     glm::usvec2 size;
+    void deallocate() const;
+    void allocate();
 public:
     explicit CompleteFramebuffer(glm::usvec2 size_);
     CompleteFramebuffer(const CompleteFramebuffer&) = delete;
@@ -72,7 +74,7 @@ public:
     [[nodiscard]] const CompleteFramebuffer &getImage() const;
     [[nodiscard]] const std::optional<CompleteFramebuffer> & getSelectionImage() const;
     [[nodiscard]] const SceneMeshCollection &getMeshCollection() const;
-    [[nodiscard]] const overlay2d::ElementCollection &getOverlayCollection() const;
+    [[nodiscard]] overlay2d::ElementCollection & getOverlayCollection();
 };
 
 #endif //BRICKSIM_SCENE_H

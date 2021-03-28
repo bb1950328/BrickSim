@@ -1,5 +1,6 @@
 
 
+#include <spdlog/spdlog.h>
 #include "gui.h"
 #include "../controller.h"
 #include "gui_internal.h"
@@ -78,10 +79,13 @@ namespace gui {
                 }
             }
             mainScene->setImageSize({regionAvail.x, regionAvail.y});
-            auto texture3dView = gui_internal::convertTextureId(config::getBool(config::DISPLAY_SELECTION_BUFFER)
-                                                                ? mainScene->getSelectionImage()->getTexBO()
-                                                                : mainScene->getImage().getTexBO());
-            ImGui::ImageButton(texture3dView, regionAvail, ImVec2(0, 1), ImVec2(1, 0), 0);
+            const auto &image = config::getBool(config::DISPLAY_SELECTION_BUFFER)
+                                ? mainScene->getSelectionImage().value()
+                                : mainScene->getImage();
+            auto texture3dView = gui_internal::convertTextureId(image.getTexBO());
+            //ImGui::ImageButton(texture3dView, ImVec2(image.getSize().x, image.getSize().y), ImVec2(0, 1), ImVec2(1, 0), 0);
+            ImGui::Image(texture3dView, ImVec2(image.getSize().x, image.getSize().y), ImVec2(0, 1), ImVec2(1, 0));
+            //spdlog::error("main texture {}", image.getTexBO());
             ImGui::EndChild();
         }
         ImGui::End();

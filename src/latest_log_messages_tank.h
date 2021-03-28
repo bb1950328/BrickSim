@@ -7,6 +7,9 @@
 #include <spdlog/sinks/base_sink.h>
 #include <queue>
 #include <list>
+
+//to make localtime_r available on MinGW
+#define _POSIX_THREAD_SAFE_FUNCTIONS // NOLINT(bugprone-reserved-identifier)
 #include <ctime>
 
 namespace latest_log_messages_tank {
@@ -15,7 +18,7 @@ namespace latest_log_messages_tank {
         const unsigned char level;
         std::string formattedTime;
         std::string message;
-        LogMessage(const long timestamp, const unsigned char level, const std::string &formattedTime, const std::string &message);
+        LogMessage(long timestamp, unsigned char level, const std::string &formattedTime, const std::string &message);
     };
 
     namespace {

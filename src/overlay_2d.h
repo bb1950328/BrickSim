@@ -70,10 +70,10 @@ namespace overlay2d {
     class LineElement: public Element {
     private:
         coord_t start, end;
-        float width;
+        length_t width;
         util::RGBcolor color;
     public:
-        LineElement(coord_t start, coord_t end, float width, util::RGBcolor color);
+        LineElement(coord_t start, coord_t end, length_t width, util::RGBcolor color);
         bool isPointInside(coord_t point) override;
         unsigned int getVertexCount() override;
         Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) override;
@@ -86,6 +86,53 @@ namespace overlay2d {
         const util::RGBcolor &getColor() const;
         void setColor(const util::RGBcolor &value);
     };
+
+    class TriangleElement: public Element {
+    private:
+        coord_t p0, p1, p2;
+        util::RGBcolor color;
+    public:
+        TriangleElement(const coord_t &p0, const coord_t &p1, const coord_t &p2, const util::RGBcolor &color);
+
+        bool isPointInside(coord_t point) override;
+
+        unsigned int getVertexCount() override;
+
+        Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) override;
+    };
+
+    class SquareElement: public Element {
+    private:
+        coord_t center;
+        length_t sideLength;
+        util::RGBcolor color;
+    public:
+        SquareElement(const coord_t &center, length_t sideLength, const util::RGBcolor &color);
+
+        bool isPointInside(coord_t point) override;
+
+        unsigned int getVertexCount() override;
+
+        Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) override;
+    };
+
+    class RegularPolygonElement: public Element {
+    private:
+        coord_t center;
+        length_t radius;
+        short numEdges;
+        util::RGBcolor color;
+    public:
+        RegularPolygonElement(const coord_t &center, length_t radius, short numEdges, const util::RGBcolor &color);
+
+        bool isPointInside(coord_t point) override;
+
+        unsigned int getVertexCount() override;
+
+        Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) override;
+    };
+
+
 
     namespace {
         Vertex *generateVerticesForLine(Vertex *firstVertexLocation, coord_t start, coord_t end, length_t width, util::RGBcolor color, coord_t viewportSize);

@@ -568,4 +568,10 @@ namespace util {
         float denominator = std::sqrt(std::pow(line_end.x - line_start.x, 2.0f) + std::pow(line_end.y - line_start.y, 2.0f));
         return numerator / denominator;
     }
+
+    float calculateDistanceOfPointToLine(const glm::usvec2 &line_start, const glm::usvec2 &line_end, const glm::usvec2 &point) {
+        int numerator = std::abs((line_end.x - line_start.x) * (line_start.y - point.y) - (line_start.x - point.x) * (line_end.y - line_start.y));
+        float denominator = std::sqrt(std::pow(line_end.x - line_start.x, 2.0f) + std::pow(line_end.y - line_start.y, 2.0f));
+        return numerator / denominator;
+    }
 }

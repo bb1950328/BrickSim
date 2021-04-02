@@ -229,13 +229,15 @@ void Scene::updateImage() {
 
     rereadElementTreeIfNeeded();
 
-    if (imageSize != image.getSize()) {
+    bool imageSizeChanged = imageSize != image.getSize();
+    if (imageSizeChanged) {
         image.setSize(imageSize);
         imageUpToDate = false;
     }
 
-    if (overlayCollection.hasChangedElements()) {
-        overlayCollection.updateVertices();
+    if (overlayCollection.hasChangedElements() || imageSizeChanged) {
+        overlayCollection.updateVertices(imageSize);
+        imageUpToDate = false;
     }
 
     if (!imageUpToDate) {

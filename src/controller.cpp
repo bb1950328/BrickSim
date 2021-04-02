@@ -252,7 +252,7 @@ namespace controller {
             mainScene->setCamera(camera);
             mainScene->setRootNode(elementTree);
 
-            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::LineElement>(glm::vec2(0.5, 0.5), glm::vec2(-0.5, -0.5), 0.1, util::RGBcolor::RED));
+            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::LineElement>(glm::vec2(5, 5), glm::vec2(50, 50), 20, util::RGBcolor::RED));
 
             gui::setWindow(window);
             gui::initialize();

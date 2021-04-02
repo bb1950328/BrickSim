@@ -6,6 +6,117 @@
 #include <utility>
 
 namespace overlay2d {
+    namespace {
+        Vertex *generateVerticesForLine(Vertex *firstVertexLocation, coord_t start, coord_t end, length_t width, util::RGBcolor color, coord_t viewportSize) {
+            // 1----------------------------------2
+            // |                                  |
+            // + start                        end +
+            // |                                  |
+            // 4----------------------------------3
+            auto startFloat = glm::vec2(start);
+            auto endFloat = glm::vec2(end);
+            const auto startToEnd = endFloat - startFloat;
+            const glm::vec2 halfEdge = glm::normalize(glm::vec2(-startToEnd.x, startToEnd.y)) * (width / 2.0f);
+            const glm::vec2 p1 = startFloat - halfEdge;
+            const glm::vec2 p2 = startFloat + halfEdge;
+            const glm::vec2 p3 = endFloat + halfEdge;
+            const glm::vec2 p4 = endFloat - halfEdge;
+            //std::cout << "line(start=" << start.x << "/" << start.y << ", end=" << end.x << "/" << end.y << ")" << std::endl;
+            //std::cout << "p1=" << p1.x << ", " << p1.y << std::endl;
+            //std::cout << "p2=" << p2.x << ", " << p2.y << std::endl;
+            //std::cout << "p3=" << p3.x << ", " << p3.y << std::endl;
+            //std::cout << "p4=" << p4.x << ", " << p4.y << std::endl;
+            //std::cout << "startToEnd=" << startToEnd.x << ", " << startToEnd.y << std::endl;
+            //std::cout << "halfEdge=" << halfEdge.x << ", " << halfEdge.y << std::endl;
+            return generateVerticesForQuad(firstVertexLocation, p1, p2, p3, p4, color, viewportSize);
+        }
+        constexpr unsigned int getVertexCountForLine() {
+            return 6;
+        }
+
+        Vertex * generateVerticesForTriangle(Vertex *firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, util::RGBcolor color, coord_t viewportSize) {
+            *firstVertexLocation = {toNDC(p0, viewportSize), color.asGlmVector()};
+            if (((p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y)) > 0) {
+                //already counterclockwise
+                *(firstVertexLocation+1) = {toNDC(p1, viewportSize), color.asGlmVector()};
+                *(firstVertexLocation+2) = {toNDC(p2, viewportSize), color.asGlmVector()};
+            } else {
+                //clockwise, we have to swap two edges
+                *(firstVertexLocation+1) = {toNDC(p2, viewportSize), color.asGlmVector()};
+                *(firstVertexLocation+2) = {toNDC(p1, viewportSize), color.asGlmVector()};
+            }
+            firstVertexLocation += 3;
+            return firstVertexLocation;
+        }
+        constexpr unsigned int getVertexCountForTriangle() {
+            return 3;
+        }
+
+        Vertex * generateVerticesForSquare(Vertex *firstVertexLocation, coord_t center, length_t sideLength, util::RGBcolor color, coord_t viewportSize) {
+            const float halfSideLength = sideLength / 2;
+            auto p1 = glm::vec2{(float)center.x -halfSideLength, (float)center.y-halfSideLength};
+            auto p2 = glm::vec2{(float)center.x +halfSideLength, (float)center.y-halfSideLength};
+            auto p3 = glm::vec2{(float)center.x +halfSideLength, (float)center.y+halfSideLength};
+            auto p4 = glm::vec2{(float)center.x -halfSideLength, (float)center.y+halfSideLength};
+            return generateVerticesForQuad(firstVertexLocation, p1, p2, p3, p4, color, viewportSize);
+        }
+        constexpr unsigned int getVertexCountForSquare() {
+            return 6;
+        }
+
+        Vertex * generateVerticesForRegularPolygon(Vertex *firstVertexLocation, coord_t center, length_t radius, short numEdges, util::RGBcolor color, coord_t viewportSize) {
+            float angleStep = 2 * M_PI / numEdges;
+            const glm::vec2 p0 = toNDC(coord_t{radius + center.x, center.y}, viewportSize);
+            glm::vec2 lastP = toNDC(glm::vec2{radius*std::cos(angleStep) + center.x, radius * std::sin(angleStep) + center.y}, viewportSize);
+            for (short i = 2; i < numEdges; ++i) {
+                glm::vec2 currentP = toNDC(glm::vec2{radius*std::cos(angleStep * i) + center.x, radius * std::sin(angleStep * i) + center.y}, viewportSize);
+
+                *firstVertexLocation = {p0, color.asGlmVector()};
+                ++firstVertexLocation;
+
+                *firstVertexLocation = {lastP, color.asGlmVector()};
+                ++firstVertexLocation;
+
+                *firstVertexLocation = {currentP, color.asGlmVector()};
+                ++firstVertexLocation;
+
+                lastP = currentP;
+            }
+            return firstVertexLocation;
+        }
+        constexpr unsigned int getVertexCountForRegularPolygon(short numEdges) {
+            return numEdges-2;
+        }
+
+        /**
+         * p1 -- p2
+         * |     |
+         * p4 -- p3
+         */
+        Vertex * generateVerticesForQuad(Vertex *firstVertexLocation, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4, util::RGBcolor color, coord_t viewportSize) {
+            *firstVertexLocation = {toNDC(p1, viewportSize), color.asGlmVector()}; ++firstVertexLocation;
+            *firstVertexLocation = {toNDC(p4, viewportSize), color.asGlmVector()}; ++firstVertexLocation;
+            *firstVertexLocation = {toNDC(p3, viewportSize), color.asGlmVector()}; ++firstVertexLocation;
+            *firstVertexLocation = {toNDC(p3, viewportSize), color.asGlmVector()}; ++firstVertexLocation;
+            *firstVertexLocation = {toNDC(p2, viewportSize), color.asGlmVector()}; ++firstVertexLocation;
+            *firstVertexLocation = {toNDC(p1, viewportSize), color.asGlmVector()}; ++firstVertexLocation;
+            return firstVertexLocation;
+        }
+        constexpr unsigned int getVertexCountForQuad() {
+            return 6;
+        }
+
+        constexpr glm::vec2 toNDC(coord_t coord, coord_t viewportSize) {
+            return glm::vec2((float) coord.x / (float) viewportSize.x * 2 - 1,
+                             (float) coord.y / (float) viewportSize.y * 2 - 1);
+        }
+
+        constexpr glm::vec2 toNDC(glm::vec2 coord, coord_t viewportSize) {
+            return glm::vec2(coord.x / (float) viewportSize.x * 2 - 1,
+                             coord.y / (float) viewportSize.y * 2 - 1);
+        }
+    }
+
     Vertex::Vertex(const glm::vec2 &position, const glm::vec3 &color) : position(position), color(color) {}
 
 
@@ -23,12 +134,14 @@ namespace overlay2d {
         changedElements.insert(changedElement);
     }
 
-    void ElementCollection::updateVertices() {
-        if (hasChangedElements()) {
+    void ElementCollection::updateVertices(coord_t viewportSize) {
+        const bool viewportSizeChanged = lastWrittenViewportSize != viewportSize;
+        const auto& elementsToUpdate = viewportSizeChanged ? elements : changedElements;
+        if (hasChangedElements() || viewportSizeChanged) {
             bool needToRewriteEverything = false;
             std::vector<VertexRange> changedRanges;
             auto firstVertex = vertices.begin();
-            for (const auto &elem : changedElements) {
+            for (const auto &elem : elementsToUpdate) {
                 auto vertexRangesIt = vertexRanges.find(elem);
                 const bool elementIsNew = vertexRangesIt == vertexRanges.end();
                 VertexRange &range = elementIsNew ? vertexRanges[elem] = {} : vertexRangesIt->second;
@@ -55,9 +168,9 @@ namespace overlay2d {
                     range.start = vertices.size();
                     range.count = newVertexCount;
                     vertices.resize(vertices.size() + newVertexCount);
-                    elem->writeVertices(&vertices[range.start]);
+                    elem->writeVertices(&vertices[range.start], viewportSize);
                 } else {
-                    elem->writeVertices(&vertices[range.start]);
+                    elem->writeVertices(&vertices[range.start], viewportSize);
                     if (!needToRewriteEverything) {
                         changedRanges.push_back(range);
                     }
@@ -76,6 +189,7 @@ namespace overlay2d {
                 }
             });
             changedElements.clear();
+            lastWrittenViewportSize = viewportSize;
         }
     }
 
@@ -135,99 +249,7 @@ namespace overlay2d {
         return !changedElements.empty();
     }
 
-    Vertex * generateVerticesForLine(Vertex *firstVertexLocation, glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color) {
-        // 1----------------------------------2
-        // |                                  |
-        // + start                        end +
-        // |                                  |
-        // 4----------------------------------3
-        const auto startToEnd = end - start;
-        const auto halfEdge = glm::normalize(glm::vec2(-startToEnd.x, startToEnd.y)) * width / 2.0f;
-        const glm::vec2 p1 = start - halfEdge;
-        const glm::vec2 p2 = start + halfEdge;
-        const glm::vec2 p3 = end + halfEdge;
-        const glm::vec2 p4 = end - halfEdge;
-        std::cout << "line(start=" << start.x << "/" << start.y << ", end=" << end.x << "/" << end.y << ")" << std::endl;
-        std::cout << "p1=" << p1.x << ", " << p1.y << std::endl;
-        std::cout << "p2=" << p2.x << ", " << p2.y << std::endl;
-        std::cout << "p3=" << p3.x << ", " << p3.y << std::endl;
-        std::cout << "p4=" << p4.x << ", " << p4.y << std::endl;
-        std::cout << "startToEnd=" << startToEnd.x << ", " << startToEnd.y << std::endl;
-        std::cout << "halfEdge=" << halfEdge.x << ", " << halfEdge.y << std::endl;
-        return generateVerticesForQuad(firstVertexLocation, p1, p2, p3, p4, color);
-    }
-    constexpr unsigned int getVertexCountForLine() {
-        return 6;
-    }
-
-    Vertex * generateVerticesForTriangle(Vertex *firstVertexLocation, glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, util::RGBcolor color) {
-        *firstVertexLocation = {p0, color.asGlmVector()};
-        if (((p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y)) > 0) {
-            //already counterclockwise
-            *(firstVertexLocation+1) = {p1, color.asGlmVector()};
-            *(firstVertexLocation+2) = {p2, color.asGlmVector()};
-        } else {
-            //clockwise, we have to swap two edges
-            *(firstVertexLocation+1) = {p2, color.asGlmVector()};
-            *(firstVertexLocation+2) = {p1, color.asGlmVector()};
-        }
-        firstVertexLocation += 3;
-        return firstVertexLocation;
-    }
-    constexpr unsigned int getVertexCountForTriangle() {
-        return 3;
-    }
-
-    Vertex * generateVerticesForSquare(Vertex *firstVertexLocation, glm::vec2 center, float sideLength, util::RGBcolor color) {
-        const float halfSideLength = sideLength / 2;
-        auto p1 = center + glm::vec2{-halfSideLength, -halfSideLength};
-        auto p2 = center + glm::vec2{halfSideLength, -halfSideLength};
-        auto p3 = center + glm::vec2{halfSideLength, halfSideLength};
-        auto p4 = center + glm::vec2{-halfSideLength, halfSideLength};
-        return generateVerticesForQuad(firstVertexLocation, p1, p2, p3, p4, color);
-    }
-    constexpr unsigned int getVertexCountForSquare() {
-        return 6;
-    }
-
-    Vertex * generateVerticesForRegularPolygon(Vertex *firstVertexLocation, glm::vec2 center, float radius, short numEdges, util::RGBcolor color) {
-        float angleStep = 2 * M_PI / numEdges;
-        const glm::vec2 p0 = {radius + center.x, center.y};
-        glm::vec2 lastP = {radius*std::cos(angleStep) + center.x, radius * std::sin(angleStep) + center.y};
-        for (short i = 2; i < numEdges; ++i) {
-            glm::vec2 currentP = {radius*std::cos(angleStep * i) + center.x, radius * std::sin(angleStep * i) + center.y};
-
-            *firstVertexLocation = {p0, color.asGlmVector()};
-            ++firstVertexLocation;
-
-            *firstVertexLocation = {lastP, color.asGlmVector()};
-            ++firstVertexLocation;
-
-            *firstVertexLocation = {currentP, color.asGlmVector()};
-            ++firstVertexLocation;
-
-            lastP = currentP;
-        }
-        return firstVertexLocation;
-    }
-    constexpr unsigned int getVertexCountForRegularPolygon(short numEdges) {
-        return numEdges-2;
-    }
-
-    Vertex * generateVerticesForQuad(Vertex *firstVertexLocation, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4, util::RGBcolor color) {
-        *firstVertexLocation = {p1, color.asGlmVector()}; ++firstVertexLocation;
-        *firstVertexLocation = {p4, color.asGlmVector()}; ++firstVertexLocation;
-        *firstVertexLocation = {p3, color.asGlmVector()}; ++firstVertexLocation;
-        *firstVertexLocation = {p3, color.asGlmVector()}; ++firstVertexLocation;
-        *firstVertexLocation = {p2, color.asGlmVector()}; ++firstVertexLocation;
-        *firstVertexLocation = {p1, color.asGlmVector()}; ++firstVertexLocation;
-        return firstVertexLocation;
-    }
-    constexpr unsigned int getVertexCountForQuad() {
-        return 6;
-    }
-
-    bool LineElement::isPointInside(glm::vec2 point) {
+    bool LineElement::isPointInside(coord_t point) {
         return util::calculateDistanceOfPointToLine(start, end, point) <= width/2;
     }
 
@@ -235,28 +257,28 @@ namespace overlay2d {
         return getVertexCountForLine();
     }
 
-    Vertex * LineElement::writeVertices(Vertex *firstVertexLocation) {
-        return generateVerticesForLine(firstVertexLocation, start, end, width, color);
+    Vertex * LineElement::writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) {
+        return generateVerticesForLine(firstVertexLocation, start, end, width, color, viewportSize);
     }
 
-    LineElement::LineElement(glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color) : start(start), end(end), width(width), color(color) {
+    LineElement::LineElement(coord_t start, coord_t end, float width, util::RGBcolor color) : start(start), end(end), width(width), color(color) {
         setVerticesHaveChanged(true);
     }
 
-    const glm::vec2 &LineElement::getStart() const {
+    const coord_t &LineElement::getStart() const {
         return start;
     }
 
-    void LineElement::setStart(const glm::vec2 &value) {
+    void LineElement::setStart(const coord_t &value) {
         LineElement::start = value;
         setVerticesHaveChanged(true);
     }
 
-    const glm::vec2 &LineElement::getEnd() const {
+    const coord_t &LineElement::getEnd() const {
         return end;
     }
 
-    void LineElement::setEnd(const glm::vec2 &value) {
+    void LineElement::setEnd(const coord_t &value) {
         end = value;
         setVerticesHaveChanged(true);
     }

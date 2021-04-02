@@ -12,6 +12,9 @@
 #include "helpers/util.h"
 
 namespace overlay2d {
+    typedef glm::usvec2 coord_t;
+
+    typedef short length_t;
     class Vertex {
     public:
         glm::vec2 position;
@@ -19,7 +22,6 @@ namespace overlay2d {
         Vertex(const glm::vec2 &position, const glm::vec3 &color);
         Vertex() = default;
     };
-
     struct VertexRange {
         unsigned int start;
         unsigned int count;
@@ -33,12 +35,13 @@ namespace overlay2d {
         std::set<std::shared_ptr<Element>> changedElements;
         std::map<std::shared_ptr<Element>, VertexRange> vertexRanges;
         std::vector<Vertex> vertices;
+        coord_t lastWrittenViewportSize{0, 0};
 
         unsigned int vao, vbo;
 
         void verticesHaveChanged(const std::shared_ptr<Element>& changedElement);
     public:
-        void updateVertices();
+        void updateVertices(coord_t viewportSize);
         void draw();
 
         void addElement(const std::shared_ptr<Element>& element);
@@ -59,49 +62,51 @@ namespace overlay2d {
         explicit Element();
         bool haveVerticesChanged() const;
         void setVerticesHaveChanged(bool value);
-        virtual bool isPointInside(glm::vec2 point) = 0;
+        virtual bool isPointInside(coord_t point) = 0;
         virtual unsigned int getVertexCount() = 0;
-        virtual Vertex * writeVertices(Vertex *firstVertexLocation) = 0;
+        virtual Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) = 0;
     };
 
     class LineElement: public Element {
     private:
-        glm::vec2 start, end;
+        coord_t start, end;
         float width;
         util::RGBcolor color;
     public:
-        LineElement(glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color);
-        bool isPointInside(glm::vec2 point) override;
+        LineElement(coord_t start, coord_t end, float width, util::RGBcolor color);
+        bool isPointInside(coord_t point) override;
         unsigned int getVertexCount() override;
-        Vertex * writeVertices(Vertex *firstVertexLocation) override;
-        const glm::vec2 &getStart() const;
-        void setStart(const glm::vec2 &value);
-        const glm::vec2 &getEnd() const;
-        void setEnd(const glm::vec2 &value);
+        Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) override;
+        const coord_t &getStart() const;
+        void setStart(const coord_t &value);
+        const coord_t &getEnd() const;
+        void setEnd(const coord_t &value);
         float getWidth() const;
         void setWidth(float value);
         const util::RGBcolor &getColor() const;
         void setColor(const util::RGBcolor &value);
     };
 
-    Vertex * generateVerticesForLine(Vertex *firstVertexLocation, glm::vec2 start, glm::vec2 end, float width, util::RGBcolor color);
-    constexpr unsigned int getVertexCountForLine();
+    namespace {
+        Vertex *generateVerticesForLine(Vertex *firstVertexLocation, coord_t start, coord_t end, length_t width, util::RGBcolor color, coord_t viewportSize);
+        constexpr unsigned int getVertexCountForLine();
 
-    Vertex * generateVerticesForTriangle(Vertex *firstVertexLocation, glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, util::RGBcolor color);
-    constexpr unsigned int getVertexCountForTriangle();
+        Vertex * generateVerticesForTriangle(Vertex *firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, util::RGBcolor color, coord_t viewportSize);
+        constexpr unsigned int getVertexCountForTriangle();
 
-    Vertex * generateVerticesForSquare(Vertex *firstVertexLocation, glm::vec2 center, float sideLength, util::RGBcolor color);
-    constexpr unsigned int getVertexCountForSquare();
+        Vertex * generateVerticesForSquare(Vertex *firstVertexLocation, coord_t center, length_t sideLength, util::RGBcolor color, coord_t viewportSize);
+        constexpr unsigned int getVertexCountForSquare();
 
-    Vertex * generateVerticesForRegularPolygon(Vertex *firstVertexLocation, glm::vec2 center, float radius, short numEdges, util::RGBcolor color);
-    constexpr unsigned int getVertexCountForRegularPolygon(short numEdges);
+        Vertex * generateVerticesForRegularPolygon(Vertex *firstVertexLocation, coord_t center, length_t radius, short numEdges, util::RGBcolor color, coord_t viewportSize);
+        constexpr unsigned int getVertexCountForRegularPolygon(short numEdges);
 
-    /**
-     * p1 -- p2
-     * |     |
-     * p4 -- p3
-     */
-    Vertex * generateVerticesForQuad(Vertex *firstVertexLocation, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4, util::RGBcolor color);
-    constexpr unsigned int getVertexCountForQuad();
+        Vertex * generateVerticesForQuad(Vertex *firstVertexLocation, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4, util::RGBcolor color, coord_t viewportSize);
+        constexpr unsigned int getVertexCountForQuad();
+
+        constexpr glm::vec2 toNDC(coord_t coord, coord_t viewportSize);
+        constexpr glm::vec2 toNDC(glm::vec2 coord, coord_t viewportSize);
+        template <class T>
+        constexpr glm::vec2 toNDC(T coord, coord_t viewportSize) = delete;//disable automatic conversion
+    }
 }
 #endif //BRICKSIM_OVERLAY_2D_H

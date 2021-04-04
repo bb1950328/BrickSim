@@ -1,4 +1,6 @@
 target_sources(BrickSim PUBLIC
+        color.cpp
+        color.h
         fraction.cpp
         fraction.h
         parts_library_downloader.cpp

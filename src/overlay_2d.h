@@ -10,6 +10,7 @@
 #include <map>
 #include "types.h"
 #include "helpers/util.h"
+#include "helpers/color.h"
 
 namespace overlay2d {
     typedef glm::usvec2 coord_t;
@@ -71,9 +72,9 @@ namespace overlay2d {
     private:
         coord_t start, end;
         length_t width;
-        util::RGBcolor color;
+        color::RGB color;
     public:
-        LineElement(coord_t start, coord_t end, length_t width, util::RGBcolor color);
+        LineElement(coord_t start, coord_t end, length_t width, color::RGB color);
         bool isPointInside(coord_t point) override;
         unsigned int getVertexCount() override;
         Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) override;
@@ -83,16 +84,16 @@ namespace overlay2d {
         void setEnd(const coord_t &value);
         float getWidth() const;
         void setWidth(float value);
-        const util::RGBcolor &getColor() const;
-        void setColor(const util::RGBcolor &value);
+        const color::RGB &getColor() const;
+        void setColor(const color::RGB &value);
     };
 
     class TriangleElement: public Element {
     private:
         coord_t p0, p1, p2;
-        util::RGBcolor color;
+        color::RGB color;
     public:
-        TriangleElement(const coord_t &p0, const coord_t &p1, const coord_t &p2, const util::RGBcolor &color);
+        TriangleElement(const coord_t &p0, const coord_t &p1, const coord_t &p2, const color::RGB &color);
 
         bool isPointInside(coord_t point) override;
 
@@ -105,9 +106,9 @@ namespace overlay2d {
     private:
         coord_t center;
         length_t sideLength;
-        util::RGBcolor color;
+        color::RGB color;
     public:
-        SquareElement(const coord_t &center, length_t sideLength, const util::RGBcolor &color);
+        SquareElement(const coord_t &center, length_t sideLength, const color::RGB &color);
 
         bool isPointInside(coord_t point) override;
 
@@ -121,9 +122,9 @@ namespace overlay2d {
         coord_t center;
         length_t radius;
         short numEdges;
-        util::RGBcolor color;
+        color::RGB color;
     public:
-        RegularPolygonElement(const coord_t &center, length_t radius, short numEdges, const util::RGBcolor &color);
+        RegularPolygonElement(const coord_t &center, length_t radius, short numEdges, const color::RGB &color);
 
         bool isPointInside(coord_t point) override;
 
@@ -150,12 +151,12 @@ namespace overlay2d {
         coord_t start, end;
         length_t lineWidth;
         float tipLengthFactor, tipWidthFactor;
-        util::RGBcolor color;
+        color::RGB color;
 
         float calculateTipLength() const;
         float calculateTipWidth() const;
     public:
-        ArrowElement(const coord_t &start, const coord_t &anEnd, length_t lineWidth, const util::RGBcolor &color,
+        ArrowElement(const coord_t &start, const coord_t &anEnd, length_t lineWidth, const color::RGB &color,
                      float tipLengthFactor=1.5f, float tipWidthFactor=2.0f);
 
         bool isPointInside(coord_t point) override;
@@ -166,19 +167,19 @@ namespace overlay2d {
     };
 
     namespace {
-        Vertex *generateVerticesForLine(Vertex *firstVertexLocation, coord_t start, coord_t end, length_t width, util::RGBcolor color, coord_t viewportSize);
+        Vertex *generateVerticesForLine(Vertex *firstVertexLocation, coord_t start, coord_t end, length_t width, color::RGB color, coord_t viewportSize);
         constexpr unsigned int getVertexCountForLine();
 
-        Vertex * generateVerticesForTriangle(Vertex *firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, util::RGBcolor color, coord_t viewportSize);
+        Vertex * generateVerticesForTriangle(Vertex *firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize);
         constexpr unsigned int getVertexCountForTriangle();
 
-        Vertex * generateVerticesForSquare(Vertex *firstVertexLocation, coord_t center, length_t sideLength, util::RGBcolor color, coord_t viewportSize);
+        Vertex * generateVerticesForSquare(Vertex *firstVertexLocation, coord_t center, length_t sideLength, color::RGB color, coord_t viewportSize);
         constexpr unsigned int getVertexCountForSquare();
 
-        Vertex * generateVerticesForRegularPolygon(Vertex *firstVertexLocation, coord_t center, length_t radius, short numEdges, util::RGBcolor color, coord_t viewportSize);
+        Vertex * generateVerticesForRegularPolygon(Vertex *firstVertexLocation, coord_t center, length_t radius, short numEdges, color::RGB color, coord_t viewportSize);
         constexpr unsigned int getVertexCountForRegularPolygon(short numEdges);
 
-        Vertex * generateVerticesForQuad(Vertex *firstVertexLocation, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4, util::RGBcolor color, coord_t viewportSize);
+        Vertex * generateVerticesForQuad(Vertex *firstVertexLocation, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4, color::RGB color, coord_t viewportSize);
         constexpr unsigned int getVertexCountForQuad();
 
         constexpr glm::vec2 toNDC(coord_t coord, coord_t viewportSize);

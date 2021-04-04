@@ -270,7 +270,7 @@ namespace etree {
         }
     }
 
-    util::RGBcolor getColorOfType(const NodeType &type) {
+    color::RGB getColorOfType(const NodeType &type) {
         switch (type) {
             case TYPE_MPD_SUBFILE_INSTANCE: return config::getColor(config::COLOR_MPD_SUBFILE_INSTANCE);
             case TYPE_MPD_SUBFILE: return config::getColor(config::COLOR_MPD_SUBFILE);
@@ -280,7 +280,7 @@ namespace etree {
             case TYPE_ROOT:
             case TYPE_MESH:
             case TYPE_LDRFILE:
-            default: return util::RGBcolor(255, 255, 255);
+            default: return color::RGB(255, 255, 255);
         }
     }
 }

@@ -7,7 +7,7 @@
 
 namespace overlay2d {
     namespace {
-        Vertex *generateVerticesForLine(Vertex *firstVertexLocation, coord_t start, coord_t end, length_t width, util::RGBcolor color, coord_t viewportSize) {
+        Vertex *generateVerticesForLine(Vertex *firstVertexLocation, coord_t start, coord_t end, length_t width, color::RGB color, coord_t viewportSize) {
             // 1----------------------------------2
             // |                                  |
             // + start                        end +
@@ -35,7 +35,7 @@ namespace overlay2d {
             return 6;
         }
 
-        Vertex *generateVerticesForTriangle(Vertex *firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, util::RGBcolor color, coord_t viewportSize) {
+        Vertex *generateVerticesForTriangle(Vertex *firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize) {
             *firstVertexLocation = {toNDC(p0, viewportSize), color.asGlmVector()};
             if (((p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y)) > 0) {
                 //already counterclockwise
@@ -50,7 +50,7 @@ namespace overlay2d {
             return firstVertexLocation;
         }
 
-        Vertex *generateVerticesForCCWTriangle(Vertex *firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, util::RGBcolor color, coord_t viewportSize) {
+        Vertex *generateVerticesForCCWTriangle(Vertex *firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize) {
             *firstVertexLocation = {toNDC(p0, viewportSize), color.asGlmVector()};
             firstVertexLocation++;
             *firstVertexLocation = {toNDC(p1, viewportSize), color.asGlmVector()};
@@ -64,7 +64,7 @@ namespace overlay2d {
             return 3;
         }
 
-        Vertex *generateVerticesForSquare(Vertex *firstVertexLocation, coord_t center, length_t sideLength, util::RGBcolor color, coord_t viewportSize) {
+        Vertex *generateVerticesForSquare(Vertex *firstVertexLocation, coord_t center, length_t sideLength, color::RGB color, coord_t viewportSize) {
             const float halfSideLength = sideLength / 2;
             auto p1 = glm::vec2{(float) center.x - halfSideLength, (float) center.y + halfSideLength};
             auto p2 = glm::vec2{(float) center.x + halfSideLength, (float) center.y + halfSideLength};
@@ -77,7 +77,7 @@ namespace overlay2d {
             return 6;
         }
 
-        Vertex *generateVerticesForRegularPolygon(Vertex *firstVertexLocation, coord_t center, length_t radius, short numEdges, util::RGBcolor color,
+        Vertex *generateVerticesForRegularPolygon(Vertex *firstVertexLocation, coord_t center, length_t radius, short numEdges, color::RGB color,
                                                   coord_t viewportSize) {
             float angleStep = 2 * M_PI / numEdges;
             const glm::vec2 p0 = toNDC(coord_t{radius + center.x, center.y}, viewportSize);
@@ -109,7 +109,7 @@ namespace overlay2d {
          * p4 -- p3
          */
         Vertex *generateVerticesForQuad(Vertex *firstVertexLocation, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4,
-                                        util::RGBcolor color, coord_t viewportSize) {
+                                        color::RGB color, coord_t viewportSize) {
             *firstVertexLocation = {toNDC(p1, viewportSize), color.asGlmVector()};
             ++firstVertexLocation;
             *firstVertexLocation = {toNDC(p4, viewportSize), color.asGlmVector()};
@@ -289,7 +289,7 @@ namespace overlay2d {
         return generateVerticesForLine(firstVertexLocation, start, end, width, color, viewportSize);
     }
 
-    LineElement::LineElement(coord_t start, coord_t end, length_t width, util::RGBcolor color) : start(start), end(end), width(width), color(color) {
+    LineElement::LineElement(coord_t start, coord_t end, length_t width, color::RGB color) : start(start), end(end), width(width), color(color) {
         setVerticesHaveChanged(true);
     }
 
@@ -320,16 +320,16 @@ namespace overlay2d {
         setVerticesHaveChanged(true);
     }
 
-    const util::RGBcolor &LineElement::getColor() const {
+    const color::RGB &LineElement::getColor() const {
         return color;
     }
 
-    void LineElement::setColor(const util::RGBcolor &value) {
+    void LineElement::setColor(const color::RGB &value) {
         LineElement::color = value;
         setVerticesHaveChanged(true);
     }
 
-    TriangleElement::TriangleElement(const coord_t &p0, const coord_t &p1, const coord_t &p2, const util::RGBcolor &color)
+    TriangleElement::TriangleElement(const coord_t &p0, const coord_t &p1, const coord_t &p2, const color::RGB &color)
             : p0(p0), p1(p1), p2(p2), color(color) {}
 
     bool TriangleElement::isPointInside(coord_t point) {
@@ -349,7 +349,7 @@ namespace overlay2d {
         return generateVerticesForTriangle(firstVertexLocation, p0, p1, p2, color, viewportSize);
     }
 
-    SquareElement::SquareElement(const coord_t &center, length_t sideLength, const util::RGBcolor &color)
+    SquareElement::SquareElement(const coord_t &center, length_t sideLength, const color::RGB &color)
             : center(center), sideLength(sideLength), color(color) {}
 
     bool SquareElement::isPointInside(coord_t point) {
@@ -364,7 +364,7 @@ namespace overlay2d {
         return generateVerticesForSquare(firstVertexLocation, center, sideLength, color, viewportSize);
     }
 
-    RegularPolygonElement::RegularPolygonElement(const coord_t &center, length_t radius, short numEdges, const util::RGBcolor &color)
+    RegularPolygonElement::RegularPolygonElement(const coord_t &center, length_t radius, short numEdges, const color::RGB &color)
     : center(center), radius(radius), numEdges(numEdges), color(color) {}
 
     bool RegularPolygonElement::isPointInside(coord_t point) {
@@ -383,7 +383,7 @@ namespace overlay2d {
         return generateVerticesForRegularPolygon(firstVertexLocation, center, radius, numEdges, color, viewportSize);
     }
 
-    ArrowElement::ArrowElement(const coord_t &start, const coord_t &anEnd, length_t lineWidth, const util::RGBcolor &color, float tipLengthFactor,
+    ArrowElement::ArrowElement(const coord_t &start, const coord_t &anEnd, length_t lineWidth, const color::RGB &color, float tipLengthFactor,
                                float tipWidthFactor) : start(start), end(anEnd), lineWidth(lineWidth), tipLengthFactor(tipLengthFactor),
                                                               tipWidthFactor(tipWidthFactor), color(color) {}
 

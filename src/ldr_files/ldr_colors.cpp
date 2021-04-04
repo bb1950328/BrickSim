@@ -21,11 +21,11 @@ LdrColor::LdrColor(const std::string &line) {
         } else if (keyword == "VALUE") {
             std::string valueCode;
             linestream >> valueCode;
-            value = util::RGBcolor(valueCode);
+            value = color::RGB(valueCode);
         } else if (keyword == "EDGE") {
             std::string edgeCode;
             linestream >> edgeCode;
-            edge = util::RGBcolor(edgeCode);
+            edge = color::RGB(edgeCode);
         } else if (keyword == "ALPHA") {
             linestream >> alpha;
         } else if (keyword == "CHROME") {
@@ -49,7 +49,7 @@ LdrColor::LdrColor(const std::string &line) {
                 if (keyword == "VALUE") {
                     std::string valueCode;
                     linestream >> valueCode;
-                    material->value = util::RGBcolor(valueCode);
+                    material->value = color::RGB(valueCode);
                 } else if (keyword == "ALPHA") {
                     linestream >> material->alpha;
                 } else if (keyword == "LUMINANCE") {
@@ -128,7 +128,7 @@ namespace ldr_color_repo {
             colors[INSTANCE_DUMMY_COLOR_CODE] = instDummyColor;
             std::sort(hueSortedCodes.begin(), hueSortedCodes.end(),
                       [](const int &a, const int &b) {
-                          return util::HSVcolor(get_color(a)->value).hue < util::HSVcolor(get_color(b)->value).hue;
+                          return color::HSV(get_color(a)->value).hue < color::HSV(get_color(b)->value).hue;
                       });
             initialized = true;
         }
@@ -157,7 +157,7 @@ namespace ldr_color_repo {
     LdrInstanceDummyColor::LdrInstanceDummyColor() {
         name = "Instance Dummy Color";
         code = INSTANCE_DUMMY_COLOR_CODE;
-        value = edge = util::RGBcolor("#FFB39B");
+        value = edge = color::RGB("#FFB39B");
     }
 }
 

@@ -160,10 +160,6 @@ namespace util {
 #endif
     }
 
-    RGBcolor::RGBcolor(const std::string &htmlCode) {
-        std::sscanf(htmlCode.c_str(), "#%2hhx%2hhx%2hhx", &red, &green, &blue);
-    }
-
     glm::vec3 triangleCentroid(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3) {
         return (p1 + p2 + p3) / 3.0f;
     }
@@ -178,20 +174,6 @@ namespace util {
         glm::vec3 vec3 = transformation[2];
         glm::vec3 cross = glm::cross(vec1, vec2);
         return glm::dot(cross, vec3) < 0.0f;
-    }
-
-    glm::vec3 convertIntToColorVec3(unsigned int value) {
-        unsigned char bluePart = value & 0xffu;//blue first is intended
-        value >>= 8u;
-        unsigned char greenPart = value & 0xffu;
-        value >>= 8u;
-        unsigned char redPart = value & 0xffu;
-        return glm::vec3(redPart / 255.0f, greenPart / 255.0f, bluePart / 255.0f);
-    }
-
-    unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue) {
-        unsigned int result = ((unsigned int) red) << 16u | ((unsigned int) green) << 8u | blue;
-        return result;
     }
 
     float vectorSum(glm::vec2 vector) {
@@ -218,128 +200,6 @@ namespace util {
         resultStream << /*resultStream.precision(3) <<*/ doubleBytes << bytePrefixes[prefixIndex];
         return resultStream.str();
     }
-
-    std::string RGBcolor::asHtmlCode() const {
-        char buffer[8];
-        snprintf(buffer, 8, "#%02x%02x%02x", red, green, blue);
-        auto result = std::string(buffer);
-        return result;
-    }
-
-    RGBcolor::RGBcolor(glm::vec3 vector) {
-        red = vector.x * 255;
-        green = vector.y * 255;
-        blue = vector.z * 255;
-    }
-
-    glm::vec3 RGBcolor::asGlmVector() const {
-        return glm::vec3(red / 255.0f, green / 255.0f, blue / 255.0f);
-    }
-
-    RGBcolor::RGBcolor(const HSVcolor& hsv) {
-        if (hsv.saturation == 0) {
-            red = hsv.value;
-            green = hsv.value;
-            blue = hsv.value;
-        } else {
-            float h = hsv.hue / 255.0f;
-            float s = hsv.saturation / 255.0f;
-            float v = hsv.value / 255.0f;
-            auto i = (int) std::floor(h * 6);
-            auto f = h * 6 - i;
-            auto p = v * (1.0f - s);
-            auto q = v * (1.0f - s * f);
-            auto t = v * (1.0f - s * (1.0f - f));
-            switch (i % 6) {
-                case 0:
-                    red = v * 255;
-                    green = t * 255;
-                    blue = p * 255;
-                    break;
-                case 1:
-                    red = q * 255;
-                    green = v * 255;
-                    blue = p * 255;
-                    break;
-                case 2:
-                    red = p * 255;
-                    green = v * 255;
-                    blue = t * 255;
-                    break;
-                case 3:
-                    red = p * 255;
-                    green = q * 255;
-                    blue = v * 255;
-                    break;
-                case 4:
-                    red = t * 255;
-                    green = p * 255;
-                    blue = v * 255;
-                    break;
-                case 5:
-                    red = v * 255;
-                    green = p * 255;
-                    blue = q * 255;
-                    break;
-                default:
-                    break;//shouldn't get here
-            }
-        }
-    }
-
-    RGBcolor::RGBcolor(color_component_t red, color_component_t green, color_component_t blue) : red(red), green(green), blue(blue) {
-
-    }
-
-    const RGBcolor RGBcolor::BLACK{0,0,0};
-    const RGBcolor RGBcolor::WHITE{255,255,255};
-    const RGBcolor RGBcolor::RED{255,0,0};
-    const RGBcolor RGBcolor::LIME{0,255,0};
-    const RGBcolor RGBcolor::BLUE{0,0,255};
-    const RGBcolor RGBcolor::YELLOW{255,255,0};
-    const RGBcolor RGBcolor::CYAN{0,255,255};
-    const RGBcolor RGBcolor::MAGENTA{255,0,255};
-    const RGBcolor RGBcolor::SILVER{192,192,192};
-    const RGBcolor RGBcolor::GRAY{128,128,128};
-    const RGBcolor RGBcolor::MAROON{128,0,0};
-    const RGBcolor RGBcolor::OLIVE{128,128,0};
-    const RGBcolor RGBcolor::GREEN{0,128,0};
-    const RGBcolor RGBcolor::PURPLE{128,0,128};
-    const RGBcolor RGBcolor::TEAL{0,128,128};
-    const RGBcolor RGBcolor::NAVY{0,0,128};
-
-    HSVcolor::HSVcolor(glm::vec3 vector) {
-        hue = vector.x * 255;
-        saturation = vector.y * 255;
-        value = vector.z * 255;
-    }
-
-    glm::vec3 HSVcolor::asGlmVector() const {
-        return glm::vec3(hue / 255.0f, saturation / 255.0f, value / 255.0f);
-    }
-
-    HSVcolor::HSVcolor(RGBcolor rgb) {
-        auto maxc = std::max(std::max(rgb.red, rgb.green), rgb.blue);
-        auto minc = std::min(std::min(rgb.red, rgb.green), rgb.blue);
-        value = maxc;
-        if (maxc != minc) {
-            const auto maxmindiff = maxc - minc;
-            saturation = maxmindiff * 1.0f / maxc;
-            auto rc = (maxc - rgb.red) * 1.0f / maxmindiff;
-            auto gc = (maxc - rgb.green) * 1.0f / maxmindiff;
-            auto bc = (maxc - rgb.blue) * 1.0f / maxmindiff;
-            float h;
-            if (rgb.red == maxc) {
-                h = bc - gc;
-            } else if (rgb.green == maxc) {
-                h = 2.0f + rc - bc;
-            } else {
-                h = 4.0f + gc - rc;
-            }
-            hue = (((h / 255 / 6.0f) - (int) (h / 255 / 6.0f)) * 255.0f);
-        }
-    }
-
 
     bool memeqzero(const void *data, size_t length) {
         //from https://github.com/rustyrussell/ccan/blob/master/ccan/mem/mem.c#L92

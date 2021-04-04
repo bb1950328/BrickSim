@@ -90,8 +90,8 @@ namespace config {
         return it->second;
     }
 
-    util::RGBcolor getColor(const ColorKey &key) {
-        return util::RGBcolor(getString(key));
+    color::RGB getColor(const ColorKey &key) {
+        return color::RGB(getString(key));
     }
 
     bool getBool(const BoolKey &key) {
@@ -127,7 +127,7 @@ namespace config {
         setDoubleNoMutex(key, value);
     }
 
-    void setColor(const ColorKey &key, util::RGBcolor value) {
+    void setColor(const ColorKey &key, color::RGB value) {
         setString(key, value.asHtmlCode());
     }
 
@@ -160,7 +160,7 @@ namespace config {
 
     DoubleKey::DoubleKey(const std::string &name, const double defaultValue) : Key(name), defaultValue(defaultValue) {}
 
-    ColorKey::ColorKey(const std::string &name, const util::RGBcolor &defaultValue) : StringKey(name, defaultValue.asHtmlCode()), defaultValue(defaultValue) {}
+    ColorKey::ColorKey(const std::string &name, const color::RGB &defaultValue) : StringKey(name, defaultValue.asHtmlCode()), defaultValue(defaultValue) {}
 
     BoolKey::BoolKey(const std::string &name, const bool defaultValue) : Key(name), defaultValue(defaultValue) {}
 }

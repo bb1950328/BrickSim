@@ -120,12 +120,12 @@ namespace gui {
             config::setString(config::GUI_STYLE, GUI_STYLE_VALUES[guiStyle]);
             config::setString(config::FONT, font == 0 ? "Roboto" : "RobotoMono");
             config::setInt(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));
-            config::setColor(config::BACKGROUND_COLOR, util::RGBcolor(backgroundColor));
-            config::setColor(config::COLOR_MULTI_PART_DOCUMENT, util::RGBcolor(multiPartDocumentColor));
-            config::setColor(config::COLOR_MPD_SUBFILE, util::RGBcolor(mpdSubfileColor));
-            config::setColor(config::COLOR_MPD_SUBFILE_INSTANCE, util::RGBcolor(mpdSubfileInstanceColor));
-            config::setColor(config::COLOR_OFFICAL_PART, util::RGBcolor(officalPartColor));
-            config::setColor(config::COLOR_UNOFFICAL_PART, util::RGBcolor(unofficalPartColor));
+            config::setColor(config::BACKGROUND_COLOR, color::RGB(backgroundColor));
+            config::setColor(config::COLOR_MULTI_PART_DOCUMENT, color::RGB(multiPartDocumentColor));
+            config::setColor(config::COLOR_MPD_SUBFILE, color::RGB(mpdSubfileColor));
+            config::setColor(config::COLOR_MPD_SUBFILE_INSTANCE, color::RGB(mpdSubfileInstanceColor));
+            config::setColor(config::COLOR_OFFICAL_PART, color::RGB(officalPartColor));
+            config::setColor(config::COLOR_UNOFFICAL_PART, color::RGB(unofficalPartColor));
             config::setBool(config::DISPLAY_SELECTION_BUFFER, displaySelectionBuffer);
             config::setBool(config::SHOW_NORMALS, showNormals);
             config::setInt(config::THUMBNAIL_SIZE, (int) std::pow(2, thumbnailSizeLog));

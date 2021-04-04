@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include "../helpers/util.h"
+#include "../config.h"
 
 
 struct LdrColorMaterial {
@@ -14,7 +15,7 @@ struct LdrColorMaterial {
         GLITTER, SPECKLE
     };
     Type type;
-    util::RGBcolor value;
+    color::RGB value;
     unsigned char alpha;
     unsigned char luminance;
     double fraction, vfraction;
@@ -41,8 +42,8 @@ public:
     explicit LdrColor(const std::string &line);
     std::string name;
     code_t code;
-    util::RGBcolor value;
-    util::RGBcolor edge;
+    color::RGB value;
+    color::RGB edge;
     unsigned char alpha = 255;
     unsigned char luminance = 0;
     Finish finish = NONE;

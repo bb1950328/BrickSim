@@ -252,11 +252,11 @@ namespace controller {
             mainScene->setCamera(camera);
             mainScene->setRootNode(elementTree);
 
-            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::LineElement>(glm::usvec2(5, 5), glm::usvec2(50, 50), 20, util::RGBcolor::RED));
-            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::TriangleElement>(glm::usvec2(60, 60), glm::usvec2(90, 70), glm::usvec2(60, 70), util::RGBcolor::BLUE));
-            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::SquareElement>(glm::usvec2(100, 100), 20, util::RGBcolor::GREEN));
-            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::RegularPolygonElement>(glm::usvec2(150, 150), 20, 6, util::RGBcolor::CYAN));
-            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::ArrowElement>(glm::usvec2(250, 250), glm::usvec2(190, 110), 20, util::RGBcolor::MAGENTA));
+            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::LineElement>(glm::usvec2(5, 5), glm::usvec2(50, 50), 20, color::RGB::RED));
+            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::TriangleElement>(glm::usvec2(60, 60), glm::usvec2(90, 70), glm::usvec2(60, 70), color::RGB::BLUE));
+            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::SquareElement>(glm::usvec2(100, 100), 20, color::RGB::GREEN));
+            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::RegularPolygonElement>(glm::usvec2(150, 150), 20, 6, color::RGB::CYAN));
+            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::ArrowElement>(glm::usvec2(250, 250), glm::usvec2(190, 110), 20, color::RGB::MAGENTA));
 
             gui::setWindow(window);
             gui::initialize();
@@ -266,12 +266,12 @@ namespace controller {
             }
 
             Task steps[]{
-                    {"load color definitions",          ldr_color_repo::initialize},
-                    {"initialize file list",            [](float *progress) { ldr_file_repo::get().initialize(progress); }},
-                    {"initialize price guide provider", price_guide_provider::initialize},
-                    {"initialize thumbnail generator",  []() { thumbnailGenerator = std::make_shared<ThumbnailGenerator>(); }},
-                    {"initialize BrickLink constants",  [](float *progress) { bricklink_constants_provider::initialize(progress); }},
-                    {"initialize keyboard shortcuts",  keyboard_shortcut_manager::initialize},
+                    {"load color definitions",              ldr_color_repo::initialize},
+                    {"initialize file list",                [](float *progress) { ldr_file_repo::get().initialize(progress); }},
+                    {"initialize price guide provider",     price_guide_provider::initialize},
+                    {"initialize thumbnail generator",      []() { thumbnailGenerator = std::make_shared<ThumbnailGenerator>(); }},
+                    {"initialize BrickLink constants",      bricklink_constants_provider::initialize},
+                    {"initialize keyboard shortcuts",       keyboard_shortcut_manager::initialize},
                     {"initialize orientation cube generator", orientation_cube::initialize},
             };
             for (auto &initStep : steps) {

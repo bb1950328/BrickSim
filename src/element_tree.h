@@ -23,7 +23,7 @@ namespace etree {
     };
 
     const char *getDisplayNameOfType(const NodeType &type);
-    util::RGBcolor getColorOfType(const NodeType &type);
+    color::RGB getColorOfType(const NodeType &type);
 
     class Node : public std::enable_shared_from_this<Node> {
     public:

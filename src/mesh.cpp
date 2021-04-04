@@ -644,7 +644,7 @@ std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> Mes
             //std::cout << "instance: " << std::endl;
             //util::coutMat4(instancesArray[arr_cursor].transformation);
             setInstanceColor(&instancesArray[arr_cursor], instance.color);
-            instancesArray[arr_cursor].idColor = util::convertIntToColorVec3(instance.elementId);
+            instancesArray[arr_cursor].idColor = color::convertIntToColorVec3(instance.elementId);
             arr_cursor++;
         }
     } else {
@@ -653,7 +653,7 @@ std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> Mes
         std::fill_n(instancesArray.get(), instances.size(), inst);
         for (auto &instance : instances) {
             instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * globalModel);
-            instancesArray[arr_cursor].idColor = util::convertIntToColorVec3(instance.elementId);
+            instancesArray[arr_cursor].idColor = color::convertIntToColorVec3(instance.elementId);
             arr_cursor++;
         }
     }
@@ -664,7 +664,7 @@ std::unique_ptr<TexturedTriangleInstance[], std::default_delete<TexturedTriangle
     auto array = std::make_unique<TexturedTriangleInstance[]>(instances.size());
     for (int i = 0; i < instances.size(); ++i) {
         auto &instance = instances[i];
-        array[i].idColor = util::convertIntToColorVec3(instance.elementId);
+        array[i].idColor = color::convertIntToColorVec3(instance.elementId);
         array[i].transformation = glm::transpose(instance.transformation * globalModel);
     }
     return array;

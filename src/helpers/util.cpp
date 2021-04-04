@@ -574,4 +574,36 @@ namespace util {
         float denominator = std::sqrt(std::pow(line_end.x - line_start.x, 2.0f) + std::pow(line_end.y - line_start.y, 2.0f));
         return numerator / denominator;
     }
+
+    NormalProjectionResult normalProjectionOnLine(const glm::vec2 &lineStart, const glm::vec2 &lineEnd, const glm::vec2 &point) {
+        //https://stackoverflow.com/a/47366970/8733066
+        //             point
+        //             +
+        //          /  |
+        //       /     |
+        // start-------⦝----- end
+        //             ↑
+        //         nearestPointOnLine
+        NormalProjectionResult result{};
+        glm::vec2 line = lineEnd - lineStart;
+        result.lineLength = glm::length(line);
+        glm::vec2 lineUnit = line / result.lineLength;
+        glm::vec2 startToPoint = point - lineStart;
+        result.projectionLength = glm::dot(startToPoint, lineUnit);
+
+        if (result.projectionLength > result.lineLength) {
+            result.nearestPointOnLine = lineEnd;
+            result.projectionLength = result.lineLength;
+        } else if (result.projectionLength < 0.0f) {
+            result.nearestPointOnLine = lineStart;
+            result.projectionLength = 0.0f;
+        } else {
+            glm::vec2 projection = lineUnit * result.projectionLength;
+            glm::vec2 pointOnLine = lineStart + projection;
+            result.nearestPointOnLine = pointOnLine;
+        }
+        result.distancePointToLine = glm::length(point-result.nearestPointOnLine);
+
+        return result;
+    }
 }

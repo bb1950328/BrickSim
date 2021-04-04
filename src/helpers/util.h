@@ -65,6 +65,14 @@ namespace util {
     bool doesTransformationInverseWindingOrder(const glm::mat4 &transformation);
     float calculateDistanceOfPointToLine(const glm::vec2& line_start, const glm::vec2& line_end, const glm::vec2& point);
     float calculateDistanceOfPointToLine(const glm::usvec2& line_start, const glm::usvec2& line_end, const glm::usvec2& point);
+    struct NormalProjectionResult {
+        glm::vec2 nearestPointOnLine;
+        glm::vec2 projection;
+        float projectionLength;
+        float distancePointToLine;
+        float lineLength;
+    };
+    NormalProjectionResult normalProjectionOnLine(const glm::vec2 &lineStart, const glm::vec2 &lineEnd, const glm::vec2& point);
 
 
     //color functions

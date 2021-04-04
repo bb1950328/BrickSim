@@ -132,7 +132,38 @@ namespace overlay2d {
         Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) override;
     };
 
+    /*                        ▨       🡡
+     *                        ▨▨      |
+     *           🡡 ▨▨▨▨▨▨▨▨▨▨▨    |
+     *           | ▨▨▨▨▨▨▨▨▨▨▨▨▨  |
+     * lineWidth | ▨▨▨▨▨▨▨▨▨▨▨▨▨  | lineWidth*tipWidthFactor
+     *           🡣 ▨▨▨▨▨▨▨▨▨▨▨    |
+     *                         ▨▨     |
+     *                         ▨      🡣
+     *                         🡠--🡢
+     *                         lineWidth*tipLengthFactor
+     *
+     * tip is at `end` point.
+     */
+    class ArrowElement: public Element {
+    private:
+        coord_t start, end;
+        length_t lineWidth;
+        float tipLengthFactor, tipWidthFactor;
+        util::RGBcolor color;
 
+        float calculateTipLength() const;
+        float calculateTipWidth() const;
+    public:
+        ArrowElement(const coord_t &start, const coord_t &anEnd, length_t lineWidth, const util::RGBcolor &color,
+                     float tipLengthFactor=1.5f, float tipWidthFactor=2.0f);
+
+        bool isPointInside(coord_t point) override;
+
+        unsigned int getVertexCount() override;
+
+        Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) override;
+    };
 
     namespace {
         Vertex *generateVerticesForLine(Vertex *firstVertexLocation, coord_t start, coord_t end, length_t width, util::RGBcolor color, coord_t viewportSize);

@@ -50,6 +50,16 @@ namespace overlay2d {
             return firstVertexLocation;
         }
 
+        Vertex *generateVerticesForCCWTriangle(Vertex *firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, util::RGBcolor color, coord_t viewportSize) {
+            *firstVertexLocation = {toNDC(p0, viewportSize), color.asGlmVector()};
+            firstVertexLocation++;
+            *firstVertexLocation = {toNDC(p1, viewportSize), color.asGlmVector()};
+            firstVertexLocation++;
+            *firstVertexLocation = {toNDC(p2, viewportSize), color.asGlmVector()};
+            firstVertexLocation++;
+            return firstVertexLocation;
+        }
+
         constexpr unsigned int getVertexCountForTriangle() {
             return 3;
         }
@@ -371,5 +381,70 @@ namespace overlay2d {
 
     Vertex *RegularPolygonElement::writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) {
         return generateVerticesForRegularPolygon(firstVertexLocation, center, radius, numEdges, color, viewportSize);
+    }
+
+    ArrowElement::ArrowElement(const coord_t &start, const coord_t &anEnd, length_t lineWidth, const util::RGBcolor &color, float tipLengthFactor,
+                               float tipWidthFactor) : start(start), end(anEnd), lineWidth(lineWidth), tipLengthFactor(tipLengthFactor),
+                                                              tipWidthFactor(tipWidthFactor), color(color) {}
+
+    bool ArrowElement::isPointInside(coord_t point) {
+        const auto normalProjection = util::normalProjectionOnLine(start, end, point);
+        const auto projLengthFromEnd = normalProjection.projectionLength - normalProjection.lineLength;
+        float tipWidth = calculateTipWidth();
+        float tipLength = calculateTipLength();
+        if (projLengthFromEnd > tipLength) {
+            //on the line part
+            return normalProjection.distancePointToLine < lineWidth/2;
+        } else {
+            //on the tip part
+            return normalProjection.distancePointToLine < projLengthFromEnd/tipLength*tipWidth/2;
+        }
+    }
+
+    unsigned int ArrowElement::getVertexCount() {
+        return 5*getVertexCountForTriangle();
+    }
+
+    Vertex *ArrowElement::writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) {
+        //               5
+        //               |  \
+        // 1-------------3      \
+        // |                        \
+        // start        NLE         end    (NLE=normalLineEnd)
+        // |                        /
+        // 2-------------4      /
+        //               |  /
+        //               6
+
+        glm::vec2 startFloat = start;
+        glm::vec2 endFloat = end;
+        glm::vec2 fullLine = endFloat - startFloat;
+        auto tipLength = calculateTipLength();
+        auto fullLineLength = glm::length(fullLine);
+        auto normalizedLine = glm::normalize(fullLine);
+        glm::vec2 normalLineEnd = startFloat + normalizedLine * (fullLineLength - tipLength);
+        const glm::vec2 halfEdge = glm::vec2(normalizedLine.y, -normalizedLine.x) * (lineWidth / 2.0f);
+        const glm::vec2 p1 = startFloat - halfEdge;
+        const glm::vec2 p2 = startFloat + halfEdge;
+        const glm::vec2 p3 = normalLineEnd - halfEdge;
+        const glm::vec2 p4 = normalLineEnd + halfEdge;
+        const glm::vec2 p5 = normalLineEnd - halfEdge*tipWidthFactor;
+        const glm::vec2 p6 = normalLineEnd + halfEdge*tipWidthFactor;
+
+        firstVertexLocation = generateVerticesForCCWTriangle(firstVertexLocation, p5, p3, end, color, viewportSize);
+        firstVertexLocation = generateVerticesForCCWTriangle(firstVertexLocation, p3, p1, end, color, viewportSize);
+        firstVertexLocation = generateVerticesForCCWTriangle(firstVertexLocation, p1, p2, end, color, viewportSize);
+        firstVertexLocation = generateVerticesForCCWTriangle(firstVertexLocation, p2, p4, end, color, viewportSize);
+        firstVertexLocation = generateVerticesForCCWTriangle(firstVertexLocation, p4, p6, end, color, viewportSize);
+
+        return firstVertexLocation;
+    }
+
+    float ArrowElement::calculateTipLength() const {
+        return lineWidth*tipLengthFactor;
+    }
+
+    float ArrowElement::calculateTipWidth() const {
+        return lineWidth*tipWidthFactor;
     }
 }

@@ -256,6 +256,7 @@ namespace controller {
             mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::TriangleElement>(glm::usvec2(60, 60), glm::usvec2(90, 70), glm::usvec2(60, 70), util::RGBcolor::BLUE));
             mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::SquareElement>(glm::usvec2(100, 100), 20, util::RGBcolor::GREEN));
             mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::RegularPolygonElement>(glm::usvec2(150, 150), 20, 6, util::RGBcolor::CYAN));
+            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::ArrowElement>(glm::usvec2(250, 250), glm::usvec2(190, 110), 20, util::RGBcolor::MAGENTA));
 
             gui::setWindow(window);
             gui::initialize();

@@ -16,6 +16,7 @@ namespace overlay2d {
     typedef glm::usvec2 coord_t;
 
     typedef short length_t;
+
     class Vertex {
     public:
         glm::vec2 position;
@@ -23,6 +24,7 @@ namespace overlay2d {
         Vertex(const glm::vec2 &position, const glm::vec3 &color);
         Vertex() = default;
     };
+
     struct VertexRange {
         unsigned int start;
         unsigned int count;
@@ -40,17 +42,17 @@ namespace overlay2d {
 
         unsigned int vao, vbo;
 
-        void verticesHaveChanged(const std::shared_ptr<Element>& changedElement);
+        void verticesHaveChanged(const std::shared_ptr<Element> &changedElement);
     public:
         void updateVertices(coord_t viewportSize);
         void draw();
 
-        void addElement(const std::shared_ptr<Element>& element);
-        void removeElement(const std::shared_ptr<Element>& element);
+        void addElement(const std::shared_ptr<Element> &element);
+        void removeElement(const std::shared_ptr<Element> &element);
 
         ElementCollection();
-        ElementCollection & operator=(ElementCollection&) = delete;
-        ElementCollection(const ElementCollection&) = delete;
+        ElementCollection &operator=(ElementCollection &) = delete;
+        ElementCollection(const ElementCollection &) = delete;
         virtual ~ElementCollection();
         bool hasElements();
         bool hasChangedElements();
@@ -68,7 +70,7 @@ namespace overlay2d {
         virtual Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) = 0;
     };
 
-    class LineElement: public Element {
+    class LineElement : public Element {
     private:
         coord_t start, end;
         length_t width;
@@ -78,6 +80,7 @@ namespace overlay2d {
         bool isPointInside(coord_t point) override;
         unsigned int getVertexCount() override;
         Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) override;
+
         const coord_t &getStart() const;
         void setStart(const coord_t &value);
         const coord_t &getEnd() const;
@@ -88,7 +91,7 @@ namespace overlay2d {
         void setColor(const color::RGB &value);
     };
 
-    class TriangleElement: public Element {
+    class TriangleElement : public Element {
     private:
         coord_t p0, p1, p2;
         color::RGB color;
@@ -96,13 +99,20 @@ namespace overlay2d {
         TriangleElement(const coord_t &p0, const coord_t &p1, const coord_t &p2, const color::RGB &color);
 
         bool isPointInside(coord_t point) override;
-
         unsigned int getVertexCount() override;
-
         Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) override;
+
+        const coord_t &getP0() const;
+        void setP0(const coord_t &value);
+        const coord_t &getP1() const;
+        void setP1(const coord_t &value);
+        const coord_t &getP2() const;
+        void setP2(const coord_t &value);
+        const color::RGB &getColor() const;
+        void setColor(const color::RGB &value);
     };
 
-    class SquareElement: public Element {
+    class SquareElement : public Element {
     private:
         coord_t center;
         length_t sideLength;
@@ -111,13 +121,18 @@ namespace overlay2d {
         SquareElement(const coord_t &center, length_t sideLength, const color::RGB &color);
 
         bool isPointInside(coord_t point) override;
-
         unsigned int getVertexCount() override;
-
         Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) override;
+
+        const coord_t &getCenter() const;
+        void setCenter(const coord_t &value);
+        length_t getSideLength() const;
+        void setSideLength(length_t value);
+        const color::RGB &getColor() const;
+        void setColor(const color::RGB &value);
     };
 
-    class RegularPolygonElement: public Element {
+    class RegularPolygonElement : public Element {
     private:
         coord_t center;
         length_t radius;
@@ -127,10 +142,17 @@ namespace overlay2d {
         RegularPolygonElement(const coord_t &center, length_t radius, short numEdges, const color::RGB &color);
 
         bool isPointInside(coord_t point) override;
-
         unsigned int getVertexCount() override;
-
         Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) override;
+
+        const coord_t &getCenter() const;
+        void setCenter(const coord_t &value);
+        length_t getRadius() const;
+        void setRadius(length_t value);
+        short getNumEdges() const;
+        void setNumEdges(short value);
+        const color::RGB &getColor() const;
+        void setColor(const color::RGB &value);
     };
 
     /*                        ▨       🡡
@@ -146,7 +168,7 @@ namespace overlay2d {
      *
      * tip is at `end` point.
      */
-    class ArrowElement: public Element {
+    class ArrowElement : public Element {
     private:
         coord_t start, end;
         length_t lineWidth;
@@ -157,34 +179,45 @@ namespace overlay2d {
         float calculateTipWidth() const;
     public:
         ArrowElement(const coord_t &start, const coord_t &anEnd, length_t lineWidth, const color::RGB &color,
-                     float tipLengthFactor=1.5f, float tipWidthFactor=2.0f);
+                     float tipLengthFactor = 1.5f, float tipWidthFactor = 2.0f);
 
         bool isPointInside(coord_t point) override;
-
         unsigned int getVertexCount() override;
-
         Vertex *writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) override;
+
+        const coord_t &getStart() const;
+        void setStart(const coord_t &value);
+        const coord_t &getEnd() const;
+        void setEnd(const coord_t &value);
+        length_t getLineWidth() const;
+        void setLineWidth(length_t value);
+        float getTipLengthFactor() const;
+        void setTipLengthFactor(float value);
+        float getTipWidthFactor() const;
+        void setTipWidthFactor(float value);
+        const color::RGB &getColor() const;
+        void setColor(const color::RGB &value);
     };
 
     namespace {
         Vertex *generateVerticesForLine(Vertex *firstVertexLocation, coord_t start, coord_t end, length_t width, color::RGB color, coord_t viewportSize);
         constexpr unsigned int getVertexCountForLine();
 
-        Vertex * generateVerticesForTriangle(Vertex *firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize);
+        Vertex *generateVerticesForTriangle(Vertex *firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize);
         constexpr unsigned int getVertexCountForTriangle();
 
-        Vertex * generateVerticesForSquare(Vertex *firstVertexLocation, coord_t center, length_t sideLength, color::RGB color, coord_t viewportSize);
+        Vertex *generateVerticesForSquare(Vertex *firstVertexLocation, coord_t center, length_t sideLength, color::RGB color, coord_t viewportSize);
         constexpr unsigned int getVertexCountForSquare();
 
-        Vertex * generateVerticesForRegularPolygon(Vertex *firstVertexLocation, coord_t center, length_t radius, short numEdges, color::RGB color, coord_t viewportSize);
+        Vertex *generateVerticesForRegularPolygon(Vertex *firstVertexLocation, coord_t center, length_t radius, short numEdges, color::RGB color, coord_t viewportSize);
         constexpr unsigned int getVertexCountForRegularPolygon(short numEdges);
 
-        Vertex * generateVerticesForQuad(Vertex *firstVertexLocation, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4, color::RGB color, coord_t viewportSize);
+        Vertex *generateVerticesForQuad(Vertex *firstVertexLocation, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4, color::RGB color, coord_t viewportSize);
         constexpr unsigned int getVertexCountForQuad();
 
         constexpr glm::vec2 toNDC(coord_t coord, coord_t viewportSize);
         constexpr glm::vec2 toNDC(glm::vec2 coord, coord_t viewportSize);
-        template <class T>
+        template<class T>
         constexpr glm::vec2 toNDC(T coord, coord_t viewportSize) = delete;//disable automatic conversion
     }
 }

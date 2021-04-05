@@ -349,6 +349,41 @@ namespace overlay2d {
         return generateVerticesForTriangle(firstVertexLocation, p0, p1, p2, color, viewportSize);
     }
 
+    const coord_t &TriangleElement::getP0() const {
+        return p0;
+    }
+
+    void TriangleElement::setP0(const coord_t &value) {
+        TriangleElement::p0 = value;
+        setVerticesHaveChanged(true);
+    }
+
+    const coord_t &TriangleElement::getP1() const {
+        return p1;
+    }
+
+    void TriangleElement::setP1(const coord_t &value) {
+        TriangleElement::p1 = value;
+        setVerticesHaveChanged(true);
+    }
+
+    const coord_t &TriangleElement::getP2() const {
+        return p2;
+    }
+
+    void TriangleElement::setP2(const coord_t &value) {
+        TriangleElement::p2 = value;
+        setVerticesHaveChanged(true);
+    }
+
+    const color::RGB &TriangleElement::getColor() const {
+        return color;
+    }
+
+    void TriangleElement::setColor(const color::RGB &value) {
+        TriangleElement::color = value;
+    }
+
     SquareElement::SquareElement(const coord_t &center, length_t sideLength, const color::RGB &color)
             : center(center), sideLength(sideLength), color(color) {}
 
@@ -362,6 +397,33 @@ namespace overlay2d {
 
     Vertex *SquareElement::writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) {
         return generateVerticesForSquare(firstVertexLocation, center, sideLength, color, viewportSize);
+    }
+
+    const coord_t &SquareElement::getCenter() const {
+        return center;
+    }
+
+    void SquareElement::setCenter(const coord_t &value) {
+        SquareElement::center = value;
+        setVerticesHaveChanged(true);
+    }
+
+    length_t SquareElement::getSideLength() const {
+        return sideLength;
+    }
+
+    void SquareElement::setSideLength(length_t value) {
+        SquareElement::sideLength = value;
+        setVerticesHaveChanged(true);
+    }
+
+    const color::RGB &SquareElement::getColor() const {
+        return color;
+    }
+
+    void SquareElement::setColor(const color::RGB &value) {
+        SquareElement::color = value;
+        setVerticesHaveChanged(true);
     }
 
     RegularPolygonElement::RegularPolygonElement(const coord_t &center, length_t radius, short numEdges, const color::RGB &color)
@@ -381,6 +443,42 @@ namespace overlay2d {
 
     Vertex *RegularPolygonElement::writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) {
         return generateVerticesForRegularPolygon(firstVertexLocation, center, radius, numEdges, color, viewportSize);
+    }
+
+    const coord_t &RegularPolygonElement::getCenter() const {
+        return center;
+    }
+
+    void RegularPolygonElement::setCenter(const coord_t &value) {
+        RegularPolygonElement::center = value;
+        setVerticesHaveChanged(true);
+    }
+
+    length_t RegularPolygonElement::getRadius() const {
+        return radius;
+    }
+
+    void RegularPolygonElement::setRadius(length_t value) {
+        RegularPolygonElement::radius = value;
+        setVerticesHaveChanged(true);
+    }
+
+    short RegularPolygonElement::getNumEdges() const {
+        return numEdges;
+    }
+
+    void RegularPolygonElement::setNumEdges(short value) {
+        RegularPolygonElement::numEdges = value;
+        setVerticesHaveChanged(true);
+    }
+
+    const color::RGB &RegularPolygonElement::getColor() const {
+        return color;
+    }
+
+    void RegularPolygonElement::setColor(const color::RGB &value) {
+        RegularPolygonElement::color = value;
+        setVerticesHaveChanged(true);
     }
 
     ArrowElement::ArrowElement(const coord_t &start, const coord_t &anEnd, length_t lineWidth, const color::RGB &color, float tipLengthFactor,
@@ -446,5 +544,59 @@ namespace overlay2d {
 
     float ArrowElement::calculateTipWidth() const {
         return lineWidth*tipWidthFactor;
+    }
+
+    const coord_t &ArrowElement::getStart() const {
+        return start;
+    }
+
+    void ArrowElement::setStart(const coord_t &value) {
+        ArrowElement::start = value;
+        setVerticesHaveChanged(true);
+    }
+
+    const coord_t &ArrowElement::getEnd() const {
+        return end;
+    }
+
+    void ArrowElement::setEnd(const coord_t &value) {
+        end = value;
+        setVerticesHaveChanged(true);
+    }
+
+    length_t ArrowElement::getLineWidth() const {
+        return lineWidth;
+    }
+
+    void ArrowElement::setLineWidth(length_t value) {
+        ArrowElement::lineWidth = value;
+        setVerticesHaveChanged(true);
+    }
+
+    float ArrowElement::getTipLengthFactor() const {
+        return tipLengthFactor;
+    }
+
+    void ArrowElement::setTipLengthFactor(float value) {
+        ArrowElement::tipLengthFactor = value;
+        setVerticesHaveChanged(true);
+    }
+
+    float ArrowElement::getTipWidthFactor() const {
+        return tipWidthFactor;
+    }
+
+    void ArrowElement::setTipWidthFactor(float value) {
+        ArrowElement::tipWidthFactor = value;
+        setVerticesHaveChanged(true);
+    }
+
+    const color::RGB &ArrowElement::getColor() const {
+        return color;
+    }
+
+    void ArrowElement::setColor(const color::RGB &value) {
+        ArrowElement::color = value;
+        setVerticesHaveChanged(true);
     }
 }

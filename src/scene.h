@@ -64,6 +64,7 @@ public:
     unsigned int getSelectionPixel(framebuffer_size_t x, framebuffer_size_t y);
     void updateImage();
     void elementTreeChanged();
+    glm::usvec2 worldToScreenCoordinates(glm::vec3 worldCoords);
 
     [[nodiscard]] const std::shared_ptr<etree::Node> &getRootNode() const;
     void setRootNode(const std::shared_ptr<etree::Node> &newRootNode);

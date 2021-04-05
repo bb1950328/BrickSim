@@ -283,5 +283,18 @@ namespace etree {
             default: return color::RGB(255, 255, 255);
         }
     }
+
+    std::shared_ptr<Node> getFirstSelectedNode(std::shared_ptr<Node> rootNode) {
+        if (rootNode->selected) {
+            return rootNode;
+        }
+        for (const auto &child : rootNode->getChildren()) {
+            auto retVal = getFirstSelectedNode(child);
+            if (retVal) {
+                return retVal;
+            }
+        }
+        return nullptr;
+    }
 }
 #pragma clang diagnostic pop

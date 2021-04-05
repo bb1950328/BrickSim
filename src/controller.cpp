@@ -12,6 +12,7 @@
 #include "config.h"
 #include "metrics.h"
 #include "orientation_cube.h"
+#include "transform_gizmo.h"
 
 #ifdef BRICKSIM_USE_RENDERDOC
 #include <link.h>
@@ -26,6 +27,7 @@ namespace controller {
         std::shared_ptr<ThumbnailGenerator> thumbnailGenerator;
         std::shared_ptr<Scene> mainScene;
         std::shared_ptr<CadCamera> camera;
+        std::unique_ptr<TransformGizmo> transformGizmo;
         unsigned int windowWidth;
         unsigned int windowHeight;
 
@@ -252,6 +254,8 @@ namespace controller {
             mainScene->setCamera(camera);
             mainScene->setRootNode(elementTree);
 
+            transformGizmo = std::make_unique<TransformGizmo>(mainScene);
+
             mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::LineElement>(glm::usvec2(5, 5), glm::usvec2(50, 50), 20, color::RGB::RED));
 
             gui::setWindow(window);
@@ -314,6 +318,7 @@ namespace controller {
             scenes::deleteAll();
             shaders::cleanup();
             elementTree = nullptr;
+            transformGizmo = nullptr;
             thumbnailGenerator = nullptr;
             mainScene = nullptr;
             camera = nullptr;
@@ -387,6 +392,8 @@ namespace controller {
                 elementTreeChanged = false;
                 addMainloopTimePoint("renderer->elementTreeChanged()");
             }
+
+            transformGizmo->update();
 
             mainScene->updateImage();
             //mainScene->getImage().saveImage("debugMainScene.jpg");

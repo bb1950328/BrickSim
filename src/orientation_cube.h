@@ -40,12 +40,13 @@ namespace orientation_cube {
             float pitch = 1e9, yaw = 1e9;
             glm::vec3 viewPos;
             glm::mat4 viewMatrix;
+            glm::vec3 target{0.0f, 0.0f, 0.0f};
         public:
             void setPitchYaw(float newPitch, float newYaw);
 
             [[nodiscard]] const glm::mat4 &getViewMatrix() const override;
-
             [[nodiscard]] const glm::vec3 &getCameraPos() const override;
+            [[nodiscard]] const glm::vec3 &getTargetPos() const override;
         };
     }
 

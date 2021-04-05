@@ -101,14 +101,17 @@ const glm::mat4 & CadCamera::getViewMatrix() const {
     return viewMatrix;
 }
 
+const glm::vec3 &CadCamera::getTargetPos() const {
+    return target;
+}
 
 
 void FitContentCamera::setRootNode(const std::shared_ptr<etree::MeshNode> &node) {
     //todo make this work for any node, not just simple parts
     const auto &mesh = SceneMeshCollection::getMesh(SceneMeshCollection::getMeshKey(node, false), node);
     const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
-    glm::vec3 center = glm::vec4(minimalEnclosingBall.first, 1.0f) * mesh->globalModel;
     auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL_SCALE;
+    target = glm::vec4(minimalEnclosingBall.first, 1.0f) * mesh->globalModel;
 
     //todo calculate the distance from fov instead of this
     auto distance = meshRadius * 2.45f;
@@ -118,10 +121,10 @@ void FitContentCamera::setRootNode(const std::shared_ptr<etree::MeshNode> &node)
             distance * std::cos(s) * std::cos(t),
             distance * std::sin(s) * std::cos(t),
             distance * std::sin(t)
-    ) + center;
+    ) + target;
 
     viewMatrix = glm::lookAt(cameraPos,
-                            glm::vec3(0) + center,
+                             glm::vec3(0) + target,
                              glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -131,4 +134,8 @@ const glm::mat4 &FitContentCamera::getViewMatrix() const {
 
 const glm::vec3 &FitContentCamera::getCameraPos() const {
     return cameraPos;
+}
+
+const glm::vec3 &FitContentCamera::getTargetPos() const {
+    return target;
 }

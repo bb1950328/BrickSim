@@ -196,7 +196,7 @@ namespace orientation_cube {
                     distance * std::sin(pitch),
                     distance * std::sin(yaw) * std::cos(pitch)
             );
-            viewMatrix = glm::lookAt(viewPos, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
+            viewMatrix = glm::lookAt(viewPos, target, {0.0f, 1.0f, 0.0f});
         }
     }
 
@@ -206,5 +206,9 @@ namespace orientation_cube {
 
     const glm::vec3 &OrientationCubeCamera::getCameraPos() const {
         return viewPos;
+    }
+
+    const glm::vec3 &OrientationCubeCamera::getTargetPos() const {
+        return target;
     }
 }

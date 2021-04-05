@@ -35,6 +35,8 @@ target_sources(BrickSim PUBLIC
         texture.h
         thumbnail_generator.cpp
         thumbnail_generator.h
+        transform_gizmo.cpp
+        transform_gizmo.h
         types.h
         user_actions.cpp
         user_actions.h

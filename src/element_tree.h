@@ -142,6 +142,8 @@ namespace etree {
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };
+
+    std::shared_ptr<Node> getFirstSelectedNode(std::shared_ptr<Node> rootNode);
 }
 
 

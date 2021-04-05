@@ -14,6 +14,7 @@ class Camera {
 public:
     [[nodiscard]] virtual const glm::mat4 &getViewMatrix() const = 0;
     [[nodiscard]] virtual const glm::vec3 &getCameraPos() const = 0;
+    [[nodiscard]] virtual const glm::vec3 &getTargetPos() const = 0;
 };
 
 class CadCamera : public Camera {
@@ -29,6 +30,7 @@ public:
 
     [[nodiscard]] const glm::mat4 &getViewMatrix() const override;
     [[nodiscard]] const glm::vec3 &getCameraPos() const override;
+    [[nodiscard]] const glm::vec3 &getTargetPos() const override;
 
     void mouseRotate(float x_delta, float y_delta);
     void mousePan(float x_delta, float y_delta);
@@ -53,9 +55,10 @@ public:
     void setRootNode(const std::shared_ptr<etree::MeshNode>& node);
     [[nodiscard]] const glm::mat4 &getViewMatrix() const override;
     [[nodiscard]] const glm::vec3 &getCameraPos() const override;
+    [[nodiscard]] const glm::vec3 &getTargetPos() const override;
 private:
     glm::mat4 viewMatrix;
-    glm::vec3 cameraPos;
+    glm::vec3 cameraPos, target;
 };
 
 #endif //BRICKSIM_CAMERA_H

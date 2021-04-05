@@ -339,6 +339,17 @@ overlay2d::ElementCollection & Scene::getOverlayCollection() {
     return overlayCollection;
 }
 
+glm::usvec2 Scene::worldToScreenCoordinates(glm::vec3 worldCoords) {
+    const auto projectionView = projectionMatrix * camera->getViewMatrix();
+    const auto gl_Position = projectionView * glm::vec4(worldCoords, 1.0f);
+    const glm::vec2 ndc = {gl_Position.x/gl_Position.w,
+                           gl_Position.y/gl_Position.w};
+    return {
+        (ndc.x+1)/2.0f*imageSize.x,
+        (ndc.y+1)/2.0f*imageSize.y
+    };
+}
+
 namespace scenes {
     namespace {
         std::map<scene_id_t, std::shared_ptr<Scene>> createdScenes;

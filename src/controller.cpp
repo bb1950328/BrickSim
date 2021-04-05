@@ -253,10 +253,6 @@ namespace controller {
             mainScene->setRootNode(elementTree);
 
             mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::LineElement>(glm::usvec2(5, 5), glm::usvec2(50, 50), 20, color::RGB::RED));
-            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::TriangleElement>(glm::usvec2(60, 60), glm::usvec2(90, 70), glm::usvec2(60, 70), color::RGB::BLUE));
-            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::SquareElement>(glm::usvec2(100, 100), 20, color::RGB::GREEN));
-            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::RegularPolygonElement>(glm::usvec2(150, 150), 20, 6, color::RGB::CYAN));
-            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::ArrowElement>(glm::usvec2(250, 250), glm::usvec2(190, 110), 20, color::RGB::MAGENTA));
 
             gui::setWindow(window);
             gui::initialize();
@@ -367,7 +363,6 @@ namespace controller {
         openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
 
-
         while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
             copyMainloopTimePoints();
             if (foregroundTasks.empty() && backgroundTasks.empty() && thumbnailGenerator->renderQueueEmpty() && glfwGetWindowAttrib(window, GLFW_FOCUSED) == 0) {
@@ -392,6 +387,7 @@ namespace controller {
                 elementTreeChanged = false;
                 addMainloopTimePoint("renderer->elementTreeChanged()");
             }
+
             mainScene->updateImage();
             //mainScene->getImage().saveImage("debugMainScene.jpg");
             addMainloopTimePoint("mainScene->updateImage()");

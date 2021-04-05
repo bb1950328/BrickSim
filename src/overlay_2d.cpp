@@ -4,6 +4,7 @@
 #include "controller.h"
 
 #include <utility>
+#include <spdlog/spdlog.h>
 
 namespace overlay2d {
     namespace {
@@ -160,6 +161,7 @@ namespace overlay2d {
     void ElementCollection::updateVertices(coord_t viewportSize) {
         const bool viewportSizeChanged = lastWrittenViewportSize != viewportSize;
         const auto &elementsToUpdate = viewportSizeChanged ? elements : changedElements;
+        unsigned int changedVerticesCount = 0;
         if (hasChangedElements() || viewportSizeChanged) {
             bool needToRewriteEverything = false;
             std::vector<VertexRange> changedRanges;
@@ -177,7 +179,7 @@ namespace overlay2d {
 
                 if (elementVertexCountChanged) {
                     if (!elementIsNew) {
-                        vertices.erase(firstVertex + range.start, firstVertex + range.start + range.count - 1);
+                        vertices.erase(firstVertex + range.start, firstVertex + range.start + range.count);
                     }
 
                     //adjust ranges after current
@@ -209,15 +211,17 @@ namespace overlay2d {
                 glBindBuffer(GL_ARRAY_BUFFER, vbo);
                 if (needToRewriteEverything) {
                     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+                    changedVerticesCount = vertices.size();
                 } else {
                     for (const auto &range : changedRanges) {
-                        glBufferSubData(GL_ARRAY_BUFFER, range.start * sizeof(Vertex), range.count * sizeof(Vertex),
-                                        &vertices[range.start]);//todo maybe last param is &vertices[0]
+                        glBufferSubData(GL_ARRAY_BUFFER, range.start * sizeof(Vertex), range.count * sizeof(Vertex), &vertices[range.start]);
+                        changedVerticesCount += range.count;
                     }
                 }
             });
             changedElements.clear();
             lastWrittenViewportSize = viewportSize;
+            spdlog::debug("overlay2d with VAO={} updated {} of {} vertices", vao, changedVerticesCount, vertices.size());
         }
     }
 
@@ -468,6 +472,7 @@ namespace overlay2d {
     }
 
     void RegularPolygonElement::setNumEdges(short value) {
+        assert(value>2);
         RegularPolygonElement::numEdges = value;
         setVerticesHaveChanged(true);
     }

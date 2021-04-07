@@ -1,0 +1,10 @@
+name: "BrickSim CodeQL config"
+
+paths:
+  - src
+paths-ignore:
+  - src/lib
+
+queries:
+  - uses: security-and-quality
+  - uses: lgtm-full

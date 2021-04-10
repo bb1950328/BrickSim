@@ -118,8 +118,13 @@ add_compile_definitions(USE_OPENSSL)
 
 option(USE_RENDERDOC "Build with RenderDoc in-application API (currently only working on linux)" OFF)
 if (USE_RENDERDOC)
-    add_compile_definitions(BrickSimLib_USE_RENDERDOC)
+    add_compile_definitions(BRICKSIM_USE_RENDERDOC)
 endif ()
+
+option(BRICKSIM_USE_OPTIMIZED_VARIANTS "Use optimized variants of certain functions (to use SSE2 or similar things which make it faster)" ON)
+if(BRICKSIM_USE_OPTIMIZED_VARIANTS)
+    target_compile_definitions(BrickSimLib PUBLIC BRICKSIM_USE_OPTIMIZED_VARIANTS)
+endif()
 
 target_include_directories(BrickSimLib PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>

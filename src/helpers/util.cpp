@@ -12,18 +12,24 @@
 #include "../controller.h"
 #include "platform_detection.h"
 #include "../db.h"
-
-#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
-
-#include <windows.h>
-
-#endif
-
 #include <cstdlib>
 #include <imgui.h>
 #include <mutex>
 #include <spdlog/spdlog.h>
 #include <fcntl.h>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
+
+#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
+#include <windows.h>
+#endif
+
+#ifdef __SSE2__
+#include <immintrin.h>
+#elif defined(__ARM_NEON) || defined(__ARM_NEON__)
+#include <arm_neon.h>
+#endif
 
 namespace util {
     namespace {
@@ -72,24 +78,158 @@ namespace util {
         return result;
     }
 
-    std::string asLower(const std::string &string) {
-        auto result = std::string();
-        for (const auto &ch: string) {
-            result.push_back(std::tolower(ch));
+    void asLower(const char *input, char *output, size_t length) {
+#ifdef BRICKSIM_USE_OPTIMIZED_VARIANTS
+#ifdef __SSE2__
+        const __m128i asciiA = _mm_set1_epi8('A' - 1);
+        const __m128i asciiZ = _mm_set1_epi8('Z' + 1);
+        const __m128i diff = _mm_set1_epi8('a' - 'A');
+        while (length >= 16) {
+            __m128i inp = _mm_loadu_si128((__m128i *) input);
+            /* >= 'A': 0xff, < 'A': 0x00 */
+            __m128i greaterEqualA = _mm_cmpgt_epi8(inp, asciiA);
+            /* <= 'Z': 0xff, > 'Z': 0x00 */
+            __m128i lessEqualZ = _mm_cmplt_epi8(inp, asciiZ);
+            /* 'Z' >= x >= 'A': 0xFF, else 0x00 */
+            __m128i mask = _mm_and_si128(greaterEqualA, lessEqualZ);
+            /* 'Z' >= x >= 'A': 'a' - 'A', else 0x00 */
+            __m128i toAdd = _mm_and_si128(mask, diff);
+            /* add to change to lowercase */
+            __m128i added = _mm_add_epi8(inp, toAdd);
+            _mm_storeu_si128((__m128i *) output, added);
+            length -= 16;
+            input += 16;
+            output += 16;
         }
+#elif defined(__ARM_NEON) || defined(__ARM_NEON__)
+        const uint8x16_t asciiA = vdupq_n_u8('A');
+        const uint8x16_t asciiZ = vdupq_n_u8('Z' + 1);
+        const uint8x16_t diff = vdupq_n_u8('a' - 'A');
+        while (length >= 16) {
+            uint8x16_t inp = vld1q_u8((uint8_t *)input);
+            uint8x16_t greaterThanA = vcgtq_u8(inp, asciiA);
+            uint8x16_t lessEqualZ = vcltq_u8(inp, asciiZ);
+            uint8x16_t mask = vandq_u8(greaterThanA, lessEqualZ);
+            uint8x16_t toAdd = vandq_u8(mask, diff);
+            uint8x16_t added = vaddq_u8(inp, toAdd);
+            vst1q_u8((uint8_t *)output, added);
+            length -= 16;
+            input += 16;
+            output += 16;
+        }
+#endif
+#endif
+        while (length-- > 0) {
+            *output = tolower(*input);
+            ++input;
+            ++output;
+        }
+    }
+
+    std::string asLower(const std::string &string) {
+        std::string result;
+        result.resize(string.length());
+        asLower(string.c_str(), result.data(), string.length());
         return result;
     }
 
-    bool endsWith(std::string const &fullString, std::string const &ending) {
-        if (fullString.length() >= ending.length()) {
-            return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
-        } else {
-            return false;
+    void asUpper(const char *input, char *output, size_t length) {
+#ifdef BRICKSIM_USE_OPTIMIZED_VARIANTS
+#ifdef __SSE2__
+        const __m128i asciia = _mm_set1_epi8('a' - 1);
+        const __m128i asciiz = _mm_set1_epi8('z' + 1);
+        const __m128i diff = _mm_set1_epi8('a' - 'A');
+        while (length >= 16) {
+            __m128i inp = _mm_loadu_si128((__m128i *) input);
+            /* > 'a': 0xff, < 'a': 0x00 */
+            __m128i greaterThana = _mm_cmpgt_epi8(inp, asciia);
+            /* <= 'z': 0xff, > 'z': 0x00 */
+            __m128i lessEqualz = _mm_cmplt_epi8(inp, asciiz);
+            /* 'z' >= x >= 'a': 0xFF, else 0x00 */
+            __m128i mask = _mm_and_si128(greaterThana, lessEqualz);
+            /* 'z' >= x >= 'a': 'a' - 'A', else 0x00 */
+            __m128i toSub = _mm_and_si128(mask, diff);
+            /* subtract to change to uppercase */
+            __m128i added = _mm_sub_epi8(inp, toSub);
+            _mm_storeu_si128((__m128i *) output, added);
+            length -= 16;
+            input += 16;
+            output += 16;
+        }
+#elif defined(__ARM_NEON) || defined(__ARM_NEON__)
+        const uint8x16_t asciia = vdupq_n_u8('a' - 1);
+        const uint8x16_t asciiz = vdupq_n_u8('z' + 1);
+        const uint8x16_t diff = vdupq_n_u8('a' - 'A');
+        while (length >= 16) {
+            uint8x16_t inp = vld1q_u8((uint8_t *)input);
+            uint8x16_t greaterThana = vcgtq_u8(inp, asciia);
+            uint8x16_t lessEqualz = vcltq_u8(inp, asciiz);
+            uint8x16_t mask = vandq_u8(greaterThana, lessEqualz);
+            uint8x16_t toSub = vandq_u8(mask, diff);
+            uint8x16_t added = vsubq_u8(inp, toSub);
+            vst1q_u8((uint8_t *)output, added);
+            length -= 16;
+            input += 16;
+            output += 16;
+        }
+#endif
+#endif
+        while (length-- > 0) {
+            *output = toupper(*input);
+            ++input;
+            ++output;
         }
     }
 
+    std::string asUpper(const std::string &string) {
+        std::string result;
+        result.resize(string.length());
+        asUpper(string.c_str(), result.data(), string.length());
+        return result;
+    }
+
+    void toLowerInPlace(char *string) {
+        asLower(string, string, strlen(string));
+    }
+
+    void toUpperInPlace(char *string) {
+        asUpper(string, string, strlen(string));
+    }
+
+    bool endsWithInternal(const char* fullString, size_t fullStringSize, const char* ending, size_t endingSize) {
+        if (endingSize > fullStringSize) {
+            return false;
+        }
+        return strncmp(fullString+fullStringSize-endingSize, ending, endingSize)==0;
+    }
+
+    bool endsWith(std::string const &fullString, std::string const &ending) {
+        return endsWithInternal(fullString.c_str(), fullString.size(), ending.c_str(), ending.size());
+    }
+
+    bool endsWith(const char* fullString, const char* ending) {
+        return endsWithInternal(fullString, strlen(fullString), ending, strlen(ending));
+    }
+
     bool startsWith(std::string const &fullString, std::string const &start) {
-        return fullString.rfind(start, 0) == 0;
+        if (fullString.length() < start.length()) {
+            return false;
+        }
+        return startsWith(fullString.c_str(), start.c_str());
+    }
+    bool startsWith(const char* fullString, const char* start) {
+        do {
+            if (*start != *fullString) {
+                return false;
+            }
+            ++start;
+            ++fullString;
+        } while (*start && *fullString);
+        if (*start == 0) {
+            return true;
+        } else {
+            return *fullString != 0;
+        }
     }
 
     void coutMat4(glm::mat4 mat) {
@@ -404,7 +544,7 @@ namespace util {
             std::string buffer;
             buffer.resize(length);
             size_t bytesRead = fread(&buffer[0], 1, length, f);
-            if (bytesRead!=length) {
+            if (bytesRead != length) {
                 spdlog::warn("reading file {}: {} bytes read, but reported size is {} bytes.", path.string(), bytesRead, length);
                 buffer.resize(bytesRead);
             }
@@ -413,12 +553,6 @@ namespace util {
         } else {
             spdlog::error("can't read file {}: ", path.string(), strerror(errno));
             throw std::invalid_argument(strerror(errno));
-        }
-    }
-
-    void toUpperInPlace(char *string) {
-        for (int i = 0; string[i]!=0; ++i) {
-            string[i] = toupper(string[i]);
         }
     }
 

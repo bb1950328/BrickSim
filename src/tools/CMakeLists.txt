@@ -1,4 +1,4 @@
-target_sources(BrickSim PUBLIC
+target_sources(BrickSimLib PUBLIC
         gears.cpp
         gears.h
         )

@@ -1,4 +1,4 @@
-target_sources(BrickSim PUBLIC
+target_sources(BrickSimLib PUBLIC
         gui.cpp
         gui.h
         gui_internal.cpp

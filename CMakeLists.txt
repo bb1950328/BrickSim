@@ -6,22 +6,28 @@ foreach(SDKPATH IN LISTS /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /Ap
         set(CMAKE_OSX_SYSROOT ${SDKPATH})
     endif()
 endforeach()
-project(BrickSim)
+project(BrickSimProject)
 
 file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)#prevent profiles from loading in parallel, causes problems with submodules
 
-add_executable(BrickSim)
+#add_library(BrickSimLib OBJECT EXCLUDE_FROM_ALL)
+add_library(BrickSimLib STATIC)
+
+#add_executable(BrickSim $<TARGET_OBJECTS:BrickSimLib> src/main.cpp)
+add_executable(BrickSim src/main.cpp)
+target_link_libraries(BrickSim PRIVATE BrickSimLib)
+add_dependencies(BrickSim BrickSimLib)
 
 # OpenGL
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS})
-target_link_libraries(BrickSim ${OPENGL_LIBRARIES})
+target_link_libraries(BrickSimLib ${OPENGL_LIBRARIES})
 if (UNIX)
     if (APPLE)
-        target_link_libraries(BrickSim "-framework Cocoa")
-        target_link_libraries(BrickSim "-framework IOKit")
-        target_link_libraries(BrickSim "-framework CoreVideo")
+        target_link_libraries(BrickSimLib "-framework Cocoa")
+        target_link_libraries(BrickSimLib "-framework IOKit")
+        target_link_libraries(BrickSimLib "-framework CoreVideo")
     endif ()
 endif ()
 
@@ -31,20 +37,20 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(src/lib/glfw src/lib/glfw/bin)
 include_directories(${GLFW_INCLUDE_DIRS})
-target_link_libraries(BrickSim glfw)
-target_link_libraries(BrickSim ${GLFW_LIBRARIES})
+target_link_libraries(BrickSimLib glfw)
+target_link_libraries(BrickSimLib ${GLFW_LIBRARIES})
 if (UNIX)# todo check if this is necessary
     if (NOT APPLE)
         find_package(X11 REQUIRED)
-        target_link_libraries(BrickSim ${X11_LIBRARIES})
+        target_link_libraries(BrickSimLib ${X11_LIBRARIES})
     endif ()
 endif ()
-target_compile_definitions(BrickSim PUBLIC GLFW_INCLUDE_NONE)
+target_compile_definitions(BrickSimLib PUBLIC GLFW_INCLUDE_NONE)
 
 # GLUT
 find_package(GLUT REQUIRED)
 include_directories(${GLUT_INCLUDE_DIRS})
-target_link_libraries(BrickSim ${GLUT_LIBRARY})
+target_link_libraries(BrickSimLib ${GLUT_LIBRARY})
 
 # threads
 if (WIN32)
@@ -55,7 +61,7 @@ add_compile_options("-lphread")
 if (UNIX)
     if (NOT APPLE)
         find_package(Threads REQUIRED)
-        target_link_libraries(BrickSim ${CMAKE_THREAD_LIBS_INIT})
+        target_link_libraries(BrickSimLib ${CMAKE_THREAD_LIBS_INIT})
     endif ()
 endif ()
 
@@ -67,38 +73,41 @@ message("LIBZIP_INCLUDE_DIRS = ${LIBZIP_INCLUDE_DIRS}")
 include_directories(zip)
 if (UNIX)
     if (APPLE)
-        target_link_libraries(BrickSim /usr/local/Cellar/libzip/1.7.3/lib/libzip.5.3.dylib)
+        target_link_libraries(BrickSimLib /usr/local/Cellar/libzip/1.7.3/lib/libzip.5.3.dylib)
     else()
-        target_link_libraries(BrickSim libzip.so.5)
+        target_link_libraries(BrickSimLib libzip.so.5)
     endif()
 else ()
     find_library(LIBZIP_LIBRARY_LOCATION libzip)
-    target_link_libraries(BrickSim ${LIBZIP_LIBRARY_LOCATION})
+    target_link_libraries(BrickSimLib ${LIBZIP_LIBRARY_LOCATION})
 endif ()
 
 # SqliteCpp
 add_subdirectory(src/lib/SQLiteCpp)
 include_directories(src/lib/SQLiteCpp/include)
-target_link_libraries(BrickSim SQLiteCpp)
-target_link_libraries(BrickSim sqlite3)
+target_link_libraries(BrickSimLib SQLiteCpp)
+target_link_libraries(BrickSimLib sqlite3)
 
 # cURL
 set(CURL_LIBRARY "-lcurl")
 find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIR})
-target_link_libraries(BrickSim ${CURL_LIBRARIES})
+target_link_libraries(BrickSimLib ${CURL_LIBRARIES})
 
 # spdlog
 find_package(spdlog REQUIRED)
-target_link_libraries(BrickSim spdlog::spdlog)
+target_link_libraries(BrickSimLib spdlog::spdlog)
+
+#Catch2
+add_subdirectory(src/lib/Catch2)
 
 add_subdirectory(src)
 
 if (WIN32)
-    target_link_libraries(BrickSim -lssp) # stack smashing protection
-    target_link_libraries(BrickSim -lImm32)
+    target_link_libraries(BrickSimLib -lssp) # stack smashing protection
+    target_link_libraries(BrickSimLib -lImm32)
 elseif (UNIX AND NOT APPLE)
-    target_link_libraries(BrickSim -ltbb)
+    target_link_libraries(BrickSimLib -ltbb)
 endif ()
 
 #set(CMAKE_VERBOSE_MAKEFILE ON) # useful for fixing build errors
@@ -109,14 +118,14 @@ add_compile_definitions(USE_OPENSSL)
 
 option(USE_RENDERDOC "Build with RenderDoc in-application API (currently only working on linux)" OFF)
 if (USE_RENDERDOC)
-    add_compile_definitions(BRICKSIM_USE_RENDERDOC)
+    add_compile_definitions(BrickSimLib_USE_RENDERDOC)
 endif ()
 
-target_include_directories(BrickSim PUBLIC
+target_include_directories(BrickSimLib PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
         src/lib/include
         $<INSTALL_INTERFACE:include>)
-target_link_libraries(BrickSim ${CMAKE_DL_LIBS})
+target_link_libraries(BrickSimLib ${CMAKE_DL_LIBS})
 
 #bash executable
 if (EXISTS "C:\\msys64\\usr\\bin\\bash.exe")
@@ -140,7 +149,7 @@ if (NOT DEFINED GIT_COMMIT_HASH)
     endif()
 endif ()
 
-target_compile_definitions(BrickSim PUBLIC BRICKSIM_GIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
+target_compile_definitions(BrickSimLib PUBLIC BRICKSIM_GIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
 message(STATUS "BRICKSIM_GIT_COMMIT_HASH=${GIT_COMMIT_HASH}")
 
 if(NOT DEFINED GIT_COMMIT_COUNT)
@@ -151,7 +160,7 @@ if(NOT DEFINED GIT_COMMIT_COUNT)
             OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 endif()
-target_compile_definitions(BrickSim PUBLIC BRICKSIM_GIT_COMMIT_COUNT=${GIT_COMMIT_COUNT})
+target_compile_definitions(BrickSimLib PUBLIC BRICKSIM_GIT_COMMIT_COUNT=${GIT_COMMIT_COUNT})
 message(STATUS "BRICKSIM_GIT_COMMIT_COUNT=${GIT_COMMIT_COUNT}")
 
 if(NOT DEFINED TOTAL_HOURS)
@@ -162,7 +171,7 @@ if(NOT DEFINED TOTAL_HOURS)
             OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 endif()
-target_compile_definitions(BrickSim PUBLIC BRICKSIM_TOTAL_HOURS=${TOTAL_HOURS})
+target_compile_definitions(BrickSimLib PUBLIC BRICKSIM_TOTAL_HOURS=${TOTAL_HOURS})
 message(STATUS "BRICKSIM_TOTAL_HOURS=${TOTAL_HOURS}")
 
 #version
@@ -182,9 +191,9 @@ list(GET VERSION_LIST 0 BRICKSIM_VERSION_MAJOR)
 list(GET VERSION_LIST 1 BRICKSIM_VERSION_MINOR)
 list(GET VERSION_LIST 2 BRICKSIM_VERSION_PATCH)
 
-target_compile_definitions(BrickSim PUBLIC BRICKSIM_VERSION_MAJOR=${BRICKSIM_VERSION_MAJOR})
-target_compile_definitions(BrickSim PUBLIC BRICKSIM_VERSION_MINOR=${BRICKSIM_VERSION_MINOR})
-target_compile_definitions(BrickSim PUBLIC BRICKSIM_VERSION_PATCH=${BRICKSIM_VERSION_PATCH})
+target_compile_definitions(BrickSimLib PUBLIC BRICKSIM_VERSION_MAJOR=${BRICKSIM_VERSION_MAJOR})
+target_compile_definitions(BrickSimLib PUBLIC BRICKSIM_VERSION_MINOR=${BRICKSIM_VERSION_MINOR})
+target_compile_definitions(BrickSimLib PUBLIC BRICKSIM_VERSION_PATCH=${BRICKSIM_VERSION_PATCH})
 
 message(STATUS "BrickSim Version: ${BRICKSIM_VERSION_MAJOR}.${BRICKSIM_VERSION_MINOR}.${BRICKSIM_VERSION_PATCH}")
 

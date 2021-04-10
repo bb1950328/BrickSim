@@ -1,4 +1,4 @@
-target_sources(BrickSim PUBLIC
+target_sources(BrickSimLib PUBLIC
         camera.cpp
         camera.h
         config.cpp
@@ -13,7 +13,6 @@ target_sources(BrickSim PUBLIC
         keyboard_shortcut_manager.h
         latest_log_messages_tank.cpp
         latest_log_messages_tank.h
-        main.cpp
         mesh.cpp
         mesh.h
         mesh_collection.cpp
@@ -49,3 +48,4 @@ add_subdirectory(info_providers)
 add_subdirectory(ldr_files)
 add_subdirectory(lib)
 add_subdirectory(tools)
+add_subdirectory(test)

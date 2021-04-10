@@ -71,11 +71,11 @@ set(rapidjson_sources
         rapidjson/msinttypes/stdint.h
         )
 
-target_sources(BrickSim PUBLIC
+target_sources(BrickSimLib PUBLIC
         ${imgui_sources}
         ${other_libs}
         ${rapidjson_sources}
         )
 
-target_include_directories(BrickSim PUBLIC imgui)
+target_include_directories(BrickSimLib PUBLIC imgui)
 add_compile_definitions(IMGUI_DISABLE_OBSOLETE_FUNCTIONS)

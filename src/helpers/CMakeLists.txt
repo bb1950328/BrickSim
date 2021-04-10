@@ -1,4 +1,4 @@
-target_sources(BrickSim PUBLIC
+target_sources(BrickSimLib PUBLIC
         color.cpp
         color.h
         fraction.cpp

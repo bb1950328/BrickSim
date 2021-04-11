@@ -87,6 +87,6 @@ jobs:
       - name: list all exe
         run: Get-ChildItem ${{runner.workspace}} -recurse | where {$_.extension -eq ".exe"}
       - name: Run tests
-        run: ${{runner.workspace}}\BrickSimTests.exe -d
+        run: ${{runner.workspace}}\BrickSim\BrickSimTests.exe -d
 
 

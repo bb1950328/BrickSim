@@ -85,5 +85,5 @@ jobs:
         with:
           name: BrickSimTests
       - name: Run tests
-        run: ./BrickSimTests.exe
+        run: .\BrickSimTests.exe -d
 

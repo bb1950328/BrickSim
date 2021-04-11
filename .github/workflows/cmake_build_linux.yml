@@ -47,7 +47,7 @@ jobs:
     - name: Build
       working-directory: ${{runner.workspace}}/build
       shell: bash
-      run: cmake --build . --config $BUILD_TYPE -j $(nproc --all)
+      run: cmake --build . --target BrickSim --config $BUILD_TYPE -j $(nproc --all)
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1

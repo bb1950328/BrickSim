@@ -118,5 +118,6 @@ jobs:
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         with:
-          files: ${{runner.workspace}}/**/*.xml
-          name: Catch2 Test Results
+          files: ./**/*.xml
+          check_name: Catch2 Test Results
+          comment_title: Catch2 Test Results

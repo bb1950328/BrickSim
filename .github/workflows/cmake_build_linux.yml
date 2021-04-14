@@ -22,7 +22,8 @@ jobs:
     - name: Setup Workspace
       run: ./setup_workspace.sh
 
-    - name: Initialize CodeQL
+    - if: "contains(github.event.head_commit.message, 'codeql')"
+      name: Initialize CodeQL
       uses: github/codeql-action/init@v1
       with:
         languages: cpp
@@ -47,9 +48,10 @@ jobs:
     - name: Build
       working-directory: ${{runner.workspace}}/build
       shell: bash
-      run: cmake --build . --config $BUILD_TYPE -j $(nproc --all)
+      run: cmake --build . --target BrickSim BrickSimTests --config $BUILD_TYPE -j $(nproc --all)
 
-    - name: Perform CodeQL Analysis
+    - if: "contains(github.event.head_commit.message, 'codeql')"
+      name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
       with:
         config-file: ./.github/codeql/codeql-config.yml
@@ -71,3 +73,51 @@ jobs:
         path: |
           ${{runner.workspace}}/BrickSim/BrickSim.deb
           ${{runner.workspace}}/BrickSim/README.md
+
+    - name: Try to find binary
+      run: find ${{runner.workspace}} -type f -executable -print
+
+    - name: Upload BrickSimTestsLinux
+      uses: actions/upload-artifact@v2
+      with:
+        name: BrickSimTestsLinux
+        path: ${{runner.workspace}}/build/src/test/BrickSimTests
+  test:
+    name: Catch2 Unittests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download test artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: BrickSimTestsLinux
+      - name: Download libraries
+        run: sudo apt-get install -y libspdlog1 libzip5
+      - name: Run tests
+        run: |
+          chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
+          ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/unitTestReport.xml
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: UnitTestReport
+          path: ${{runner.workspace}}/unitTestReport.xml
+  publishTestResults:
+    name: Publish Catch2 Test Results
+    needs: test
+    runs-on: ubuntu-latest
+    if: success() || failure()
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: UnitTestReport
+          path: artifacts
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          files: ./**/*.xml
+          check_name: Catch2 Test Results
+          comment_title: Catch2 Test Results

@@ -22,7 +22,8 @@ jobs:
     - name: Setup Workspace
       run: ./setup_workspace.sh
 
-    - name: Initialize CodeQL
+    - if: "contains(github.event.head_commit.message, 'codeql')"
+      name: Initialize CodeQL
       uses: github/codeql-action/init@v1
       with:
         languages: cpp
@@ -49,7 +50,8 @@ jobs:
       shell: bash
       run: cmake --build . --target BrickSim BrickSimTests --config $BUILD_TYPE -j $(nproc --all)
 
-    - name: Perform CodeQL Analysis
+    - if: "contains(github.event.head_commit.message, 'codeql')"
+      name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
       with:
         config-file: ./.github/codeql/codeql-config.yml
@@ -71,6 +73,10 @@ jobs:
         path: |
           ${{runner.workspace}}/BrickSim/BrickSim.deb
           ${{runner.workspace}}/BrickSim/README.md
+
+    - name: Try to find binary
+      run: find ${{runner.workspace}} -type f -executable -print
+
     - name: Upload BrickSimTestsLinux
       uses: actions/upload-artifact@v2
       with:

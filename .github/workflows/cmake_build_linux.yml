@@ -81,7 +81,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: BrickSimTestsLinux
-        path: ${{runner.workspace}}/BrickSim/src/test/BrickSimTests
+        path: ${{runner.workspace}}/build/src/test/BrickSimTests
   test:
     name: Catch2 Unittests
     needs: build

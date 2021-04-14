@@ -44,7 +44,7 @@ namespace util {
     std::string replaceHomeDir(const std::string &input) {
         const std::string homeDir = getenv(USER_ENV_VAR);
         if (startsWith(input, homeDir)) {
-            return homeDir + input.substr(homeDir.size());
+            return '~' + input.substr(homeDir.size());
         }
         return input;
     }

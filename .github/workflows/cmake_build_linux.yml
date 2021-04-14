@@ -94,4 +94,5 @@ jobs:
       - name: Run tests
         run: |
           chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
+          ldd ${{runner.workspace}}/BrickSim/BrickSimTests
           ${{runner.workspace}}/BrickSim/BrickSimTests -d yes

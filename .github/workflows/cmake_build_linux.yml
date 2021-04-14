@@ -47,7 +47,7 @@ jobs:
     - name: Build
       working-directory: ${{runner.workspace}}/build
       shell: bash
-      run: cmake --build . --target BrickSim --config $BUILD_TYPE -j $(nproc --all)
+      run: cmake --build . --target BrickSim BrickSimTests --config $BUILD_TYPE -j $(nproc --all)
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
@@ -71,3 +71,19 @@ jobs:
         path: |
           ${{runner.workspace}}/BrickSim/BrickSim.deb
           ${{runner.workspace}}/BrickSim/README.md
+    - name: Upload BrickSimTestsLinux
+      uses: actions/upload-artifact@v2
+      with:
+        name: BrickSimTestsLinux
+        path: ${{runner.workspace}}/BrickSim/src/test/BrickSimTests
+  test:
+    name: Catch2 Unittests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download test artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: BrickSimTestsLinux
+      - name: Run tests
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -d

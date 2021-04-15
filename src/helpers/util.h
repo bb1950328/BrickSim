@@ -28,7 +28,6 @@ namespace util {
     std::string replaceHomeDir(const std::string &input);
     std::filesystem::path extendHomeDirPath(const std::string &input);
     std::filesystem::path withoutBasePath(const std::filesystem::path &path, const std::filesystem::path &basePath);
-    std::string pathjoin(const std::list<std::string> &parts);
 
     //string functions
     std::string trim(const std::string &input);

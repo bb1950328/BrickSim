@@ -65,19 +65,6 @@ namespace util {
         return (wsafter <= wsbefore ? std::string() : std::string(wsbefore, wsafter));
     }
 
-    std::string pathjoin(const std::list<std::string> &parts) {
-        auto result = std::string();
-        for (const auto &part : parts) {
-            result.append(part);
-            if (result.back() != PATH_SEPARATOR) {
-                result.push_back(PATH_SEPARATOR);
-            }
-        }
-        result.pop_back();//remove last separator
-        std::replace(result.begin(), result.end(), PATH_SEPARATOR_FOREIGN, PATH_SEPARATOR);
-        return result;
-    }
-
     void asLower(const char *input, char *output, size_t length) {
 #ifdef BRICKSIM_USE_OPTIMIZED_VARIANTS
 #ifdef __SSE2__
@@ -332,12 +319,15 @@ namespace util {
         double doubleBytes = bytes;
         static std::string bytePrefixes[] = {"B", "KB", "MB", "GB", "TB"};
         size_t prefixIndex = 0;
-        while (doubleBytes > 1024) {
+        while (doubleBytes >= 1024 && prefixIndex < std::size(bytePrefixes)-1) {
             prefixIndex++;
             doubleBytes /= 1024;
         }
         std::stringstream resultStream;
-        resultStream << /*resultStream.precision(3) <<*/ doubleBytes << bytePrefixes[prefixIndex];
+        if (prefixIndex>0) {
+            resultStream << std::fixed << std::setprecision(std::max(0, 2-(int)(std::log10(doubleBytes))));
+        }
+        resultStream << doubleBytes << bytePrefixes[prefixIndex];
         return resultStream.str();
     }
 

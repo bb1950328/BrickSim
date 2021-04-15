@@ -1,3 +1,6 @@
+#include <glm/gtx/transform.hpp>
+#include <iostream>
+#include <fstream>
 #include "catch2/catch.hpp"
 #include "../helpers/util.h"
 
@@ -70,4 +73,166 @@ TEST_CASE("util::extendHomeDir and util::replaceHomeDir") {
     REQUIRE(util::extendHomeDir("/abc~") == "/abc~");
 
     REQUIRE(util::replaceHomeDir(util::extendHomeDir("~/abc")) == "~/abc");
+}
+
+TEST_CASE("util::trim") {
+    REQUIRE(util::trim("abc")=="abc");
+    REQUIRE(util::trim(" abc")=="abc");
+    REQUIRE(util::trim("\tabc")=="abc");
+    REQUIRE(util::trim("\nabc")=="abc");
+    REQUIRE(util::trim("\n abc")=="abc");
+    REQUIRE(util::trim("\n \tabc")=="abc");
+    REQUIRE(util::trim("a bc")=="a bc");
+    REQUIRE(util::trim(" a bc")=="a bc");
+    REQUIRE(util::trim(" a bc ")=="a bc");
+    REQUIRE(util::trim(" a b c ")=="a b c");
+    REQUIRE(util::trim(" a\tbc ")=="a\tbc");
+}
+
+TEST_CASE("util::replaceAll") {
+    std::string str = "aaXXcc";
+    SECTION("normal usage") {
+        util::replaceAll(str, "XX", "bb");
+        REQUIRE(str=="aabbcc");
+    }
+    SECTION("from not found") {
+        util::replaceAll(str, "YY", "bb");
+        REQUIRE(str=="aaXXcc");
+    }
+    SECTION("from at the beginning") {
+        util::replaceAll(str, "aa", "zz");
+        REQUIRE(str=="zzXXcc");
+    }
+    SECTION("from at the end") {
+        util::replaceAll(str, "cc", "ZZ");
+        REQUIRE(str=="aaXXZZ");
+    }
+    SECTION("from larger than to") {
+        util::replaceAll(str, "XX", "Z");
+        REQUIRE(str=="aaZcc");
+    }
+    SECTION("from smaller than to") {
+        util::replaceAll(str, "XX", "ZZZ");
+        REQUIRE(str=="aaZZZcc");
+    }
+    SECTION("multiple replacements") {
+        util::replaceAll(str, "a", "Y");
+        REQUIRE(str=="YYXXcc");
+    }
+    SECTION("multiple replacements, from smaller than to") {
+        util::replaceAll(str, "a", "YZ");
+        REQUIRE(str=="YZYZXXcc");
+    }
+    SECTION("str empty") {
+        str = "";
+        util::replaceAll(str, "a", "b");
+        REQUIRE(str=="");
+    }
+    SECTION("from empty") {
+        util::replaceAll(str, "", "a");
+        REQUIRE(str=="aaXXcc");
+    }
+    SECTION("to empty") {
+        util::replaceAll(str, "XX", "");
+        REQUIRE(str=="aacc");
+    }
+}
+
+TEST_CASE("util::replaceChar") {
+    REQUIRE(util::replaceChar("aBc", 'B', 'b')=="abc");
+    REQUIRE(util::replaceChar("abc", 'X', 'x')=="abc");
+    REQUIRE(util::replaceChar("abc", 'a', 'A')=="Abc");
+    REQUIRE(util::replaceChar("abcabc", 'a', 'A')=="AbcAbc");
+    REQUIRE(util::replaceChar("", 'a', 'A').empty());
+}
+
+TEST_CASE("util::biggestValue") {
+    REQUIRE(util::biggestValue({1000, 1})==1000);
+    REQUIRE(util::biggestValue({1, 1000})==1000);
+
+    REQUIRE(util::biggestValue({1000, 1, 2})==1000);
+    REQUIRE(util::biggestValue({1, 1000, 2})==1000);
+    REQUIRE(util::biggestValue({1, 2, 1000})==1000);
+
+    REQUIRE(util::biggestValue({1000, 1, 2, 3})==1000);
+    REQUIRE(util::biggestValue({1, 1000, 2, 3})==1000);
+    REQUIRE(util::biggestValue({1, 2, 1000, 3})==1000);
+    REQUIRE(util::biggestValue({1, 2, 3, 1000})==1000);
+}
+
+TEST_CASE("util::doesTransformationInverseWindingOrder") {
+    REQUIRE_FALSE(util::doesTransformationInverseWindingOrder(glm::mat4(1.0f)));
+    REQUIRE_FALSE(util::doesTransformationInverseWindingOrder(glm::translate(glm::mat4(1.0f), {1, 2, 3})));
+    REQUIRE_FALSE(util::doesTransformationInverseWindingOrder(glm::rotate(glm::mat4(1.0f), 1.0f, {1, 2, 3})));
+    REQUIRE_FALSE(util::doesTransformationInverseWindingOrder(glm::scale(glm::mat4(1.0f), {1, 2, 3})));
+    REQUIRE(util::doesTransformationInverseWindingOrder(glm::scale(glm::mat4(1.0f), {-1, 2, 3})));
+    REQUIRE_FALSE(util::doesTransformationInverseWindingOrder(glm::scale(glm::mat4(1.0f), {-1, -2, 3})));
+    REQUIRE(util::doesTransformationInverseWindingOrder(glm::scale(glm::mat4(1.0f), {-1, -2, -3})));
+}
+
+TEST_CASE("util::vectorSum") {
+    REQUIRE(util::vectorSum({1.0f, 2.0f})==Approx(3.0f));
+    REQUIRE(util::vectorSum({1.0f, 2.0f, 3.0f})==Approx(6.0f));
+    REQUIRE(util::vectorSum({1.0f, 2.0f, 3.0f, 4.0f})==Approx(10.0f));
+}
+
+TEST_CASE("util::formatBytesValue") {
+    REQUIRE(util::formatBytesValue(1)=="1B");
+    REQUIRE(util::formatBytesValue(10)=="10B");
+    REQUIRE(util::formatBytesValue(100)=="100B");
+    REQUIRE(util::formatBytesValue(1023)=="1023B");
+    REQUIRE(util::formatBytesValue(1024)=="1.00KB");
+    REQUIRE(util::formatBytesValue(1025)=="1.00KB");
+    REQUIRE(util::formatBytesValue(10456)=="10.2KB");
+    REQUIRE(util::formatBytesValue(104567)=="102KB");
+    REQUIRE(util::formatBytesValue(1045678)=="1021KB");
+    REQUIRE(util::formatBytesValue(10456789)=="9.97MB");
+
+    REQUIRE(util::formatBytesValue(1ull<<10)=="1.00KB");
+    REQUIRE(util::formatBytesValue(1ull<<20)=="1.00MB");
+    REQUIRE(util::formatBytesValue(1ull<<30)=="1.00GB");
+    REQUIRE(util::formatBytesValue(1ull<<40)=="1.00TB");
+    REQUIRE(util::formatBytesValue(1ull<<50)=="1024TB");
+    REQUIRE(util::formatBytesValue(1ull<<51)=="2048TB");
+}
+template<auto val>
+using value_wrapper = std::integral_constant<decltype(val), val>;
+
+TEMPLATE_TEST_CASE("util::memeqzero", "", value_wrapper<5>, value_wrapper<50>, value_wrapper<100>) {
+    uint8_t buf1[TestType::value] = {0};
+    REQUIRE(util::memeqzero(buf1, TestType::value));
+
+    SECTION("modify first byte") {
+        buf1[0] = 1;
+        REQUIRE_FALSE(util::memeqzero(buf1, TestType::value));
+    }
+    SECTION("modify middle byte") {
+        buf1[2] = 1;
+        REQUIRE_FALSE(util::memeqzero(buf1, TestType::value));
+    }
+    SECTION("modify last byte") {
+        buf1[TestType::value-1] = 1;
+        REQUIRE_FALSE(util::memeqzero(buf1, TestType::value));
+    }
+}
+
+TEST_CASE("util::fileToString") {
+    auto filename = std::filesystem::temp_directory_path() / "BrickSimUnitTest.txt";
+
+    std::ofstream out(filename);
+    out << "Hello World!";
+    out.close();
+
+    REQUIRE(util::fileToString(filename)=="Hello World!");
+
+    std::filesystem::remove(filename);
+}
+
+TEST_CASE("util::minForEachComponent") {
+    REQUIRE(util::minForEachComponent({1, 1}, {2, 2})==glm::vec2(1, 1));
+    REQUIRE(util::minForEachComponent({1, 2}, {2, 1})==glm::vec2(1, 1));
+
+    REQUIRE(util::minForEachComponent({1, 2, 3}, {3, 2, 1})==glm::vec3(1, 2, 1));
+
+    REQUIRE(util::minForEachComponent({1, 2, 3, 4}, {5, 4, 3, 2})==glm::vec4(1, 2, 3, 2));
 }

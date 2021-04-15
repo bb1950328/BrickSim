@@ -1,4 +1,4 @@
-name: CMake Linux Build
+name: CMake Build
 on:
   pull_request:
   push:
@@ -207,8 +207,8 @@ jobs:
         working-directory: ${{runner.workspace}}/build
         run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
         env:
-          CC: gcc-10
-          CXX: g++-10
+          CC: clang
+          CXX: clang++
 
       - name: get info
         run: |

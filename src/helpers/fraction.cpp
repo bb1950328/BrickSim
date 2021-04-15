@@ -1,7 +1,6 @@
-
-
 #include <stdexcept>
 #include <execution>
+#include <numeric>
 #include "fraction.h"
 #include "util.h"
 
@@ -10,8 +9,7 @@ Fraction::Fraction(long a, long b) : a(a), b(b) {
     simplify();
 }
 
-Fraction::Fraction(const Fraction &copyFrom) : a(copyFrom.a), b(copyFrom.b) {
-}
+Fraction::Fraction(const Fraction &copyFrom) = default;
 
 void Fraction::checkBnot0() const {
     if (0 == b) {

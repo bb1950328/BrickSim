@@ -78,3 +78,6 @@ TEST_CASE("testFailing1") {
 TEST_CASE("testFailing2") {
     REQUIRE(9*9==3*3*3);
 }
+TEST_CASE("testFailing3") {
+    REQUIRE(2*2!=2+2);
+}

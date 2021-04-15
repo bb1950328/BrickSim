@@ -1,11 +1,9 @@
-// element_tree.cpp
-// Created by bb1950328 on 02.10.20.
-//
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
 
 #include "element_tree.h"
 #include "config.h"
-#include "ldr_file_repository.h"
-#include "ldr_colors.h"
+#include "ldr_files/ldr_file_repo.h"
 
 namespace etree {
 
@@ -27,7 +25,7 @@ namespace etree {
 
     const glm::mat4 &Node::getAbsoluteTransformation() const {
         if (!absoluteTransformationValid) {
-            absoluteTransformation = relativeTransformation * parent->getAbsoluteTransformation();
+            absoluteTransformation = relativeTransformation * parent.lock()->getAbsoluteTransformation();
             absoluteTransformationValid = true;
         }
         return absoluteTransformation;
@@ -37,8 +35,7 @@ namespace etree {
         return type;
     }
 
-    Node::Node(Node *parent) {
-        this->parent = parent;
+    Node::Node(std::shared_ptr<Node> parent) : parent(std::move(parent)) {
         type = TYPE_OTHER;
     }
 
@@ -50,42 +47,37 @@ namespace etree {
         return true;
     }
 
-    const std::vector<Node *> &Node::getChildren() const {
+    const std::vector<std::shared_ptr<Node>> &Node::getChildren() const {
         return children;
     }
 
-    void Node::addChild(Node *newChild) {
+    void Node::addChild(const std::shared_ptr<Node>& newChild) {
         children.push_back(newChild);
     }
 
-    void Node::deleteChild(Node *childToDelete) {
+    void Node::deleteChild(const std::shared_ptr<Node>& childToDelete) {
         auto it = children.begin();
         while (*it != childToDelete && it != children.end()) {
             ++it;
         }
         if (it != children.end()) {
-            //delete *it;//todo do this to free memory but it throws some corrupted list errors....
             children.erase(it);
         }
     }
 
-    Node::~Node() {
-        for (const auto &child : children) {
-            delete child;
-        }
-    }
+    Node::~Node() = default;
 
     bool MeshNode::isColorUserEditable() const {
         return true;
     }
 
-    void LdrNode::addToMesh(Mesh *mesh, bool windingInversed) {
-        ldr_color_repo::LdrInstanceDummyColor *dummyColor = &ldr_color_repo::getInstanceDummyColor();
-        for (auto element : ldrFile->elements) {
+    void LdrNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
+        auto dummyColor = ldr_color_repo::getInstanceDummyColor();
+        for (const auto& element : ldrFile->elements) {
             switch (element->getType()) {
                 case 0: break;
                 case 1: {
-                    auto *sfElement = dynamic_cast<LdrSubfileReference *>(element);
+                    auto sfElement = std::dynamic_pointer_cast<LdrSubfileReference>(element);
                     if (childrenWithOwnNode.find(sfElement) == childrenWithOwnNode.end()) {
                         mesh->addLdrSubfileReference(dummyColor, sfElement, glm::mat4(1.0f), windingInversed);
                     }
@@ -103,56 +95,38 @@ namespace etree {
         }
     }
 
-    MpdSubfileNode *findMpdNodeAndAddSubfileNode(LdrFile *ldrFile, LdrColor *ldrColor, Node *actualNode) {
+    std::shared_ptr<MpdSubfileNode> findMpdNodeAndAddSubfileNode(const std::shared_ptr<LdrFile>& ldrFile, LdrColorReference ldrColor, const std::shared_ptr<Node>& actualNode) {
         if (actualNode->getType() == TYPE_MULTI_PART_DOCUMENT) {
             //check if the subfileNode already exists
             for (const auto &child : actualNode->getChildren()) {
                 if (child->getType() == TYPE_MPD_SUBFILE) {
-                    auto mpdSubfileChild = dynamic_cast<MpdSubfileNode *>(child);
+                    auto mpdSubfileChild = std::dynamic_pointer_cast<MpdSubfileNode>(child);
                     if (ldrFile == mpdSubfileChild->ldrFile) {
                         return mpdSubfileChild;
                     }
                 }
             }
             //the node doesn't exist, we have to create it
-            auto *addedNode = new MpdSubfileNode(ldrFile, ldrColor, actualNode);
+            auto addedNode = std::make_shared<MpdSubfileNode>(ldrFile, ldrColor, actualNode);
+            addedNode->createChildNodes();
             actualNode->addChild(addedNode);
             return addedNode;
-        } else if (actualNode->parent == nullptr) {
+        } else if (actualNode->parent.expired()) {
             return nullptr;
         } else {
-            return findMpdNodeAndAddSubfileNode(ldrFile, ldrColor, actualNode->parent);
+            return findMpdNodeAndAddSubfileNode(ldrFile, ldrColor, actualNode->parent.lock());
         }
     }
 
-    LdrNode::LdrNode(NodeType nodeType, LdrFile *ldrFile, LdrColor *ldrColor, Node *parent) : MeshNode(ldrColor, parent), ldrFile(ldrFile) {
+    LdrNode::LdrNode(NodeType nodeType, const std::shared_ptr<LdrFile>& ldrFile, const LdrColorReference ldrColor, const std::shared_ptr<Node>& parent) : MeshNode(ldrColor, parent), ldrFile(ldrFile) {
         type = nodeType;
         this->parent = parent;
         this->setColor(ldrColor);
         displayName = ldrFile->getDescription();
-        for (const auto &element: ldrFile->elements) {
-            if (element->getType() == 1) {
-                auto *sfElement = dynamic_cast<LdrSubfileReference *>(element);
-                auto *subFile = sfElement->getFile();
-                Node *newNode = nullptr;
-                if (subFile->metaInfo.type == MPD_SUBFILE) {
-                    auto *subFileNode = findMpdNodeAndAddSubfileNode(subFile, sfElement->color, this);
-                    newNode = new MpdSubfileInstanceNode(subFileNode, sfElement->color, this);
-                    childrenWithOwnNode.insert(sfElement);
-                } else if (subFile->metaInfo.type == PART) {
-                    childrenWithOwnNode.insert(sfElement);
-                    newNode = new PartNode(subFile, sfElement->color, this);
-                }
-                if (nullptr != newNode) {
-                    children.push_back(newNode);
-                    newNode->setRelativeTransformation(sfElement->getTransformationMatrix());
-                }
-            }
-        }
     }
 
     void *LdrNode::getMeshIdentifier() const {
-        return reinterpret_cast<void *>(ldrFile);
+        return ldrFile.get();
     }
 
     std::string LdrNode::getDescription() {
@@ -167,28 +141,34 @@ namespace etree {
         }
     }
 
-    void LdrNode::addSubfileInstanceNode(LdrFile *subFile, LdrColor* instanceColor) {
-        MpdSubfileNode *subfileNode = findMpdNodeAndAddSubfileNode(subFile, ldr_color_repo::get_color(1), this);
-        this->children.push_back(new MpdSubfileInstanceNode(subfileNode, instanceColor, this));
+    void LdrNode::addSubfileInstanceNode(const std::shared_ptr<LdrFile>& subFile, const LdrColorReference instanceColor) {
+        auto subfileNode = findMpdNodeAndAddSubfileNode(subFile, {1}, shared_from_this());
+        auto instanceNode = std::make_shared<MpdSubfileInstanceNode>(subfileNode, instanceColor, shared_from_this());
+        this->children.push_back(instanceNode);
     }
 
-    Node* ElementTree::loadLdrFile(const std::string &filename) {
-        auto *newNode = new MpdNode(ldr_file_repo::get_file(filename), ldr_color_repo::get_color(2), &rootNode);
-        rootNode.addChild(newNode);
-        return newNode;
-    }
-
-    void ElementTree::print() {
-        printFromNode(0, &rootNode);
-    }
-
-    void ElementTree::printFromNode(int indent, Node *node) {
-        for (int i = 0; i < indent; ++i) {
-            std::cout << ' ';
-        }
-        std::cout << node->displayName << std::endl;
-        for (const auto &child: node->getChildren()) {
-            printFromNode(indent + 2, child);
+    void LdrNode::createChildNodes() {
+        if (!childNodesCreated) {
+            for (const auto &element: ldrFile->elements) {
+                if (element->getType() == 1) {
+                    auto sfElement = std::dynamic_pointer_cast<LdrSubfileReference>(element);
+                    auto subFile = sfElement->getFile();
+                    std::shared_ptr<Node> newNode = nullptr;
+                    if (subFile->metaInfo.type == MPD_SUBFILE) {
+                        auto subFileNode = findMpdNodeAndAddSubfileNode(subFile, sfElement->color, shared_from_this());
+                        newNode = std::make_shared<MpdSubfileInstanceNode>(subFileNode, sfElement->color, shared_from_this());
+                        childrenWithOwnNode.insert(sfElement);
+                    } else if (subFile->metaInfo.type == PART) {
+                        childrenWithOwnNode.insert(sfElement);
+                        newNode = std::make_shared<PartNode>(subFile, sfElement->color, shared_from_this());
+                    }
+                    if (nullptr != newNode) {
+                        children.push_back(newNode);
+                        newNode->setRelativeTransformation(sfElement->getTransformationMatrix());
+                    }
+                }
+            }
+            childNodesCreated = true;
         }
     }
 
@@ -207,7 +187,7 @@ namespace etree {
         return mpdSubfileNode->getMeshIdentifier();
     }
 
-    void MpdSubfileInstanceNode::addToMesh(Mesh *mesh, bool windingInversed) {
+    void MpdSubfileInstanceNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
         mpdSubfileNode->addToMesh(mesh, windingInversed);
     }
 
@@ -219,7 +199,7 @@ namespace etree {
         return false;
     }
 
-    MpdSubfileInstanceNode::MpdSubfileInstanceNode(MpdSubfileNode *mpdSubfileNode, LdrColor *color, Node *parent) : mpdSubfileNode(mpdSubfileNode), MeshNode(color, parent) {
+    MpdSubfileInstanceNode::MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, LdrColorReference color, std::shared_ptr<Node> parent) : mpdSubfileNode(mpdSubfileNode), MeshNode(color, std::move(parent)) {
         type = TYPE_MPD_SUBFILE_INSTANCE;
         this->displayName = mpdSubfileNode->displayName;
     }
@@ -236,14 +216,14 @@ namespace etree {
         return true;
     }
 
-    MpdNode::MpdNode(LdrFile *ldrFile, LdrColor *ldrColor, Node *parent) : LdrNode(TYPE_MULTI_PART_DOCUMENT, ldrFile, ldrColor, parent) {
+    MpdNode::MpdNode(const std::shared_ptr<LdrFile>& ldrFile, const LdrColorReference ldrColor, const std::shared_ptr<Node>& parent) : LdrNode(TYPE_MULTI_PART_DOCUMENT, ldrFile, ldrColor, parent) {
     }
 
     bool MpdSubfileNode::isDisplayNameUserEditable() const {
         return true;
     }
 
-    MpdSubfileNode::MpdSubfileNode(LdrFile *ldrFile, LdrColor *color, Node *parent) : LdrNode(TYPE_MPD_SUBFILE, ldrFile, color, parent) {
+    MpdSubfileNode::MpdSubfileNode(const std::shared_ptr<LdrFile>& ldrFile, const LdrColorReference color, const std::shared_ptr<Node>& parent) : LdrNode(TYPE_MPD_SUBFILE, ldrFile, color, parent) {
         visible = false;
     }
 
@@ -251,27 +231,28 @@ namespace etree {
         return false;
     }
 
-    PartNode::PartNode(LdrFile *ldrFile, LdrColor *ldrColor, Node *parent) : LdrNode(TYPE_PART, ldrFile, ldrColor, parent) {
+    PartNode::PartNode(const std::shared_ptr<LdrFile>& ldrFile, const LdrColorReference ldrColor, const std::shared_ptr<Node>& parent) : LdrNode(TYPE_PART, ldrFile, ldrColor, parent) {
     }
 
-    MeshNode::MeshNode(LdrColor *color, Node *parent) : Node(parent) {
-        this->color = color;
+    MeshNode::MeshNode(LdrColorReference color, std::shared_ptr<Node> parent) : Node(std::move(parent)), color(color) {
         type = TYPE_MESH;
     }
 
-    LdrColor *MeshNode::getDisplayColor() const {
-        if (color->code == LdrColor::MAIN_COLOR_CODE && parent != nullptr && (parent->getType() & TYPE_MESH) > 0) {
-            return dynamic_cast<MeshNode *>(parent)->getDisplayColor();
-        } else {
-            return color;
+    LdrColorReference MeshNode::getDisplayColor() const {
+        if (!parent.expired()) {
+            const auto parentValue = parent.lock();
+            if (color.get()->code == LdrColor::MAIN_COLOR_CODE && (parentValue->getType() & TYPE_MESH) > 0) {
+                return std::dynamic_pointer_cast<MeshNode>(parentValue)->getDisplayColor();
+            }
         }
+        return color;
     }
 
-    void MeshNode::setColor(LdrColor *newColor) {
+    void MeshNode::setColor(LdrColorReference newColor) {
         MeshNode::color = newColor;
     }
 
-    LdrColor *MeshNode::getElementColor() const {
+    LdrColorReference MeshNode::getElementColor() const {
         return color;
     }
 
@@ -289,17 +270,31 @@ namespace etree {
         }
     }
 
-    util::RGBcolor getColorOfType(const NodeType &type) {
+    color::RGB getColorOfType(const NodeType &type) {
         switch (type) {
-            case TYPE_MPD_SUBFILE_INSTANCE: return config::get_color(config::COLOR_MPD_SUBFILE_INSTANCE);
-            case TYPE_MPD_SUBFILE: return config::get_color(config::COLOR_MPD_SUBFILE);
-            case TYPE_MULTI_PART_DOCUMENT: return config::get_color(config::COLOR_MULTI_PART_DOCUMENT);
-            case TYPE_PART: return config::get_color(config::COLOR_OFFICAL_PART);//todo unoffical part
+            case TYPE_MPD_SUBFILE_INSTANCE: return config::getColor(config::COLOR_MPD_SUBFILE_INSTANCE);
+            case TYPE_MPD_SUBFILE: return config::getColor(config::COLOR_MPD_SUBFILE);
+            case TYPE_MULTI_PART_DOCUMENT: return config::getColor(config::COLOR_MULTI_PART_DOCUMENT);
+            case TYPE_PART: return config::getColor(config::COLOR_OFFICAL_PART);//todo unoffical part
             case TYPE_OTHER:
             case TYPE_ROOT:
             case TYPE_MESH:
             case TYPE_LDRFILE:
-            default: return util::RGBcolor(255, 255, 255);
+            default: return color::RGB(255, 255, 255);
         }
     }
+
+    std::shared_ptr<Node> getFirstSelectedNode(std::shared_ptr<Node> rootNode) {
+        if (rootNode->selected) {
+            return rootNode;
+        }
+        for (const auto &child : rootNode->getChildren()) {
+            auto retVal = getFirstSelectedNode(child);
+            if (retVal) {
+                return retVal;
+            }
+        }
+        return nullptr;
+    }
 }
+#pragma clang diagnostic pop

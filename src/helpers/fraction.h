@@ -1,6 +1,4 @@
-// fraction.h
-// Created by bb1950328 on 17.10.20.
-//
+
 
 #ifndef BRICKSIM_FRACTION_H
 #define BRICKSIM_FRACTION_H
@@ -44,6 +42,10 @@ public:
 
     [[nodiscard]] std::string to_string() const;
     [[nodiscard]] std::string to_multiline_string() const;
+
+    [[nodiscard]] long getA() const;
+    [[nodiscard]] long getB() const;
+
     friend std::ostream &operator<<(std::ostream &os, const Fraction &fraction);
 };
 #endif //BRICKSIM_FRACTION_H

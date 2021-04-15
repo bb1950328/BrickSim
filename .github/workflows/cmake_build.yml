@@ -1,0 +1,190 @@
+name: CMake Linux Build
+on:
+  pull_request:
+  push:
+    paths-ignore:
+      - "docs/**"
+      - '**/*.md'
+      - '**/*.txt'
+env:
+  BUILD_TYPE: Release
+jobs:
+  buildLinux:
+    if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip linux ci')"
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    
+    - name: Setup Workspace
+      run: ./setup_workspace.sh
+
+    - if: "contains(github.event.head_commit.message, 'codeql')"
+      name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        languages: cpp
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      env:
+        CC: gcc-10
+        CXX: g++-10
+
+#    - name: get info
+#      run: |
+#        gcc --version
+#        whereis gcc
+#        echo "runner.workspace: \"${{runner.workspace}}\""
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build . --target BrickSim BrickSimTests --config $BUILD_TYPE -j $(nproc --all)
+
+    - if: "contains(github.event.head_commit.message, 'codeql')"
+      name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1
+      with:
+        config-file: ./.github/codeql/codeql-config.yml
+
+    - name: Create .deb using CPack
+      run: |
+        LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{runner.workspace}}/build/lib
+        echo "$LD_LIBRARY_PATH"
+        sudo ldconfig
+        cpack --config ${{runner.workspace}}/build/CPackConfig.cmake
+
+    - name: Copy the .deb file
+      run: cp -f ${{runner.workspace}}/BrickSim/_CPack_Packages/Linux/DEB/BrickSim.deb ${{runner.workspace}}/BrickSim/BrickSim.deb
+
+    - name: Upload Binary
+      uses: actions/upload-artifact@v2
+      with:
+        name: BrickSimLinux
+        path: |
+          ${{runner.workspace}}/BrickSim/BrickSim.deb
+          ${{runner.workspace}}/BrickSim/README.md
+
+    - name: Try to find binary
+      run: find ${{runner.workspace}} -type f -executable -print
+
+    - name: Upload BrickSimTestsLinux
+      uses: actions/upload-artifact@v2
+      with:
+        name: BrickSimTestsLinux
+        path: ${{runner.workspace}}/build/src/test/BrickSimTests
+  test:
+    name: Catch2 Unittests
+    needs: buildLinux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download test artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: BrickSimTestsLinux
+      - name: Download libraries
+        run: sudo apt-get install -y libspdlog1 libzip5
+      - name: Make tests executable
+        run: chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
+      - name: Run tests with JUnit XML output
+        continue-on-error: true
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/unitTestReport.xml
+      - name: Run tests with Console output
+        if: failure()
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: UnitTestReport
+          path: ${{runner.workspace}}/unitTestReport.xml
+  publishTestResults:
+    name: Publish Catch2 Test Results
+    needs: test
+    runs-on: ubuntu-latest
+    if: success() || failure()
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: UnitTestReport
+          path: artifacts
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          files: ./**/*.xml
+          check_name: Catch2 Test Results
+          comment_title: Catch2 Test Results
+
+  buildWindows:
+    if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip windows ci')"
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            git
+            unzip
+            mingw-w64-x86_64-toolchain
+            mingw-w64-i686-toolchain
+            base-devel
+            mingw-w64-x86_64-cmake
+            mingw-w64-i686-cmake
+            libcurl-devel
+            mingw-w64-i686-freeglut
+            mingw-w64-x86_64-freeglut
+            mingw-w64-x86_64-glm
+            mingw-w64-i686-glm
+            mingw-w64-x86_64-libzip
+            mingw-w64-i686-libzip
+            mingw-w64-x86_64-spdlog
+
+      - name: Setup workspace
+        run: ./setup_workspace.sh
+
+      #    - name: Get info
+      #      run: |
+      #        echo $PWD
+      #        echo "runner.workspace: \"${{runner.workspace}}\""
+      #        git describe --tags
+      #        ls -l /c/msys64/mingw64/bin | grep zip
+
+      - name: Build
+        env:
+          CC: /C/msys64/mingw64/bin/gcc.exe
+          CXX: /C/msys64/mingw64/bin/g++.exe
+        run: |
+          cmake -G "MinGW Makefiles" . -DCMAKE_PREFIX_PATH=/C/mingw64 -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(./scripts/get_git_commit_count.sh) -DTOTAL_HOURS:STRING=$(./scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(./scripts/get_git_tag.sh)
+          cmake --build . --target BrickSim --config Release  -j $(nproc --all)
+
+      - name: Try to find binary
+        working-directory: ${{runner.workspace}}
+        run: find . -name "*.exe"
+
+      - name: Upload BrickSim
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimWindows
+          # todo include README.md
+          path: ${{runner.workspace}}\BrickSim\BrickSim.exe

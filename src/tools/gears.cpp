@@ -1,101 +1,95 @@
-//
-// Created by bb1950328 on 15.10.2020.
-//
 
+
+#include <map>
 #include "gears.h"
 
 namespace gears {
     Gear::Gear(const int id,
+               const char *description,
                const int numTeeth,
                const int radiusLdu,
                const GearType type,
-               std::set<std::string> ldrParts) : id(id),
-                                                 numTeeth(numTeeth),
-                                                 radiusLDU(radiusLdu),
-                                                 type(type),
-                                                 ldrParts(std::move(ldrParts)) {
+               std::set<const char *> ldrParts) : id(id),
+                                                  description(description),
+                                                  numTeeth(numTeeth),
+                                                  radiusLDU(radiusLdu),
+                                                  type(type),
+                                                  ldrParts(std::move(ldrParts)) {
 
     }
 
-    Fraction GearPair::getRatio() {
-        return Fraction(driver.numTeeth, follower.numTeeth);
+    bool Gear::operator==(const Gear &rhs) const {
+        return id == rhs.id;
     }
 
-    GearPair::GearPair(const Gear &driver, const Gear &follower) : driver(driver), follower(follower) {
+    bool Gear::operator!=(const Gear &rhs) const {
+        return id != rhs.id;
+    }
+
+    Fraction GearPair::getRatio() const {
+        return Fraction(driver->numTeeth, follower->numTeeth);
+    }
+
+    GearPair::GearPair(const gear_t &driver, const gear_t &follower) : driver(driver), follower(follower) {
 
     }
 
-    bool GearPair::is_valid() const {
+    bool GearPair::isValid() const {
         //todo maybe a 2d bool table is faster
-        if (follower.type == GearType::WORM) {
+        if (follower->type == GearType::WORM) {
             return false;
         }
-        if (follower.type == GearType::INTERNAL_SPUR) {
-            switch (driver.type) {
+        if (follower->type == GearType::INTERNAL_SPUR) {
+            switch (driver->type) {
                 case GearType::WORM:
                 case GearType::INTERNAL_SPUR:
-                case GearType::EXTERNAL_BEVEL:
-                    return false;
+                case GearType::EXTERNAL_BEVEL:return false;
                 case GearType::EXTERNAL_DOUBLE_BEVEL:
                 case GearType::EXTERNAL_SPUR_AND_SINGLE_BEVEL:
-                case GearType::EXTERNAL_SPUR:
-                    return true;
+                case GearType::EXTERNAL_SPUR:return true;
             }
-        } else if (follower.type == GearType::EXTERNAL_BEVEL) {
-            switch (driver.type) {
+        } else if (follower->type == GearType::EXTERNAL_BEVEL) {
+            switch (driver->type) {
                 case GearType::WORM:
                 case GearType::EXTERNAL_SPUR:
-                case GearType::INTERNAL_SPUR:
-                    return false;
+                case GearType::INTERNAL_SPUR:return false;
                 case GearType::EXTERNAL_SPUR_AND_SINGLE_BEVEL:
                 case GearType::EXTERNAL_DOUBLE_BEVEL:
-                case GearType::EXTERNAL_BEVEL:
-                    return true;
+                case GearType::EXTERNAL_BEVEL:return true;
             }
-        } else if (follower.type == GearType::EXTERNAL_SPUR) {
-            switch (driver.type) {
-                case GearType::EXTERNAL_BEVEL:
-                    return false;
+        } else if (follower->type == GearType::EXTERNAL_SPUR) {
+            switch (driver->type) {
+                case GearType::EXTERNAL_BEVEL:return false;
                 case GearType::EXTERNAL_SPUR_AND_SINGLE_BEVEL:
                 case GearType::EXTERNAL_DOUBLE_BEVEL:
                 case GearType::WORM:
                 case GearType::EXTERNAL_SPUR:
-                case GearType::INTERNAL_SPUR:
-                    return true;
+                case GearType::INTERNAL_SPUR:return true;
             }
         }
         return true;
     }
 
-    bool GearPair::is_possible_on_liftbeam() const {
-        return (driver.radiusLDU + follower.radiusLDU) % 20 == 0;
+    bool GearPair::isPossibleOnLiftbeam() const {
+        return (driver->radiusLDU + follower->radiusLDU) % 20 == 0;
+    }
+
+    const gear_t &GearPair::getDriver() const {
+        return driver;
+    }
+
+    const gear_t &GearPair::getFollower() const {
+        return follower;
     }
 
 
-    std::vector<const Gear *> get_all_gears() {
-        //todo google how to make this a constant
-        static auto result = std::vector<const Gear *>();
-        if (result.empty()) {
-            result.push_back(&WORM_GEAR_SHORT);
-            result.push_back(&GEAR_8T);
-            result.push_back(&GEAR_12T_BEVEL);
-            result.push_back(&GEAR_12T_DOUBLE_BEVEL);
-            result.push_back(&GEAR_16T);
-            result.push_back(&GEAR_20T_BEVEL);
-            result.push_back(&GEAR_20T_DOUBLE_BEVEL);
-            result.push_back(&GEAR_24T);
-            result.push_back(&GEAR_TURNTABLE_INSIDE_24T);
-            result.push_back(&GEAR_28T_DOUBLE_BEVEL);
-            result.push_back(&GEAR_TURNTABLE_28T);
-            result.push_back(&GEAR_DIFFERENTIAL_28T);
-            result.push_back(&GEAR_36T_DOUBLE_BEVEL);
-            result.push_back(&GEAR_40T);
-            result.push_back(&GEAR_POWER_MINERS_WHEEL_48T);
-            result.push_back(&GEAR_TURNTABLE_56T);
-            result.push_back(&GEAR_TURNTABLE_60T);
-            result.push_back(&GEAR_FOUR_CURVED_RACKS_140T);
-            result.push_back(&GEAR_HAILFIRE_DROID_168T);
+    gear_collection_t &getAllGearsOfType(GearType type) {
+        static std::map<GearType, std::set<gear_t>> byType;
+        if (byType.empty()) {
+            for (const auto &gear : ALL_GEARS) {
+                byType[gear->type].insert(gear);
+            }
         }
-        return result;
+        return byType[type];
     }
 }

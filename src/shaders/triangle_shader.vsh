@@ -16,7 +16,6 @@ out float bSpecularBrightness;
 out float bShininess;
 
 uniform mat4 projectionView;
-uniform int drawSelection;
 
 void main()
 {
@@ -25,11 +24,7 @@ void main()
 
    gl_Position = projectionView * vec4(fragPos, 1.0);
 
-   if (drawSelection>0) {
-      bDiffuseColor = aIdColor;
-   } else {
-      bDiffuseColor = aDiffuseColor;
-   }
+   bDiffuseColor = aDiffuseColor;
    bAmbientFactor = aAmbientFactor;
    bSpecularBrightness = aSpecularBrightness;
    bShininess = aShininess;

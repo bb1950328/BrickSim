@@ -10,3 +10,10 @@
 [submodule "SQLiteCpp"]
 	path = src/lib/SQLiteCpp
 	url = https://github.com/SRombauts/SQLiteCpp.git
+[submodule "src/lib/IconFontCppHeaders"]
+	path = src/lib/IconFontCppHeaders
+	url = https://github.com/juliettef/IconFontCppHeaders
+[submodule "src/lib/Catch2"]
+	path = src/lib/Catch2
+	url = https://github.com/catchorg/Catch2.git
+	branch = v2.x

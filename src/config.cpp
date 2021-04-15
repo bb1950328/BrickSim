@@ -1,141 +1,166 @@
-//
-// Created by bb1950328 on 19.09.20.
-//
-
-#include <fstream>
-#include <iostream>
 #include <mutex>
+#include <map>
+#include "db.h"
 #include "config.h"
 
 namespace config {
     namespace {
-        std::map<std::string, std::string> strings;
-        std::map<std::string, long> longs;
-        std::map<std::string, double> doubles;
+        std::map<std::string, std::string> stringsCache;
+        std::map<std::string, long> intsCache;
+        std::map<std::string, bool> boolsCache;
+        std::map<std::string, double> doublesCache;
 
-        std::mutex loadMutex;
+        std::mutex stringsCacheMtx;
+        std::mutex intsCacheMtx;
+        std::mutex boolsCacheMtx;
+        std::mutex doublesCacheMtx;
+
+        void setStringNoMutex(const StringKey &key, const std::string &value) {
+            db::config::setString(key.name, value);
+            stringsCache[key.name] = value;
+        }
+
+        void setIntNoMutex(const IntKey &key, int value) {
+            db::config::setInt(key.name, value);
+            intsCache[key.name] = value;
+        }
+
+        void setDoubleNoMutex(const DoubleKey &key, double value) {
+            db::config::setDouble(key.name, value);
+            doublesCache[key.name] = value;
+        }
+
+        void setBoolNoMutex(const BoolKey &key, bool value) {
+            db::config::setBool(key.name, value);
+            boolsCache[key.name] = value;
+        }
     }
 
-    void ensure_settings_loaded() {
-        std::lock_guard<std::mutex> lockGuard(loadMutex);
-        static bool settingsLoaded = false;
-        if (!settingsLoaded) {
-            std::ifstream input("config.txt");
-            if (!input.good()) {
-                throw std::system_error(std::make_error_code(std::errc::no_such_file_or_directory), "can't find config.txt file, should be in cwd!!");
+    std::string getString(const StringKey &key) {
+        auto it = stringsCache.find(key.name);
+        if (it == stringsCache.end()) {
+            std::lock_guard<std::mutex> lg(stringsCacheMtx);
+            auto valueOpt = db::config::getString(key.name);
+            std::string value;
+            if (valueOpt.has_value()) {
+                value = valueOpt.value();
+                stringsCache.emplace(key.name, value);
+            } else {
+                value = key.defaultValue;
+                setStringNoMutex(key, value);
             }
-            for (std::string line; getline(input, line);) {
-                if (!line.empty()) {
-                    auto sep_pos = line.find('=');
-                    auto key = line.substr(0, sep_pos);
-                    auto value_str = line.substr(sep_pos+1);
+            return value;
+        }
+        return it->second;
+    }
 
-                    //todo improve type detection
-                    auto has_dot = false;
-                    auto has_nondigit = false;
-                    for (char i : value_str) {
-                        if (i=='.') {
-                            has_dot = true;
-                        } else if (!std::isdigit(i) && i!='-') {
-                            has_nondigit = true;
-                        }
-                    }
-                    if (has_nondigit) {
-                        strings[key] = value_str;
-                    } else {
-                        if (has_dot) {
-                            doubles[key] = std::stod(value_str);
-                        } else {
-                            longs[key] = std::stol(value_str);
-                        }
-                    }
-                }
+    int getInt(const IntKey &key) {
+        auto it = intsCache.find(key.name);
+        if (it == intsCache.end()) {
+            std::lock_guard<std::mutex> lg(intsCacheMtx);
+            auto valueOpt = db::config::getInt(key.name);
+            int value;
+            if (valueOpt.has_value()) {
+                value = valueOpt.value();
+                intsCache.emplace(key.name, value);
+            } else {
+                value = key.defaultValue;
+                setIntNoMutex(key, value);
             }
-            settingsLoaded = true;
-        }
-    }
-
-    std::string get_string(const Key& key) {
-        ensure_settings_loaded();
-        auto it = strings.find(key.name);
-        if (it==strings.end()) {
-            return "";
+            return value;
         }
         return it->second;
     }
 
-    long get_long(const Key& key) {
-        ensure_settings_loaded();
-        auto it = longs.find(key.name);
-        if (it==longs.end()) {
-            return 0;
+    double getDouble(const DoubleKey &key) {
+        auto it = doublesCache.find(key.name);
+        if (it == doublesCache.end()) {
+            std::lock_guard<std::mutex> lg(intsCacheMtx);
+            auto valueOpt = db::config::getDouble(key.name);
+            double value;
+            if (valueOpt.has_value()) {
+                value = valueOpt.value();
+                doublesCache.emplace(key.name, value);
+            } else {
+                value = key.defaultValue;
+                setDoubleNoMutex(key, value);
+            }
+            return value;
         }
         return it->second;
     }
 
-    double get_double(const Key& key) {
-        ensure_settings_loaded();
-        auto it = doubles.find(key.name);
-        if (it==doubles.end()) {
-            return 0.0;
+    color::RGB getColor(const ColorKey &key) {
+        return color::RGB(getString(key));
+    }
+
+    bool getBool(const BoolKey &key) {
+        auto it = boolsCache.find(key.name);
+        if (it == boolsCache.end()) {
+            std::lock_guard<std::mutex> lg(boolsCacheMtx);
+            auto valueOpt = db::config::getBool(key.name);
+            bool value;
+            if (valueOpt.has_value()) {
+                value = valueOpt.value();
+                boolsCache.emplace(key.name, value);
+            } else {
+                value = key.defaultValue;
+                setBoolNoMutex(key, value);
+            }
+            return value;
         }
         return it->second;
     }
 
-    util::RGBcolor get_color(const Key &key) {
-        ensure_settings_loaded();
-        return util::RGBcolor(get_string(key));
+    void setString(const StringKey &key, const std::string &value) {
+        std::lock_guard<std::mutex> lg(stringsCacheMtx);
+        setStringNoMutex(key, value);
     }
 
-    bool get_bool(const Key &key) {
-        ensure_settings_loaded();
-        return get_string(key)=="true";
+    void setInt(const IntKey &key, int value) {
+        std::lock_guard<std::mutex> lg(intsCacheMtx);
+        setIntNoMutex(key, value);
     }
 
-    void set_string(const Key& key, const std::string &value) {
-        ensure_settings_loaded();
-        strings[key.name] = value;
+    void setDouble(const DoubleKey &key, double value) {
+        std::lock_guard<std::mutex> lg(doublesCacheMtx);
+        setDoubleNoMutex(key, value);
     }
 
-    void set_long(const Key& key, long value) {
-        ensure_settings_loaded();
-        longs[key.name] = value;
+    void setColor(const ColorKey &key, color::RGB value) {
+        setString(key, value.asHtmlCode());
     }
 
-    void set_double(const Key& key, double value) {
-        ensure_settings_loaded();
-        doubles[key.name] = value;
+    void setBool(const BoolKey &key, bool value) {
+        std::lock_guard<std::mutex> lg(boolsCacheMtx);
+        setBoolNoMutex(key, value);
     }
 
-    void set_color(const Key &key, util::RGBcolor value) {
-        ensure_settings_loaded();
-        set_string(key, value.asHtmlCode());
+    void resetAllToDefault() {
+        std::lock_guard<std::mutex> stringsLG(stringsCacheMtx);
+        std::lock_guard<std::mutex> intsLG(intsCacheMtx);
+        std::lock_guard<std::mutex> boolsLG(boolsCacheMtx);
+        std::lock_guard<std::mutex> doublesLG(doublesCacheMtx);
+        stringsCache.clear();
+        intsCache.clear();
+        boolsCache.clear();
+        doublesCache.clear();
+        db::config::deleteAll();
     }
 
-    void set_bool(const Key &key, bool value) {
-        ensure_settings_loaded();
-        set_string(key, value?"true":"false");
+    bool Key::operator==(const Key &other) const {
+        return other.name == name;
     }
 
-    bool save() {
-        ensure_settings_loaded();
-        std::ofstream file("config.txt");
-        if (!file.good()) {
-            return false;
-        }
-        for (const auto &entry : strings) {
-            file << entry.first << "=" << entry.second << std::endl;
-        }
-        for (const auto &entry : longs) {
-            file << entry.first << "=" << entry.second << std::endl;
-        }
-        for (const auto &entry : doubles) {
-            file << entry.first << "=" << entry.second << std::endl;
-        }
-        return true;
-    }
+    Key::Key(std::string name) : name(std::move(name)) {}
 
-    bool Key::operator==(const Key& other) const {
-        return other.name==name;
-    }
+    StringKey::StringKey(const std::string &name, std::string defaultValue) : Key(name), defaultValue(std::move(defaultValue)) {}
+
+    IntKey::IntKey(const std::string &name, const int defaultValue) : Key(name), defaultValue(defaultValue) {}
+
+    DoubleKey::DoubleKey(const std::string &name, const double defaultValue) : Key(name), defaultValue(defaultValue) {}
+
+    ColorKey::ColorKey(const std::string &name, const color::RGB &defaultValue) : StringKey(name, defaultValue.asHtmlCode()), defaultValue(defaultValue) {}
+
+    BoolKey::BoolKey(const std::string &name, const bool defaultValue) : Key(name), defaultValue(defaultValue) {}
 }

@@ -1,36 +1,59 @@
-// util.cpp
-// Created by bb1950328 on 20.09.20.
-//
-
-#define GLM_ENABLE_EXPERIMENTAL
 
 #include <algorithm>
+#include <numeric>
 #include <iostream>
 #include <filesystem>
 #include <glm/gtx/string_cast.hpp>
+#include <curl/curl.h>
 #include "util.h"
-#include "../git_stats.h"
+#include "../config.h"
+#include "../lib/stb_image_write.h"
+#include "../lib/stb_image.h"
+#include "../controller.h"
+#include "platform_detection.h"
+#include "../db.h"
+#include <cstdlib>
+#include <imgui.h>
+#include <mutex>
+#include <spdlog/spdlog.h>
+#include <fcntl.h>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
 
-#ifdef _WIN32
-
+#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
 #include <windows.h>
-
 #endif
 
-#include <stdlib.h>
-#include <GL/gl.h>
-#include <imgui.h>
-#include <GLFW/glfw3.h>
-#include <fstream>
+#ifdef __SSE2__
+#include <immintrin.h>
+#elif defined(__ARM_NEON) || defined(__ARM_NEON__)
+#include <arm_neon.h>
+#endif
 
 namespace util {
-    std::string extend_home_dir(const std::string &input) {
-        return extend_home_dir_path(input).string();
+    namespace {
+
+        bool isStbiVerticalFlipEnabled = false;
     }
 
-    std::filesystem::path extend_home_dir_path(const std::string &input) {
+    std::string extendHomeDir(const std::string &input) {
+        return extendHomeDirPath(input).string();
+    }
+
+    std::string replaceHomeDir(const std::string &input) {
+        const std::string homeDir = getenv(USER_ENV_VAR);
+        if (startsWith(input, homeDir)) {
+            return '~' + input.substr(homeDir.size());
+        }
+        return input;
+    }
+
+    std::filesystem::path extendHomeDirPath(const std::string &input) {
         if (input[0] == '~' && (input[1] == '/' || input[1] == '\\')) {
             return std::filesystem::path(getenv(USER_ENV_VAR)) / std::filesystem::path(input.substr(2));
+        } else if (input[0] == '~' && input.size()==1) {
+            return std::filesystem::path(getenv(USER_ENV_VAR));
         } else {
             return std::filesystem::path(input);
         }
@@ -55,35 +78,174 @@ namespace util {
         return result;
     }
 
-    std::string as_lower(const std::string &string) {
-        auto result = std::string();
-        for (const auto &ch: string) {
-            result.push_back(std::tolower(ch));
+    void asLower(const char *input, char *output, size_t length) {
+#ifdef BRICKSIM_USE_OPTIMIZED_VARIANTS
+#ifdef __SSE2__
+        const __m128i asciiA = _mm_set1_epi8('A' - 1);
+        const __m128i asciiZ = _mm_set1_epi8('Z' + 1);
+        const __m128i diff = _mm_set1_epi8('a' - 'A');
+        while (length >= 16) {
+            __m128i inp = _mm_loadu_si128((__m128i *) input);
+            /* >= 'A': 0xff, < 'A': 0x00 */
+            __m128i greaterEqualA = _mm_cmpgt_epi8(inp, asciiA);
+            /* <= 'Z': 0xff, > 'Z': 0x00 */
+            __m128i lessEqualZ = _mm_cmplt_epi8(inp, asciiZ);
+            /* 'Z' >= x >= 'A': 0xFF, else 0x00 */
+            __m128i mask = _mm_and_si128(greaterEqualA, lessEqualZ);
+            /* 'Z' >= x >= 'A': 'a' - 'A', else 0x00 */
+            __m128i toAdd = _mm_and_si128(mask, diff);
+            /* add to change to lowercase */
+            __m128i added = _mm_add_epi8(inp, toAdd);
+            _mm_storeu_si128((__m128i *) output, added);
+            length -= 16;
+            input += 16;
+            output += 16;
         }
+#elif defined(__ARM_NEON) || defined(__ARM_NEON__)
+        const uint8x16_t asciiA = vdupq_n_u8('A');
+        const uint8x16_t asciiZ = vdupq_n_u8('Z' + 1);
+        const uint8x16_t diff = vdupq_n_u8('a' - 'A');
+        while (length >= 16) {
+            uint8x16_t inp = vld1q_u8((uint8_t *)input);
+            uint8x16_t greaterThanA = vcgtq_u8(inp, asciiA);
+            uint8x16_t lessEqualZ = vcltq_u8(inp, asciiZ);
+            uint8x16_t mask = vandq_u8(greaterThanA, lessEqualZ);
+            uint8x16_t toAdd = vandq_u8(mask, diff);
+            uint8x16_t added = vaddq_u8(inp, toAdd);
+            vst1q_u8((uint8_t *)output, added);
+            length -= 16;
+            input += 16;
+            output += 16;
+        }
+#endif
+#endif
+        while (length-- > 0) {
+            *output = tolower(*input);
+            ++input;
+            ++output;
+        }
+    }
+
+    std::string asLower(const std::string &string) {
+        std::string result;
+        result.resize(string.length());
+        asLower(string.c_str(), result.data(), string.length());
         return result;
     }
 
-    bool ends_with(std::string const &fullString, std::string const &ending) {
-        if (fullString.length() >= ending.length()) {
-            return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
-        } else {
-            return false;
+    void asUpper(const char *input, char *output, size_t length) {
+#ifdef BRICKSIM_USE_OPTIMIZED_VARIANTS
+#ifdef __SSE2__
+        const __m128i asciia = _mm_set1_epi8('a' - 1);
+        const __m128i asciiz = _mm_set1_epi8('z' + 1);
+        const __m128i diff = _mm_set1_epi8('a' - 'A');
+        while (length >= 16) {
+            __m128i inp = _mm_loadu_si128((__m128i *) input);
+            /* > 'a': 0xff, < 'a': 0x00 */
+            __m128i greaterThana = _mm_cmpgt_epi8(inp, asciia);
+            /* <= 'z': 0xff, > 'z': 0x00 */
+            __m128i lessEqualz = _mm_cmplt_epi8(inp, asciiz);
+            /* 'z' >= x >= 'a': 0xFF, else 0x00 */
+            __m128i mask = _mm_and_si128(greaterThana, lessEqualz);
+            /* 'z' >= x >= 'a': 'a' - 'A', else 0x00 */
+            __m128i toSub = _mm_and_si128(mask, diff);
+            /* subtract to change to uppercase */
+            __m128i added = _mm_sub_epi8(inp, toSub);
+            _mm_storeu_si128((__m128i *) output, added);
+            length -= 16;
+            input += 16;
+            output += 16;
+        }
+#elif defined(__ARM_NEON) || defined(__ARM_NEON__)
+        const uint8x16_t asciia = vdupq_n_u8('a' - 1);
+        const uint8x16_t asciiz = vdupq_n_u8('z' + 1);
+        const uint8x16_t diff = vdupq_n_u8('a' - 'A');
+        while (length >= 16) {
+            uint8x16_t inp = vld1q_u8((uint8_t *)input);
+            uint8x16_t greaterThana = vcgtq_u8(inp, asciia);
+            uint8x16_t lessEqualz = vcltq_u8(inp, asciiz);
+            uint8x16_t mask = vandq_u8(greaterThana, lessEqualz);
+            uint8x16_t toSub = vandq_u8(mask, diff);
+            uint8x16_t added = vsubq_u8(inp, toSub);
+            vst1q_u8((uint8_t *)output, added);
+            length -= 16;
+            input += 16;
+            output += 16;
+        }
+#endif
+#endif
+        while (length-- > 0) {
+            *output = toupper(*input);
+            ++input;
+            ++output;
         }
     }
 
-    bool starts_with(std::string const &fullString, std::string const &start) {
-        return fullString.rfind(start, 0) == 0;
+    std::string asUpper(const std::string &string) {
+        std::string result;
+        result.resize(string.length());
+        asUpper(string.c_str(), result.data(), string.length());
+        return result;
     }
 
-    void cout_mat4(glm::mat4 mat) {/*
-        std::cout << "⌈" << glm::to_string(mat[0]) << "⌉\n";
-        std::cout << "|" << glm::to_string(mat[1]) << "|\n";
-        std::cout << "|" << glm::to_string(mat[2]) << "|\n";
-        std::cout << "⌊" << glm::to_string(mat[3]) << "⌋\n";*/
-        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
-        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
-        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
-        printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+    void toLowerInPlace(char *string) {
+        asLower(string, string, strlen(string));
+    }
+
+    void toUpperInPlace(char *string) {
+        asUpper(string, string, strlen(string));
+    }
+
+    bool endsWithInternal(const char* fullString, size_t fullStringSize, const char* ending, size_t endingSize) {
+        if (endingSize > fullStringSize) {
+            return false;
+        }
+        return strncmp(fullString+fullStringSize-endingSize, ending, endingSize)==0;
+    }
+
+    bool endsWith(std::string const &fullString, std::string const &ending) {
+        return endsWithInternal(fullString.c_str(), fullString.size(), ending.c_str(), ending.size());
+    }
+
+    bool endsWith(const char* fullString, const char* ending) {
+        return endsWithInternal(fullString, strlen(fullString), ending, strlen(ending));
+    }
+
+    bool startsWith(std::string const &fullString, std::string const &start) {
+        if (fullString.length() < start.length()) {
+            return false;
+        }
+        return startsWith(fullString.c_str(), start.c_str());
+    }
+    bool startsWith(const char* fullString, const char* start) {
+        do {
+            if (*start != *fullString) {
+                return false;
+            }
+            ++start;
+            ++fullString;
+        } while (*start && *fullString);
+        if (*start == 0) {
+            return true;
+        } else {
+            return *fullString != 0;
+        }
+    }
+
+    void coutMat4(glm::mat4 mat) {
+        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
+        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
+        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
+        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+
+        printf("{{%8.4f, %8.4f, %8.4f, %8.4f},", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
+        printf("{%8.4f, %8.4f, %8.4f, %8.4f},", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
+        printf("{%8.4f, %8.4f, %8.4f, %8.4f},", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
+        printf("{%8.4f, %8.4f, %8.4f, %8.4f}}\n", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+    }
+
+    void coutVec(glm::vec4 vec) {
+        printf("{%8.4f, %8.4f, %8.4f, %8.4f}\n", vec[0], vec[1], vec[2], vec[3]);
     }
 
     void replaceAll(std::string &str, const std::string &from, const std::string &to) {
@@ -109,71 +271,33 @@ namespace util {
         return result;
     }
 
-    float biggest_value(glm::vec2 vector) {
+    float biggestValue(glm::vec2 vector) {
         return std::max(vector.x, vector.y);
     }
 
-    float biggest_value(glm::vec3 vector) {
+    float biggestValue(glm::vec3 vector) {
         return std::max(std::max(vector.x, vector.y), vector.z);
     }
 
-    float biggest_value(glm::vec4 vector) {
+    float biggestValue(glm::vec4 vector) {
         return std::max(std::max(vector.x, vector.y), std::max(vector.z, vector.w));
     }
 
-    unsigned long gcd(unsigned long a, unsigned long b) {
-        //from https://www.geeksforgeeks.org/steins-algorithm-for-finding-gcd/
-        if (a == 0)
-            return b;
-        if (b == 0)
-            return a;
-
-        unsigned long k;
-        for (k = 0; (a | b) != 0 == 0; ++k) {
-            a >>= 1u;
-            b >>= 1u;
-        }
-
-        while ((a > 1) == 0) {
-            a >>= 1u;
-        }
-
-        do {
-            while ((b > 1) == 0) {
-                b >>= 1u;
-            }
-
-            if (a > b) {
-                std::swap(a, b);
-            }
-
-            b = (b - a);
-        } while (b != 0);
-
-        return a << k;
-    }
-
-    unsigned long lcm(unsigned long a, unsigned long b) {
-        return a / gcd(a, b) * b;//https://stackoverflow.com/a/3154503/8733066
-    }
-
-    void open_default_browser(const std::string &link) {
-#ifdef _WIN32
+    void openDefaultBrowser(const std::string &link) {
+        spdlog::info("openDefaultBrowser(\"{}\")", link);
+#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
         ShellExecute(nullptr, "open", link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);//todo testing
-#endif
-#ifdef __APPLE__
-        std::string command = std::string("open ") + link;//todo testing
-        std::cout << command << std::endl;
-        system(command.c_str());
-#elif __linux
+#elif defined(BRICKSIM_PLATFORM_SOME_APPLE)
+        std::string command = std::string("open ") + link;
+#elif defined(BRICKSIM_PLATFORM_LINUX)
         std::string command = std::string("xdg-open ") + link;
-        std::cout << command << std::endl;
-        system(command.c_str());
 #endif
-    }
-
-    RGBcolor::RGBcolor(const std::string &htmlCode) {
-        std::sscanf(htmlCode.c_str(), "#%2hx%2hx%2hx", &red, &green, &blue);
+#if defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_SOME_APPLE)
+        int exitCode = system(command.c_str());
+        if (exitCode != 0) {
+            spdlog::warn("command \"{}\" exited with code {}", command, exitCode);
+        }
+#endif
     }
 
     glm::vec3 triangleCentroid(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3) {
@@ -192,48 +316,15 @@ namespace util {
         return glm::dot(cross, vec3) < 0.0f;
     }
 
-    glm::vec3 convertIntToColorVec3(unsigned int value) {
-        unsigned char bluePart = value & 0xffu;//blue first is intended
-        value >>= 8u;
-        unsigned char greenPart = value & 0xffu;
-        value >>= 8u;
-        unsigned char redPart = value & 0xffu;
-        return glm::vec3(redPart / 255.0f, greenPart / 255.0f, bluePart / 255.0f);
-    }
-
-    unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue) {
-        unsigned int result = ((unsigned int) red) << 16u | ((unsigned int) green) << 8u | blue;
-        return result;
-    }
-
-    std::vector<std::string> getSystemInfo() {
-        std::vector<std::string> result;
-        const GLubyte *vendor = glGetString(GL_VENDOR);
-        const GLubyte *renderer = glGetString(GL_RENDERER);
-        result.push_back(std::string("sizeof(void*):\t") + std::to_string(sizeof(void *)) + " Bytes or " + std::to_string(sizeof(void *) * 8) + " Bits");
-        result.push_back(std::string("sizeof(char):\t") + std::to_string(sizeof(char)) + " Bytes or " + std::to_string(sizeof(char) * 8) + " Bits");
-        result.push_back(std::string("sizeof(int):\t") + std::to_string(sizeof(int)) + " Bytes or " + std::to_string(sizeof(int) * 8) + " Bits");
-        result.push_back(std::string("sizeof(long):\t") + std::to_string(sizeof(long)) + " Bytes or " + std::to_string(sizeof(long) * 8) + " Bits");
-        result.push_back(std::string("sizeof(float):\t") + std::to_string(sizeof(float)) + " Bytes or " + std::to_string(sizeof(float) * 8) + " Bits");
-        result.push_back(std::string("sizeof(double):\t") + std::to_string(sizeof(double)) + " Bytes or " + std::to_string(sizeof(double) * 8) + " Bits");
-        result.push_back(std::string("GPU Vendor:\t") + std::string(reinterpret_cast<const char *>(vendor)));
-        result.push_back(std::string("GPU Renderer:\t") + std::string(reinterpret_cast<const char *>(renderer)));
-        result.push_back(std::string("Git Commit Hash:\t")+git_stats::lastCommitHash);
-        result.push_back(std::string("Dear ImGUI Version:\t")+IMGUI_VERSION);
-        //result.push_back(std::string("GLM Version:\t")+GLM_VERSION_MESSAGE);//todo
-        result.push_back(std::string("GLFW Version:\t")+std::to_string(GLFW_VERSION_MAJOR)+"."+std::to_string(GLFW_VERSION_MINOR)+"."+std::to_string(GLFW_VERSION_REVISION));
-        return result;
-    }
-
-    float vector_sum(glm::vec2 vector) {
+    float vectorSum(glm::vec2 vector) {
         return vector.x + vector.y;
     }
 
-    float vector_sum(glm::vec3 vector) {
+    float vectorSum(glm::vec3 vector) {
         return vector.x + vector.y + vector.z;
     }
 
-    float vector_sum(glm::vec4 vector) {
+    float vectorSum(glm::vec4 vector) {
         return vector.x + vector.y + vector.z + vector.w;
     }
 
@@ -249,111 +340,6 @@ namespace util {
         resultStream << /*resultStream.precision(3) <<*/ doubleBytes << bytePrefixes[prefixIndex];
         return resultStream.str();
     }
-
-    std::string RGBcolor::asHtmlCode() const {
-        char buffer[8];
-        snprintf(buffer, 8, "#%02x%02x%02x", red, green, blue);
-        auto result = std::string(buffer);
-        return result;
-    }
-
-    RGBcolor::RGBcolor(glm::vec3 vector) {
-        red = vector.x * 255;
-        green = vector.y * 255;
-        blue = vector.z * 255;
-    }
-
-    glm::vec3 RGBcolor::asGlmVector() const {
-        return glm::vec3(red / 255.0f, green / 255.0f, blue / 255.0f);
-    }
-
-    RGBcolor::RGBcolor(HSVcolor hsv) {
-        if (hsv.saturation == 0) {
-            red = hsv.value;
-            green = hsv.value;
-            blue = hsv.value;
-        } else {
-            float h = hsv.hue / 255.0f;
-            float s = hsv.saturation / 255.0f;
-            float v = hsv.value / 255.0f;
-            auto i = (int) std::floor(h * 6);
-            auto f = h * 6 - i;
-            auto p = v * (1.0f - s);
-            auto q = v * (1.0f - s * f);
-            auto t = v * (1.0f - s * (1.0f - f));
-            switch (i % 6) {
-                case 0:
-                    red = v * 255;
-                    green = t * 255;
-                    blue = p * 255;
-                    break;
-                case 1:
-                    red = q * 255;
-                    green = v * 255;
-                    blue = p * 255;
-                    break;
-                case 2:
-                    red = p * 255;
-                    green = v * 255;
-                    blue = t * 255;
-                    break;
-                case 3:
-                    red = p * 255;
-                    green = q * 255;
-                    blue = v * 255;
-                    break;
-                case 4:
-                    red = t * 255;
-                    green = p * 255;
-                    blue = v * 255;
-                    break;
-                case 5:
-                    red = v * 255;
-                    green = p * 255;
-                    blue = q * 255;
-                    break;
-                default:
-                    break;//shouldn't get here
-            }
-        }
-    }
-
-    RGBcolor::RGBcolor(unsigned short red, unsigned short green, unsigned short blue) : red(red), green(green), blue(blue) {
-
-    }
-
-    HSVcolor::HSVcolor(glm::vec3 vector) {
-        hue = vector.x * 255;
-        saturation = vector.y * 255;
-        value = vector.z * 255;
-    }
-
-    glm::vec3 HSVcolor::asGlmVector() const {
-        return glm::vec3(hue / 255.0f, saturation / 255.0f, value / 255.0f);
-    }
-
-    HSVcolor::HSVcolor(RGBcolor rgb) {
-        auto maxc = std::max(std::max(rgb.red, rgb.green), rgb.blue);
-        auto minc = std::min(std::min(rgb.red, rgb.green), rgb.blue);
-        value = maxc;
-        if (maxc != minc) {
-            const auto maxmindiff = maxc - minc;
-            saturation = maxmindiff * 1.0f / maxc;
-            auto rc = (maxc - rgb.red) * 1.0f / maxmindiff;
-            auto gc = (maxc - rgb.green) * 1.0f / maxmindiff;
-            auto bc = (maxc - rgb.blue) * 1.0f / maxmindiff;
-            float h;
-            if (rgb.red == maxc) {
-                h = bc - gc;
-            } else if (rgb.green == maxc) {
-                h = 2.0f + rc - bc;
-            } else {
-                h = 4.0f + gc - rc;
-            }
-            hue = (((h / 255 / 6.0f) - (int) (h / 255 / 6.0f)) * 255.0f);
-        }
-    }
-
 
     bool memeqzero(const void *data, size_t length) {
         //from https://github.com/rustyrussell/ccan/blob/master/ccan/mem/mem.c#L92
@@ -392,5 +378,226 @@ namespace util {
 
     glm::vec4 minForEachComponent(const glm::vec4 &a, const glm::vec4 &b) {
         return {std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z), std::min(a.w, b.w)};
+    }
+
+    std::string translateBrickLinkColorNameToLDraw(std::string colorName) {
+        colorName = util::replaceChar(colorName, ' ', '_');
+        colorName = util::replaceChar(colorName, '-', '_');
+        util::replaceAll(colorName, "Gray", "Grey");
+        return colorName;
+    }
+
+    std::string translateLDrawColorNameToBricklink(std::string colorName) {
+        colorName = util::replaceChar(colorName, '_', ' ');
+        util::replaceAll(colorName, "Grey", "Gray");
+        return colorName;
+    }
+
+    bool equalsAlphanum(std::string a, std::string b) {
+        auto itA = a.cbegin();
+        auto itB = b.cbegin();
+        while (itA != a.cend() && itB != b.cend()) {
+            while (itA != a.cend() && !std::isalnum(*itA)) {
+                ++itA;
+            }
+            while (itB != b.cend() && !std::isalnum(*itB)) {
+                ++itB;
+            }
+            if ((itA==a.cend())!=(itB==b.cend())) {//
+                return false;
+            }
+            if (itA!=a.cend() && *itA != *itB) {
+                return false;
+            }
+            ++itA;
+            ++itB;
+        }
+        return true;
+    }
+
+    std::filesystem::path withoutBasePath(const std::filesystem::path &path, const std::filesystem::path &basePath) {
+        //todo this can be more efficient
+        std::string result = path.string();
+        replaceAll(result, basePath.string(), "");
+        if (result[0]==PATH_SEPARATOR) {
+            result.erase(0, 1);
+        }
+        return result;
+    }
+
+    bool writeImage(const char *path, unsigned char* pixels, unsigned int width, unsigned int height, int channels) {
+        auto path_lower = util::asLower(path);
+        stbi_flip_vertically_on_write(true);
+        if (util::endsWith(path_lower, ".png")) {
+            return stbi_write_png(path, width, height, channels, pixels, width * channels)!=0;
+        } else if (util::endsWith(path_lower, ".jpg") || util::endsWith(path, ".jpeg")) {
+            const int quality = std::min(100, std::max(5, (int) config::getInt(config::JPG_SCREENSHOT_QUALITY)));
+            return stbi_write_jpg(path, width, height, channels, pixels, quality)!=0;
+        } else if (util::endsWith(path_lower, ".bmp")) {
+            return stbi_write_bmp(path, width, height, channels, pixels)!=0;
+        } else if (util::endsWith(path_lower, ".tga")) {
+            return stbi_write_tga(path, width, height, channels, pixels)!=0;
+        } else {
+            return false;
+        }
+    }
+
+    bool containsIgnoreCase(const std::string &full, const std::string &sub) {
+        return std::search(
+                full.begin(), full.end(),
+                sub.begin(), sub.end(),
+                [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+        ) != full.end();
+    }
+
+    bool isStbiFlipVertically() {
+        return isStbiVerticalFlipEnabled;
+    }
+
+    void setStbiFlipVertically(bool value) {
+        isStbiVerticalFlipEnabled = value;
+        stbi_set_flip_vertically_on_load(value?1:0);
+    }
+
+    size_t oldWriteFunction(void *ptr, size_t size, size_t nmemb, std::string *data) {
+        data->append((char *) ptr, size * nmemb);
+        return size * nmemb;
+    }
+
+    size_t oldWriteFunction4kb(void *ptr, size_t size, size_t nmemb, std::string *data) {
+        data->append((char *) ptr, size * nmemb);
+        if (data->size()>4096) {
+            return 0;
+        }
+        return size * nmemb;
+    }
+
+
+
+    std::pair<int, std::string> requestGET(const std::string &url, bool useCache, size_t sizeLimit, int (*progressFunc)(void*, long, long, long, long)) {
+        if (useCache) {
+            auto fromCache = db::requestCache::get(url);
+            if (fromCache.has_value()) {
+                spdlog::info("Request GET {} cache hit", url);
+                return {RESPONSE_CODE_FROM_CACHE, fromCache.value()};
+            }
+        }
+        spdlog::info("Request GET {} {}", url, useCache ? " cache miss" : " without cache");
+        auto curl = curl_easy_init();
+        if (!curl) {
+            return {-1, ""};
+        };
+
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+        curl_easy_setopt(curl, CURLOPT_USERPWD, "user:pass");
+        curl_easy_setopt(curl, CURLOPT_USERAGENT,"Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.10136");//sorry microsoft ;)
+        curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
+        curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+        /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, [sizeLimit](void *ptr, size_t size, size_t nmemb, std::string *data) -> size_t {
+            data->append((char *) ptr, size * nmemb);
+            if (sizeLimit > 0 && data->size()>sizeLimit) {
+                return 0;
+            }
+            return size * nmemb;
+        });*///todo build something threadsafe which can pass sizeLimit to writeFunction
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (0<sizeLimit&&sizeLimit<4096)?oldWriteFunction4kb:oldWriteFunction);
+
+        if (progressFunc != nullptr) {
+            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+            curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progressFunc);
+        } else {
+            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+        }
+
+        std::string response_string;
+        std::string header_string;
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+        curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+
+        curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+
+        char *effectiveUrl;
+        long response_code;
+        double elapsed;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &elapsed);
+        curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &effectiveUrl);
+
+        if (useCache) {
+            db::requestCache::put(url, response_string);
+        }
+
+        return {response_code, response_string};
+    }
+
+    std::string readFileToString(const std::filesystem::path &path) {
+        FILE *f = fopen(path.string().c_str(), "rb");
+        if (f) {
+            fseek(f, 0, SEEK_END);
+            long length = ftell(f);
+            fseek(f, 0, SEEK_SET);
+            std::string buffer;
+            buffer.resize(length);
+            size_t bytesRead = fread(&buffer[0], 1, length, f);
+            if (bytesRead != length) {
+                spdlog::warn("reading file {}: {} bytes read, but reported size is {} bytes.", path.string(), bytesRead, length);
+                buffer.resize(bytesRead);
+            }
+            fclose(f);
+            return buffer;
+        } else {
+            spdlog::error("can't read file {}: ", path.string(), strerror(errno));
+            throw std::invalid_argument(strerror(errno));
+        }
+    }
+
+    float calculateDistanceOfPointToLine(const glm::vec2 &line_start, const glm::vec2 &line_end, const glm::vec2 &point) {
+        //https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points
+        float numerator = std::abs((line_end.x - line_start.x) * (line_start.y - point.y) - (line_start.x - point.x) * (line_end.y - line_start.y));
+        float denominator = std::sqrt(std::pow(line_end.x - line_start.x, 2.0f) + std::pow(line_end.y - line_start.y, 2.0f));
+        return numerator / denominator;
+    }
+
+    float calculateDistanceOfPointToLine(const glm::usvec2 &line_start, const glm::usvec2 &line_end, const glm::usvec2 &point) {
+        int numerator = std::abs((line_end.x - line_start.x) * (line_start.y - point.y) - (line_start.x - point.x) * (line_end.y - line_start.y));
+        float denominator = std::sqrt(std::pow(line_end.x - line_start.x, 2.0f) + std::pow(line_end.y - line_start.y, 2.0f));
+        return numerator / denominator;
+    }
+
+    NormalProjectionResult normalProjectionOnLine(const glm::vec2 &lineStart, const glm::vec2 &lineEnd, const glm::vec2 &point) {
+        //https://stackoverflow.com/a/47366970/8733066
+        //             point
+        //             +
+        //          /  |
+        //       /     |
+        // start-------⦝----- end
+        //             ↑
+        //         nearestPointOnLine
+        NormalProjectionResult result{};
+        glm::vec2 line = lineEnd - lineStart;
+        result.lineLength = glm::length(line);
+        glm::vec2 lineUnit = line / result.lineLength;
+        glm::vec2 startToPoint = point - lineStart;
+        result.projectionLength = glm::dot(startToPoint, lineUnit);
+
+        if (result.projectionLength > result.lineLength) {
+            result.nearestPointOnLine = lineEnd;
+            result.projectionLength = result.lineLength;
+        } else if (result.projectionLength < 0.0f) {
+            result.nearestPointOnLine = lineStart;
+            result.projectionLength = 0.0f;
+        } else {
+            glm::vec2 projection = lineUnit * result.projectionLength;
+            glm::vec2 pointOnLine = lineStart + projection;
+            result.nearestPointOnLine = pointOnLine;
+        }
+        result.distancePointToLine = glm::length(point-result.nearestPointOnLine);
+
+        return result;
     }
 }

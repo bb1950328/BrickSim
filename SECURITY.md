@@ -1,0 +1,2 @@
+# Reporting Security Issues
+It is safer for all users if security vulnerabilities are not publicly reported. If you found one, please write an e-mail directly to the creator of BrickSim ([bb1950328@gmail.com](mailto:bb1950328@gmail.com)).

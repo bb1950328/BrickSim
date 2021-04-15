@@ -1,6 +1,4 @@
-// price_guide_provider.h
-// Created by bab21 on 03.11.20.
-//
+
 
 #ifndef BRICKSIM_PRICE_GUIDE_PROVIDER_H
 #define BRICKSIM_PRICE_GUIDE_PROVIDER_H
@@ -37,18 +35,22 @@
 
 namespace price_guide_provider {
     struct PriceGuide {
+        bool available;
+
         std::string currency;
 
+        //these values are undefined if available==false
         int totalLots;
         int totalQty;
         float minPrice;
         float avgPrice;
-        float gtqAvgPrice;
+        float qtyAvgPrice;
         float maxPrice;
     };
     bool initialize();
 
-    std::vector<PriceGuide> getPriceGuide(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, bool forceRefresh = false);
+    PriceGuide getPriceGuide(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, bool forceRefresh = false);
+    std::optional<PriceGuide> getPriceGuideIfCached(const std::string& partCode, const std::string& currencyCode, const std::string& colorName);
 }
 
 #endif //BRICKSIM_PRICE_GUIDE_PROVIDER_H

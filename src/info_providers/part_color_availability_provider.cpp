@@ -1,30 +1,30 @@
-// part_color_availability_provider.cpp
-// Created by bab21 on 01.11.20.
-//
+
 
 #include <fstream>
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include "part_color_availability_provider.h"
 
 namespace part_color_availability_provider {
 
     namespace {
-        std::map<std::string, const LdrColor*> colorsByName;
-        std::map<const std::string, std::set<const LdrColor*>> colorsAvailable;
+        std::map<std::string, LdrColorReference> colorsByName;
+        std::map<const std::string, std::set<LdrColorReference>> colorsAvailable;
 
         bool isDataAvailable = false;
+
         void ensureDataLoaded() {
             static bool initialized = false;
             if (!initialized) {
                 std::ifstream codesFile("codes.txt");
                 if (!codesFile.good()) {
-                    std::cout << "WARNING: codes.txt not found" << std::endl;
+                    spdlog::warn("codes.txt not found");
                     isDataAvailable = false;
                 } else {
                     isDataAvailable = true;
 
                     for (const auto &item : ldr_color_repo::getColors()) {
-                        colorsByName[item.second.name] = &item.second;
+                        colorsByName[item.second->name] = item.second->asReference();
                     }
 
                     std::string line;
@@ -34,16 +34,14 @@ namespace part_color_availability_provider {
                         auto secondTab = line.find('\t', firstTab+1);
                         auto partCode = line.substr(0, firstTab);
                         auto colorName = line.substr(firstTab+1, secondTab-firstTab-1);
-                        colorName = util::replaceChar(colorName, ' ', '_');
-                        colorName = util::replaceChar(colorName, '-', '_');
-                        util::replaceAll(colorName, "Gray", "Grey");
+                        colorName = util::translateBrickLinkColorNameToLDraw(colorName);
                         auto it = colorsByName.find(colorName);
                         if (it != colorsByName.end()) {
                             colorsAvailable[partCode].insert(it->second);
                         } else {
                             static std::set<std::string> warningPrinted;
                             if (warningPrinted.find(colorName)==warningPrinted.end()) {
-                                std::cout << "WARNING: found color \"" << colorName << "\" in codes.txt, but not in ldr_colors" << std::endl;
+                                spdlog::warn("found color \"{}\" in codes.txt, but not in ldr_colors", colorName);
                                 warningPrinted.insert(colorName);
                             }
                         }
@@ -52,9 +50,11 @@ namespace part_color_availability_provider {
                 initialized = true;
             }
         }
+
+
     }
 
-    std::optional<std::set<const LdrColor *>> getAvailableColorsForPart(LdrFile *part) {
+    std::optional<std::set<LdrColorReference>> getAvailableColorsForPart(const std::shared_ptr<LdrFile>& part) {
         ensureDataLoaded();
         std::string partCode = part->metaInfo.name;
         util::replaceAll(partCode, ".dat", "");

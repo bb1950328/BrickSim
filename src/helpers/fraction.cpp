@@ -1,8 +1,7 @@
-// fraction.cpp
-// Created by bb1950328 on 17.10.20.
-//
+
 
 #include <stdexcept>
+#include <execution>
 #include "fraction.h"
 #include "util.h"
 
@@ -21,9 +20,9 @@ void Fraction::checkBnot0() const {
 }
 
 void Fraction::simplify() {
-    auto gcd_ = util::gcd(std::abs(a), std::abs(b));
-    a /= gcd_;
-    b /= gcd_;
+    auto gcd = std::gcd(std::abs(a), std::abs(b));
+    a /= gcd;
+    b /= gcd;
 }
 
 Fraction Fraction::operator+(const Fraction &other) const {
@@ -143,4 +142,12 @@ std::string Fraction::to_multiline_string() const {
     auto strA = std::to_string(a);
     auto strB = std::to_string(b);
     return strA + "\n" + std::string(std::max(strA.size(), strB.size()), '-') + "\n" + strB;
+}
+
+long Fraction::getA() const {
+    return a;
+}
+
+long Fraction::getB() const {
+    return b;
 }

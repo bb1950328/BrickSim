@@ -9,9 +9,9 @@ on:
 env:
   BUILD_TYPE: Release
 jobs:
-  build:
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
-    runs-on: ubuntu-20.04 # todo set this back to ubuntu-latest when ubuntu-latest is 20.04 or higher
+  buildLinux:
+    if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip linux ci')"
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -39,11 +39,11 @@ jobs:
         CC: gcc-10
         CXX: g++-10
 
-    - name: get infos
-      run: |
-        gcc --version
-        whereis gcc
-        echo "runner.workspace: \"${{runner.workspace}}\""
+#    - name: get info
+#      run: |
+#        gcc --version
+#        whereis gcc
+#        echo "runner.workspace: \"${{runner.workspace}}\""
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
@@ -84,7 +84,7 @@ jobs:
         path: ${{runner.workspace}}/build/src/test/BrickSimTests
   test:
     name: Catch2 Unittests
-    needs: build
+    needs: buildLinux
     runs-on: ubuntu-latest
     steps:
       - name: Download test artifact
@@ -99,7 +99,7 @@ jobs:
         continue-on-error: true
         run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/unitTestReport.xml
       - name: Run tests with Console output
-        continue-on-error: true
+        if: failure()
         run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes
       - name: Upload Test Results
         if: always()
@@ -125,3 +125,66 @@ jobs:
           files: ./**/*.xml
           check_name: Catch2 Test Results
           comment_title: Catch2 Test Results
+
+  buildWindows:
+    if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip windows ci')"
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            git
+            unzip
+            mingw-w64-x86_64-toolchain
+            mingw-w64-i686-toolchain
+            base-devel
+            mingw-w64-x86_64-cmake
+            mingw-w64-i686-cmake
+            libcurl-devel
+            mingw-w64-i686-freeglut
+            mingw-w64-x86_64-freeglut
+            mingw-w64-x86_64-glm
+            mingw-w64-i686-glm
+            mingw-w64-x86_64-libzip
+            mingw-w64-i686-libzip
+            mingw-w64-x86_64-spdlog
+
+      - name: Setup workspace
+        run: ./setup_workspace.sh
+
+      #    - name: Get info
+      #      run: |
+      #        echo $PWD
+      #        echo "runner.workspace: \"${{runner.workspace}}\""
+      #        git describe --tags
+      #        ls -l /c/msys64/mingw64/bin | grep zip
+
+      - name: Build
+        env:
+          CC: /C/msys64/mingw64/bin/gcc.exe
+          CXX: /C/msys64/mingw64/bin/g++.exe
+        run: |
+          cmake -G "MinGW Makefiles" . -DCMAKE_PREFIX_PATH=/C/mingw64 -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(./scripts/get_git_commit_count.sh) -DTOTAL_HOURS:STRING=$(./scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(./scripts/get_git_tag.sh)
+          cmake --build . --target BrickSim --config Release  -j $(nproc --all)
+
+      - name: Try to find binary
+        working-directory: ${{runner.workspace}}
+        run: find . -name "*.exe"
+
+      - name: Upload BrickSim
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimWindows
+          # todo include README.md
+          path: ${{runner.workspace}}\BrickSim\BrickSim.exe

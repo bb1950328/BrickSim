@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_FRACTION_H
 #define BRICKSIM_FRACTION_H
 

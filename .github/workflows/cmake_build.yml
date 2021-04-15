@@ -1,7 +1,10 @@
-name: CMake Linux Build
+name: CMake Build
 on:
   pull_request:
   push:
+    branches:
+      - master
+      - stable
     paths-ignore:
       - "docs/**"
       - '**/*.md'
@@ -73,9 +76,6 @@ jobs:
         path: |
           ${{runner.workspace}}/BrickSim/BrickSim.deb
           ${{runner.workspace}}/BrickSim/README.md
-
-    - name: Try to find binary
-      run: find ${{runner.workspace}} -type f -executable -print
 
     - name: Upload BrickSimTestsLinux
       uses: actions/upload-artifact@v2
@@ -188,3 +188,53 @@ jobs:
           name: BrickSimWindows
           # todo include README.md
           path: ${{runner.workspace}}\BrickSim\BrickSim.exe
+
+  buildMac:
+    if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip mac ci')"
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Workspace
+        run: ./setup_workspace.sh
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        env:
+          CC: clang
+          CXX: clang++
+
+      - name: get info
+        run: |
+          gcc --version
+          whereis gcc
+          echo "runner.workspace: \"${{runner.workspace}}\""
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: cmake --build . --target BrickSim --config $BUILD_TYPE -j $(nproc --all)
+
+      - name: Create bundle using CPack
+        if: false #TODO configure CPack correctly so it produces a bundle file
+        run: cpack --config ${{runner.workspace}}/build/CPackConfig.cmake
+
+      - name: list files
+        run: ls -R ${{runner.workspace}}
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimMac
+          path: |
+            ${{runner.workspace}}/BrickSim/README.md
+            ${{runner.workspace}}/build/BrickSim

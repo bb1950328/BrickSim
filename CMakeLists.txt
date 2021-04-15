@@ -281,14 +281,21 @@ if (WIN32)
 endif ()
 
 if (UNIX)
-    SET(CPACK_GENERATOR "DEB")
     set(CPACK_PACKAGE_CONTACT bb1950328@gmail.com)
     set(CPACK_PACKAGE_FILE_NAME BrickSim)
+    if(APPLE)
+        set(CPACK_BUNDLE_NAME BrickSim)
+        set(CPACK_BUNDLE_ICON "${CMake_SOURCE_DIR}/resources/logo_icon.png")
+        set(CPACK_BUNDLE_PLIST "${CMake_SOURCE_DIR}/resources/Info.plist")
+        set(CPACK_BUNDLE_STARTUP_COMMAND BrickSim) # TODO maybe a startup script is needed, https://gitlab.kitware.com/cmake/community/-/wikis/doc/cpack/PackageGenerators#bundle-osx-only has more info
+    else()#Linux
+        SET(CPACK_GENERATOR "DEB")
 
-    #For some reason, shlibdeps doesn't work on the GitHub Actions server. that's why the dependencies are hardcoded
-    #uncomment the next line, run cpack locally and run 'dpkg --info _CPack_Packages/Linux/DEB/BrickSim.deb' if you want to update the dependencies
-    #set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.29), libcurl4 (>= 7.16.2), libgcc-s1 (>= 3.0), libgl1, libstdc++6 (>= 9), libx11-6, libzip5 (>= 0.10), libopengl0")
+        #For some reason, shlibdeps doesn't work on the GitHub Actions server. that's why the dependencies are hardcoded
+        #uncomment the next line, run cpack locally and run 'dpkg --info _CPack_Packages/Linux/DEB/BrickSim.deb' if you want to update the dependencies
+        #set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.29), libcurl4 (>= 7.16.2), libgcc-s1 (>= 3.0), libgl1, libstdc++6 (>= 9), libx11-6, libzip5 (>= 0.10), libopengl0")
+    endif()
 endif ()
 
 include(CPack)

@@ -10,7 +10,7 @@ env:
   BUILD_TYPE: Release
 jobs:
   buildLinux:
-    if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip linux ci')"
+    if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip linux ci') && false" #the && false to temporarily disable this build
     runs-on: ubuntu-latest
 
     steps:
@@ -74,9 +74,6 @@ jobs:
           ${{runner.workspace}}/BrickSim/BrickSim.deb
           ${{runner.workspace}}/BrickSim/README.md
 
-    - name: Try to find binary
-      run: find ${{runner.workspace}} -type f -executable -print
-
     - name: Upload BrickSimTestsLinux
       uses: actions/upload-artifact@v2
       with:
@@ -127,7 +124,7 @@ jobs:
           comment_title: Catch2 Test Results
 
   buildWindows:
-    if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip windows ci')"
+    if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip windows ci') && false" #the && false to temporarily disable this build
     runs-on: windows-latest
 
     defaults:
@@ -188,3 +185,51 @@ jobs:
           name: BrickSimWindows
           # todo include README.md
           path: ${{runner.workspace}}\BrickSim\BrickSim.exe
+
+  buildMac:
+    if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip mac ci')"
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Workspace
+        run: ./setup_workspace.sh
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        env:
+          CC: gcc-10
+          CXX: g++-10
+
+      - name: get info
+        run: |
+          gcc --version
+          whereis gcc
+          echo "runner.workspace: \"${{runner.workspace}}\""
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: cmake --build . --target BrickSim --config $BUILD_TYPE -j $(nproc --all)
+
+      - name: Create bundle using CPack
+        run: cpack --config ${{runner.workspace}}/build/CPackConfig.cmake
+
+      - name: list files
+        run: ls -R ${{runner.workspace}}
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimMac
+          path: |
+            ${{runner.workspace}}/BrickSim/README.md

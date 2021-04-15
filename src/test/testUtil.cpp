@@ -72,6 +72,9 @@ TEST_CASE("util::extendHomeDir and util::replaceHomeDir") {
     REQUIRE(util::replaceHomeDir(util::extendHomeDir("~/abc")) == "~/abc");
 }
 
-TEST_CASE("test") {
+TEST_CASE("testFailing1") {
     REQUIRE(false);
+}
+TEST_CASE("testFailing2") {
+    REQUIRE(9*9==3*3*3);
 }

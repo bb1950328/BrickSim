@@ -93,10 +93,14 @@ jobs:
           name: BrickSimTestsLinux
       - name: Download libraries
         run: sudo apt-get install -y libspdlog1 libzip5
-      - name: Run tests
-        run: |
-          chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
-          ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/unitTestReport.xml
+      - name: Make tests executable
+        run: chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
+      - name: Run tests with JUnit XML output
+        continue-on-error: true
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/unitTestReport.xml
+      - name: Run tests with Console output
+        continue-on-error: true
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v2

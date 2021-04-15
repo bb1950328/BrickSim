@@ -2,6 +2,9 @@ name: CMake Build
 on:
   pull_request:
   push:
+    branches:
+      - master
+      - stable
     paths-ignore:
       - "docs/**"
       - '**/*.md'

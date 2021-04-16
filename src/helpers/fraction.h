@@ -38,6 +38,13 @@ public:
     bool operator>=(const Fraction& other) const;
     bool operator<=(const Fraction& other) const;
 
+    bool operator==(long other) const;
+    bool operator!=(long other) const;
+    bool operator>(long other) const;
+    bool operator<(long other) const;
+    bool operator>=(long other) const;
+    bool operator<=(long other) const;
+
     [[nodiscard]] std::string to_string() const;
     [[nodiscard]] std::string to_multiline_string() const;
 

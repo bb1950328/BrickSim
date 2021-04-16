@@ -350,14 +350,6 @@ namespace util {
         return memcmp(data, p, length) == 0;
     }
 
-    std::string fileToString(const std::filesystem::path& path) {
-        https://stackoverflow.com/a/2602258/8733066
-        std::ifstream t(path);
-        std::stringstream buffer;
-        buffer << t.rdbuf();
-        return buffer.str();
-    }
-
     glm::vec2 minForEachComponent(const glm::vec2 &a, const glm::vec2 &b) {
         return {std::min(a.x, b.x), std::min(a.y, b.y)};
     }
@@ -383,17 +375,20 @@ namespace util {
         return colorName;
     }
 
-    bool equalsAlphanum(std::string a, std::string b) {
+    bool equalsAlphanum(const std::string& a, const std::string& b) {
         auto itA = a.cbegin();
         auto itB = b.cbegin();
-        while (itA != a.cend() && itB != b.cend()) {
+        while (itA != a.cend() || itB != b.cend()) {
             while (itA != a.cend() && !std::isalnum(*itA)) {
                 ++itA;
             }
             while (itB != b.cend() && !std::isalnum(*itB)) {
                 ++itB;
             }
-            if ((itA==a.cend())!=(itB==b.cend())) {//
+            if (itA==a.cend() && itB==b.cend()) {
+                return true;
+            }
+            if ((itA==a.cend())!=(itB==b.cend())) {
                 return false;
             }
             if (itA!=a.cend() && *itA != *itB) {
@@ -402,16 +397,20 @@ namespace util {
             ++itA;
             ++itB;
         }
-        return true;
+        return itA==a.cend() && itB==b.cend();
     }
 
     std::filesystem::path withoutBasePath(const std::filesystem::path &path, const std::filesystem::path &basePath) {
-        //todo this can be more efficient
-        std::string result = path.string();
-        replaceAll(result, basePath.string(), "");
-        if (result[0]==PATH_SEPARATOR) {
-            result.erase(0, 1);
+        auto itPath = path.begin();
+        auto itBase = basePath.begin();
+        while (itPath != path.end() && itBase != basePath.end() && *itPath == *itBase) {
+            ++itPath;
+            ++itBase;
         }
+        std::filesystem::path result;
+        std::for_each(itPath, path.end(), [&result](auto part){
+            result /= part;
+        });
         return result;
     }
 
@@ -568,6 +567,8 @@ namespace util {
         // start-------⦝----- end
         //             ↑
         //         nearestPointOnLine
+        //
+        // projection is from start to nearestPointOnLine
         NormalProjectionResult result{};
         glm::vec2 line = lineEnd - lineStart;
         result.lineLength = glm::length(line);
@@ -578,13 +579,14 @@ namespace util {
         if (result.projectionLength > result.lineLength) {
             result.nearestPointOnLine = lineEnd;
             result.projectionLength = result.lineLength;
+            result.projection = line;
         } else if (result.projectionLength < 0.0f) {
             result.nearestPointOnLine = lineStart;
             result.projectionLength = 0.0f;
+            result.projection = {0, 0};
         } else {
-            glm::vec2 projection = lineUnit * result.projectionLength;
-            glm::vec2 pointOnLine = lineStart + projection;
-            result.nearestPointOnLine = pointOnLine;
+            result.projection = lineUnit * result.projectionLength;
+            result.nearestPointOnLine = lineStart + result.projection;
         }
         result.distancePointToLine = glm::length(point-result.nearestPointOnLine);
 

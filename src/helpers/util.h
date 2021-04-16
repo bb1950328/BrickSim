@@ -44,9 +44,8 @@ namespace util {
     void replaceAll(std::string &str, const std::string &from, const std::string &to);
     std::string replaceChar(const std::string &str, char from, char to);
     std::string formatBytesValue(size_t bytes);
-    std::string fileToString(const std::filesystem::path &path);
     bool containsIgnoreCase(const std::string &full, const std::string &sub);
-    bool equalsAlphanum(std::string a, std::string b);
+    bool equalsAlphanum(const std::string& a, const std::string& b);
 
     //os functions
     void openDefaultBrowser(const std::string &link);

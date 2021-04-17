@@ -237,6 +237,7 @@ namespace util {
 
     void replaceAll(std::string &str, const std::string &from, const std::string &to) {
         //https://stackoverflow.com/a/3418285/8733066
+        //todo maybe this has optimization potential
         if (from.empty())
             return;
         size_t start_pos = 0;

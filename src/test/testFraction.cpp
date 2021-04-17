@@ -130,5 +130,7 @@ TEST_CASE("fractionDivision") {
     REQUIRE(fr==Fraction(81, 20));
 
     REQUIRE(Fraction(1, 4) / 2 == Fraction(1, 8));
+    REQUIRE(4==5);
+    REQUIRE(false);
 }
 

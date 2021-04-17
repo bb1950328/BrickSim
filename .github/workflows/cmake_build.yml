@@ -96,7 +96,6 @@ jobs:
       - name: Make tests executable
         run: chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
       - name: Run tests with JUnit XML output
-        continue-on-error: true
         run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/unitTestReport.xml
       - name: Run tests with Console output
         if: failure()
@@ -104,7 +103,9 @@ jobs:
 
       - name: Publish Test Result Comment
         if: always()
-        run: python3 ${{runner.workspace}}/BrickSim/.github/workflows/publish_test_results.py ${{runner.workspace}}/unitTestReport.xml ${{ github.token }} $GITHUB_SHA
+        run: |
+          wget -O ${{runner.workspace}}/publish_test_results.py https://raw.githubusercontent.com/bb1950328/BrickSim/master/.github/workflows/publish_test_results.py
+          python3 ${{runner.workspace}}/publish_test_results.py ${{runner.workspace}}/unitTestReport.xml ${{ github.token }} ${{ github.sha }}
 
       - name: Upload Test Results
         if: always()

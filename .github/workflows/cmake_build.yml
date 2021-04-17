@@ -104,6 +104,7 @@ jobs:
       - name: Publish Test Result Comment
         if: always()
         run: |
+          pip3 install PyGithub
           wget -O ${{runner.workspace}}/publish_test_results.py https://raw.githubusercontent.com/bb1950328/BrickSim/master/.github/workflows/publish_test_results.py
           python3 ${{runner.workspace}}/publish_test_results.py ${{runner.workspace}}/unitTestReport.xml ${{ github.token }} ${{ github.sha }}
 

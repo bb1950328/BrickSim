@@ -99,9 +99,8 @@ jobs:
         run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/junitTestReport.xml
       - name: Run tests with Catch2 XML output
         if: always()
-        run: |
-          ${{runner.workspace}}/BrickSim/BrickSimTests -r xml > ${{runner.workspace}}/catchTestReport.xml
-          cat ${{runner.workspace}}/catchTestReport.xml
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -r xml > ${{runner.workspace}}/catchTestReport.xml
+      - run: cat ${{runner.workspace}}/catchTestReport.xml
       - name: Run tests with Console output
         if: failure()
         run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes

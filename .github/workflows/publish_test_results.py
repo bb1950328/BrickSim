@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
     totalDurationInSeconds = sum(c.durationInSeconds for c in cases)
 
-    textLines = ["#Catch2 Test Results"]
+    textLines = ["# Catch2 Test Results"]
     textLines += [
         f"<details>",
         f"  <summary>✔ {numSuccessfulCases} case{'' if numSuccessfulCases == 1 else 's'}, {numSuccessfulAssertions} assertion{'' if numSuccessfulAssertions == 1 else 's'}</summary>",
@@ -126,7 +126,7 @@ if __name__ == '__main__':
         f"<details>",
         f"  <summary>❌ {numFailedCases} case{'' if numFailedCases == 1 else 's'}, {numFailedAssertions} assertion{'' if numFailedAssertions == 1 else 's'}</summary>",
         f"  ",
-        f"  | 🏷️ Name | 📄 File | Original | Expanded | ⏱ Duration |",
+        f"  | 🏷️ Name | 📄 File | Original | Expanded | ⏱ Duration |",  # todo don't show the table when there are 0 cases
         f"  | ------- | ------- | -------- | -------- | ----------- |",
         *[format_failed_row(c) for c in failedCases],
         f"</details>",

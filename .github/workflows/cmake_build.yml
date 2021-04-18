@@ -97,15 +97,17 @@ jobs:
         run: chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
       - name: Run tests with JUnit XML output
         run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/junitTestReport.xml
-      - name: Run tests with JUnit XML output
+      - name: Run tests with Catch2 XML output
         if: always()
-        run: ${{runner.workspace}}/BrickSim/BrickSimTests -r xml > ${{runner.workspace}}/catchTestReport.xml
+        run: |
+          ${{runner.workspace}}/BrickSim/BrickSimTests -r xml > ${{runner.workspace}}/catchTestReport.xml
+          cat ${{runner.workspace}}/catchTestReport.xml
       - name: Run tests with Console output
         if: failure()
         run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes
 
       - name: Publish Test Result Comment
-        if: always()
+        if: always() # todo maybe change this to failure() so commits without failing tests aren't commented
         run: |
           pip3 install PyGithub
           wget -O ${{runner.workspace}}/publish_test_results.py https://raw.githubusercontent.com/bb1950328/BrickSim/master/.github/workflows/publish_test_results.py

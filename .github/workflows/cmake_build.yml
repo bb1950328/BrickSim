@@ -96,7 +96,10 @@ jobs:
       - name: Make tests executable
         run: chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
       - name: Run tests with JUnit XML output
-        run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/unitTestReport.xml
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/junitTestReport.xml
+      - name: Run tests with JUnit XML output
+        if: always()
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -r xml > ${{runner.workspace}}/catchTestReport.xml
       - name: Run tests with Console output
         if: failure()
         run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes
@@ -106,14 +109,14 @@ jobs:
         run: |
           pip3 install PyGithub
           wget -O ${{runner.workspace}}/publish_test_results.py https://raw.githubusercontent.com/bb1950328/BrickSim/master/.github/workflows/publish_test_results.py
-          python3 ${{runner.workspace}}/publish_test_results.py ${{runner.workspace}}/unitTestReport.xml ${{ github.token }} ${{ github.sha }}
+          python3 ${{runner.workspace}}/publish_test_results.py ${{runner.workspace}}/catchTestReport.xml ${{ github.token }} ${{ github.sha }}
 
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: UnitTestReport
-          path: ${{runner.workspace}}/unitTestReport.xml
+          path: ${{runner.workspace}}/junitTestReport.xml
   publishTestResults:
     name: Publish Catch2 Test Results
     needs: test

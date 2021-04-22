@@ -2,7 +2,7 @@
 #define BRICKSIM_COLOR_H
 
 #include <string>
-#include <glm/fwd.hpp>
+#include "glm/fwd.hpp"
 #include "../types.h"
 
 //RGB is a macro in some windows header

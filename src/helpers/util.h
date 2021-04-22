@@ -8,7 +8,7 @@
 #include <list>
 #include <filesystem>
 #include <ostream>
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 #include "../types.h"
 
 namespace util {

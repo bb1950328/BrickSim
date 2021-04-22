@@ -3,8 +3,8 @@
 #ifndef BRICKSIM_MESH_H
 #define BRICKSIM_MESH_H
 
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
+#include "glm/glm.hpp"
+#include "glm/gtx/transform.hpp"
 #include <vector>
 #include <set>
 #include <cstring>

@@ -4,7 +4,7 @@
 #define BRICKSIM_TEXTURE_H
 
 #include <filesystem>
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 #include "types.h"
 
 class Texture {

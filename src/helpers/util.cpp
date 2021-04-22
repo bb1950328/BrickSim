@@ -3,7 +3,7 @@
 #include <numeric>
 #include <iostream>
 #include <filesystem>
-#include <glm/gtx/string_cast.hpp>
+#include "glm/gtx/string_cast.hpp"
 #include <curl/curl.h>
 #include "util.h"
 #include "../config.h"

@@ -1,7 +1,7 @@
 
 
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/gtx/euler_angles.hpp>
+#include "glm/gtx/matrix_decompose.hpp"
+#include "glm/gtx/euler_angles.hpp"
 #include "gui.h"
 #include "../controller.h"
 #include "../info_providers/part_color_availability_provider.h"

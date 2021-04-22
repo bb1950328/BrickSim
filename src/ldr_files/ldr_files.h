@@ -6,7 +6,7 @@
 #include <vector>
 #include <map>
 #include <filesystem>
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 #include <set>
 #include <ostream>
 #include "ldr_colors.h"

@@ -160,9 +160,9 @@ jobs:
           fetch-depth: 0
 
       #- run: choco list --local-only
-      - run: choco uninstall mingw -x -y
-        shell: cmd
-        continue-on-error: true
+      # - run: choco uninstall mingw -x -y
+      #   shell: cmd
+      #   continue-on-error: true
 
       - uses: msys2/setup-msys2@v2
         with:
@@ -184,7 +184,7 @@ jobs:
       - name: Setup workspace
         run: ./setup_workspace.sh
 
-      - run: /usr/bin/find /C/msys64 -name '*g++.exe' | while read filename; do echo "$filename $($filename -dumpmachine)"; done
+      # - run: /usr/bin/find /C/msys64 -name '*g++.exe' | while read filename; do echo "$filename $($filename -dumpmachine)"; done
 
       - name: Get Clang version
         run: |

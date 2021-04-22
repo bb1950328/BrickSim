@@ -33,7 +33,7 @@ fi
 
 if [[ "$OS" == "windows" ]]; then
   echo "Installing packages using pacman..."
-  pacman -S unzip mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain base-devel mingw-w64-x86_64-cmake \
+  pacman -S unzip mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain base-devel msys2-devel mingw-w64-x86_64-cmake \
             mingw-w64-i686-cmake libcurl-devel mingw-w64-i686-freeglut mingw-w64-x86_64-freeglut \
             --noconfirm --needed
   #pacman -S "$(pacman -Ssq freeglut)" --noconfirm --needed

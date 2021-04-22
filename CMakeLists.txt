@@ -106,7 +106,7 @@ elseif (UNIX AND NOT APPLE)
     target_link_libraries(BrickSimLib -ltbb)
 endif ()
 
-set(CMAKE_VERBOSE_MAKEFILE ON) # useful for fixing build errors
+#set(CMAKE_VERBOSE_MAKEFILE ON) # useful for fixing build errors
 
 add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 add_compile_definitions(USE_SSLEAY)

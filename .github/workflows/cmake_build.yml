@@ -196,7 +196,7 @@ jobs:
       #        git describe --tags
       #        ls -l /c/msys64/mingw64/bin | grep zip
 
-      - run: find /C -name "*make*.exe"
+      - run: find /C/msys64 -name "*make*.exe"
 
       - name: Build
         env:

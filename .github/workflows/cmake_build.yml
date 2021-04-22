@@ -189,13 +189,6 @@ jobs:
       - name: Setup workspace
         run: ./setup_workspace.sh
 
-      #    - name: Get info
-      #      run: |
-      #        echo $PWD
-      #        echo "runner.workspace: \"${{runner.workspace}}\""
-      #        git describe --tags
-      #        ls -l /c/msys64/mingw64/bin | grep zip
-
       - run: /usr/bin/find /C/msys64 -name '*g++.exe' | while read filename; do echo "$filename $($filename -dumpmachine)"; done
 
       - name: Build

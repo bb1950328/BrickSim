@@ -69,7 +69,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)# https://github.com/nih-at/libzip/issues/6
 add_subdirectory(src/lib/libzip)
 target_include_directories(BrickSimLib PRIVATE zip)
 target_link_libraries(BrickSimLib zip)
-target_compile_options(zip PRIVATE -Wno-nullability-completeness)
+add_compile_options(-Wno-nullability-completeness)
 
 # SqliteCpp
 add_subdirectory(src/lib/SQLiteCpp)
@@ -93,7 +93,7 @@ add_subdirectory(src/lib/Catch2)
 
 #GLM
 find_package(glm REQUIRED)
-target_include_directories(BrickSimLib PRIVATE ${GLM_INCLUDE_DIRS})
+target_include_directories(BrickSimLib PUBLIC ${GLM_INCLUDE_DIRS})
 #target_link_libraries(BrickSimLib glm)
 
 add_subdirectory(src)

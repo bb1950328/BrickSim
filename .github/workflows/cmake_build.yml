@@ -161,6 +161,7 @@ jobs:
           fetch-depth: 0
 
       - run: choco list --local-only
+        shell: cmd
         continue-on-error: true
 
       - uses: msys2/setup-msys2@v2
@@ -203,7 +204,7 @@ jobs:
         run: |
           mkdir -p cmake-build/release${{ matrix.bits }}
           cd cmake-build/release${{ matrix.bits }}
-          cmake -G "MinGW Makefiles" ../.. -DCMAKE_PREFIX_PATH=/C/mingw64 -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(./scripts/get_git_commit_count.sh) -DTOTAL_HOURS:STRING=$(./scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(./scripts/get_git_tag.sh)
+          cmake -G "MinGW Makefiles" ../.. -DCMAKE_PREFIX_PATH=/C/mingw64 -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(../../scripts/get_git_commit_count.sh) -DTOTAL_HOURS:STRING=$(../../scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(../../scripts/get_git_tag.sh)
           cmake --build ../.. --target BrickSim --config Release  -j $(nproc --all)
 
       - name: Try to find binary

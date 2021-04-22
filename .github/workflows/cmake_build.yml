@@ -189,8 +189,8 @@ jobs:
       - name: Get Clang version
         run: |
           cd /C/msys64/mingw${{ matrix.bits }}/bin
-          ./clang.exe -- version
-          ./clang++.exe -- version
+          ./clang.exe --version
+          ./clang++.exe --version
 
       - name: Build
         env:

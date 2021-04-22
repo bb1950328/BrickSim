@@ -196,7 +196,7 @@ jobs:
       #        git describe --tags
       #        ls -l /c/msys64/mingw64/bin | grep zip
 
-      - run: /usr/bin/find . -name '*g++.exe' | while read filename; do echo "$filename $($filename -dumpmachine)"; done
+      - run: /usr/bin/find /C/msys64 -name '*g++.exe' | while read filename; do echo "$filename $($filename -dumpmachine)"; done
 
       - name: Build
         env:

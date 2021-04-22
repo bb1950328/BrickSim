@@ -186,6 +186,12 @@ jobs:
 
       - run: /usr/bin/find /C/msys64 -name '*g++.exe' | while read filename; do echo "$filename $($filename -dumpmachine)"; done
 
+      - name: Get Clang version
+        run: |
+          cd /C/msys64/mingw${{ matrix.bits }}/bin
+          ./clang.exe -- version
+          ./clang++.exe -- version
+
       - name: Build
         env:
           CC: /C/msys64/mingw${{ matrix.bits }}/bin/clang.exe

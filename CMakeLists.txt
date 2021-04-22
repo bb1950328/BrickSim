@@ -92,9 +92,10 @@ target_link_libraries(BrickSimLib spdlog::spdlog)
 add_subdirectory(src/lib/Catch2)
 
 #GLM
-find_package(glm REQUIRED)
-target_include_directories(BrickSimLib PUBLIC ${GLM_INCLUDE_DIRS})
-#target_link_libraries(BrickSimLib glm)
+#find_package(glm REQUIRED)
+#target_include_directories(BrickSimLib PUBLIC ${GLM_INCLUDE_DIRS})
+add_subdirectory(src/lib/glm)
+target_link_libraries(BrickSimLib glm::glm)
 
 add_subdirectory(src)
 

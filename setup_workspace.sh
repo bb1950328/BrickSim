@@ -21,6 +21,21 @@ case "${unameValue}" in
 esac
 #######################################################
 
+install_32bit_packages=true
+install_64bit_packages=true
+
+if [[ $# -ge 1 ]]
+then
+  if [[ "$1" -eq 'only32bit' ]]
+  then
+    install_64bit_packages=false
+  fi
+  if [[ "$1" -eq 'only64bit' ]]
+  then
+    install_32bit_packages=false
+  fi
+fi
+
 #installing dependencies
 if [[ "$OS" == "linux" ]]; then
   echo "Installing packages using apt-get..."
@@ -33,9 +48,13 @@ fi
 
 if [[ "$OS" == "windows" ]]; then
   echo "Installing packages using pacman..."
-  pacman -S unzip mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain base-devel msys2-devel mingw-w64-x86_64-cmake \
-            mingw-w64-i686-cmake libcurl-devel mingw-w64-i686-freeglut mingw-w64-x86_64-freeglut \
-            --noconfirm --needed
+  pacman -S unzip base-devel msys2-devel libcurl-devel --noconfirm --needed
+  if [ "$install_32bit_packages" ]; then
+      pacman -S mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-freeglut --noconfirm --needed
+  fi
+  if [ "$install_64bit_packages" ]; then
+      pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-freeglut --noconfirm --needed
+  fi
   #pacman -S "$(pacman -Ssq freeglut)" --noconfirm --needed
   #pacman -S openssl-devel # todo find out if these are needed
   #pacman -S mingw-w64-openssl

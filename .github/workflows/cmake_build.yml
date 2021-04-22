@@ -162,44 +162,22 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      #- run: choco list --local-only
-      # - run: choco uninstall mingw -x -y
-      #   shell: cmd
-      #   continue-on-error: true
-
       - uses: msys2/setup-msys2@v2
         with:
-          msystem: MSYS
+          msystem: ${{ matrix.msystem }}
           update: true
           install: >-
             git
             unzip
-            mingw-w64-x86_64-toolchain
-            mingw-w64-i686-toolchain
+            mingw-w64-${{ matrix.arch }}-toolchain
             base-devel
-            mingw-w64-x86_64-cmake
-            mingw-w64-i686-cmake
+            mingw-w64-${{ matrix.arch }}-cmake
             libcurl-devel
-            mingw-w64-i686-freeglut
-            mingw-w64-x86_64-freeglut
-            mingw-w64-x86_64-glm
-            mingw-w64-i686-glm
+            mingw-w64-${{ matrix.arch }}-freeglut
+            mingw-w64-${{ matrix.arch }}-glm
 
       - name: Setup workspace
-        run: ./setup_workspace.sh
-
-      - name: try to find out more about that gcc
-        continue-on-error: true
-        run: |
-          cd /C/msys64/mingw${{ matrix.bits }}/bin
-          ldd ./gcc.exe
-      - name: try to find out more about that gcc 2
-        continue-on-error: true
-        run: |
-          cd /C/msys64/mingw${{ matrix.bits }}/bin
-          echo "int main() {return 0;}" > helloworld.c
-          ./gcc.exe -v --verbose -o helloworld.exe helloworld.c
-          ls -l | grep helloworld
+        run: ./setup_workspace.sh only${{ matrix.arch }}bit
 
       - name: Build
         env:

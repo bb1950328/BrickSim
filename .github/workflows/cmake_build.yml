@@ -200,8 +200,8 @@ jobs:
 
       - name: Build
         env:
-          CC: /C/msys64/mingw${{ matrix.bits }}/bin/gcc.exe
-          CXX: /C/msys64/mingw${{ matrix.bits }}/bin/g++.exe
+          CC: /C/msys64/mingw${{ matrix.bits }}/bin/clang.exe
+          CXX: /C/msys64/mingw${{ matrix.bits }}/bin/clang++.exe
         run: |
           mkdir -p cmake-build/release${{ matrix.bits }}
           cd cmake-build/release${{ matrix.bits }}

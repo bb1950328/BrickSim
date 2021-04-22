@@ -184,11 +184,18 @@ jobs:
       - name: Setup workspace
         run: ./setup_workspace.sh
 
-      - name: Get Clang version
+      - name: try to find out more about that gcc
+        continue-on-error: true
         run: |
           cd /C/msys64/mingw${{ matrix.bits }}/bin
-          ./clang.exe --version
-          ./clang++.exe --version
+          ldd ./gcc.exe
+      - name: try to find out more about that gcc 2
+        continue-on-error: true
+        run: |
+          cd /C/msys64/mingw${{ matrix.bits }}/bin
+          echo "int main() {return 0;}" > helloworld.c
+          ./gcc.exe -v --verbose helloworld.c
+          ls -l
 
       - name: Build
         env:

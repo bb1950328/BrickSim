@@ -148,6 +148,8 @@ jobs:
       matrix:
         bits: [32, 64]
 
+    name: Windows Build (${{ matrix.bits }} bit)
+
     defaults:
       run:
         shell: msys2 {0}
@@ -157,6 +159,9 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+
+      - run: choco list --local-only
+        continue-on-error: true
 
       - uses: msys2/setup-msys2@v2
         with:
@@ -188,6 +193,8 @@ jobs:
       #        echo "runner.workspace: \"${{runner.workspace}}\""
       #        git describe --tags
       #        ls -l /c/msys64/mingw64/bin | grep zip
+
+      - run: find /C -name "*make*.exe"
 
       - name: Build
         env:

@@ -57,7 +57,6 @@ if (WIN32)
     option(MINGW_STDTHREADS_GENERATE_STDHEADERS "" ON)
     add_subdirectory(src/lib/mingw-std-threads)
 endif ()
-add_compile_options("-lphread")
 if (UNIX)
     if (NOT APPLE)
         find_package(Threads REQUIRED)
@@ -66,7 +65,7 @@ if (UNIX)
 endif ()
 
 # libzip
-#todo fix CMP0063 warning
+set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)# https://github.com/nih-at/libzip/issues/66
 add_subdirectory(src/lib/libzip)
 target_include_directories(BrickSimLib PRIVATE zip)
 target_link_libraries(BrickSimLib zip)
@@ -84,14 +83,17 @@ include_directories(${CURL_INCLUDE_DIR})
 target_link_libraries(BrickSimLib ${CURL_LIBRARIES})
 
 # spdlog
-#find_package(spdlog REQUIRED)
 add_subdirectory(src/lib/spdlog)
 target_include_directories(BrickSimLib PRIVATE spdlog::spdlog)
 target_link_libraries(BrickSimLib spdlog::spdlog)
 
-
 #Catch2
 add_subdirectory(src/lib/Catch2)
+
+#GLM
+find_package(glm REQUIRED)
+target_include_directories(BrickSimLib PRIVATE ${GLM_INCLUDE_DIRS})
+target_link_libraries(BrickSimLib glm)
 
 add_subdirectory(src)
 

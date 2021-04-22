@@ -9,7 +9,6 @@ on:
     paths-ignore:
       - "docs/**"
       - '**/*.md'
-      - '**/*.txt'
 env:
   BUILD_TYPE: Release
 jobs:
@@ -181,10 +180,6 @@ jobs:
             mingw-w64-x86_64-freeglut
             mingw-w64-x86_64-glm
             mingw-w64-i686-glm
-            mingw-w64-x86_64-libzip
-            mingw-w64-i686-libzip
-            mingw-w64-x86_64-spdlog
-            mingw-w64-i686-spdlog
 
       - name: Setup workspace
         run: ./setup_workspace.sh

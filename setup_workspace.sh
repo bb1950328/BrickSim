@@ -27,7 +27,7 @@ if [[ "$OS" == "linux" ]]; then
   sudo apt-get update
   sudo apt-get install -y build-essential mesa-utils freeglut3-dev libxinerama-dev \
                           libxrandr-dev libxcursor-dev libxi-dev libcurl4-openssl-dev \
-                          libglm-dev gcc-10 g++-10 libspdlog-dev cmake libtbb-dev
+                          libglm-dev gcc-10 g++-10 cmake libtbb-dev
   echo "packages installed."
 fi
 
@@ -35,8 +35,7 @@ if [[ "$OS" == "windows" ]]; then
   echo "Installing packages using pacman..."
   pacman -S unzip mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain base-devel mingw-w64-x86_64-cmake \
             mingw-w64-i686-cmake libcurl-devel mingw-w64-i686-freeglut mingw-w64-x86_64-freeglut \
-            mingw-w64-x86_64-glm mingw-w64-i686-glm mingw-w64-x86_64-spdlog mingw-w64-i686-spdlog \
-            --noconfirm --needed
+            mingw-w64-x86_64-glm mingw-w64-i686-glm --noconfirm --needed
   #pacman -S "$(pacman -Ssq freeglut)" --noconfirm --needed
   #pacman -S openssl-devel # todo find out if these are needed
   #pacman -S mingw-w64-openssl
@@ -53,7 +52,7 @@ if [[ "$OS" == "mac" ]]; then
     echo "brew already installed."
   fi
 
-  brew install glm spdlog
+  brew install glm
 fi
 ###########################################
 

@@ -20,3 +20,6 @@
 [submodule "src/lib/libzip"]
 	path = src/lib/libzip
 	url = https://github.com/nih-at/libzip
+[submodule "src/lib/spdlog"]
+	path = src/lib/spdlog
+	url = https://github.com/gabime/spdlog.git

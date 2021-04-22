@@ -66,21 +66,7 @@ if (UNIX)
 endif ()
 
 # libzip
-#[[if (WIN32)
-    find_package(libzip 5 REQUIRED)
-endif ()
-message("LIBZIP_INCLUDE_DIRS = ${LIBZIP_INCLUDE_DIRS}")
-include_directories(zip)
-if (UNIX)
-    if (APPLE)
-        target_link_libraries(BrickSimLib /usr/local/Cellar/libzip/1.7.3/lib/libzip.5.3.dylib)
-    else()
-        target_link_libraries(BrickSimLib libzip.so.5)
-    endif()
-else ()
-    find_library(LIBZIP_LIBRARY_LOCATION libzip)
-    target_link_libraries(BrickSimLib ${LIBZIP_LIBRARY_LOCATION})
-endif ()]]
+#todo fix CMP0063 warning
 add_subdirectory(src/lib/libzip)
 target_include_directories(BrickSimLib PRIVATE zip)
 target_link_libraries(BrickSimLib zip)
@@ -98,8 +84,11 @@ include_directories(${CURL_INCLUDE_DIR})
 target_link_libraries(BrickSimLib ${CURL_LIBRARIES})
 
 # spdlog
-find_package(spdlog REQUIRED)
+#find_package(spdlog REQUIRED)
+add_subdirectory(src/lib/spdlog)
+target_include_directories(BrickSimLib PRIVATE spdlog::spdlog)
 target_link_libraries(BrickSimLib spdlog::spdlog)
+
 
 #Catch2
 add_subdirectory(src/lib/Catch2)

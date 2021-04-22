@@ -66,7 +66,7 @@ if (UNIX)
 endif ()
 
 # libzip
-if (WIN32)
+#[[if (WIN32)
     find_package(libzip 5 REQUIRED)
 endif ()
 message("LIBZIP_INCLUDE_DIRS = ${LIBZIP_INCLUDE_DIRS}")
@@ -80,7 +80,10 @@ if (UNIX)
 else ()
     find_library(LIBZIP_LIBRARY_LOCATION libzip)
     target_link_libraries(BrickSimLib ${LIBZIP_LIBRARY_LOCATION})
-endif ()
+endif ()]]
+add_subdirectory(src/lib/libzip)
+target_include_directories(BrickSimLib PRIVATE zip)
+target_link_libraries(BrickSimLib zip)
 
 # SqliteCpp
 add_subdirectory(src/lib/SQLiteCpp)

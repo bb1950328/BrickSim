@@ -17,3 +17,6 @@
 	path = src/lib/Catch2
 	url = https://github.com/catchorg/Catch2.git
 	branch = v2.x
+[submodule "src/lib/libzip"]
+	path = src/lib/libzip
+	url = https://github.com/nih-at/libzip

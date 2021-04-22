@@ -69,7 +69,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)# https://github.com/nih-at/libzip/issues/6
 add_subdirectory(src/lib/libzip)
 target_include_directories(BrickSimLib PRIVATE zip)
 target_link_libraries(BrickSimLib zip)
-add_compile_options(-Wno-nullability-completeness)
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wno-nullability-completeness")
 
 # SqliteCpp
 add_subdirectory(src/lib/SQLiteCpp)
@@ -106,7 +106,7 @@ elseif (UNIX AND NOT APPLE)
     target_link_libraries(BrickSimLib -ltbb)
 endif ()
 
-#set(CMAKE_VERBOSE_MAKEFILE ON) # useful for fixing build errors
+set(CMAKE_VERBOSE_MAKEFILE ON) # useful for fixing build errors
 
 add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 add_compile_definitions(USE_SSLEAY)

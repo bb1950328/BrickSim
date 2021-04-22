@@ -67,7 +67,7 @@ endif ()
 
 # libzip
 if (WIN32)
-    find_package(libzip REQUIRED)
+    find_package(libzip 5 REQUIRED)
 endif ()
 message("LIBZIP_INCLUDE_DIRS = ${LIBZIP_INCLUDE_DIRS}")
 include_directories(zip)

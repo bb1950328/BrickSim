@@ -37,7 +37,7 @@ if [[ "$OS" == "windows" ]]; then
   pacman -S unzip mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain base-devel mingw-w64-x86_64-cmake \
             mingw-w64-i686-cmake libcurl-devel mingw-w64-i686-freeglut mingw-w64-x86_64-freeglut \
             mingw-w64-x86_64-glm mingw-w64-i686-glm mingw-w64-x86_64-libzip mingw-w64-i686-libzip \
-            mingw-w64-x86_64-spdlog --noconfirm --needed
+            mingw-w64-x86_64-spdlog mingw-w64-i686-spdlog --noconfirm --needed
   #pacman -S "$(pacman -Ssq freeglut)" --noconfirm --needed
   #pacman -S openssl-devel # todo find out if these are needed
   #pacman -S mingw-w64-openssl

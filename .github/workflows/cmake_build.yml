@@ -160,7 +160,8 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - run: choco list --local-only
+      #- run: choco list --local-only
+      - run: choco uninstall mingw -x -y
         shell: cmd
         continue-on-error: true
 

@@ -67,7 +67,7 @@ endif ()
 # libzip
 set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)# https://github.com/nih-at/libzip/issues/66
 add_subdirectory(src/lib/libzip)
-target_include_directories(BrickSimLib PRIVATE zip)
+target_include_directories(BrickSimLib PUBLIC zip)
 target_link_libraries(BrickSimLib zip)
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wno-nullability-completeness")
 
@@ -85,17 +85,25 @@ target_link_libraries(BrickSimLib ${CURL_LIBRARIES})
 
 # spdlog
 add_subdirectory(src/lib/spdlog)
-target_include_directories(BrickSimLib PRIVATE spdlog::spdlog)
+target_include_directories(BrickSimLib PUBLIC spdlog::spdlog)
 target_link_libraries(BrickSimLib spdlog::spdlog)
 
 #Catch2
 add_subdirectory(src/lib/Catch2)
 
 #GLM
-#find_package(glm REQUIRED)
-#target_include_directories(BrickSimLib PUBLIC ${GLM_INCLUDE_DIRS})
 add_subdirectory(src/lib/glm)
 target_link_libraries(BrickSimLib glm::glm)
+
+#tinyfiledialogs
+target_sources(BrickSimLib PUBLIC src/lib/tinyfiledialogs/tinyfiledialogs.c)
+target_include_directories(BrickSimLib PUBLIC src/lib/tinyfiledialogs)
+
+#rapidjson
+target_include_directories(BrickSimLib PUBLIC src/lib/rapidjson/include)
+
+#stb
+target_include_directories(BrickSimLib PUBLIC src/lib/stb)
 
 add_subdirectory(src)
 

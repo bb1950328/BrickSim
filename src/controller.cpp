@@ -1,10 +1,10 @@
 #include "controller.h"
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image.h"
+#include "stb_image_write.h"
 #include "info_providers/price_guide_provider.h"
 #include "db.h"
-#include "lib/stb_image.h"
-#include "lib/stb_image_write.h"
 #include "info_providers/bricklink_constants_provider.h"
 #include "latest_log_messages_tank.h"
 #include "ldr_files/ldr_file_repo.h"

@@ -6,7 +6,7 @@
 #include <spdlog/spdlog.h>
 #include "system_info.h"
 #include "../controller.h"
-#include "../lib/stb_image.h"
+#include "stb_image.h"
 
 namespace system_info {
     std::vector<std::pair<const char *, std::string>> getSystemInfo() {

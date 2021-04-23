@@ -1,4 +1,4 @@
-#include "lib/stb_image_write.h"
+#include "stb_image_write.h"
 #include "glm/gtx/string_cast.hpp"
 #include <mutex>
 #include "thumbnail_generator.h"

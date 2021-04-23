@@ -26,3 +26,12 @@
 [submodule "src/lib/glm"]
 	path = src/lib/glm
 	url = https://github.com/g-truc/glm
+[submodule "src/lib/tinyfiledialogs"]
+	path = src/lib/tinyfiledialogs
+	url = https://git.code.sf.net/p/tinyfiledialogs/code
+[submodule "src/lib/rapidjson"]
+	path = src/lib/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
+[submodule "src/lib/stb"]
+	path = src/lib/stb
+	url = https://github.com/nothings/stb.git

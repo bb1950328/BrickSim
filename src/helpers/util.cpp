@@ -1,4 +1,3 @@
-
 #include <algorithm>
 #include <numeric>
 #include <iostream>
@@ -7,8 +6,8 @@
 #include <curl/curl.h>
 #include "util.h"
 #include "../config.h"
-#include "../lib/stb_image_write.h"
-#include "../lib/stb_image.h"
+#include "stb_image_write.h"
+#include "stb_image.h"
 #include "../controller.h"
 #include "platform_detection.h"
 #include "../db.h"

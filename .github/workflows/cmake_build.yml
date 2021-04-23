@@ -47,7 +47,7 @@ jobs:
 #        gcc --version
 #        whereis gcc
 #        echo "runner.workspace: \"${{runner.workspace}}\""
-    - run: ls -l -R src/lib/rapidjson
+    - run: ls -l -R $GITHUB_WORKSPACE/src/lib/rapidjson
 
     - name: Build
       working-directory: ${{runner.workspace}}/build

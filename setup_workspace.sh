@@ -76,11 +76,6 @@ fi
 ###########################################
 
 #unzipping libraries
-rm -rf src/lib/rapidjson
-unzip src/lib/rapidjson.zip | grep -v inflating:
-mv rapidjson src/lib/rapidjson
-
-
 unzip -o -j "src/lib/glad.zip" "src/glad.c" -d "src/lib"
 
 rm -rf src/lib/include

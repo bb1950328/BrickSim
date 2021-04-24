@@ -50,7 +50,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: $BUILD_DIRECTORY
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_LIBRARY_PATH=/usr/lib/${{ matrix.arch }}-linux-gnu
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_LIBRARY_PATH=/usr/lib${{ matrix.bits }}
       env:
         CC: gcc-10
         CXX: g++-10

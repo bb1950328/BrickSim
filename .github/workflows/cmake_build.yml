@@ -27,7 +27,7 @@ jobs:
     name: Linux Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
 
     env:
-      BUILD_DIRECTORY: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
+      BUILD_DIRECTORY: $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
 
     steps:
     - uses: actions/checkout@v2
@@ -45,14 +45,14 @@ jobs:
         languages: cpp
 
     - name: Create Build Directory
-      run: mkdir -p $BUILD_DIRECTORY
+      run: mkdir -p $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
 
     - run: ls -l /usr/lib | grep linux
     - run: ls -l /usr
 
     - name: Configure CMake
       shell: bash
-      working-directory: $BUILD_DIRECTORY
+      working-directory: $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_LIBRARY_PATH=/usr/lib/${{ matrix.arch }}-linux-gnu
       env:
         CC: gcc-10
@@ -68,7 +68,7 @@ jobs:
 #        echo "runner.workspace: \"${{runner.workspace}}\""
 
     - name: Build
-      working-directory: $BUILD_DIRECTORY
+      working-directory: $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
       shell: bash
       run: cmake --build . --target BrickSim BrickSimTests --config $BUILD_TYPE -j $(nproc --all)
 
@@ -80,10 +80,10 @@ jobs:
 
     - name: Create .deb using CPack
       run: |
-        LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BUILD_DIRECTORY/lib
+        LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}/lib
         echo "$LD_LIBRARY_PATH"
         sudo ldconfig
-        cpack --config $BUILD_DIRECTORY/CPackConfig.cmake
+        cpack --config $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}/CPackConfig.cmake
 
     - name: Copy the .deb file
       run: cp -f $GITHUB_WORKSPACE/_CPack_Packages/Linux/DEB/BrickSim.deb $GITHUB_WORKSPACE/BrickSim.deb
@@ -100,7 +100,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: BrickSimTestsLinux${{ matrix.bits }}
-        path: $BUILD_DIRECTORY/src/test/BrickSimTests
+        path: $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}/src/test/BrickSimTests
   test:
     #todo run tests for 32 bit also
     name: Catch2 Unittests

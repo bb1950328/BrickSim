@@ -21,10 +21,10 @@ jobs:
       matrix:
         include: [
           { arch: x86_64, bits: 64 },
-          { arch: i686, bits: 32 }
+          { arch: i386, bits: 32 }
         ]
 
-    name: Linux Build (${{ matrix.bits }} bit / ${{ matrix.arch }} architecture)
+    name: Linux Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
 
     env:
       BUILD_DIRECTORY: $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
@@ -167,7 +167,7 @@ jobs:
           { msystem: MINGW32, arch: i686, bits: 32 }
         ]
 
-    name: Windows Build (${{ matrix.bits }} bit / ${{ matrix.arch }} architecture)
+    name: Windows Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
 
     defaults:
       run:

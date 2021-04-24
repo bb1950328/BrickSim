@@ -40,8 +40,8 @@ fi
 if [[ "$OS" == "linux" ]]; then
   echo "Installing packages using apt-get..."
   sudo apt-get update
-  sudo apt-get install -y build-essential mesa-utils gcc-10 g++-10 gcc-multilib g++-multilib cmake libxinerama-dev \
-                          libxrandr-dev libxcursor-dev libxi-dev
+  sudo apt-get install -y build-essential gcc-10 g++-10 gcc-multilib g++-multilib gcc-10-multilib g++-10-multilib \
+                          cmake mesa-utils libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev
 
   if [ "$install_32bit_packages" ]; then
     sudo apt-get install -y libgl1-mesa-dev:i386 libglu1-mesa-dev:i386 freeglut3-dev:i386 \

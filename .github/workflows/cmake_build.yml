@@ -31,6 +31,12 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
+
+    - if: ${{ matrix.arch == 'i386' }}
+      # set up multiarch
+      uses: ryankurte/action-apt@v0.3.0
+      with:
+        arch: ${{ matrix.arch }}
     
     - name: Setup Workspace
       run: ./setup_workspace.sh only${{ matrix.bits }}bit

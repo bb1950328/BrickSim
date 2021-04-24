@@ -34,7 +34,7 @@ jobs:
 
     - if: ${{ matrix.arch == 'i386' }}
       # set up multiarch
-      run: dpkg --add-architecture i386
+      run: sudo dpkg --add-architecture i386
     
     - name: Setup Workspace
       run: ./setup_workspace.sh only${{ matrix.bits }}bit

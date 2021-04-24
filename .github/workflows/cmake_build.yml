@@ -34,9 +34,7 @@ jobs:
 
     - if: ${{ matrix.arch == 'i386' }}
       # set up multiarch
-      uses: ryankurte/action-apt@v0.3.0
-      with:
-        arch: ${{ matrix.arch }}
+      run: dpkg --add-architecture i386
     
     - name: Setup Workspace
       run: ./setup_workspace.sh only${{ matrix.bits }}bit

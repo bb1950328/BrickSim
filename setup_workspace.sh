@@ -40,9 +40,17 @@ fi
 if [[ "$OS" == "linux" ]]; then
   echo "Installing packages using apt-get..."
   sudo apt-get update
-  sudo apt-get install -y build-essential mesa-utils freeglut3-dev libxinerama-dev \
-                          libxrandr-dev libxcursor-dev libxi-dev libcurl4-openssl-dev \
-                          gcc-10 g++-10 cmake libtbb-dev
+  sudo apt-get install -y build-essential mesa-utils gcc-10 g++-10 gcc-multilib g++-multilib cmake libxinerama-dev \
+                          libxrandr-dev libxcursor-dev libxi-dev
+
+  if [ "$install_32bit_packages" ]; then
+    sudo apt-get install -y libgl1-mesa-dev:i386 libglu1-mesa-dev:i386 freeglut3-dev:i386 \
+                            zlib1g-dev:i386 libssl-dev:i386 libcurl4-openssl-dev:i386 libtbb-dev:i386
+  fi
+  if [ "$install_64bit_packages" ]; then
+    # there are probably more dependencies but i didn't have a 32 bit pc to try it out
+    sudo apt-get install -y freeglut3-dev:amd64 libcurl4-openssl-dev:amd64 libtbb-dev:amd64
+  fi
   echo "packages installed."
 fi
 

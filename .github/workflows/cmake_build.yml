@@ -16,6 +16,19 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip linux ci')"
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { arch: x86_64, bits: 64 },
+          { arch: i686, bits: 32 }
+        ]
+
+    name: Linux Build (${{ matrix.bits }} bit / ${{ matrix.arch }} architecture)
+
+    env:
+      BUILD_DIRECTORY: $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
+
     steps:
     - uses: actions/checkout@v2
       with:
@@ -23,7 +36,7 @@ jobs:
         fetch-depth: 0
     
     - name: Setup Workspace
-      run: ./setup_workspace.sh
+      run: ./setup_workspace.sh only${{ matrix.bits }}bit
 
     - if: "contains(github.event.head_commit.message, 'codeql')"
       name: Initialize CodeQL
@@ -31,16 +44,19 @@ jobs:
       with:
         languages: cpp
 
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{runner.workspace}}/build
+    - name: Create Build Directory
+      run: mkdir -p $BUILD_DIRECTORY
 
     - name: Configure CMake
       shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      working-directory: $BUILD_DIRECTORY
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_LIBRARY_PATH=/usr/lib/${{ matrix.arch }}-linux-gnu
       env:
         CC: gcc-10
         CXX: g++-10
+        CFLAGS: -m${{ matrix.bits }}
+        LDFLAGS: -m${{ matrix.bits }}
+        CXXFLAGS: -m${{ matrix.bits }}
 
 #    - name: get info
 #      run: |
@@ -49,7 +65,7 @@ jobs:
 #        echo "runner.workspace: \"${{runner.workspace}}\""
 
     - name: Build
-      working-directory: ${{runner.workspace}}/build
+      working-directory: $BUILD_DIRECTORY
       shell: bash
       run: cmake --build . --target BrickSim BrickSimTests --config $BUILD_TYPE -j $(nproc --all)
 
@@ -61,28 +77,29 @@ jobs:
 
     - name: Create .deb using CPack
       run: |
-        LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{runner.workspace}}/build/lib
+        LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BUILD_DIRECTORY/lib
         echo "$LD_LIBRARY_PATH"
         sudo ldconfig
-        cpack --config ${{runner.workspace}}/build/CPackConfig.cmake
+        cpack --config $BUILD_DIRECTORY/CPackConfig.cmake
 
     - name: Copy the .deb file
-      run: cp -f ${{runner.workspace}}/BrickSim/_CPack_Packages/Linux/DEB/BrickSim.deb ${{runner.workspace}}/BrickSim/BrickSim.deb
+      run: cp -f $GITHUB_WORKSPACE/_CPack_Packages/Linux/DEB/BrickSim.deb $GITHUB_WORKSPACE/BrickSim.deb
 
     - name: Upload Binary
       uses: actions/upload-artifact@v2
       with:
-        name: BrickSimLinux
+        name: BrickSimLinux${{ matrix.bits }}
         path: |
-          ${{runner.workspace}}/BrickSim/BrickSim.deb
-          ${{runner.workspace}}/BrickSim/README.md
+          $GITHUB_WORKSPACE/BrickSim.deb
+          $GITHUB_WORKSPACE/README.md
 
     - name: Upload BrickSimTestsLinux
       uses: actions/upload-artifact@v2
       with:
-        name: BrickSimTestsLinux
-        path: ${{runner.workspace}}/build/src/test/BrickSimTests
+        name: BrickSimTestsLinux${{ matrix.bits }}
+        path: $BUILD_DIRECTORY/src/test/BrickSimTests
   test:
+    #todo run tests for 32 bit also
     name: Catch2 Unittests
     needs: buildLinux
     runs-on: ubuntu-latest
@@ -90,7 +107,7 @@ jobs:
       - name: Download test artifact
         uses: actions/download-artifact@v2
         with:
-          name: BrickSimTestsLinux
+          name: BrickSimTestsLinux64
       - name: Download libraries
         run: sudo apt-get install -y libspdlog1 libzip5
       - name: Make tests executable
@@ -177,7 +194,7 @@ jobs:
             mingw-w64-${{ matrix.arch }}-glm
 
       - name: Setup workspace
-        run: ./setup_workspace.sh only${{ matrix.arch }}bit
+        run: ./setup_workspace.sh only${{ matrix.bits }}bit
 
       - name: Build
         env:

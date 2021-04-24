@@ -51,7 +51,7 @@ namespace controller {
         RENDERDOC_API_1_1_2 *rdoc_api = nullptr;
 #endif
 
-        void __attribute__((stdcall)) openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
+        void APIENTRY openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
         {
             if (id==131185 || id==131169) {
                 //Buffer detailed info: Buffer object 2 (bound to GL_ELEMENT_ARRAY_BUFFER_ARB, usage hint is GL_STREAM_DRAW) will use VIDEO memory as the source for buffer object operations.

@@ -27,7 +27,7 @@ jobs:
     name: Linux Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
 
     env:
-      BUILD_DIRECTORY: $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
+      BUILD_DIRECTORY: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
 
     steps:
     - uses: actions/checkout@v2
@@ -47,10 +47,13 @@ jobs:
     - name: Create Build Directory
       run: mkdir -p $BUILD_DIRECTORY
 
+    - run: ls -l /usr/lib | grep linux
+    - run: ls -l /usr
+
     - name: Configure CMake
       shell: bash
       working-directory: $BUILD_DIRECTORY
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_LIBRARY_PATH=/usr/lib${{ matrix.bits }}
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_LIBRARY_PATH=/usr/lib/${{ matrix.arch }}-linux-gnu
       env:
         CC: gcc-10
         CXX: g++-10

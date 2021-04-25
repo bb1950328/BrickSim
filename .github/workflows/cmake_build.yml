@@ -270,9 +270,65 @@ jobs:
       - name: Upload BrickSim
         uses: actions/upload-artifact@v2
         with:
-          name: BrickSimWindows${{ matrix.bits }}
-          # todo include README.md
+          name: BrickSimRawBinary_Windows${{ matrix.bits }}
           path: ${{runner.workspace}}\BrickSim\cmake-build\release${{ matrix.bits }}\BrickSim.exe
+
+  buildInstallerWindows:
+    needs: buildLinux
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { arch: x86_64, bits: 64 },
+          { arch: i686, bits: 32 }
+        ]
+
+    name: Windows Installer Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
+
+    steps:
+      - name: Install InstallBuilder
+        working-directory: ${{ runner.workspace }}
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Uri https://installbuilder.com/installbuilder-enterprise-21.3.0-windows-x64-installer.exe -OutFile installbuilder_installer.exe
+          Start-Process -FilePath installbuilder_installer.exe -ArgumentList "--mode unattended --prefix ${{ runner.workspace }}\installbuilder"
+          Remove-Item -Path installbuilder_installer.exe
+
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: BrickSimRawBinary_Windows${{ matrix.bits }}
+          path: ${{ runner.workspace }}/artifacts
+
+      - name: Create build directory and copy raw binary to it
+        shell: powershell
+        run: |
+          New-Item "$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}" -ItemType Directory
+          Copy-Item "${{ runner.workspace }}/artifacts/BrickSim" -Destination "$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}"
+
+      - name: Build Installer
+        run: |
+          If (${{ matrix.bits }} -eq 32) {
+            $PLATFORM="linux"
+          } else {
+            $PLATFORM="linux-x64"
+          }
+          $VERSION = git describe --tags --match v[0-9]* --abbrev=0
+          $VERSION = $VERSION -replace "v"
+          Start-Process -FilePath ${{ runner.workspace }}/installbuilder/bin/builder -ArgumentList "build $GITHUB_WORKSPACE/InstallBuilder.xml $PLATFORM --setvars project.version=$VERSION"
+
+      - name: Upload BrickSimInstaller
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimInstaller_Linux${{ matrix.bits }}
+          path: ${{runner.workspace}}/installbuilder/output/*.exe
 
   buildMac:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip mac ci')"

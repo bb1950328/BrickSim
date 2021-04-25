@@ -377,16 +377,16 @@ jobs:
 
     name: Mac Installer Build
 
-    if: false # not ready yet
-
     steps:
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         run: |
           curl https://installbuilder.com/installbuilder-enterprise-21.3.0-osx-installer.dmg -o installbuilder_installer.dmg
-          chmod a+x installbuilder_installer.run
-          ./installbuilder_installer.run --mode unattended --prefix ${{ runner.workspace }}/installbuilder
-          rm installbuilder_installer.run
+          hdiutil attach -noverify installbuilder_installer.dmg
+          ls -l -R /Volumes/installbuilder_installer
+          #TODO ./installbuilder_installer.run --mode unattended --prefix ${{ runner.workspace }}/installbuilder
+          sudo hdiutil detach /Volumes/installbuilder_installer
+          rm installbuilder_installer.dmg
 
       - uses: actions/checkout@v2
         with:
@@ -396,27 +396,25 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v2
         with:
-          name: BrickSimRawBinary_Linux${{ matrix.bits }}
+          name: BrickSimRawBinary_Mac
           path: ${{ runner.workspace }}/artifacts
 
       - name: Create build directory and copy raw binary to it
         run: |
-          mkdir -p $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
-          cp ${{ runner.workspace }}/artifacts/BrickSim $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
-          chmod a+x $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}/BrickSim
+          mkdir -p $GITHUB_WORKSPACE/cmake-build/release
+          cp ${{ runner.workspace }}/artifacts/BrickSim $GITHUB_WORKSPACE/cmake-build/release
+          chmod a+x $GITHUB_WORKSPACE/cmake-build/release/BrickSim
 
       - name: Build Installer
         run: |
-          if [[ ${{ matrix.bits }} -eq 32 ]]; then
-            PLATFORM="linux"
-          else
-            PLATFORM="linux-x64"
-          fi
-          ${{ runner.workspace }}/installbuilder/bin/builder build $GITHUB_WORKSPACE/InstallBuilder.xml $PLATFORM \
+          ${{ runner.workspace }}/installbuilder/bin/builder build $GITHUB_WORKSPACE/InstallBuilder.xml osx \
                         --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v)
+
+      - name: View output folder
+        run: ls -l -R ${{runner.workspace}}/installbuilder/output
 
       - name: Upload BrickSimInstaller
         uses: actions/upload-artifact@v2
         with:
-          name: BrickSimInstaller_Linux${{ matrix.bits }}
+          name: BrickSimInstaller_Mac
           path: ${{runner.workspace}}/installbuilder/output/*.run

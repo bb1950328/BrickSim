@@ -378,10 +378,13 @@ jobs:
     name: Mac Installer Build
 
     steps:
+      - name: Install wget
+        run: brew installl wget
+
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         run: |
-          curl https://installbuilder.com/installbuilder-enterprise-21.3.0-osx-installer.dmg -o installbuilder_installer.dmg
+          wget https://installbuilder.com/installbuilder-enterprise-21.3.0-osx-installer.dmg -O installbuilder_installer.dmg
           ls -l
           hdiutil attach -noverify installbuilder_installer.dmg
           ls -l -R /Volumes/installbuilder_installer

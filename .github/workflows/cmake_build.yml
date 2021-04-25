@@ -274,7 +274,7 @@ jobs:
           path: ${{runner.workspace}}\BrickSim\cmake-build\release${{ matrix.bits }}\BrickSim.exe
 
   buildInstallerWindows:
-    needs: buildLinux
+    needs: buildWindows
     runs-on: windows-latest
 
     strategy:
@@ -316,9 +316,9 @@ jobs:
       - name: Build Installer
         run: |
           If (${{ matrix.bits }} -eq 32) {
-            $PLATFORM="linux"
+            $PLATFORM="windows"
           } else {
-            $PLATFORM="linux-x64"
+            $PLATFORM="windows-x64"
           }
           $VERSION = git describe --tags --match v[0-9]* --abbrev=0
           $VERSION = $VERSION -replace "v"
@@ -327,7 +327,7 @@ jobs:
       - name: Upload BrickSimInstaller
         uses: actions/upload-artifact@v2
         with:
-          name: BrickSimInstaller_Linux${{ matrix.bits }}
+          name: BrickSimInstaller_Windows${{ matrix.bits }}
           path: ${{runner.workspace}}/installbuilder/output/*.exe
 
   buildMac:

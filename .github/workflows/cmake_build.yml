@@ -388,7 +388,8 @@ jobs:
           ls -l
           hdiutil attach -noverify installbuilder_installer.dmg
           ls -l -R "/Volumes/InstallBuilder Enterprise"
-          #TODO ./installbuilder_installer.run --mode unattended --prefix ${{ runner.workspace }}/installbuilder
+          /Volumes/InstallBuilder Enterprise/installbuilder-enterprise-21.3.0-osx-installer.app/Contents/MacOS/installbuilder.sh
+          # ./installbuilder_installer.run --mode unattended --prefix ${{ runner.workspace }}/installbuilder
           sudo hdiutil detach "/Volumes/InstallBuilder Enterprise"
           rm installbuilder_installer.dmg
 

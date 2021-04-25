@@ -387,9 +387,9 @@ jobs:
           wget https://installbuilder.com/installbuilder-enterprise-21.3.0-osx-installer.dmg -O installbuilder_installer.dmg
           ls -l
           hdiutil attach -noverify installbuilder_installer.dmg
-          ls -l -R /Volumes/installbuilder_installer
+          ls -l -R "/Volumes/InstallBuilder Enterprise"
           #TODO ./installbuilder_installer.run --mode unattended --prefix ${{ runner.workspace }}/installbuilder
-          sudo hdiutil detach /Volumes/installbuilder_installer
+          sudo hdiutil detach "/Volumes/InstallBuilder Enterprise"
           rm installbuilder_installer.dmg
 
       - uses: actions/checkout@v2

@@ -2,7 +2,7 @@
 
 #include "mesh.h"
 #include "config.h"
-#include <glm/gtx/normal.hpp>
+#include "glm/gtx/normal.hpp"
 #include <mutex>
 #include "metrics.h"
 #include "lib/Miniball.hpp"

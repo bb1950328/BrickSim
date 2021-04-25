@@ -3,7 +3,7 @@
 #ifndef BRICKSIM_OVERLAY_2D_H
 #define BRICKSIM_OVERLAY_2D_H
 
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 #include <vector>
 #include <memory>
 #include <set>

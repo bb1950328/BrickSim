@@ -2,7 +2,7 @@
 
 #include "gui.h"
 #include "../latest_log_messages_tank.h"
-#include "../lib/tinyfiledialogs.h"
+#include "tinyfiledialogs.h"
 
 namespace gui {
     namespace {

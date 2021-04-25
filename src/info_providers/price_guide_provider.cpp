@@ -2,6 +2,7 @@
 #include <sstream>
 #include <set>
 #include <regex>
+#include <mutex>
 #include "price_guide_provider.h"
 #include "../helpers/util.h"
 #include "../db.h"

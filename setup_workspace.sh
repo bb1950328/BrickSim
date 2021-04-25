@@ -21,23 +21,48 @@ case "${unameValue}" in
 esac
 #######################################################
 
+install_32bit_packages=true
+install_64bit_packages=true
+
+if [[ $# -ge 1 ]]
+then
+  if [[ "$1" -eq 'only32bit' ]]
+  then
+    install_64bit_packages=false
+  fi
+  if [[ "$1" -eq 'only64bit' ]]
+  then
+    install_32bit_packages=false
+  fi
+fi
+
 #installing dependencies
 if [[ "$OS" == "linux" ]]; then
   echo "Installing packages using apt-get..."
   sudo apt-get update
-  sudo apt-get install -y build-essential mesa-utils freeglut3-dev libxinerama-dev \
-                          libxrandr-dev libxcursor-dev libxi-dev libcurl4-openssl-dev \
-                          libglm-dev libzip-dev gcc-10 g++-10 libspdlog-dev cmake libzip5 \
-                          libtbb-dev
+  sudo apt-get install -y build-essential gcc-10 g++-10 gcc-multilib g++-multilib gcc-10-multilib g++-10-multilib \
+                          cmake mesa-utils libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev
+
+  if [ "$install_32bit_packages" ]; then
+    sudo apt-get install -y libgl1-mesa-dev:i386 libglu1-mesa-dev:i386 freeglut3-dev:i386 \
+                            zlib1g-dev:i386 libssl-dev:i386 libcurl4-openssl-dev:i386 libtbb-dev:i386
+  fi
+  if [ "$install_64bit_packages" ]; then
+    # there are probably more dependencies but i didn't have a 32 bit pc to try it out
+    sudo apt-get install -y freeglut3-dev:amd64 libcurl4-openssl-dev:amd64 libtbb-dev:amd64
+  fi
   echo "packages installed."
 fi
 
 if [[ "$OS" == "windows" ]]; then
   echo "Installing packages using pacman..."
-  pacman -S unzip mingw-w64-x86_64-toolchain mingw-w64-i686-toolchain base-devel mingw-w64-x86_64-cmake \
-            mingw-w64-i686-cmake libcurl-devel mingw-w64-i686-freeglut mingw-w64-x86_64-freeglut \
-            mingw-w64-x86_64-glm mingw-w64-i686-glm mingw-w64-x86_64-libzip mingw-w64-i686-libzip \
-            mingw-w64-x86_64-spdlog --noconfirm --needed
+  pacman -S unzip base-devel msys2-devel libcurl-devel --noconfirm --needed
+  if [ "$install_32bit_packages" ]; then
+      pacman -S mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-freeglut --noconfirm --needed
+  fi
+  if [ "$install_64bit_packages" ]; then
+      pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-freeglut --noconfirm --needed
+  fi
   #pacman -S "$(pacman -Ssq freeglut)" --noconfirm --needed
   #pacman -S openssl-devel # todo find out if these are needed
   #pacman -S mingw-w64-openssl
@@ -45,25 +70,20 @@ if [[ "$OS" == "windows" ]]; then
   echo "packages installed."
 fi
 
-if [[ "$OS" == "mac" ]]; then
-  which -s brew
-  if [[ $? != 0 ]] ; then
-    echo "installing homebrew"
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-  else
-    echo "brew already installed."
-  fi
-
-  brew install glm spdlog libzip
-fi
+#if [[ "$OS" == "mac" ]]; then
+#  which -s brew
+#  if [[ $? != 0 ]] ; then
+#    echo "installing homebrew"
+#    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+#  else
+#    echo "brew already installed."
+#  fi
+#
+#  brew install glm
+#fi
 ###########################################
 
 #unzipping libraries
-rm -rf src/lib/rapidjson
-unzip src/lib/rapidjson.zip | grep -v inflating:
-mv rapidjson src/lib/rapidjson
-
-
 unzip -o -j "src/lib/glad.zip" "src/glad.c" -d "src/lib"
 
 rm -rf src/lib/include

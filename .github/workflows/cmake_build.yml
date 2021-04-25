@@ -344,7 +344,7 @@ jobs:
         run: ./setup_workspace.sh
 
       - name: Create Build Environment
-        run: mkdir -p $GITHHUB_WORKSPACE/cmake-build/release
+        run: mkdir -p $GITHUB_WORKSPACE/cmake-build/release
 
       - name: Configure CMake
         shell: bash

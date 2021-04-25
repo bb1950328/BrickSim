@@ -17,3 +17,21 @@
 	path = src/lib/Catch2
 	url = https://github.com/catchorg/Catch2.git
 	branch = v2.x
+[submodule "src/lib/libzip"]
+	path = src/lib/libzip
+	url = https://github.com/nih-at/libzip
+[submodule "src/lib/spdlog"]
+	path = src/lib/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "src/lib/glm"]
+	path = src/lib/glm
+	url = https://github.com/g-truc/glm
+[submodule "src/lib/tinyfiledialogs"]
+	path = src/lib/tinyfiledialogs
+	url = https://git.code.sf.net/p/tinyfiledialogs/code
+[submodule "src/lib/rapidjson"]
+	path = src/lib/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
+[submodule "src/lib/stb"]
+	path = src/lib/stb
+	url = https://github.com/nothings/stb.git

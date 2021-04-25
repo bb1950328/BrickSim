@@ -1,14 +1,13 @@
-
 #include <algorithm>
 #include <numeric>
 #include <iostream>
 #include <filesystem>
-#include <glm/gtx/string_cast.hpp>
+#include "glm/gtx/string_cast.hpp"
 #include <curl/curl.h>
 #include "util.h"
 #include "../config.h"
-#include "../lib/stb_image_write.h"
-#include "../lib/stb_image.h"
+#include "stb_image_write.h"
+#include "stb_image.h"
 #include "../controller.h"
 #include "platform_detection.h"
 #include "../db.h"

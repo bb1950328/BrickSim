@@ -5,7 +5,7 @@
 #include "bricklink_constants_provider.h"
 #include "part_color_availability_provider.h"
 
-#include "../lib/rapidjson/document.h"
+#include "rapidjson/document.h"
 
 namespace bricklink_constants_provider {
     namespace {

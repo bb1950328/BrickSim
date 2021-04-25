@@ -4,7 +4,7 @@
 #define BRICKSIM_LDR_COLORS_H
 
 #include <map>
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 #include <vector>
 #include "../helpers/util.h"
 #include "../config.h"

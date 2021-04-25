@@ -1,6 +1,6 @@
 
 #include <iostream>
-#include <glm/gtx/normal.hpp>
+#include "glm/gtx/normal.hpp"
 #include <spdlog/spdlog.h>
 #include "camera.h"
 #include "config.h"

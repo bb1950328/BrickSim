@@ -1,7 +1,7 @@
 
 
 #include "color.h"
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 
 namespace color {
     RGB::RGB(const std::string &htmlCode) {

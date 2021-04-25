@@ -6,11 +6,11 @@
 #include "gui.h"
 #include "../config.h"
 #include "../controller.h"
-#include "../lib/tinyfiledialogs.h"
+#include "tinyfiledialogs.h"
 #include "../info_providers/part_color_availability_provider.h"
 #include "gui_internal.h"
 #include "../constant_data/resources.h"
-#include "../lib/stb_image.h"
+#include "stb_image.h"
 #include <atomic>
 #include <imgui_internal.h>
 #include <spdlog/spdlog.h>

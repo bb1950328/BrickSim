@@ -5,10 +5,10 @@ on:
     branches:
       - master
       - stable
+      - installbuilder
     paths-ignore:
       - "docs/**"
       - '**/*.md'
-      - '**/*.txt'
 env:
   BUILD_TYPE: Release
 jobs:
@@ -16,14 +16,28 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip linux ci')"
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { arch: x86_64, bits: 64 },
+          { arch: i386, bits: 32 }
+        ]
+
+    name: Linux Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
+
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
         fetch-depth: 0
+
+    - if: ${{ matrix.arch == 'i386' }}
+      # set up multiarch
+      run: sudo dpkg --add-architecture i386
     
     - name: Setup Workspace
-      run: ./setup_workspace.sh
+      run: ./setup_workspace.sh only${{ matrix.bits }}bit
 
     - if: "contains(github.event.head_commit.message, 'codeql')"
       name: Initialize CodeQL
@@ -31,16 +45,22 @@ jobs:
       with:
         languages: cpp
 
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{runner.workspace}}/build
+    - name: Create Build Directory
+      run: mkdir -p ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
+
+    - run: ls -l /usr/lib | grep linux
+    - run: ls -l /usr
 
     - name: Configure CMake
       shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_LIBRARY_PATH=/usr/lib/${{ matrix.arch }}-linux-gnu
       env:
         CC: gcc-10
         CXX: g++-10
+        CFLAGS: -m${{ matrix.bits }}
+        LDFLAGS: -m${{ matrix.bits }}
+        CXXFLAGS: -m${{ matrix.bits }}
 
 #    - name: get info
 #      run: |
@@ -49,7 +69,7 @@ jobs:
 #        echo "runner.workspace: \"${{runner.workspace}}\""
 
     - name: Build
-      working-directory: ${{runner.workspace}}/build
+      working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
       shell: bash
       run: cmake --build . --target BrickSim BrickSimTests --config $BUILD_TYPE -j $(nproc --all)
 
@@ -59,30 +79,20 @@ jobs:
       with:
         config-file: ./.github/codeql/codeql-config.yml
 
-    - name: Create .deb using CPack
-      run: |
-        LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{runner.workspace}}/build/lib
-        echo "$LD_LIBRARY_PATH"
-        sudo ldconfig
-        cpack --config ${{runner.workspace}}/build/CPackConfig.cmake
-
-    - name: Copy the .deb file
-      run: cp -f ${{runner.workspace}}/BrickSim/_CPack_Packages/Linux/DEB/BrickSim.deb ${{runner.workspace}}/BrickSim/BrickSim.deb
-
-    - name: Upload Binary
+    - name: BrickSimRawBinary
       uses: actions/upload-artifact@v2
       with:
-        name: BrickSimLinux
+        name: BrickSimRawBinary_Linux${{ matrix.bits }}
         path: |
-          ${{runner.workspace}}/BrickSim/BrickSim.deb
-          ${{runner.workspace}}/BrickSim/README.md
+          ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSim
 
-    - name: Upload BrickSimTestsLinux
+    - name: Upload BrickSimTests
       uses: actions/upload-artifact@v2
       with:
-        name: BrickSimTestsLinux
-        path: ${{runner.workspace}}/build/src/test/BrickSimTests
+        name: BrickSimTests_Linux${{ matrix.bits }}
+        path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/src/test/BrickSimTests
   test:
+    #todo run tests for 32 bit also
     name: Catch2 Unittests
     needs: buildLinux
     runs-on: ubuntu-latest
@@ -90,7 +100,7 @@ jobs:
       - name: Download test artifact
         uses: actions/download-artifact@v2
         with:
-          name: BrickSimTestsLinux
+          name: BrickSimTests_Linux64
       - name: Download libraries
         run: sudo apt-get install -y libspdlog1 libzip5
       - name: Make tests executable
@@ -138,9 +148,76 @@ jobs:
           check_name: Catch2 Test Results
           comment_title: Catch2 Test Results
 
+  buildInstallerLinux:
+    needs: buildLinux
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { arch: x86_64, bits: 64 },
+          { arch: i386, bits: 32 }
+        ]
+
+    name: Linux Installer Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
+
+    steps:
+      - name: Install InstallBuilder
+        working-directory: ${{ runner.workspace }}
+        run: |
+          wget https://installbuilder.com/installbuilder-enterprise-21.3.0-linux-x64-installer.run -O installbuilder_installer.run
+          chmod a+x installbuilder_installer.run
+          ./installbuilder_installer.run --mode unattended --prefix ${{ runner.workspace }}/installbuilder
+          rm installbuilder_installer.run
+
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: BrickSimRawBinary_Linux${{ matrix.bits }}
+          path: ${{ runner.workspace }}/artifacts
+
+      - name: Create build directory and copy raw binary to it
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
+          cp ${{ runner.workspace }}/artifacts/BrickSim $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
+          chmod a+x $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}/BrickSim
+
+      - name: Build Installer
+        run: |
+          if [[ ${{ matrix.bits }} -eq 32 ]]; then
+            PLATFORM="linux"
+          else
+            PLATFORM="linux-x64"
+          fi
+          ${{ runner.workspace }}/installbuilder/bin/builder build $GITHUB_WORKSPACE/InstallBuilder.xml $PLATFORM \
+                        --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v)
+
+      - name: Upload BrickSimInstaller
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimInstaller_Linux${{ matrix.bits }}
+          path: ${{runner.workspace}}/installbuilder/output/*.run
+
+
   buildWindows:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip windows ci')"
     runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { msystem: MINGW64, arch: x86_64, bits: 64 },
+          { msystem: MINGW32, arch: i686, bits: 32 }
+        ]
+
+    name: Windows Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
 
     defaults:
       run:
@@ -154,41 +231,37 @@ jobs:
 
       - uses: msys2/setup-msys2@v2
         with:
+          msystem: ${{ matrix.msystem }}
           update: true
           install: >-
             git
             unzip
-            mingw-w64-x86_64-toolchain
-            mingw-w64-i686-toolchain
+            mingw-w64-${{ matrix.arch }}-toolchain
             base-devel
-            mingw-w64-x86_64-cmake
-            mingw-w64-i686-cmake
+            mingw-w64-${{ matrix.arch }}-cmake
             libcurl-devel
-            mingw-w64-i686-freeglut
-            mingw-w64-x86_64-freeglut
-            mingw-w64-x86_64-glm
-            mingw-w64-i686-glm
-            mingw-w64-x86_64-libzip
-            mingw-w64-i686-libzip
-            mingw-w64-x86_64-spdlog
+            mingw-w64-${{ matrix.arch }}-freeglut
+            mingw-w64-${{ matrix.arch }}-glm
 
       - name: Setup workspace
-        run: ./setup_workspace.sh
-
-      #    - name: Get info
-      #      run: |
-      #        echo $PWD
-      #        echo "runner.workspace: \"${{runner.workspace}}\""
-      #        git describe --tags
-      #        ls -l /c/msys64/mingw64/bin | grep zip
+        run: ./setup_workspace.sh only${{ matrix.bits }}bit
 
       - name: Build
         env:
-          CC: /C/msys64/mingw64/bin/gcc.exe
-          CXX: /C/msys64/mingw64/bin/g++.exe
+          CC: /C/msys64/mingw${{ matrix.bits }}/bin/gcc.exe
+          CXX: /C/msys64/mingw${{ matrix.bits }}/bin/g++.exe
         run: |
-          cmake -G "MinGW Makefiles" . -DCMAKE_PREFIX_PATH=/C/mingw64 -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(./scripts/get_git_commit_count.sh) -DTOTAL_HOURS:STRING=$(./scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(./scripts/get_git_tag.sh)
+          mkdir -p cmake-build/release${{ matrix.bits }}
+          cd cmake-build/release${{ matrix.bits }}
+          cmake -G "MSYS Makefiles" ../.. -DCMAKE_PREFIX_PATH=/C/mingw64 -DCMAKE_MAKE_PROGRAM=/C/msys64/usr/bin/make.exe \
+            -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(../../scripts/get_git_commit_count.sh) \
+            -DTOTAL_HOURS:STRING=$(../../scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(../../scripts/get_git_tag.sh)
           cmake --build . --target BrickSim --config Release  -j $(nproc --all)
+      - if: always()
+        run: |
+          cd cmake-build/release${{ matrix.bits }}
+          cat CMakeFiles/CMakeOutput.log
+          cat CMakeFiles/CMakeError.log
 
       - name: Try to find binary
         working-directory: ${{runner.workspace}}
@@ -197,9 +270,65 @@ jobs:
       - name: Upload BrickSim
         uses: actions/upload-artifact@v2
         with:
-          name: BrickSimWindows
-          # todo include README.md
-          path: ${{runner.workspace}}\BrickSim\BrickSim.exe
+          name: BrickSimRawBinary_Windows${{ matrix.bits }}
+          path: ${{runner.workspace}}\BrickSim\cmake-build\release${{ matrix.bits }}\BrickSim.exe
+
+  buildInstallerWindows:
+    needs: buildWindows
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { arch: x86_64, bits: 64 },
+          { arch: i686, bits: 32 }
+        ]
+
+    name: Windows Installer Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
+
+    steps:
+      - name: Install InstallBuilder
+        working-directory: ${{ runner.workspace }}
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Uri https://installbuilder.com/installbuilder-enterprise-21.3.0-windows-x64-installer.exe -OutFile installbuilder_installer.exe
+          Start-Process -FilePath installbuilder_installer.exe -ArgumentList "--mode unattended --prefix ${{ runner.workspace }}\installbuilder"
+          #Remove-Item -Path installbuilder_installer.exe
+
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: BrickSimRawBinary_Windows${{ matrix.bits }}
+          path: ${{ runner.workspace }}/artifacts
+
+      - name: Create build directory and copy raw binary to it
+        shell: powershell
+        run: |
+          New-Item "$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}" -ItemType Directory
+          Copy-Item "${{ runner.workspace }}/artifacts/BrickSim.exe" -Destination "$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}"
+
+      - name: Build Installer
+        run: |
+          If (${{ matrix.bits }} -eq 32) {
+            $PLATFORM="windows"
+          } else {
+            $PLATFORM="windows-x64"
+          }
+          $VERSION = git describe --tags --match v[0-9]* --abbrev=0
+          $VERSION = $VERSION -replace "v"
+          Start-Process -FilePath ${{ runner.workspace }}/installbuilder/bin/builder -ArgumentList "build $GITHUB_WORKSPACE/InstallBuilder.xml $PLATFORM --setvars project.version=$VERSION"
+
+      - name: Upload BrickSimInstaller
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimInstaller_Windows${{ matrix.bits }}
+          path: ${{runner.workspace}}/installbuilder/output/*.exe
 
   buildMac:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip mac ci')"
@@ -215,11 +344,11 @@ jobs:
         run: ./setup_workspace.sh
 
       - name: Create Build Environment
-        run: cmake -E make_directory ${{runner.workspace}}/build
+        run: mkdir -p $GITHUB_WORKSPACE/cmake-build/release
 
       - name: Configure CMake
         shell: bash
-        working-directory: ${{runner.workspace}}/build
+        working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release
         run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
         env:
           CC: clang
@@ -232,21 +361,64 @@ jobs:
           echo "runner.workspace: \"${{runner.workspace}}\""
 
       - name: Build
-        working-directory: ${{runner.workspace}}/build
+        working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release
         shell: bash
         run: cmake --build . --target BrickSim --config $BUILD_TYPE -j $(nproc --all)
-
-      - name: Create bundle using CPack
-        if: false #TODO configure CPack correctly so it produces a bundle file
-        run: cpack --config ${{runner.workspace}}/build/CPackConfig.cmake
-
-      - name: list files
-        run: ls -R ${{runner.workspace}}
 
       - name: Upload Binary
         uses: actions/upload-artifact@v2
         with:
-          name: BrickSimMac
-          path: |
-            ${{runner.workspace}}/BrickSim/README.md
-            ${{runner.workspace}}/build/BrickSim
+          name: BrickSimRawBinary_Mac
+          path: ${{runner.workspace}}/BrickSim/cmake-build/release/BrickSim
+
+  buildInstallerMac:
+    needs: buildMac
+    runs-on: macos-latest
+
+    name: Mac Installer Build
+
+    steps:
+      - name: Install wget
+        run: brew install wget
+
+      - name: Install InstallBuilder
+        working-directory: ${{ runner.workspace }}
+        run: |
+          wget -nv https://installbuilder.com/installbuilder-enterprise-21.3.0-osx-installer.dmg -O installbuilder_installer.dmg
+          ls -l
+          hdiutil attach -noverify installbuilder_installer.dmg
+          ls -l -R "/Volumes/InstallBuilder Enterprise"
+          /Volumes/InstallBuilder\ Enterprise/installbuilder-enterprise-21.3.0-osx-installer.app/Contents/MacOS/installbuilder.sh --mode unattended --prefix ${{ runner.workspace }}/installbuilder
+          sudo hdiutil detach "/Volumes/InstallBuilder Enterprise"
+          rm installbuilder_installer.dmg
+
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: BrickSimRawBinary_Mac
+          path: ${{ runner.workspace }}/artifacts
+
+      - name: Create build directory and copy raw binary to it
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/cmake-build/release
+          cp ${{ runner.workspace }}/artifacts/BrickSim $GITHUB_WORKSPACE/cmake-build/release
+          chmod a+x $GITHUB_WORKSPACE/cmake-build/release/BrickSim
+
+      - name: Build Installer
+        run: |
+          ${{ runner.workspace }}/installbuilder/bin/builder build $GITHUB_WORKSPACE/InstallBuilder.xml osx \
+                        --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v)
+
+      - name: View output folder
+        run: ls -l -R ${{runner.workspace}}/installbuilder/output
+
+      - name: Upload BrickSimInstaller
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimInstaller_Mac
+          path: ${{runner.workspace}}/installbuilder/output/*.app

@@ -7,7 +7,14 @@
     <mapping directory="$PROJECT_DIR$/src/lib/SQLiteCpp" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/SQLiteCpp/googletest" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/glfw" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/glm" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/imgui" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/libzip" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/mingw-std-threads" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/rapidjson" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/rapidjson/thirdparty/gtest" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/spdlog" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/stb" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/tinyfiledialogs" vcs="Git" />
   </component>
 </project>

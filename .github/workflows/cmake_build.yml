@@ -311,7 +311,7 @@ jobs:
         shell: powershell
         run: |
           New-Item "$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}" -ItemType Directory
-          Copy-Item "${{ runner.workspace }}/artifacts/BrickSim" -Destination "$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}"
+          Copy-Item "${{ runner.workspace }}/artifacts/BrickSim.exe" -Destination "$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}"
 
       - name: Build Installer
         run: |
@@ -344,7 +344,7 @@ jobs:
         run: ./setup_workspace.sh
 
       - name: Create Build Environment
-        run: mkdir -p $GITHBUB_WORKSPACE/cmake-build/release
+        run: mkdir -p $GITHHUB_WORKSPACE/cmake-build/release
 
       - name: Configure CMake
         shell: bash

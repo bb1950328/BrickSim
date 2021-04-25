@@ -122,16 +122,21 @@ if __name__ == '__main__':
         f"</details>",
         f"",
     ]
-    textLines += [
-        f"<details>",
-        f"  <summary>❌ {numFailedCases} case{'' if numFailedCases == 1 else 's'}, {numFailedAssertions} assertion{'' if numFailedAssertions == 1 else 's'}</summary>",
-        f"  ",
-        f"  | 🏷️ Name | 📄 File | Original | Expanded | ⏱ Duration |",  # todo don't show the table when there are 0 cases
-        f"  | ------- | ------- | -------- | -------- | ----------- |",
-        *[format_failed_row(c) for c in failedCases],
-        f"</details>",
-        f"",
-    ]
+    if numFailedCases > 0:
+        textLines += [
+            f"<details>",
+            f"  <summary>❌ {numFailedCases} case{'' if numFailedCases == 1 else 's'}, {numFailedAssertions} assertion{'' if numFailedAssertions == 1 else 's'}</summary>",
+            f"  ",
+            f"  | 🏷️ Name | 📄 File | Original | Expanded | ⏱ Duration |",  # todo don't show the table when there are 0 cases
+            f"  | ------- | ------- | -------- | -------- | ----------- |",
+            *[format_failed_row(c) for c in failedCases],
+            f"</details>",
+            f"",
+        ]
+    else:
+        textLines += [
+            "❌ No failed cases."
+        ]
 
     textLines += [
         f"⏱ Total Duration: {format_duration(totalDurationInSeconds)}, commit [`{CURRENT_COMMIT_HASH[:10]}`]({REPO_BASE_URL}/tree/{CURRENT_COMMIT_HASH})",

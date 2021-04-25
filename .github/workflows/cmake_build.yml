@@ -117,7 +117,7 @@ jobs:
         run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes
 
       - name: Publish Test Result Comment
-        if: always() # todo maybe change this to failure() so commits without failing tests aren't commented
+        if: failure()
         run: |
           pip3 install PyGithub
           wget -O ${{runner.workspace}}/publish_test_results.py https://raw.githubusercontent.com/bb1950328/BrickSim/master/.github/workflows/publish_test_results.py

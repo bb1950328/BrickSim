@@ -6,14 +6,12 @@ foreach(SDKPATH IN LISTS /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /Ap
         set(CMAKE_OSX_SYSROOT ${SDKPATH})
     endif()
 endforeach()
-project(BrickSimProject)
+project(BrickSim)
 
 file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)#prevent profiles from loading in parallel, causes problems with submodules
 
-#add_library(BrickSimLib OBJECT EXCLUDE_FROM_ALL)
 add_library(BrickSimLib STATIC)
 
-#add_executable(BrickSim $<TARGET_OBJECTS:BrickSimLib> src/main.cpp)
 add_executable(BrickSim src/main.cpp)
 target_link_libraries(BrickSim PRIVATE BrickSimLib)
 add_dependencies(BrickSim BrickSimLib)

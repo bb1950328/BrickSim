@@ -421,4 +421,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: BrickSimInstaller_Mac
-          path: ${{runner.workspace}}/installbuilder/output/*.run
+          path: ${{runner.workspace}}/installbuilder/output/*.app

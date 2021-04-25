@@ -148,7 +148,7 @@ jobs:
           check_name: Catch2 Test Results
           comment_title: Catch2 Test Results
 
-  makeInstallerLinux:
+  buildInstallerLinux:
     needs: buildLinux
     runs-on: ubuntu-latest
 
@@ -179,7 +179,7 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v2
         with:
-          name: BrickSimRaw_Linux${{ matrix.bits }}
+          name: BrickSimRawBinary_Linux${{ matrix.bits }}
           path: ${{ runner.workspace }}/artifacts
 
       - name: Create build directory and copy raw binary to it

@@ -379,7 +379,7 @@ jobs:
 
     steps:
       - name: Install wget
-        run: brew installl wget
+        run: brew install wget
 
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}

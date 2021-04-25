@@ -384,11 +384,11 @@ jobs:
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         run: |
-          wget https://installbuilder.com/installbuilder-enterprise-21.3.0-osx-installer.dmg -O installbuilder_installer.dmg
+          wget -nv https://installbuilder.com/installbuilder-enterprise-21.3.0-osx-installer.dmg -O installbuilder_installer.dmg
           ls -l
           hdiutil attach -noverify installbuilder_installer.dmg
           ls -l -R "/Volumes/InstallBuilder Enterprise"
-          /Volumes/InstallBuilder Enterprise/installbuilder-enterprise-21.3.0-osx-installer.app/Contents/MacOS/installbuilder.sh
+          /Volumes/InstallBuilder\ Enterprise/installbuilder-enterprise-21.3.0-osx-installer.app/Contents/MacOS/installbuilder.sh
           # ./installbuilder_installer.run --mode unattended --prefix ${{ runner.workspace }}/installbuilder
           sudo hdiutil detach "/Volumes/InstallBuilder Enterprise"
           rm installbuilder_installer.dmg

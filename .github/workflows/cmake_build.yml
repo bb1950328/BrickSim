@@ -382,6 +382,7 @@ jobs:
         working-directory: ${{ runner.workspace }}
         run: |
           curl https://installbuilder.com/installbuilder-enterprise-21.3.0-osx-installer.dmg -o installbuilder_installer.dmg
+          ls -l
           hdiutil attach -noverify installbuilder_installer.dmg
           ls -l -R /Volumes/installbuilder_installer
           #TODO ./installbuilder_installer.run --mode unattended --prefix ${{ runner.workspace }}/installbuilder

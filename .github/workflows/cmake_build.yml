@@ -198,8 +198,11 @@ jobs:
           ${{ runner.workspace }}/installbuilder/bin/builder build $GITHUB_WORKSPACE/InstallBuilder.xml $PLATFORM \
                         --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v)
 
-      - name: check output directory
-        run: ls -l ${{ runner.workspace }}/installbuilder/output
+      - name: Upload BrickSimInstaller
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimInstaller_Linux${{ matrix.bits }}
+          path: ${{runner.workspace}}/installbuilder/output/*.run
 
 
   buildWindows:

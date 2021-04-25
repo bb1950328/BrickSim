@@ -94,7 +94,3 @@ cp -r include/glad .
 cp -r include/KHR .
 rm -rf src include
 cd ../../..
-###########################################
-
-#symlinking LICENSE to make WiX accept it
-ln -f LICENSE LICENSE.txt

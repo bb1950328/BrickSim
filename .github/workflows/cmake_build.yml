@@ -294,7 +294,7 @@ jobs:
         run: |
           Invoke-WebRequest -Uri https://installbuilder.com/installbuilder-enterprise-21.3.0-windows-x64-installer.exe -OutFile installbuilder_installer.exe
           Start-Process -FilePath installbuilder_installer.exe -ArgumentList "--mode unattended --prefix ${{ runner.workspace }}\installbuilder"
-          Remove-Item -Path installbuilder_installer.exe
+          #Remove-Item -Path installbuilder_installer.exe
 
       - uses: actions/checkout@v2
         with:
@@ -344,11 +344,11 @@ jobs:
         run: ./setup_workspace.sh
 
       - name: Create Build Environment
-        run: cmake -E make_directory ${{runner.workspace}}/build
+        run: mkdir -p $GITHBUB_WORKSPACE/cmake-build/release
 
       - name: Configure CMake
         shell: bash
-        working-directory: ${{runner.workspace}}/build
+        working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release
         run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
         env:
           CC: clang
@@ -361,21 +361,62 @@ jobs:
           echo "runner.workspace: \"${{runner.workspace}}\""
 
       - name: Build
-        working-directory: ${{runner.workspace}}/build
+        working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release
         shell: bash
         run: cmake --build . --target BrickSim --config $BUILD_TYPE -j $(nproc --all)
-
-      - name: Create bundle using CPack
-        if: false #TODO configure CPack correctly so it produces a bundle file
-        run: cpack --config ${{runner.workspace}}/build/CPackConfig.cmake
-
-      - name: list files
-        run: ls -R ${{runner.workspace}}
 
       - name: Upload Binary
         uses: actions/upload-artifact@v2
         with:
-          name: BrickSimMac
-          path: |
-            ${{runner.workspace}}/BrickSim/README.md
-            ${{runner.workspace}}/build/BrickSim
+          name: BrickSimRawBinary_Mac
+          path: ${{runner.workspace}}/BrickSim/cmake-build/release/BrickSim
+
+  buildInstallerMac:
+    needs: buildMac
+    runs-on: macos-latest
+
+    name: Mac Installer Build
+
+    if: false # not ready yet
+
+    steps:
+      - name: Install InstallBuilder
+        working-directory: ${{ runner.workspace }}
+        run: |
+          curl https://installbuilder.com/installbuilder-enterprise-21.3.0-osx-installer.dmg -o installbuilder_installer.dmg
+          chmod a+x installbuilder_installer.run
+          ./installbuilder_installer.run --mode unattended --prefix ${{ runner.workspace }}/installbuilder
+          rm installbuilder_installer.run
+
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: BrickSimRawBinary_Linux${{ matrix.bits }}
+          path: ${{ runner.workspace }}/artifacts
+
+      - name: Create build directory and copy raw binary to it
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
+          cp ${{ runner.workspace }}/artifacts/BrickSim $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
+          chmod a+x $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}/BrickSim
+
+      - name: Build Installer
+        run: |
+          if [[ ${{ matrix.bits }} -eq 32 ]]; then
+            PLATFORM="linux"
+          else
+            PLATFORM="linux-x64"
+          fi
+          ${{ runner.workspace }}/installbuilder/bin/builder build $GITHUB_WORKSPACE/InstallBuilder.xml $PLATFORM \
+                        --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v)
+
+      - name: Upload BrickSimInstaller
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimInstaller_Linux${{ matrix.bits }}
+          path: ${{runner.workspace}}/installbuilder/output/*.run

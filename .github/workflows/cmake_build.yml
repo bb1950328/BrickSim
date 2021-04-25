@@ -79,28 +79,17 @@ jobs:
       with:
         config-file: ./.github/codeql/codeql-config.yml
 
-    - name: Create .deb using CPack
-      run: |
-        LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}/lib
-        echo "$LD_LIBRARY_PATH"
-        sudo ldconfig
-        cpack --config $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}/CPackConfig.cmake
-
-    - name: Copy the .deb file
-      run: cp -f $GITHUB_WORKSPACE/_CPack_Packages/Linux/DEB/BrickSim.deb $GITHUB_WORKSPACE/BrickSim.deb
-
-    - name: Upload Binary
+    - name: BrickSimRawBinary
       uses: actions/upload-artifact@v2
       with:
-        name: BrickSimLinux${{ matrix.bits }}
+        name: BrickSimRawBinary_Linux${{ matrix.bits }}
         path: |
-          ${{runner.workspace}}/BrickSim/BrickSim.deb
-          ${{runner.workspace}}/BrickSim/README.md
+          ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSim
 
-    - name: Upload BrickSimTestsLinux
+    - name: Upload BrickSimTests
       uses: actions/upload-artifact@v2
       with:
-        name: BrickSimTestsLinux${{ matrix.bits }}
+        name: BrickSimTests_Linux${{ matrix.bits }}
         path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/src/test/BrickSimTests
   test:
     #todo run tests for 32 bit also
@@ -111,7 +100,7 @@ jobs:
       - name: Download test artifact
         uses: actions/download-artifact@v2
         with:
-          name: BrickSimTestsLinux64
+          name: BrickSimTests_Linux64
       - name: Download libraries
         run: sudo apt-get install -y libspdlog1 libzip5
       - name: Make tests executable
@@ -158,6 +147,60 @@ jobs:
           files: ./**/*.xml
           check_name: Catch2 Test Results
           comment_title: Catch2 Test Results
+
+  makeInstallerLinux:
+    needs: buildLinux
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { arch: x86_64, bits: 64 },
+          { arch: i386, bits: 32 }
+        ]
+
+    name: Linux Installer Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
+
+    steps:
+      - name: Install InstallBuilder
+        working-directory: ${{ runner.workspace }}
+        run: |
+          wget https://installbuilder.com/installbuilder-enterprise-21.3.0-linux-x64-installer.run -O installbuilder_installer.run
+          chmod a+x installbuilder_installer.run
+          ./installbuilder_installer.run --mode unattended --prefix ${{ runner.workspace }}/installbuilder
+          rm installbuilder_installer.run
+
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: BrickSimRaw_Linux${{ matrix.bits }}
+          path: ${{ runner.workspace }}/artifacts
+
+      - name: Create build directory and copy raw binary to it
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
+          cp ${{ runner.workspace }}/artifacts/BrickSim $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
+          chmod a+x $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}/BrickSim
+
+      - name: Build Installer
+        run: |
+          if [[ ${{ matrix.bits }} -eq 32 ]]; then
+            PLATFORM="linux"
+          else
+            PLATFORM="linux-x64"
+          fi
+          ${{ runner.workspace }}/installbuilder/bin/builder build $GITHUB_WORKSPACE/InstallBuilder.xml $PLATFORM \
+                        --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v)
+
+      - name: check output directory
+        run: ls -l ${{ runner.workspace }}/installbuilder/output
+
 
   buildWindows:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip windows ci')"

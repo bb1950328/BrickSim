@@ -96,8 +96,14 @@ LdrColorReference LdrColor::asReference() const {
 namespace ldr_color_repo {
     namespace {
         std::map<LdrColor::code_t, std::shared_ptr<LdrColor>> colors;
+        std::map<std::string, LdrColorReference> pureColors;
         std::vector<LdrColor::code_t> hueSortedCodes;
         std::shared_ptr<LdrInstanceDummyColor> instDummyColor;
+
+        LdrColor::code_t getUnusedCode() {
+            static int lastUsedCode = INSTANCE_DUMMY_COLOR_CODE;
+            return --lastUsedCode;
+        }
     }
 
     std::shared_ptr<const LdrColor> get_color(const LdrColor::code_t colorCode) {
@@ -137,7 +143,7 @@ namespace ldr_color_repo {
     std::map<std::string, std::vector<LdrColorReference>> getAllColorsGroupedAndSortedByHue() {
         std::map<std::string, std::vector<LdrColorReference>> result;
         for (const auto &colorPair : colors) {
-            if (colorPair.first != INSTANCE_DUMMY_COLOR_CODE
+            if (colorPair.second->visibleInLists
                 && colorPair.first != LdrColor::MAIN_COLOR_CODE
                 && colorPair.first != LdrColor::LINE_COLOR_CODE) {
                 result[colorPair.second->getGroupDisplayName()].push_back(colorPair.second->asReference());
@@ -154,10 +160,28 @@ namespace ldr_color_repo {
         return LdrColorReference(INSTANCE_DUMMY_COLOR_CODE);
     }
 
+    LdrColorReference getPureColor(const char *htmlCode) {
+        auto it = pureColors.find(htmlCode);
+        if (it == pureColors.end()) {
+            auto color = std::make_shared<PureColor>(htmlCode);
+            colors[color->code] = color;
+            return pureColors[htmlCode] = color->code;
+        }
+        return it->second;
+    }
+
     LdrInstanceDummyColor::LdrInstanceDummyColor() {
         name = "Instance Dummy Color";
         code = INSTANCE_DUMMY_COLOR_CODE;
         value = edge = color::RGB("#FFB39B");
+        visibleInLists = false;
+    }
+
+    PureColor::PureColor(const char *hexCode) {
+        name = std::string("Pure ") + hexCode;
+        code = getUnusedCode();
+        value = edge = color::RGB(hexCode);
+        visibleInLists = false;
     }
 }
 

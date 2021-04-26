@@ -24,7 +24,7 @@ namespace orientation_cube {
         class OrientationCubeSideMeshNode : public etree::MeshNode {
             const CubeSide side;
         public:
-            void *getMeshIdentifier() const override;
+            mesh_identifier_t getMeshIdentifier() const override;
 
             bool isDisplayNameUserEditable() const override;
 

@@ -68,7 +68,8 @@ public:
 
     void preLoadSubfilesAndEstimateComplexity();
 
-    [[nodiscard]] const std::string & getDescription() const ;
+    [[nodiscard]] const std::string & getDescription() const;
+    [[nodiscard]] const std::size_t& getHash() const;
 
     [[nodiscard]] bool isComplexEnoughForOwnMesh() const;
 
@@ -76,6 +77,7 @@ public:
 
     static std::shared_ptr<LdrFile> parseFile(LdrFileType fileType, const std::string &name, const std::string& content);
 private:
+    mutable std::size_t hash = 0;
 
     bool subfilesPreloadedAndComplexityEstimated = false;
 

@@ -189,6 +189,13 @@ bool LdrFile::isComplexEnoughForOwnMesh() const {
     return (metaInfo.type!=SUBPART && metaInfo.type!=PRIMITIVE);// todo spend more time here, I think there's much more potential here
 }
 
+const std::size_t &LdrFile::getHash() const {
+    if (hash == 0) {
+        hash = std::hash<std::string>{}(metaInfo.name);
+    }
+    return hash;
+}
+
 LdrFile::~LdrFile()= default;
 
 LdrCommentOrMetaElement::LdrCommentOrMetaElement(const std::string& line) {

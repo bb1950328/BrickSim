@@ -72,7 +72,7 @@ namespace etree {
     public:
         MeshNode(LdrColorReference color, std::shared_ptr<Node> parent);
 
-        virtual void *getMeshIdentifier() const = 0;
+        virtual mesh_identifier_t getMeshIdentifier() const = 0;
         virtual void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) = 0;
         [[nodiscard]] virtual bool isColorUserEditable() const;
         [[nodiscard]] LdrColorReference getDisplayColor() const;
@@ -91,7 +91,7 @@ namespace etree {
          */
         void createChildNodes();
 
-        void *getMeshIdentifier() const override;
+        mesh_identifier_t getMeshIdentifier() const override;
         void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
         std::string getDescription() override;
         std::shared_ptr<LdrFile> ldrFile;
@@ -114,7 +114,7 @@ namespace etree {
         MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, LdrColorReference color, std::shared_ptr<Node> parent);
 
         std::shared_ptr<MpdSubfileNode> mpdSubfileNode;
-        void *getMeshIdentifier() const override;
+        mesh_identifier_t getMeshIdentifier() const override;
         void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
         std::string getDescription() override;
         [[nodiscard]] bool isDisplayNameUserEditable() const override;

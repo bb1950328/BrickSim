@@ -77,8 +77,8 @@ namespace orientation_cube {
         return size;
     }
 
-    void *OrientationCubeSideMeshNode::getMeshIdentifier() const {
-        return reinterpret_cast<void *>(12234*static_cast<int>(side));
+    mesh_identifier_t OrientationCubeSideMeshNode::getMeshIdentifier() const {
+        return constants::MESH_ID_ORIENTATION_CUBE_FIRST+static_cast<int>(side);
     }
 
     bool OrientationCubeSideMeshNode::isDisplayNameUserEditable() const {

@@ -125,8 +125,8 @@ namespace etree {
         displayName = ldrFile->getDescription();
     }
 
-    void *LdrNode::getMeshIdentifier() const {
-        return ldrFile.get();
+    mesh_identifier_t LdrNode::getMeshIdentifier() const {
+        return ldrFile->getHash();
     }
 
     std::string LdrNode::getDescription() {
@@ -183,7 +183,7 @@ namespace etree {
         return false;
     }
 
-    void *MpdSubfileInstanceNode::getMeshIdentifier() const {
+    mesh_identifier_t MpdSubfileInstanceNode::getMeshIdentifier() const {
         return mpdSubfileNode->getMeshIdentifier();
     }
 

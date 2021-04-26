@@ -48,6 +48,8 @@ public:
     unsigned char luminance = 0;
     Finish finish = NONE;
     std::optional<LdrColorMaterial> material{};
+    bool visibleInLists = true;
+
     constexpr static int MAIN_COLOR_CODE = 16;
     constexpr static int LINE_COLOR_CODE = 24;
 };
@@ -74,11 +76,16 @@ namespace ldr_color_repo {
     public:
         LdrInstanceDummyColor();
     };
+    class PureColor : public LdrColor {
+    public:
+        PureColor(const char* hexCode);
+    };
 
     void initialize();
     std::shared_ptr<const LdrColor> get_color(LdrColor::code_t colorCode);
     std::map<std::string, std::vector<LdrColorReference>> getAllColorsGroupedAndSortedByHue();
     std::map<int, std::shared_ptr<LdrColor>> &getColors();
     LdrColorReference getInstanceDummyColor();
+    LdrColorReference getPureColor(const char* htmlCode);
 };
 #endif //BRICKSIM_LDR_COLORS_H

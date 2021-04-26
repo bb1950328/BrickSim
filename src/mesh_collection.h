@@ -1,11 +1,9 @@
-
-
 #ifndef BRICKSIM_MESH_COLLECTION_H
 #define BRICKSIM_MESH_COLLECTION_H
 
-typedef std::pair<void *, bool> mesh_key_t;
-
 #include "element_tree.h"
+
+typedef std::pair<mesh_identifier_t, bool> mesh_key_t;
 
 /**
  * the purpose of this class is to manage the meshInstances of a Scene object

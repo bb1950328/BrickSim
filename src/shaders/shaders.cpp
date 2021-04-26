@@ -184,13 +184,22 @@ namespace shaders {
         allShaders[TRIANGLE_SELECTION] = std::make_unique<Shader>("src/shaders/triangle_selection_shader.vsh", "src/shaders/simple_color_forwarding_shader.fsh");
         allShaders[TEXTURED_TRIANGLE_SELECTION] = std::make_unique<Shader>("src/shaders/textured_triangle_selection_shader.vsh", "src/shaders/simple_color_forwarding_shader.fsh");
 
-        std::cout << "TRIANGLE: " << allShaders[TRIANGLE]->id << std::endl;
-        std::cout << "TEXTURED_TRIANGLE: " << allShaders[TEXTURED_TRIANGLE]->id << std::endl;
-        std::cout << "LINE: " << allShaders[LINE]->id << std::endl;
-        std::cout << "OPTIONAL_LINE: " << allShaders[OPTIONAL_LINE]->id << std::endl;
-        std::cout << "OVERLAY: " << allShaders[OVERLAY]->id << std::endl;
-        std::cout << "TRIANGLE_SELECTION: " << allShaders[TRIANGLE_SELECTION]->id << std::endl;
-        std::cout << "TEXTURED_TRIANGLE_SELECTION: " << allShaders[TEXTURED_TRIANGLE_SELECTION]->id << std::endl;
+        spdlog::debug("shader IDs: "
+                      "TRIANGLE={} "
+                      "TEXTURED_TRIANGLE={} "
+                      "LINE={} "
+                      "OPTIONAL_LINE={} "
+                      "OVERLAY={} "
+                      "TRIANGLE_SELECTION={} "
+                      "TEXTURED_TRIANGLE_SELECTION={}",
+                      allShaders[TRIANGLE]->id,
+                      allShaders[TEXTURED_TRIANGLE]->id,
+                      allShaders[LINE]->id,
+                      allShaders[OPTIONAL_LINE]->id,
+                      allShaders[OVERLAY]->id,
+                      allShaders[TRIANGLE_SELECTION]->id,
+                      allShaders[TEXTURED_TRIANGLE_SELECTION]->id
+                      );
     }
 
     void cleanup() {

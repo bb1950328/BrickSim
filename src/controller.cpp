@@ -362,7 +362,9 @@ namespace controller {
 
     int run() {
         spdlog::info("BrickSim started.");
+        const auto startupTime = std::chrono::high_resolution_clock::now();
         initialize();
+        spdlog::info("Initialisation finished in {}s", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()-startupTime).count()/1000.0f);
 
         //openFile("test_files/bricks_test.ldr");
         openFile("~/Downloads/arocs.mpd");

@@ -27,6 +27,8 @@ namespace part_color_availability_provider {
                         colorsByName[item.second->name] = item.second->asReference();
                     }
 
+                    std::set<std::string> colorsInCodesTxtButNotInLdrColors;
+
                     std::string line;
                     std::getline(codesFile, line);//skip header
                     while (std::getline(codesFile, line)) {
@@ -39,19 +41,16 @@ namespace part_color_availability_provider {
                         if (it != colorsByName.end()) {
                             colorsAvailable[partCode].insert(it->second);
                         } else {
-                            static std::set<std::string> warningPrinted;
-                            if (warningPrinted.find(colorName)==warningPrinted.end()) {
-                                spdlog::warn("found color \"{}\" in codes.txt, but not in ldr_colors", colorName);
-                                warningPrinted.insert(colorName);
-                            }
+                            colorsInCodesTxtButNotInLdrColors.insert(colorName);
                         }
+                    }
+                    if (!colorsInCodesTxtButNotInLdrColors.empty()) {
+                        spdlog::warn("the following color names were found in codes.txt, bui not in ldr_colors: {}", fmt::join(colorsInCodesTxtButNotInLdrColors, ", "));
                     }
                 }
                 initialized = true;
             }
         }
-
-
     }
 
     std::optional<std::set<LdrColorReference>> getAvailableColorsForPart(const std::shared_ptr<LdrFile>& part) {

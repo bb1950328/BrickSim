@@ -123,6 +123,18 @@ public:
     void addTexturedTriangle(const std::shared_ptr<Texture> &texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3);
     void addRawTriangle(LdrColorReference color, const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3);
 
+    /**
+     * @param color
+     * @param vertex
+     * @return the index of the vertex. You have to call addRawTriangleIndex otherwise the vertex won't show up
+     */
+    unsigned int addRawTriangleVertex(LdrColorReference color, const TriangleVertex& vertex);
+    unsigned int getNextVertexIndex(LdrColorReference color);
+    void addRawTriangleIndex(LdrColorReference color, unsigned int triangleIndex);
+
+    void addLineVertex(const LineVertex &vertex);
+    void addOptionalLineVertex(const LineVertex &vertex);
+
     std::vector<unsigned int> & getIndicesList(LdrColorReference color);
     std::vector<TriangleVertex> & getVerticesList(LdrColorReference color);
 
@@ -166,9 +178,6 @@ private:
     void initializeOptionalLineGraphics();
 
     void rewriteInstanceBuffer();
-
-    void addLineVertex(const LineVertex &vertex);
-    void addOptionalLineVertex(const LineVertex &vertex);
 
     void addMinEnclosingBallLines();
     void appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<MeshInstance> &newSceneInstances);

@@ -88,6 +88,20 @@ void Mesh::addRawTriangle(const LdrColorReference color, const glm::vec3 &p1, co
     }
 }
 
+unsigned int Mesh::getNextVertexIndex(LdrColorReference color) {
+    return getVerticesList(color).size();
+}
+
+unsigned int Mesh::addRawTriangleVertex(LdrColorReference color, const TriangleVertex &vertex) {
+    std::vector<TriangleVertex> &verticesList = getVerticesList(color);
+    verticesList.push_back(vertex);
+    return verticesList.size() - 1;
+}
+
+void Mesh::addRawTriangleIndex(LdrColorReference color, unsigned int triangleIndex) {
+    getIndicesList(color).push_back(triangleIndex);
+}
+
 void Mesh::addLdrSubfileReference(LdrColorReference mainColor, const std::shared_ptr<LdrSubfileReference> &sfElement, glm::mat4 transformation, bool bfcInverted) {
     auto sub_transformation = sfElement->getTransformationMatrix();
     const auto color = sfElement->color.get()->code == LdrColor::MAIN_COLOR_CODE ? mainColor : sfElement->color;

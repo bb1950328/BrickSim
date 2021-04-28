@@ -6,9 +6,9 @@
 #include <algorithm>
 
 const glm::vec4 ARROW_DIRECTIONS[3] = {
-        {1.0f, 0.0f, 0.0f, 1.0f},
-        {0.0f, 0.0f, -1.0f, 1.0f},
-        {0.0f, -1.0f, 0.0f, 1.0f},
+        {1.0f, 0.0f,  0.0f,  1.0f},
+        {0.0f, 0.0f,  -1.0f, 1.0f},
+        {0.0f, -1.0f, 0.0f,  1.0f},
 };
 
 TransformGizmo::TransformGizmo(std::shared_ptr<Scene> scene) : scene(std::move(scene)) {}
@@ -45,7 +45,53 @@ mesh_identifier_t ArrowMeshNode::getMeshIdentifier() const {
 }
 
 void ArrowMeshNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
+    constexpr uint16_t numCorners = 12;
+    constexpr float lineRadius = 0.1f;
+    constexpr float tipRadius = 0.2f;
+    glm::vec3 backCenter(0.0f, 0.0f, 0.0f);
+    glm::vec3 beforeTipCenter(0.75f, 0.0f, 0.0f);
+    glm::vec3 tip(1.0f, 0.0f, 0.0f);
 
+    TriangleVertex backCoverVertex{
+            glm::vec4(backCenter.x, backCenter.y + lineRadius, backCenter.z, 1.0f),
+            glm::vec3(-1.0f, 0.0f, 0.0f)
+    };
+
+    TriangleVertex lineBackVertex{
+            backCoverVertex.position,
+            glm::vec3(0.0f, 1.0f, 0.0f)
+    };
+    TriangleVertex lineBeforeTipVertex{
+            glm::vec4(beforeTipCenter.x, beforeTipCenter.y + lineRadius, beforeTipCenter.z, 1.0f),
+            lineBackVertex.normal
+    };
+
+    TriangleVertex ringInnerVertex{
+            lineBeforeTipVertex.position,
+            backCoverVertex.normal
+    };
+    TriangleVertex ringOuterVertex{
+            glm::vec4(beforeTipCenter.x, beforeTipCenter.y + tipRadius, beforeTipCenter.z, 1.0f),
+            ringInnerVertex.normal
+    };
+
+    TriangleVertex tipEdgeVertex{
+            ringOuterVertex.position,
+            glm::normalize(glm::vec3(tipRadius, tip.x - beforeTipCenter.x, 0.0f))
+    };
+
+    TriangleVertex tipVertex{
+            glm::vec4(tip, 1.0f),
+            tipEdgeVertex.normal
+    };
+
+    unsigned int firstIndex = mesh->getNextVertexIndex(ldr_color_repo::getInstanceDummyColor());
+
+
+    for (uint16_t i = 0; i < numCorners; ++i) {
+        auto rotationMatrix = glm::rotate(2*M_PIf32*i/numCorners, glm::vec3(1.0f, 0.0f, 0.0f));
+        //todo tipEdgeVertex.position *= rotationMatrix;
+    }
 }
 
 bool ArrowMeshNode::isColorUserEditable() const {

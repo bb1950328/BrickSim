@@ -60,7 +60,7 @@ SceneMeshCollection::SceneMeshCollection(scene_id_t scene) : scene(scene) {}
 
 void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node> &node, const glm::mat4 &parentAbsoluteTransformation, std::optional<LdrColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId) {
     std::shared_ptr<etree::Node> nodeToParseChildren = node;
-    glm::mat4 absoluteTransformation = parentAbsoluteTransformation;
+    glm::mat4 absoluteTransformation = parentAbsoluteTransformation * node->getRelativeTransformation();
     if (node->visible) {
         if ((node->getType() & etree::TYPE_MESH) > 0) {
             std::shared_ptr<etree::MeshNode> meshNode;

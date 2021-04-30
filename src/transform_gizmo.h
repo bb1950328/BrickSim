@@ -25,12 +25,12 @@ public:
     void initArrows();
     bool isTransformationUserEditable() const override;
     bool isDisplayNameUserEditable() const override;
-    std::string getDescription() override;
 };
 
 class TransformGizmo {
 private:
     std::shared_ptr<Scene> scene;
+    std::shared_ptr<TransformGizmoNode> transformGizmoNode;
 public:
     TransformGizmo(std::shared_ptr<Scene> scene);
     void update();

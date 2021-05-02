@@ -142,7 +142,7 @@ jobs:
           path: artifacts
 
       - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
+        uses: EnricoMi/publish-unit-test-result-action@v1.12
         with:
           files: ./**/*.xml
           check_name: Catch2 Test Results

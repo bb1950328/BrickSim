@@ -5,6 +5,8 @@
 #include <utility>
 #include <algorithm>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 const glm::vec4 ARROW_DIRECTIONS[3] = {
         {1.0f, 0.0f,  0.0f,  1.0f},
@@ -13,29 +15,48 @@ const glm::vec4 ARROW_DIRECTIONS[3] = {
 };
 
 TransformGizmo::TransformGizmo(std::shared_ptr<Scene> scene) : scene(std::move(scene)) {
-    transformGizmoNode = std::make_shared<TransformGizmoNode>(this->scene->getRootNode());
-    this->scene->getRootNode()->addChild(transformGizmoNode);
-    transformGizmoNode->initElements();
-    transformGizmoNode->setRelativeTransformation(glm::scale(glm::vec3(100.0f, 100.0f, 100.0f)));
-    for (const auto &arrow : transformGizmoNode->getChildren()) {
+    node = std::make_shared<TransformGizmoNode>(this->scene->getRootNode());
+    this->scene->getRootNode()->addChild(node);
+    node->initElements();
+    for (const auto &arrow : node->getChildren()) {
         arrow->layer = constants::TRANSFORM_GIZMO_LAYER;
     }
-    this->scene->elementTreeChanged();
 }
 
 void TransformGizmo::update() {
-    const auto guiScale = config::getDouble(config::GUI_SCALE);
+    auto selectedNode = getFirstSelectedNode(scene->getRootNode());
+    std::optional<glm::mat4> nowTransformation;
+    if (selectedNode != nullptr) {
+        auto nodeTransformation = glm::transpose(selectedNode->getAbsoluteTransformation());
+        const auto guiScale = config::getDouble(config::GUI_SCALE);
 
-    glm::vec3 cameraPos = scene->getCamera()->getCameraPos();
-    const glm::vec3 center(0.0f, 0.0f, 0.0f);//todo selected node center here
+        glm::quat rotation;
+        glm::vec3 skewIgnore;
+        glm::vec4 perspectiveIgnore;
+        glm::vec3 translation;
+        glm::vec3 scaleIgnore;
+        glm::decompose(nodeTransformation, scaleIgnore, rotation, translation, skewIgnore, perspectiveIgnore);
 
-    auto cameraCenterDistance = glm::length(cameraPos - center);
+        glm::vec3 cameraPos = scene->getCamera()->getCameraPos();
+        auto centerOpenGlCoords = glm::vec4(translation, 1.0f) * glm::scale(constants::LDU_TO_OPENGL_ROTATION, glm::vec3(constants::LDU_TO_OPENGL_SCALE));
+        auto cameraCenterDistance = glm::length(glm::vec4(cameraPos, 1.0f) - centerOpenGlCoords);
 
-    //todo update node transformation
+        nowTransformation = glm::translate(translation) * glm::scale(glm::vec3(cameraCenterDistance*40));
+        node->setRelativeTransformation(glm::transpose(nowTransformation.value()));
+
+        node->visible = true;
+    } else {
+        node->visible = false;
+        nowTransformation = {};
+    }
+    if (nowTransformation != lastTransformation) {
+        scene->elementTreeChanged();
+        lastTransformation = nowTransformation;
+    }
 }
 
 TransformGizmo::~TransformGizmo() {
-    //TODO
+    scene->getRootNode()->removeChild(node);
 }
 
 bool TransformGizmoNode::isTransformationUserEditable() const {
@@ -54,15 +75,24 @@ TransformGizmoNode::TransformGizmoNode(const std::shared_ptr<Node> &parent) : No
 
 void TransformGizmoNode::initElements() {
     uint8_t i = 0;
-    for (const auto &color : {"#FF0000", "#00FF00", "#0000FF"}) {
-        translateArrows[i] = std::make_shared<generated_mesh::ArrowNode>(ldr_color_repo::getPureColor(color), shared_from_this());
+    for (const auto &colorCode : {"#FF0000", "#00FF00", "#0000FF"}) {
+        const auto &colorRef = ldr_color_repo::getPureColor(colorCode);
+        translateArrows[i] = std::make_shared<generated_mesh::ArrowNode>(colorRef, shared_from_this());
         addChild(translateArrows[i]);
+
+        rotateTori[i] = std::make_shared<generated_mesh::QuarterTorusNode>(colorRef, shared_from_this());
+        addChild(rotateTori[i]);
+
         ++i;
     }
     translateArrows[1]->setRelativeTransformation(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
     translateArrows[2]->setRelativeTransformation(glm::rotate(glm::radians(-90.0f), glm::vec3(0, 0, 1)));
 
-    centerBall = std::make_shared<generated_mesh::UVSphereNode>(ldr_color_repo::getPureColor("#cccccc"), shared_from_this());
-    centerBall->setRelativeTransformation(glm::scale(glm::vec3(0.4f)));
+    rotateTori[0]->setRelativeTransformation(glm::rotate(glm::radians(-90.0f), glm::vec3(1, 0, 0)));
+    rotateTori[1]->setRelativeTransformation(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
+    rotateTori[2]->setRelativeTransformation(glm::rotate(glm::rotate(glm::radians(-90.0f), glm::vec3(1, 0, 0)), glm::radians(90.0f), glm::vec3(0, 0, 1)));
+
+    centerBall = std::make_shared<generated_mesh::UVSphereNode>(ldr_color_repo::getPureColor("#ffffff"), shared_from_this());
+    centerBall->setRelativeTransformation(glm::scale(glm::vec3(generated_mesh::ArrowNode::LINE_RADIUS*4)));
     addChild(centerBall);
 }

@@ -55,7 +55,7 @@ namespace etree {
         children.push_back(newChild);
     }
 
-    void Node::deleteChild(const std::shared_ptr<Node>& childToDelete) {
+    void Node::removeChild(const std::shared_ptr<Node>& childToDelete) {
         auto it = children.begin();
         while (*it != childToDelete && it != children.end()) {
             ++it;

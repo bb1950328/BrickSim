@@ -589,7 +589,7 @@ namespace controller {
     }
 
     void deleteElement(const std::shared_ptr<etree::Node>& nodeToDelete) {
-        nodeToDelete->parent.lock()->deleteChild(nodeToDelete);
+        nodeToDelete->parent.lock()->removeChild(nodeToDelete);
         selectedNodes.erase(nodeToDelete);
         elementTreeChanged = true;
         selectionChanged = true;

@@ -8,6 +8,7 @@ namespace constants {
     constexpr float LDU_TO_OPENGL_SCALE = 0.01f;
     extern const glm::mat4 LDU_TO_OPENGL_ROTATION;
     extern const glm::mat4 LDU_TO_OPENGL;
+    extern const glm::mat4 OPENGL_TO_LDU;
     constexpr layer_t DEFAULT_LAYER = 0;
     constexpr layer_t TRANSFORM_GIZMO_LAYER = 32;
 

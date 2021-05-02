@@ -10,6 +10,7 @@ namespace constants {
                                                          glm::radians(180.0f),//rotate 180° around
                                                          glm::vec3(1.0f, 0.0f, 0.0f));// x axis;
     const glm::mat4 LDU_TO_OPENGL = glm::scale(constants::LDU_TO_OPENGL_ROTATION, glm::vec3(constants::LDU_TO_OPENGL_SCALE));
+    const glm::mat4 OPENGL_TO_LDU = glm::inverse(LDU_TO_OPENGL);
     const char *gitCommitHash =
 #ifdef BRICKSIM_GIT_COMMIT_HASH
             BRICKSIM_GIT_COMMIT_HASH;

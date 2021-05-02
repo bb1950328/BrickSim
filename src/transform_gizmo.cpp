@@ -37,12 +37,13 @@ void TransformGizmo::update() {
         glm::vec3 scaleIgnore;
         glm::decompose(nodeTransformation, scaleIgnore, rotation, translation, skewIgnore, perspectiveIgnore);
 
-        glm::vec3 cameraPos = scene->getCamera()->getCameraPos();
-        auto centerOpenGlCoords = glm::vec4(translation, 1.0f) * constants::LDU_TO_OPENGL;
+        glm::vec3 cameraPosLdu = glm::vec4(scene->getCamera()->getCameraPos(), 1.0f) * constants::OPENGL_TO_LDU;
 
-        auto cameraCenterDistance = glm::length(glm::vec4(cameraPos, 1.0f) - centerOpenGlCoords);
+        glm::vec3 direction = glm::normalize(translation - cameraPosLdu);
 
-        nowTransformation = glm::translate(translation) * glm::scale(glm::vec3(cameraCenterDistance*40));
+        glm::vec3 gizmoPos = cameraPosLdu + direction * 5.0f;
+
+        nowTransformation = glm::translate(gizmoPos);
         node->setRelativeTransformation(glm::transpose(nowTransformation.value()));
 
         node->visible = true;
@@ -94,6 +95,6 @@ void TransformGizmoNode::initElements() {
     rotateTori[2]->setRelativeTransformation(glm::rotate(glm::rotate(glm::radians(-90.0f), glm::vec3(1, 0, 0)), glm::radians(90.0f), glm::vec3(0, 0, 1)));
 
     centerBall = std::make_shared<generated_mesh::UVSphereNode>(ldr_color_repo::getPureColor("#ffffff"), shared_from_this());
-    centerBall->setRelativeTransformation(glm::scale(glm::vec3(generated_mesh::ArrowNode::LINE_RADIUS*4)));
+    centerBall->setRelativeTransformation(glm::scale(glm::vec3(generated_mesh::ArrowNode::LINE_RADIUS * 4)));
     addChild(centerBall);
 }

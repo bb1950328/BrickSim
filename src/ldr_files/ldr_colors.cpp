@@ -181,6 +181,7 @@ namespace ldr_color_repo {
         name = std::string("Pure ") + hexCode;
         code = getUnusedCode();
         value = edge = color::RGB(hexCode);
+        finish = RUBBER;
         visibleInLists = false;
     }
 }

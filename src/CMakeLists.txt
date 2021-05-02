@@ -9,6 +9,8 @@ target_sources(BrickSimLib PUBLIC
         db.h
         element_tree.cpp
         element_tree.h
+        generated_mesh.cpp
+        generated_mesh.h
         keyboard_shortcut_manager.cpp
         keyboard_shortcut_manager.h
         latest_log_messages_tank.cpp

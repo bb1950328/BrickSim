@@ -12,6 +12,7 @@ namespace constants {
 
     constexpr mesh_identifier_t MESH_ID_ORIENTATION_CUBE_FIRST = 1;//6 sides
     constexpr mesh_identifier_t MESH_ID_TRANSFORM_GIZMO_ARROW = 7;
+    constexpr mesh_identifier_t MESH_ID_UV_SPHERE = 10;
 
     constexpr uint16_t versionMajor = BRICKSIM_VERSION_MAJOR;
     constexpr uint16_t versionMinor = BRICKSIM_VERSION_MINOR;

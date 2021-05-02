@@ -26,9 +26,11 @@ void Task::startThread() {
     spdlog::info("starting task {}", name);
     thread = std::thread([this](){
         spdlog::debug("thread of task {} started", name);
+
         auto before = std::chrono::high_resolution_clock::now();
         function(&progress);
         auto after = std::chrono::high_resolution_clock::now();
+
         progress=1;
         duration_us.store(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count());
         is_done.store(true);

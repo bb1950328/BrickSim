@@ -38,7 +38,8 @@ void TransformGizmo::update() {
         glm::decompose(nodeTransformation, scaleIgnore, rotation, translation, skewIgnore, perspectiveIgnore);
 
         glm::vec3 cameraPos = scene->getCamera()->getCameraPos();
-        auto centerOpenGlCoords = glm::vec4(translation, 1.0f) * glm::scale(constants::LDU_TO_OPENGL_ROTATION, glm::vec3(constants::LDU_TO_OPENGL_SCALE));
+        auto centerOpenGlCoords = glm::vec4(translation, 1.0f) * constants::LDU_TO_OPENGL;
+
         auto cameraCenterDistance = glm::length(glm::vec4(cameraPos, 1.0f) - centerOpenGlCoords);
 
         nowTransformation = glm::translate(translation) * glm::scale(glm::vec3(cameraCenterDistance*40));

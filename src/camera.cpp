@@ -111,7 +111,7 @@ void FitContentCamera::setRootNode(const std::shared_ptr<etree::MeshNode> &node)
     const auto &mesh = SceneMeshCollection::getMesh(SceneMeshCollection::getMeshKey(node, false), node);
     const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
     auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL_SCALE;
-    target = glm::vec4(minimalEnclosingBall.first, 1.0f) * mesh->globalModel;
+    target = glm::vec4(minimalEnclosingBall.first, 1.0f) * constants::LDU_TO_OPENGL;
 
     //todo calculate the distance from fov instead of this
     auto distance = meshRadius * 2.45f;

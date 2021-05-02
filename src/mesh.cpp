@@ -427,7 +427,7 @@ void Mesh::rewriteInstanceBuffer() {
             }
             glm::mat4 instancesArray[instances.size()];
             for (int i = 0; i < instances.size(); ++i) {
-                instancesArray[i] = glm::transpose(instances[i].transformation * globalModel);
+                instancesArray[i] = glm::transpose(instances[i].transformation * constants::LDU_TO_OPENGL);
                 if (instances[i].selected) {
                     instancesArray[i][2][3] = 1;
                 }
@@ -475,7 +475,7 @@ void Mesh::initializeLineGraphics() {
         //instanceVbo
         auto *instancesArray = new glm::mat4[instances.size()];//todo smart pointer/array
         for (int i = 0; i < instances.size(); ++i) {
-            instancesArray[i] = glm::transpose(instances[i].transformation * globalModel);
+            instancesArray[i] = glm::transpose(instances[i].transformation * constants::LDU_TO_OPENGL);
         }
 
         glGenBuffers(1, &lineInstanceVBO);
@@ -522,7 +522,7 @@ void Mesh::initializeOptionalLineGraphics() {
         //instanceVbo
         auto *instancesArray = new glm::mat4[instances.size()];
         for (int i = 0; i < instances.size(); ++i) {
-            instancesArray[i] = glm::transpose(instances[i].transformation * globalModel);
+            instancesArray[i] = glm::transpose(instances[i].transformation * constants::LDU_TO_OPENGL);
         }
 
         glGenBuffers(1, &optionalLineInstanceVBO);
@@ -654,7 +654,7 @@ std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> Mes
     unsigned int arr_cursor = 0;
     if (color.get()->code == ldr_color_repo::INSTANCE_DUMMY_COLOR_CODE) {
         for (auto &instance : instances) {
-            instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * globalModel);
+            instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * constants::LDU_TO_OPENGL);
             //std::cout << "instance: " << std::endl;
             //util::coutMat4(instancesArray[arr_cursor].transformation);
             setInstanceColor(&instancesArray[arr_cursor], instance.color);
@@ -666,7 +666,7 @@ std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> Mes
         setInstanceColor(&inst, color);
         std::fill_n(instancesArray.get(), instances.size(), inst);
         for (auto &instance : instances) {
-            instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * globalModel);
+            instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * constants::LDU_TO_OPENGL);
             instancesArray[arr_cursor].idColor = color::convertIntToColorVec3(instance.elementId);
             arr_cursor++;
         }
@@ -679,7 +679,7 @@ std::unique_ptr<TexturedTriangleInstance[], std::default_delete<TexturedTriangle
     for (int i = 0; i < instances.size(); ++i) {
         auto &instance = instances[i];
         array[i].idColor = color::convertIntToColorVec3(instance.elementId);
-        array[i].transformation = glm::transpose(instance.transformation * globalModel);
+        array[i].transformation = glm::transpose(instance.transformation * constants::LDU_TO_OPENGL);
     }
     return array;
 }

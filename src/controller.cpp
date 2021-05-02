@@ -254,10 +254,6 @@ namespace controller {
             mainScene->setCamera(camera);
             mainScene->setRootNode(elementTree);
 
-            transformGizmo = std::make_unique<TransformGizmo>(mainScene);
-
-            mainScene->getOverlayCollection().addElement(std::make_shared<overlay2d::LineElement>(glm::usvec2(5, 5), glm::usvec2(50, 50), 20, color::RGB::RED));
-
             gui::setWindow(window);
             gui::initialize();
 
@@ -265,7 +261,7 @@ namespace controller {
                 loopPartsLibrarySetupPrompt();
             }
 
-            Task steps[]{
+            Task initSteps[]{
                     {"load color definitions",              ldr_color_repo::initialize},
                     {"initialize file list",                [](float *progress) { ldr_file_repo::get().initialize(progress); }},
                     {"initialize price guide provider",     price_guide_provider::initialize},
@@ -273,14 +269,16 @@ namespace controller {
                     {"initialize BrickLink constants",      bricklink_constants_provider::initialize},
                     {"initialize keyboard shortcuts",       keyboard_shortcut_manager::initialize},
                     {"initialize orientation cube generator", orientation_cube::initialize},
+                    {"initialize transform gizmo", [](){transformGizmo = std::make_unique<TransformGizmo>(mainScene);}},
             };
-            for (auto &initStep : steps) {
-                spdlog::info("Starting init step {}", initStep.getName());
-                initStep.startThread();
-                while (!initStep.isDone()) {
+            constexpr float progressStep = 1.0f/std::size(initSteps);
+            for (int i = 0; i < std::size(initSteps); ++i) {
+                auto &currentStep = initSteps[i];
+                currentStep.startThread();
+                while (!currentStep.isDone()) {
                     if (gui::isSetupDone()) {
                         gui::beginFrame();
-                        gui::drawWaitMessage(initStep.getName(), initStep.getProgress());
+                        gui::drawWaitMessage(currentStep.getName(), progressStep * (i + currentStep.getProgress()));
                         gui::endFrame();
 
                         executeOpenGL([](){
@@ -292,16 +290,8 @@ namespace controller {
                         std::this_thread::sleep_for(sleepTime);
                     }
                 }
-                initStep.joinThread();
-                spdlog::info("finished init step {}", initStep.getName());
+                currentStep.joinThread();
             }
-
-            //spdlog::log(spdlog::level::trace, "a trace message");
-            //spdlog::log(spdlog::level::debug, "a debug message");
-            //spdlog::log(spdlog::level::info, "a info message");
-            //spdlog::log(spdlog::level::warn, "a warn message");
-            //spdlog::log(spdlog::level::err, "a err message");
-            //spdlog::log(spdlog::level::critical, "a critical message");
         }
 
         void cleanup() {
@@ -370,7 +360,7 @@ namespace controller {
         openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
 
-        while (!(glfwWindowShouldClose(window) || userWantsToExit)) {
+        while (!glfwWindowShouldClose(window) && !userWantsToExit) {
             copyMainloopTimePoints();
             if (foregroundTasks.empty() && backgroundTasks.empty() && thumbnailGenerator->renderQueueEmpty() && glfwGetWindowAttrib(window, GLFW_FOCUSED) == 0) {
                 std::this_thread::sleep_for(idle_sleep);

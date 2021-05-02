@@ -148,10 +148,6 @@ public:
     void deallocateGraphics();
     virtual ~Mesh();
 
-    //this is the conversion from the ldraw coordinate system to the OpenGL coordinate system
-    glm::mat4 globalModel = glm::scale(constants::LDU_TO_OPENGL_ROTATION,
-                                       glm::vec3(constants::LDU_TO_OPENGL_SCALE, constants::LDU_TO_OPENGL_SCALE, constants::LDU_TO_OPENGL_SCALE)); // and make 100 times smaller
-
     std::pair<glm::vec3, float> getMinimalEnclosingBall();
 private:
     std::optional<std::pair<glm::vec3, float>> minimalEnclosingBall;

@@ -78,11 +78,6 @@ namespace util {
     };
     NormalProjectionResult normalProjectionOnLine(const glm::vec2 &lineStart, const glm::vec2 &lineEnd, const glm::vec2& point);
 
-
-    //color functions
-
-
-
     // texture/image functions
     std::string translateBrickLinkColorNameToLDraw(std::string colorName);
     std::string translateLDrawColorNameToBricklink(std::string colorName);

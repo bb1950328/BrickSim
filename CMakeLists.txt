@@ -71,8 +71,7 @@ endif ()
 # libzip
 set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)# https://github.com/nih-at/libzip/issues/66
 add_subdirectory(src/lib/libzip)
-target_include_directories(BrickSimLib PUBLIC src/lib/libzip/lib)
-target_link_libraries(BrickSimLib PRIVATE zip)
+target_link_libraries(BrickSimLib PUBLIC libzip::zip)
 
 # SqliteCpp
 add_subdirectory(src/lib/SQLiteCpp)

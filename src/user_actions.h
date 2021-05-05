@@ -50,6 +50,7 @@ namespace user_actions {
     const Action APPLY_DEFAULT_WINDOW_LAYOUT{30, "Apply default window layout", ICON_FA_TH_LARGE" Apply default window layout", gui::applyDefaultWindowLayout};
     const Action TAKE_SCREENSHOT{31, "Take screenshot", ICON_FA_CAMERA" Take screenshot", gui::showScreenshotDialog};
     const Action EXECUTE_ACTION_BY_NAME{32, "Find action", ICON_FA_SEARCH" Find action", gui::showExecuteActionByNameDialog};
+    const Action TOGGLE_TRANSFORM_GIZMO_ROTATION{33, "Toggle Transform Gizmo Rotation (World / Selected Element)", "Toggle Transform Gizmo Rotation (World / Selected Element)", controller::toggleTransformGizmoRotationState};
 
     void initialize();
     void executeAction(int id);

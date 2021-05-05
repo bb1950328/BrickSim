@@ -9,6 +9,8 @@
 #include "gui/gui.h"
 #include "thumbnail_generator.h"
 #include "tasks.h"
+#include "transform_gizmo.h"
+
 #ifdef BRICKSIM_USE_RENDERDOC
 #include <renderdoc.h>
 #endif
@@ -65,6 +67,9 @@ namespace controller {
     void deleteSelectedElements();
     void hideSelectedElements();
     void unhideAllElements();
+
+    transform_gizmo::RotationState getTransformGizmoRotationState();
+    void toggleTransformGizmoRotationState();
 
     void setElementTreeChanged(bool val);
     void setUserWantsToExit(bool val);

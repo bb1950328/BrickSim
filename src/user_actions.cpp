@@ -38,6 +38,7 @@ namespace user_actions {
                 APPLY_DEFAULT_WINDOW_LAYOUT,
                 TAKE_SCREENSHOT,
                 EXECUTE_ACTION_BY_NAME,
+                TOGGLE_TRANSFORM_GIZMO_ROTATION,
         };
     }
 

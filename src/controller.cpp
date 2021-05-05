@@ -27,7 +27,7 @@ namespace controller {
         std::shared_ptr<ThumbnailGenerator> thumbnailGenerator;
         std::shared_ptr<Scene> mainScene;
         std::shared_ptr<CadCamera> camera;
-        std::unique_ptr<TransformGizmo> transformGizmo;
+        std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;
         unsigned int windowWidth;
         unsigned int windowHeight;
 
@@ -36,6 +36,8 @@ namespace controller {
         bool userWantsToExit = false;
         std::set<std::shared_ptr<etree::Node>> selectedNodes;
         std::shared_ptr<etree::Node> currentlyEditingNode;
+        transform_gizmo::RotationState transformGizmoRotationState = transform_gizmo::RotationState::WORLD;
+
         std::map<unsigned int, Task *> backgroundTasks;//todo smart pointer
         std::queue<Task *> foregroundTasks;
 
@@ -269,7 +271,7 @@ namespace controller {
                     {"initialize BrickLink constants",      bricklink_constants_provider::initialize},
                     {"initialize keyboard shortcuts",       keyboard_shortcut_manager::initialize},
                     {"initialize orientation cube generator", orientation_cube::initialize},
-                    {"initialize transform gizmo", [](){transformGizmo = std::make_unique<TransformGizmo>(mainScene);}},
+                    {"initialize transform gizmo", [](){transformGizmo = std::make_unique<transform_gizmo::TransformGizmo>(mainScene);}},
             };
             constexpr float progressStep = 1.0f/std::size(initSteps);
             for (int i = 0; i < std::size(initSteps); ++i) {
@@ -672,6 +674,18 @@ namespace controller {
         functor();
         glfwMakeContextCurrent(nullptr);
     }
+
+    transform_gizmo::RotationState getTransformGizmoRotationState() {
+        return transformGizmoRotationState;
+    }
+
+    void toggleTransformGizmoRotationState() {
+        transformGizmoRotationState =
+                transformGizmoRotationState == transform_gizmo::RotationState::WORLD
+                ? transform_gizmo::RotationState::SELECTED_ELEMENT
+                : transform_gizmo::RotationState::WORLD;
+    }
+
 #ifdef BRICKSIM_USE_RENDERDOC
     RENDERDOC_API_1_1_2 *getRenderdocAPI() {
         return rdoc_api;

@@ -93,7 +93,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: BrickSimTests_Linux${{ matrix.bits }}
-        path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/src/test/BrickSimTests
+        path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSimTests
   test:
     #todo run tests for 32 bit also
     name: Catch2 Unittests

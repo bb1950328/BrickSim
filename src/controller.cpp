@@ -229,7 +229,7 @@ namespace controller {
             }
         }
 
-        void initialize() {
+        bool initialize() {
             const std::shared_ptr<latest_log_messages_tank::Sink<std::mutex>> x(new latest_log_messages_tank::Sink<std::mutex>);
             spdlog::default_logger()->sinks().push_back(x);
             spdlog::set_level(spdlog::level::trace);
@@ -241,7 +241,7 @@ namespace controller {
 
             if (!initializeGL()) {
                 spdlog::critical("failed to initialize OpenGL / glfw, exiting");
-                return;
+                return false;
             }
 
             util::setStbiFlipVertically(true);
@@ -292,6 +292,7 @@ namespace controller {
                 }
                 currentStep.joinThread();
             }
+            return true;
         }
 
         void cleanup() {
@@ -353,8 +354,12 @@ namespace controller {
     int run() {
         spdlog::info("BrickSim started.");
         const auto startupTime = std::chrono::high_resolution_clock::now();
-        initialize();
-        spdlog::info("Initialisation finished in {}s", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()-startupTime).count()/1000.0f);
+        if (initialize()) {
+            spdlog::info("Initialisation finished in {}s", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()-startupTime).count()/1000.0f);
+        } else {
+            spdlog::critical("Initialisation failed, exiting now.");
+            return 1;
+        }
 
         //openFile("test_files/bricks_test.ldr");
         openFile("~/Downloads/arocs.mpd");

@@ -22,7 +22,7 @@ namespace controller {
         void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
         void checkForFinishedBackgroundTasks();
         void glfwErrorCallback(int code, const char* message);
-        void initialize();
+        bool initialize();
         void cleanup();
         void loopPartsLibrarySetupPrompt();
     }

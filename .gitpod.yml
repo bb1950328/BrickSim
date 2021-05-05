@@ -4,3 +4,4 @@ tasks:
 vscode:
   extensions:
     - ms-vscode.cmake-tools
+    - ms-vscode.cpptools

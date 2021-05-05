@@ -40,7 +40,7 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(src/lib/glfw src/lib/glfw/bin)
-target_include_directories(BrickSimLib PRIVATE ${GLFW_INCLUDE_DIRS})
+target_include_directories(BrickSimLib PUBLIC ${GLFW_INCLUDE_DIRS})
 target_link_libraries(BrickSimLib PRIVATE glfw)
 target_link_libraries(BrickSimLib PRIVATE ${GLFW_LIBRARIES})
 if (UNIX)# todo check if this is necessary

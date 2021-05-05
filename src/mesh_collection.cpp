@@ -277,3 +277,7 @@ void SceneMeshCollection::setRootNode(const std::shared_ptr<etree::Node> &newRoo
 void SceneMeshCollection::deleteAllMeshes() {
     allMeshes.clear();
 }
+
+const std::set<std::shared_ptr<Mesh>> &SceneMeshCollection::getUsedMeshes() const {
+    return usedMeshes;
+}

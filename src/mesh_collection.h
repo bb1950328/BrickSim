@@ -45,6 +45,7 @@ public:
 
     static mesh_key_t getMeshKey(const std::shared_ptr<etree::MeshNode>& node, bool windingOrderInverse);
     static std::shared_ptr<Mesh> getMesh(mesh_key_t key, const std::shared_ptr<etree::MeshNode>& node);
+    const std::set<std::shared_ptr<Mesh>> &getUsedMeshes() const;
     static void deleteAllMeshes();
 };
 #endif //BRICKSIM_MESH_COLLECTION_H

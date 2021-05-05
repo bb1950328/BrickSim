@@ -374,4 +374,8 @@ namespace scenes {
     void deleteAll() {
         createdScenes.clear();
     }
+
+    std::map<scene_id_t, std::shared_ptr<Scene>> &getAll() {
+        return createdScenes;
+    }
 }

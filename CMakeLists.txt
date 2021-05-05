@@ -71,7 +71,7 @@ endif ()
 # libzip
 set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)# https://github.com/nih-at/libzip/issues/66
 add_subdirectory(src/lib/libzip)
-target_include_directories(BrickSimLib PRIVATE zip)
+target_include_directories(BrickSimLib PUBLIC zip)
 target_link_libraries(BrickSimLib PRIVATE zip)
 
 # SqliteCpp
@@ -83,7 +83,7 @@ target_link_libraries(BrickSimLib PRIVATE sqlite3)
 # cURL
 set(CURL_LIBRARY "-lcurl")
 find_package(CURL REQUIRED)
-target_include_directories(BrickSim PRIVATE ${CURL_INCLUDE_DIR})
+target_include_directories(BrickSim PUBLIC ${CURL_INCLUDE_DIR})
 target_link_libraries(BrickSimLib PRIVATE ${CURL_LIBRARIES})
 
 # spdlog

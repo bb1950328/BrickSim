@@ -79,6 +79,9 @@ jobs:
       with:
         config-file: ./.github/codeql/codeql-config.yml
 
+    - name: list all binaries in runner workspace
+      run: find ${{runner.workspace}} -type f -executable
+
     - name: BrickSimRawBinary
       uses: actions/upload-artifact@v2
       with:

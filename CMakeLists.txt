@@ -16,16 +16,22 @@ add_executable(BrickSim src/main.cpp)
 target_link_libraries(BrickSim PRIVATE BrickSimLib)
 add_dependencies(BrickSim BrickSimLib)
 
+add_executable(BrickSimTests src/test/catchMain.cpp)
+target_link_libraries(BrickSimTests PRIVATE Catch2::Catch2)
+add_dependencies(BrickSimTests BrickSimLib)
+target_link_libraries(BrickSimTests PRIVATE BrickSimLib)
+target_compile_definitions(BrickSimTests PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING)
+
 # OpenGL
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIRS})
-target_link_libraries(BrickSimLib ${OPENGL_LIBRARIES})
+target_include_directories(BrickSimLib PRIVATE ${OPENGL_INCLUDE_DIRS})
+target_link_libraries(BrickSimLib PRIVATE ${OPENGL_LIBRARIES})
 if (UNIX)
     if (APPLE)
-        target_link_libraries(BrickSimLib "-framework Cocoa")
-        target_link_libraries(BrickSimLib "-framework IOKit")
-        target_link_libraries(BrickSimLib "-framework CoreVideo")
+        target_link_libraries(BrickSimLib PRIVATE "-framework Cocoa")
+        target_link_libraries(BrickSimLib PRIVATE "-framework IOKit")
+        target_link_libraries(BrickSimLib PRIVATE "-framework CoreVideo")
     endif ()
 endif ()
 
@@ -34,21 +40,21 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(src/lib/glfw src/lib/glfw/bin)
-include_directories(${GLFW_INCLUDE_DIRS})
-target_link_libraries(BrickSimLib glfw)
-target_link_libraries(BrickSimLib ${GLFW_LIBRARIES})
+target_include_directories(BrickSimLib PRIVATE ${GLFW_INCLUDE_DIRS})
+target_link_libraries(BrickSimLib PRIVATE glfw)
+target_link_libraries(BrickSimLib PRIVATE ${GLFW_LIBRARIES})
 if (UNIX)# todo check if this is necessary
     if (NOT APPLE)
         find_package(X11 REQUIRED)
-        target_link_libraries(BrickSimLib ${X11_LIBRARIES})
+        target_link_libraries(BrickSimLib PRIVATE ${X11_LIBRARIES})
     endif ()
 endif ()
-target_compile_definitions(BrickSimLib PUBLIC GLFW_INCLUDE_NONE)
+target_compile_definitions(BrickSimLib PRIVATE GLFW_INCLUDE_NONE)
 
 # GLUT
 find_package(GLUT REQUIRED)
-include_directories(${GLUT_INCLUDE_DIRS})
-target_link_libraries(BrickSimLib ${GLUT_LIBRARY})
+target_include_directories(BrickSimLib PRIVATE ${GLUT_INCLUDE_DIRS})
+target_link_libraries(BrickSimLib PRIVATE ${GLUT_LIBRARY})
 
 # threads
 if (WIN32)
@@ -58,44 +64,43 @@ endif ()
 if (UNIX)
     if (NOT APPLE)
         find_package(Threads REQUIRED)
-        target_link_libraries(BrickSimLib ${CMAKE_THREAD_LIBS_INIT})
+        target_link_libraries(BrickSimLib PRIVATE ${CMAKE_THREAD_LIBS_INIT})
     endif ()
 endif ()
 
 # libzip
 set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)# https://github.com/nih-at/libzip/issues/66
 add_subdirectory(src/lib/libzip)
-target_include_directories(BrickSimLib PUBLIC zip)
-target_link_libraries(BrickSimLib zip)
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wno-nullability-completeness")
+target_include_directories(BrickSimLib PRIVATE zip)
+target_link_libraries(BrickSimLib PRIVATE zip)
 
 # SqliteCpp
 add_subdirectory(src/lib/SQLiteCpp)
-include_directories(src/lib/SQLiteCpp/include)
-target_link_libraries(BrickSimLib SQLiteCpp)
-target_link_libraries(BrickSimLib sqlite3)
+target_include_directories(BrickSimLib PUBLIC src/lib/SQLiteCpp/include)
+target_link_libraries(BrickSimLib PRIVATE SQLiteCpp)
+target_link_libraries(BrickSimLib PRIVATE sqlite3)
 
 # cURL
 set(CURL_LIBRARY "-lcurl")
 find_package(CURL REQUIRED)
-include_directories(${CURL_INCLUDE_DIR})
-target_link_libraries(BrickSimLib ${CURL_LIBRARIES})
+target_include_directories(BrickSim PRIVATE ${CURL_INCLUDE_DIR})
+target_link_libraries(BrickSimLib PRIVATE ${CURL_LIBRARIES})
 
 # spdlog
 add_subdirectory(src/lib/spdlog)
 target_include_directories(BrickSimLib PUBLIC spdlog::spdlog)
-target_link_libraries(BrickSimLib spdlog::spdlog)
+target_link_libraries(BrickSimLib PUBLIC spdlog::spdlog)
 
 #Catch2
 add_subdirectory(src/lib/Catch2)
 
 #GLM
 add_subdirectory(src/lib/glm)
-target_link_libraries(BrickSimLib glm::glm)
+target_link_libraries(BrickSimLib PUBLIC glm::glm)
 
 #tinyfiledialogs
-target_sources(BrickSimLib PUBLIC src/lib/tinyfiledialogs/tinyfiledialogs.c)
 target_include_directories(BrickSimLib PUBLIC src/lib/tinyfiledialogs)
+target_sources(BrickSimLib PRIVATE src/lib/tinyfiledialogs/tinyfiledialogs.c)
 
 #rapidjson
 target_include_directories(BrickSimLib PUBLIC src/lib/rapidjson/include)
@@ -106,21 +111,21 @@ target_include_directories(BrickSimLib PUBLIC src/lib/stb)
 add_subdirectory(src)
 
 if (WIN32)
-    target_link_libraries(BrickSimLib -lssp) # stack smashing protection
-    target_link_libraries(BrickSimLib -lImm32)
+    target_link_libraries(BrickSimLib PUBLIC -lssp) # stack smashing protection
+    target_link_libraries(BrickSimLib PUBLIC -lImm32)
 elseif (UNIX AND NOT APPLE)
-    target_link_libraries(BrickSimLib -ltbb)
+    target_link_libraries(BrickSimLib PUBLIC -ltbb)
 endif ()
 
 #set(CMAKE_VERBOSE_MAKEFILE ON) # useful for fixing build errors
 
-add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
-add_compile_definitions(USE_SSLEAY)
-add_compile_definitions(USE_OPENSSL)
+target_compile_definitions(BrickSimLib PRIVATE GLM_ENABLE_EXPERIMENTAL)
+target_compile_definitions(BrickSimLib PRIVATE USE_SSLEAY)
+target_compile_definitions(BrickSimLib PRIVATE USE_OPENSSL)
 
 option(USE_RENDERDOC "Build with RenderDoc in-application API (currently only working on linux)" OFF)
 if (USE_RENDERDOC)
-    add_compile_definitions(BRICKSIM_USE_RENDERDOC)
+    target_compile_definitions(BrickSimLib PRIVATE BRICKSIM_USE_RENDERDOC)
 endif ()
 
 option(BRICKSIM_USE_OPTIMIZED_VARIANTS "Use optimized variants of certain functions (to use SSE2 or similar things which make it faster)" ON)
@@ -132,7 +137,7 @@ target_include_directories(BrickSimLib PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
         src/lib/include
         $<INSTALL_INTERFACE:include>)
-target_link_libraries(BrickSimLib ${CMAKE_DL_LIBS})
+target_link_libraries(BrickSimLib PUBLIC ${CMAKE_DL_LIBS})
 
 #bash executable
 if (EXISTS "C:\\msys64\\usr\\bin\\bash.exe")

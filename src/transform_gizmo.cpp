@@ -1,5 +1,3 @@
-
-
 #include "transform_gizmo.h"
 #include "controller.h"
 
@@ -41,9 +39,9 @@ namespace transform_gizmo {
             glm::vec3 gizmoPos = cameraPosLdu + direction * 5.0f * configScale;
 
             nowTransformation = glm::translate(gizmoPos);
-            if (controller::getTransformGizmoRotationState()==RotationState::SELECTED_ELEMENT) {
+            if (controller::getTransformGizmoRotationState() == RotationState::SELECTED_ELEMENT) {
                 nowTransformation.value() *= glm::toMat4(rotation);
-                direction = glm::vec4(direction, 0.0f)*nowTransformation.value();
+                direction = glm::vec4(direction, 0.0f) * nowTransformation.value();
             }
             node->setRelativeTransformation(glm::transpose(nowTransformation.value()));
 
@@ -54,22 +52,22 @@ namespace transform_gizmo {
             if (yaw <= 0) {
                 if (yaw <= -0.5 * M_PI) {
                     nowPovState = pitch < 0
-                               ? PovState::XPOS_YPOS_ZPOS
-                               : PovState::XPOS_YPOS_ZNEG;
+                                  ? PovState::XPOS_YPOS_ZPOS
+                                  : PovState::XPOS_YPOS_ZNEG;
                 } else {
                     nowPovState = pitch < 0
-                               ? PovState::XPOS_YNEG_ZPOS
-                               : PovState::XPOS_YNEG_ZNEG;
+                                  ? PovState::XPOS_YNEG_ZPOS
+                                  : PovState::XPOS_YNEG_ZNEG;
                 }
             } else {
                 if (yaw <= 0.5 * M_PI) {
                     nowPovState = pitch < 0
-                               ? PovState::XNEG_YNEG_ZPOS
-                               : PovState::XNEG_YNEG_ZNEG;
+                                  ? PovState::XNEG_YNEG_ZPOS
+                                  : PovState::XNEG_YNEG_ZNEG;
                 } else {
                     nowPovState = pitch < 0
-                               ? PovState::XNEG_YPOS_ZPOS
-                               : PovState::XNEG_YPOS_ZNEG;
+                                  ? PovState::XNEG_YPOS_ZPOS
+                                  : PovState::XNEG_YPOS_ZNEG;
                 }
             }
 
@@ -119,12 +117,27 @@ namespace transform_gizmo {
 
             ++i;
         }
+
+        i=0;
+        for (const auto &colorCode: {"#ffff00", "#ff00ff", "#00ffff"}) {
+            const auto &colorRef = ldr_color_repo::getPureColor(colorCode);
+
+            move2dArrows[i] = std::make_shared<TG2DArrowNode>(colorRef, shared_from_this());
+            addChild(move2dArrows[i]);
+
+            ++i;
+        }
+
         translateArrows[1]->setRelativeTransformation(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
         translateArrows[2]->setRelativeTransformation(glm::rotate(glm::radians(-90.0f), glm::vec3(0, 0, 1)));
 
         rotateTori[0]->setRelativeTransformation(glm::rotate(glm::radians(-90.0f), glm::vec3(1, 0, 0)));
         rotateTori[1]->setRelativeTransformation(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
         rotateTori[2]->setRelativeTransformation(glm::rotate(glm::rotate(glm::radians(-90.0f), glm::vec3(1, 0, 0)), glm::radians(90.0f), glm::vec3(0, 0, 1)));
+
+        move2dArrows[0]->setRelativeTransformation(glm::translate(glm::vec3(1.0f, 0, 0)));
+        move2dArrows[1]->setRelativeTransformation(glm::translate(glm::vec3(2.0f, 0, 0)));
+        move2dArrows[2]->setRelativeTransformation(glm::translate(glm::vec3(3.0f, 0, 0)));
 
         centerBall = std::make_shared<generated_mesh::UVSphereNode>(ldr_color_repo::getPureColor("#ffffff"), shared_from_this());
         centerBall->setRelativeTransformation(glm::scale(glm::vec3(generated_mesh::ArrowNode::LINE_RADIUS * 4)));
@@ -174,5 +187,57 @@ namespace transform_gizmo {
         const auto rotateTorusZ1 = glm::rotate(glm::radians(90.0f), glm::vec3(0, 0, 1));
         const auto rotateTorusZ2 = glm::rotate(glm::radians(angleTorusZ), glm::vec3(1, 0, 0));
         rotateTori[2]->setRelativeTransformation(torusScale * rotateTorusZ2 * rotateTorusZ1);
+    }
+
+    mesh_identifier_t TG2DArrowNode::getMeshIdentifier() const {
+        return constants::MESH_ID_TRANSFORM_GIZMO_2D_ARROW;
+    }
+
+    void TG2DArrowNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
+        // 1
+        // | \
+        // |  \
+        // |   \
+        // | 3--2     6              ^ y
+        // | |        | \            |
+        // | 4--------5   \          |     x
+        // 0---------------7         z----->
+        constexpr float outerSideLength = 1.0f;
+        constexpr float lineWidth = 0.1f;
+        constexpr float tipWidth = 0.2f;
+        constexpr float tipLength = 0.2f;
+        constexpr glm::vec3 normal(0, 0, 1);
+
+        auto color = ldr_color_repo::getInstanceDummyColor();
+        auto baseIndex = mesh->getNextVertexIndex(color);
+        /*0*/mesh->addRawTriangleVertex(color, TriangleVertex{{0.0f, 0.0f, 0.0f, 1.0f}, normal});
+        /*1*/mesh->addRawTriangleVertex(color, TriangleVertex{{0.0f, outerSideLength, 0.0f, 1.0f}, normal});
+        /*2*/mesh->addRawTriangleVertex(color, TriangleVertex{{tipWidth, outerSideLength - tipLength, 0.0f, 1.0f}, normal});
+        /*3*/mesh->addRawTriangleVertex(color, TriangleVertex{{lineWidth, outerSideLength - tipLength, 0.0f, 1.0f}, normal});
+        /*4*/mesh->addRawTriangleVertex(color, TriangleVertex{{lineWidth, lineWidth, 0.0f, 1.0f}, normal});
+        /*5*/mesh->addRawTriangleVertex(color, TriangleVertex{{outerSideLength - tipLength, lineWidth, 0.0f, 1.0f}, normal});
+        /*6*/mesh->addRawTriangleVertex(color, TriangleVertex{{outerSideLength - tipLength, tipWidth, 0.0f, 1.0f}, normal});
+        /*7*/mesh->addRawTriangleVertex(color, TriangleVertex{{outerSideLength, 0.0f, 0.0f, 1.0f}, normal});
+
+        constexpr std::array<unsigned int, 3 * 6> indices = {
+                0, 4, 1,
+                4, 3, 1,
+                3, 2, 1,
+                0, 7, 4,
+                4, 7, 5,
+                5, 7, 6,
+        };
+
+        for (const auto &idx : indices) {
+            mesh->addRawTriangleIndex(color, baseIndex + idx);
+        }
+    }
+
+    TG2DArrowNode::TG2DArrowNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent) : MeshNode(color, parent) {
+        displayName = "transform gizmo 2D move arrow";
+    }
+
+    bool TG2DArrowNode::isDisplayNameUserEditable() const {
+        return false;
     }
 }

@@ -28,10 +28,20 @@ namespace transform_gizmo {
         WORLD,
     };
 
+    class TG2DArrowNode : public etree::MeshNode {
+    private:
+    public:
+        TG2DArrowNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent);
+        mesh_identifier_t getMeshIdentifier() const override;
+        void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
+        bool isDisplayNameUserEditable() const override;
+    };
+
     class TGNode : public etree::Node {
     private:
         std::shared_ptr<generated_mesh::ArrowNode> translateArrows[3];
         std::shared_ptr<generated_mesh::QuarterTorusNode> rotateTori[3];
+        std::shared_ptr<TG2DArrowNode> move2dArrows[3];
         std::shared_ptr<generated_mesh::UVSphereNode> centerBall;
         PovState povState;
     public:

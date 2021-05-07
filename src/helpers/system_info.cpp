@@ -23,7 +23,7 @@ namespace system_info {
         std::cout << constants::versionMinor << std::endl;
         result.emplace_back("BrickSim Version:", constants::versionString);
         result.emplace_back("Git Commit Hash:", constants::gitCommitHash);
-        result.emplace_back("Dear ImGui Version:", IMGUI_VERSION);
+        result.emplace_back("Dear ImGui Version:", ImGui::GetVersion());
         result.emplace_back("Libcurl Version:", LIBCURL_VERSION);
         result.emplace_back("Spdlog Version:",
                             std::to_string(SPDLOG_VER_MAJOR) + '.' + std::to_string(SPDLOG_VER_MINOR) + '.' + std::to_string(SPDLOG_VER_PATCH));
@@ -66,6 +66,10 @@ namespace system_info {
             }
         }
         result.emplace_back("CPU Features:", cpuFeatures);
+
+        result.emplace_back("ImGui::GetFontSize():", std::to_string(ImGui::GetFontSize()));
+        result.emplace_back("ImGui::GetWindowDpiScale():", std::to_string(ImGui::GetWindowDpiScale()));
+
         return result;
     }
 

@@ -90,6 +90,9 @@ namespace gui {
             ImGui::PopStyleColor(4);
         }
 
+        void drawTriangleVertexTableRow(const TriangleVertex& vertex) {
+
+        }
         void drawMeshesTab() {
             if (ImGui::BeginTabItem("Meshes")) {
                 auto allScenes = scenes::getAll();
@@ -118,16 +121,17 @@ namespace gui {
                 static bool openPopupNow = false;
 
                 float meshListTableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 2;
+                const auto &meshes = selectedScene->getMeshCollection().getUsedMeshes();
                 if (ImGui::BeginChild("##meshesListWrapper", ImVec2(0.0f, meshListTableHeight))) {
-                    if (ImGui::BeginTable("Meshes", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
-                        ImGui::TableSetupColumn("Name");
-                        ImGui::TableSetupColumn("Inst.");
-                        ImGui::TableSetupColumn("Tri. count");
-                        ImGui::TableSetupColumn("");
+                    if (ImGui::BeginTable("Meshes", 4, ImGuiTableFlags_Borders)) {
+                        ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+                        ImGui::TableSetupColumn("Inst.", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize()*2.7f);
+                        ImGui::TableSetupColumn("Tri. count", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize()*4);
+                        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize()*3.4f);
                         ImGui::TableSetupScrollFreeze(0, 1);
                         ImGui::TableHeadersRow();
 
-                        for (const auto &mesh : selectedScene->getMeshCollection().getUsedMeshes()) {
+                        for (const auto &mesh : meshes) {
                             ImGui::TableNextRow();
 
                             ImGui::TableNextColumn();
@@ -154,6 +158,8 @@ namespace gui {
                     }
                     ImGui::EndChild();
                 }
+                
+                ImGui::Text("%zu Meshes", meshes.size());
 
                 if (openPopupNow) {
                     ImGui::OpenPopup("MeshInspector");
@@ -180,6 +186,49 @@ namespace gui {
 
                                 ImGui::EndTable();
                             }
+
+                            if (ImGui::BeginTable("##meshInspectorBufferIdsTable", 5)) {
+                                ImGui::TableSetupColumn("Color");
+                                ImGui::TableSetupColumn("VAO");
+                                ImGui::TableSetupColumn("Vertex VBO");
+                                ImGui::TableSetupColumn("Instance VBO");
+                                ImGui::TableSetupColumn("EBO");
+                                ImGui::TableHeadersRow();
+
+                                for (const auto &vao : mesh->VAOs) {
+                                    auto colorRef = vao.first;
+                                    ImGui::TableNextRow();
+
+                                    ImGui::TableNextColumn();
+                                    drawColorLabel(colorRef);
+
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("%u", vao.second);
+
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("%u", mesh->vertexVBOs[colorRef]);
+
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("%u", mesh->instanceVBOs[colorRef]);
+
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("%u", mesh->EBOs[colorRef]);
+                                }
+                                ImGui::EndTable();
+                            }
+
+                            if (ImGui::CollapsingHeader("Instance Scene/Layer Ranges")) {
+                                for (const auto &sceneMap : mesh->instanceSceneLayerRanges) {
+                                    const auto text = "Scene " + std::to_string((int)sceneMap.first);
+                                    if (ImGui::TreeNode(text.c_str())) {
+                                        for (const auto &range : sceneMap.second) {
+                                            ImGui::BulletText("Layer %d: start=%u, end=%u, count=%u", (int)range.first, range.second.start, range.second.start+range.second.count, range.second.count);
+                                        }
+                                        ImGui::TreePop();
+                                    }
+                                }
+                            }
+
                             ImGui::EndTabItem();
                         }
 
@@ -187,14 +236,14 @@ namespace gui {
                             ImGui::Text("%zu Instances:", mesh->instances.size());
                             float instancesTableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 2;
                             if (ImGui::BeginChild("##instancesTableChild", ImVec2(0.0f, instancesTableHeight))) {
-                                constexpr auto flags = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable;
+                                constexpr auto flags = ImGuiTableFlags_Borders;
                                 if (ImGui::BeginTable("##instancesTable", 6, flags)) {
-                                    ImGui::TableSetupColumn("Scene");
-                                    ImGui::TableSetupColumn("Layer");
-                                    ImGui::TableSetupColumn("ElementId");
-                                    ImGui::TableSetupColumn("Color");
-                                    ImGui::TableSetupColumn("Selected");
-                                    ImGui::TableSetupColumn("Transformation");
+                                    ImGui::TableSetupColumn("Scene", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize()*3);
+                                    ImGui::TableSetupColumn("Layer", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize()*3);
+                                    ImGui::TableSetupColumn("ElementId", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize()*4.5f);
+                                    ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize()*5);
+                                    ImGui::TableSetupColumn("Selected", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize()*4);
+                                    ImGui::TableSetupColumn("Transformation", ImGuiTableColumnFlags_WidthStretch, 1.0f);
                                     ImGui::TableSetupScrollFreeze(0, 1);
                                     ImGui::TableHeadersRow();
 
@@ -227,6 +276,139 @@ namespace gui {
                                 }
                                 ImGui::EndChild();
                             }
+                            ImGui::EndTabItem();
+                        }
+
+                        if (ImGui::BeginTabItem("Triangle Vertices")) {
+                            const char* items[] = {"Vertices & Indices separate", "\"Inline\" Indices"};
+                            static int currentMode = 0;
+                            ImGui::Combo("Mode", &currentMode, items, std::size(items));
+
+                            static LdrColorReference currentColor = ldr_color_repo::NO_COLOR_CODE;
+                            bool selectFirst = mesh->triangleVertices.find(currentColor)==mesh->triangleVertices.end();
+                            if (selectFirst) {
+                                currentColor = mesh->triangleVertices.begin()->first;
+                            }
+                            if (ImGui::BeginCombo("Color", currentColor.get()->name.c_str())) {
+                                for (const auto &vertexGroup : mesh->triangleVertices) {
+                                    auto color = vertexGroup.first;
+                                    const bool isSelected = currentColor == color;
+                                    if (ImGui::Selectable(color.get()->name.c_str(), isSelected)) {
+                                        currentColor = color;
+                                    }
+
+                                    if (isSelected) {
+                                        ImGui::SetItemDefaultFocus();
+                                    }
+                                }
+                                ImGui::EndCombo();
+                            }
+
+                            bool copyVerticesToClipboard = ImGui::Button(ICON_FA_CLIPBOARD" Copy Vertices as CSV");
+                            bool copyIndicesToClipboard = false;
+                            if (currentMode==0) {
+                                ImGui::SameLine();
+                                copyIndicesToClipboard = ImGui::Button(ICON_FA_CLIPBOARD" Copy Indices");
+                            }
+                            std::stringstream toClipboard;
+
+                            if (copyVerticesToClipboard) {
+                                toClipboard << "pos.x;pos.y;pos.z;pos.w;normal.x;normal.y;normal.z" << std::endl;
+                            }
+
+                            auto drawVertexRow = [&copyVerticesToClipboard, &toClipboard](unsigned int index, const TriangleVertex& vertex){
+                                ImGui::TableNextRow();
+                                ImGui::PushItemWidth(-1.0f);
+
+                                ImGui::TableNextColumn();
+                                ImGui::Text("%u", index);
+
+                                ImGui::TableNextColumn();
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+                                ImGui::Text("%.2f", vertex.position.x);
+                                ImGui::PopStyleColor();
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 1, 0, 1));
+                                ImGui::SameLine();
+                                ImGui::Text("%.2f", vertex.position.y);
+                                ImGui::PopStyleColor();
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4, 0.5, 1, 1));
+                                ImGui::SameLine();
+                                ImGui::Text("%.2f", vertex.position.z);
+                                ImGui::PopStyleColor();
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1));
+                                ImGui::SameLine();
+                                ImGui::Text("%.2f", vertex.position.w);
+                                ImGui::PopStyleColor();
+
+
+                                ImGui::TableNextColumn();
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+                                ImGui::Text("%.2f", vertex.normal.x);
+                                ImGui::PopStyleColor();
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 1, 0, 1));
+                                ImGui::SameLine();
+                                ImGui::Text("%.2f", vertex.normal.y);
+                                ImGui::PopStyleColor();
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4, 0.5, 1, 1));
+                                ImGui::SameLine();
+                                ImGui::Text("%.2f", vertex.normal.z);
+                                ImGui::PopStyleColor();
+
+                                ImGui::PopItemWidth();
+
+                                if (copyVerticesToClipboard) {
+                                    toClipboard << vertex.position.x << ';' << vertex.position.y << ';' << vertex.position.z << ';' << vertex.position.w;
+                                    toClipboard << ';' << vertex.normal.x << ';' << vertex.normal.y << ';' << vertex.normal.z << std::endl;
+                                }
+                            };
+
+                            float totalAvailableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 2;
+                            float verticesTableHeight = currentMode==0?totalAvailableHeight/2:totalAvailableHeight;
+                            float indicesTableHeight = currentMode==0?verticesTableHeight:0.0f;
+                            const auto &vertexList = mesh->triangleVertices[currentColor];
+                            const auto &indexList = mesh->triangleIndices[currentColor];
+                            if (ImGui::BeginChild("##triangleVerticesTableWrapper", ImVec2(0.0f, verticesTableHeight))) {
+                                if (ImGui::BeginTable("##triangleVerticesTable", 3, ImGuiTableFlags_Borders)) {
+                                    ImGui::TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize()*3);
+                                    ImGui::TableSetupColumn("Position", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+                                    ImGui::TableSetupColumn("Normal", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+                                    ImGui::TableHeadersRow();
+
+                                    if (currentMode == 0) {
+                                        for (int index = 0; index < vertexList.size(); ++index) {
+                                            drawVertexRow(index, vertexList[index]);
+                                        }
+                                    } else {
+                                        for (const auto &index : indexList) {
+                                            drawVertexRow(index, vertexList[index]);
+                                        }
+                                    }
+
+                                    ImGui::EndTable();
+                                }
+                                ImGui::EndChild();
+                            }
+
+                            if (currentMode==0 && ImGui::BeginChild("##triangleIndicesTableWrapper", ImVec2(0.0f, indicesTableHeight))) {
+                                if (ImGui::BeginTable("##triangleIndicesTable", 1, ImGuiTableFlags_Borders)) {
+                                    for (const auto &index : indexList) {
+                                        ImGui::TableNextRow();
+                                        ImGui::TableNextColumn();
+                                        ImGui::Text("%u", index);
+                                        if (copyIndicesToClipboard) {
+                                            toClipboard << index << std::endl;
+                                        }
+                                    }
+                                    ImGui::EndTable();
+                                }
+                                ImGui::EndChild();
+                            }
+
+                            if (copyVerticesToClipboard | copyIndicesToClipboard) {
+                                std::string tmp = toClipboard.str();
+                                glfwSetClipboardString(getWindow(), tmp.c_str());
+                            }
+                            
                             ImGui::EndTabItem();
                         }
 

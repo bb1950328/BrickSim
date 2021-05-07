@@ -16,6 +16,7 @@ namespace latest_log_messages_tank {
         const unsigned char level;
         std::string formattedTime;
         std::string message;
+
         LogMessage(long timestamp, unsigned char level, const std::string &formattedTime, const std::string &message);
     };
 
@@ -61,7 +62,7 @@ namespace latest_log_messages_tank {
             static char timeBuf[timeBufSize];
             const time_t timestamp = spdlog::log_clock::to_time_t(msg.time);
             tm tmpTm{};
-#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
+#ifdef BRICKSIM_PLATFORM_WINDOWS
             localtime_s(&tmpTm, &timestamp);
 #else
             localtime_r(&timestamp, &tmpTm);

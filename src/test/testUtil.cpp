@@ -73,11 +73,8 @@ TEST_CASE("util::extendHomeDir and util::replaceHomeDir") {
     REQUIRE(util::extendHomeDir("/abc~def") == "/abc~def");
     REQUIRE(util::extendHomeDir("/abc~") == "/abc~");
 
-#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
-    REQUIRE(util::replaceHomeDir(util::extendHomeDir("~\\abc")) == "~\\abc");
-#else
-    REQUIRE(util::replaceHomeDir(util::extendHomeDir("~/abc")) == "~/abc");
-#endif
+    const char* expected = detected_platform::windows ? "~\\abc" : "~/abc";
+    REQUIRE(util::replaceHomeDir(util::extendHomeDir("~\\abc")) == expected);
 }
 
 TEST_CASE("util::trim") {

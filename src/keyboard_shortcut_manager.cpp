@@ -11,9 +11,9 @@ namespace keyboard_shortcut_manager {
                 {GLFW_MOD_SHIFT, "Shift"},
                 {GLFW_MOD_CONTROL, "Ctrl"},
                 {GLFW_MOD_ALT, "Alt"},
-#ifdef BRICKSIM_PLATFORM_SOME_APPLE
+#ifdef BRICKSIM_PLATFORM_MACOS
                 {GLFW_MOD_SUPER, "Cmd"},
-#elif defined(BRICKSIM_PLATFORM_WIN32_OR_64)
+#elif defined(BRICKSIM_PLATFORM_WINDOWS)
                 {GLFW_MOD_SUPER, "Win"},
 #else
                 {GLFW_MOD_SUPER, "Super"},

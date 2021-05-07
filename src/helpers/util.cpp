@@ -20,7 +20,7 @@
 #include <cstdio>
 #include <cstring>
 
-#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
+#ifdef BRICKSIM_PLATFORM_WINDOWS
 #include <windows.h>
 #endif
 
@@ -272,14 +272,16 @@ namespace util {
 
     void openDefaultBrowser(const std::string &link) {
         spdlog::info("openDefaultBrowser(\"{}\")", link);
-#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
+#ifdef BRICKSIM_PLATFORM_WINDOWS
         ShellExecute(nullptr, "open", link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);//todo testing
-#elif defined(BRICKSIM_PLATFORM_SOME_APPLE)
+#elif defined(BRICKSIM_PLATFORM_MACOS)
         std::string command = std::string("open ") + link;
 #elif defined(BRICKSIM_PLATFORM_LINUX)
         std::string command = std::string("xdg-open ") + link;
+#else
+#warning "openDefaultProwser not supported on this platform"
 #endif
-#if defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_SOME_APPLE)
+#if defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)
         int exitCode = system(command.c_str());
         if (exitCode != 0) {
             spdlog::warn("command \"{}\" exited with code {}", command, exitCode);

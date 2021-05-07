@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_TEXTURE_H
 #define BRICKSIM_TEXTURE_H
 

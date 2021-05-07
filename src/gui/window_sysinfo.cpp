@@ -1,5 +1,3 @@
-
-
 #include "gui.h"
 #include "../helpers/system_info.h"
 

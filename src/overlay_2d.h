@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_OVERLAY_2D_H
 #define BRICKSIM_OVERLAY_2D_H
 

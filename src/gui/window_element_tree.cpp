@@ -1,5 +1,3 @@
-
-
 #include "gui.h"
 #include "../controller.h"
 

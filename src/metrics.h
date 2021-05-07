@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_METRICS_H
 #define BRICKSIM_METRICS_H
 

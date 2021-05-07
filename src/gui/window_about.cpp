@@ -1,5 +1,3 @@
-
-
 #include "gui.h"
 #include "gui_internal.h"
 #include "../constant_data/resources.h"

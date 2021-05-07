@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_TASKS_H
 #define BRICKSIM_TASKS_H
 

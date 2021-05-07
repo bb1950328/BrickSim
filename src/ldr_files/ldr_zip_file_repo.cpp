@@ -1,5 +1,3 @@
-
-
 #include <spdlog/spdlog.h>
 #include <zip.h>
 #include <iostream>

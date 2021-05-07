@@ -1,5 +1,3 @@
-
-
 #include <spdlog/spdlog.h>
 #include "gui.h"
 #include "../controller.h"

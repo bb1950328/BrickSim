@@ -1,5 +1,3 @@
-
-
 #include "gui_internal.h"
 #include "../controller.h"
 #include "../info_providers/part_color_availability_provider.h"

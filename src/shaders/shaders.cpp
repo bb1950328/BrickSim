@@ -1,4 +1,3 @@
-
 #include <mutex>
 #include <spdlog/spdlog.h>
 #include "shaders.h"

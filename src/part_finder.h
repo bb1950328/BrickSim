@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_PART_FINDER_H
 #define BRICKSIM_PART_FINDER_H
 

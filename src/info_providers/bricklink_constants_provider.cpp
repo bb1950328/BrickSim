@@ -1,5 +1,3 @@
-
-
 #include <iostream>
 #include <spdlog/spdlog.h>
 #include "bricklink_constants_provider.h"

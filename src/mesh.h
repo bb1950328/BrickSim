@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_MESH_H
 #define BRICKSIM_MESH_H
 

@@ -1,5 +1,3 @@
-
-
 #include "scene.h"
 #include "controller.h"
 #include "latest_log_messages_tank.h"

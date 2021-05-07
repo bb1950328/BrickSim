@@ -1,5 +1,3 @@
-
-
 #include "gui.h"
 #include "../config.h"
 #include "../keyboard_shortcut_manager.h"

@@ -1,5 +1,3 @@
-
-
 #include "color.h"
 #include "glm/glm.hpp"
 

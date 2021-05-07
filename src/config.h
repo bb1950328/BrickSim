@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_CONFIG_H
 #define BRICKSIM_CONFIG_H
 

@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_GUI_INTERNAL_H
 #define BRICKSIM_GUI_INTERNAL_H
 

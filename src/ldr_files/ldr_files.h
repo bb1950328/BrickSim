@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_LDR_FILES_H
 #define BRICKSIM_LDR_FILES_H
 

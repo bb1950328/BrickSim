@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_CONTROLLER_H
 #define BRICKSIM_CONTROLLER_H
 

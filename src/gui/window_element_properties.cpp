@@ -1,5 +1,3 @@
-
-
 #include "glm/gtx/matrix_decompose.hpp"
 #include "glm/gtx/euler_angles.hpp"
 #include "gui.h"

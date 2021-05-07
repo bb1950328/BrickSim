@@ -1,7 +1,6 @@
 #ifndef BRICKSIM_GUI_H
 #define BRICKSIM_GUI_H
 
-
 #include "../ldr_files/ldr_files.h"
 #include "../element_tree.h"
 #include <imgui.h>

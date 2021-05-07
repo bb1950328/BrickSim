@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_ZIP_BUFFER_H
 #define BRICKSIM_ZIP_BUFFER_H
 

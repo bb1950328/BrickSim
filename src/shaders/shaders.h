@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_SHADERS_H
 #define BRICKSIM_SHADERS_H
 

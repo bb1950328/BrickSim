@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_SCENE_H
 #define BRICKSIM_SCENE_H
 

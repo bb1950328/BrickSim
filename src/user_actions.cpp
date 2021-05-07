@@ -1,5 +1,3 @@
-
-
 #include "user_actions.h"
 
 namespace user_actions {

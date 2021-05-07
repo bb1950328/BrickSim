@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_ELEMENT_TREE_H
 #define BRICKSIM_ELEMENT_TREE_H
 

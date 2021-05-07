@@ -1,5 +1,3 @@
-
-
 #include "overlay_2d.h"
 #include "controller.h"
 

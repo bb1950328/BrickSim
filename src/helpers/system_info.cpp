@@ -1,7 +1,3 @@
-//
-// Created by bb1950328 on 10.03.2021.
-//
-
 #include <curl/curl.h>
 #include <spdlog/spdlog.h>
 #include "system_info.h"

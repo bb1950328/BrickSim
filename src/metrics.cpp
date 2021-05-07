@@ -1,5 +1,3 @@
-
-
 #include <iostream>
 #include <map>
 #include <spdlog/spdlog.h>

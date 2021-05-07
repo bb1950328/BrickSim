@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_CAMERA_H
 #define BRICKSIM_CAMERA_H
 

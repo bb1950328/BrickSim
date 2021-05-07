@@ -1,5 +1,3 @@
-
-
 #include "latest_log_messages_tank.h"
 
 #include "config.h"

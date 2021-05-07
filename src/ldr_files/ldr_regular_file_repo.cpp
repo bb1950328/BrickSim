@@ -1,5 +1,3 @@
-
-
 #include <spdlog/spdlog.h>
 #include "ldr_regular_file_repo.h"
 #include "../db.h"

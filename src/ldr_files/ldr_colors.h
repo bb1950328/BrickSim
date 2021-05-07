@@ -1,5 +1,3 @@
-
-
 #ifndef BRICKSIM_LDR_COLORS_H
 #define BRICKSIM_LDR_COLORS_H
 

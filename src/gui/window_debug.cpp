@@ -31,16 +31,59 @@ namespace gui {
 
         void drawMeshesList(char *buf, const std::shared_ptr<Scene> &selectedScene, float meshListTableHeight, std::shared_ptr<Mesh> &currentlyInspectingMesh, bool &openPopupNow) {
             const auto &meshes = selectedScene->getMeshCollection().getUsedMeshes();
+            constexpr size_t maxSearchQueryLength = 32;
+            static char searchQuery[maxSearchQueryLength] = {0};
+            ImGui::InputText(ICON_FA_FILTER" Mesh Name Filter", searchQuery, maxSearchQueryLength);
             if (ImGui::BeginChild("##meshesListWrapper", ImVec2(0.0f, meshListTableHeight))) {
-                if (ImGui::BeginTable("Meshes", 4, ImGuiTableFlags_Borders)) {
-                    ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 1.0f);
-                    ImGui::TableSetupColumn("Inst.", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 2.7f);
-                    ImGui::TableSetupColumn("Tri. count", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 4);
-                    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 3.4f);
+                if (ImGui::BeginTable("Meshes", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti)) {
+                    enum Column {
+                        NAME,
+                        INSTANCE_COUNT,
+                        TRIANGLE_COUNT,
+                        BUTTON,
+                    };
+                    ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 1.0f, NAME);
+                    ImGui::TableSetupColumn("Inst.", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 2.7f, INSTANCE_COUNT);
+                    ImGui::TableSetupColumn("Tri. count", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 4, TRIANGLE_COUNT);
+                    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed|ImGuiTableColumnFlags_NoSort, ImGui::GetFontSize() * 3.4f, BUTTON);
                     ImGui::TableSetupScrollFreeze(0, 1);
                     ImGui::TableHeadersRow();
 
-                    for (const auto &mesh : meshes) {
+
+                    std::vector<std::shared_ptr<Mesh>> sortedMeshes;
+                    bool noSearchQuery = strlen(searchQuery) == 0;
+                    if (noSearchQuery) {
+                        sortedMeshes.reserve(meshes.size());
+                    }
+                    for (const auto &item : meshes) {
+                        if (noSearchQuery || item->name.find(searchQuery) != std::string::npos) {
+                            sortedMeshes.push_back(item);
+                        }
+                    }
+                    ImGuiTableSortSpecs *sortSpecs = ImGui::TableGetSortSpecs();
+                    std::sort(sortedMeshes.begin(), sortedMeshes.end(), [&](const std::shared_ptr<Mesh> &a, const std::shared_ptr<Mesh> &b) {
+                        for (int i = 0; i < sortSpecs->SpecsCount; ++i) {
+                            const auto &spec = sortSpecs->Specs[i];
+                            std::strong_ordering cmp = std::strong_ordering::equal;
+                            switch (spec.ColumnUserID) {
+                                case NAME: cmp = a->name <=> b->name;
+                                    break;
+                                case INSTANCE_COUNT:cmp = a->instances.size() <=> b->instances.size();
+                                    break;
+                                case TRIANGLE_COUNT:cmp = a->getTriangleCount() <=> b->getTriangleCount();
+                                    break;
+                                default:break;
+                            }
+                            if (cmp == std::strong_ordering::less) {
+                                return spec.SortDirection==ImGuiSortDirection_Ascending;
+                            } else if (cmp == std::strong_ordering::greater) {
+                                return spec.SortDirection==ImGuiSortDirection_Descending;
+                            }
+                        }
+                        return false;
+                    });
+
+                    for (const auto &mesh : sortedMeshes) {
                         ImGui::TableNextRow();
 
                         ImGui::TableNextColumn();
@@ -50,11 +93,7 @@ namespace gui {
                         ImGui::Text("%zu", mesh->instances.size());
 
                         ImGui::TableNextColumn();
-                        size_t triIndices = 0;
-                        for (const auto &item : mesh->triangleIndices) {
-                            triIndices += item.second.size();
-                        }
-                        ImGui::Text("%zu", triIndices / 3);
+                        ImGui::Text("%zu", mesh->getTriangleCount());
 
                         ImGui::TableNextColumn();
                         snprintf(buf, MESHES_TAB_BUF_SIZE, ICON_FA_INFO" Info##%zu", std::hash<std::string>()(mesh->name));

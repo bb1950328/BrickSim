@@ -842,6 +842,14 @@ void Mesh::appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<Me
     instancesHaveChanged = true;
 }
 
+size_t Mesh::getTriangleCount() {
+    size_t count = 0;
+    for (const auto &entry : triangleIndices) {
+        count += entry.second.size();
+    }
+    return count/3;
+}
+
 bool MeshInstance::operator==(const MeshInstance &other) const {
     return memcmp(this, &other, sizeof(*this)) == 0;
     //return transformation == other.transformation && color.get() == other.color.get() && elementId == other.elementId && selected == other.selected && layer == other.layer && scene == other.scene;

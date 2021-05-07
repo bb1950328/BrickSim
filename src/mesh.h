@@ -149,6 +149,7 @@ public:
     virtual ~Mesh();
 
     std::pair<glm::vec3, float> getMinimalEnclosingBall();
+    size_t getTriangleCount();
 private:
     std::optional<std::pair<glm::vec3, float>> minimalEnclosingBall;
 

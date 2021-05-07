@@ -44,9 +44,9 @@ namespace detected_platform {
 #else
     constexpr Platform platform = OTHER;
 #endif
-    constexpr bool linux = platform==LINUX;
-    constexpr bool macOS = platform==MACOS;
-    constexpr bool windows = platform==WINDOWS;
+    constexpr bool linux_ = platform == LINUX;
+    constexpr bool macOS = platform == MACOS;
+    constexpr bool windows = platform == WINDOWS;
 }
 
 

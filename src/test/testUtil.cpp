@@ -3,6 +3,7 @@
 #include <fstream>
 #include "catch2/catch.hpp"
 #include "../helpers/util.h"
+#include "../helpers/platform_detection.h"
 
 TEST_CASE("util::startsWith") {
     REQUIRE(util::startsWith("helloWorld", "hell"));
@@ -72,7 +73,11 @@ TEST_CASE("util::extendHomeDir and util::replaceHomeDir") {
     REQUIRE(util::extendHomeDir("/abc~def") == "/abc~def");
     REQUIRE(util::extendHomeDir("/abc~") == "/abc~");
 
+#ifdef BRICKSIM_PLATFORM_WIN32_OR_64
+    REQUIRE(util::replaceHomeDir(util::extendHomeDir("~\\abc")) == "~\\abc");
+#else
     REQUIRE(util::replaceHomeDir(util::extendHomeDir("~/abc")) == "~/abc");
+#endif
 }
 
 TEST_CASE("util::trim") {

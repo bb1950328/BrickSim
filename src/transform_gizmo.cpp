@@ -219,7 +219,7 @@ namespace transform_gizmo {
         /*6*/mesh->addRawTriangleVertex(color, TriangleVertex{{outerSideLength - tipLength, tipWidth, 0.0f, 1.0f}, normal});
         /*7*/mesh->addRawTriangleVertex(color, TriangleVertex{{outerSideLength, 0.0f, 0.0f, 1.0f}, normal});
 
-        constexpr std::array<unsigned int, 3 * 6> indices = {
+        constexpr std::array<unsigned int, /* 3*6 */18> indices = {
                 0, 4, 1,
                 4, 3, 1,
                 3, 2, 1,

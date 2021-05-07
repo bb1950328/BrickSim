@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <algorithm>
+#include <array>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/quaternion.hpp>

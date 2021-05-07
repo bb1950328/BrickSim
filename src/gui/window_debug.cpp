@@ -1,8 +1,7 @@
-
-
 #include "gui.h"
 #include "../controller.h"
 #include "../metrics.h"
+#include <compare>
 
 namespace gui {
     namespace {

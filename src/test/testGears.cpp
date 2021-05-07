@@ -11,5 +11,5 @@ TEST_CASE("GearPair") {
     gears::GearPair pair(gears::WORM_GEAR, gears::GEAR_8T);
     REQUIRE(pair.getDriver()==gears::WORM_GEAR);
     REQUIRE(pair.getFollower()==gears::GEAR_8T);
-    REQUIRE(pair.getRatio()==Fraction(1, 24));
+    REQUIRE(pair.getRatio()==Fraction(1, 8));
 }

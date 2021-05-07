@@ -10,7 +10,7 @@ namespace gui {
             if (ImGui::BeginTabItem("General")) {
                 const auto &bgTasks = controller::getBackgroundTasks();
                 if (!bgTasks.empty()) {
-                    ImGui::Text("%lu background tasks:", bgTasks.size());
+                    ImGui::Text("%zu background tasks:", bgTasks.size());
                     for (const auto &task : bgTasks) {
                         ImGui::BulletText("%s", task.second->getName().c_str());
                     }
@@ -73,6 +73,23 @@ namespace gui {
             snprintf(buf, MESHES_TAB_BUF_SIZE, "%d (%d*%d)", sceneId, allScenes[sceneId]->getImageSize().x, allScenes[sceneId]->getImageSize().y);
         }
 
+        void drawColorLabel(const LdrColorReference &colorRef) {
+            auto color = colorRef.get();
+
+            const glm::vec3 &value = color->value.asGlmVector();
+            const glm::vec3 &edge = color->edge.asGlmVector();
+            const ImVec4 valueImVec = ImVec4(value.x, value.y, value.z, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Button, valueImVec);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, valueImVec);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, valueImVec);
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(edge.x, edge.y, edge.z, 1.0f));
+
+            std::string text = std::to_string(color->code) + ": " + color->name;
+            ImGui::Button(text.c_str());
+
+            ImGui::PopStyleColor(4);
+        }
+
         void drawMeshesTab() {
             if (ImGui::BeginTabItem("Meshes")) {
                 auto allScenes = scenes::getAll();
@@ -98,47 +115,51 @@ namespace gui {
 
                 static std::shared_ptr<Mesh> currentlyInspectingMesh = nullptr;
 
-                bool openPopupNow = false;
+                static bool openPopupNow = false;
 
-                if (ImGui::BeginTable("Meshes", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
-                    ImGui::TableSetupColumn("Name");
-                    ImGui::TableSetupColumn("Inst.");
-                    ImGui::TableSetupColumn("Tri. count");
-                    ImGui::TableSetupColumn("");
-                    ImGui::TableSetupScrollFreeze(0, 1);
-                    ImGui::TableHeadersRow();
+                float meshListTableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 2;
+                if (ImGui::BeginChild("##meshesListWrapper", ImVec2(0.0f, meshListTableHeight))) {
+                    if (ImGui::BeginTable("Meshes", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable)) {
+                        ImGui::TableSetupColumn("Name");
+                        ImGui::TableSetupColumn("Inst.");
+                        ImGui::TableSetupColumn("Tri. count");
+                        ImGui::TableSetupColumn("");
+                        ImGui::TableSetupScrollFreeze(0, 1);
+                        ImGui::TableHeadersRow();
 
-                    for (const auto &mesh : selectedScene->getMeshCollection().getUsedMeshes()) {
-                        ImGui::TableNextRow();
+                        for (const auto &mesh : selectedScene->getMeshCollection().getUsedMeshes()) {
+                            ImGui::TableNextRow();
 
-                        ImGui::TableNextColumn();
-                        ImGui::Text("%s", mesh->name.c_str());
+                            ImGui::TableNextColumn();
+                            ImGui::Text("%s", mesh->name.c_str());
 
-                        ImGui::TableNextColumn();
-                        ImGui::Text("%zu", mesh->instances.size());
+                            ImGui::TableNextColumn();
+                            ImGui::Text("%zu", mesh->instances.size());
 
-                        ImGui::TableNextColumn();
-                        size_t triIndices = 0;
-                        for (const auto &item : mesh->triangleIndices) {
-                            triIndices += item.second.size();
+                            ImGui::TableNextColumn();
+                            size_t triIndices = 0;
+                            for (const auto &item : mesh->triangleIndices) {
+                                triIndices += item.second.size();
+                            }
+                            ImGui::Text("%zu", triIndices / 3);
+
+                            ImGui::TableNextColumn();
+                            snprintf(buf, MESHES_TAB_BUF_SIZE, ICON_FA_INFO" Info##%zu", std::hash<std::string>()(mesh->name));
+                            if (ImGui::Button(buf)) {
+                                openPopupNow = true;
+                                currentlyInspectingMesh = mesh;
+                            }
                         }
-                        ImGui::Text("%zu", triIndices/3);
-
-                        ImGui::TableNextColumn();
-                        snprintf(buf, MESHES_TAB_BUF_SIZE, ICON_FA_INFO" Info##%zu", std::hash<std::string>()(mesh->name));
-                        if (ImGui::Button(buf)) {
-                            openPopupNow = true;
-                            currentlyInspectingMesh = mesh;
-                        }
+                        ImGui::EndTable();
                     }
-                    ImGui::EndTable();
+                    ImGui::EndChild();
                 }
 
                 if (openPopupNow) {
                     ImGui::OpenPopup("MeshInspector");
                 }
 
-                if (ImGui::BeginPopupModal("MeshInspector", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+                if (ImGui::BeginPopupModal("MeshInspector", &openPopupNow, ImGuiWindowFlags_None)) {
                     std::shared_ptr<Mesh> &mesh = currentlyInspectingMesh;
                     if (ImGui::BeginTabBar("##meshInspectorTabs")) {
                         if (ImGui::BeginTabItem("General")) {
@@ -162,10 +183,58 @@ namespace gui {
                             ImGui::EndTabItem();
                         }
 
+                        if (ImGui::BeginTabItem("Instances")) {
+                            ImGui::Text("%zu Instances:", mesh->instances.size());
+                            float instancesTableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 2;
+                            if (ImGui::BeginChild("##instancesTableChild", ImVec2(0.0f, instancesTableHeight))) {
+                                constexpr auto flags = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable;
+                                if (ImGui::BeginTable("##instancesTable", 6, flags)) {
+                                    ImGui::TableSetupColumn("Scene");
+                                    ImGui::TableSetupColumn("Layer");
+                                    ImGui::TableSetupColumn("ElementId");
+                                    ImGui::TableSetupColumn("Color");
+                                    ImGui::TableSetupColumn("Selected");
+                                    ImGui::TableSetupColumn("Transformation");
+                                    ImGui::TableSetupScrollFreeze(0, 1);
+                                    ImGui::TableHeadersRow();
+
+                                    for (const auto &inst : mesh->instances) {
+                                        ImGui::TableNextRow();
+
+                                        ImGui::TableNextColumn();
+                                        ImGui::Text("%d", inst.scene);
+
+                                        ImGui::TableNextColumn();
+                                        ImGui::Text("%d", inst.layer);
+
+                                        ImGui::TableNextColumn();
+                                        ImGui::Text("%x", inst.elementId);
+
+                                        ImGui::TableNextColumn();
+                                        drawColorLabel(inst.color);
+
+                                        ImGui::TableNextColumn();
+                                        ImGui::Text(inst.selected ? ICON_FA_CHECK_SQUARE : ICON_FA_SQUARE);
+
+                                        ImGui::TableNextColumn();
+                                        const auto &mat = inst.transformation;
+                                        ImGui::Text("%8.4f, %8.4f, %8.4f, %8.4f", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
+                                        ImGui::Text("%8.4f, %8.4f, %8.4f, %8.4f", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
+                                        ImGui::Text("%8.4f, %8.4f, %8.4f, %8.4f", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
+                                        ImGui::Text("%8.4f, %8.4f, %8.4f, %8.4f", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+                                    }
+                                    ImGui::EndTable();
+                                }
+                                ImGui::EndChild();
+                            }
+                            ImGui::EndTabItem();
+                        }
+
                         //todo add tabs for vertices, indices and other data
                         ImGui::EndTabBar();
                     }
                     if (ImGui::Button(ICON_FA_WINDOW_CLOSE" Close")) {
+                        openPopupNow = false;
                         ImGui::CloseCurrentPopup();
                     }
                     ImGui::EndPopup();

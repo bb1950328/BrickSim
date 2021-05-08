@@ -5,7 +5,7 @@ on:
     branches:
       - master
       - stable
-      - installbuilder
+      - multiplatform_unittests
     paths-ignore:
       - "docs/**"
       - '**/*.md'
@@ -138,7 +138,7 @@ jobs:
       #  if: failure()
       #  run: |
       #    pip3 install PyGithub
-      #    wget -O ${{runner.workspace}}/publish_test_results.py https://raw.githubusercontent.com/bb1950328/BrickSim/master/.github/workflows/publish_test_results.py
+      #    wget -O ${{runner.workspace}}/publish_test_results.py https://raw.githubusercontent.com/bb1950328/BrickSim/${GITHUB_REF##*/}/.github/workflows/publish_test_results.py
       #    python3 ${{runner.workspace}}/publish_test_results.py ${{runner.workspace}}/catchTestReport.xml ${{ github.token }} ${{ github.sha }}
 
       - name: Upload Test Results

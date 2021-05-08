@@ -349,9 +349,17 @@ jobs:
         with:
           name: BrickSimTests_Windows${{ matrix.bits }}
 
+      - name: Get info about the .exe
+        shell: powershell
+        run: Get-Command "${{runner.workspace}}\BrickSim\BrickSimTests.exe" | Format-List
+
       - name: Run tests with JUnit XML output
-        shell: cmd
-        run: ${{runner.workspace}}\BrickSim\BrickSimTests.exe -r junit > ${{runner.workspace}}\junitTestReport_Windows${{ matrix.bits }}.xml
+        shell: powershell
+        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-r junit" | Out-File -FilePath ${{runner.workspace}}\junitTestReport_Windows${{ matrix.bits }}.xml
+
+      #- name: Run tests with JUnit XML output
+      #  shell: cmd
+      #  run: ${{runner.workspace}}\BrickSim\BrickSimTests.exe -r junit > ${{runner.workspace}}\junitTestReport_Windows${{ matrix.bits }}.xml
 
       - name: Run tests with Catch2 XML output
         shell: cmd
@@ -499,6 +507,6 @@ jobs:
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1.15
         with:
-          files: ${{runner.workspace}}/**/*junit*.xml
+          files: ${{runner.workspace}}/artifacts/junit*.xml
           check_name: Catch2 Test Results
           comment_title: Catch2 Test Results

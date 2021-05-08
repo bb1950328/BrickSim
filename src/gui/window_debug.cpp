@@ -63,6 +63,32 @@ namespace gui {
                     std::sort(sortedMeshes.begin(), sortedMeshes.end(), [&](const std::shared_ptr<Mesh> &a, const std::shared_ptr<Mesh> &b) {
                         for (int i = 0; i < sortSpecs->SpecsCount; ++i) {
                             const auto &spec = sortSpecs->Specs[i];
+#ifdef BRICKSIM_PLATFORM_MACOS
+                            //for some reason, the GitHub Actions MacOS Compiler can't compile the spaceship operator code
+                            //so here is a alternative.
+                            //todo fix that so this alternative can be removed
+                            if (spec.ColumnUserID==NAME) {
+                                const auto cmp = a->name.compare(b->name);
+                                if (cmp > 0) {
+                                    return false;
+                                } else if (cmp < 0) {
+                                    return true;
+                                }
+                            } else if (spec.ColumnUserID==INSTANCE_COUNT) {
+                                if (a->instances.size() > b->instances.size()) {
+                                    return false;
+                                } else if (a->instances.size() < b->instances.size()) {
+                                    return true;
+                                }
+                            } else if (spec.ColumnUserID==TRIANGLE_COUNT) {
+                                if (a->getTriangleCount() > b->getTriangleCount()) {
+                                    return false;
+                                } else if (a->getTriangleCount() < b->getTriangleCount()) {
+                                    return true;
+                                }
+                            }
+#else
+
                             std::strong_ordering cmp = std::strong_ordering::equal;
                             switch (spec.ColumnUserID) {
                                 case NAME: cmp = a->name <=> b->name;
@@ -78,6 +104,7 @@ namespace gui {
                             } else if (cmp == std::strong_ordering::greater) {
                                 return spec.SortDirection==ImGuiSortDirection_Descending;
                             }
+#endif
                         }
                         return false;
                     });

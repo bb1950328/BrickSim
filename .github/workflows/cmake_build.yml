@@ -113,12 +113,13 @@ jobs:
           name: BrickSimTests_Linux${{ matrix.bits }}
 
       - name: Download libraries
-        run: sudo apt-get install -y libx11-6:${{ matrix.arch }}
+        run: sudo apt install -y libx11-6:${{ matrix.arch }}
 
       - name: Make tests executable
         run: chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
 
       - name: ldd the executable
+        if: always()
         run: ldd ${{runner.workspace}}/BrickSim/BrickSimTests
 
       - name: Run tests with JUnit XML output

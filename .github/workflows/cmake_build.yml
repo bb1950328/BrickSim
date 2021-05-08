@@ -331,6 +331,8 @@ jobs:
   testWindows:
     runs-on: windows-latest
 
+    needs: buildWindows
+
     strategy:
       fail-fast: false
       matrix:

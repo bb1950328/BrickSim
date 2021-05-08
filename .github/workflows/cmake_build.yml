@@ -355,11 +355,11 @@ jobs:
 
       - name: Run tests with JUnit XML output
         shell: powershell
-        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-r junit" | Out-File -FilePath ${{runner.workspace}}\junitTestReport_Windows${{ matrix.bits }}.xml
+        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-r junit" -Wait -RedirectStandardOutput ${{runner.workspace}}\junitTestReport_Windows${{ matrix.bits }}.xml
 
       - name: Run tests with Catch2 XML output
         shell: powershell
-        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-d yes -r xml" | Out-File -FilePath ${{runner.workspace}}\catchTestReport_Windows${{ matrix.bits }}.xml
+        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-d yes -r xml" -Wait -RedirectStandardOutput ${{runner.workspace}}\catchTestReport_Windows${{ matrix.bits }}.xml
 
       - name: Print report to log
         shell: powershell
@@ -367,9 +367,9 @@ jobs:
         if: always()
 
       - name: Run tests with Console output
-        if: failure()
+        if: always()
         shell: powershell
-        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-d yes"
+        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-d yes" -Wait
 
       - name: Upload Test Results
         if: always()

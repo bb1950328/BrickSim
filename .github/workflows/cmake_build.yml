@@ -249,7 +249,7 @@ jobs:
           cmake -G "MSYS Makefiles" ../.. -DCMAKE_PREFIX_PATH=/C/mingw64 -DCMAKE_MAKE_PROGRAM=/C/msys64/usr/bin/make.exe \
             -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(../../scripts/get_git_commit_count.sh) \
             -DTOTAL_HOURS:STRING=$(../../scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(../../scripts/get_git_tag.sh)
-          cmake --build . --target BrickSim --config Release  -j $(nproc --all)
+          cmake --build . --target BrickSim BrickSimTests --config Release  -j $(nproc --all)
       - if: always()
         run: |
           cd cmake-build/release${{ matrix.bits }}

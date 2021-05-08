@@ -112,11 +112,14 @@ jobs:
         with:
           name: BrickSimTests_Linux${{ matrix.bits }}
 
-#      - name: Download libraries
-#        run: sudo apt-get install -y libspdlog1:${{ matrix.arch }} libzip5:${{ matrix.arch }}
+      - name: Download libraries
+        run: sudo apt-get install -y libx11-6:${{ matrix.arch }}
 
       - name: Make tests executable
         run: chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
+
+      - name: ldd the executable
+        run: ldd ${{runner.workspace}}/BrickSim/BrickSimTests
 
       - name: Run tests with JUnit XML output
         run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/junitTestReport_Linux${{ matrix.bits }}.xml

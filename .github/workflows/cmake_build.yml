@@ -100,7 +100,7 @@ jobs:
       fail-fast: false
       matrix:
         include: [
-          { arch: x86_64, bits: 64 },
+          { arch: amd64, bits: 64 },
           { arch: i386, bits: 32 }
         ]
     name: Catch2 Unittests Linux (${{ matrix.bits }} bit / ${{ matrix.arch }})

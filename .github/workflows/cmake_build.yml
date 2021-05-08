@@ -95,25 +95,14 @@ jobs:
         name: BrickSimTests_Linux${{ matrix.bits }}
         path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSimTests
   testLinux:
-    #todo run tests for 32 bit also
-    strategy:
-      fail-fast: false
-      matrix:
-        include: [
-          { arch: amd64, bits: 64 },
-          { arch: i386, bits: 32 }
-        ]
-    name: Catch2 Unittests Linux (${{ matrix.bits }} bit / ${{ matrix.arch }})
+    name: Catch2 Unittests Linux
     needs: buildLinux
     runs-on: ubuntu-latest
     steps:
       - name: Download test artifact
         uses: actions/download-artifact@v2
         with:
-          name: BrickSimTests_Linux${{ matrix.bits }}
-
-      - name: Download libraries
-        run: sudo apt install -y libx11-6:${{ matrix.arch }}
+          name: BrickSimTests_Linux64
 
       - name: Make tests executable
         run: chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
@@ -123,14 +112,14 @@ jobs:
         run: ldd ${{runner.workspace}}/BrickSim/BrickSimTests
 
       - name: Run tests with JUnit XML output
-        run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/junitTestReport_Linux${{ matrix.bits }}.xml
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/junitTestReport_Linux64.xml
 
       - name: Run tests with Catch2 XML output
         if: always()
-        run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes -r xml > ${{runner.workspace}}/catchTestReport_Linux${{ matrix.bits }}.xml
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes -r xml > ${{runner.workspace}}/catchTestReport_Linux64.xml
 
       - name: Print report to log
-        run: cat ${{runner.workspace}}/catchTestReport_Linux${{ matrix.bits }}.xml
+        run: cat ${{runner.workspace}}/catchTestReport_Linux64.xml
         if: always()
 
       - name: Run tests with Console output
@@ -149,34 +138,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: UnitTestReport
-          path: ${{runner.workspace}}/*TestReport*.xml
-
-  publishTestResults:
-    name: Publish Catch2 Test Results
-    needs: testLinux
-    runs-on: ubuntu-latest
-    if: success() || failure()
-    steps:
-      - name: Download UnitTestReport_Linux32
-        uses: actions/download-artifact@v2
-        with:
-          name: UnitTestReport_Linux32
-          path: ${{runner.workspace}}/artifacts
-      - name: Download UnitTestReport_Linux64
-        uses: actions/download-artifact@v2
-        with:
           name: UnitTestReport_Linux64
-          path: ${{runner.workspace}}/artifacts
-
-      - run: ls -Rl ${{runner.workspace}}
-
-      - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1.15
-        with:
-          files: ${{runner.workspace}}/**/*junit*.xml
-          check_name: Catch2 Test Results
-          comment_title: Catch2 Test Results
+          path: ${{runner.workspace}}/*TestReport*.xml
 
   buildInstallerLinux:
     needs: buildLinux
@@ -297,11 +260,16 @@ jobs:
         working-directory: ${{runner.workspace}}
         run: find . -name "*.exe"
 
-      - name: Upload BrickSim
+      - name: Upload BrickSimRawBinary
         uses: actions/upload-artifact@v2
         with:
           name: BrickSimRawBinary_Windows${{ matrix.bits }}
           path: ${{runner.workspace}}\BrickSim\cmake-build\release${{ matrix.bits }}\BrickSim.exe
+      - name: Upload BrickSimTests
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimTests_Windows${{ matrix.bits }}
+          path: ${{runner.workspace}}\BrickSim\cmake-build\release${{ matrix.bits }}\BrickSimTests.exe
 
   buildInstallerWindows:
     needs: buildWindows
@@ -359,6 +327,51 @@ jobs:
         with:
           name: BrickSimInstaller_Windows${{ matrix.bits }}
           path: ${{runner.workspace}}/installbuilder/output/*.exe
+
+  testWindows:
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { arch: x86_64, bits: 64 },
+          { arch: i686, bits: 32 }
+        ]
+
+    name: Windows Tests (${{ matrix.bits }} bit / ${{ matrix.arch }})
+
+    steps:
+      - name: Download test artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: BrickSimTests_Windows${{ matrix.bits }}
+
+      - name: Make tests executable
+        run: chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
+
+      - name: Run tests with JUnit XML output
+        run: ${{runner.workspace}}\BrickSim\BrickSimTests.exe -r junit > ${{runner.workspace}}\junitTestReport_Windows${{ matrix.bits }}.xml
+
+      - name: Run tests with Catch2 XML output
+        if: always()
+        run: ${{runner.workspace}}\BrickSim\BrickSimTests.exe -d yes -r xml > ${{runner.workspace}}\catchTestReport_Windows${{ matrix.bits }}.xml
+
+      - name: Print report to log
+        shell: powershell
+        run: Get-Content ${{runner.workspace}}\catchTestReport_Windows${{ matrix.bits }}.xml
+        if: always()
+
+      - name: Run tests with Console output
+        if: failure()
+        run: ${{runner.workspace}}\BrickSim\BrickSimTests -d yes
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: UnitTestReport_Windows${{ matrix.bits }}
+          path: ${{runner.workspace}}/*TestReport*.xml
 
   buildMac:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip mac ci')"
@@ -454,3 +467,36 @@ jobs:
         with:
           name: BrickSimInstaller_Mac
           path: ${{runner.workspace}}/installbuilder/output/*.app
+
+  publishTestResults:
+    name: Publish Catch2 Test Results
+    needs:
+      - testLinux
+      - testWindows
+    runs-on: ubuntu-latest
+    if: success() || failure()
+    steps:
+      - name: Download UnitTestReport_Linux64
+        uses: actions/download-artifact@v2
+        with:
+          name: UnitTestReport_Linux64
+          path: ${{runner.workspace}}/artifacts
+      - name: Download UnitTestReport_Windows32
+        uses: actions/download-artifact@v2
+        with:
+          name: UnitTestReport_Windows32
+          path: ${{runner.workspace}}/artifacts
+      - name: Download UnitTestReport_Windows64
+        uses: actions/download-artifact@v2
+        with:
+          name: UnitTestReport_Windows64
+          path: ${{runner.workspace}}/artifacts
+
+      - run: ls -Rl ${{runner.workspace}}
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1.15
+        with:
+          files: ${{runner.workspace}}/**/*junit*.xml
+          check_name: Catch2 Test Results
+          comment_title: Catch2 Test Results

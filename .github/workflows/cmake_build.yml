@@ -112,8 +112,8 @@ jobs:
         with:
           name: BrickSimTests_Linux${{ matrix.bits }}
 
-      - name: Download libraries
-        run: sudo apt-get install -y libspdlog1:${{ matrix.arch }} libzip5:${{ matrix.arch }}
+#      - name: Download libraries
+#        run: sudo apt-get install -y libspdlog1:${{ matrix.arch }} libzip5:${{ matrix.arch }}
 
       - name: Make tests executable
         run: chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests

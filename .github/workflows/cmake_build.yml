@@ -154,13 +154,16 @@ jobs:
     runs-on: ubuntu-latest
     if: success() || failure()
     steps:
-      - name: Download Artifacts
+      - name: Download UnitTestReport_Linux32
         uses: actions/download-artifact@v2
         with:
-          name:
-            - UnitTestReport_Linux32
-            - UnitTestReport_Linux64
+          name: UnitTestReport_Linux32
           path: ${{runner.workspace}}/artifacts
+      - name: Download UnitTestReport_Linux64
+          uses: actions/download-artifact@v2
+          with:
+            name: UnitTestReport_Linux64
+            path: ${{runner.workspace}}/artifacts
 
       - run: ls -Rl ${{runner.workspace}}
 

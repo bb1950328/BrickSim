@@ -32,3 +32,6 @@
 [submodule "src/lib/stb"]
 	path = src/lib/stb
 	url = https://github.com/nothings/stb.git
+[submodule "src/lib/curl"]
+	path = src/lib/curl
+	url = https://github.com/curl/curl.git

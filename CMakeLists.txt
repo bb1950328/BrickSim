@@ -8,7 +8,7 @@ foreach(SDKPATH IN LISTS /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /Ap
 endforeach()
 project(BrickSim)
 
-file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)#prevent profiles from loading in parallel, causes problems with submodules
+#file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)#prevent profiles from loading in parallel, causes problems with submodules
 
 add_library(BrickSimLib STATIC)
 
@@ -83,9 +83,13 @@ target_link_libraries(BrickSimLib PRIVATE SQLiteCpp)
 target_link_libraries(BrickSimLib PRIVATE sqlite3)
 
 # cURL
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl>=7.17.0)
-target_link_libraries(BrickSimLib PUBLIC PkgConfig::libcurl)
+##find_package(PkgConfig REQUIRED)
+##pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl>=7.17.0)
+##target_link_libraries(BrickSimLib PUBLIC PkgConfig::libcurl)
+set(HTTP_ONLY ON)
+set(CMAKE_USE_LIBSSH2 OFF)
+add_subdirectory(src/lib/curl)
+target_link_libraries(BrickSimLib PUBLIC CURL::libcurl)
 
 # spdlog
 add_subdirectory(src/lib/spdlog)
@@ -115,7 +119,7 @@ if (WIN32)
     target_link_libraries(BrickSimLib PUBLIC -lImm32)
     target_link_libraries(BrickSimLib PUBLIC -static-libgcc)
     target_link_libraries(BrickSimLib PUBLIC -static-libstdc++)
-    target_link_libraries(BrickSimLib PUBLIC -pthread)
+    target_link_libraries(BrickSimLib PUBLIC -static -pthread)
 elseif (UNIX AND NOT APPLE)
     target_link_libraries(BrickSimLib PUBLIC -ltbb)
 endif ()

@@ -22,7 +22,7 @@ add_dependencies(BrickSimTests BrickSimLib)
 target_link_libraries(BrickSimTests PRIVATE BrickSimLib)
 target_compile_definitions(BrickSimTests PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING)
 
-target_link_libraries(BrickSimLib PUBLIC -static)
+#target_link_libraries(BrickSimLib PUBLIC -static)
 
 # OpenGL
 set(OpenGL_GL_PREFERENCE GLVND)

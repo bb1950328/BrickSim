@@ -57,10 +57,6 @@ target_include_directories(BrickSimLib PRIVATE ${GLUT_INCLUDE_DIRS})
 target_link_libraries(BrickSimLib PRIVATE ${GLUT_LIBRARY})
 
 # threads
-if (WIN32)
-    option(MINGW_STDTHREADS_GENERATE_STDHEADERS "" ON)
-    add_subdirectory(src/lib/mingw-std-threads)
-endif ()
 if (UNIX)
     if (NOT APPLE)
         find_package(Threads REQUIRED)
@@ -70,10 +66,15 @@ endif ()
 
 # libzip
 set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)# https://github.com/nih-at/libzip/issues/66
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+set(ENABLE_BZIP2 OFF)
+set(ENABLE_LZMA OFF)
+set(ENABLE_ZSTD OFF)
 add_subdirectory(src/lib/libzip)
 target_link_libraries(BrickSimLib PUBLIC libzip::zip)
 
 # SqliteCpp
+set(SQLITECPP_USE_STACK_PROTECTION OFF)
 add_subdirectory(src/lib/SQLiteCpp)
 target_include_directories(BrickSimLib PUBLIC src/lib/SQLiteCpp/include)
 target_link_libraries(BrickSimLib PRIVATE SQLiteCpp)
@@ -110,13 +111,13 @@ target_include_directories(BrickSimLib PUBLIC src/lib/stb)
 add_subdirectory(src)
 
 if (WIN32)
-    target_link_libraries(BrickSimLib PUBLIC -lssp) # stack smashing protection
     target_link_libraries(BrickSimLib PUBLIC -lImm32)
+    target_link_libraries(BrickSimLib PUBLIC -static-libstdc++)
 elseif (UNIX AND NOT APPLE)
     target_link_libraries(BrickSimLib PUBLIC -ltbb)
 endif ()
 
-#set(CMAKE_VERBOSE_MAKEFILE ON) # useful for fixing build errors
+set(CMAKE_VERBOSE_MAKEFILE ON) # useful for fixing build errors
 
 target_compile_definitions(BrickSimLib PRIVATE GLM_ENABLE_EXPERIMENTAL)
 target_compile_definitions(BrickSimLib PRIVATE USE_SSLEAY)

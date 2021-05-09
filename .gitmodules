@@ -4,9 +4,6 @@
 [submodule "glfw"]
 	path = src/lib/glfw
 	url = https://github.com/glfw/glfw.git
-[submodule "mingw-std-threads"]
-	path = src/lib/mingw-std-threads
-	url = https://github.com/meganz/mingw-std-threads
 [submodule "SQLiteCpp"]
 	path = src/lib/SQLiteCpp
 	url = https://github.com/SRombauts/SQLiteCpp.git

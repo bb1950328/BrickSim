@@ -24,6 +24,14 @@ target_compile_definitions(BrickSimTests PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKIN
 
 #target_link_libraries(BrickSimLib PUBLIC -static)
 
+if(APPLE)
+    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
+    set(OPENSSL_INCLUDE_DIR ${OPENSSL_ROOT_DIR}/include)
+    set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_ROOT_DIR}/lib/libcrypto.dylib CACHE FILEPATH "" FORCE)
+    set(OPENSSL_SSL_LIBRARY ${OPENSSL_ROOT_DIR}/lib/libssl.dylib CACHE FILEPATH "" FORCE)
+endif()
+
+
 # OpenGL
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)

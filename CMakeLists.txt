@@ -24,14 +24,6 @@ target_compile_definitions(BrickSimTests PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKIN
 
 #target_link_libraries(BrickSimLib PUBLIC -static)
 
-if(APPLE)
-    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
-    set(OPENSSL_INCLUDE_DIR ${OPENSSL_ROOT_DIR}/include)
-    set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_ROOT_DIR}/lib/libcrypto.dylib CACHE FILEPATH "" FORCE)
-    set(OPENSSL_SSL_LIBRARY ${OPENSSL_ROOT_DIR}/lib/libssl.dylib CACHE FILEPATH "" FORCE)
-endif()
-
-
 # OpenGL
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
@@ -91,9 +83,14 @@ target_link_libraries(BrickSimLib PRIVATE SQLiteCpp)
 target_link_libraries(BrickSimLib PRIVATE sqlite3)
 
 # cURL
-##find_package(PkgConfig REQUIRED)
-##pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl>=7.17.0)
-##target_link_libraries(BrickSimLib PUBLIC PkgConfig::libcurl)
+if(APPLE)
+    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
+    set(OPENSSL_INCLUDE_DIR ${OPENSSL_ROOT_DIR}/include)
+    set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_ROOT_DIR}/lib/libcrypto.dylib CACHE FILEPATH "" FORCE)
+    set(OPENSSL_SSL_LIBRARY ${OPENSSL_ROOT_DIR}/lib/libssl.dylib CACHE FILEPATH "" FORCE)
+    find_package(openssl REQUIRED)
+    message(STATUS "openssl found in main CMakeLists.txt")
+endif()
 set(HTTP_ONLY ON)
 set(CMAKE_USE_LIBSSH2 OFF)
 add_subdirectory(src/lib/curl)

@@ -320,7 +320,7 @@ jobs:
           }
           $VERSION = git describe --tags --match v[0-9]* --abbrev=0
           $VERSION = $VERSION -replace "v"
-          Start-Process -FilePath ${{ runner.workspace }}/installbuilder/bin/builder -ArgumentList "build $GITHUB_WORKSPACE/InstallBuilder.xml $PLATFORM --setvars project.version=$VERSION"
+          Start-Process -FilePath ${{ runner.workspace }}/installbuilder/bin/builder -ArgumentList "build $GITHUB_WORKSPACE/InstallBuilder.xml $PLATFORM --setvars project.version=$VERSION" -Wait
 
       - name: Upload BrickSimInstaller
         uses: actions/upload-artifact@v2

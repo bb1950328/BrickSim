@@ -22,6 +22,8 @@ add_dependencies(BrickSimTests BrickSimLib)
 target_link_libraries(BrickSimTests PRIVATE BrickSimLib)
 target_compile_definitions(BrickSimTests PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING)
 
+target_link_libraries(BrickSimLib PUBLIC -static)
+
 # OpenGL
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
@@ -60,7 +62,7 @@ target_link_libraries(BrickSimLib PRIVATE ${GLUT_LIBRARY})
 if (UNIX)
     if (NOT APPLE)
         find_package(Threads REQUIRED)
-        target_link_libraries(BrickSimLib PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+        target_link_libraries(BrickSimLib PRIVATE Threads::Threads)
     endif ()
 endif ()
 
@@ -81,10 +83,9 @@ target_link_libraries(BrickSimLib PRIVATE SQLiteCpp)
 target_link_libraries(BrickSimLib PRIVATE sqlite3)
 
 # cURL
-set(CURL_LIBRARY "-lcurl")
-find_package(CURL REQUIRED)
-target_include_directories(BrickSim PUBLIC ${CURL_INCLUDE_DIR})
-target_link_libraries(BrickSimLib PRIVATE ${CURL_LIBRARIES})
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl>=7.17.0)
+target_link_libraries(BrickSimLib PUBLIC PkgConfig::libcurl)
 
 # spdlog
 add_subdirectory(src/lib/spdlog)
@@ -112,7 +113,9 @@ add_subdirectory(src)
 
 if (WIN32)
     target_link_libraries(BrickSimLib PUBLIC -lImm32)
+    target_link_libraries(BrickSimLib PUBLIC -static-libgcc)
     target_link_libraries(BrickSimLib PUBLIC -static-libstdc++)
+    target_link_libraries(BrickSimLib PUBLIC -pthread)
 elseif (UNIX AND NOT APPLE)
     target_link_libraries(BrickSimLib PUBLIC -ltbb)
 endif ()

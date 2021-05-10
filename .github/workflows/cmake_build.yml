@@ -309,7 +309,7 @@ jobs:
         shell: powershell
         run: |
           New-Item "$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}" -ItemType Directory
-          Copy-Item "${{ runner.workspace }}/artifacts/BrickSim.exe" -Destination "$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}"
+          Copy-Item "${{ runner.workspace }}/artifacts/BrickSim.exe" -Destination "${{ runner.workspace }}/BrickSim/cmake-build/release${{ matrix.bits }}"
 
       - name: Build Installer
         shell: powershell
@@ -323,7 +323,7 @@ jobs:
           $VERSION = $VERSION -replace "v"
           
           New-Item -ItemType directory -Path ${{runner.workspace}}\installbuilder\output
-          Start-Process -FilePath "${{ runner.workspace }}\installbuilder\bin\builder-cli.exe" -ArgumentList "build $GITHUB_WORKSPACE/InstallBuilder.xml $PLATFORM --setvars project.version=$VERSION installbuilder_output_directory=${{runner.workspace}}/installbuilder/output" -Wait -NoNewWindow
+          Start-Process -FilePath "${{ runner.workspace }}\installbuilder\bin\builder-cli.exe" -ArgumentList "build ${{ runner.workspace }}/BrickSim/InstallBuilder.xml $PLATFORM --setvars project.version=$VERSION installbuilder_output_directory=${{runner.workspace}}/installbuilder/output" -Wait -NoNewWindow
 
       - name: Get Content of output directory
         shell: powershell

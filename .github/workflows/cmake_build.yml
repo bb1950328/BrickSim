@@ -325,15 +325,15 @@ jobs:
           New-Item -ItemType directory -Path ${{runner.workspace}}\installbuilder\output
           Start-Process -FilePath "${{ runner.workspace }}\installbuilder\bin\builder-cli.exe" -ArgumentList "build ${{ runner.workspace }}/BrickSim/InstallBuilder.xml $PLATFORM --setvars project.version=$VERSION installbuilder_output_directory=${{runner.workspace}}/installbuilder/output" -Wait -NoNewWindow
 
-      - name: Get Content of output directory
+      - name: try to find exe
         shell: powershell
-        run: Get-ChildItem -Path ${{runner.workspace}}/installbuilder/output
+        run: Get-ChildItem -Path ${{runner.workspace}} -Recurse | Where {$_.extension -like ".exe"}
 
       - name: Upload BrickSimInstaller
         uses: actions/upload-artifact@v2
         with:
           name: BrickSimInstaller_Windows${{ matrix.bits }}
-          path: ${{runner.workspace}}/installbuilder/output/*.exe
+          path: ${{runner.workspace}}\installbuilder\output\*.exe
 
   testWindows:
     runs-on: windows-latest

@@ -514,9 +514,6 @@ jobs:
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1.15
         with:
-          files:
-            - ${{runner.workspace}}/junitReports/junitTestReport_Linux64.xml
-            - ${{runner.workspace}}/junitReports/junitTestReport_Windows32.xml
-            - ${{runner.workspace}}/junitReports/junitTestReport_Windows64.xml
+          files: ${{runner.workspace}}/junitReports/junitTestReport_Linux64.xml ${{runner.workspace}}/junitReports/junitTestReport_Windows32.xml ${{runner.workspace}}/junitReports/junitTestReport_Windows64.xml
           check_name: Catch2 Test Results
           comment_title: Catch2 Test Results

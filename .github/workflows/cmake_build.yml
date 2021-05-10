@@ -308,7 +308,7 @@ jobs:
       - name: Create build directory and copy raw binary to it
         shell: powershell
         run: |
-          New-Item "$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}" -ItemType Directory
+          New-Item "${{ runner.workspace }}/BrickSim/cmake-build/release${{ matrix.bits }}" -ItemType Directory
           Copy-Item "${{ runner.workspace }}/artifacts/BrickSim.exe" -Destination "${{ runner.workspace }}/BrickSim/cmake-build/release${{ matrix.bits }}"
 
       - name: Build Installer

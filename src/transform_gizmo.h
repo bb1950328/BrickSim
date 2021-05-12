@@ -21,6 +21,14 @@ namespace transform_gizmo {
         XPOS_YPOS_ZPOS = 0b111,
     };
 
+    enum TransformType {
+        TRANSLATE_1D,
+        TRANSLATE_2D,
+        TRANSLATE_3D,
+        ROTATE,
+        NONE,
+    };
+
     enum class RotationState {
         SELECTED_ELEMENT,
         WORLD,
@@ -38,9 +46,9 @@ namespace transform_gizmo {
 
     class TGNode : public etree::Node {
     private:
-        std::shared_ptr<generated_mesh::ArrowNode> translate1dArrows[3];
-        std::shared_ptr<generated_mesh::QuarterTorusNode> rotateQuarterTori[3];
-        std::shared_ptr<TG2DArrowNode> translate2dArrows[3];
+        std::array<std::shared_ptr<generated_mesh::ArrowNode>, 3> translate1dArrows;
+        std::array<std::shared_ptr<generated_mesh::QuarterTorusNode>, 3> rotateQuarterTori;
+        std::array<std::shared_ptr<TG2DArrowNode>, 3> translate2dArrows;
         std::shared_ptr<generated_mesh::UVSphereNode> centerBall;
         PovState povState;
     public:
@@ -52,6 +60,7 @@ namespace transform_gizmo {
         void setPovState(PovState newState);
         void updateTransformations();
         std::string getDescription() override;
+        std::pair<TransformType, int> getTransformTypeAndAxis(std::shared_ptr<etree::Node>& node);
     };
 
     class TransformGizmo {
@@ -60,10 +69,15 @@ namespace transform_gizmo {
         std::shared_ptr<TGNode> node;
         std::optional<glm::mat4> lastTransformation;
         PovState lastState;
+        TransformType currentTransformType;
+        int currentTransformAxis;
     public:
         explicit TransformGizmo(std::shared_ptr<Scene> scene);
         void update();
         bool ownsNode(const std::shared_ptr<etree::Node>& node_);
+        void startDrag(std::shared_ptr<etree::Node>& draggedNode);
+        void updateCurrentDragDelta(glm::svec2 totalDragDelta);
+        void endDrag();
         virtual ~TransformGizmo();
     };
 }

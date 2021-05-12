@@ -11,7 +11,7 @@
 
 namespace transform_gizmo {
 
-    TransformGizmo::TransformGizmo(std::shared_ptr<Scene> scene) : scene(std::move(scene)) {
+    TransformGizmo::TransformGizmo(std::shared_ptr<Scene> scene) : scene(std::move(scene)), currentTransformType(NONE) {
         node = std::make_shared<TGNode>(this->scene->getRootNode());
         this->scene->getRootNode()->addChild(node);
         node->initElements();
@@ -95,6 +95,27 @@ namespace transform_gizmo {
         return node_->isChildOf(this->node);
     }
 
+    void TransformGizmo::startDrag(std::shared_ptr<etree::Node> &draggedNode) {
+        auto [type, axis] = node->getTransformTypeAndAxis(draggedNode);
+        currentTransformType = type;
+        currentTransformAxis = axis;
+    }
+
+    void TransformGizmo::updateCurrentDragDelta(glm::svec2 totalDragDelta) {
+        switch (currentTransformType) {
+            case TRANSLATE_1D:
+                //todo calculate movement
+                break;
+            case NONE:
+            default:
+                break;
+        }
+    }
+
+    void TransformGizmo::endDrag() {
+
+    }
+
     bool TGNode::isTransformationUserEditable() const {
         return false;
     }
@@ -139,10 +160,6 @@ namespace transform_gizmo {
         rotateQuarterTori[0]->setRelativeTransformation(glm::rotate(glm::radians(-90.0f), glm::vec3(1, 0, 0)));
         rotateQuarterTori[1]->setRelativeTransformation(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
         rotateQuarterTori[2]->setRelativeTransformation(glm::rotate(glm::rotate(glm::radians(-90.0f), glm::vec3(1, 0, 0)), glm::radians(90.0f), glm::vec3(0, 0, 1)));
-
-        //translate2dArrows[0]->setRelativeTransformation(glm::translate(glm::vec3(1.0f, 0, 0)));
-        //translate2dArrows[1]->setRelativeTransformation(glm::translate(glm::vec3(2.0f, 0, 0)));
-        //translate2dArrows[2]->setRelativeTransformation(glm::translate(glm::vec3(3.0f, 0, 0)));
 
         centerBall = std::make_shared<generated_mesh::UVSphereNode>(ldr_color_repo::getPureColor("#ffffff"), shared_from_this());
         centerBall->setRelativeTransformation(glm::scale(glm::vec3(generated_mesh::ArrowNode::LINE_RADIUS * 4)));
@@ -200,6 +217,22 @@ namespace transform_gizmo {
 
     std::string TGNode::getDescription() {
         return "Transform Gizmo";
+    }
+
+    std::pair<TransformType, int> TGNode::getTransformTypeAndAxis(std::shared_ptr<etree::Node>& node) {
+        if (node == centerBall) {
+            return {TRANSLATE_3D, 0};
+        }
+        for (int i = 0; i < 3; ++i) {
+            if (node == translate1dArrows[i]) {
+                return {TRANSLATE_1D, i};
+            } else if (node == translate2dArrows[i]) {
+                return {TRANSLATE_2D, i};
+            } else if (node == rotateQuarterTori[i]) {
+                return {ROTATE, i};
+            }
+        }
+        return {NONE, 0};
     }
 
     mesh_identifier_t TG2DArrowNode::getMeshIdentifier() const {

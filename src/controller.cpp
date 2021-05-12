@@ -34,8 +34,14 @@ namespace controller {
         bool openGlInitialized = false;
 
         bool userWantsToExit = false;
+
         std::set<std::shared_ptr<etree::Node>> selectedNodes;
         std::shared_ptr<etree::Node> currentlyEditingNode;
+        enum class DraggingNodeType {
+            NONE,
+            TRANSFORM_GIZMO,
+        };
+        DraggingNodeType currentlyDraggingNodeType = DraggingNodeType::NONE;//todo change this to object oriented design
         transform_gizmo::RotationState transformGizmoRotationState = transform_gizmo::RotationState::WORLD;
 
         std::map<unsigned int, Task *> backgroundTasks;//todo smart pointer
@@ -712,15 +718,32 @@ namespace controller {
     }
 
     void startNodeDrag(std::shared_ptr<etree::Node> &node) {
-
+        if (transformGizmo->ownsNode(node)) {
+            transformGizmo->startDrag(node);
+            currentlyDraggingNodeType = DraggingNodeType::TRANSFORM_GIZMO;
+        }
     }
 
     void updateNodeDragDelta(glm::usvec2 delta) {
-
+        switch (currentlyDraggingNodeType) {
+            case DraggingNodeType::TRANSFORM_GIZMO:
+                transformGizmo->updateCurrentDragDelta(delta);
+                break;
+            case DraggingNodeType::NONE:
+            default:
+                break;
+        }
     }
 
     void endNodeDrag() {
-
+        switch (currentlyDraggingNodeType) {
+            case DraggingNodeType::TRANSFORM_GIZMO:
+                transformGizmo->endDrag();
+                break;
+            case DraggingNodeType::NONE:
+            default:
+                break;
+        }
     }
 
 #ifdef BRICKSIM_USE_RENDERDOC

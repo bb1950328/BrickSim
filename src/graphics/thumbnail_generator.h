@@ -5,7 +5,7 @@
 
 #include <list>
 #include <queue>
-#include "ldr_files/ldr_files.h"
+#include "../ldr_files/ldr_files.h"
 #include "mesh_collection.h"
 #include "scene.h"
 

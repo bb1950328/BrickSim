@@ -11,7 +11,7 @@
 #include "keyboard_shortcut_manager.h"
 #include "config.h"
 #include "metrics.h"
-#include "orientation_cube.h"
+#include "graphics/orientation_cube.h"
 #include "transform_gizmo.h"
 
 #ifdef BRICKSIM_USE_RENDERDOC

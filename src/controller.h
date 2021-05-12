@@ -5,7 +5,7 @@
 #include <atomic>
 #include "element_tree.h"
 #include "gui/gui.h"
-#include "thumbnail_generator.h"
+#include "graphics/thumbnail_generator.h"
 #include "tasks.h"
 #include "transform_gizmo.h"
 

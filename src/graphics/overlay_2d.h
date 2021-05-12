@@ -6,9 +6,9 @@
 #include <memory>
 #include <set>
 #include <map>
-#include "types.h"
-#include "helpers/util.h"
-#include "helpers/color.h"
+#include "../types.h"
+#include "../helpers/util.h"
+#include "../helpers/color.h"
 
 namespace overlay2d {
     typedef glm::usvec2 coord_t;

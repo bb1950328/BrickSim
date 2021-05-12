@@ -1,7 +1,7 @@
 #ifndef BRICKSIM_GENERATED_MESH_H
 #define BRICKSIM_GENERATED_MESH_H
 
-#include "element_tree.h"
+#include "../element_tree.h"
 
 namespace generated_mesh {
 

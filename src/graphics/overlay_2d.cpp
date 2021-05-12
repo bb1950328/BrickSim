@@ -1,5 +1,5 @@
 #include "overlay_2d.h"
-#include "controller.h"
+#include "../controller.h"
 
 #include <utility>
 #include <spdlog/spdlog.h>

@@ -2,8 +2,8 @@
 #define BRICKSIM_TRANSFORM_GIZMO_H
 
 #include <memory>
-#include "scene.h"
-#include "generated_mesh.h"
+#include "graphics/scene.h"
+#include "graphics/generated_mesh.h"
 
 namespace transform_gizmo {
 

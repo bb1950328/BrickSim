@@ -1,9 +1,9 @@
 #include "glm/gtx/string_cast.hpp"
 #include <utility>
 #include "mesh_collection.h"
-#include "metrics.h"
-#include "controller.h"
-#include "ldr_files/ldr_file_repo.h"
+#include "../metrics.h"
+#include "../controller.h"
+#include "../ldr_files/ldr_file_repo.h"
 
 std::map<mesh_key_t, std::shared_ptr<Mesh>> SceneMeshCollection::allMeshes;
 

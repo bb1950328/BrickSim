@@ -5,7 +5,7 @@
 #include <string>
 #include "glm/glm.hpp"
 #include "ldr_files/ldr_files.h"
-#include "mesh.h"
+#include "graphics/mesh.h"
 #include "helpers/util.h"
 
 namespace etree {

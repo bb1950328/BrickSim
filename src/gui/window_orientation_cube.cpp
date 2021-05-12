@@ -1,6 +1,6 @@
 #include "gui.h"
 #include "../controller.h"
-#include "../orientation_cube.h"
+#include "../graphics/orientation_cube.h"
 #include "gui_internal.h"
 #include "../config.h"
 

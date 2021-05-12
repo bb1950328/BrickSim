@@ -1,8 +1,8 @@
 #include "scene.h"
-#include "controller.h"
-#include "latest_log_messages_tank.h"
-#include "metrics.h"
-#include "config.h"
+#include "../controller.h"
+#include "../latest_log_messages_tank.h"
+#include "../metrics.h"
+#include "../config.h"
 
 #ifdef BRICKSIM_USE_RENDERDOC
 

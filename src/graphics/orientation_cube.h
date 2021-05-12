@@ -3,8 +3,8 @@
 
 #include <optional>
 #include "glm/glm.hpp"
-#include "types.h"
-#include "element_tree.h"
+#include "../types.h"
+#include "../element_tree.h"
 #include "camera.h"
 
 namespace orientation_cube {

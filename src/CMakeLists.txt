@@ -1,6 +1,4 @@
 target_sources(BrickSimLib PUBLIC
-        camera.cpp
-        camera.h
         config.cpp
         config.h
         controller.cpp
@@ -9,33 +7,17 @@ target_sources(BrickSimLib PUBLIC
         db.h
         element_tree.cpp
         element_tree.h
-        generated_mesh.cpp
-        generated_mesh.h
         keyboard_shortcut_manager.cpp
         keyboard_shortcut_manager.h
         latest_log_messages_tank.cpp
         latest_log_messages_tank.h
-        mesh.cpp
-        mesh.h
-        mesh_collection.cpp
-        mesh_collection.h
-        orientation_cube.cpp
-        orientation_cube.h
-        overlay_2d.cpp
-        overlay_2d.h
-        part_finder.cpp
-        part_finder.h
-        scene.cpp
-        scene.h
-        shaders/shaders.cpp
         metrics.cpp
         metrics.h
+        part_finder.cpp
+        part_finder.h
+        shaders/shaders.cpp
         tasks.cpp
         tasks.h
-        texture.cpp
-        texture.h
-        thumbnail_generator.cpp
-        thumbnail_generator.h
         transform_gizmo.cpp
         transform_gizmo.h
         types.h
@@ -44,10 +26,11 @@ target_sources(BrickSimLib PUBLIC
         )
 
 add_subdirectory(constant_data)
+add_subdirectory(graphics)
 add_subdirectory(gui)
 add_subdirectory(helpers)
 add_subdirectory(info_providers)
 add_subdirectory(ldr_files)
 add_subdirectory(lib)
-add_subdirectory(tools)
 add_subdirectory(test)
+add_subdirectory(tools)

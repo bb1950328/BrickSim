@@ -3,7 +3,7 @@
 
 #include <filesystem>
 #include "glm/glm.hpp"
-#include "types.h"
+#include "../types.h"
 
 class Texture {
 private:

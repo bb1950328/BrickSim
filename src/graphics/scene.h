@@ -3,8 +3,8 @@
 
 #include <filesystem>
 #include <optional>
-#include "shaders/shaders.h"
-#include "element_tree.h"
+#include "../shaders/shaders.h"
+#include "../element_tree.h"
 #include "mesh_collection.h"
 #include "camera.h"
 #include "overlay_2d.h"

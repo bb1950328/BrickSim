@@ -2,7 +2,7 @@
 #include "glm/gtx/normal.hpp"
 #include <spdlog/spdlog.h>
 #include "camera.h"
-#include "config.h"
+#include "../config.h"
 #include "mesh_collection.h"
 
 void CadCamera::updateVectors() {

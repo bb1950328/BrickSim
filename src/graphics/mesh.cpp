@@ -1,12 +1,12 @@
 #include <glad/glad.h>
 
 #include "mesh.h"
-#include "config.h"
+#include "../config.h"
 #include "glm/gtx/normal.hpp"
 #include <mutex>
-#include "metrics.h"
-#include "lib/Miniball.hpp"
-#include "controller.h"
+#include "../metrics.h"
+#include "../lib/Miniball.hpp"
+#include "../controller.h"
 
 void Mesh::addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transformation = glm::mat4(1.0f), const LdrColorReference mainColor = {}, bool bfcInverted = false) {
     for (const auto &element : file->elements) {

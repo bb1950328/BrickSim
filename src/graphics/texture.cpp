@@ -1,8 +1,8 @@
 #include <mutex>
 #include "texture.h"
 #include "stb_image.h"
-#include "controller.h"
-#include "latest_log_messages_tank.h"
+#include "../controller.h"
+#include "../latest_log_messages_tank.h"
 
 
 Texture::Texture(const std::filesystem::path &image) {

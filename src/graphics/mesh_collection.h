@@ -1,7 +1,7 @@
 #ifndef BRICKSIM_MESH_COLLECTION_H
 #define BRICKSIM_MESH_COLLECTION_H
 
-#include "element_tree.h"
+#include "../element_tree.h"
 
 typedef std::pair<mesh_identifier_t, bool> mesh_key_t;
 

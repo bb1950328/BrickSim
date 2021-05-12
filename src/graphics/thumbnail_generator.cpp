@@ -2,10 +2,10 @@
 #include "glm/gtx/string_cast.hpp"
 #include <mutex>
 #include "thumbnail_generator.h"
-#include "controller.h"
-#include "latest_log_messages_tank.h"
-#include "metrics.h"
-#include "config.h"
+#include "../controller.h"
+#include "../latest_log_messages_tank.h"
+#include "../metrics.h"
+#include "../config.h"
 
 unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile> &ldrFile, const LdrColorReference color) {
     if (renderedRotationDegrees != rotationDegrees) {

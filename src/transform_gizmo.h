@@ -4,6 +4,7 @@
 #include <memory>
 #include "graphics/scene.h"
 #include "graphics/generated_mesh.h"
+#include <array>
 
 namespace transform_gizmo {
 

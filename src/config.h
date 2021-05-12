@@ -85,6 +85,7 @@ namespace config {
     const DoubleKey MOUSE_3DVIEW_ZOOM_SENSITIVITY("mouse3dViewZoomSensitivity", 1);
     const BoolKey ENABLE_VSYNC("enableVsync", true);
     const DoubleKey TRANSFORM_GIZMO_SIZE("transformGizmoSize", 1.0);
+    const BoolKey FACE_CULLING_ENABLED("faceCullingEnabled", true);
 }
 
 #endif //BRICKSIM_CONFIG_H

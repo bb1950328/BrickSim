@@ -29,6 +29,7 @@ namespace gui {
         glm::vec3 officalPartColor;
         glm::vec3 unofficalPartColor;
         bool displaySelectionBuffer;
+        bool faceCullingEnabled;
         bool showNormals;
         int thumbnailSize;
         int thumbnailSizeLog;
@@ -72,6 +73,7 @@ namespace gui {
             officalPartColor = config::getColor(config::COLOR_OFFICAL_PART).asGlmVector();
             unofficalPartColor = config::getColor(config::COLOR_UNOFFICAL_PART).asGlmVector();
             displaySelectionBuffer = config::getBool(config::DISPLAY_SELECTION_BUFFER);
+            faceCullingEnabled = config::getBool(config::FACE_CULLING_ENABLED);
             showNormals = config::getBool(config::SHOW_NORMALS);
             allShortcuts = keyboard_shortcut_manager::getAllShortcuts();
             thumbnailSize = config::getInt(config::THUMBNAIL_SIZE);
@@ -125,6 +127,7 @@ namespace gui {
             config::setColor(config::COLOR_OFFICAL_PART, color::RGB(officalPartColor));
             config::setColor(config::COLOR_UNOFFICAL_PART, color::RGB(unofficalPartColor));
             config::setBool(config::DISPLAY_SELECTION_BUFFER, displaySelectionBuffer);
+            config::setBool(config::FACE_CULLING_ENABLED, faceCullingEnabled);
             config::setBool(config::SHOW_NORMALS, showNormals);
             config::setInt(config::THUMBNAIL_SIZE, (int) std::pow(2, thumbnailSizeLog));
             const auto sizeBytes = thumbnailCacheSizeGB * BYTES_PER_GB;
@@ -175,6 +178,8 @@ namespace gui {
                 ImGui::DragFloat(ICON_FA_ARROWS_ALT" Pan Sensitivity", &mouseSensitivityPan, 1.0f, 10.0f, 1000.0f, "%.0f%%");
                 ImGui::DragFloat(ICON_FA_SEARCH" Zoom Sensitivity", &mouseSensitivityRotation, 1.0f, 10.0f, 1000.0f, "%.0f%%");
                 ImGui::SliderInt("MSAA Samples", &msaaElem, 0, 4, std::to_string((int) std::pow(2, msaaElem)).c_str());
+                ImGui::Checkbox(ICON_FA_RETWEET" Back face culling", &faceCullingEnabled);
+                ImGui::EndTabItem();
             }
         }
 

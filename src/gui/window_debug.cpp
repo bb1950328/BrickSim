@@ -239,7 +239,7 @@ namespace gui {
 
                 static bool openPopupNow = false;
 
-                float meshListTableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 2;
+                float meshListTableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 3;
                 drawMeshesList(buf, selectedScene, meshListTableHeight, currentlyInspectingMesh, openPopupNow);
 
                 ImGui::Text("%zu Meshes", selectedScene->getMeshCollection().getUsedMeshes().size());

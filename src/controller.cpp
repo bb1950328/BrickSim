@@ -144,8 +144,11 @@ namespace controller {
             }
 
             glEnable(GL_DEPTH_TEST);
-            glEnable(GL_CULL_FACE);
-            glCullFace(GL_BACK);
+
+            if (config::getBool(config::FACE_CULLING_ENABLED)) {
+                glEnable(GL_CULL_FACE);
+                glCullFace(GL_BACK);
+            }
             glFrontFace(GL_CCW);
 
             GLint flags;

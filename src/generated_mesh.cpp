@@ -195,14 +195,14 @@ namespace generated_mesh {
             float sinValue = std::sin(i * angleStep);
             float cosValue = std::cos(i * angleStep);
             glm::vec4 position(sinValue * TUBE_RADIUS, cosValue * TUBE_RADIUS + CENTER_TO_TUBE_RADIUS, 0.0f, 1.0f);
-            glm::vec3 normal(sinValue, cosValue, 0.0f);
+            glm::vec3 normal(-sinValue, -cosValue, 0.0f);
             baseVertices.push_back(TriangleVertex{position, normal});
         }
 
         constexpr float angleRatio = .25f;
         for (int i = 0; i <= DIVISIONS; ++i) {
             float angle = i * angleRatio * angleStep;
-            auto rotation = glm::rotate(angle, glm::vec3(1.0f, 0.0f, 0.0f));
+            auto rotation = glm::rotate(angle, glm::vec3(-1.0f, 0.0f, 0.0f));
             for (int j = 0; j < DIVISIONS; ++j) {
                 mesh->addRawTriangleVertex(color, TriangleVertex{baseVertices[j].position * rotation, glm::vec4(baseVertices[j].normal, 0.0f) * rotation});
             }

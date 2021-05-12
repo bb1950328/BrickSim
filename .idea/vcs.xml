@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="IssueNavigationConfiguration">
+    <option name="links">
+      <list>
+        <IssueNavigationLink>
+          <option name="issueRegexp" value="#(\d+)" />
+          <option name="linkRegexp" value="https://github.com/bb1950328/BrickSim/issues/$1" />
+        </IssueNavigationLink>
+      </list>
+    </option>
+  </component>
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/Catch2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/IconFontCppHeaders" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/SQLiteCpp" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/SQLiteCpp/googletest" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/curl" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/glfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/glm" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/imgui" vcs="Git" />

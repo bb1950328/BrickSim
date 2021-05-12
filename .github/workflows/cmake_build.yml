@@ -5,7 +5,7 @@ on:
     branches:
       - master
       - stable
-      - installbuilder
+      - multiplatform_unittests
     paths-ignore:
       - "docs/**"
       - '**/*.md'
@@ -94,9 +94,8 @@ jobs:
       with:
         name: BrickSimTests_Linux${{ matrix.bits }}
         path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSimTests
-  test:
-    #todo run tests for 32 bit also
-    name: Catch2 Unittests
+  testLinux:
+    name: Catch2 Unittests Linux
     needs: buildLinux
     runs-on: ubuntu-latest
     steps:
@@ -104,52 +103,43 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: BrickSimTests_Linux64
-      - name: Download libraries
-        run: sudo apt-get install -y libspdlog1 libzip5
+
       - name: Make tests executable
         run: chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
+
+      - name: ldd the executable
+        if: always()
+        run: ldd ${{runner.workspace}}/BrickSim/BrickSimTests
+
       - name: Run tests with JUnit XML output
-        run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/junitTestReport.xml
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/junitTestReport_Linux64.xml
+
       - name: Run tests with Catch2 XML output
         if: always()
-        run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes -r xml > ${{runner.workspace}}/catchTestReport.xml
-      - run: cat ${{runner.workspace}}/catchTestReport.xml
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes -r xml > ${{runner.workspace}}/catchTestReport_Linux64.xml
+
+      - name: Print report to log
+        run: cat ${{runner.workspace}}/catchTestReport_Linux64.xml
         if: always()
+
       - name: Run tests with Console output
         if: failure()
         run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes
 
-      - name: Publish Test Result Comment
-        if: failure()
-        run: |
-          pip3 install PyGithub
-          wget -O ${{runner.workspace}}/publish_test_results.py https://raw.githubusercontent.com/bb1950328/BrickSim/master/.github/workflows/publish_test_results.py
-          python3 ${{runner.workspace}}/publish_test_results.py ${{runner.workspace}}/catchTestReport.xml ${{ github.token }} ${{ github.sha }}
+#todo publish only one comment for all platforms
+      #- name: Publish Test Result Comment
+      #  if: failure()
+      #  run: |
+      #    pip3 install PyGithub
+      #    wget -O ${{runner.workspace}}/publish_test_results.py https://raw.githubusercontent.com/bb1950328/BrickSim/${GITHUB_REF##*/}/.github/workflows/publish_test_results.py
+      #    python3 ${{runner.workspace}}/publish_test_results.py ${{runner.workspace}}/catchTestReport.xml ${{ github.token }} ${{ github.sha }}
 
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: UnitTestReport
-          path: ${{runner.workspace}}/junitTestReport.xml
-  publishTestResults:
-    name: Publish Catch2 Test Results
-    needs: test
-    runs-on: ubuntu-latest
-    if: success() || failure()
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: UnitTestReport
-          path: artifacts
-
-      - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1.15
-        with:
-          files: ./**/*.xml
-          check_name: Catch2 Test Results
-          comment_title: Catch2 Test Results
+          name: UnitTestReport_Linux64
+          path: ${{runner.workspace}}/*TestReport*.xml
 
   buildInstallerLinux:
     needs: buildLinux
@@ -259,7 +249,7 @@ jobs:
           cmake -G "MSYS Makefiles" ../.. -DCMAKE_PREFIX_PATH=/C/mingw64 -DCMAKE_MAKE_PROGRAM=/C/msys64/usr/bin/make.exe \
             -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(../../scripts/get_git_commit_count.sh) \
             -DTOTAL_HOURS:STRING=$(../../scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(../../scripts/get_git_tag.sh)
-          cmake --build . --target BrickSim --config Release  -j $(nproc --all)
+          cmake --build . --target BrickSim BrickSimTests --config Release  -j $(nproc --all)
       - if: always()
         run: |
           cd cmake-build/release${{ matrix.bits }}
@@ -270,11 +260,16 @@ jobs:
         working-directory: ${{runner.workspace}}
         run: find . -name "*.exe"
 
-      - name: Upload BrickSim
+      - name: Upload BrickSimRawBinary
         uses: actions/upload-artifact@v2
         with:
           name: BrickSimRawBinary_Windows${{ matrix.bits }}
           path: ${{runner.workspace}}\BrickSim\cmake-build\release${{ matrix.bits }}\BrickSim.exe
+      - name: Upload BrickSimTests
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimTests_Windows${{ matrix.bits }}
+          path: ${{runner.workspace}}\BrickSim\cmake-build\release${{ matrix.bits }}\BrickSimTests.exe
 
   buildInstallerWindows:
     needs: buildWindows
@@ -313,10 +308,11 @@ jobs:
       - name: Create build directory and copy raw binary to it
         shell: powershell
         run: |
-          New-Item "$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}" -ItemType Directory
-          Copy-Item "${{ runner.workspace }}/artifacts/BrickSim.exe" -Destination "$GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}"
+          New-Item "${{ runner.workspace }}/BrickSim/cmake-build/release${{ matrix.bits }}" -ItemType Directory
+          Copy-Item "${{ runner.workspace }}/artifacts/BrickSim.exe" -Destination "${{ runner.workspace }}/BrickSim/cmake-build/release${{ matrix.bits }}"
 
       - name: Build Installer
+        shell: powershell
         run: |
           If (${{ matrix.bits }} -eq 32) {
             $PLATFORM="windows"
@@ -325,13 +321,69 @@ jobs:
           }
           $VERSION = git describe --tags --match v[0-9]* --abbrev=0
           $VERSION = $VERSION -replace "v"
-          Start-Process -FilePath ${{ runner.workspace }}/installbuilder/bin/builder -ArgumentList "build $GITHUB_WORKSPACE/InstallBuilder.xml $PLATFORM --setvars project.version=$VERSION" installbuilder_output_directory=${{runner.workspace}}/installbuilder/output
+          
+          New-Item -ItemType directory -Path ${{runner.workspace}}\installbuilder\output
+          Start-Process -FilePath "${{ runner.workspace }}\installbuilder\bin\builder-cli.exe" -ArgumentList "build ${{ runner.workspace }}/BrickSim/InstallBuilder.xml $PLATFORM --setvars project.version=$VERSION installbuilder_output_directory=${{runner.workspace}}/installbuilder/output" -Wait -NoNewWindow
+
+      - name: try to find exe
+        shell: powershell
+        run: Get-ChildItem -Path ${{runner.workspace}} -Recurse | Where {$_.extension -like ".exe"}
 
       - name: Upload BrickSimInstaller
         uses: actions/upload-artifact@v2
         with:
           name: BrickSimInstaller_Windows${{ matrix.bits }}
-          path: ${{runner.workspace}}/installbuilder/output/*.exe
+          path: ${{runner.workspace}}\installbuilder\output\*.exe
+
+  testWindows:
+    runs-on: windows-latest
+
+    needs: buildWindows
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { arch: x86_64, bits: 64 },
+          { arch: i686, bits: 32 }
+        ]
+
+    name: Windows Tests (${{ matrix.bits }} bit / ${{ matrix.arch }})
+
+    steps:
+      - name: Download test artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: BrickSimTests_Windows${{ matrix.bits }}
+
+      - name: Get info about the .exe
+        shell: powershell
+        run: Get-Command "${{runner.workspace}}\BrickSim\BrickSimTests.exe" | Format-List
+
+      - name: Run tests with JUnit XML output
+        shell: powershell
+        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-r junit" -Wait -NoNewWindow -RedirectStandardOutput ${{runner.workspace}}\junitTestReport_Windows${{ matrix.bits }}.xml
+
+      - name: Run tests with Catch2 XML output
+        shell: powershell
+        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-d yes -r xml" -Wait -NoNewWindow -RedirectStandardOutput ${{runner.workspace}}\catchTestReport_Windows${{ matrix.bits }}.xml
+
+      - name: Print report to log
+        shell: powershell
+        run: Get-Content ${{runner.workspace}}\catchTestReport_Windows${{ matrix.bits }}.xml
+        if: always()
+
+      - name: Run tests with Console output
+        if: always()
+        shell: powershell
+        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-d yes" -Wait -NoNewWindow
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: UnitTestReport_Windows${{ matrix.bits }}
+          path: ${{runner.workspace}}/*TestReport*.xml
 
   buildMac:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip mac ci')"
@@ -427,3 +479,43 @@ jobs:
         with:
           name: BrickSimInstaller_Mac
           path: ${{runner.workspace}}/installbuilder/output/*.app
+
+  publishTestResults:
+    name: Publish Catch2 Test Results
+    needs:
+      - testLinux
+      - testWindows
+    runs-on: ubuntu-latest
+    if: success() || failure()
+    steps:
+      - name: Download UnitTestReport_Linux64
+        uses: actions/download-artifact@v2
+        with:
+          name: UnitTestReport_Linux64
+          path: ${{runner.workspace}}/artifacts
+      - name: Download UnitTestReport_Windows32
+        uses: actions/download-artifact@v2
+        with:
+          name: UnitTestReport_Windows32
+          path: ${{runner.workspace}}/artifacts
+      - name: Download UnitTestReport_Windows64
+        uses: actions/download-artifact@v2
+        with:
+          name: UnitTestReport_Windows64
+          path: ${{runner.workspace}}/artifacts
+
+      - name: Split files by format
+        run: |
+          mkdir ${{runner.workspace}}/junitReports
+          mkdir ${{runner.workspace}}/catchReports
+          mv ${{runner.workspace}}/artifacts/*junit* ${{runner.workspace}}/junitReports
+          mv ${{runner.workspace}}/artifacts/*catch* ${{runner.workspace}}/catchReports
+
+      - run: ls -Rl ${{runner.workspace}}
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1.15
+        with:
+          files: ${{runner.workspace}}/junitReports/junitTestReport_Linux64.xml ${{runner.workspace}}/junitReports/junitTestReport_Windows32.xml ${{runner.workspace}}/junitReports/junitTestReport_Windows64.xml
+          check_name: Catch2 Test Results
+          comment_title: Catch2 Test Results

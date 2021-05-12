@@ -8,7 +8,7 @@ foreach(SDKPATH IN LISTS /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /Ap
 endforeach()
 project(BrickSim)
 
-file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)#prevent profiles from loading in parallel, causes problems with submodules
+#file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY GUARD FILE)#prevent profiles from loading in parallel, causes problems with submodules
 
 add_library(BrickSimLib STATIC)
 
@@ -21,6 +21,8 @@ target_link_libraries(BrickSimTests PRIVATE Catch2::Catch2)
 add_dependencies(BrickSimTests BrickSimLib)
 target_link_libraries(BrickSimTests PRIVATE BrickSimLib)
 target_compile_definitions(BrickSimTests PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING)
+
+#target_link_libraries(BrickSimLib PUBLIC -static)
 
 # OpenGL
 set(OpenGL_GL_PREFERENCE GLVND)
@@ -57,33 +59,42 @@ target_include_directories(BrickSimLib PRIVATE ${GLUT_INCLUDE_DIRS})
 target_link_libraries(BrickSimLib PRIVATE ${GLUT_LIBRARY})
 
 # threads
-if (WIN32)
-    option(MINGW_STDTHREADS_GENERATE_STDHEADERS "" ON)
-    add_subdirectory(src/lib/mingw-std-threads)
-endif ()
 if (UNIX)
     if (NOT APPLE)
         find_package(Threads REQUIRED)
-        target_link_libraries(BrickSimLib PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+        target_link_libraries(BrickSimLib PRIVATE Threads::Threads)
     endif ()
 endif ()
 
 # libzip
 set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)# https://github.com/nih-at/libzip/issues/66
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+set(ENABLE_BZIP2 OFF)
+set(ENABLE_LZMA OFF)
+set(ENABLE_ZSTD OFF)
 add_subdirectory(src/lib/libzip)
 target_link_libraries(BrickSimLib PUBLIC libzip::zip)
 
 # SqliteCpp
+set(SQLITECPP_USE_STACK_PROTECTION OFF)
 add_subdirectory(src/lib/SQLiteCpp)
 target_include_directories(BrickSimLib PUBLIC src/lib/SQLiteCpp/include)
 target_link_libraries(BrickSimLib PRIVATE SQLiteCpp)
 target_link_libraries(BrickSimLib PRIVATE sqlite3)
 
 # cURL
-set(CURL_LIBRARY "-lcurl")
-find_package(CURL REQUIRED)
-target_include_directories(BrickSim PUBLIC ${CURL_INCLUDE_DIR})
-target_link_libraries(BrickSimLib PRIVATE ${CURL_LIBRARIES})
+if(APPLE)
+    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
+    set(OPENSSL_INCLUDE_DIR ${OPENSSL_ROOT_DIR}/include)
+    set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_ROOT_DIR}/lib/libcrypto.dylib CACHE FILEPATH "" FORCE)
+    set(OPENSSL_SSL_LIBRARY ${OPENSSL_ROOT_DIR}/lib/libssl.dylib CACHE FILEPATH "" FORCE)
+    find_package(openssl REQUIRED)
+    message(STATUS "openssl found in main CMakeLists.txt")
+endif()
+set(HTTP_ONLY ON)
+set(CMAKE_USE_LIBSSH2 OFF)
+add_subdirectory(src/lib/curl)
+target_link_libraries(BrickSimLib PUBLIC CURL::libcurl)
 
 # spdlog
 add_subdirectory(src/lib/spdlog)
@@ -110,13 +121,15 @@ target_include_directories(BrickSimLib PUBLIC src/lib/stb)
 add_subdirectory(src)
 
 if (WIN32)
-    target_link_libraries(BrickSimLib PUBLIC -lssp) # stack smashing protection
     target_link_libraries(BrickSimLib PUBLIC -lImm32)
+    target_link_libraries(BrickSimLib PUBLIC -static-libgcc)
+    target_link_libraries(BrickSimLib PUBLIC -static-libstdc++)
+    target_link_libraries(BrickSimLib PUBLIC -static -pthread)
 elseif (UNIX AND NOT APPLE)
     target_link_libraries(BrickSimLib PUBLIC -ltbb)
 endif ()
 
-#set(CMAKE_VERBOSE_MAKEFILE ON) # useful for fixing build errors
+set(CMAKE_VERBOSE_MAKEFILE ON) # useful for fixing build errors
 
 target_compile_definitions(BrickSimLib PRIVATE GLM_ENABLE_EXPERIMENTAL)
 target_compile_definitions(BrickSimLib PRIVATE USE_SSLEAY)

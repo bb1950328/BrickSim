@@ -71,17 +71,17 @@ if [[ "$OS" == "windows" ]]; then
   echo "packages installed."
 fi
 
-#if [[ "$OS" == "mac" ]]; then
-#  which -s brew
-#  if [[ $? != 0 ]] ; then
-#    echo "installing homebrew"
-#    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-#  else
-#    echo "brew already installed."
-#  fi
-#
-#  brew install glm
-#fi
+if [[ "$OS" == "mac" ]]; then
+  which -s brew
+  if [[ $? != 0 ]] ; then
+    echo "installing homebrew"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  else
+    echo "brew already installed."
+  fi
+
+  brew install openssl
+fi
 ###########################################
 
 #unzipping libraries

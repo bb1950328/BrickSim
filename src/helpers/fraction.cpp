@@ -1,5 +1,4 @@
 #include <stdexcept>
-#include <execution>
 #include <numeric>
 #include "fraction.h"
 #include "util.h"

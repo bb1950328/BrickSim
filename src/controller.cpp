@@ -689,6 +689,40 @@ namespace controller {
                 : transform_gizmo::RotationState::WORLD;
     }
 
+    void nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed) {
+        if (transformGizmo->ownsNode(clickedNode)) {
+            //todo transformGizmo->nodeClicked
+        } else {
+            if (ctrlPressed) {
+                nodeSelectAddRemove(clickedNode);
+            } else if (shiftPressed) {
+                nodeSelectUntil(clickedNode);
+            } else {
+                nodeSelectSet(clickedNode);
+            }
+        }
+    }
+
+    bool isNodeClickable(const std::shared_ptr<etree::Node> &node) {
+        return !transformGizmo->ownsNode(node);
+    }
+
+    bool isNodeDraggable(const std::shared_ptr<etree::Node> &node) {
+        return transformGizmo->ownsNode(node);
+    }
+
+    void startNodeDrag(std::shared_ptr<etree::Node> &node) {
+
+    }
+
+    void updateNodeDragDelta(glm::usvec2 delta) {
+
+    }
+
+    void endNodeDrag() {
+
+    }
+
 #ifdef BRICKSIM_USE_RENDERDOC
     RENDERDOC_API_1_1_2 *getRenderdocAPI() {
         return rdoc_api;

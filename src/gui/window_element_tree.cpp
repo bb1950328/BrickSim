@@ -27,13 +27,7 @@ void draw_element_tree_node(std::shared_ptr<etree::Node> node) {
         }
         ImGui::PopStyleColor();
         if (itemClicked) {
-            if (ImGui::GetIO().KeyCtrl) {
-                controller::nodeSelectAddRemove(node);
-            } else if (ImGui::GetIO().KeyShift) {
-                controller::nodeSelectUntil(node);
-            } else {
-                controller::nodeSelectSet(node);
-            }
+            controller::nodeClicked(node, ImGui::GetIO().KeyCtrl, ImGui::GetIO().KeyShift);
         }
     }
 }

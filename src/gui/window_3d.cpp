@@ -1,10 +1,16 @@
-#include <spdlog/spdlog.h>
 #include "gui.h"
 #include "../controller.h"
 #include "gui_internal.h"
-#include "../config.h"
 
 namespace gui {
+    std::shared_ptr<etree::Node> getNodeUnderCursor(const std::shared_ptr<Scene> &mainScene, const glm::svec2 &currentCursorPos) {
+        const auto elementIdUnderCursor = mainScene->getSelectionPixel(currentCursorPos);
+        auto nodeUnderCursor = elementIdUnderCursor != 0
+                               ? mainScene->getMeshCollection().getElementById(elementIdUnderCursor)
+                               : nullptr;
+        return nodeUnderCursor;
+    }
+
     void windows::draw3dWindow(bool *show) {
         ImGui::Begin(WINDOW_NAME_3D_VIEW, show, ImGuiWindowFlags_NoScrollWithMouse);
         {
@@ -12,69 +18,110 @@ namespace gui {
             const ImVec2 &regionAvail = ImGui::GetContentRegionAvail();
             controller::set3dViewSize((unsigned int) regionAvail.x, (unsigned int) regionAvail.y);
             const auto &mainScene = controller::getMainScene();
-            if (ImGui::IsWindowFocused()) {
-                const ImVec2 &windowPos = ImGui::GetWindowPos();
-                const ImVec2 &regionMin = ImGui::GetWindowContentRegionMin();
-                const ImVec2 &mousePos = ImGui::GetMousePos();
-                const ImVec2 &regionMax = ImGui::GetWindowContentRegionMax();
-                bool isInWindow = (windowPos.x + regionMin.x <= mousePos.x
-                                   && mousePos.x <= windowPos.x + regionMax.x
-                                   && windowPos.y + regionMin.y <= mousePos.y
-                                   && mousePos.y <= windowPos.y + regionMax.y);
-                if (isInWindow) {
-                    const ImGuiIO &imGuiIo = ImGui::GetIO();
-                    static bool lastLeftDown = false;
-                    static bool lastRightDown = false;
-                    static int lastCursorX = 0, lastCursorY = 0;
-                    static bool isDragging = false;
-                    const bool nowLeftDown = imGuiIo.MouseDown[ImGuiMouseButton_Left];
-                    const bool nowRightDown = imGuiIo.MouseDown[ImGuiMouseButton_Right];
-                    const int nowCursorX = (int) mousePos.x, nowCursorY = (int) mousePos.y;
-                    const auto deltaX = nowCursorX - lastCursorX;
-                    const auto deltaY = nowCursorY - lastCursorY;
-                    const bool mouseHasMoved = deltaX != 0 || deltaY != 0;
-                    isDragging = isDragging || ((nowLeftDown || nowRightDown) && mouseHasMoved);
+            const ImVec2 &windowPos = ImGui::GetWindowPos();
+            const ImVec2 &regionMin = ImGui::GetWindowContentRegionMin();
+            const ImVec2 &mousePos = ImGui::GetMousePos();
+            const ImVec2 &regionMax = ImGui::GetWindowContentRegionMax();
+            const glm::svec2 relCursorPos = {
+                    mousePos.x - windowPos.x - regionMin.x,
+                    mousePos.y - windowPos.y - regionMin.y
+            };
+            bool isInWindow = (windowPos.x + regionMin.x <= mousePos.x
+                               && mousePos.x <= windowPos.x + regionMax.x
+                               && windowPos.y + regionMin.y <= mousePos.y
+                               && mousePos.y <= windowPos.y + regionMax.y);
+            enum DragMode {
+                NOT_DRAGGING,
+                ROTATE_CAMERA,
+                PAN_CAMERA,
+                DRAG_ELEMENT,
+            };
+            if (isInWindow) {
+                const ImGuiIO &imGuiIo = ImGui::GetIO();
 
-                    if (isDragging && mouseHasMoved) {
-                        if (lastLeftDown && nowLeftDown) {
-                            controller::getMainSceneCamera()->mouseRotate(deltaX, deltaY);
-                        }
-                        if (lastRightDown && nowRightDown) {
-                            controller::getMainSceneCamera()->mousePan(deltaX, deltaY);
-                        }
-                    }
-                    if ((lastLeftDown && !nowLeftDown) && !isDragging) {
-                        const auto relCursorPosX = mousePos.x - windowPos.x - regionMin.x;
-                        const auto relCursorPosY = mousePos.y - windowPos.y - regionMin.y;
-                        const auto elementIdUnderMouse = mainScene->getSelectionPixel(relCursorPosX, relCursorPosY);
-                        if (elementIdUnderMouse == 0) {
-                            controller::nodeSelectNone();
+                const bool currentLeftMouseDown = imGuiIo.MouseDown[ImGuiMouseButton_Left];
+                const bool currentMiddleMouseDown = imGuiIo.MouseDown[ImGuiMouseButton_Middle];
+                const bool currentRightMouseDown = imGuiIo.MouseDown[ImGuiMouseButton_Right];
+                const glm::svec2 currentCursorPos{mousePos.x, mousePos.y};
+                static bool lastLeftMouseDown = currentLeftMouseDown;
+                static bool lastMiddleMouseDown = currentMiddleMouseDown;
+                static bool lastRightMouseDown = currentRightMouseDown;
+                static glm::svec2 lastCursorPos = currentCursorPos;
+                static glm::svec2 totalDragDelta = {0, 0};
+
+                static DragMode dragMode = NOT_DRAGGING;
+
+                const glm::svec2 deltaCursorPos = currentCursorPos - lastCursorPos;
+                const bool currentlyAnyMouseDown = currentLeftMouseDown || currentMiddleMouseDown || currentRightMouseDown;
+                static bool lastAnyMouseDown = currentlyAnyMouseDown;
+
+                if (currentlyAnyMouseDown && dragMode == NOT_DRAGGING && (deltaCursorPos.x != 0 || deltaCursorPos.y != 0)) {
+                    //drag just started
+                    //todo handle multiple buttons pressed
+                    if (currentRightMouseDown) {
+                        dragMode = PAN_CAMERA;
+                    } else if (currentMiddleMouseDown) {
+                        //todo find something else that makes sense to drag with the middle mouse button
+                        dragMode = ROTATE_CAMERA;
+                    } else {
+                        std::shared_ptr<etree::Node> nodeUnderCursor = getNodeUnderCursor(mainScene, relCursorPos);
+                        if (nodeUnderCursor && controller::isNodeDraggable(nodeUnderCursor)) {
+                            dragMode = DRAG_ELEMENT;
+                            controller::startNodeDrag(nodeUnderCursor);
                         } else {
-                            auto clickedNode = mainScene->getMeshCollection().getElementById(elementIdUnderMouse);
-                            if (clickedNode != nullptr) {
-                                if (imGuiIo.KeyCtrl) {
-                                    controller::nodeSelectAddRemove(clickedNode);
-                                } else if (imGuiIo.KeyShift) {
-                                    controller::nodeSelectUntil(clickedNode);
-                                } else {
-                                    controller::nodeSelectSet(clickedNode);
-                                }
-                            }
+                            dragMode = ROTATE_CAMERA;
                         }
                     }
-                    if (!nowLeftDown && !nowRightDown) {
-                        isDragging = false;
-                    }
-                    lastLeftDown = nowLeftDown;
-                    lastRightDown = nowRightDown;
-                    lastCursorX = nowCursorX;
-                    lastCursorY = nowCursorY;
+                    totalDragDelta = {0, 0};
+                }
 
-                    auto lastScrollDeltaY = getLastScrollDeltaY();
-                    if (std::abs(lastScrollDeltaY) > 0.01) {
-                        controller::getMainSceneCamera()->moveForwardBackward((float) lastScrollDeltaY);
+                if (lastAnyMouseDown && !currentlyAnyMouseDown && dragMode == NOT_DRAGGING) {
+                    //user just ended click without dragging
+                    auto nodeUnderCursor = getNodeUnderCursor(mainScene, relCursorPos);
+                    if (nodeUnderCursor) {
+                        if (lastLeftMouseDown && controller::isNodeClickable(nodeUnderCursor)) {
+                            controller::nodeClicked(nodeUnderCursor, imGuiIo.KeyCtrl, imGuiIo.KeyShift);
+                        }
+                        //todo add context menu when right click
+                        //todo add something else when middle click
+                    } else {
+                        controller::nodeSelectNone();
                     }
                 }
+
+                if (dragMode != NOT_DRAGGING) {
+                    if (currentlyAnyMouseDown) {
+                        totalDragDelta += deltaCursorPos;
+                    } else {
+                        //dragging just stopped
+                        if (dragMode == DRAG_ELEMENT) {
+                            controller::endNodeDrag();
+                        }
+                        dragMode = NOT_DRAGGING;
+                    }
+                }
+
+
+                switch (dragMode) {
+                    case NOT_DRAGGING:break;
+                    case ROTATE_CAMERA:controller::getMainSceneCamera()->mouseRotate(deltaCursorPos);
+                        break;
+                    case PAN_CAMERA:controller::getMainSceneCamera()->mousePan(deltaCursorPos);
+                        break;
+                    case DRAG_ELEMENT:controller::updateNodeDragDelta(totalDragDelta);
+                        break;
+                }
+
+                auto lastScrollDeltaY = getLastScrollDeltaY();
+                if (std::abs(lastScrollDeltaY) > 0.01) {
+                    controller::getMainSceneCamera()->moveForwardBackward((float) lastScrollDeltaY);
+                }
+
+                lastLeftMouseDown = currentLeftMouseDown;
+                lastMiddleMouseDown = currentMiddleMouseDown;
+                lastRightMouseDown = currentRightMouseDown;
+                lastCursorPos = currentCursorPos;
+                lastAnyMouseDown = currentlyAnyMouseDown;
             }
             mainScene->setImageSize({regionAvail.x, regionAvail.y});
             const auto &image = config::getBool(config::DISPLAY_SELECTION_BUFFER)

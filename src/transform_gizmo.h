@@ -63,6 +63,7 @@ namespace transform_gizmo {
     public:
         explicit TransformGizmo(std::shared_ptr<Scene> scene);
         void update();
+        bool ownsNode(const std::shared_ptr<etree::Node>& node_);
         virtual ~TransformGizmo();
     };
 }

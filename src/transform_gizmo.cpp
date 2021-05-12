@@ -91,6 +91,10 @@ namespace transform_gizmo {
         scene->getRootNode()->removeChild(node);
     }
 
+    bool TransformGizmo::ownsNode(const std::shared_ptr<etree::Node>& node_) {
+        return node_->isChildOf(this->node);
+    }
+
     bool TGNode::isTransformationUserEditable() const {
         return false;
     }

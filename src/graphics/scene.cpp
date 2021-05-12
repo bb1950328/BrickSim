@@ -61,7 +61,7 @@ void CompleteFramebuffer::saveImage(const std::filesystem::path &path) const {
     const int channels = 3;
 
     auto data = std::vector<GLubyte>();
-    data.resize((size_t)size.x * size.y * channels);
+    data.resize((size_t) size.x * size.y * channels);
     controller::executeOpenGL([this, &data]() {
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glReadPixels(0, 0, size.x, size.y, GL_RGB, GL_UNSIGNED_BYTE, &data[0]);
@@ -88,17 +88,6 @@ void CompleteFramebuffer::setSize(const glm::usvec2 &newSize) {
     }
     size = newSize;
     controller::executeOpenGL([this]() {
-        /*glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size.x, size.y);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);*/
         deallocate();
         allocate();
     });
@@ -116,7 +105,7 @@ Scene::Scene(scene_id_t sceneId) : image({64, 64}), meshCollection(sceneId), id(
     setImageSize({10, 10});
 }
 
-unsigned int Scene::getSelectionPixel(framebuffer_size_t x, framebuffer_size_t y) {
+unsigned int Scene:: getSelectionPixel(framebuffer_size_t x, framebuffer_size_t y) {
     if (!selection.has_value()) {
         selection.emplace(imageSize);
         selectionImageUpToDate = false;
@@ -333,19 +322,23 @@ const SceneMeshCollection &Scene::getMeshCollection() const {
     return meshCollection;
 }
 
-overlay2d::ElementCollection & Scene::getOverlayCollection() {
+overlay2d::ElementCollection &Scene::getOverlayCollection() {
     return overlayCollection;
 }
 
 glm::usvec2 Scene::worldToScreenCoordinates(glm::vec3 worldCoords) {
     const auto projectionView = projectionMatrix * camera->getViewMatrix();
     const auto gl_Position = projectionView * glm::vec4(worldCoords, 1.0f);
-    const glm::vec2 ndc = {gl_Position.x/gl_Position.w,
-                           gl_Position.y/gl_Position.w};
+    const glm::vec2 ndc = {gl_Position.x / gl_Position.w,
+                           gl_Position.y / gl_Position.w};
     return {
-        (ndc.x+1)/2.0f*imageSize.x,
-        (ndc.y+1)/2.0f*imageSize.y
+            (ndc.x + 1) / 2.0f * imageSize.x,
+            (ndc.y + 1) / 2.0f * imageSize.y
     };
+}
+
+unsigned int Scene::getSelectionPixel(glm::usvec2 coords) {
+    return getSelectionPixel(coords.x, coords.y);
 }
 
 namespace scenes {

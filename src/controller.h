@@ -49,6 +49,14 @@ namespace controller {
     void nodeSelectAll();
     void nodeSelectNone();
 
+    bool isNodeClickable(const std::shared_ptr<etree::Node>& node);
+    void nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed);
+
+    bool isNodeDraggable(const std::shared_ptr<etree::Node>& node);
+    void startNodeDrag(std::shared_ptr<etree::Node>& node);
+    void updateNodeDragDelta(glm::usvec2 delta);
+    void endNodeDrag();
+
     void setStandard3dView(int i);
     void rotateViewUp();
     void rotateViewDown();

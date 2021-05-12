@@ -104,6 +104,14 @@ const glm::vec3 &CadCamera::getTargetPos() const {
     return target;
 }
 
+void CadCamera::mouseRotate(glm::vec2 delta) {
+    mouseRotate(delta.x, delta.y);
+}
+
+void CadCamera::mousePan(glm::vec2 delta) {
+    mousePan(delta.x, delta.y);
+}
+
 
 void FitContentCamera::setRootNode(const std::shared_ptr<etree::MeshNode> &node) {
     //todo make this work for any node, not just simple parts

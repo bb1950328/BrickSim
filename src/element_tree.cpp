@@ -64,6 +64,11 @@ namespace etree {
         }
     }
 
+    bool Node::isChildOf(const std::shared_ptr<Node>& possibleParent) const {
+        auto parentLocked = parent.lock();
+        return parentLocked == possibleParent || (parentLocked != nullptr && parentLocked->isChildOf(possibleParent));
+    }
+
     Node::~Node() = default;
 
     bool MeshNode::isColorUserEditable() const {

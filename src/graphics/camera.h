@@ -31,7 +31,9 @@ public:
     [[nodiscard]] const glm::vec3 &getTargetPos() const override;
 
     void mouseRotate(float x_delta, float y_delta);
+    void mouseRotate(glm::vec2 delta);
     void mousePan(float x_delta, float y_delta);
+    void mousePan(glm::vec2 delta);
     void moveForwardBackward(float delta);
     void setStandardView(int i);
 private:

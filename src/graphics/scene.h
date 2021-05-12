@@ -61,6 +61,7 @@ private:
 public:
     explicit Scene(scene_id_t sceneId);//todo make constructor private and set scenes::create as a friend
     unsigned int getSelectionPixel(framebuffer_size_t x, framebuffer_size_t y);
+    unsigned int getSelectionPixel(glm::usvec2 coords);
     void updateImage();
     void elementTreeChanged();
     glm::usvec2 worldToScreenCoordinates(glm::vec3 worldCoords);

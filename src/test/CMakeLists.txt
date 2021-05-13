@@ -1,5 +1,6 @@
 target_sources(BrickSimTests PRIVATE
-        testUtil.cpp
-        testFraction.cpp
-        testGears.cpp
+        test_util.cpp
+        test_fraction.cpp
+        test_gears.cpp
+        testing_tools.h
         )

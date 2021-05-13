@@ -25,7 +25,10 @@
 #endif
 
 #ifdef __SSE2__
+
 #include <immintrin.h>
+#include <glm/gtx/norm.hpp>
+
 #elif defined(__ARM_NEON) || defined(__ARM_NEON__)
 #include <arm_neon.h>
 #endif
@@ -51,7 +54,7 @@ namespace util {
     std::filesystem::path extendHomeDirPath(const std::string &input) {
         if (input[0] == '~' && (input[1] == '/' || input[1] == '\\')) {
             return std::filesystem::path(getenv(USER_ENV_VAR)) / std::filesystem::path(input.substr(2));
-        } else if (input[0] == '~' && input.size()==1) {
+        } else if (input[0] == '~' && input.size() == 1) {
             return std::filesystem::path(getenv(USER_ENV_VAR));
         } else {
             return std::filesystem::path(input);
@@ -182,18 +185,18 @@ namespace util {
         asUpper(string, string, strlen(string));
     }
 
-    bool endsWithInternal(const char* fullString, size_t fullStringSize, const char* ending, size_t endingSize) {
+    bool endsWithInternal(const char *fullString, size_t fullStringSize, const char *ending, size_t endingSize) {
         if (endingSize > fullStringSize) {
             return false;
         }
-        return strncmp(fullString+fullStringSize-endingSize, ending, endingSize)==0;
+        return strncmp(fullString + fullStringSize - endingSize, ending, endingSize) == 0;
     }
 
     bool endsWith(std::string const &fullString, std::string const &ending) {
         return endsWithInternal(fullString.c_str(), fullString.size(), ending.c_str(), ending.size());
     }
 
-    bool endsWith(const char* fullString, const char* ending) {
+    bool endsWith(const char *fullString, const char *ending) {
         return endsWithInternal(fullString, strlen(fullString), ending, strlen(ending));
     }
 
@@ -203,7 +206,8 @@ namespace util {
         }
         return startsWith(fullString.c_str(), start.c_str());
     }
-    bool startsWith(const char* fullString, const char* start) {
+
+    bool startsWith(const char *fullString, const char *start) {
         do {
             if (*start != *fullString) {
                 return false;
@@ -237,8 +241,9 @@ namespace util {
     void replaceAll(std::string &str, const std::string &from, const std::string &to) {
         //https://stackoverflow.com/a/3418285/8733066
         //todo maybe this has optimization potential
-        if (from.empty())
+        if (from.empty()) {
             return;
+        }
         size_t start_pos = 0;
         while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
             str.replace(start_pos, from.length(), to);
@@ -321,13 +326,13 @@ namespace util {
         double doubleBytes = bytes;
         static std::string bytePrefixes[] = {"B", "KB", "MB", "GB", "TB"};
         size_t prefixIndex = 0;
-        while (doubleBytes >= 1024 && prefixIndex < std::size(bytePrefixes)-1) {
+        while (doubleBytes >= 1024 && prefixIndex < std::size(bytePrefixes) - 1) {
             prefixIndex++;
             doubleBytes /= 1024;
         }
         std::stringstream resultStream;
-        if (prefixIndex>0) {
-            resultStream << std::fixed << std::setprecision(std::max(0, 2-(int)(std::log10(doubleBytes))));
+        if (prefixIndex > 0) {
+            resultStream << std::fixed << std::setprecision(std::max(0, 2 - (int) (std::log10(doubleBytes))));
         }
         resultStream << doubleBytes << bytePrefixes[prefixIndex];
         return resultStream.str();
@@ -340,10 +345,12 @@ namespace util {
 
         /* Check first 16 bytes manually */
         for (len = 0; len < 16; len++) {
-            if (!length)
+            if (!length) {
                 return true;
-            if (*p)
+            }
+            if (*p) {
                 return false;
+            }
             p++;
             length--;
         }
@@ -377,7 +384,7 @@ namespace util {
         return colorName;
     }
 
-    bool equalsAlphanum(const std::string& a, const std::string& b) {
+    bool equalsAlphanum(const std::string &a, const std::string &b) {
         auto itA = a.cbegin();
         auto itB = b.cbegin();
         while (itA != a.cend() || itB != b.cend()) {
@@ -387,19 +394,19 @@ namespace util {
             while (itB != b.cend() && !std::isalnum(*itB)) {
                 ++itB;
             }
-            if (itA==a.cend() && itB==b.cend()) {
+            if (itA == a.cend() && itB == b.cend()) {
                 return true;
             }
-            if ((itA==a.cend())!=(itB==b.cend())) {
+            if ((itA == a.cend()) != (itB == b.cend())) {
                 return false;
             }
-            if (itA!=a.cend() && *itA != *itB) {
+            if (itA != a.cend() && *itA != *itB) {
                 return false;
             }
             ++itA;
             ++itB;
         }
-        return itA==a.cend() && itB==b.cend();
+        return itA == a.cend() && itB == b.cend();
     }
 
     std::filesystem::path withoutBasePath(const std::filesystem::path &path, const std::filesystem::path &basePath) {
@@ -410,24 +417,24 @@ namespace util {
             ++itBase;
         }
         std::filesystem::path result;
-        std::for_each(itPath, path.end(), [&result](auto part){
+        std::for_each(itPath, path.end(), [&result](auto part) {
             result /= part;
         });
         return result;
     }
 
-    bool writeImage(const char *path, unsigned char* pixels, unsigned int width, unsigned int height, int channels) {
+    bool writeImage(const char *path, unsigned char *pixels, unsigned int width, unsigned int height, int channels) {
         auto path_lower = util::asLower(path);
         stbi_flip_vertically_on_write(true);
         if (util::endsWith(path_lower, ".png")) {
-            return stbi_write_png(path, width, height, channels, pixels, width * channels)!=0;
+            return stbi_write_png(path, width, height, channels, pixels, width * channels) != 0;
         } else if (util::endsWith(path_lower, ".jpg") || util::endsWith(path, ".jpeg")) {
             const int quality = std::min(100, std::max(5, (int) config::getInt(config::JPG_SCREENSHOT_QUALITY)));
-            return stbi_write_jpg(path, width, height, channels, pixels, quality)!=0;
+            return stbi_write_jpg(path, width, height, channels, pixels, quality) != 0;
         } else if (util::endsWith(path_lower, ".bmp")) {
-            return stbi_write_bmp(path, width, height, channels, pixels)!=0;
+            return stbi_write_bmp(path, width, height, channels, pixels) != 0;
         } else if (util::endsWith(path_lower, ".tga")) {
-            return stbi_write_tga(path, width, height, channels, pixels)!=0;
+            return stbi_write_tga(path, width, height, channels, pixels) != 0;
         } else {
             return false;
         }
@@ -447,7 +454,7 @@ namespace util {
 
     void setStbiFlipVertically(bool value) {
         isStbiVerticalFlipEnabled = value;
-        stbi_set_flip_vertically_on_load(value?1:0);
+        stbi_set_flip_vertically_on_load(value ? 1 : 0);
     }
 
     size_t oldWriteFunction(void *ptr, size_t size, size_t nmemb, std::string *data) {
@@ -457,15 +464,14 @@ namespace util {
 
     size_t oldWriteFunction4kb(void *ptr, size_t size, size_t nmemb, std::string *data) {
         data->append((char *) ptr, size * nmemb);
-        if (data->size()>4096) {
+        if (data->size() > 4096) {
             return 0;
         }
         return size * nmemb;
     }
 
 
-
-    std::pair<int, std::string> requestGET(const std::string &url, bool useCache, size_t sizeLimit, int (*progressFunc)(void*, long, long, long, long)) {
+    std::pair<int, std::string> requestGET(const std::string &url, bool useCache, size_t sizeLimit, int (*progressFunc)(void *, long, long, long, long)) {
         if (useCache) {
             auto fromCache = db::requestCache::get(url);
             if (fromCache.has_value()) {
@@ -482,7 +488,7 @@ namespace util {
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
         curl_easy_setopt(curl, CURLOPT_USERPWD, "user:pass");
-        curl_easy_setopt(curl, CURLOPT_USERAGENT,"Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.10136");//sorry microsoft ;)
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.10136");//sorry microsoft ;)
         curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
         curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -494,7 +500,7 @@ namespace util {
             }
             return size * nmemb;
         });*///todo build something threadsafe which can pass sizeLimit to writeFunction
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (0<sizeLimit&&sizeLimit<4096)?oldWriteFunction4kb:oldWriteFunction);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, (0 < sizeLimit && sizeLimit < 4096) ? oldWriteFunction4kb : oldWriteFunction);
 
         if (progressFunc != nullptr) {
             curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
@@ -560,7 +566,7 @@ namespace util {
         return numerator / denominator;
     }
 
-    NormalProjectionResult normalProjectionOnLine(const glm::vec2 &lineStart, const glm::vec2 &lineEnd, const glm::vec2 &point) {
+    NormalProjectionResult normalProjectionOnLineClamped(const glm::vec2 &lineStart, const glm::vec2 &lineEnd, const glm::vec2 &point) {
         //https://stackoverflow.com/a/47366970/8733066
         //             point
         //             +
@@ -590,7 +596,90 @@ namespace util {
             result.projection = lineUnit * result.projectionLength;
             result.nearestPointOnLine = lineStart + result.projection;
         }
-        result.distancePointToLine = glm::length(point-result.nearestPointOnLine);
+        result.distancePointToLine = glm::length(point - result.nearestPointOnLine);
+
+        return result;
+    }
+
+    void gaussianElimination(std::array<float, 12> &matrix) {
+        constexpr auto cols = 4;
+        constexpr auto rows = 3;
+        for (int i = 0; i < cols - 1; i++) {
+            for (int j = i; j < rows; j++) {
+                if (matrix[i + j * cols] != 0) {
+                    if (i != j) {
+                        for (int k = i; k < cols; k++) {
+                            std::swap(matrix[k + i * cols], matrix[k + j * cols]);
+                        }
+                    }
+
+                    j = i;
+
+                    for (int v = 0; v < rows; v++) {
+                        if (v == j) {
+                            continue;
+                        } else {
+                            float factor = matrix[i + v * cols] / matrix[i + j * cols];
+                            matrix[i + v * cols] = 0;
+
+                            for (int u = i + 1; u < cols; u++) {
+                                matrix[u + v * cols] -= factor * matrix[u + j * cols];
+                                matrix[u + j * cols] /= matrix[i + j * cols];
+                            }
+                            matrix[i + j * cols] = 1;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    ClosestLineBetweenTwoRaysResult closestLineBetweenTwoRays(const glm::vec3 &startA, const glm::vec3 &directionA, const glm::vec3 &startB, const glm::vec3 &directionB) {
+        //https://stackoverflow.com/a/29449042/8733066
+        if (startA == startB) {
+            return {startA, {0, 0, 0}};
+        }
+        auto d3 = glm::cross(directionA, directionB);
+
+        ClosestLineBetweenTwoRaysResult result{};
+        if (d3 != glm::vec3(0, 0, 0)) {
+            //lines non-parallel
+
+            std::array<float, 12> matrix{
+                    directionA.x,
+                    -directionB.x,
+                    d3.x,
+                    startB.x - startA.x,
+
+                    directionA.y,
+                    -directionB.y,
+                    d3.y,
+                    startB.y - startA.y,
+
+                    directionA.z,
+                    -directionB.z,
+                    d3.z,
+                    startB.z - startA.z,
+            };
+            gaussianElimination(matrix);
+
+            result.distanceToPointA = matrix[3];
+            result.distanceToPointB = matrix[7];
+            result.distanceBetweenPoints = glm::length(matrix[11]*d3);
+            result.pointOnA = startA + result.distanceToPointA * directionA;
+            result.pointOnB = startB + result.distanceToPointB * directionB;
+        } else {
+            //rays are parallel -> we can do a normal projection
+            //there are infinite solutions in this case so we set pointOnA to startA
+            glm::vec3 startToStart = startA - startB;
+            float x = (glm::dot(directionB, startToStart) / glm::length2(directionB));
+            result.pointOnA = startA;
+            result.pointOnB = startB + x*directionB;
+            result.distanceToPointA = 0;
+            result.distanceToPointB = x;
+            result.distanceBetweenPoints = glm::length(result.pointOnA-result.pointOnB);
+        }
 
         return result;
     }

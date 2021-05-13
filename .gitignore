@@ -77,3 +77,4 @@ callgrind.out.*
 
 /build/
 /InstallBuilder.xml.backup
+/renderdoc

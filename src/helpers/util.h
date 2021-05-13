@@ -74,7 +74,15 @@ namespace util {
         float distancePointToLine;
         float lineLength;
     };
-    NormalProjectionResult normalProjectionOnLine(const glm::vec2 &lineStart, const glm::vec2 &lineEnd, const glm::vec2& point);
+    NormalProjectionResult normalProjectionOnLineClamped(const glm::vec2 &lineStart, const glm::vec2 &lineEnd, const glm::vec2& point);
+    struct ClosestLineBetweenTwoRaysResult {
+        glm::vec3 pointOnA;
+        glm::vec3 pointOnB;
+        float distanceToPointA;
+        float distanceToPointB;
+        float distanceBetweenPoints;
+    };
+    ClosestLineBetweenTwoRaysResult closestLineBetweenTwoRays(const glm::vec3& startA, const glm::vec3& directionA, const glm::vec3& startB, const glm::vec3& directionB);
 
     // texture/image functions
     std::string translateBrickLinkColorNameToLDraw(std::string colorName);

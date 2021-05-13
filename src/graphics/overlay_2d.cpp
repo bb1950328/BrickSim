@@ -489,7 +489,7 @@ namespace overlay2d {
                                                               tipWidthFactor(tipWidthFactor), color(color) {}
 
     bool ArrowElement::isPointInside(coord_t point) {
-        const auto normalProjection = util::normalProjectionOnLine(start, end, point);
+        const auto normalProjection = util::normalProjectionOnLineClamped(start, end, point);
         const auto projLengthFromEnd = normalProjection.projectionLength - normalProjection.lineLength;
         float tipWidth = calculateTipWidth();
         float tipLength = calculateTipLength();

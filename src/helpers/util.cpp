@@ -636,47 +636,47 @@ namespace util {
         }
     }
 
-    ClosestLineBetweenTwoRaysResult closestLineBetweenTwoRays(const glm::vec3 &startA, const glm::vec3 &directionA, const glm::vec3 &startB, const glm::vec3 &directionB) {
+    ClosestLineBetweenTwoRaysResult closestLineBetweenTwoRays(const Ray3 &a, const Ray3 &b) {
         //https://stackoverflow.com/a/29449042/8733066
-        if (startA == startB) {
-            return {startA, {0, 0, 0}};
+        if (a.origin == b.origin) {
+            return {a.origin, b.origin, 0.0f, 0.0f, 0.0f};
         }
-        auto d3 = glm::cross(directionA, directionB);
+        auto d3 = glm::cross(a.direction, b.direction);
 
         ClosestLineBetweenTwoRaysResult result{};
         if (d3 != glm::vec3(0, 0, 0)) {
             //lines non-parallel
 
             std::array<float, 12> matrix{
-                    directionA.x,
-                    -directionB.x,
+                    a.direction.x,
+                    -b.direction.x,
                     d3.x,
-                    startB.x - startA.x,
+                    b.origin.x - a.origin.x,
 
-                    directionA.y,
-                    -directionB.y,
+                    a.direction.y,
+                    -b.direction.y,
                     d3.y,
-                    startB.y - startA.y,
+                    b.origin.y - a.origin.y,
 
-                    directionA.z,
-                    -directionB.z,
+                    a.direction.z,
+                    -b.direction.z,
                     d3.z,
-                    startB.z - startA.z,
+                    b.origin.z - a.origin.z,
             };
             gaussianElimination(matrix);
 
             result.distanceToPointA = matrix[3];
             result.distanceToPointB = matrix[7];
             result.distanceBetweenPoints = glm::length(matrix[11]*d3);
-            result.pointOnA = startA + result.distanceToPointA * directionA;
-            result.pointOnB = startB + result.distanceToPointB * directionB;
+            result.pointOnA = a.origin + result.distanceToPointA * a.direction;
+            result.pointOnB = b.origin + result.distanceToPointB * b.direction;
         } else {
             //rays are parallel -> we can do a normal projection
             //there are infinite solutions in this case so we set pointOnA to startA
-            glm::vec3 startToStart = startA - startB;
-            float x = (glm::dot(directionB, startToStart) / glm::length2(directionB));
-            result.pointOnA = startA;
-            result.pointOnB = startB + x*directionB;
+            glm::vec3 startToStart = a.origin - b.origin;
+            float x = (glm::dot(b.direction, startToStart) / glm::length2(b.direction));
+            result.pointOnA = a.origin;
+            result.pointOnB = b.origin + x * b.direction;
             result.distanceToPointA = 0;
             result.distanceToPointB = x;
             result.distanceBetweenPoints = glm::length(result.pointOnA-result.pointOnB);

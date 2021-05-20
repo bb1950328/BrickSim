@@ -3,6 +3,7 @@
 #include "../latest_log_messages_tank.h"
 #include "../metrics.h"
 #include "../config.h"
+#include "glm/gtx/io.hpp"
 
 #ifdef BRICKSIM_USE_RENDERDOC
 
@@ -331,14 +332,20 @@ glm::usvec2 Scene::worldToScreenCoordinates(glm::vec3 worldCoords) {
     const auto gl_Position = projectionView * glm::vec4(worldCoords, 1.0f);
     const glm::vec2 ndc = {gl_Position.x / gl_Position.w,
                            gl_Position.y / gl_Position.w};
-    return {
-            (ndc.x + 1) / 2.0f * imageSize.x,
-            (ndc.y + 1) / 2.0f * imageSize.y
-    };
+    return (ndc + 1.0f) / 2.0f * glm::vec2(imageSize);
 }
 
 unsigned int Scene::getSelectionPixel(glm::usvec2 coords) {
     return getSelectionPixel(coords.x, coords.y);
+}
+
+Ray3 Scene::screenCoordinatesToWorldRay(glm::usvec2 screenCoords) {
+    //https://stackoverflow.com/a/30005258/8733066
+    const auto projectionView = projectionMatrix * camera->getViewMatrix();
+    const auto ndc = glm::vec2(screenCoords)/glm::vec2(imageSize) * 2.0f - 1.0f;
+    const auto inverseProjectionView = glm::inverse(projectionView * constants::LDU_TO_OPENGL);
+    const auto worldPos = inverseProjectionView * glm::vec4(ndc.x, -ndc.y, 1.0f, 1.0f);
+    return {camera->getCameraPos(), glm::normalize(glm::vec3(worldPos))};
 }
 
 namespace scenes {

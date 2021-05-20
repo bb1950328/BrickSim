@@ -4,6 +4,7 @@
 #include <memory>
 #include "graphics/scene.h"
 #include "graphics/generated_mesh.h"
+#include "helpers/ray.h"
 #include <array>
 
 namespace transform_gizmo {
@@ -33,6 +34,34 @@ namespace transform_gizmo {
     enum class RotationState {
         SELECTED_ELEMENT,
         WORLD,
+    };
+
+    class TransformGizmo;
+
+    class TransformOperation {
+    public:
+        TransformGizmo& gizmo;
+
+        virtual void update(const glm::vec2& mouseDelta) = 0;
+        virtual void cancel() = 0;
+        virtual constexpr TransformType getType() = 0;
+        explicit TransformOperation(TransformGizmo &gizmo);
+    };
+
+    class Translate1dOperation : public TransformOperation {
+    public:
+        Translate1dOperation(TransformGizmo &gizmo, const glm::vec2 &startMousePos, int axis);
+        void update(const glm::vec2 &mouseDelta) override;
+        void cancel() override;
+        constexpr TransformType getType() override;
+    private:
+        glm::vec3 getClosestPointOnTransformRay(const glm::svec2& mouseCoords);
+        Ray3 calculateTransformRay(int axis);
+        const Ray3 transformRay;
+        glm::mat4 startNodeRelTransformation;
+        glm::mat4 startGizmoRelTransformation;
+        glm::vec3 startPointOnTransformRay;
+        const glm::vec2 &startMousePos;
     };
 
     class TG2DArrowNode : public etree::MeshNode {
@@ -65,18 +94,21 @@ namespace transform_gizmo {
     };
 
     class TransformGizmo {
+        friend class TransformOperation;
+        friend class Translate1dOperation;
     private:
         std::shared_ptr<Scene> scene;
         std::shared_ptr<TGNode> node;
         std::optional<glm::mat4> lastTransformation;
         PovState lastState;
-        TransformType currentTransformType;
-        int currentTransformAxis;
+        std::unique_ptr<TransformOperation> currentTransformationOperation = nullptr;
+
+        std::shared_ptr<etree::Node> currentlySelectedNode;
     public:
         explicit TransformGizmo(std::shared_ptr<Scene> scene);
         void update();
         bool ownsNode(const std::shared_ptr<etree::Node>& node_);
-        void startDrag(std::shared_ptr<etree::Node>& draggedNode);
+        void startDrag(std::shared_ptr<etree::Node> &draggedNode, glm::svec2 initialCursorPos);
         void updateCurrentDragDelta(glm::svec2 totalDragDelta);
         void endDrag();
         virtual ~TransformGizmo();

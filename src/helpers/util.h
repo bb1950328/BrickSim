@@ -8,6 +8,7 @@
 #include <ostream>
 #include "glm/glm.hpp"
 #include "../types.h"
+#include "ray.h"
 
 namespace util {
 
@@ -82,7 +83,7 @@ namespace util {
         float distanceToPointB;
         float distanceBetweenPoints;
     };
-    ClosestLineBetweenTwoRaysResult closestLineBetweenTwoRays(const glm::vec3& startA, const glm::vec3& directionA, const glm::vec3& startB, const glm::vec3& directionB);
+    ClosestLineBetweenTwoRaysResult closestLineBetweenTwoRays(const Ray3& a, const Ray3& b);
 
     // texture/image functions
     std::string translateBrickLinkColorNameToLDraw(std::string colorName);

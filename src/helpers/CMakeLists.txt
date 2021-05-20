@@ -6,6 +6,8 @@ target_sources(BrickSimLib PUBLIC
         parts_library_downloader.cpp
         parts_library_downloader.h
         platform_detection.h
+        ray.cpp
+        ray.h
         system_info.cpp
         system_info.h
         util.cpp

@@ -1,4 +1,4 @@
-target_sources(BrickSimLib PUBLIC
+target_sources(BrickSimLib PRIVATE
         bricklink_constants_provider.cpp
         bricklink_constants_provider.h
         part_color_availability_provider.cpp

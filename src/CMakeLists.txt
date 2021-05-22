@@ -1,4 +1,4 @@
-target_sources(BrickSimLib PUBLIC
+target_sources(BrickSimLib PRIVATE
         config.cpp
         config.h
         controller.cpp

@@ -21,7 +21,7 @@ set(other_libs
         IconFontCppHeaders/IconsFontAwesome5.h
         )
 
-target_sources(BrickSimLib PUBLIC
+target_sources(BrickSimLib PRIVATE
         ${imgui_sources}
         ${other_libs}
         )

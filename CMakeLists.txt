@@ -14,11 +14,11 @@ add_library(BrickSimLib STATIC)
 
 add_executable(BrickSim src/main.cpp)
 target_link_libraries(BrickSim PRIVATE BrickSimLib)
-add_dependencies(BrickSim BrickSimLib)
+#add_dependencies(BrickSim BrickSimLib)
 
 add_executable(BrickSimTests src/test/catchMain.cpp)
 target_link_libraries(BrickSimTests PRIVATE Catch2::Catch2)
-add_dependencies(BrickSimTests BrickSimLib)
+#add_dependencies(BrickSimTests BrickSimLib)
 target_link_libraries(BrickSimTests PRIVATE BrickSimLib)
 target_compile_definitions(BrickSimTests PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING)
 

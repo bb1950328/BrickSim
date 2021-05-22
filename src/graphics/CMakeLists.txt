@@ -1,4 +1,4 @@
-target_sources(BrickSimLib PUBLIC
+target_sources(BrickSimLib PRIVATE
         camera.cpp
         camera.h
         generated_mesh.cpp

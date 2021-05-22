@@ -1,4 +1,4 @@
-target_sources(BrickSimLib PUBLIC
+target_sources(BrickSimLib PRIVATE
         ldr_colors.cpp
         ldr_colors.h
         ldr_file_repo.cpp

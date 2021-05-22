@@ -4,6 +4,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/base_sink.h>
 #include <list>
+#include "helpers/platform_detection.h"
 
 namespace latest_log_messages_tank {
     struct LogMessage {

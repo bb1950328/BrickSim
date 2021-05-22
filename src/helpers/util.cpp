@@ -1,7 +1,7 @@
 #include "util.h"
 #include "../config.h"
-#include "../db.h"
 #include "platform_detection.h"
+#include <glm/gtx/norm.hpp>
 
 #ifdef BRICKSIM_PLATFORM_WINDOWS
 #include <windows.h>

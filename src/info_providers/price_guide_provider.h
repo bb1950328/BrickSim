@@ -1,6 +1,7 @@
 #ifndef BRICKSIM_PRICE_GUIDE_PROVIDER_H
 #define BRICKSIM_PRICE_GUIDE_PROVIDER_H
 
+#include <optional>
 //price guide 3001.dat CHF black: https://www.bricklink.com/v2/catalog/catalogitem_pgtab.page?idItem=264&idColor=11&st=2&gm=0&gc=0&ei=0&prec=4&showflag=0&showbulk=0&currency=136
 //gc: group by currency
 

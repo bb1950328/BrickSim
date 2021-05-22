@@ -2,6 +2,11 @@
 #include "../config.h"
 #include "platform_detection.h"
 #include <glm/gtx/norm.hpp>
+#include <cstring>
+#include <stb_image_write.h>
+#include <stb_image.h>
+#include <spdlog/spdlog.h>
+#include <curl/curl.h>
 
 #ifdef BRICKSIM_PLATFORM_WINDOWS
 #include <windows.h>
@@ -10,12 +15,6 @@
 #ifdef __SSE2__
 
 #include <immintrin.h>
-#include <glm/gtx/norm.hpp>
-#include <cstring>
-#include <stb_image_write.h>
-#include <stb_image.h>
-#include <spdlog/spdlog.h>
-#include <curl/curl.h>
 
 #elif defined(__ARM_NEON) || defined(__ARM_NEON__)
 #include <arm_neon.h>

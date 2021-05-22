@@ -65,6 +65,7 @@ public:
     void updateImage();
     void elementTreeChanged();
     glm::usvec2 worldToScreenCoordinates(glm::vec3 worldCoords);
+    Ray3 screenCoordinatesToWorldRay(glm::usvec2 screenCoords);
 
     [[nodiscard]] const std::shared_ptr<etree::Node> &getRootNode() const;
     void setRootNode(const std::shared_ptr<etree::Node> &newRootNode);

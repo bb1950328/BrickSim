@@ -1,6 +1,7 @@
 #include "gui.h"
 #include "../controller.h"
 #include "gui_internal.h"
+#include <glm/gtx/io.hpp>
 
 namespace gui {
     std::shared_ptr<etree::Node> getNodeUnderCursor(const std::shared_ptr<Scene> &mainScene, const glm::svec2 &currentCursorPos) {
@@ -67,7 +68,7 @@ namespace gui {
                         std::shared_ptr<etree::Node> nodeUnderCursor = getNodeUnderCursor(mainScene, relCursorPos);
                         if (nodeUnderCursor && controller::isNodeDraggable(nodeUnderCursor)) {
                             dragMode = DRAG_ELEMENT;
-                            controller::startNodeDrag(nodeUnderCursor);
+                            controller::startNodeDrag(nodeUnderCursor, relCursorPos);
                         } else {
                             dragMode = ROTATE_CAMERA;
                         }

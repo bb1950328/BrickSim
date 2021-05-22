@@ -9,9 +9,15 @@
 #include <glm/gtx/quaternion.hpp>
 #include <spdlog/spdlog.h>
 
+std::array<glm::vec4, 3> axisDirectionVectors = {
+        glm::vec4(1, 0, 0, 0),
+        glm::vec4(0, 1, 0, 0),
+        glm::vec4(0, 0, 1, 0),
+};
+
 namespace transform_gizmo {
 
-    TransformGizmo::TransformGizmo(std::shared_ptr<Scene> scene) : scene(std::move(scene)), currentTransformType(NONE) {
+    TransformGizmo::TransformGizmo(std::shared_ptr<Scene> scene) : scene(std::move(scene)) {
         node = std::make_shared<TGNode>(this->scene->getRootNode());
         this->scene->getRootNode()->addChild(node);
         node->initElements();
@@ -21,11 +27,11 @@ namespace transform_gizmo {
     }
 
     void TransformGizmo::update() {
-        auto selectedNode = getFirstSelectedNode(scene->getRootNode());
+        currentlySelectedNode = getFirstSelectedNode(scene->getRootNode());
         std::optional<glm::mat4> nowTransformation;
         PovState nowPovState;
-        if (selectedNode != nullptr) {
-            auto nodeTransformation = glm::transpose(selectedNode->getAbsoluteTransformation());
+        if (currentlySelectedNode != nullptr) {
+            auto nodeTransformation = glm::transpose(currentlySelectedNode->getAbsoluteTransformation());
             const static float configScale = config::get(config::GUI_SCALE) * config::get(config::TRANSFORM_GIZMO_SIZE);
 
             glm::quat rotation;
@@ -91,29 +97,25 @@ namespace transform_gizmo {
         scene->getRootNode()->removeChild(node);
     }
 
-    bool TransformGizmo::ownsNode(const std::shared_ptr<etree::Node>& node_) {
+    bool TransformGizmo::ownsNode(const std::shared_ptr<etree::Node> &node_) {
         return node_->isChildOf(this->node);
     }
 
-    void TransformGizmo::startDrag(std::shared_ptr<etree::Node> &draggedNode) {
-        auto [type, axis] = node->getTransformTypeAndAxis(draggedNode);
-        currentTransformType = type;
-        currentTransformAxis = axis;
-    }
-
-    void TransformGizmo::updateCurrentDragDelta(glm::svec2 totalDragDelta) {
-        switch (currentTransformType) {
-            case TRANSLATE_1D:
-                //todo calculate movement
-                break;
-            case NONE:
-            default:
-                break;
+    void TransformGizmo::startDrag(std::shared_ptr<etree::Node> &draggedNode, const glm::svec2 initialCursorPos) {
+        auto[type, axis] = node->getTransformTypeAndAxis(draggedNode);
+        spdlog::debug("start transform gizmo drag (type={}, axis={}, initialCursorPos={})", type, axis, glm::to_string(initialCursorPos));
+        if (type == TRANSLATE_1D) {
+            currentTransformationOperation = std::make_unique<Translate1dOperation>(*this, glm::vec2(initialCursorPos), axis);
         }
     }
 
-    void TransformGizmo::endDrag() {
+    void TransformGizmo::updateCurrentDragDelta(glm::svec2 totalDragDelta) {
+        spdlog::debug("update drag delta: {}", glm::to_string(totalDragDelta));
+        currentTransformationOperation->update(totalDragDelta);
+    }
 
+    void TransformGizmo::endDrag() {
+        currentTransformationOperation = nullptr;
     }
 
     bool TGNode::isTransformationUserEditable() const {
@@ -175,7 +177,6 @@ namespace transform_gizmo {
             povState = newState;
             updateTransformations();
         }
-
     }
 
     void TGNode::updateTransformations() {
@@ -219,7 +220,7 @@ namespace transform_gizmo {
         return "Transform Gizmo";
     }
 
-    std::pair<TransformType, int> TGNode::getTransformTypeAndAxis(std::shared_ptr<etree::Node>& node) {
+    std::pair<TransformType, int> TGNode::getTransformTypeAndAxis(std::shared_ptr<etree::Node> &node) {
         if (node == centerBall) {
             return {TRANSLATE_3D, 0};
         }
@@ -267,7 +268,7 @@ namespace transform_gizmo {
 
         constexpr auto triangleCount = 6;
 
-        constexpr std::array<unsigned int, 3*triangleCount> indices = {
+        constexpr std::array<unsigned int, 3 * triangleCount> indices = {
                 0, 4, 1,
                 4, 3, 1,
                 3, 2, 1,
@@ -277,14 +278,14 @@ namespace transform_gizmo {
         };
 
         for (int i = 0; i < triangleCount; ++i) {
-            mesh->addRawTriangleIndex(color, baseIndex + indices[3*i+0]);
-            mesh->addRawTriangleIndex(color, baseIndex + indices[3*i+1]);
-            mesh->addRawTriangleIndex(color, baseIndex + indices[3*i+2]);
+            mesh->addRawTriangleIndex(color, baseIndex + indices[3 * i + 0]);
+            mesh->addRawTriangleIndex(color, baseIndex + indices[3 * i + 1]);
+            mesh->addRawTriangleIndex(color, baseIndex + indices[3 * i + 2]);
 
             //adding the same but with the other winding order so it's visible from both sides
-            mesh->addRawTriangleIndex(color, baseIndex + indices[3*i+0]);
-            mesh->addRawTriangleIndex(color, baseIndex + indices[3*i+2]);
-            mesh->addRawTriangleIndex(color, baseIndex + indices[3*i+1]);
+            mesh->addRawTriangleIndex(color, baseIndex + indices[3 * i + 0]);
+            mesh->addRawTriangleIndex(color, baseIndex + indices[3 * i + 2]);
+            mesh->addRawTriangleIndex(color, baseIndex + indices[3 * i + 1]);
         }
     }
 
@@ -299,4 +300,46 @@ namespace transform_gizmo {
     std::string TG2DArrowNode::getDescription() {
         return "Transform Gizmo 2D Arrow Node";
     }
+
+    void Translate1dOperation::update(const glm::vec2 &newMousePos) {
+        const auto currentPointOnTransformRay = getClosestPointOnTransformRay(startMousePos + newMousePos);
+        spdlog::debug("{} <==> {}", glm::to_string(startPointOnTransformRay), glm::to_string(currentPointOnTransformRay));
+        auto translation = glm::translate(currentPointOnTransformRay - startPointOnTransformRay);
+        gizmo.currentlySelectedNode->setRelativeTransformation(startNodeRelTransformation * translation);
+        gizmo.node->setRelativeTransformation(startGizmoRelTransformation * translation);
+    }
+
+    constexpr TransformType Translate1dOperation::getType() {
+        return TRANSLATE_1D;
+    }
+
+    Translate1dOperation::Translate1dOperation(TransformGizmo &gizmo, const glm::vec2 &startMousePos, int axis) :
+            TransformOperation(gizmo),
+            transformRay(calculateTransformRay(axis)),
+            startPointOnTransformRay(getClosestPointOnTransformRay(startMousePos)),
+            startMousePos(startMousePos),
+            startNodeRelTransformation(gizmo.currentlySelectedNode->getRelativeTransformation()),
+            startGizmoRelTransformation(gizmo.node->getRelativeTransformation()) {
+    }
+
+    glm::vec3 Translate1dOperation::getClosestPointOnTransformRay(const glm::svec2 &mouseCoords) {
+        return util::closestLineBetweenTwoRays(transformRay, gizmo.scene->screenCoordinatesToWorldRay(mouseCoords)).pointOnA;
+    }
+
+    Ray3 Translate1dOperation::calculateTransformRay(int axis) {
+        const auto nodeAbsTransformation = gizmo.currentlySelectedNode->getAbsoluteTransformation();
+        glm::vec4 direction = axisDirectionVectors[axis];
+        if (controller::getTransformGizmoRotationState() == RotationState::SELECTED_ELEMENT) {
+            direction = direction * nodeAbsTransformation;
+        }
+        return {glm::vec4(0.0f)*nodeAbsTransformation, direction};
+    }
+
+    void Translate1dOperation::cancel() {
+        gizmo.currentlySelectedNode->setRelativeTransformation(startNodeRelTransformation);
+        gizmo.node->setRelativeTransformation(startGizmoRelTransformation);
+    }
+
+    TransformOperation::TransformOperation(TransformGizmo &gizmo):
+              gizmo(gizmo) {}
 }

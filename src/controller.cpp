@@ -716,9 +716,9 @@ namespace controller {
         return transformGizmo->ownsNode(node);
     }
 
-    void startNodeDrag(std::shared_ptr<etree::Node> &node) {
+    void startNodeDrag(std::shared_ptr<etree::Node> &node, const glm::svec2 initialCursorPos) {
         if (transformGizmo->ownsNode(node)) {
-            transformGizmo->startDrag(node);
+            transformGizmo->startDrag(node, initialCursorPos);
             currentlyDraggingNodeType = DraggingNodeType::TRANSFORM_GIZMO;
         }
     }

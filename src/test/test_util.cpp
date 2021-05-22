@@ -342,7 +342,7 @@ TEST_CASE("util::closestLineBetweenTwoRays0") {
     const glm::vec3 dirA = {2, 3, 1};
     const glm::vec3 startB = {3, -4, 1};
     const glm::vec3 dirB = {1, 2, 1};
-    auto result = util::closestLineBetweenTwoRays(startA, dirA, startB, dirB);
+    auto result = util::closestLineBetweenTwoRays({startA, dirA}, {startB, dirB});
     consistencyCheck(startA, dirA, startB, dirB, result);
     CHECK(result.distanceBetweenPoints == Approx(6.3508529610859));
     CHECK(result.pointOnA == ApproxVec(glm::vec3(5, 11, 3)));
@@ -354,7 +354,7 @@ TEST_CASE("util::closestLineBetweenTwoRays1") {
     const glm::vec3 dirA = {2, 3, 4};
     const glm::vec3 startB = {3, 2, 1};
     const glm::vec3 dirB = {4, 3, 2};
-    auto result = util::closestLineBetweenTwoRays(startA, dirA, startB, dirB);
+    auto result = util::closestLineBetweenTwoRays({startA, dirA}, {startB, dirB});
     consistencyCheck(startA, dirA, startB, dirB, result);
     CHECK(result.distanceBetweenPoints == Approx(0.0f));
     CHECK(result.pointOnA == ApproxVec(glm::vec3(-1, -1, -1)));
@@ -366,7 +366,7 @@ TEST_CASE("util::closestLineBetweenTwoRays2") {
     const glm::vec3 dirA = {2, 3, 4};
     const glm::vec3 startB = {3, 2, 1};
     const glm::vec3 dirB = dirA;
-    auto result = util::closestLineBetweenTwoRays(startA, dirA, startB, dirB);
+    auto result = util::closestLineBetweenTwoRays({startA, dirA}, {startB, dirB});
     consistencyCheck(startA, dirA, startB, dirB, result);
     CHECK(result.distanceBetweenPoints == Approx(2.7291529568841f));
     CHECK(result.pointOnA == ApproxVec(startA));
@@ -378,7 +378,7 @@ TEST_CASE("util::closestLineBetweenTwoRays3") {
     const glm::vec3 dirA = {2, 3, 0};
     const glm::vec3 startB = {9999, 9999, 150};
     const glm::vec3 dirB = {3, 2, 0};
-    auto result = util::closestLineBetweenTwoRays(startA, dirA, startB, dirB);
+    auto result = util::closestLineBetweenTwoRays({startA, dirA}, {startB, dirB});
     consistencyCheck(startA, dirA, startB, dirB, result);
     CHECK(result.distanceBetweenPoints == Approx(100));
     CHECK(result.pointOnA == ApproxVec(glm::vec3(9999, 9999, 50)));

@@ -1,8 +1,4 @@
-#include <iostream>
-#include <map>
-#include <spdlog/spdlog.h>
 #include "metrics.h"
-#include "helpers/util.h"
 
 namespace metrics {
     long individualBrickCount = 0;

@@ -1,8 +1,9 @@
 #ifndef BRICKSIM_KEYBOARD_SHORTCUT_MANAGER_H
 #define BRICKSIM_KEYBOARD_SHORTCUT_MANAGER_H
-#include <vector>
+
 #include <string>
-//#include <GLFW/glfw3.h>
+#include <vector>
+#include <optional>
 
 namespace keyboard_shortcut_manager {
     enum class Event {

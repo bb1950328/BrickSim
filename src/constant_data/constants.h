@@ -1,6 +1,5 @@
 #ifndef BRICKSIM_CONSTANTS_H
 #define BRICKSIM_CONSTANTS_H
-
 #include "../types.h"
 #include "../helpers/platform_detection.h"
 

@@ -1,9 +1,10 @@
 #ifndef BRICKSIM_LDR_ZIP_FILE_REPO_H
 #define BRICKSIM_LDR_ZIP_FILE_REPO_H
 
-#include "ldr_file_repo.h"
-#include <zip.h>
+
 #include <mutex>
+#include <zip.h>
+#include "ldr_file_repo.h"
 
 namespace ldr_file_repo {
     class LdrZipFileRepo: public LdrFileRepo {

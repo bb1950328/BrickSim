@@ -1,8 +1,13 @@
-#include <curl/curl.h>
-#include <spdlog/spdlog.h>
 #include "system_info.h"
 #include "../controller.h"
-#include "stb_image.h"
+#include <vector>
+#include <string>
+#include <glad/glad.h>
+#include <imgui.h>
+#include <curl/curlver.h>
+#include <spdlog/version.h>
+#include <stb_image.h>
+#include <spdlog/spdlog.h>
 
 namespace system_info {
     std::vector<std::pair<const char *, std::string>> getSystemInfo() {
@@ -16,7 +21,6 @@ namespace system_info {
 
         result.emplace_back("GPU Vendor:", std::string(reinterpret_cast<const char *>(vendor)));
         result.emplace_back("GPU Renderer:", std::string(reinterpret_cast<const char *>(renderer)));
-        std::cout << constants::versionMinor << std::endl;
         result.emplace_back("BrickSim Version:", constants::versionString);
         result.emplace_back("Git Commit Hash:", constants::gitCommitHash);
         result.emplace_back("Dear ImGui Version:", ImGui::GetVersion());

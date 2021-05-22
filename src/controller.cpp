@@ -1,18 +1,21 @@
-#include "controller.h"
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image.h"
 #include "stb_image_write.h"
-#include "info_providers/price_guide_provider.h"
-#include "db.h"
-#include "info_providers/bricklink_constants_provider.h"
-#include "latest_log_messages_tank.h"
-#include "ldr_files/ldr_file_repo.h"
-#include "keyboard_shortcut_manager.h"
+#include <spdlog/spdlog.h>
+#include <glad/glad.h>
+#include "controller.h"
 #include "config.h"
-#include "metrics.h"
+#include "keyboard_shortcut_manager.h"
+#include "gui/gui.h"
+#include "db.h"
+#include "helpers/util.h"
+#include "latest_log_messages_tank.h"
+#include "shaders/shaders.h"
+#include "ldr_files/ldr_file_repo.h"
+#include "info_providers/bricklink_constants_provider.h"
 #include "graphics/orientation_cube.h"
-#include "transform_gizmo.h"
+#include "metrics.h"
 
 #ifdef BRICKSIM_USE_RENDERDOC
 #include <link.h>
@@ -145,7 +148,7 @@ namespace controller {
             glfwSetKeyCallback(window, keyCallback);
 
             if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-                std::cerr << "Failed to initialize GLAD" << std::endl;
+                spdlog::error("Failed to initialize GLAD");
                 return false;
             }
 

@@ -1,7 +1,11 @@
 #ifndef BRICKSIM_GENERATED_MESH_H
 #define BRICKSIM_GENERATED_MESH_H
 
+#include <memory>
 #include "../element_tree.h"
+#include "../ldr_files/ldr_colors.h"
+#include "../types.h"
+#include "mesh.h"
 
 namespace generated_mesh {
 

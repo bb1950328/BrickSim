@@ -1,8 +1,10 @@
 #ifndef BRICKSIM_DB_H
 #define BRICKSIM_DB_H
 
-#include <set>
+#include <string>
+#include <optional>
 #include <vector>
+#include <set>
 #include "info_providers/price_guide_provider.h"
 
 namespace db {

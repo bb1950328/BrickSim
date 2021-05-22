@@ -1,9 +1,8 @@
 #ifndef BRICKSIM_ORIENTATION_CUBE_H
 #define BRICKSIM_ORIENTATION_CUBE_H
 
-#include <optional>
-#include "glm/glm.hpp"
 #include "../types.h"
+#include "mesh.h"
 #include "../element_tree.h"
 #include "camera.h"
 

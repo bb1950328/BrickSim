@@ -1,5 +1,5 @@
 #include "part_finder.h"
-#include <algorithm>
+#include "helpers/util.h"
 
 namespace part_finder {
     namespace {

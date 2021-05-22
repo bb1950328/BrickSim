@@ -1,6 +1,9 @@
+#include <tinyfiledialogs.h>
+#include <filesystem>
+#include <fstream>
 #include "gui.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "../latest_log_messages_tank.h"
-#include "tinyfiledialogs.h"
 
 namespace gui {
     namespace {

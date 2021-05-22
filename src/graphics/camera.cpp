@@ -1,6 +1,4 @@
-#include <iostream>
-#include "glm/gtx/normal.hpp"
-#include <spdlog/spdlog.h>
+#include <glm/ext/matrix_transform.hpp>
 #include "camera.h"
 #include "../config.h"
 #include "mesh_collection.h"

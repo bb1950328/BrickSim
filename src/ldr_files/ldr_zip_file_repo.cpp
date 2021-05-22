@@ -1,6 +1,4 @@
 #include <spdlog/spdlog.h>
-#include <zip.h>
-#include <iostream>
 #include "ldr_zip_file_repo.h"
 
 namespace ldr_file_repo {

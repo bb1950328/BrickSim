@@ -1,5 +1,4 @@
 #include "color.h"
-#include "glm/glm.hpp"
 
 namespace color {
     RGB::RGB(const std::string &htmlCode) {

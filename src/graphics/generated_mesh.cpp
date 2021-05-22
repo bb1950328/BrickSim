@@ -1,3 +1,4 @@
+#include <glm/gtx/transform.hpp>
 #include "generated_mesh.h"
 
 namespace generated_mesh {

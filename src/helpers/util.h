@@ -2,13 +2,10 @@
 #define BRICKSIM_UTIL_H
 
 #include <string>
-#include <vector>
-#include <list>
 #include <filesystem>
-#include <ostream>
-#include "glm/glm.hpp"
-#include "../types.h"
+#include <glm/glm.hpp>
 #include "ray.h"
+#include "../types.h"
 
 namespace util {
 

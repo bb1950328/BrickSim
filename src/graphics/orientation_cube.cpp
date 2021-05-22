@@ -1,9 +1,8 @@
-#include "glm/gtx/euler_angles.hpp"
-#include "glm/gtx/string_cast.hpp"
+#include <glm/ext/matrix_transform.hpp>
 #include "orientation_cube.h"
+#include "scene.h"
 #include "../controller.h"
 #include "../constant_data/resources.h"
-#include "../ldr_files/ldr_file_repo.h"
 
 namespace orientation_cube {
     namespace {

@@ -1,11 +1,13 @@
-#include "glm/gtx/matrix_decompose.hpp"
-#include "glm/gtx/euler_angles.hpp"
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/euler_angles.hpp>
 #include "gui.h"
 #include "../controller.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../helpers/util.h"
 #include "../info_providers/part_color_availability_provider.h"
-#include "../info_providers/price_guide_provider.h"
 #include "gui_internal.h"
 #include "../config.h"
+#include "../info_providers/price_guide_provider.h"
 
 namespace gui {
     void windows::drawElementPropertiesWindow(bool *show) {

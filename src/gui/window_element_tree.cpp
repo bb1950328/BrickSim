@@ -1,4 +1,6 @@
+#include <memory>
 #include "gui.h"
+#include "../element_tree.h"
 #include "../controller.h"
 
 void draw_element_tree_node(std::shared_ptr<etree::Node> node) {

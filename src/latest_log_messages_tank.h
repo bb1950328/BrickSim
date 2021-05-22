@@ -3,10 +3,7 @@
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/base_sink.h>
-#include <queue>
 #include <list>
-#include <ctime>
-#include "helpers/platform_detection.h"
 
 namespace latest_log_messages_tank {
     struct LogMessage {

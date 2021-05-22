@@ -1,12 +1,10 @@
 #ifndef BRICKSIM_THUMBNAIL_GENERATOR_H
 #define BRICKSIM_THUMBNAIL_GENERATOR_H
 
-#include <map>
-
+#include <memory>
 #include <list>
-#include <queue>
 #include "../ldr_files/ldr_files.h"
-#include "mesh_collection.h"
+#include "../ldr_files/ldr_colors.h"
 #include "scene.h"
 
 class ThumbnailGenerator {

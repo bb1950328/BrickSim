@@ -1,12 +1,11 @@
 #ifndef BRICKSIM_ELEMENT_TREE_H
 #define BRICKSIM_ELEMENT_TREE_H
 
-#include <vector>
-#include <string>
-#include "glm/glm.hpp"
-#include "ldr_files/ldr_files.h"
+#include <memory>
+#include "helpers/color.h"
+#include "constant_data/constants.h"
+#include "ldr_files/ldr_colors.h"
 #include "graphics/mesh.h"
-#include "helpers/util.h"
 
 namespace etree {
     enum NodeType {

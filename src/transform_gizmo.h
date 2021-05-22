@@ -1,11 +1,12 @@
 #ifndef BRICKSIM_TRANSFORM_GIZMO_H
 #define BRICKSIM_TRANSFORM_GIZMO_H
 
-#include <memory>
-#include "graphics/scene.h"
-#include "graphics/generated_mesh.h"
+#include <glm/glm.hpp>
+#include "types.h"
 #include "helpers/ray.h"
-#include <array>
+#include "element_tree.h"
+#include "graphics/generated_mesh.h"
+#include "graphics/scene.h"
 
 namespace transform_gizmo {
 

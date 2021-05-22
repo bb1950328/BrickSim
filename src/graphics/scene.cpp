@@ -1,9 +1,12 @@
+#include <glad/glad.h>
+#include <spdlog/spdlog.h>
+#include <glm/ext/matrix_clip_space.hpp>
 #include "scene.h"
 #include "../controller.h"
-#include "../latest_log_messages_tank.h"
-#include "../metrics.h"
+#include "../helpers/util.h"
+#include "../shaders/shaders.h"
 #include "../config.h"
-#include "glm/gtx/io.hpp"
+#include "../metrics.h"
 
 #ifdef BRICKSIM_USE_RENDERDOC
 

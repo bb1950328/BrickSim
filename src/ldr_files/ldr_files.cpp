@@ -1,16 +1,9 @@
-#include <fstream>
-#include <algorithm>
-#include <iostream>
-#include <filesystem>
-#include <sstream>
-#include <cstring>
 #include <spdlog/spdlog.h>
 #include "ldr_files.h"
 #include "../helpers/util.h"
-#include "../config.h"
-
-#include "ldr_colors.h"
 #include "ldr_file_repo.h"
+#include <sstream>
+#include <iostream>
 
 WindingOrder inverseWindingOrder(WindingOrder order) {
     return order == CW ? CCW : CW;

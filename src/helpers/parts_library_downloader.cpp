@@ -1,8 +1,8 @@
-#include <fstream>
+#include <chrono>
 #include <spdlog/spdlog.h>
+#include <fstream>
 #include "parts_library_downloader.h"
 #include "util.h"
-#include "platform_detection.h"
 #include "../config.h"
 
 namespace parts_library_downloader {

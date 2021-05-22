@@ -1,12 +1,13 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cert-err58-cpp"
 
+#include <functional>
+#include "lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "controller.h"
+#include "gui/gui.h"
 
 #ifndef BRICKSIM_USER_ACTIONS_H
 #define BRICKSIM_USER_ACTIONS_H
-
-#include <functional>
-#include "controller.h"
 
 namespace user_actions {
     struct Action {

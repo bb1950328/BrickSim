@@ -1,7 +1,10 @@
 #ifndef BRICKSIM_PART_COLOR_AVAILABILITY_PROVIDER_H
 #define BRICKSIM_PART_COLOR_AVAILABILITY_PROVIDER_H
 
+
+#include <optional>
 #include <set>
+#include <memory>
 #include "../ldr_files/ldr_colors.h"
 #include "../ldr_files/ldr_files.h"
 

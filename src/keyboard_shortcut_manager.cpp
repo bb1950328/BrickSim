@@ -1,9 +1,10 @@
 #include <map>
+#include <GLFW/glfw3.h>
+#include <spdlog/spdlog.h>
 #include "keyboard_shortcut_manager.h"
-#include "helpers/platform_detection.h"
 #include "user_actions.h"
-#include "latest_log_messages_tank.h"
 #include "db.h"
+#include "helpers/util.h"
 
 namespace keyboard_shortcut_manager {
     namespace {

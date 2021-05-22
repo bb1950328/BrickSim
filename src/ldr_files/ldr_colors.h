@@ -1,12 +1,10 @@
 #ifndef BRICKSIM_LDR_COLORS_H
 #define BRICKSIM_LDR_COLORS_H
 
+#include "../helpers/color.h"
+#include <memory>
 #include <map>
-#include "glm/glm.hpp"
 #include <vector>
-#include "../helpers/util.h"
-#include "../config.h"
-
 
 struct LdrColorMaterial {
     enum Type {

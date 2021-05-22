@@ -1,13 +1,9 @@
 #ifndef BRICKSIM_SHADERS_H
 #define BRICKSIM_SHADERS_H
 
-#include <glad/glad.h>
-#include "glm/glm.hpp"
-
 #include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
+#include <glm/glm.hpp>
+#include <glad/glad.h>
 
 class Shader
 {

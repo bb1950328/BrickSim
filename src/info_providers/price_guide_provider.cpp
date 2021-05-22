@@ -1,12 +1,9 @@
-#include <string>
-#include <sstream>
-#include <set>
-#include <regex>
 #include <mutex>
+#include <regex>
 #include "price_guide_provider.h"
+#include "bricklink_constants_provider.h"
 #include "../helpers/util.h"
 #include "../db.h"
-#include "bricklink_constants_provider.h"
 
 namespace price_guide_provider {
     namespace {

@@ -1,7 +1,8 @@
-#include <mutex>
-#include <spdlog/spdlog.h>
 #include "shaders.h"
 #include "../controller.h"
+#include <fstream>
+#include <sstream>
+#include <spdlog/spdlog.h>
 
 Shader::Shader(const char *vertexPath, const char *fragmentPath) : Shader(vertexPath, fragmentPath, nullptr) {
 }

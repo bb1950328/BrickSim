@@ -1,13 +1,12 @@
 #ifndef BRICKSIM_OVERLAY_2D_H
 #define BRICKSIM_OVERLAY_2D_H
 
-#include "glm/glm.hpp"
-#include <vector>
-#include <memory>
+#include <glm/glm.hpp>
 #include <set>
 #include <map>
+#include <vector>
+#include <memory>
 #include "../types.h"
-#include "../helpers/util.h"
 #include "../helpers/color.h"
 
 namespace overlay2d {

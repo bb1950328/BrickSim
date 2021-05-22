@@ -1,9 +1,7 @@
-#include <iostream>
 #include <spdlog/spdlog.h>
+#include <rapidjson/document.h>
 #include "bricklink_constants_provider.h"
-#include "part_color_availability_provider.h"
-
-#include "rapidjson/document.h"
+#include "../helpers/util.h"
 
 namespace bricklink_constants_provider {
     namespace {

@@ -1,8 +1,11 @@
 #include "gui.h"
-#include "../config.h"
 #include "../keyboard_shortcut_manager.h"
-#include "../user_actions.h"
+#include "../config.h"
 #include "../info_providers/bricklink_constants_provider.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../user_actions.h"
+#include <glm/glm.hpp>
+#include <vector>
 
 namespace gui {
     namespace settings {

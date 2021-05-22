@@ -1,7 +1,11 @@
 #ifndef BRICKSIM_LDR_FILE_REPO_H
 #define BRICKSIM_LDR_FILE_REPO_H
 
+
 #include <filesystem>
+#include <set>
+#include <vector>
+#include <map>
 #include "ldr_files.h"
 
 namespace ldr_file_repo {

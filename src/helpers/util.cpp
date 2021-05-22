@@ -1,25 +1,7 @@
-#include <algorithm>
-#include <numeric>
-#include <iostream>
-#include <filesystem>
-#include "glm/gtx/string_cast.hpp"
-#include <glm/gtx/norm.hpp>
-#include <curl/curl.h>
 #include "util.h"
 #include "../config.h"
-#include "stb_image_write.h"
-#include "stb_image.h"
-#include "../controller.h"
-#include "platform_detection.h"
 #include "../db.h"
-#include <cstdlib>
-#include <imgui.h>
-#include <mutex>
-#include <spdlog/spdlog.h>
-#include <fcntl.h>
-#include <cctype>
-#include <cstdio>
-#include <cstring>
+#include "platform_detection.h"
 
 #ifdef BRICKSIM_PLATFORM_WINDOWS
 #include <windows.h>
@@ -29,6 +11,11 @@
 
 #include <immintrin.h>
 #include <glm/gtx/norm.hpp>
+#include <cstring>
+#include <stb_image_write.h>
+#include <stb_image.h>
+#include <spdlog/spdlog.h>
+#include <curl/curl.h>
 
 #elif defined(__ARM_NEON) || defined(__ARM_NEON__)
 #include <arm_neon.h>

@@ -3,10 +3,8 @@
 #ifndef BRICKSIM_GEARS_H
 #define BRICKSIM_GEARS_H
 
-#include <string>
+#include <memory>
 #include <set>
-#include <vector>
-#include "../helpers/util.h"
 #include "../helpers/fraction.h"
 
 namespace gears {

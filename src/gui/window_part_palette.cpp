@@ -1,10 +1,9 @@
-#include <spdlog/spdlog.h>
 #include "gui.h"
-
-#include "../controller.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../ldr_files/ldr_colors.h"
 #include "gui_internal.h"
-#include "../part_finder.h"
 #include "../ldr_files/ldr_file_repo.h"
+#include "../part_finder.h"
 
 namespace gui {
     void windows::drawPartPaletteWindow(bool *show) {

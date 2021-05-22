@@ -1,12 +1,7 @@
-#include <fstream>
-#include <sstream>
-#include <algorithm>
-#include <iostream>
 #include "ldr_colors.h"
-#include "../helpers/util.h"
-#include "../config.h"
 #include "ldr_file_repo.h"
-
+#include "../helpers/util.h"
+#include <sstream>
 
 LdrColor::LdrColor(const std::string &line) {
     std::stringstream linestream(line);//todo optimize this one day (using strtok instead of stringstream)

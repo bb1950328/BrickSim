@@ -1,7 +1,6 @@
 #ifndef BRICKSIM_PART_FINDER_H
 #define BRICKSIM_PART_FINDER_H
 
-#include <string>
 #include "ldr_files/ldr_files.h"
 
 namespace part_finder {

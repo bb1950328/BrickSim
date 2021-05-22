@@ -1,6 +1,8 @@
 #ifndef BRICKSIM_RAY_H
 #define BRICKSIM_RAY_H
-#include "glm/glm.hpp"
+
+#include <glm/glm.hpp>
+
 template <int N>
 class Ray {
 public:

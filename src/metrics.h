@@ -2,6 +2,7 @@
 #define BRICKSIM_METRICS_H
 
 #include <vector>
+#include <string>
 
 namespace metrics {
     extern long individualBrickCount;

@@ -1,10 +1,9 @@
-#include "stb_image_write.h"
-#include "glm/gtx/string_cast.hpp"
-#include <mutex>
+#include <spdlog/spdlog.h>
+#include <glad/glad.h>
+#include <glm/ext/matrix_clip_space.hpp>
 #include "thumbnail_generator.h"
-#include "../controller.h"
-#include "../latest_log_messages_tank.h"
 #include "../metrics.h"
+#include "../controller.h"
 #include "../config.h"
 
 unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<LdrFile> &ldrFile, const LdrColorReference color) {

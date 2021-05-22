@@ -1,4 +1,5 @@
 #include "user_actions.h"
+#include "helpers/util.h"
 
 namespace user_actions {
     namespace {

@@ -2,12 +2,13 @@
 #define BRICKSIM_SCENE_H
 
 #include <filesystem>
-#include <optional>
-#include "../shaders/shaders.h"
+#include <map>
+#include "../types.h"
 #include "../element_tree.h"
 #include "mesh_collection.h"
-#include "camera.h"
 #include "overlay_2d.h"
+#include "camera.h"
+#include "../helpers/ray.h"
 
 typedef unsigned short framebuffer_size_t;
 

@@ -1,16 +1,12 @@
-
-
-#include "ldr_file_repo.h"
-#include "../db.h"
-#include "ldr_regular_file_repo.h"
-#include "../config.h"
-#include "ldr_zip_file_repo.h"
-
-#include <utility>
-#include <fstream>
 #include <zip.h>
 #include <spdlog/spdlog.h>
 #include <thread>
+#include "ldr_file_repo.h"
+#include "../helpers/util.h"
+#include "../config.h"
+#include "ldr_zip_file_repo.h"
+#include "ldr_regular_file_repo.h"
+#include "../db.h"
 
 namespace ldr_file_repo {
     const char* PSEUDO_CATEGORY_SUBPART = "__SUBPART";

@@ -1,9 +1,10 @@
 #ifndef BRICKSIM_ZIP_BUFFER_H
 #define BRICKSIM_ZIP_BUFFER_H
 
-#include <filesystem>
+#include <string>
 #include <map>
 #include <vector>
+#include <filesystem>
 
 namespace zip_buffer {
     class BufferedZip {

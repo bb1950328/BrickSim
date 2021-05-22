@@ -1,5 +1,7 @@
+#include <list>
 #include "gui.h"
 #include "../tools/gears.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 
 namespace gui {
     void windows::drawGearRatioCalculatorWindow(bool *show) {

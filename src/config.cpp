@@ -1,7 +1,7 @@
-#include <mutex>
 #include <map>
-#include "db.h"
+#include <mutex>
 #include "config.h"
+#include "db.h"
 
 namespace config {
     namespace {

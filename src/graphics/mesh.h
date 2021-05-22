@@ -1,16 +1,16 @@
 #ifndef BRICKSIM_MESH_H
 #define BRICKSIM_MESH_H
 
-#include "glm/glm.hpp"
-#include "glm/gtx/transform.hpp"
-#include <vector>
-#include <set>
+#include <glm/glm.hpp>
 #include <cstring>
-#include "../ldr_files/ldr_files.h"
-#include "../shaders/shaders.h"
-#include "../constant_data/constants.h"
 #include "../types.h"
+#include "../ldr_files/ldr_colors.h"
+#include "../ldr_files/ldr_files.h"
 #include "texture.h"
+#include <map>
+#include <vector>
+#include <string>
+#include <memory>
 
 struct TriangleVertex {
     glm::vec4 position;

@@ -1,12 +1,11 @@
 #ifndef BRICKSIM_LDR_FILES_H
 #define BRICKSIM_LDR_FILES_H
 
+
+#include <string>
 #include <vector>
-#include <map>
-#include <filesystem>
-#include "glm/glm.hpp"
+#include <memory>
 #include <set>
-#include <ostream>
 #include "ldr_colors.h"
 
 class LdrFileElement;

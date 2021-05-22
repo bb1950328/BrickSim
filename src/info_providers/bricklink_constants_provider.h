@@ -1,7 +1,7 @@
 #ifndef BRICKSIM_BRICKLINK_CONSTANTS_PROVIDER_H
 #define BRICKSIM_BRICKLINK_CONSTANTS_PROVIDER_H
 
-
+#include <string>
 #include <vector>
 #include <map>
 

@@ -51,7 +51,7 @@ if (UNIX)# todo check if this is necessary
         target_link_libraries(BrickSimLib PRIVATE ${X11_LIBRARIES})
     endif ()
 endif ()
-target_compile_definitions(BrickSimLib PRIVATE GLFW_INCLUDE_NONE)
+target_compile_definitions(BrickSimLib PUBLIC GLFW_INCLUDE_NONE)
 
 # GLUT
 find_package(GLUT REQUIRED)

@@ -1,8 +1,8 @@
 #ifndef BRICKSIM_CONFIG_H
 #define BRICKSIM_CONFIG_H
 
-#include <map>
-#include "helpers/util.h"
+
+#include <string>
 #include "helpers/color.h"
 
 namespace config {

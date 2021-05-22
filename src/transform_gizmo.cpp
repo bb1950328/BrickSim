@@ -1,12 +1,11 @@
-#include "transform_gizmo.h"
-#include "controller.h"
-
-#include <utility>
-#include <algorithm>
-#include <array>
-#include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/transform.hpp>
+#include "transform_gizmo.h"
+#include "config.h"
+#include "controller.h"
+#include "helpers/util.h"
 #include <spdlog/spdlog.h>
 
 std::array<glm::vec4, 3> axisDirectionVectors = {

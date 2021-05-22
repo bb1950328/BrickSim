@@ -1,11 +1,9 @@
 #ifndef BRICKSIM_GUI_H
 #define BRICKSIM_GUI_H
 
-#include "../ldr_files/ldr_files.h"
-#include "../element_tree.h"
 #include <imgui.h>
 #include <GLFW/glfw3.h>
-#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include <string>
 
 constexpr int NUM_LDR_FILTER_PATTERNS = 4;
 constexpr int NUM_IMAGE_FILTER_PATTERNS = 4;

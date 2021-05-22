@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include <numeric>
+#include <ostream>
 #include "fraction.h"
-#include "util.h"
 
 Fraction::Fraction(long a, long b) : a(a), b(b) {
     checkBnot0();

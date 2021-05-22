@@ -1,7 +1,12 @@
+#include <map>
+#include <memory>
 #include "gui.h"
+#include "../types.h"
+#include "../graphics/scene.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "../controller.h"
 #include "../metrics.h"
-#include <compare>
+#include "../helpers/util.h"
 
 namespace gui {
     namespace {

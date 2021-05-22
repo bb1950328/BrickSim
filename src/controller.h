@@ -1,13 +1,17 @@
 #ifndef BRICKSIM_CONTROLLER_H
 #define BRICKSIM_CONTROLLER_H
 
-#include <mutex>
-#include <atomic>
+#include <GLFW/glfw3.h>
+#include <string>
+#include <memory>
+#include <functional>
+#include <queue>
 #include "element_tree.h"
-#include "gui/gui.h"
+#include "types.h"
+#include "ldr_files/ldr_files.h"
+#include "transform_gizmo.h"
 #include "graphics/thumbnail_generator.h"
 #include "tasks.h"
-#include "transform_gizmo.h"
 
 #ifdef BRICKSIM_USE_RENDERDOC
 #include <renderdoc.h>

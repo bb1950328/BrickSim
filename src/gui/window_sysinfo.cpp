@@ -1,5 +1,8 @@
+#include <ostream>
+#include <sstream>
 #include "gui.h"
 #include "../helpers/system_info.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 
 namespace gui {
     void windows::drawSysInfoWindow(bool *show) {

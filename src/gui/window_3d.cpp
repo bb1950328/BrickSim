@@ -1,7 +1,10 @@
+#include <memory>
 #include "gui.h"
+#include "../types.h"
+#include "../graphics/scene.h"
 #include "../controller.h"
+#include "../config.h"
 #include "gui_internal.h"
-#include <glm/gtx/io.hpp>
 
 namespace gui {
     std::shared_ptr<etree::Node> getNodeUnderCursor(const std::shared_ptr<Scene> &mainScene, const glm::svec2 &currentCursorPos) {

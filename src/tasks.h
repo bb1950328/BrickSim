@@ -1,11 +1,9 @@
 #ifndef BRICKSIM_TASKS_H
 #define BRICKSIM_TASKS_H
 
-#include <string>
 #include <functional>
+#include <string>
 #include <thread>
-#include <atomic>
-#include <utility>
 
 class Task {
 public:

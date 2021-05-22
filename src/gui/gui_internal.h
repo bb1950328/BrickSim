@@ -2,11 +2,11 @@
 #define BRICKSIM_GUI_INTERNAL_H
 
 #include <imgui.h>
-#include <utility>
-#include <string>
+#include <memory>
+#include <glm/glm.hpp>
 #include <vector>
-#include "../ldr_files/ldr_colors.h"
 #include "../ldr_files/ldr_files.h"
+#include "../ldr_files/ldr_colors.h"
 #include "../element_tree.h"
 #include "../user_actions.h"
 

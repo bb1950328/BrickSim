@@ -1,24 +1,22 @@
-#include <glad/glad.h>
+#include <memory>
+#include <spdlog/spdlog.h>
+#include <stb_image.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
-#include <iostream>
-#include "gui.h"
-#include "../config.h"
-#include "../controller.h"
-#include "tinyfiledialogs.h"
-#include "../info_providers/part_color_availability_provider.h"
-#include "gui_internal.h"
-#include "../constant_data/resources.h"
-#include "stb_image.h"
-#include <atomic>
+#include <tinyfiledialogs.h>
 #include <imgui_internal.h>
-#include <spdlog/spdlog.h>
-#include "../helpers/platform_detection.h"
-#include "../helpers/parts_library_downloader.h"
-#include "../ldr_files/ldr_file_repo.h"
-#include "../user_actions.h"
-#include "../keyboard_shortcut_manager.h"
+#include "gui.h"
+#include "../graphics/texture.h"
+#include "../config.h"
+#include "../constant_data/resources.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../helpers/util.h"
+#include "../controller.h"
+#include "gui_internal.h"
 #include "../metrics.h"
+#include "../ldr_files/ldr_file_repo.h"
+#include "../helpers/parts_library_downloader.h"
+#include <glad/glad.h>
 
 namespace gui {
     const char *WINDOW_NAME_3D_VIEW = ICON_FA_CUBES" 3D View";

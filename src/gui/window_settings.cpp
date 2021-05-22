@@ -48,12 +48,12 @@ namespace gui {
         constexpr long BYTES_PER_GB = 1073741824;
 
         void load() {
-            guiScale = (float) (config::getDouble(config::GUI_SCALE));
-            initialWindowSize[0] = config::getInt(config::SCREEN_WIDTH);
-            initialWindowSize[1] = config::getInt(config::SCREEN_HEIGHT);
-            ldrawDirString = config::getString(config::LDRAW_PARTS_LIBRARY);
+            guiScale = (float) (config::get(config::GUI_SCALE));
+            initialWindowSize[0] = config::get(config::SCREEN_WIDTH);
+            initialWindowSize[1] = config::get(config::SCREEN_HEIGHT);
+            ldrawDirString = config::get(config::LDRAW_PARTS_LIBRARY);
             ldrawDir = ldrawDirString.c_str();
-            guiStyleString = config::getString(config::GUI_STYLE);
+            guiStyleString = config::get(config::GUI_STYLE);
             int i = 0;
             for (const auto &value : GUI_STYLE_VALUES) {
                 if (value == guiStyleString) {
@@ -62,26 +62,26 @@ namespace gui {
                 }
                 ++i;
             }
-            fontString = config::getString(config::FONT);
+            fontString = config::get(config::FONT);
             font = fontString == "Roboto" ? 0 : 1;
-            msaaSamples = (int) (config::getInt(config::MSAA_SAMPLES));
+            msaaSamples = (int) (config::get(config::MSAA_SAMPLES));
             msaaElem = std::log2(msaaSamples);
-            backgroundColor = config::getColor(config::BACKGROUND_COLOR).asGlmVector();
-            multiPartDocumentColor = config::getColor(config::COLOR_MULTI_PART_DOCUMENT).asGlmVector();
-            mpdSubfileColor = config::getColor(config::COLOR_MPD_SUBFILE).asGlmVector();
-            mpdSubfileInstanceColor = config::getColor(config::COLOR_MPD_SUBFILE_INSTANCE).asGlmVector();
-            officalPartColor = config::getColor(config::COLOR_OFFICAL_PART).asGlmVector();
-            unofficalPartColor = config::getColor(config::COLOR_UNOFFICAL_PART).asGlmVector();
-            displaySelectionBuffer = config::getBool(config::DISPLAY_SELECTION_BUFFER);
-            faceCullingEnabled = config::getBool(config::FACE_CULLING_ENABLED);
-            showNormals = config::getBool(config::SHOW_NORMALS);
+            backgroundColor = config::get(config::BACKGROUND_COLOR).asGlmVector();
+            multiPartDocumentColor = config::get(config::COLOR_MULTI_PART_DOCUMENT).asGlmVector();
+            mpdSubfileColor = config::get(config::COLOR_MPD_SUBFILE).asGlmVector();
+            mpdSubfileInstanceColor = config::get(config::COLOR_MPD_SUBFILE_INSTANCE).asGlmVector();
+            officalPartColor = config::get(config::COLOR_OFFICAL_PART).asGlmVector();
+            unofficalPartColor = config::get(config::COLOR_UNOFFICAL_PART).asGlmVector();
+            displaySelectionBuffer = config::get(config::DISPLAY_SELECTION_BUFFER);
+            faceCullingEnabled = config::get(config::FACE_CULLING_ENABLED);
+            showNormals = config::get(config::SHOW_NORMALS);
             allShortcuts = keyboard_shortcut_manager::getAllShortcuts();
-            thumbnailSize = config::getInt(config::THUMBNAIL_SIZE);
+            thumbnailSize = config::get(config::THUMBNAIL_SIZE);
             thumbnailSizeLog = std::log2(thumbnailSize);
-            thumbnailCacheSizeGB = (float) config::getInt(config::THUMBNAIL_CACHE_SIZE_BYTES) / BYTES_PER_GB;
-            drawMinEnclosingBallLines = config::getBool(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES);
-            enableViewportsInt = config::getBool(config::ENABLE_VIEWPORTS) ? 1 : 0;
-            enableGlDebugOutput = config::getBool(config::ENABLE_GL_DEBUG_OUTPUT);
+            thumbnailCacheSizeGB = (float) config::get(config::THUMBNAIL_CACHE_SIZE_BYTES) / BYTES_PER_GB;
+            drawMinEnclosingBallLines = config::get(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES);
+            enableViewportsInt = config::get(config::ENABLE_VIEWPORTS) ? 1 : 0;
+            enableGlDebugOutput = config::get(config::ENABLE_GL_DEBUG_OUTPUT);
 
             //ISO 4217 guarantees that all currency codes are 3 chars in length
             if (currencyCodeStrings.empty()) {
@@ -97,7 +97,7 @@ namespace gui {
                 }
                 currencyCodeStrings.push_back('\0');
             }
-            auto settingCurrencyCode = config::getString(config::BRICKLINK_CURRENCY_CODE);
+            auto settingCurrencyCode = config::get(config::BRICKLINK_CURRENCY_CODE);
             currencyCodeIndex = 0;
             for (int j = 0; j < currencyCodeStrings.size(); j += 4) {
                 if (settingCurrencyCode[0] == currencyCodeStrings[j]
@@ -107,41 +107,41 @@ namespace gui {
                     break;
                 }
             }
-            mouseSensitivityRotation = config::getDouble(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY) * 100;
-            mouseSensitivityPan = config::getDouble(config::MOUSE_3DVIEW_PAN_SENSITIVITY) * 100;
-            mouseSensitivityZoom = config::getDouble(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY) * 100;
+            mouseSensitivityRotation = config::get(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY) * 100;
+            mouseSensitivityPan = config::get(config::MOUSE_3DVIEW_PAN_SENSITIVITY) * 100;
+            mouseSensitivityZoom = config::get(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY) * 100;
         }
 
         void save() {
-            config::setDouble(config::GUI_SCALE, guiScale);
-            config::setInt(config::SCREEN_WIDTH, initialWindowSize[0]);
-            config::setInt(config::SCREEN_HEIGHT, initialWindowSize[1]);
-            config::setString(config::LDRAW_PARTS_LIBRARY, ldrawDir);
-            config::setString(config::GUI_STYLE, GUI_STYLE_VALUES[guiStyle]);
-            config::setString(config::FONT, font == 0 ? "Roboto" : "RobotoMono");
-            config::setInt(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));
-            config::setColor(config::BACKGROUND_COLOR, color::RGB(backgroundColor));
-            config::setColor(config::COLOR_MULTI_PART_DOCUMENT, color::RGB(multiPartDocumentColor));
-            config::setColor(config::COLOR_MPD_SUBFILE, color::RGB(mpdSubfileColor));
-            config::setColor(config::COLOR_MPD_SUBFILE_INSTANCE, color::RGB(mpdSubfileInstanceColor));
-            config::setColor(config::COLOR_OFFICAL_PART, color::RGB(officalPartColor));
-            config::setColor(config::COLOR_UNOFFICAL_PART, color::RGB(unofficalPartColor));
-            config::setBool(config::DISPLAY_SELECTION_BUFFER, displaySelectionBuffer);
-            config::setBool(config::FACE_CULLING_ENABLED, faceCullingEnabled);
-            config::setBool(config::SHOW_NORMALS, showNormals);
-            config::setInt(config::THUMBNAIL_SIZE, (int) std::pow(2, thumbnailSizeLog));
+            config::set(config::GUI_SCALE, guiScale);
+            config::set(config::SCREEN_WIDTH, initialWindowSize[0]);
+            config::set(config::SCREEN_HEIGHT, initialWindowSize[1]);
+            config::set(config::LDRAW_PARTS_LIBRARY, ldrawDir);
+            config::set(config::GUI_STYLE, GUI_STYLE_VALUES[guiStyle]);
+            config::set(config::FONT, font == 0 ? "Roboto" : "RobotoMono");
+            config::set(config::MSAA_SAMPLES, (int) std::pow(2, msaaElem));
+            config::set(config::BACKGROUND_COLOR, color::RGB(backgroundColor));
+            config::set(config::COLOR_MULTI_PART_DOCUMENT, color::RGB(multiPartDocumentColor));
+            config::set(config::COLOR_MPD_SUBFILE, color::RGB(mpdSubfileColor));
+            config::set(config::COLOR_MPD_SUBFILE_INSTANCE, color::RGB(mpdSubfileInstanceColor));
+            config::set(config::COLOR_OFFICAL_PART, color::RGB(officalPartColor));
+            config::set(config::COLOR_UNOFFICAL_PART, color::RGB(unofficalPartColor));
+            config::set(config::DISPLAY_SELECTION_BUFFER, displaySelectionBuffer);
+            config::set(config::FACE_CULLING_ENABLED, faceCullingEnabled);
+            config::set(config::SHOW_NORMALS, showNormals);
+            config::set(config::THUMBNAIL_SIZE, (int) std::pow(2, thumbnailSizeLog));
             const auto sizeBytes = thumbnailCacheSizeGB * BYTES_PER_GB;
-            config::setInt(config::THUMBNAIL_CACHE_SIZE_BYTES, std::round(sizeBytes));
-            config::setBool(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES, drawMinEnclosingBallLines);
-            config::setBool(config::ENABLE_VIEWPORTS, enableViewportsInt > 0);
-            config::setBool(config::ENABLE_GL_DEBUG_OUTPUT, enableGlDebugOutput);
+            config::set(config::THUMBNAIL_CACHE_SIZE_BYTES, std::round(sizeBytes));
+            config::set(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES, drawMinEnclosingBallLines);
+            config::set(config::ENABLE_VIEWPORTS, enableViewportsInt > 0);
+            config::set(config::ENABLE_GL_DEBUG_OUTPUT, enableGlDebugOutput);
             char currencyCodeBuffer[4];
             memcpy(currencyCodeBuffer, &currencyCodeStrings[currencyCodeIndex * 4], 4);
-            config::setString(config::BRICKLINK_CURRENCY_CODE, currencyCodeBuffer);
+            config::set(config::BRICKLINK_CURRENCY_CODE, currencyCodeBuffer);
             keyboard_shortcut_manager::replaceAllShortcuts(allShortcuts);
-            config::setDouble(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY, mouseSensitivityRotation / 100);
-            config::setDouble(config::MOUSE_3DVIEW_PAN_SENSITIVITY, mouseSensitivityPan / 100);
-            config::setDouble(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY, mouseSensitivityZoom / 100);
+            config::set(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY, mouseSensitivityRotation / 100);
+            config::set(config::MOUSE_3DVIEW_PAN_SENSITIVITY, mouseSensitivityPan / 100);
+            config::set(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY, mouseSensitivityZoom / 100);
         }
 
         void drawGeneralTab() {

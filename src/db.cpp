@@ -193,7 +193,7 @@ namespace db {
     }
 
     namespace config {
-        std::optional<std::string> getString(const std::string &key) {
+        std::optional<std::string> getString(const char* key) {
             SQLite::Statement query(configDb.value(), "SELECT value FROM strings WHERE key=?");
             query.bind(1, key);
             if (query.executeStep()) {
@@ -202,7 +202,7 @@ namespace db {
             return {};
         }
 
-        std::optional<int> getInt(const std::string &key) {
+        std::optional<int> getInt(const char* key) {
             SQLite::Statement query(configDb.value(), "SELECT value FROM ints WHERE key=?");
             query.bind(1, key);
             if (query.executeStep()) {
@@ -211,16 +211,7 @@ namespace db {
             return {};
         }
 
-        std::optional<bool> getBool(const std::string &key) {
-            SQLite::Statement query(configDb.value(), "SELECT value FROM ints WHERE key=?");
-            query.bind(1, key);
-            if (query.executeStep()) {
-                return ((int) query.getColumn(0)) != 0;
-            }
-            return {};
-        }
-
-        std::optional<double> getDouble(const std::string &key) {
+        std::optional<double> getDouble(const char* key) {
             SQLite::Statement query(configDb.value(), "SELECT value FROM doubles WHERE key=?");
             query.bind(1, key);
             if (query.executeStep()) {
@@ -229,28 +220,21 @@ namespace db {
             return {};
         }
 
-        void setString(const std::string &key, const std::string &value) {
+        void setString(const char* key, const std::string &value) {
             SQLite::Statement query(configDb.value(), "REPLACE INTO strings (key, value) VALUES (?, ?)");
             query.bind(1, key);
             query.bind(2, value);
             query.exec();
         }
 
-        void setInt(const std::string &key, int value) {
+        void setInt(const char* key, int value) {
             SQLite::Statement query(configDb.value(), "REPLACE INTO ints (key, value) VALUES (?, ?)");
             query.bind(1, key);
             query.bind(2, value);
             query.exec();
         }
 
-        void setBool(const std::string &key, bool value) {
-            SQLite::Statement query(configDb.value(), "REPLACE INTO ints (key, value) VALUES (?, ?)");
-            query.bind(1, key);
-            query.bind(2, value ? 1 : 0);
-            query.exec();
-        }
-
-        void setDouble(const std::string &key, double value) {
+        void setDouble(const char* key, double value) {
             SQLite::Statement query(configDb.value(), "REPLACE INTO doubles (key, value) VALUES (?, ?)");
             query.bind(1, key);
             query.bind(2, value);

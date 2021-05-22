@@ -1,166 +1,48 @@
 #include <mutex>
-#include <map>
 #include "db.h"
 #include "config.h"
 
 namespace config {
-    namespace {
-        std::map<std::string, std::string> stringsCache;
-        std::map<std::string, long> intsCache;
-        std::map<std::string, bool> boolsCache;
-        std::map<std::string, double> doublesCache;
 
-        std::mutex stringsCacheMtx;
-        std::mutex intsCacheMtx;
-        std::mutex boolsCacheMtx;
-        std::mutex doublesCacheMtx;
-
-        void setStringNoMutex(const StringKey &key, const std::string &value) {
-            db::config::setString(key.name, value);
-            stringsCache[key.name] = value;
-        }
-
-        void setIntNoMutex(const IntKey &key, int value) {
-            db::config::setInt(key.name, value);
-            intsCache[key.name] = value;
-        }
-
-        void setDoubleNoMutex(const DoubleKey &key, double value) {
-            db::config::setDouble(key.name, value);
-            doublesCache[key.name] = value;
-        }
-
-        void setBoolNoMutex(const BoolKey &key, bool value) {
-            db::config::setBool(key.name, value);
-            boolsCache[key.name] = value;
-        }
+    template<>
+    [[nodiscard]] std::string get<std::string>(const Key<std::string> &key) {
+        return stringValues.get(key.name, key.defaultValue);
     }
 
-    std::string getString(const StringKey &key) {
-        auto it = stringsCache.find(key.name);
-        if (it == stringsCache.end()) {
-            std::lock_guard<std::mutex> lg(stringsCacheMtx);
-            auto valueOpt = db::config::getString(key.name);
-            std::string value;
-            if (valueOpt.has_value()) {
-                value = valueOpt.value();
-                stringsCache.emplace(key.name, value);
-            } else {
-                value = key.defaultValue;
-                setStringNoMutex(key, value);
-            }
-            return value;
-        }
-        return it->second;
+    template<>
+    [[nodiscard]] int get<int>(const Key<int> &key) {
+        return intValues.get(key.name, key.defaultValue);
     }
 
-    int getInt(const IntKey &key) {
-        auto it = intsCache.find(key.name);
-        if (it == intsCache.end()) {
-            std::lock_guard<std::mutex> lg(intsCacheMtx);
-            auto valueOpt = db::config::getInt(key.name);
-            int value;
-            if (valueOpt.has_value()) {
-                value = valueOpt.value();
-                intsCache.emplace(key.name, value);
-            } else {
-                value = key.defaultValue;
-                setIntNoMutex(key, value);
-            }
-            return value;
-        }
-        return it->second;
+    template<>
+    [[nodiscard]] double get<double>(const Key<double> &key) {
+        return doubleValues.get(key.name, key.defaultValue);
     }
 
-    double getDouble(const DoubleKey &key) {
-        auto it = doublesCache.find(key.name);
-        if (it == doublesCache.end()) {
-            std::lock_guard<std::mutex> lg(intsCacheMtx);
-            auto valueOpt = db::config::getDouble(key.name);
-            double value;
-            if (valueOpt.has_value()) {
-                value = valueOpt.value();
-                doublesCache.emplace(key.name, value);
-            } else {
-                value = key.defaultValue;
-                setDoubleNoMutex(key, value);
-            }
-            return value;
-        }
-        return it->second;
+    template<>
+    [[nodiscard]] color::RGB get<color::RGB>(const Key<color::RGB> &key) {
+        return color::RGB(stringValues.get(key.name, key.defaultValue.asHtmlCode()));
     }
 
-    color::RGB getColor(const ColorKey &key) {
-        return color::RGB(getString(key));
+
+    template<>
+    [[nodiscard]] float get<float>(const Key<float> &key) {
+        return doubleValues.get(key.name, key.defaultValue);
+    }
+    template<>
+    [[nodiscard]] bool get<bool>(const Key<bool> &key) {
+        return intValues.get(key.name, key.defaultValue);
     }
 
-    bool getBool(const BoolKey &key) {
-        auto it = boolsCache.find(key.name);
-        if (it == boolsCache.end()) {
-            std::lock_guard<std::mutex> lg(boolsCacheMtx);
-            auto valueOpt = db::config::getBool(key.name);
-            bool value;
-            if (valueOpt.has_value()) {
-                value = valueOpt.value();
-                boolsCache.emplace(key.name, value);
-            } else {
-                value = key.defaultValue;
-                setBoolNoMutex(key, value);
-            }
-            return value;
-        }
-        return it->second;
-    }
-
-    void setString(const StringKey &key, const std::string &value) {
-        std::lock_guard<std::mutex> lg(stringsCacheMtx);
-        setStringNoMutex(key, value);
-    }
-
-    void setInt(const IntKey &key, int value) {
-        std::lock_guard<std::mutex> lg(intsCacheMtx);
-        setIntNoMutex(key, value);
-    }
-
-    void setDouble(const DoubleKey &key, double value) {
-        std::lock_guard<std::mutex> lg(doublesCacheMtx);
-        setDoubleNoMutex(key, value);
-    }
-
-    void setColor(const ColorKey &key, color::RGB value) {
-        setString(key, value.asHtmlCode());
-    }
-
-    void setBool(const BoolKey &key, bool value) {
-        std::lock_guard<std::mutex> lg(boolsCacheMtx);
-        setBoolNoMutex(key, value);
+    template<>
+    void set(const Key<color::RGB> &key, const color::RGB &value) {
+        stringValues.set(key.name, value.asHtmlCode());
     }
 
     void resetAllToDefault() {
-        std::lock_guard<std::mutex> stringsLG(stringsCacheMtx);
-        std::lock_guard<std::mutex> intsLG(intsCacheMtx);
-        std::lock_guard<std::mutex> boolsLG(boolsCacheMtx);
-        std::lock_guard<std::mutex> doublesLG(doublesCacheMtx);
-        stringsCache.clear();
-        intsCache.clear();
-        boolsCache.clear();
-        doublesCache.clear();
+        stringValues.clear();
+        intValues.clear();
+        doubleValues.clear();
         db::config::deleteAll();
     }
-
-    bool Key::operator==(const Key &other) const {
-        return other.name == name;
-    }
-
-    Key::Key(std::string name) : name(std::move(name)) {}
-
-    StringKey::StringKey(const std::string &name, std::string defaultValue) : Key(name), defaultValue(std::move(defaultValue)) {}
-
-    IntKey::IntKey(const std::string &name, const int defaultValue) : Key(name), defaultValue(defaultValue) {}
-
-    DoubleKey::DoubleKey(const std::string &name, const double defaultValue) : Key(name), defaultValue(defaultValue) {}
-
-    ColorKey::ColorKey(const std::string &name, const color::RGB &defaultValue) : StringKey(name, defaultValue.asHtmlCode()), defaultValue(defaultValue) {}
-
-    BoolKey::BoolKey(const std::string &name, const bool defaultValue) : Key(name), defaultValue(defaultValue) {}
 }

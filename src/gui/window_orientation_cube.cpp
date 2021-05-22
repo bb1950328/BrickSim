@@ -41,7 +41,7 @@ namespace gui {
             }
         }
 
-        /*if (config::getBool(config::DISPLAY_SELECTION_BUFFER)) {
+        /*if (config::get(config::DISPLAY_SELECTION_BUFFER)) {
             ImGui::ImageButton(gui_internal::convertTextureId(orientation_cube::getSelectionImage()), ImVec2(displaySize, displaySize), ImVec2(0, 0), ImVec2(1, 1), 0);
         }*/
 

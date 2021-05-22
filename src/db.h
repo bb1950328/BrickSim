@@ -37,15 +37,13 @@ namespace db {
     }
 
     namespace config {
-        std::optional<std::string> getString(const std::string& key);
-        std::optional<int> getInt(const std::string& key);
-        std::optional<bool> getBool(const std::string& key);
-        std::optional<double> getDouble(const std::string& key);
+        std::optional<std::string> getString(const char* key);
+        std::optional<int> getInt(const char* key);
+        std::optional<double> getDouble(const char* key);
 
-        void setString(const std::string& key, const std::string& value);
-        void setInt(const std::string& key, int value);
-        void setBool(const std::string& key, bool value);
-        void setDouble(const std::string& key, double value);
+        void setString(const char* key, const std::string& value);
+        void setInt(const char* key, int value);
+        void setDouble(const char* key, double value);
 
         void deleteAll();
     }

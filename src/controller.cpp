@@ -110,12 +110,12 @@ namespace controller {
             if (openGlInitialized) {
                 throw std::invalid_argument("attempting to initialize OpenGL twice");
             }
-            const auto enableDebugOutput = config::getBool(config::ENABLE_GL_DEBUG_OUTPUT);
+            const auto enableDebugOutput = config::get(config::ENABLE_GL_DEBUG_OUTPUT);
             glfwSetErrorCallback(glfwErrorCallback);
             glfwInit();
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, enableDebugOutput?3:2);
-            glfwWindowHint(GLFW_SAMPLES, (int) (config::getInt(config::MSAA_SAMPLES)));
+            glfwWindowHint(GLFW_SAMPLES, (int) (config::get(config::MSAA_SAMPLES)));
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
             if (enableDebugOutput) {
@@ -127,7 +127,9 @@ namespace controller {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-            //glfwWindowHint(GLFW_DECORATED, false);//removes the title bar
+            windowWidth = std::max(25, config::get(config::SCREEN_WIDTH));
+            windowHeight = std::max(25, config::get(config::SCREEN_HEIGHT));
+
             window = glfwCreateWindow(windowWidth, windowHeight, "BrickSim", nullptr, nullptr);
             if (window == nullptr) {
                 spdlog::critical("Failed to create GLFW window");
@@ -140,7 +142,7 @@ namespace controller {
                 glfwTerminate();
                 return false;
             }
-            if (!config::getBool(config::ENABLE_VSYNC)) {
+            if (!config::get(config::ENABLE_VSYNC)) {
                 glfwSwapInterval(0);
             }
             glfwSetFramebufferSizeCallback(window, window_size_callback);
@@ -154,7 +156,7 @@ namespace controller {
 
             glEnable(GL_DEPTH_TEST);
 
-            if (config::getBool(config::FACE_CULLING_ENABLED)) {
+            if (config::get(config::FACE_CULLING_ENABLED)) {
                 glEnable(GL_CULL_FACE);
                 glCullFace(GL_BACK);
             }
@@ -249,9 +251,6 @@ namespace controller {
             spdlog::set_level(spdlog::level::trace);
 
             db::initialize();
-
-            windowWidth = config::getInt(config::SCREEN_WIDTH);
-            windowHeight = config::getInt(config::SCREEN_HEIGHT);
 
             if (!initializeGL()) {
                 spdlog::critical("failed to initialize OpenGL / glfw, exiting");
@@ -443,8 +442,8 @@ namespace controller {
             glfwPollEvents();
             addMainloopTimePoint("glfwPollEvents");
         }
-        config::setInt(config::SCREEN_WIDTH, windowWidth);
-        config::setInt(config::SCREEN_HEIGHT, windowHeight);
+        config::set(config::SCREEN_WIDTH, windowWidth);
+        config::set(config::SCREEN_HEIGHT, windowHeight);
         cleanup();
         return 0;
     }

@@ -275,10 +275,10 @@ namespace etree {
 
     color::RGB getColorOfType(const NodeType &type) {
         switch (type) {
-            case TYPE_MPD_SUBFILE_INSTANCE: return config::getColor(config::COLOR_MPD_SUBFILE_INSTANCE);
-            case TYPE_MPD_SUBFILE: return config::getColor(config::COLOR_MPD_SUBFILE);
-            case TYPE_MULTI_PART_DOCUMENT: return config::getColor(config::COLOR_MULTI_PART_DOCUMENT);
-            case TYPE_PART: return config::getColor(config::COLOR_OFFICAL_PART);//todo unoffical part
+            case TYPE_MPD_SUBFILE_INSTANCE: return config::get(config::COLOR_MPD_SUBFILE_INSTANCE);
+            case TYPE_MPD_SUBFILE: return config::get(config::COLOR_MPD_SUBFILE);
+            case TYPE_MULTI_PART_DOCUMENT: return config::get(config::COLOR_MULTI_PART_DOCUMENT);
+            case TYPE_PART: return config::get(config::COLOR_OFFICAL_PART);//todo unoffical part
             case TYPE_OTHER:
             case TYPE_ROOT:
             case TYPE_MESH:

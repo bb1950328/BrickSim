@@ -58,18 +58,18 @@ namespace ldr_file_repo {
     bool checkLdrawLibraryLocation() {
         static auto found = false;
         if (!found) {
-            const auto &pathFromConfig = util::extendHomeDirPath(config::getString(config::LDRAW_PARTS_LIBRARY));
+            const auto &pathFromConfig = util::extendHomeDirPath(config::get(config::LDRAW_PARTS_LIBRARY));
             auto strPath = pathFromConfig.string();
             if (tryToInitializeWithLibraryPath(pathFromConfig)) {
                 found = true;
             } else if (util::endsWith(strPath, ".zip")) {
                 auto zipEndingRemoved = strPath.substr(0, strPath.size() - 4);
                 if (tryToInitializeWithLibraryPath(zipEndingRemoved)) {
-                    config::setString(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(zipEndingRemoved));
+                    config::set(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(zipEndingRemoved));
                     found = true;
                 }
             } else if (tryToInitializeWithLibraryPath(strPath + ".zip")) {
-                config::setString(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(strPath + ".zip"));
+                config::set(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(strPath + ".zip"));
                 found = true;
             }
         }

@@ -33,7 +33,7 @@ namespace parts_library_downloader {
         std::ofstream out(filePath);
         out << result.second;
         out.close();
-        config::setString(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(filePath));
+        config::set(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(filePath));
         status = FINISHED;
         spdlog::info("parts library written to disk");
     }

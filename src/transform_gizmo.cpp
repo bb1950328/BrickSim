@@ -31,7 +31,7 @@ namespace transform_gizmo {
         PovState nowPovState;
         if (currentlySelectedNode != nullptr) {
             auto nodeTransformation = glm::transpose(currentlySelectedNode->getAbsoluteTransformation());
-            const static float configScale = config::getDouble(config::GUI_SCALE) * config::getDouble(config::TRANSFORM_GIZMO_SIZE);
+            const static float configScale = config::get(config::GUI_SCALE) * config::get(config::TRANSFORM_GIZMO_SIZE);
 
             glm::quat rotation;
             glm::vec3 skewIgnore;

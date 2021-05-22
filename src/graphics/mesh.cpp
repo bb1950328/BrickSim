@@ -50,7 +50,7 @@ void Mesh::addLdrTriangle(const LdrColorReference mainColor, const LdrTriangle &
     indicesList.push_back(idx1 + 1);
     indicesList.push_back(idx1 + 2);
 
-    if (config::getBool(config::SHOW_NORMALS)) {
+    if (config::get(config::SHOW_NORMALS)) {
         auto lp1 = glm::vec4(util::triangleCentroid(p1, p2, p3), 1.0f) * transformation;
         auto lp2 = lp1 + (transformedNormal * 5.0f);
         LineVertex lv1{lp1, transformedNormal};
@@ -77,7 +77,7 @@ void Mesh::addRawTriangle(const LdrColorReference color, const glm::vec3 &p1, co
     indicesList.push_back(idx1 + 1);
     indicesList.push_back(idx1 + 2);
 
-    if (config::getBool(config::SHOW_NORMALS)) {
+    if (config::get(config::SHOW_NORMALS)) {
         auto lp1 = glm::vec4(util::triangleCentroid(p1, p2, p3), 1.0f);
         auto lp2 = lp1 + (transformedNormal * 5.0f);
         LineVertex lv1{lp1, transformedNormal};
@@ -143,7 +143,7 @@ void Mesh::addLdrQuadrilateral(LdrColorReference mainColor, LdrQuadrilateral &&q
     indices_list.push_back(idx + 3);
     indices_list.push_back(idx);
 
-    if (config::getBool(config::SHOW_NORMALS)) {
+    if (config::get(config::SHOW_NORMALS)) {
         auto lp1 = glm::vec4(util::quadrilateralCentroid(p1, p2, p3, p4), 1.0f) * transformation;
         auto lp2 = lp1 + (transformedNormal * 5.0f);
         LineVertex lv1{lp1, transformedNormal};
@@ -244,7 +244,7 @@ void Mesh::addLineVertex(const LineVertex &vertex) {
 
 void Mesh::writeGraphicsData() {
     if (!already_initialized) {
-        if (config::getBool(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES)) {
+        if (config::get(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES)) {
             addMinEnclosingBallLines();
         }
 

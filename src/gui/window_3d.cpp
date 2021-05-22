@@ -128,7 +128,7 @@ namespace gui {
                 lastAnyMouseDown = currentlyAnyMouseDown;
             }
             mainScene->setImageSize({regionAvail.x, regionAvail.y});
-            const auto &image = config::getBool(config::DISPLAY_SELECTION_BUFFER)
+            const auto &image = config::get(config::DISPLAY_SELECTION_BUFFER)
                                 ? mainScene->getSelectionImage().value()
                                 : mainScene->getImage();
             auto texture3dView = gui_internal::convertTextureId(image.getTexBO());

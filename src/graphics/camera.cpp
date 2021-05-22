@@ -15,9 +15,9 @@ void CadCamera::updateVectors() {
 
 CadCamera::CadCamera() {
     target = glm::vec3(0.0f, 0.0f, 0.0f);
-    mouseRotateSensitivity = (float)config::getDouble(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY);
-    mousePanSensitivity = (float)config::getDouble(config::MOUSE_3DVIEW_PAN_SENSITIVITY);
-    mouseZoomSensitivity = (float)config::getDouble(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY);
+    mouseRotateSensitivity = (float)config::get(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY);
+    mousePanSensitivity = (float)config::get(config::MOUSE_3DVIEW_PAN_SENSITIVITY);
+    mouseZoomSensitivity = (float)config::get(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY);
     updateVectors();
 }
 

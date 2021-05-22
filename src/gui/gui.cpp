@@ -63,7 +63,7 @@ namespace gui {
         ImGuiID dockspaceId = 0;
 
         void setupFont(float scaleFactor, ImGuiIO &io) {
-            auto fontName = config::getString(config::FONT);
+            auto fontName = config::get(config::FONT);
             const unsigned char *fontData;
             unsigned int fontDataLength;
             if (fontName == "Roboto") {
@@ -91,7 +91,7 @@ namespace gui {
         }
 
         void setupStyle() {
-            auto guiStyle = config::getString(config::GUI_STYLE);
+            auto guiStyle = config::get(config::GUI_STYLE);
             if (guiStyle == "BrickSim") {
                 ImVec4 *colors = ImGui::GetStyle().Colors;
                 colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -170,7 +170,7 @@ namespace gui {
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
-        auto scaleFactor = (float) (config::getDouble(config::GUI_SCALE));
+        auto scaleFactor = (float) (config::get(config::GUI_SCALE));
         if (xscale > 1 || yscale > 1) {
             scaleFactor *= (xscale + yscale) / 2.0f;
             ImGuiStyle &style = ImGui::GetStyle();
@@ -190,7 +190,7 @@ namespace gui {
 
         ImGuiIO &io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-        if (config::getBool(config::ENABLE_VIEWPORTS)) {
+        if (config::get(config::ENABLE_VIEWPORTS)) {
             io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
         }
 
@@ -562,7 +562,7 @@ namespace gui {
         ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
         if (state == 'A') {
             if (ImGui::Begin(ICON_FA_EXCLAMATION_TRIANGLE" LDraw library not found.", nullptr, windowFlags)) {
-                auto parts_lib_raw = config::getString(config::LDRAW_PARTS_LIBRARY);
+                auto parts_lib_raw = config::get(config::LDRAW_PARTS_LIBRARY);
                 auto parts_lib_extended = util::extendHomeDir(parts_lib_raw);
 
                 ImGui::Text("Currently, the path for the ldraw parts library is set to \"%s\"", parts_lib_raw.c_str());
@@ -641,7 +641,7 @@ namespace gui {
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_CHECK_CIRCLE" OK")) {
                     state = 'Z';
-                    config::setString(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(pathBuffer));
+                    config::set(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(pathBuffer));
                 }
             }
             ImGui::End();

@@ -417,7 +417,7 @@ namespace util {
         if (util::endsWith(path_lower, ".png")) {
             return stbi_write_png(path, width, height, channels, pixels, width * channels) != 0;
         } else if (util::endsWith(path_lower, ".jpg") || util::endsWith(path, ".jpeg")) {
-            const int quality = std::min(100, std::max(5, (int) config::getInt(config::JPG_SCREENSHOT_QUALITY)));
+            const int quality = std::min(100, std::max(5, (int) config::get(config::JPG_SCREENSHOT_QUALITY)));
             return stbi_write_jpg(path, width, height, channels, pixels, quality) != 0;
         } else if (util::endsWith(path_lower, ".bmp")) {
             return stbi_write_bmp(path, width, height, channels, pixels) != 0;

@@ -156,10 +156,10 @@ void ThumbnailGenerator::removeFromRenderQueue(const std::shared_ptr<LdrFile> &l
 
 ThumbnailGenerator::ThumbnailGenerator()
         : camera(std::make_shared<FitContentCamera>()),
-          size(config::getInt(config::THUMBNAIL_SIZE)),
+          size(config::get(config::THUMBNAIL_SIZE)),
           projection(glm::perspective(glm::radians(50.0f), 1.0f, 0.001f, 1000.0f)),
           rotationDegrees(glm::vec3(45, -45, 0)) {
-    maxCachedThumbnails = config::getInt(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
+    maxCachedThumbnails = config::get(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
     scene = scenes::create(scenes::THUMBNAIL_SCENE_ID);
     scene->setCamera(camera);
 }

@@ -15,7 +15,7 @@ namespace latest_log_messages_tank {
     }
 
     void initialize() {
-        numLastMessages = config::getInt(config::NOT_IMPORTANT_LOG_MESSAGE_KEEP_COUNT);
+        numLastMessages = config::get(config::NOT_IMPORTANT_LOG_MESSAGE_KEEP_COUNT);
     }
 
     iterator getIterator() {

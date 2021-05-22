@@ -150,7 +150,7 @@ namespace gui {
                     auto partCode = partNode->ldrFile->metaInfo.name;
                     util::replaceAll(partCode, ".dat", "");
                     const auto color = partNode->getDisplayColor().get();
-                    const auto currencyCode = config::getString(config::BRICKLINK_CURRENCY_CODE);
+                    const auto currencyCode = config::get(config::BRICKLINK_CURRENCY_CODE);
                     const auto colorBricklinkName = util::translateLDrawColorNameToBricklink(color->name);
                     auto availableColors = part_color_availability_provider::getAvailableColorsForPart(partNode->ldrFile);
                     if (availableColors.has_value()) {

@@ -1,5 +1,6 @@
 #include <spdlog/spdlog.h>
 #include "tasks.h"
+#include "config.h"
 
 
 Task::Task(std::string name, const std::function<void()>& taskFunctionNoProgress, bool autostart):
@@ -32,6 +33,11 @@ void Task::startThread() {
         duration_us.store(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count());
         is_done.store(true);
     });
+    if (!config::get(config::THREADING_ENABLED)) {
+        while (!isDone()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+    }
 }
 
 void Task::joinThread() {

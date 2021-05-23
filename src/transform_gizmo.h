@@ -102,6 +102,7 @@ namespace transform_gizmo {
     private:
         std::shared_ptr<Scene> scene;
         std::shared_ptr<TGNode> node;
+        std::shared_ptr<generated_mesh::GeneratedMeshNode> debugNode;
         std::optional<glm::mat4> lastTransformation;
         PovState lastState;
         std::unique_ptr<TransformOperation> currentTransformationOperation = nullptr;

@@ -1,4 +1,5 @@
 #include <glm/gtx/transform.hpp>
+#include <spdlog/spdlog.h>
 #include "generated_mesh.h"
 
 namespace generated_mesh {
@@ -244,5 +245,93 @@ namespace generated_mesh {
                 }
             }
         }
+    }
+
+    CubeNode::CubeNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent) : GeneratedMeshNode(color, parent) {}
+
+    std::string CubeNode::getDescription() {
+        return "Cube";
+    }
+
+    mesh_identifier_t CubeNode::getMeshIdentifier() const {
+        return constants::MESH_ID_CUBE;
+    }
+
+    void CubeNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
+        std::vector<TriangleVertex> &verticesList = mesh->getVerticesList(ldr_color_repo::getInstanceDummyColor());
+        std::vector<unsigned int> &indicesList = mesh->getIndicesList(ldr_color_repo::getInstanceDummyColor());
+        if (!verticesList.empty()) {
+            spdlog::warn("CubeNode::addToMesh verticesList not empty, existing vertices are removed");
+        }
+        if (windingInversed) {
+            spdlog::warn("CubeNode::addToMesh with windingInversed currently not supported");
+        }
+        /* 2--------------3
+          /|            / |      Z
+         / |           /  |      |
+        0-------------1   |      |
+        |  7--------- | --6      *------- Y
+        | /           |  /      /
+        |/            | /      /
+        4-------------5       X
+         */
+        constexpr float N = 0.5f;
+        glm::vec4 pos[] = {
+                {+N, -N, +N, 1.0f},//0
+                {+N, +N, +N, 1.0f},//1
+                {-N, -N, +N, 1.0f},//2
+                {-N, +N, +N, 1.0f},//3
+                {+N, -N, -N, 1.0f},//4
+                {+N, +N, -N, 1.0f},//5
+                {-N, +N, -N, 1.0f},//6
+                {-N, -N, -N, 1.0f},//7
+        };
+        glm::vec3 normalXneg{-1,0,0};
+        glm::vec3 normalXpos{+1,0,0};
+        glm::vec3 normalYneg{0,-1,0};
+        glm::vec3 normalYpos{0,+1,0};
+        glm::vec3 normalZneg{0,0,-1};
+        glm::vec3 normalZpos{0,0,+1};
+
+        verticesList.assign({
+                {pos[0], normalXpos},
+                {pos[4], normalXpos},
+                {pos[5], normalXpos},
+                {pos[1], normalXpos},
+
+                {pos[3], normalXneg},
+                {pos[6], normalXneg},
+                {pos[7], normalXneg},
+                {pos[2], normalXneg},
+
+                {pos[1], normalYpos},
+                {pos[5], normalYpos},
+                {pos[6], normalYpos},
+                {pos[3], normalYpos},
+
+                {pos[2], normalYneg},
+                {pos[7], normalYneg},
+                {pos[4], normalYneg},
+                {pos[0], normalYneg},
+
+                {pos[0], normalZpos},
+                {pos[1], normalZpos},
+                {pos[3], normalZpos},
+                {pos[2], normalZpos},
+
+                {pos[5], normalZneg},
+                {pos[4], normalZneg},
+                {pos[7], normalZneg},
+                {pos[6], normalZneg},
+        });
+
+        indicesList.assign({
+                 0+0,  0+1,  0+2,  0+2,  0+3,  0+0,//X+
+                 4+0,  4+1,  4+2,  4+2,  4+3,  4+0,//X-
+                 8+0,  8+1,  8+2,  8+2,  8+3,  8+0,//Y+
+                12+0, 12+1, 12+2, 12+2, 12+3, 12+0,//Y-
+                16+0, 16+1, 16+2, 16+2, 16+3, 16+0,//Z+
+                20+0, 20+1, 20+2, 20+2, 20+3, 20+0,//Z-
+        });
     }
 }

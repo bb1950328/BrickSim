@@ -16,6 +16,7 @@ namespace constants {
     constexpr mesh_identifier_t MESH_ID_UV_SPHERE = 10;
     constexpr mesh_identifier_t MESH_ID_QUARTER_TORUS = 11;
     constexpr mesh_identifier_t MESH_ID_TRANSFORM_GIZMO_2D_ARROW = 12;
+    constexpr mesh_identifier_t MESH_ID_CUBE = 12;
 
     constexpr uint16_t versionMajor =
 #ifdef BRICKSIM_VERSION_MAJOR

@@ -12,6 +12,12 @@ project(BrickSim)
 
 add_library(BrickSimLib STATIC)
 
+option(BRICKSIM_USE_ASAN "Use address sanitizer" OFF) # enabling this makes the program around 40% slower
+if (BRICKSIM_USE_ASAN)
+    target_link_libraries(BrickSimLib PUBLIC -lasan)
+    target_compile_options(BrickSimLib PUBLIC -fsanitize=address)
+endif ()
+
 add_executable(BrickSim src/main.cpp)
 target_link_libraries(BrickSim PRIVATE BrickSimLib)
 #add_dependencies(BrickSim BrickSimLib)

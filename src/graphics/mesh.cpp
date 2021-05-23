@@ -717,14 +717,16 @@ std::optional<Mesh::InstanceRange> Mesh::getSceneInstanceRange(scene_id_t sceneI
         return {};
     }
     const auto &layerMap = it->second;
-    auto start = layerMap.cbegin()->second.start;
+    unsigned int start;
     unsigned int count;
     if (layerMap.size() > 1) {
         count = 0;
         for (const auto &item : layerMap) {
             count += item.second.count;
+            start = std::min(start, item.second.start);
         }
     } else {
+        start = layerMap.cbegin()->second.start;
         count = layerMap.cbegin()->second.count;
     }
 
@@ -777,6 +779,9 @@ void Mesh::updateInstancesOfScene(scene_id_t sceneId, const std::vector<MeshInst
             auto &thisSceneRanges = instanceSceneLayerRanges[sceneId];
             thisSceneRanges.clear();
             while (sourceIt != newSceneInstances.end()) {
+                if (destinationIt == instances.end()) {
+                    int bp = 5;
+                }
                 if (destinationIt->operator!=(*sourceIt)) {
                     instancesHaveChanged = true;
                     *destinationIt = *sourceIt;

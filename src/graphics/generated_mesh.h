@@ -49,6 +49,14 @@ namespace generated_mesh {
         mesh_identifier_t getMeshIdentifier() const override;
         void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
     };
+
+    class CubeNode : public GeneratedMeshNode {
+    public:
+        CubeNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent);
+        std::string getDescription() override;
+        mesh_identifier_t getMeshIdentifier() const override;
+        void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
+    };
 }
 
 #endif //BRICKSIM_GENERATED_MESH_H

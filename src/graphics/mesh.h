@@ -2,7 +2,6 @@
 #define BRICKSIM_MESH_H
 
 #include <glm/glm.hpp>
-#include <cstring>
 #include "../types.h"
 #include "../ldr_files/ldr_colors.h"
 #include "../ldr_files/ldr_files.h"
@@ -16,19 +15,13 @@ struct TriangleVertex {
     glm::vec4 position;
     glm::vec3 normal;
 
-    //glm::vec3 color;
-    bool operator==(const TriangleVertex &other) const {
-        //return position == other.position && normal == other.normal;
-        return std::memcmp(this, &other, sizeof(TriangleVertex)) == 0;
-    }
+    bool operator==(const TriangleVertex &other) const;
 };
 
 struct TexturedTriangleVertex {
     glm::vec3 position;
     glm::vec2 textureCoord;
-    bool operator==(const TexturedTriangleVertex &other) const {
-        return std::memcmp(this, &other, sizeof(*this)) == 0;
-    }
+    bool operator==(const TexturedTriangleVertex &other) const;
 
     TexturedTriangleVertex(const glm::vec3 &position, const glm::vec2 &textureCoord) : position(position), textureCoord(textureCoord) {}
 };
@@ -37,10 +30,7 @@ struct LineVertex {
     glm::vec4 position;
     glm::vec3 color;
 
-    bool operator==(const LineVertex &other) const {
-        //return position == other.position && color == other.color;
-        return std::memcmp(this, &other, sizeof(LineVertex)) == 0;
-    }
+    bool operator==(const LineVertex &other) const;
 };
 
 struct TriangleInstance {

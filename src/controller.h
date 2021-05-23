@@ -14,7 +14,7 @@
 #include "tasks.h"
 
 #ifdef BRICKSIM_USE_RENDERDOC
-#include <renderdoc.h>
+#include <renderdoc_app.h>
 #endif
 
 namespace controller {

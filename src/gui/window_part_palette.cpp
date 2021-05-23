@@ -4,6 +4,7 @@
 #include "gui_internal.h"
 #include "../ldr_files/ldr_file_repo.h"
 #include "../part_finder.h"
+#include "../controller.h"
 
 namespace gui {
     void windows::drawPartPaletteWindow(bool *show) {

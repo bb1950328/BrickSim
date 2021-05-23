@@ -2,6 +2,8 @@
 #include "../info_providers/part_color_availability_provider.h"
 #include "../helpers/util.h"
 #include "../keyboard_shortcut_manager.h"
+#include "../controller.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 
 namespace gui_internal {
     bool drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<LdrFile> &part, const LdrColorReference color) {

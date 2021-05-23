@@ -1,6 +1,7 @@
 #include "gui.h"
 #include "../graphics/orientation_cube.h"
 #include "gui_internal.h"
+#include "../controller.h"
 
 namespace gui {
     void windows::drawOrientationCube(bool *show) {

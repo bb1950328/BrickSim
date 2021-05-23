@@ -7,6 +7,7 @@
 #include "element_tree.h"
 #include "graphics/generated_mesh.h"
 #include "graphics/scene.h"
+#include <array>
 
 namespace transform_gizmo {
 
@@ -47,6 +48,7 @@ namespace transform_gizmo {
         virtual void cancel() = 0;
         virtual constexpr TransformType getType() = 0;
         explicit TransformOperation(TransformGizmo &gizmo);
+        virtual ~TransformOperation();
     };
 
     class Translate1dOperation : public TransformOperation {

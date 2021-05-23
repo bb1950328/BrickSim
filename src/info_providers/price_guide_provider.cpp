@@ -4,6 +4,7 @@
 #include "bricklink_constants_provider.h"
 #include "../helpers/util.h"
 #include "../db.h"
+#include <sstream>
 
 namespace price_guide_provider {
     namespace {

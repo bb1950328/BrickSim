@@ -341,4 +341,8 @@ namespace transform_gizmo {
 
     TransformOperation::TransformOperation(TransformGizmo &gizmo):
               gizmo(gizmo) {}
+
+    TransformOperation::~TransformOperation() {
+
+    }
 }

@@ -7,13 +7,14 @@
 #include <stb_image.h>
 #include <spdlog/spdlog.h>
 #include <curl/curl.h>
+#include <array>
+#include <sstream>
 
 #ifdef BRICKSIM_PLATFORM_WINDOWS
 #include <windows.h>
 #endif
 
 #ifdef __SSE2__
-
 #include <immintrin.h>
 
 #elif defined(__ARM_NEON) || defined(__ARM_NEON__)

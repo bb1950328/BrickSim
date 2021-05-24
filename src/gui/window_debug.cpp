@@ -8,6 +8,7 @@
 #include "../metrics.h"
 #include "../helpers/util.h"
 #include <glm/gtx/io.hpp>
+#include <sstream>
 
 namespace gui {
     namespace {

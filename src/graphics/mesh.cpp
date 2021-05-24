@@ -779,9 +779,6 @@ void Mesh::updateInstancesOfScene(scene_id_t sceneId, const std::vector<MeshInst
             auto &thisSceneRanges = instanceSceneLayerRanges[sceneId];
             thisSceneRanges.clear();
             while (sourceIt != newSceneInstances.end()) {
-                if (destinationIt == instances.end()) {
-                    int bp = 5;
-                }
                 if (destinationIt->operator!=(*sourceIt)) {
                     instancesHaveChanged = true;
                     *destinationIt = *sourceIt;

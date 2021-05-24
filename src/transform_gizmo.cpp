@@ -28,6 +28,7 @@ namespace transform_gizmo {
 
         debugNode = std::make_shared<generated_mesh::UVSphereNode>(ldr_color_repo::getPureColor("#ff0000"), this->scene->getRootNode());
         debugNode->setRelativeTransformation(glm::scale(glm::mat4(1.0f), glm::vec3(10.0f)));
+        debugNode->layer = 5;
         this->scene->getRootNode()->addChild(debugNode);
     }
 
@@ -306,9 +307,10 @@ namespace transform_gizmo {
         return "Transform Gizmo 2D Arrow Node";
     }
 
-    void Translate1dOperation::update(const glm::vec2 &newMousePos) {
-        const auto currentPointOnTransformRay = getClosestPointOnTransformRay(startMousePos + newMousePos);
-        spdlog::debug("{} <==> {}", glm::to_string(startPointOnTransformRay), glm::to_string(currentPointOnTransformRay));
+    void Translate1dOperation::update(const glm::vec2 &mouseDelta) {
+        const auto currentPointOnTransformRay = getClosestPointOnTransformRay(startMousePos + mouseDelta);
+        //spdlog::debug("{} <==> {}", glm::to_string(startPointOnTransformRay), glm::to_string(currentPointOnTransformRay));
+        spdlog::debug("mouseDelta={}, abs={}", mouseDelta, startMousePos+mouseDelta);
         auto translation = glm::translate(currentPointOnTransformRay - startPointOnTransformRay);
         gizmo.currentlySelectedNode->setRelativeTransformation(startNodeRelTransformation * translation);
         gizmo.node->setRelativeTransformation(startGizmoRelTransformation * translation);
@@ -328,20 +330,21 @@ namespace transform_gizmo {
         spdlog::debug("transformRay={}", transformRay);
         spdlog::debug("startPointOnTransformRay={}", startPointOnTransformRay);
 
-        glm::usvec2 imageSize = gizmo.scene->getImageSize();
+        /*glm::usvec2 imageSize = gizmo.scene->getImageSize();
         for (int x = 0; x < imageSize.x; x+=50) {
             for (int y = 0; y < imageSize.y; y+=50) {
                 const Ray3 worldRay = gizmo.scene->screenCoordinatesToWorldRay({x, y});
                 spdlog::debug("{};{};{};{};{}", x, y, worldRay.direction.x, worldRay.direction.y, worldRay.direction.z);
             }
-        }
+        }*/
     }
 
     glm::vec3 Translate1dOperation::getClosestPointOnTransformRay(const glm::svec2 &mouseCoords) {
         Ray3 currentMouseRay = gizmo.scene->screenCoordinatesToWorldRay(mouseCoords);
-        currentMouseRay *= constants::OPENGL_TO_LDU;
-        spdlog::debug("currentMouseRay={}", currentMouseRay);
-        auto debugNodeTransformation = glm::translate(currentMouseRay.origin + glm::normalize(currentMouseRay.direction) * -25.0f);
+        const auto centerVec = glm::normalize(gizmo.scene->getCamera()->getTargetPos()-gizmo.scene->getCamera()->getCameraPos());
+        spdlog::debug("currentMouseRay={}, centerVec={}", currentMouseRay, centerVec);
+        currentMouseRay *= constants::OPENGL_TO_LDU/*glm::scale(glm::vec3(constants::LDU_TO_OPENGL_SCALE))*/;
+        auto debugNodeTransformation = glm::translate(currentMouseRay.origin + glm::normalize(currentMouseRay.direction) * 250.0f);
         debugNodeTransformation = glm::scale(debugNodeTransformation, glm::vec3(10.0f));
         gizmo.debugNode->setRelativeTransformation(glm::transpose(debugNodeTransformation));
         return util::closestLineBetweenTwoRays(transformRay, currentMouseRay).pointOnA;

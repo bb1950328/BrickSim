@@ -64,7 +64,7 @@ namespace transform_gizmo {
         glm::mat4 startNodeRelTransformation;
         glm::mat4 startGizmoRelTransformation;
         glm::vec3 startPointOnTransformRay;
-        const glm::vec2 &startMousePos;
+        const glm::vec2 startMousePos;
     };
 
     class TG2DArrowNode : public etree::MeshNode {

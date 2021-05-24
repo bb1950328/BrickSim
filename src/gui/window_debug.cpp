@@ -7,12 +7,15 @@
 #include "../controller.h"
 #include "../metrics.h"
 #include "../helpers/util.h"
+#include <glm/gtx/io.hpp>
 
 namespace gui {
     namespace {
         void drawGeneralTab();
 
         void drawPerformanceTab();
+        
+        void drawCameraTab();
 
         constexpr size_t MESHES_TAB_BUF_SIZE = 32;
 
@@ -196,6 +199,52 @@ namespace gui {
                     ImGui::EndTable();
                 }
 
+                ImGui::EndTabItem();
+            }
+        }
+        
+        void drawCameraTab() {
+            if (ImGui::BeginTabItem(ICON_FA_CAMERA" Camera")) {
+                auto camera = controller::getMainSceneCamera();
+                if (ImGui::BeginTable("##cameraTable", 2, ImGuiTableFlags_SizingFixedFit)) {
+                    ImGui::TableNextRow();
+                    auto cameraPos = camera->getCameraPos();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("CameraPos");
+                    ImGui::TableNextColumn();
+                    ImGui::Text("[%f, %f, %f]", cameraPos.x, cameraPos.y, cameraPos.z);
+
+                    ImGui::TableNextRow();
+                    auto targetPos = camera->getTargetPos();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("TargetPos");
+                    ImGui::TableNextColumn();
+                    ImGui::Text("[%f, %f, %f]", targetPos.x, targetPos.y, targetPos.z);
+
+                    ImGui::TableNextRow();
+                    auto viewMatrix = camera->getViewMatrix();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("ViewMatrix");
+                    ImGui::TableNextColumn();
+                    std::stringstream sstream;
+                    sstream << viewMatrix;
+                    const auto viewMatrixStr = sstream.str();
+                    ImGui::Text("%s", viewMatrixStr.c_str());
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("Distance");
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%f", camera->getDistance());
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("Pitch, Yaw");
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%f, %f", camera->getPitch(), camera->getYaw());
+
+                    ImGui::EndTable();
+                }
                 ImGui::EndTabItem();
             }
         }
@@ -536,6 +585,7 @@ namespace gui {
             drawGeneralTab();
             drawPerformanceTab();
             drawMeshesTab();
+            drawCameraTab();
 
             ImGui::EndTabBar();
         }

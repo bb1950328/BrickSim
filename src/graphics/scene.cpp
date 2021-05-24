@@ -346,9 +346,11 @@ Ray3 Scene::screenCoordinatesToWorldRay(glm::usvec2 screenCoords) {
     //https://stackoverflow.com/a/30005258/8733066
     const auto projectionView = projectionMatrix * camera->getViewMatrix();
     const auto ndc = glm::vec2(screenCoords)/glm::vec2(imageSize) * 2.0f - 1.0f;
-    const auto inverseProjectionView = glm::inverse(projectionView * constants::LDU_TO_OPENGL);
-    const auto worldPos = inverseProjectionView * glm::vec4(ndc.x, -ndc.y, 1.0f, 1.0f);
-    return {camera->getCameraPos(), glm::normalize(glm::vec3(worldPos))};
+    const auto inverseProjectionView = glm::inverse(projectionView);
+    auto worldPos = inverseProjectionView * glm::vec4(ndc.x, -ndc.y, 1.0f, 1.0f);
+    const auto cameraPos = camera->getCameraPos();
+    worldPos /= worldPos.w;
+    return {cameraPos, glm::normalize(glm::vec3(worldPos)-cameraPos)};
 }
 
 namespace scenes {

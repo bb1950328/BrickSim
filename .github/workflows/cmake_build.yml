@@ -239,6 +239,9 @@ jobs:
       - name: Setup workspace
         run: ./setup_workspace.sh only${{ matrix.bits }}bit
 
+      - name: Try to find ninja
+        run: pacman -Ql mingw-w64-${{ matrix.arch }}-ninja
+
       - name: Build
         env:
           CC: /C/msys64/mingw${{ matrix.bits }}/bin/gcc.exe

@@ -240,7 +240,7 @@ jobs:
         run: ./setup_workspace.sh only${{ matrix.bits }}bit
 
       - name: install ninja 2
-        run: pacman -S ninja mingw-w64-ninja --noconfirm --needed
+        run: pacman -S ninja --noconfirm --needed
 
       - name: Try to find ninja
         run: pacman -Ql mingw-w64-${{ matrix.arch }}-ninja

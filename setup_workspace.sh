@@ -41,7 +41,7 @@ if [[ "$OS" == "linux" ]]; then
   echo "Installing packages using apt-get..."
   sudo apt-get update
   sudo apt-get install -y build-essential gcc-10 g++-10 gcc-multilib g++-multilib gcc-10-multilib g++-10-multilib \
-                          cmake mesa-utils libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev
+                          cmake mesa-utils libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev ninja-build
 
   if [ "$install_32bit_packages" ]; then
     sudo apt-get install -y libgl1-mesa-dev:i386 libglu1-mesa-dev:i386 freeglut3-dev:i386 libzstd-dev:i386  \
@@ -59,15 +59,11 @@ if [[ "$OS" == "windows" ]]; then
   echo "Installing packages using pacman..."
   pacman -S unzip base-devel msys2-devel libcurl-devel --noconfirm --needed
   if [ "$install_32bit_packages" ]; then
-      pacman -S mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-freeglut --noconfirm --needed
+      pacman -S mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-freeglut mingw-w64-i686-ninja --noconfirm --needed
   fi
   if [ "$install_64bit_packages" ]; then
-      pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-freeglut --noconfirm --needed
+      pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-freeglut mingw-w64-x86_64-ninja --noconfirm --needed
   fi
-  #pacman -S "$(pacman -Ssq freeglut)" --noconfirm --needed
-  #pacman -S openssl-devel # todo find out if these are needed
-  #pacman -S mingw-w64-openssl
-  #pacman -S mingw-w64-x86_64-openssl
   echo "packages installed."
 fi
 
@@ -80,7 +76,7 @@ if [[ "$OS" == "mac" ]]; then
     echo "brew already installed."
   fi
 
-  brew install openssl
+  brew install openssl ninja
 fi
 ###########################################
 

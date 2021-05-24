@@ -251,10 +251,11 @@ jobs:
             -DTOTAL_HOURS:STRING=$(../../scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(../../scripts/get_git_tag.sh)
           cmake --build . --target BrickSim BrickSimTests --config Release  -j $(nproc --all)
       - if: always()
+        name: Print CMake logs
         run: |
           cd cmake-build/release${{ matrix.bits }}
-          cat CMakeFiles/CMakeOutput.log
-          cat CMakeFiles/CMakeError.log
+          cat CMakeFiles/CMakeOutput.log || True
+          cat CMakeFiles/CMakeError.log || True
 
       - name: Try to find binary
         working-directory: ${{runner.workspace}}

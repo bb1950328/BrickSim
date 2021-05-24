@@ -242,6 +242,9 @@ jobs:
       - name: Try to find ninja
         run: pacman -Ql mingw-w64-${{ matrix.arch }}-ninja
 
+      - name: Try to find ninja 2
+        run: find /C/msys64 -name "*ninja*"
+
       - name: Build
         env:
           CC: /C/msys64/mingw${{ matrix.bits }}/bin/gcc.exe
@@ -250,7 +253,7 @@ jobs:
           mkdir -p cmake-build/release${{ matrix.bits }}
           cd cmake-build/release${{ matrix.bits }}
           cmake -G Ninja ../.. -DCMAKE_PREFIX_PATH=/C/mingw64 -DCMAKE_MAKE_PROGRAM=/C/msys64/mingw${{ matrix.bits }}/bin/ninja.exe \
-            -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(../../scripts/get_git_commit_count.sh) \
+            -DGIT_COMMIT_HASH:STRING=$(../../scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(../../scripts/get_git_commit_count.sh) \
             -DTOTAL_HOURS:STRING=$(../../scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(../../scripts/get_git_tag.sh)
           cmake --build . --target BrickSim BrickSimTests --config Release  -j $(nproc --all)
       - if: always()

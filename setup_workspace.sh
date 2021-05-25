@@ -59,10 +59,10 @@ if [[ "$OS" == "windows" ]]; then
   echo "Installing packages using pacman..."
   pacman -S unzip base-devel msys2-devel libcurl-devel --noconfirm --needed
   if [ "$install_32bit_packages" ]; then
-      pacman -S mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-freeglut mingw-w64-i686-ninja --noconfirm --needed
+      pacman -S mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-freeglut --noconfirm --needed
   fi
   if [ "$install_64bit_packages" ]; then
-      pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-freeglut mingw-w64-x86_64-ninja --noconfirm --needed
+      pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-freeglut --noconfirm --needed
   fi
   echo "packages installed."
 fi

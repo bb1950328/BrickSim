@@ -26,13 +26,6 @@ jobs:
 
     name: Linux Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
 
-    env:
-      CCACHE_BASEDIR: ${{runner.workspace}}
-      CCACHE_DIR: ${{runner.workspace}}/.ccache
-      CCACHE_COMPRESS: true
-      CCACHE_COMPRESSLEVEL: 6
-      CCACHE_MAXSIZE: 500M
-
     steps:
     - uses: actions/checkout@v2
       with:
@@ -78,6 +71,12 @@ jobs:
         LDFLAGS: -m${{ matrix.bits }}
         CXXFLAGS: -m${{ matrix.bits }}
 
+        CCACHE_BASEDIR: ${{runner.workspace}}
+        CCACHE_DIR: ${{runner.workspace}}/.ccache
+        CCACHE_COMPRESS: true
+        CCACHE_COMPRESSLEVEL: 6
+        CCACHE_MAXSIZE: 500M
+
 #    - name: get info
 #      run: |
 #        gcc --version
@@ -88,6 +87,12 @@ jobs:
       working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
       shell: bash
       run: cmake --build . --target BrickSim BrickSimTests --config $BUILD_TYPE -j $(nproc --all)
+      env:
+        CCACHE_BASEDIR: ${{runner.workspace}}
+        CCACHE_DIR: ${{runner.workspace}}/.ccache
+        CCACHE_COMPRESS: true
+        CCACHE_COMPRESSLEVEL: 6
+        CCACHE_MAXSIZE: 500M
 
     - if: "contains(github.event.head_commit.message, 'codeql')"
       name: Perform CodeQL Analysis
@@ -407,13 +412,6 @@ jobs:
 
     name: MacOS Build
 
-    env:
-      CCACHE_BASEDIR: ${{runner.workspace}}
-      CCACHE_DIR: ${{runner.workspace}}/.ccache
-      CCACHE_COMPRESS: true
-      CCACHE_COMPRESSLEVEL: 6
-      CCACHE_MAXSIZE: 500M
-
     steps:
       - uses: actions/checkout@v2
         with:
@@ -443,6 +441,12 @@ jobs:
           CC: clang
           CXX: clang++
 
+          CCACHE_BASEDIR: ${{runner.workspace}}
+          CCACHE_DIR: ${{runner.workspace}}/.ccache
+          CCACHE_COMPRESS: true
+          CCACHE_COMPRESSLEVEL: 6
+          CCACHE_MAXSIZE: 500M
+
       - name: get info
         run: |
           gcc --version
@@ -453,6 +457,12 @@ jobs:
         working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release
         shell: bash
         run: cmake --build . --target BrickSim --config $BUILD_TYPE -j $(nproc --all)
+        env:
+          CCACHE_BASEDIR: ${{runner.workspace}}
+          CCACHE_DIR: ${{runner.workspace}}/.ccache
+          CCACHE_COMPRESS: true
+          CCACHE_COMPRESSLEVEL: 6
+          CCACHE_MAXSIZE: 500M
 
       - name: Upload Binary
         uses: actions/upload-artifact@v2

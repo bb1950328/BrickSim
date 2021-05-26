@@ -54,11 +54,17 @@ jobs:
     - name: install ccache
       run: sudo apt install ccache
 
+    - name: Get timestamp
+      run: echo "::set-output name=timestamp::$(date --iso-8601=seconds)"
+      id: get_timestamp
+
     - name: Cache
       uses: actions/cache@v2
       with:
         path: ${{runner.workspace}}/.ccache
-        key: ccache-${{ runner.os }}-${{ matrix.arch }}
+        key: ccache-${{ runner.os }}-${{ matrix.arch }}-${{ steps.get_timestamp.outputs.timestamp }}
+        restore-keys: |
+          ccache-${{ runner.os }}-${{ matrix.arch }}-
 
     - name: Configure CMake
       shell: bash
@@ -430,11 +436,17 @@ jobs:
       - name: Install ccache
         run: brew install ccache
 
+      - name: Get timestamp
+        run: echo "::set-output name=timestamp::$(date --iso-8601=seconds)"
+        id: get_timestamp
+
       - name: Setup Cache
         uses: actions/cache@v2
         with:
           path: ${{runner.workspace}}/.ccache
           key: ccache-${{ runner.os }}
+          restore-keys: |
+            ccache-${{ runner.os }}-
 
       - name: Configure CMake
         shell: bash

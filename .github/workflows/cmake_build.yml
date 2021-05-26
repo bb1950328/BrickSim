@@ -86,13 +86,18 @@ jobs:
     - name: Build
       working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
       shell: bash
-      run: cmake --build . --target BrickSim BrickSimTests --config $BUILD_TYPE -j $(nproc --all)
+      run: |
+        ccache -z # zero statistics
+        cmake --build . --target BrickSim BrickSimTests --config $BUILD_TYPE -j $(nproc --all)
       env:
         CCACHE_BASEDIR: ${{runner.workspace}}
         CCACHE_DIR: ${{runner.workspace}}/.ccache
         CCACHE_COMPRESS: true
         CCACHE_COMPRESSLEVEL: 6
         CCACHE_MAXSIZE: 500M
+
+    - name: Print ccache statistics
+      run: ccache -s
 
     - if: "contains(github.event.head_commit.message, 'codeql')"
       name: Perform CodeQL Analysis
@@ -456,13 +461,18 @@ jobs:
       - name: Build
         working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release
         shell: bash
-        run: cmake --build . --target BrickSim --config $BUILD_TYPE -j $(nproc --all)
+        run: |
+          ccache -z # zero statistics
+          cmake --build . --target BrickSim --config $BUILD_TYPE -j $(nproc --all)
         env:
           CCACHE_BASEDIR: ${{runner.workspace}}
           CCACHE_DIR: ${{runner.workspace}}/.ccache
           CCACHE_COMPRESS: true
           CCACHE_COMPRESSLEVEL: 6
           CCACHE_MAXSIZE: 500M
+
+      - name: Print ccache statistics
+        run: ccache -s
 
       - name: Upload Binary
         uses: actions/upload-artifact@v2

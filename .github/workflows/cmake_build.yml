@@ -125,7 +125,7 @@ jobs:
         name: BrickSimTests_Linux${{ matrix.bits }}
         path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSimTests
   testLinux:
-    name: Catch2 Unittests Linux
+    name: Linux Tests
     needs: buildLinux
     runs-on: ubuntu-latest
     steps:
@@ -475,7 +475,8 @@ jobs:
       - name: Configure CMake
         shell: bash
         working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64 -G Ninja
         env:
           CC: clang
           CXX: clang++

@@ -5,7 +5,7 @@ on:
     branches:
       - master
       - stable
-      - multiplatform_unittests
+      - gha_add_ccache
     paths-ignore:
       - "docs/**"
       - '**/*.md'
@@ -25,6 +25,13 @@ jobs:
         ]
 
     name: Linux Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
+
+    env:
+      CCACHE_BASEDIR: ${{runner.workspace}}
+      CCACHE_DIR: ${{runner.workspace}}/.ccache
+      CCACHE_COMPRESS: true
+      CCACHE_COMPRESSLEVEL: 6
+      CCACHE_MAXSIZE: 500M
 
     steps:
     - uses: actions/checkout@v2
@@ -51,10 +58,19 @@ jobs:
     - run: ls -l /usr/lib | grep linux
     - run: ls -l /usr
 
+    - name: install ccache
+      run: sudo apt install ccache
+
+    - name: Cache
+      uses: actions/cache@v2
+      with:
+        path: ${{runner.workspace}}/.ccache
+        key: ccache-${{ runner.os }}-${{ matrix.arch }}
+
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_LIBRARY_PATH=/usr/lib/${{ matrix.arch }}-linux-gnu -G Ninja
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_LIBRARY_PATH=/usr/lib/${{ matrix.arch }}-linux-gnu -G Ninja
       env:
         CC: gcc-10
         CXX: g++-10
@@ -391,6 +407,13 @@ jobs:
 
     name: MacOS Build
 
+    env:
+      CCACHE_BASEDIR: ${{runner.workspace}}
+      CCACHE_DIR: ${{runner.workspace}}/.ccache
+      CCACHE_COMPRESS: true
+      CCACHE_COMPRESSLEVEL: 6
+      CCACHE_MAXSIZE: 500M
+
     steps:
       - uses: actions/checkout@v2
         with:
@@ -403,10 +426,19 @@ jobs:
       - name: Create Build Environment
         run: mkdir -p $GITHUB_WORKSPACE/cmake-build/release
 
+      - name: Install ccache
+        run: brew install ccache
+
+      - name: Setup Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{runner.workspace}}/.ccache
+          key: ccache-${{ runner.os }}
+
       - name: Configure CMake
         shell: bash
         working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja
         env:
           CC: clang
           CXX: clang++

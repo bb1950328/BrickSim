@@ -5,7 +5,7 @@ on:
     branches:
       - master
       - stable
-      - gha_add_ccache
+      - gha_use_ccacche
     paths-ignore:
       - "docs/**"
       - '**/*.md'

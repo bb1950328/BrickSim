@@ -463,7 +463,7 @@ jobs:
         run: ./setup_workspace.sh
 
       - name: Create Build Environment
-        run: mkdir -p $GITHUB_WORKSPACE/cmake-build/release
+        run: mkdir -p $GITHUB_WORKSPACE/cmake-build/release${{ matrix.name }}
 
       - name: Install ccache
         run: brew install ccache

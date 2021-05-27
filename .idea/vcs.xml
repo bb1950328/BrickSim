@@ -16,11 +16,13 @@
     <mapping directory="$PROJECT_DIR$/src/lib/IconFontCppHeaders" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/SQLiteCpp" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/SQLiteCpp/googletest" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/cpuinfo" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/curl" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/glfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/glm" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/imgui" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/libzip" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/magic_enum" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/rapidjson" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/rapidjson/thirdparty/gtest" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/spdlog" vcs="Git" />

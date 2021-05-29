@@ -15,11 +15,10 @@ namespace gui {
         };
         const std::vector<License> licenses = {
                 License{"Apache License, Version 2.0", "https://www.apache.org/licenses/LICENSE-2.0", "Hugo", (char *) resources::licenses_Apache2_txt},
-                License{"2-Clause BSD License", "https://opensource.org/licenses/BSD-2-Clause", "mingw-std-threads",
-                        (char *) resources::licenses_bsd2clause_txt},
+                License{"2-Clause BSD License", "https://opensource.org/licenses/BSD-2-Clause", "pytorch/cpuinfo", (char *) resources::licenses_bsd2clause_txt},
                 License{"3-Clause BSD License", "https://opensource.org/licenses/BSD-3-Clause", "CMake, ", (char *) resources::licenses_bsd3clause_txt},
                 License{"GPLv3", "https://www.gnu.org/licenses/gpl-3.0.en.html", "BrickSim itself, Miniball", (char *) resources::licenses_GPLv3_txt},
-                License{"MIT", "https://opensource.org/licenses/MIT", "dear imgui, SQLiteCpp, glad, rapidjson", (char *) resources::licenses_MIT_txt},
+                License{"MIT", "https://opensource.org/licenses/MIT", "dear imgui, SQLiteCpp, glad, rapidjson, magic_enum", (char *) resources::licenses_MIT_txt},
                 License{"zlib", "https://opensource.org/licenses/Zlib", "GLFW, tinyfiledialogs", (char *) resources::licenses_zlib_txt},
         };
     }

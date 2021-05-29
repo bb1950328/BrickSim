@@ -6,6 +6,7 @@
     <licenseFile>${build_project_directory}/LICENSE</licenseFile>
     <logoImage>${build_project_directory}/resources/logo_icon_48x48.png</logoImage>
     <splashImage>${build_project_directory}/resources/logo_fit_314x163.png</splashImage>
+    <osxPlatforms>osx-x86_64 osx-arm64</osxPlatforms>
     <componentList>
         <component>
             <name>main</name>

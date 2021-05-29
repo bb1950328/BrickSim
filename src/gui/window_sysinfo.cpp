@@ -12,7 +12,7 @@ namespace gui {
                 for (const auto &line: infoLines) {
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
-                    ImGui::Text("%s", line.first);
+                    ImGui::Text("%s", line.first.c_str());
                     ImGui::TableNextColumn();
                     ImGui::Text("%s", line.second.c_str());
                 }

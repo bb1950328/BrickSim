@@ -196,6 +196,18 @@ target_include_directories(BrickSimLib PUBLIC src/lib/rapidjson/include)
 #stb
 target_include_directories(BrickSimLib PUBLIC src/lib/stb)
 
+#cpuinfo
+set(CPUINFO_BUILD_TOOLS OFF CACHE BOOL "Build command-line tools" FORCE)
+set(CPUINFO_BUILD_UNIT_TESTS OFF CACHE BOOL "Build cpuinfo unit tests" FORCE)
+set(CPUINFO_BUILD_MOCK_TESTS OFF CACHE BOOL "Build cpuinfo mock tests" FORCE)
+set(CPUINFO_BUILD_BENCHMARKS OFF CACHE BOOL "Build cpuinfo micro-benchmarks" FORCE)
+add_subdirectory(src/lib/cpuinfo)
+target_link_libraries(BrickSimLib PRIVATE cpuinfo)
+
+#magic_enum
+add_subdirectory(src/lib/magic_enum)
+target_link_libraries(BrickSimLib PRIVATE magic_enum::magic_enum)
+
 add_subdirectory(src)
 
 if (WIN32)

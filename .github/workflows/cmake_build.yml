@@ -445,6 +445,14 @@ jobs:
 
     name: MacOS Build
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { arch: x86_64, name: 64 },
+          { arch: arm64, name: ARM }
+        ]
+
     steps:
       - uses: actions/checkout@v2
         with:
@@ -455,7 +463,7 @@ jobs:
         run: ./setup_workspace.sh
 
       - name: Create Build Environment
-        run: mkdir -p $GITHUB_WORKSPACE/cmake-build/release
+        run: mkdir -p $GITHUB_WORKSPACE/cmake-build/release${{ matrix.name }}
 
       - name: Install ccache
         run: brew install ccache
@@ -468,15 +476,16 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{runner.workspace}}/.ccache
-          key: ccache-${{ runner.os }}
+          key: ccache-${{ runner.os }}-${{ matrix.arch }}-${{ steps.get_timestamp.outputs.timestamp }}
           restore-keys: |
-            ccache-${{ runner.os }}-
+            ccache-${{ runner.os }}-${{ matrix.arch }}-
 
       - name: Configure CMake
         shell: bash
-        working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-              -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64 -G Ninja
+        working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.name }}
+        run: |
+          cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}" -G Ninja
         env:
           CC: clang
           CXX: clang++
@@ -489,12 +498,10 @@ jobs:
 
       - name: get info
         run: |
-          gcc --version
-          whereis gcc
           echo "runner.workspace: \"${{runner.workspace}}\""
 
       - name: Build
-        working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release
+        working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.name }}
         shell: bash
         run: |
           ccache -z # zero statistics
@@ -510,14 +517,22 @@ jobs:
       - name: Upload Binary
         uses: actions/upload-artifact@v2
         with:
-          name: BrickSimRawBinary_Mac
-          path: ${{runner.workspace}}/BrickSim/cmake-build/release/BrickSim
+          name: BrickSimRawBinary_Mac${{ matrix.name }}
+          path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.name }}/BrickSim
 
   buildInstallerMac:
     needs: buildMac
     runs-on: macos-latest
 
     name: Mac Installer Build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { arch: x86_64, name: 64 },
+          { arch: arm64, name: ARM }
+        ]
 
     steps:
       - name: Install wget
@@ -542,14 +557,14 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v2
         with:
-          name: BrickSimRawBinary_Mac
+          name: BrickSimRawBinary_Mac${{ matrix.name }}
           path: ${{ runner.workspace }}/artifacts
 
       - name: Create build directory and copy raw binary to it
         run: |
-          mkdir -p $GITHUB_WORKSPACE/cmake-build/release
-          cp ${{ runner.workspace }}/artifacts/BrickSim $GITHUB_WORKSPACE/cmake-build/release
-          chmod a+x $GITHUB_WORKSPACE/cmake-build/release/BrickSim
+          mkdir -p $GITHUB_WORKSPACE/cmake-build/release${{ matrix.name }}
+          cp ${{ runner.workspace }}/artifacts/BrickSim $GITHUB_WORKSPACE/cmake-build/release${{ matrix.name }}
+          chmod a+x $GITHUB_WORKSPACE/cmake-build/release${{ matrix.name }}/BrickSim
 
       - name: Build Installer
         run: |
@@ -562,7 +577,7 @@ jobs:
       - name: Upload BrickSimInstaller
         uses: actions/upload-artifact@v2
         with:
-          name: BrickSimInstaller_Mac
+          name: BrickSimInstaller_Mac${{ matrix.name }}
           path: ${{runner.workspace}}/installbuilder/output/*.app
 
   publishTestResults:

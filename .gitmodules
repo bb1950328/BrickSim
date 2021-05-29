@@ -35,3 +35,9 @@
 [submodule "src/lib/curl"]
 	path = src/lib/curl
 	url = https://github.com/curl/curl.git
+[submodule "src/lib/cpuinfo"]
+	path = src/lib/cpuinfo
+	url = https://github.com/pytorch/cpuinfo
+[submodule "src/lib/magic_enum"]
+	path = src/lib/magic_enum
+	url = https://github.com/Neargye/magic_enum

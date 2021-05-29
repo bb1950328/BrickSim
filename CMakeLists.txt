@@ -171,7 +171,7 @@ set(HTTP_ONLY ON)
 set(CMAKE_USE_LIBSSH2 OFF)
 if (APPLE)
     set(CMAKE_USE_SECTRANSP ON CACHE BOOL "enable Apple OS native SSL/TLS" FORCE)
-else()
+endif()
 add_subdirectory(src/lib/curl)
 target_link_libraries(BrickSimLib PUBLIC CURL::libcurl)
 

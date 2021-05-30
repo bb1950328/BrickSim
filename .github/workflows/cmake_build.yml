@@ -391,7 +391,7 @@ jobs:
           Copy-Item "${{ runner.workspace }}/artifacts/BrickSim.exe" -Destination "${{ runner.workspace }}/BrickSim/cmake-build/release${{ matrix.bits }}"
 
       - name: Save license to file
-        run: echo "${{ secrets.INSTALLBUILDER_LICENSE_XML_BASE64 }}" | base64 --decode > ${{ runner.workspace }}/license.xml
+        run: base64 -d <<< "${{ secrets.INSTALLBUILDER_LICENSE_XML_BASE64 }}" > ${{ runner.workspace }}/license.xml
 
       - name: Build Installer
         shell: powershell
@@ -663,9 +663,6 @@ jobs:
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1.17
         with:
-          files: |
-            ${{runner.workspace}}/junitReports/junitTestReport_Linux64.xml
-            ${{runner.workspace}}/junitReports/junitTestReport_Windows32.xml
-            ${{runner.workspace}}/junitReports/junitTestReport_Windows64.xml
+          files: ${{runner.workspace}}/junitReports/*.xml
           check_name: Catch2 Test Results
           comment_title: Catch2 Test Results

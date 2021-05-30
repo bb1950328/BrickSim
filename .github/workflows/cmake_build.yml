@@ -191,7 +191,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ runner.workspace }}/installbuilder_installer.run
-          key: installbuilder-21.3.0-linux-x64-installer
+          key: installbuilder-21.3.0-linux-x64-installer-2
       - name: Download InstallBuilder installer on cache miss
         if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
         working-directory: ${{ runner.workspace }}
@@ -202,7 +202,6 @@ jobs:
         run: |
           chmod a+x installbuilder_installer.run
           ./installbuilder_installer.run --mode unattended --prefix ${{ runner.workspace }}/installbuilder
-          rm installbuilder_installer.run
 
       - uses: actions/checkout@v2
         with:
@@ -368,7 +367,6 @@ jobs:
         shell: powershell
         run: |
           Start-Process -FilePath installbuilder_installer.exe -ArgumentList "--mode unattended --prefix ${{ runner.workspace }}\installbuilder"
-          #Remove-Item -Path installbuilder_installer.exe
 
       - uses: actions/checkout@v2
         with:
@@ -562,7 +560,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ runner.workspace }}/installbuilder_installer.dmg
-          key: installbuilder-enterprise-21.3.0-osx-installer
+          key: installbuilder-enterprise-21.3.0-osx-installer-2
 
       - name: Download InstallBuilder installer on cache miss
         if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
@@ -579,8 +577,6 @@ jobs:
           ls -l -R "/Volumes/InstallBuilder Enterprise"
           /Volumes/InstallBuilder\ Enterprise/installbuilder-enterprise-21.3.0-osx-installer.app/Contents/MacOS/installbuilder.sh --mode unattended --prefix ${{ runner.workspace }}/installbuilder
           sudo hdiutil detach "/Volumes/InstallBuilder Enterprise"
-          rm installbuilder_installer.dmg
-
 
       - uses: actions/checkout@v2
         with:

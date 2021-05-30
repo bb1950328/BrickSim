@@ -18,47 +18,13 @@ namespace constants {
     constexpr mesh_identifier_t MESH_ID_TRANSFORM_GIZMO_2D_ARROW = 12;
     constexpr mesh_identifier_t MESH_ID_CUBE = 12;
 
-    constexpr uint16_t versionMajor =
-#ifdef BRICKSIM_VERSION_MAJOR
-            BRICKSIM_VERSION_MAJOR;
-#else
-#warning Please set the BRICKSIM_VERSION_MAJOR macro
-    0;
-#endif
-    constexpr uint16_t versionMinor =
-#ifdef BRICKSIM_VERSION_MINOR
-            BRICKSIM_VERSION_MINOR;
-#else
-    #warning Please set the BRICKSIM_VERSION_MINOR macro
-    0;
-#endif
-    ;
-    constexpr uint16_t versionPatch =
-#ifdef BRICKSIM_VERSION_PATCH
-            BRICKSIM_VERSION_PATCH;
-#else
-    #warning Please set the BRICKSIM_VERSION_PATCH macro
-    0;
-#endif
-    ;
+    extern const uint16_t versionMajor;
+    extern const uint16_t versionMinor;
+    extern const uint16_t versionPatch;
     extern const char *versionString;
 
-    constexpr float totalWorkHours =
-#ifdef BRICKSIM_TOTAL_HOURS
-            BRICKSIM_TOTAL_HOURS;
-#else
-    #warning Please set the BRICKSIM_TOTAL_HOURS macro
-    0;
-#endif
-    ;
-    constexpr uint16_t gitCommitCount =
-#ifdef BRICKSIM_GIT_COMMIT_COUNT
-            BRICKSIM_GIT_COMMIT_COUNT;
-#else
-    #warning Please set the BRICKSIM_GIT_COMMIT_COUNT macro
-    0;
-#endif
-    ;
+    extern const float totalWorkHours;
+    extern const uint16_t gitCommitCount;
     extern const char *gitCommitHash;
 }
 #endif //BRICKSIM_CONSTANTS_H

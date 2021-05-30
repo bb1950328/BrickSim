@@ -97,15 +97,6 @@ target_link_libraries(BrickSim PRIVATE BrickSimLib)
 add_executable(BrickSimTests src/test/catchMain.cpp)
 target_link_libraries(BrickSimTests PRIVATE BrickSimLib)
 
-target_compile_definitions(BrickSimLib PUBLIC
-        BRICKSIM_TOTAL_HOURS=${TOTAL_HOURS}
-        BRICKSIM_GIT_COMMIT_COUNT=${GIT_COMMIT_COUNT}
-        BRICKSIM_GIT_COMMIT_HASH="${GIT_COMMIT_HASH}"
-        BRICKSIM_VERSION_MAJOR=${BrickSim_VERSION_MAJOR}
-        BRICKSIM_VERSION_MINOR=${BrickSim_VERSION_MINOR}
-        BRICKSIM_VERSION_PATCH=${BrickSim_VERSION_PATCH}
-        )
-
 # OpenGL
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)

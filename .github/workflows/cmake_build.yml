@@ -356,6 +356,7 @@ jobs:
         with:
           path: ${{ runner.workspace }}/installbuilder_installer.exe
           key: installbuilder-enterprise-21.3.0-windows-x64-installer
+
       - name: Download InstallBuilder installer on cache miss
         if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
         working-directory: ${{ runner.workspace }}
@@ -562,6 +563,7 @@ jobs:
         with:
           path: ${{ runner.workspace }}/installbuilder_installer.dmg
           key: installbuilder-enterprise-21.3.0-osx-installer
+
       - name: Download InstallBuilder installer on cache miss
         if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
         working-directory: ${{ runner.workspace }}
@@ -569,6 +571,7 @@ jobs:
         run: |
           brew install wget
           wget -nv https://installbuilder.com/installbuilder-enterprise-21.3.0-osx-installer.dmg -O installbuilder_installer.dmg
+
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         run: |

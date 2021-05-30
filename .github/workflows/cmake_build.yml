@@ -186,10 +186,20 @@ jobs:
     name: Linux Installer Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
 
     steps:
+      - name: Setup cache of InstallBuilder installer
+        id: installbuilder-installer-cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ runner.workspace }}/installbuilder_installer.run
+          key: installbuilder-21.3.0-linux-x64-installer
+      - name: Download InstallBuilder installer on cache miss
+        if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
+        working-directory: ${{ runner.workspace }}
+        #WARNING: if you change the version here, also change it in the cache key
+        run: wget https://installbuilder.com/installbuilder-enterprise-21.3.0-linux-x64-installer.run -O installbuilder_installer.run
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         run: |
-          wget https://installbuilder.com/installbuilder-enterprise-21.3.0-linux-x64-installer.run -O installbuilder_installer.run
           chmod a+x installbuilder_installer.run
           ./installbuilder_installer.run --mode unattended --prefix ${{ runner.workspace }}/installbuilder
           rm installbuilder_installer.run
@@ -340,11 +350,22 @@ jobs:
     name: Windows Installer Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
 
     steps:
+      - name: Setup cache of InstallBuilder installer
+        id: installbuilder-installer-cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ runner.workspace }}/installbuilder_installer.exe
+          key: installbuilder-enterprise-21.3.0-windows-x64-installer
+      - name: Download InstallBuilder installer on cache miss
+        if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
+        working-directory: ${{ runner.workspace }}
+        shell: powershell
+        #WARNING: if you change the version here, also change it in the cache key
+        run: Invoke-WebRequest -Uri https://installbuilder.com/installbuilder-enterprise-21.3.0-windows-x64-installer.exe -OutFile installbuilder_installer.exe
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         shell: powershell
         run: |
-          Invoke-WebRequest -Uri https://installbuilder.com/installbuilder-enterprise-21.3.0-windows-x64-installer.exe -OutFile installbuilder_installer.exe
           Start-Process -FilePath installbuilder_installer.exe -ArgumentList "--mode unattended --prefix ${{ runner.workspace }}\installbuilder"
           #Remove-Item -Path installbuilder_installer.exe
 
@@ -505,7 +526,7 @@ jobs:
         shell: bash
         run: |
           ccache -z # zero statistics
-          cmake --build . --target BrickSim --config $BUILD_TYPE -j $(nproc --all)
+          cmake --build . --target BrickSim --config $BUILD_TYPE -j $(sysctl -n hw.logicalcpu)
           ccache -s # print statistics
         env:
           CCACHE_BASEDIR: ${{runner.workspace}}
@@ -535,19 +556,28 @@ jobs:
         ]
 
     steps:
-      - name: Install wget
-        run: brew install wget
-
+      - name: Setup cache of InstallBuilder installer
+        id: installbuilder-installer-cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ runner.workspace }}/installbuilder_installer.dmg
+          key: installbuilder-enterprise-21.3.0-osx-installer
+      - name: Download InstallBuilder installer on cache miss
+        if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
+        working-directory: ${{ runner.workspace }}
+        #WARNING: if you change the version here, also change it in the cache key
+        run: |
+          brew install wget
+          wget -nv https://installbuilder.com/installbuilder-enterprise-21.3.0-osx-installer.dmg -O installbuilder_installer.dmg
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         run: |
-          wget -nv https://installbuilder.com/installbuilder-enterprise-21.3.0-osx-installer.dmg -O installbuilder_installer.dmg
-          ls -l
           hdiutil attach -noverify installbuilder_installer.dmg
           ls -l -R "/Volumes/InstallBuilder Enterprise"
           /Volumes/InstallBuilder\ Enterprise/installbuilder-enterprise-21.3.0-osx-installer.app/Contents/MacOS/installbuilder.sh --mode unattended --prefix ${{ runner.workspace }}/installbuilder
           sudo hdiutil detach "/Volumes/InstallBuilder Enterprise"
           rm installbuilder_installer.dmg
+
 
       - uses: actions/checkout@v2
         with:

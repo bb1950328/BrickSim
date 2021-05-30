@@ -392,7 +392,8 @@ jobs:
 
       - name: Save license to file
         shell: powershell
-        run: [Text.Encoding]::Utf8.GetString([Convert]::FromBase64String("${{ secrets.INSTALLBUILDER_LICENSE_XML_BASE64 }}")) | Out-File -Path ${{ runner.workspace }}/license.xml
+        run: |
+          [Text.Encoding]::Utf8.GetString([Convert]::FromBase64String("${{ secrets.INSTALLBUILDER_LICENSE_XML_BASE64 }}")) | Out-File -Path ${{ runner.workspace }}/license.xml
 
       - name: Build Installer
         shell: powershell

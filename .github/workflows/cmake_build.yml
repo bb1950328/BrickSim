@@ -220,6 +220,9 @@ jobs:
           cp ${{ runner.workspace }}/artifacts/BrickSim $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}
           chmod a+x $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}/BrickSim
 
+      - name: Save license to file
+        run: echo "${{ secrets.INSTALLBUILDER_LICENSE_XML_BASE64 }}" | base64 --decode > ${{ runner.workspace }}/license.xml
+
       - name: Build Installer
         run: |
           if [[ ${{ matrix.bits }} -eq 32 ]]; then
@@ -228,7 +231,9 @@ jobs:
             PLATFORM="linux-x64"
           fi
           ${{ runner.workspace }}/installbuilder/bin/builder build $GITHUB_WORKSPACE/InstallBuilder.xml $PLATFORM \
-                        --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v)
+                        --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v) --license ${{ runner.workspace }}/license.xml
+      - name: Delete license file
+        run: rm ${{ runner.workspace }}/license.xml
 
       - name: Upload BrickSimInstaller
         uses: actions/upload-artifact@v2
@@ -385,6 +390,9 @@ jobs:
           New-Item "${{ runner.workspace }}/BrickSim/cmake-build/release${{ matrix.bits }}" -ItemType Directory
           Copy-Item "${{ runner.workspace }}/artifacts/BrickSim.exe" -Destination "${{ runner.workspace }}/BrickSim/cmake-build/release${{ matrix.bits }}"
 
+      - name: Save license to file
+        run: echo "${{ secrets.INSTALLBUILDER_LICENSE_XML_BASE64 }}" | base64 --decode > ${{ runner.workspace }}/license.xml
+
       - name: Build Installer
         shell: powershell
         run: |
@@ -397,7 +405,11 @@ jobs:
           $VERSION = $VERSION -replace "v"
           
           New-Item -ItemType directory -Path ${{runner.workspace}}\installbuilder\output
-          Start-Process -FilePath "${{ runner.workspace }}\installbuilder\bin\builder-cli.exe" -ArgumentList "build ${{ runner.workspace }}/BrickSim/InstallBuilder.xml $PLATFORM --setvars project.version=$VERSION installbuilder_output_directory=${{runner.workspace}}/installbuilder/output" -Wait -NoNewWindow
+          Start-Process -FilePath "${{ runner.workspace }}\installbuilder\bin\builder-cli.exe" -ArgumentList "build ${{ runner.workspace }}/BrickSim/InstallBuilder.xml $PLATFORM --setvars project.version=$VERSION installbuilder_output_directory=${{runner.workspace}}/installbuilder/output --license ${{ runner.workspace }}/license.xml" -Wait -NoNewWindow
+
+      - name: Delete license file
+        shell: powershell
+        run: Remove-Item -Path ${{ runner.workspace }}/license.xml
 
       - name: try to find exe
         shell: powershell
@@ -595,10 +607,16 @@ jobs:
           cp ${{ runner.workspace }}/artifacts/BrickSim $GITHUB_WORKSPACE/cmake-build/release${{ matrix.name }}
           chmod a+x $GITHUB_WORKSPACE/cmake-build/release${{ matrix.name }}/BrickSim
 
+      - name: Save license to file
+        run: echo "${{ secrets.INSTALLBUILDER_LICENSE_XML_BASE64 }}" | base64 --decode > ${{ runner.workspace }}/license.xml
+
       - name: Build Installer
         run: |
           ${{ runner.workspace }}/installbuilder/bin/builder build $GITHUB_WORKSPACE/InstallBuilder.xml osx \
-                        --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v)
+                        --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v) --license ${{ runner.workspace }}/license.xml
+
+      - name: Delete license file
+        run: rm ${{ runner.workspace }}/license.xml
 
       - name: View output folder
         run: ls -l -R ${{runner.workspace}}/installbuilder/output

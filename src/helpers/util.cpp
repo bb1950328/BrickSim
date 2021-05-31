@@ -310,7 +310,7 @@ namespace util {
         return vector.x + vector.y + vector.z + vector.w;
     }
 
-    std::string formatBytesValue(size_t bytes) {
+    std::string formatBytesValue(uint64_t bytes) {
         double doubleBytes = bytes;
         static std::string bytePrefixes[] = {"B", "KB", "MB", "GB", "TB"};
         size_t prefixIndex = 0;

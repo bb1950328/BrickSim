@@ -39,7 +39,7 @@ namespace util {
     bool startsWith(const char* fullString, const char* start);
     void replaceAll(std::string &str, const std::string &from, const std::string &to);
     std::string replaceChar(const std::string &str, char from, char to);
-    std::string formatBytesValue(size_t bytes);
+    std::string formatBytesValue(uint64_t bytes);
     bool containsIgnoreCase(const std::string &full, const std::string &sub);
     bool equalsAlphanum(const std::string& a, const std::string& b);
 

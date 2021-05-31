@@ -641,30 +641,30 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: UnitTestReport_Linux64
-          path: ${{runner.workspace}}/artifacts
+          path: artifacts
       - name: Download UnitTestReport_Windows32
         uses: actions/download-artifact@v2
         with:
-          name: UnitTestReport_Windows32
-          path: ${{runner.workspace}}/artifacts
+         name: UnitTestReport_Windows32
+          path: artifacts
       - name: Download UnitTestReport_Windows64
         uses: actions/download-artifact@v2
         with:
           name: UnitTestReport_Windows64
-          path: ${{runner.workspace}}/artifacts
-
+          path: artifacts
+    
       - name: Split files by format
         run: |
-          mkdir ${{runner.workspace}}/junitReports
-          mkdir ${{runner.workspace}}/catchReports
-          mv ${{runner.workspace}}/artifacts/*junit* ${{runner.workspace}}/junitReports
-          mv ${{runner.workspace}}/artifacts/*catch* ${{runner.workspace}}/catchReports
-
-      - run: ls -Rl ${{runner.workspace}}
-
+          mkdir junitReports
+          mkdir catchReports
+          mv artifacts/*junit* junitReports
+          mv artifacts/*catch* catchReports
+      - run: ls -Rl
+    
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         with:
-          files: ${{runner.workspace}}/junitReports/*.xml
+          files: junitReports/*.xml
           check_name: Catch2 Test Results
           comment_title: Catch2 Test Results
+

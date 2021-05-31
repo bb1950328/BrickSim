@@ -645,7 +645,7 @@ jobs:
       - name: Download UnitTestReport_Windows32
         uses: actions/download-artifact@v2
         with:
-         name: UnitTestReport_Windows32
+          name: UnitTestReport_Windows32
           path: artifacts
       - name: Download UnitTestReport_Windows64
         uses: actions/download-artifact@v2

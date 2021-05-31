@@ -663,7 +663,7 @@ jobs:
       - run: ls -Rl ${{runner.workspace}}
 
       - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1.13
+        uses: EnricoMi/publish-unit-test-result-action@v1
         with:
           files: ${{runner.workspace}}/junitReports/*.xml
           check_name: Catch2 Test Results

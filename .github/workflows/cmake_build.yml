@@ -247,15 +247,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip windows ci')"
     runs-on: windows-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include: [
-          { msystem: MINGW64, arch: x86_64, bits: 64 },
-          #{ msystem: MINGW32, arch: i686, bits: 32 }
-        ]
-
-    name: Windows Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
+    name: Windows Build (64 bit / x86_64)
 
     defaults:
       run:
@@ -269,23 +261,23 @@ jobs:
 
       - uses: msys2/setup-msys2@v2
         with:
-          msystem: ${{ matrix.msystem }}
+          msystem: MINGW64
           update: true
           install: >-
             git
             unzip
-            mingw-w64-${{ matrix.arch }}-toolchain
+            mingw-w64-x86_64-toolchain
             base-devel
-            mingw-w64-${{ matrix.arch }}-cmake
+            mingw-w64-x86_64-cmake
             libcurl-devel
-            mingw-w64-${{ matrix.arch }}-freeglut
-            mingw-w64-${{ matrix.arch }}-glm
+            mingw-w64-x86_64-freeglut
+            mingw-w64-x86_64-glm
 
       - name: Setup workspace
-        run: ./setup_workspace.sh only${{ matrix.bits }}bit
+        run: ./setup_workspace.sh only64bit
 
       - name: Install ccache
-        run: pacman -S mingw-w64-${{ matrix.arch }}-ccache --noconfirm --needed
+        run: pacman -S mingw-w64-x86_64-ccache --noconfirm --needed
 
       - name: Get timestamp
         run: echo "::set-output name=timestamp::$(date --iso-8601=seconds)"
@@ -295,14 +287,14 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{runner.workspace}}/.ccache
-          key: ccache-${{ runner.os }}-${{ matrix.arch }}-${{ steps.get_timestamp.outputs.timestamp }}
+          key: ccache-${{ runner.os }}-x86_64-${{ steps.get_timestamp.outputs.timestamp }}
           restore-keys: |
-            ccache-${{ runner.os }}-${{ matrix.arch }}-
+            ccache-${{ runner.os }}-x86_64-
 
       - name: Build
         env:
-          CC: /C/msys64/mingw${{ matrix.bits }}/bin/gcc.exe
-          CXX: /C/msys64/mingw${{ matrix.bits }}/bin/g++.exe
+          CC: /C/msys64/mingw64/bin/gcc.exe
+          CXX: /C/msys64/mingw64/bin/g++.exe
 
           CCACHE_BASEDIR: ${{runner.workspace}}
           CCACHE_DIR: ${{runner.workspace}}/.ccache
@@ -310,8 +302,8 @@ jobs:
           CCACHE_COMPRESSLEVEL: 6
           CCACHE_MAXSIZE: 500M
         run: |
-          mkdir -p cmake-build/release${{ matrix.bits }}
-          cd cmake-build/release${{ matrix.bits }}
+          mkdir -p cmake-build/release64
+          cd cmake-build/release64
           cmake -G "MSYS Makefiles" ../.. -DCMAKE_PREFIX_PATH=/C/mingw64 -DCMAKE_MAKE_PROGRAM=/C/msys64/usr/bin/make.exe \
             -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(../../scripts/get_git_commit_count.sh) \
             -DTOTAL_HOURS:STRING=$(../../scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(../../scripts/get_git_tag.sh) \
@@ -321,7 +313,7 @@ jobs:
           ccache -s # print statistics
       - if: always()
         run: |
-          cd cmake-build/release${{ matrix.bits }}
+          cd cmake-build/release64
           cat CMakeFiles/CMakeOutput.log
           cat CMakeFiles/CMakeError.log
 
@@ -332,27 +324,19 @@ jobs:
       - name: Upload BrickSimRawBinary
         uses: actions/upload-artifact@v2
         with:
-          name: BrickSimRawBinary_Windows${{ matrix.bits }}
-          path: ${{runner.workspace}}\BrickSim\cmake-build\release${{ matrix.bits }}\BrickSim.exe
+          name: BrickSimRawBinary_Windows64
+          path: ${{runner.workspace}}\BrickSim\cmake-build\release64\BrickSim.exe
       - name: Upload BrickSimTests
         uses: actions/upload-artifact@v2
         with:
-          name: BrickSimTests_Windows${{ matrix.bits }}
-          path: ${{runner.workspace}}\BrickSim\cmake-build\release${{ matrix.bits }}\BrickSimTests.exe
+          name: BrickSimTests_Windows64
+          path: ${{runner.workspace}}\BrickSim\cmake-build\release64\BrickSimTests.exe
 
   buildInstallerWindows:
     needs: buildWindows
     runs-on: windows-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include: [
-          { arch: x86_64, bits: 64 },
-          #{ arch: i686, bits: 32 }
-        ]
-
-    name: Windows Installer Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
+    name: Windows Installer Build (64 bit / x86_64)
 
     steps:
       - name: Setup cache of InstallBuilder installer
@@ -382,14 +366,14 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v2
         with:
-          name: BrickSimRawBinary_Windows${{ matrix.bits }}
+          name: BrickSimRawBinary_Windows64
           path: ${{ runner.workspace }}/artifacts
 
       - name: Create build directory and copy raw binary to it
         shell: powershell
         run: |
-          New-Item "${{ runner.workspace }}/BrickSim/cmake-build/release${{ matrix.bits }}" -ItemType Directory
-          Copy-Item "${{ runner.workspace }}/artifacts/BrickSim.exe" -Destination "${{ runner.workspace }}/BrickSim/cmake-build/release${{ matrix.bits }}"
+          New-Item "${{ runner.workspace }}/BrickSim/cmake-build/release64" -ItemType Directory
+          Copy-Item "${{ runner.workspace }}/artifacts/BrickSim.exe" -Destination "${{ runner.workspace }}/BrickSim/cmake-build/release64"
 
       - name: Save license to file
         shell: powershell
@@ -399,16 +383,12 @@ jobs:
       - name: Build Installer
         shell: powershell
         run: |
-          If (${{ matrix.bits }} -eq 32) {
-            $PLATFORM="windows"
-          } else {
-            $PLATFORM="windows-x64"
-          }
           $VERSION = git describe --tags --match v[0-9]* --abbrev=0
           $VERSION = $VERSION -replace "v"
           
           New-Item -ItemType directory -Path ${{runner.workspace}}\installbuilder\output
-          Start-Process -FilePath "${{ runner.workspace }}\installbuilder\bin\builder-cli.exe" -ArgumentList "build ${{ runner.workspace }}/BrickSim/InstallBuilder.xml $PLATFORM --setvars project.version=$VERSION installbuilder_output_directory=${{runner.workspace}}/installbuilder/output --license ${{ runner.workspace }}/license.xml" -Wait -NoNewWindow
+          Start-Process -FilePath "${{ runner.workspace }}\installbuilder\bin\builder-cli.exe" -Wait -NoNewWindow `
+            -ArgumentList "build ${{ runner.workspace }}/BrickSim/InstallBuilder.xml windows-x64 --setvars project.version=$VERSION installbuilder_output_directory=${{runner.workspace}}/installbuilder/output --license ${{ runner.workspace }}/license.xml"
 
       - name: Delete license file
         shell: powershell
@@ -421,7 +401,7 @@ jobs:
       - name: Upload BrickSimInstaller
         uses: actions/upload-artifact@v2
         with:
-          name: BrickSimInstaller_Windows${{ matrix.bits }}
+          name: BrickSimInstaller_Windows64
           path: ${{runner.workspace}}\installbuilder\output\*.exe
 
   testWindows:
@@ -437,13 +417,13 @@ jobs:
           #{ arch: i686, bits: 32 }
         ]
 
-    name: Windows Tests (${{ matrix.bits }} bit / ${{ matrix.arch }})
+    name: Windows Tests (64 bit / x86_64)
 
     steps:
       - name: Download test artifact
         uses: actions/download-artifact@v2
         with:
-          name: BrickSimTests_Windows${{ matrix.bits }}
+          name: BrickSimTests_Windows64
 
       - name: Get info about the .exe
         shell: powershell
@@ -451,15 +431,15 @@ jobs:
 
       - name: Run tests with JUnit XML output
         shell: powershell
-        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-r junit" -Wait -NoNewWindow -RedirectStandardOutput ${{runner.workspace}}\junitTestReport_Windows${{ matrix.bits }}.xml
+        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-r junit" -Wait -NoNewWindow -RedirectStandardOutput ${{runner.workspace}}\junitTestReport_Windows64.xml
 
       - name: Run tests with Catch2 XML output
         shell: powershell
-        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-d yes -r xml" -Wait -NoNewWindow -RedirectStandardOutput ${{runner.workspace}}\catchTestReport_Windows${{ matrix.bits }}.xml
+        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-d yes -r xml" -Wait -NoNewWindow -RedirectStandardOutput ${{runner.workspace}}\catchTestReport_Windows64.xml
 
       - name: Print report to log
         shell: powershell
-        run: Get-Content ${{runner.workspace}}\catchTestReport_Windows${{ matrix.bits }}.xml
+        run: Get-Content ${{runner.workspace}}\catchTestReport_Windows64.xml
         if: always()
 
       - name: Run tests with Console output
@@ -471,7 +451,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: UnitTestReport_Windows${{ matrix.bits }}
+          name: UnitTestReport_Windows64
           path: ${{runner.workspace}}/*TestReport*.xml
 
   buildMac:

@@ -5,7 +5,6 @@ on:
     branches:
       - master
       - stable
-      - gha_use_ccacche
     paths-ignore:
       - "docs/**"
       - '**/*.md'
@@ -69,7 +68,9 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_LIBRARY_PATH=/usr/lib/${{ matrix.arch }}-linux-gnu -G Ninja
+      run: |
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_LIBRARY_PATH=/usr/lib/${{ matrix.arch }}-linux-gnu -G Ninja
       env:
         CC: gcc-10
         CXX: g++-10
@@ -251,7 +252,7 @@ jobs:
       matrix:
         include: [
           { msystem: MINGW64, arch: x86_64, bits: 64 },
-          { msystem: MINGW32, arch: i686, bits: 32 }
+          #{ msystem: MINGW32, arch: i686, bits: 32 }
         ]
 
     name: Windows Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
@@ -348,7 +349,7 @@ jobs:
       matrix:
         include: [
           { arch: x86_64, bits: 64 },
-          { arch: i686, bits: 32 }
+          #{ arch: i686, bits: 32 }
         ]
 
     name: Windows Installer Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
@@ -433,7 +434,7 @@ jobs:
       matrix:
         include: [
           { arch: x86_64, bits: 64 },
-          { arch: i686, bits: 32 }
+          #{ arch: i686, bits: 32 }
         ]
 
     name: Windows Tests (${{ matrix.bits }} bit / ${{ matrix.arch }})
@@ -589,7 +590,8 @@ jobs:
         run: |
           hdiutil attach -noverify installbuilder_installer.dmg
           ls -l -R "/Volumes/InstallBuilder Enterprise"
-          /Volumes/InstallBuilder\ Enterprise/installbuilder-enterprise-21.3.0-osx-installer.app/Contents/MacOS/installbuilder.sh --mode unattended --prefix ${{ runner.workspace }}/installbuilder
+          /Volumes/InstallBuilder\ Enterprise/installbuilder-enterprise-21.3.0-osx-installer.app/Contents/MacOS/installbuilder.sh \
+                  --mode unattended --prefix ${{ runner.workspace }}/installbuilder
           sudo hdiutil detach "/Volumes/InstallBuilder Enterprise"
 
       - uses: actions/checkout@v2
@@ -615,7 +617,8 @@ jobs:
       - name: Build Installer
         run: |
           ${{ runner.workspace }}/installbuilder/bin/builder build $GITHUB_WORKSPACE/InstallBuilder.xml osx \
-                        --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v) --license ${{ runner.workspace }}/license.xml
+                        --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v) \
+                        --license ${{ runner.workspace }}/license.xml
 
       - name: Delete license file
         run: rm ${{ runner.workspace }}/license.xml
@@ -642,11 +645,7 @@ jobs:
         with:
           name: UnitTestReport_Linux64
           path: artifacts
-      - name: Download UnitTestReport_Windows32
-        uses: actions/download-artifact@v2
-        with:
-          name: UnitTestReport_Windows32
-          path: artifacts
+
       - name: Download UnitTestReport_Windows64
         uses: actions/download-artifact@v2
         with:

@@ -51,5 +51,10 @@ namespace mesh {
         bool operator==(const MeshInstance &other) const;
         bool operator!=(const MeshInstance &other) const;
     };
+
+    struct InstanceRange {
+        unsigned int start;
+        unsigned int count;
+    };
 }
 #endif //BRICKSIM_MESH_SIMPLE_CLASSES_H

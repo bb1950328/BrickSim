@@ -6,6 +6,7 @@
 #include "../../controller.h"
 #include "../../metrics.h"
 #include "../../lib/Miniball.hpp"
+#include "mesh_line_data.h"
 
 namespace mesh {
 
@@ -57,8 +58,8 @@ namespace mesh {
             auto lp2 = lp1 + (transformedNormal * 5.0f);
             LineVertex lv1{lp1, transformedNormal};
             LineVertex lv2{lp2, transformedNormal};
-            addLineVertex(lv1);
-            addLineVertex(lv2);
+            lineData.addVertex(lv1);
+            lineData.addVertex(lv2);
         }
     }
 
@@ -84,8 +85,8 @@ namespace mesh {
             auto lp2 = lp1 + (transformedNormal * 5.0f);
             LineVertex lv1{lp1, transformedNormal};
             LineVertex lv2{lp2, transformedNormal};
-            addLineVertex(lv1);
-            addLineVertex(lv2);
+            lineData.addVertex(lv1);
+            lineData.addVertex(lv2);
         }
     }
 
@@ -150,8 +151,8 @@ namespace mesh {
             auto lp2 = lp1 + (transformedNormal * 5.0f);
             LineVertex lv1{lp1, transformedNormal};
             LineVertex lv2{lp2, transformedNormal};
-            addLineVertex(lv1);
-            addLineVertex(lv2);
+            lineData.addVertex(lv1);
+            lineData.addVertex(lv2);
         }
     }
 
@@ -185,8 +186,8 @@ namespace mesh {
         }
         LineVertex lv1{glm::vec4(lineElement.x1, lineElement.y1, lineElement.z1, 1.0f) * transformation, color};
         LineVertex lv2{glm::vec4(lineElement.x2, lineElement.y2, lineElement.z2, 1.0f) * transformation, color};
-        addLineVertex(lv1);
-        addLineVertex(lv2);
+        lineData.addVertex(lv1);
+        lineData.addVertex(lv2);
     }
 
     void Mesh::addLdrOptionalLine(const LdrColorReference mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation) {
@@ -204,10 +205,10 @@ namespace mesh {
         LineVertex lv1{glm::vec4(optionalLineElement.x1, optionalLineElement.y1, optionalLineElement.z1, 1.0f) * transformation, color};
         LineVertex lv2{glm::vec4(optionalLineElement.x2, optionalLineElement.y2, optionalLineElement.z2, 1.0f) * transformation, color};
         LineVertex cv2{glm::vec4(optionalLineElement.controlX2, optionalLineElement.controlY2, optionalLineElement.controlZ2, 1.0f) * transformation, color};
-        addOptionalLineVertex(cv1);
-        addOptionalLineVertex(lv1);
-        addOptionalLineVertex(lv2);
-        addOptionalLineVertex(cv2);
+        optionalLineData.addVertex(cv1);
+        optionalLineData.addVertex(lv1);
+        optionalLineData.addVertex(lv2);
+        optionalLineData.addVertex(cv2);
     }
 
     void Mesh::addTexturedTriangle(const std::shared_ptr<Texture> &texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3) {
@@ -218,31 +219,7 @@ namespace mesh {
         textures[texture->getID()] = texture;
     }
 
-    void Mesh::addOptionalLineVertex(const LineVertex &vertex) {
-        if (!optionalLineVertices.empty()) {
-            const auto stop = optionalLineVertices.size() >= 8 ? 8 : optionalLineVertices.size();
-            for (size_t i = 1; i < stop; ++i) {
-                const auto index = optionalLineVertices.size() - i;
-                if (optionalLineVertices[index] == vertex) {
-                    optionalLineIndices.push_back(index);
-                    return;
-                }
-            }
-        }
-        optionalLineIndices.push_back(optionalLineVertices.size());
-        optionalLineVertices.push_back(vertex);
-    }
 
-    void Mesh::addLineVertex(const LineVertex &vertex) {
-        for (int i = (int) lineVertices.size() - 1; i >= std::max((int) lineVertices.size() - 12, 0); --i) {
-            if (vertex.position == lineVertices[i].position && vertex.color == lineVertices[i].color) {
-                lineIndices.push_back(i);
-                return;
-            }
-        }
-        lineIndices.push_back(lineVertices.size());
-        lineVertices.push_back(vertex);
-    }
 
     void Mesh::writeGraphicsData() {
         if (!already_initialized) {
@@ -252,8 +229,8 @@ namespace mesh {
 
             initializeTriangleGraphics();
             initializeTexturedTriangleGraphics();
-            initializeLineGraphics();
-            initializeOptionalLineGraphics();
+            lineData.initBuffers(instances);
+            optionalLineData.initBuffers(instances);
 
             already_initialized = true;
         } else {
@@ -265,12 +242,12 @@ namespace mesh {
         const auto ball = getMinimalEnclosingBall();
         auto center = ball.first;
         auto radius = ball.second;
-        addLineVertex({glm::vec4(center.x + radius, center.y, center.z, 1), glm::vec3(1, 0, 0)});
-        addLineVertex({glm::vec4(center.x - radius, center.y, center.z, 1), glm::vec3(1, 0, 0)});
-        addLineVertex({glm::vec4(center.x, center.y + radius, center.z, 1), glm::vec3(0, 1, 0)});
-        addLineVertex({glm::vec4(center.x, center.y - radius, center.z, 1), glm::vec3(0, 1, 0)});
-        addLineVertex({glm::vec4(center.x, center.y, center.z + radius, 1), glm::vec3(0, 0, 1)});
-        addLineVertex({glm::vec4(center.x, center.y, center.z - radius, 1), glm::vec3(0, 0, 1)});
+        lineData.addVertex({glm::vec4(center.x + radius, center.y, center.z, 1), glm::vec3(1, 0, 0)});
+        lineData.addVertex({glm::vec4(center.x - radius, center.y, center.z, 1), glm::vec3(1, 0, 0)});
+        lineData.addVertex({glm::vec4(center.x, center.y + radius, center.z, 1), glm::vec3(0, 1, 0)});
+        lineData.addVertex({glm::vec4(center.x, center.y - radius, center.z, 1), glm::vec3(0, 1, 0)});
+        lineData.addVertex({glm::vec4(center.x, center.y, center.z + radius, 1), glm::vec3(0, 0, 1)});
+        lineData.addVertex({glm::vec4(center.x, center.y, center.z - radius, 1), glm::vec3(0, 0, 1)});
     }
 
     void Mesh::initializeTriangleGraphics() {
@@ -426,19 +403,16 @@ namespace mesh {
                     glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
                     glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
                 }
-                glm::mat4 instancesArray[instances.size()];
+                std::vector<glm::mat4> instancesArray;
+                instancesArray.resize(instances.size());
                 for (int i = 0; i < instances.size(); ++i) {
                     instancesArray[i] = glm::transpose(instances[i].transformation * constants::LDU_TO_OPENGL);
                     if (instances[i].selected) {
                         instancesArray[i][2][3] = 1;
                     }
                 }
-                size_t instance_size = sizeof(glm::mat4);
-                glBindBuffer(GL_ARRAY_BUFFER, lineInstanceVBO);
-                glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
-
-                glBindBuffer(GL_ARRAY_BUFFER, optionalLineInstanceVBO);
-                glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instancesArray[0]), GL_STATIC_DRAW);
+                lineData.rewriteInstanceBuffer(instancesArray);
+                optionalLineData.rewriteInstanceBuffer(instancesArray);
 
                 if (!textureTriangleVaoVertexVboInstanceVbo.empty()) {
                     const auto &texturedTriangleInstancesArray = generateTexturedTriangleInstancesArray();
@@ -453,99 +427,7 @@ namespace mesh {
         }
     }
 
-    void Mesh::initializeLineGraphics() {
-        controller::executeOpenGL([this]() {
-            //vao
-            glGenVertexArrays(1, &lineVAO);
-            glBindVertexArray(lineVAO);
 
-            //vertexVbo
-            glGenBuffers(1, &lineVertexVBO);
-            glBindBuffer(GL_ARRAY_BUFFER, lineVertexVBO);
-            size_t vertex_size = sizeof(LineVertex);
-            glBufferData(GL_ARRAY_BUFFER, lineVertices.size() * vertex_size, &(lineVertices[0]), GL_STATIC_DRAW);
-            metrics::vramUsageBytes += lineVertices.size() * vertex_size;
-
-            // position attribute
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, (void *) nullptr);
-            // color attribute
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(LineVertex, color));
-
-            //instanceVbo
-            auto *instancesArray = new glm::mat4[instances.size()];//todo smart pointer/array
-            for (int i = 0; i < instances.size(); ++i) {
-                instancesArray[i] = glm::transpose(instances[i].transformation * constants::LDU_TO_OPENGL);
-            }
-
-            glGenBuffers(1, &lineInstanceVBO);
-            glBindBuffer(GL_ARRAY_BUFFER, lineInstanceVBO);
-            size_t instance_size = sizeof(glm::mat4);
-            glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
-
-            for (int j = 2; j < 6; ++j) {
-                glEnableVertexAttribArray(j);
-                glVertexAttribPointer(j, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (4 * (j - 2) * sizeof(float)));
-                glVertexAttribDivisor(j, 1);
-            }
-
-            //ebo
-            glGenBuffers(1, &lineEBO);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineEBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * lineIndices.size(), &(lineIndices)[0], GL_STATIC_DRAW);
-            metrics::vramUsageBytes += sizeof(unsigned int) * lineIndices.size();
-
-            delete[] instancesArray;
-        });
-    }
-
-    void Mesh::initializeOptionalLineGraphics() {
-        controller::executeOpenGL([this]() {
-            //vao
-            glGenVertexArrays(1, &optionalLineVAO);
-            glBindVertexArray(optionalLineVAO);
-
-            //vertexVbo
-            glGenBuffers(1, &optionalLineVertexVBO);
-            glBindBuffer(GL_ARRAY_BUFFER, optionalLineVertexVBO);
-            size_t vertex_size = sizeof(LineVertex);
-            glBufferData(GL_ARRAY_BUFFER, optionalLineVertices.size() * vertex_size, &(optionalLineVertices[0]), GL_STATIC_DRAW);
-            metrics::vramUsageBytes += optionalLineVertices.size() * vertex_size;
-
-            // position attribute
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, (void *) nullptr);
-            // color attribute
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(LineVertex, color));
-
-            //instanceVbo
-            auto *instancesArray = new glm::mat4[instances.size()];
-            for (int i = 0; i < instances.size(); ++i) {
-                instancesArray[i] = glm::transpose(instances[i].transformation * constants::LDU_TO_OPENGL);
-            }
-
-            glGenBuffers(1, &optionalLineInstanceVBO);
-            glBindBuffer(GL_ARRAY_BUFFER, optionalLineInstanceVBO);
-            size_t instance_size = sizeof(glm::mat4);
-            glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
-
-            for (int j = 2; j < 6; ++j) {
-                glEnableVertexAttribArray(j);
-                glVertexAttribPointer(j, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (4 * (j - 2) * sizeof(float)));
-                glVertexAttribDivisor(j, 1);
-            }
-
-            //ebo
-            glGenBuffers(1, &optionalLineEBO);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, optionalLineEBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * optionalLineIndices.size(), &(optionalLineIndices)[0], GL_STATIC_DRAW);
-            metrics::vramUsageBytes += sizeof(unsigned int) * optionalLineIndices.size();
-
-            delete[] instancesArray;
-        });
-    }
 
     void Mesh::drawTriangleGraphics(scene_id_t sceneId, layer_t layer) {
         auto range = getSceneLayerInstanceRange(sceneId, layer);
@@ -574,21 +456,8 @@ namespace mesh {
         }
     }
 
-    void Mesh::drawLineGraphics(scene_id_t sceneId, layer_t layer) {
-        auto range = getSceneLayerInstanceRange(sceneId, layer);
-        if (range.has_value() && range->count > 0 && !lineIndices.empty()) {
-            glBindVertexArray(lineVAO);
-            glDrawElementsInstancedBaseInstance(GL_LINES, lineIndices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
-        }
-    }
 
-    void Mesh::drawOptionalLineGraphics(scene_id_t sceneId, layer_t layer) {
-        auto range = getSceneLayerInstanceRange(sceneId, layer);
-        if (range.has_value() && range->count > 0 && !optionalLineIndices.empty()) {
-            glBindVertexArray(optionalLineVAO);
-            glDrawElementsInstancedBaseInstance(GL_LINES_ADJACENCY, optionalLineIndices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
-        }
-    }
+
 
     void Mesh::deallocateGraphics() {
         controller::executeOpenGL([this]() {
@@ -603,15 +472,6 @@ namespace mesh {
                 glDeleteBuffers(1, &instanceVbo);
                 glDeleteBuffers(1, &ebo);
             }
-            glDeleteVertexArrays(1, &lineVAO);
-            glDeleteBuffers(1, &lineVertexVBO);
-            glDeleteBuffers(1, &lineInstanceVBO);
-            glDeleteBuffers(1, &lineEBO);
-
-            glDeleteVertexArrays(1, &optionalLineVAO);
-            glDeleteBuffers(1, &optionalLineVertexVBO);
-            glDeleteBuffers(1, &optionalLineInstanceVBO);
-            glDeleteBuffers(1, &optionalLineEBO);
 
             for (const auto &item : textureTriangleVaoVertexVboInstanceVbo) {
                 const auto &[vao, vertexVbo, instanceVbo] = item.second;
@@ -620,6 +480,8 @@ namespace mesh {
                 glDeleteBuffers(1, &instanceVbo);
             }
         });
+        lineData.freeBuffers();
+        optionalLineData.freeBuffers();
     }
 
     Mesh::~Mesh() = default;
@@ -713,7 +575,7 @@ namespace mesh {
         return minimalEnclosingBall.value();
     }
 
-    std::optional<Mesh::InstanceRange> Mesh::getSceneInstanceRange(scene_id_t sceneId) {
+    std::optional<InstanceRange> Mesh::getSceneInstanceRange(scene_id_t sceneId) {
         auto it = instanceSceneLayerRanges.find(sceneId);
         if (it == instanceSceneLayerRanges.end()) {
             return {};
@@ -735,7 +597,7 @@ namespace mesh {
         return {{start, count}};
     }
 
-    std::optional<Mesh::InstanceRange> Mesh::getSceneLayerInstanceRange(scene_id_t sceneId, layer_t layer) {
+    std::optional<InstanceRange> Mesh::getSceneLayerInstanceRange(scene_id_t sceneId, layer_t layer) {
         const auto &it = instanceSceneLayerRanges.find(sceneId);
         if (it != instanceSceneLayerRanges.end()) {
             const auto &it2 = it->second.find(layer);
@@ -851,5 +713,13 @@ namespace mesh {
             count += entry.second.size();
         }
         return count / 3;
+    }
+
+    LineData &Mesh::getLineData() {
+        return lineData;
+    }
+
+    LineData &Mesh::getOptionalLineData() {
+        return optionalLineData;
     }
 }

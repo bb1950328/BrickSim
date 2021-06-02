@@ -7,4 +7,6 @@ target_sources(BrickSimLib PRIVATE
         mesh_collection.h
         mesh_simple_classes.cpp
         mesh_simple_classes.h
+        mesh_line_data.cpp
+        mesh_line_data.h
         )

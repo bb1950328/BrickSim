@@ -33,13 +33,13 @@ namespace mesh {
 
     void SceneMeshCollection::drawLineGraphics(const layer_t layer) const {
         for (const auto &mesh: usedMeshes) {
-            mesh->drawLineGraphics(scene, layer);
+            mesh->getLineData().draw(mesh->getSceneLayerInstanceRange(scene, layer));
         }
     }
 
     void SceneMeshCollection::drawOptionalLineGraphics(const layer_t layer) const {
         for (const auto &mesh: usedMeshes) {
-            mesh->drawOptionalLineGraphics(scene, layer);
+            mesh->getOptionalLineData().draw(mesh->getSceneLayerInstanceRange(scene, layer));
         }
     }
 

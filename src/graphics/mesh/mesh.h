@@ -10,7 +10,10 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <glad/glad.h>
 #include "mesh_simple_classes.h"
+#include "mesh_line_data.h"
+
 
 namespace mesh {
 
@@ -18,12 +21,6 @@ namespace mesh {
     public:
         std::map<LdrColorReference, std::vector<TriangleVertex>> triangleVertices;
         std::map<LdrColorReference, std::vector<unsigned int>> triangleIndices;
-
-        std::vector<LineVertex> lineVertices;
-        std::vector<unsigned int> lineIndices;
-
-        std::vector<LineVertex> optionalLineVertices;
-        std::vector<unsigned int> optionalLineIndices;
 
         std::map<LdrColorReference, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
 
@@ -36,14 +33,13 @@ namespace mesh {
         std::vector<MeshInstance> instances;
         bool instancesHaveChanged = false;
 
-        struct InstanceRange {
-            unsigned int start;
-            unsigned int count;
-        };
+        LineData& getLineData();
+        LineData& getOptionalLineData();
+
 
         std::map<scene_id_t, std::map<layer_t, InstanceRange>> instanceSceneLayerRanges;
-        std::optional<Mesh::InstanceRange> getSceneInstanceRange(scene_id_t sceneId);
-        std::optional<Mesh::InstanceRange> getSceneLayerInstanceRange(scene_id_t sceneId, layer_t layer);
+        std::optional<InstanceRange> getSceneInstanceRange(scene_id_t sceneId);
+        std::optional<InstanceRange> getSceneLayerInstanceRange(scene_id_t sceneId, layer_t layer);
         /**
          * @param sceneId
          * @param newSceneInstances must be ordered by layer
@@ -76,8 +72,6 @@ namespace mesh {
         unsigned int getNextVertexIndex(LdrColorReference color);
         void addRawTriangleIndex(LdrColorReference color, unsigned int triangleIndex);
 
-        void addLineVertex(const LineVertex &vertex);
-        void addOptionalLineVertex(const LineVertex &vertex);
 
         std::vector<unsigned int> &getIndicesList(LdrColorReference color);
         std::vector<TriangleVertex> &getVerticesList(LdrColorReference color);
@@ -86,8 +80,6 @@ namespace mesh {
 
         void drawTriangleGraphics(scene_id_t sceneId, layer_t layer);
         void drawTexturedTriangleGraphics(scene_id_t sceneId, layer_t layer);
-        void drawLineGraphics(scene_id_t sceneId, layer_t layer);
-        void drawOptionalLineGraphics(scene_id_t sceneId, layer_t layer);
 
         void deallocateGraphics();
         virtual ~Mesh();
@@ -96,9 +88,8 @@ namespace mesh {
         size_t getTriangleCount();
     private:
         std::optional<std::pair<glm::vec3, float>> minimalEnclosingBall;
-
-        unsigned int lineVAO, lineVertexVBO, lineInstanceVBO, lineEBO;
-        unsigned int optionalLineVAO, optionalLineVertexVBO, optionalLineInstanceVBO, optionalLineEBO;
+        LineData lineData{GL_LINES};
+        LineData optionalLineData{GL_LINES_ADJACENCY};
 
         std::map<texture_id_t, std::shared_ptr<Texture>> textures;
         std::map<texture_id_t, std::vector<TexturedTriangleVertex>> textureVertices;
@@ -115,8 +106,6 @@ namespace mesh {
 
         void initializeTriangleGraphics();
         void initializeTexturedTriangleGraphics();
-        void initializeLineGraphics();
-        void initializeOptionalLineGraphics();
 
         void rewriteInstanceBuffer();
 

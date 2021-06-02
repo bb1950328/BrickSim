@@ -13,7 +13,7 @@ private:
     std::shared_ptr<Scene> scene;
     const std::shared_ptr<FitContentCamera> camera;
     std::map<file_key_t, unsigned int> images;
-    std::map<std::shared_ptr<const Mesh>, std::vector<float>> meshDimensions;
+    std::map<std::shared_ptr<const mesh::Mesh>, std::vector<float>> meshDimensions;
     std::list<file_key_t> lastAccessed;
     glm::mat4 projection;
     int maxCachedThumbnails;

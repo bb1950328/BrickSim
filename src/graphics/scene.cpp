@@ -322,7 +322,7 @@ const std::optional<CompleteFramebuffer> &Scene::getSelectionImage() const {
     return selection;
 }
 
-const SceneMeshCollection &Scene::getMeshCollection() const {
+const mesh::SceneMeshCollection &Scene::getMeshCollection() const {
     return meshCollection;
 }
 

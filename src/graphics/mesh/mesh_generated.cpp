@@ -1,8 +1,8 @@
 #include <glm/gtx/transform.hpp>
 #include <spdlog/spdlog.h>
-#include "generated_mesh.h"
+#include "mesh_generated.h"
 
-namespace generated_mesh {
+namespace mesh::generated {
 
     mesh_identifier_t UVSphereNode::getMeshIdentifier() const {
         return constants::MESH_ID_UV_SPHERE;

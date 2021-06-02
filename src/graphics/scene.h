@@ -5,7 +5,7 @@
 #include <map>
 #include "../types.h"
 #include "../element_tree.h"
-#include "mesh_collection.h"
+#include "mesh/mesh_collection.h"
 #include "overlay_2d.h"
 #include "camera.h"
 #include "../helpers/ray.h"
@@ -51,7 +51,7 @@ private:
     CompleteFramebuffer image;
     std::optional<CompleteFramebuffer> selection;
     std::shared_ptr<etree::Node> rootNode;
-    SceneMeshCollection meshCollection;
+    mesh::SceneMeshCollection meshCollection;
     overlay2d::ElementCollection overlayCollection;
     std::shared_ptr<Camera> camera;
     glm::usvec2 imageSize;
@@ -76,7 +76,7 @@ public:
     void setImageSize(const glm::usvec2 &newImageSize);
     [[nodiscard]] const CompleteFramebuffer &getImage() const;
     [[nodiscard]] const std::optional<CompleteFramebuffer> & getSelectionImage() const;
-    [[nodiscard]] const SceneMeshCollection &getMeshCollection() const;
+    [[nodiscard]] const mesh::SceneMeshCollection &getMeshCollection() const;
     [[nodiscard]] overlay2d::ElementCollection & getOverlayCollection();
 };
 

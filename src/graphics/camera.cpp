@@ -1,7 +1,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include "camera.h"
 #include "../config.h"
-#include "mesh_collection.h"
+#include "mesh/mesh_collection.h"
 
 void CadCamera::updateVectors() {
     front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -113,7 +113,7 @@ void CadCamera::mousePan(glm::vec2 delta) {
 
 void FitContentCamera::setRootNode(const std::shared_ptr<etree::MeshNode> &node) {
     //todo make this work for any node, not just simple parts
-    const auto &mesh = SceneMeshCollection::getMesh(SceneMeshCollection::getMeshKey(node, false), node);
+    const auto &mesh = mesh::SceneMeshCollection::getMesh(mesh::SceneMeshCollection::getMeshKey(node, false), node);
     const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
     auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL_SCALE;
     target = glm::vec4(minimalEnclosingBall.first, 1.0f) * constants::LDU_TO_OPENGL;

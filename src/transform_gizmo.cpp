@@ -26,7 +26,7 @@ namespace transform_gizmo {
             arrow->layer = constants::TRANSFORM_GIZMO_LAYER;
         }
 
-        debugNode = std::make_shared<generated_mesh::UVSphereNode>(ldr_color_repo::getPureColor("#ff0000"), this->scene->getRootNode());
+        debugNode = std::make_shared<mesh::generated::UVSphereNode>(ldr_color_repo::getPureColor("#ff0000"), this->scene->getRootNode());
         debugNode->setRelativeTransformation(glm::scale(glm::mat4(1.0f), glm::vec3(10.0f)));
         debugNode->layer = 5;
         this->scene->getRootNode()->addChild(debugNode);
@@ -143,10 +143,10 @@ namespace transform_gizmo {
         uint8_t i = 0;
         for (const auto &colorCode : {"#FF0000", "#00FF00", "#0000FF"}) {
             const auto &colorRef = ldr_color_repo::getPureColor(colorCode);
-            translate1dArrows[i] = std::make_shared<generated_mesh::ArrowNode>(colorRef, shared_from_this());
+            translate1dArrows[i] = std::make_shared<mesh::generated::ArrowNode>(colorRef, shared_from_this());
             addChild(translate1dArrows[i]);
 
-            rotateQuarterTori[i] = std::make_shared<generated_mesh::QuarterTorusNode>(colorRef, shared_from_this());
+            rotateQuarterTori[i] = std::make_shared<mesh::generated::QuarterTorusNode>(colorRef, shared_from_this());
             addChild(rotateQuarterTori[i]);
 
             ++i;
@@ -169,8 +169,8 @@ namespace transform_gizmo {
         rotateQuarterTori[1]->setRelativeTransformation(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
         rotateQuarterTori[2]->setRelativeTransformation(glm::rotate(glm::rotate(glm::radians(-90.0f), glm::vec3(1, 0, 0)), glm::radians(90.0f), glm::vec3(0, 0, 1)));
 
-        centerBall = std::make_shared<generated_mesh::UVSphereNode>(ldr_color_repo::getPureColor("#ffffff"), shared_from_this());
-        centerBall->setRelativeTransformation(glm::scale(glm::vec3(generated_mesh::ArrowNode::LINE_RADIUS * 4)));
+        centerBall = std::make_shared<mesh::generated::UVSphereNode>(ldr_color_repo::getPureColor("#ffffff"), shared_from_this());
+        centerBall->setRelativeTransformation(glm::scale(glm::vec3(mesh::generated::ArrowNode::LINE_RADIUS * 4)));
         addChild(centerBall);
     }
 
@@ -246,7 +246,7 @@ namespace transform_gizmo {
         return constants::MESH_ID_TRANSFORM_GIZMO_2D_ARROW;
     }
 
-    void TG2DArrowNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
+    void TG2DArrowNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
         // 1
         // | \
         // |  \
@@ -263,14 +263,14 @@ namespace transform_gizmo {
 
         auto color = ldr_color_repo::getInstanceDummyColor();
         auto baseIndex = mesh->getNextVertexIndex(color);
-        /*0*/mesh->addRawTriangleVertex(color, TriangleVertex{{0.0f, 0.0f, 0.0f, 1.0f}, normal});
-        /*1*/mesh->addRawTriangleVertex(color, TriangleVertex{{0.0f, outerSideLength, 0.0f, 1.0f}, normal});
-        /*2*/mesh->addRawTriangleVertex(color, TriangleVertex{{0.0f, outerSideLength - tipLength, tipWidth, 1.0f}, normal});
-        /*3*/mesh->addRawTriangleVertex(color, TriangleVertex{{0.0f, outerSideLength - tipLength, lineWidth, 1.0f}, normal});
-        /*4*/mesh->addRawTriangleVertex(color, TriangleVertex{{0.0f, lineWidth, lineWidth, 1.0f}, normal});
-        /*5*/mesh->addRawTriangleVertex(color, TriangleVertex{{0.0f, lineWidth, outerSideLength - tipLength, 1.0f}, normal});
-        /*6*/mesh->addRawTriangleVertex(color, TriangleVertex{{0.0f, tipWidth, outerSideLength - tipLength, 1.0f}, normal});
-        /*7*/mesh->addRawTriangleVertex(color, TriangleVertex{{0.0f, 0.0f, outerSideLength, 1.0f}, normal});
+        /*0*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, 0.0f, 0.0f, 1.0f}, normal});
+        /*1*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength, 0.0f, 1.0f}, normal});
+        /*2*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, tipWidth, 1.0f}, normal});
+        /*3*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, lineWidth, 1.0f}, normal});
+        /*4*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, lineWidth, lineWidth, 1.0f}, normal});
+        /*5*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, lineWidth, outerSideLength - tipLength, 1.0f}, normal});
+        /*6*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, tipWidth, outerSideLength - tipLength, 1.0f}, normal});
+        /*7*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, 0.0f, outerSideLength, 1.0f}, normal});
 
         constexpr auto triangleCount = 6;
 

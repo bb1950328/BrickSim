@@ -318,7 +318,7 @@ namespace controller {
             spdlog::info("all background tasks finished, exiting now");
             gui::cleanup();
             graphics::orientation_cube::cleanup();
-            SceneMeshCollection::deleteAllMeshes();
+            mesh::SceneMeshCollection::deleteAllMeshes();
             scenes::deleteAll();
             shaders::cleanup();
             elementTree = nullptr;

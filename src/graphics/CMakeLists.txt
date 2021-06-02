@@ -1,12 +1,6 @@
 target_sources(BrickSimLib PRIVATE
         camera.cpp
         camera.h
-        generated_mesh.cpp
-        generated_mesh.h
-        mesh.cpp
-        mesh.h
-        mesh_collection.cpp
-        mesh_collection.h
         orientation_cube.cpp
         orientation_cube.h
         overlay_2d.cpp
@@ -18,3 +12,5 @@ target_sources(BrickSimLib PRIVATE
         thumbnail_generator.cpp
         thumbnail_generator.h
         )
+
+add_subdirectory(mesh)

@@ -86,7 +86,7 @@ namespace graphics::orientation_cube {
 
     OrientationCubeSideMeshNode::OrientationCubeSideMeshNode(const std::shared_ptr<etree::Node> &parent, CubeSide side) : MeshNode(ldr_color_repo::getInstanceDummyColor(), parent), side(side) {}
 
-    void OrientationCubeSideMeshNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
+    void OrientationCubeSideMeshNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
         auto texture = std::make_shared<Texture>(resources::orientation_cube_jpg, resources::orientation_cube_jpg_len);
 
         /*

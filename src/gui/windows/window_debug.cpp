@@ -37,7 +37,7 @@ namespace gui::windows::debug {
             const auto &meshes = selectedScene->getMeshCollection().getUsedMeshes();
             constexpr size_t maxSearchQueryLength = 32;
             static char searchQuery[maxSearchQueryLength] = {0};
-            static std::shared_ptr<Mesh> currentlyInspectingMesh = nullptr;
+            static std::shared_ptr<mesh::Mesh> currentlyInspectingMesh = nullptr;
             ImGui::InputText(ICON_FA_FILTER" Mesh Name Filter", searchQuery, maxSearchQueryLength);
             if (ImGui::BeginChild("##meshesListWrapper", ImVec2(0.0f, meshListTableHeight))) {
                 if (ImGui::BeginTable("Meshes", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti)) {
@@ -54,7 +54,7 @@ namespace gui::windows::debug {
                     ImGui::TableSetupScrollFreeze(0, 1);
                     ImGui::TableHeadersRow();
 
-                    std::vector<std::shared_ptr<Mesh>> sortedMeshes;
+                    std::vector<std::shared_ptr<mesh::Mesh>> sortedMeshes;
                     bool noSearchQuery = strlen(searchQuery) == 0;
                     if (noSearchQuery) {
                         sortedMeshes.reserve(meshes.size());
@@ -65,7 +65,7 @@ namespace gui::windows::debug {
                         }
                     }
                     ImGuiTableSortSpecs *sortSpecs = ImGui::TableGetSortSpecs();
-                    std::sort(sortedMeshes.begin(), sortedMeshes.end(), [&](const std::shared_ptr<Mesh> &a, const std::shared_ptr<Mesh> &b) {
+                    std::sort(sortedMeshes.begin(), sortedMeshes.end(), [&](const std::shared_ptr<mesh::Mesh> &a, const std::shared_ptr<mesh::Mesh> &b) {
                         for (int i = 0; i < sortSpecs->SpecsCount; ++i) {
                             const auto &spec = sortSpecs->Specs[i];
 #ifdef BRICKSIM_PLATFORM_MACOS

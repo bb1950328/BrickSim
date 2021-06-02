@@ -74,7 +74,7 @@ namespace etree {
         return true;
     }
 
-    void LdrNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
+    void LdrNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
         auto dummyColor = ldr_color_repo::getInstanceDummyColor();
         for (const auto& element : ldrFile->elements) {
             switch (element->getType()) {
@@ -190,7 +190,7 @@ namespace etree {
         return mpdSubfileNode->getMeshIdentifier();
     }
 
-    void MpdSubfileInstanceNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
+    void MpdSubfileInstanceNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
         mpdSubfileNode->addToMesh(mesh, windingInversed);
     }
 

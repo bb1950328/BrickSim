@@ -2,7 +2,7 @@
 #define BRICKSIM_ORIENTATION_CUBE_H
 
 #include "../types.h"
-#include "mesh.h"
+#include "mesh/mesh.h"
 #include "../element_tree.h"
 #include "camera.h"
 
@@ -27,7 +27,7 @@ namespace graphics::orientation_cube {
 
             OrientationCubeSideMeshNode(const std::shared_ptr<etree::Node>& parent, CubeSide side);
 
-            void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
+            void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
 
             CubeSide getSide() const;
         };

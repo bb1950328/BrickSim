@@ -1,13 +1,13 @@
-#ifndef BRICKSIM_GENERATED_MESH_H
-#define BRICKSIM_GENERATED_MESH_H
+#ifndef BRICKSIM_MESH_GENERATED_H
+#define BRICKSIM_MESH_GENERATED_H
 
 #include <memory>
-#include "../element_tree.h"
-#include "../ldr_files/ldr_colors.h"
-#include "../types.h"
+#include "../../element_tree.h"
+#include "../../ldr_files/ldr_colors.h"
+#include "../../types.h"
 #include "mesh.h"
 
-namespace generated_mesh {
+namespace mesh::generated {
 
     class GeneratedMeshNode : public etree::MeshNode {
     public:
@@ -59,4 +59,4 @@ namespace generated_mesh {
     };
 }
 
-#endif //BRICKSIM_GENERATED_MESH_H
+#endif //BRICKSIM_MESH_GENERATED_H

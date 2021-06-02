@@ -5,7 +5,7 @@
 #include "helpers/color.h"
 #include "constant_data/constants.h"
 #include "ldr_files/ldr_colors.h"
-#include "graphics/mesh.h"
+#include "graphics/mesh/mesh.h"
 
 namespace etree {
     enum NodeType {
@@ -70,7 +70,7 @@ namespace etree {
         MeshNode(LdrColorReference color, std::shared_ptr<Node> parent);
 
         virtual mesh_identifier_t getMeshIdentifier() const = 0;
-        virtual void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) = 0;
+        virtual void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) = 0;
         [[nodiscard]] virtual bool isColorUserEditable() const;
         [[nodiscard]] LdrColorReference getDisplayColor() const;
         void setColor(LdrColorReference newColor);
@@ -89,7 +89,7 @@ namespace etree {
         void createChildNodes();
 
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
         std::string getDescription() override;
         std::shared_ptr<LdrFile> ldrFile;
         std::set<std::shared_ptr<LdrSubfileReference>> childrenWithOwnNode;
@@ -112,7 +112,7 @@ namespace etree {
 
         std::shared_ptr<MpdSubfileNode> mpdSubfileNode;
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
         std::string getDescription() override;
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };

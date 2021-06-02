@@ -5,7 +5,7 @@
 #include "types.h"
 #include "helpers/ray.h"
 #include "element_tree.h"
-#include "graphics/generated_mesh.h"
+#include "graphics/mesh/mesh_generated.h"
 #include "graphics/scene.h"
 #include <array>
 
@@ -72,17 +72,17 @@ namespace transform_gizmo {
     public:
         TG2DArrowNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent);
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
         bool isDisplayNameUserEditable() const override;
         std::string getDescription() override;
     };
 
     class TGNode : public etree::Node {
     private:
-        std::array<std::shared_ptr<generated_mesh::ArrowNode>, 3> translate1dArrows;
-        std::array<std::shared_ptr<generated_mesh::QuarterTorusNode>, 3> rotateQuarterTori;
+        std::array<std::shared_ptr<mesh::generated::ArrowNode>, 3> translate1dArrows;
+        std::array<std::shared_ptr<mesh::generated::QuarterTorusNode>, 3> rotateQuarterTori;
         std::array<std::shared_ptr<TG2DArrowNode>, 3> translate2dArrows;
-        std::shared_ptr<generated_mesh::UVSphereNode> centerBall;
+        std::shared_ptr<mesh::generated::UVSphereNode> centerBall;
         PovState povState;
     public:
         explicit TGNode(const std::shared_ptr<etree::Node> &parent);
@@ -102,7 +102,7 @@ namespace transform_gizmo {
     private:
         std::shared_ptr<Scene> scene;
         std::shared_ptr<TGNode> node;
-        std::shared_ptr<generated_mesh::GeneratedMeshNode> debugNode;
+        std::shared_ptr<mesh::generated::GeneratedMeshNode> debugNode;
         std::optional<glm::mat4> lastTransformation;
         PovState lastState;
         std::unique_ptr<TransformOperation> currentTransformationOperation = nullptr;

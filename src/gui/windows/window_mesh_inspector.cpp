@@ -4,10 +4,11 @@
 #include "window_mesh_inspector.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "../gui.h"
+#include <sstream>
 
 namespace gui::windows::mesh_inspector {
     namespace {
-        std::shared_ptr<Mesh> currentlyInspectingMesh;
+        std::shared_ptr<mesh::Mesh> currentlyInspectingMesh;
 
         void drawColorLabel(const LdrColorReference &colorRef) {
             auto color = colorRef.get();
@@ -26,7 +27,7 @@ namespace gui::windows::mesh_inspector {
             ImGui::PopStyleColor(4);
         }
 
-        void drawTriangleVerticesTab(std::shared_ptr<Mesh> &mesh) {
+        void drawTriangleVerticesTab(std::shared_ptr<mesh::Mesh> &mesh) {
             if (ImGui::BeginTabItem("Triangle Vertices")) {
                 const char *items[] = {"Vertices & Indices separate", "\"Inline\" Indices"};
                 static int currentMode = 0;
@@ -65,7 +66,7 @@ namespace gui::windows::mesh_inspector {
                     toClipboard << "pos.x;pos.y;pos.z;pos.w;normal.x;normal.y;normal.z" << std::endl;
                 }
 
-                auto drawVertexRow = [&copyVerticesToClipboard, &toClipboard](unsigned int index, const TriangleVertex &vertex) {
+                auto drawVertexRow = [&copyVerticesToClipboard, &toClipboard](unsigned int index, const mesh::TriangleVertex &vertex) {
                     ImGui::TableNextRow();
                     ImGui::PushItemWidth(-1.0f);
 
@@ -162,7 +163,7 @@ namespace gui::windows::mesh_inspector {
             }
         }
 
-        void drawInstancesTab(std::shared_ptr<Mesh> &mesh) {
+        void drawInstancesTab(std::shared_ptr<mesh::Mesh> &mesh) {
             if (ImGui::BeginTabItem("Instances")) {
                 ImGui::Text("%zu Instances:", mesh->instances.size());
                 float instancesTableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 2;
@@ -211,7 +212,7 @@ namespace gui::windows::mesh_inspector {
             }
         }
 
-        void drawGeneralTab(std::shared_ptr<Mesh> &mesh) {
+        void drawGeneralTab(std::shared_ptr<mesh::Mesh> &mesh) {
             if (ImGui::BeginTabItem("General")) {
                 if (ImGui::BeginTable("##meshInspectorGeneralInfoTable", 2)) {
                     ImGui::TableNextRow();
@@ -296,7 +297,7 @@ namespace gui::windows::mesh_inspector {
         ImGui::End();
     }
 
-    void setCurrentlyInspectingMesh(std::shared_ptr<Mesh> mesh) {
+    void setCurrentlyInspectingMesh(std::shared_ptr<mesh::Mesh> mesh) {
         currentlyInspectingMesh = std::move(mesh);
     }
 }

@@ -4,7 +4,7 @@
 #include "../controller.h"
 #include "../constant_data/resources.h"
 
-namespace orientation_cube {
+namespace graphics::orientation_cube {
     namespace {
         std::shared_ptr<Scene> scene;
         short size = 512;//todo config

@@ -12,7 +12,7 @@
 #include <cpuinfo.h>
 #include <magic_enum.hpp>
 
-namespace system_info {
+namespace helpers::system_info {
 
     std::vector<std::pair<std::string, std::string>> getSystemInfo() {
         std::vector<std::pair<std::string, std::string>> result;

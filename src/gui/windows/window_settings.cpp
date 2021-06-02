@@ -1,14 +1,16 @@
-#include "gui.h"
-#include "../keyboard_shortcut_manager.h"
-#include "../config.h"
-#include "../info_providers/bricklink_constants_provider.h"
-#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
-#include "../user_actions.h"
+#include "../gui.h"
+#include "../../keyboard_shortcut_manager.h"
+#include "../../config.h"
+#include "../../info_providers/bricklink_constants_provider.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../user_actions.h"
 #include <glm/glm.hpp>
 #include <vector>
 
-namespace gui {
-    namespace settings {
+#include "window_settings.h"
+
+namespace gui::windows::settings {
+    namespace {
         const char *GUI_STYLE_VALUES[] = {
                 "BrickSim",
                 "ImGuiLight",
@@ -165,7 +167,7 @@ namespace gui {
         }
 
         void drawElementTreeTab() {
-            if (ImGui::BeginTabItem(WINDOW_NAME_ELEMENT_TREE)) {
+            if (ImGui::BeginTabItem(windows::getName(windows::Id::ELEMENT_TREE))) {
                 ImGui::ColorEdit3(ICON_FA_PALETTE" Multi-Part Document Color", &multiPartDocumentColor.x);
                 ImGui::ColorEdit3(ICON_FA_PALETTE" MPD Subfile Color", &mpdSubfileColor.x);
                 ImGui::ColorEdit3(ICON_FA_PALETTE" MPD Subfile Instance Color", &mpdSubfileInstanceColor.x);
@@ -176,7 +178,7 @@ namespace gui {
         }
 
         void draw3DViewTab() {
-            if (ImGui::BeginTabItem(WINDOW_NAME_3D_VIEW)) {
+            if (ImGui::BeginTabItem(windows::getName(windows::Id::VIEW_3D))) {
                 ImGui::DragFloat(ICON_FA_SYNC_ALT" Rotation Sensitivity", &mouseSensitivityRotation, 1.0f, 10.0f, 1000.0f, "%.0f%%");
                 ImGui::DragFloat(ICON_FA_ARROWS_ALT" Pan Sensitivity", &mouseSensitivityPan, 1.0f, 10.0f, 1000.0f, "%.0f%%");
                 ImGui::DragFloat(ICON_FA_SEARCH" Zoom Sensitivity", &mouseSensitivityRotation, 1.0f, 10.0f, 1000.0f, "%.0f%%");
@@ -303,8 +305,10 @@ namespace gui {
                 ImGui::EndPopup();
             }
         }
+    }
 
-        void draw() {
+    void draw(Data& data) {
+        if (ImGui::Begin(data.name, &data.visible)) {
             static bool firstTime = true;
             static float buttonLineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 5 + 1;
             if (firstTime) {
@@ -336,11 +340,6 @@ namespace gui {
                 load();
             }
         }
-    }
-
-    void windows::drawSettingsWindow(bool *show) {
-        ImGui::Begin(WINDOW_NAME_SETTINGS, show);
-        settings::draw();
         ImGui::End();
     }
 }

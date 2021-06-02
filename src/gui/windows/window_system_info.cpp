@@ -1,13 +1,16 @@
 #include <ostream>
 #include <sstream>
-#include "gui.h"
-#include "../helpers/system_info.h"
-#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../gui.h"
+#include "../../helpers/system_info.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 
-namespace gui {
-    void windows::drawSysInfoWindow(bool *show) {
-        if (ImGui::Begin(WINDOW_NAME_SYSTEM_INFO, show, ImGuiWindowFlags_AlwaysAutoResize)) {
-            static const auto infoLines = system_info::getSystemInfo();
+#include "window_system_info.h"
+
+namespace gui::windows::system_info {
+    using namespace helpers::system_info;
+    void draw(Data& data) {
+        if (ImGui::Begin(data.name, &data.visible, ImGuiWindowFlags_AlwaysAutoResize)) {
+            static const auto infoLines = getSystemInfo();
             if (ImGui::BeginTable("##sysInfoTable", 2)) {
                 for (const auto &line: infoLines) {
                     ImGui::TableNextRow();
@@ -28,7 +31,7 @@ namespace gui {
             }
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_WINDOW_CLOSE" Close")) {
-                *show = false;
+                data.visible = false;
             }
         }
         ImGui::End();

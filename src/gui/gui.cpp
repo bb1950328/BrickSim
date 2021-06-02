@@ -16,36 +16,11 @@
 #include "../metrics.h"
 #include "../ldr_files/ldr_file_repo.h"
 #include "../helpers/parts_library_downloader.h"
+#include "windows/windows.h"
 #include <glad/glad.h>
 
 namespace gui {
-    const char *WINDOW_NAME_3D_VIEW = ICON_FA_CUBES" 3D View";
-    const char *WINDOW_NAME_ELEMENT_TREE = ICON_FA_LIST" Element Tree";
-    const char *WINDOW_NAME_ELEMENT_PROPERTIES = ICON_FA_WRENCH" Element Properties";
-    const char *WINDOW_NAME_PART_PALETTE = ICON_FA_TH" Part Palette";
-    const char *WINDOW_NAME_SETTINGS = ICON_FA_SLIDERS_H" Settings";
-    const char *WINDOW_NAME_ABOUT = ICON_FA_INFO_CIRCLE " About";
-    const char *WINDOW_NAME_SYSTEM_INFO = ICON_FA_MICROCHIP " System Info";
-    const char *WINDOW_NAME_DEBUG = ICON_FA_BUG" Debug";
-    const char *WINDOW_NAME_IMGUI_DEMO = ICON_FA_IMAGE" ImGui Demo";
-    const char *WINDOW_NAME_ORIENTATION_CUBE = ICON_FA_CUBE" Orientation Cube";
-    const char *WINDOW_NAME_LOG = ICON_FA_LIST" Log";
-    const char *WINDOW_NAME_GEAR_RATIO_CALCULATOR = "Gear Ratio Calculator";//todo icon
-
     namespace {
-        bool show3dWindow = true;
-        bool showElementTreeWindow = true;
-        bool showElementPropertiesWindow = true;
-        bool showSettingsWindow = false;
-        bool showDemoWindow = false;
-        bool showDebugWindow = true;
-        bool showAboutWindow = false;
-        bool showSysInfoWindow = false;
-        bool showPartPaletteWindow = true;
-        bool showOrientationCube = true;
-        bool showLogWindow = false;
-        bool showGearRatioCalculatorWindow = false;
-
         char const *lFilterPatterns[NUM_LDR_FILTER_PATTERNS] = {"*.ldr", "*.dat", "*.mpd", "*.io"};
         char const *imageFilterPatterns[NUM_IMAGE_FILTER_PATTERNS] = {"*.png", "*.jpg", "*.bmp", "*.tga"};
         char const *zipFilterPatterns[NUM_ZIP_FILTER_PATTERNS] = {"*.zip"};
@@ -182,7 +157,7 @@ namespace gui {
         util::setStbiFlipVertically(false);
         GLFWimage images[1];
         images[0].pixels = stbi_load_from_memory(resources::logo_icon_png, resources::logo_icon_png_len,
-                                                 &images[0].width, &images[0].height, nullptr,4); //rgba channels
+                                                 &images[0].width, &images[0].height, nullptr, 4); //rgba channels
         glfwSetWindowIcon(window, 1, images);
         stbi_image_free(images[0].pixels);
 
@@ -271,19 +246,6 @@ namespace gui {
         spdlog::debug("applying default window layout");
         ImGui::DockBuilderRemoveNodeChildNodes(dockspaceId);
 
-        show3dWindow = true;
-        showElementTreeWindow = true;
-        showElementPropertiesWindow = true;
-        showSettingsWindow = false;
-        showDemoWindow = false;
-        showDebugWindow = true;
-        showAboutWindow = false;
-        showSysInfoWindow = false;
-        showPartPaletteWindow = true;
-        showOrientationCube = true;
-        showLogWindow = false;
-        showGearRatioCalculatorWindow = false;
-
         ImGuiID level0left, level0right;
         ImGui::DockBuilderSplitNode(dockspaceId, ImGuiDir_Right, 0.4, &level0right, &level0left);
 
@@ -293,9 +255,9 @@ namespace gui {
         ImGuiID level2rightTopLeft, level2rightTopRight;
         ImGui::DockBuilderSplitNode(level1rightTop, ImGuiDir_Left, 0.4, &level2rightTopLeft, &level2rightTopRight);
 
-        ImGui::DockBuilderDockWindow(WINDOW_NAME_ORIENTATION_CUBE, level2rightTopLeft);
-        ImGui::DockBuilderDockWindow(WINDOW_NAME_DEBUG, level2rightTopRight);
-        ImGui::DockBuilderDockWindow(WINDOW_NAME_ELEMENT_PROPERTIES, level1rightBottom);
+        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::ORIENTATION_CUBE), level2rightTopLeft);
+        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::DEBUG), level2rightTopRight);
+        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::ELEMENT_PROPERTIES), level1rightBottom);
 
 
         ImGuiID level1leftBottom, level1leftTop;
@@ -304,26 +266,12 @@ namespace gui {
         ImGuiID level2leftTopLeft, level2leftTopRight;
         ImGui::DockBuilderSplitNode(level1leftTop, ImGuiDir_Left, 0.3, &level2leftTopLeft, &level2leftTopRight);
 
-        ImGui::DockBuilderDockWindow(WINDOW_NAME_PART_PALETTE, level1leftBottom);
-        ImGui::DockBuilderDockWindow(WINDOW_NAME_ELEMENT_TREE, level2leftTopLeft);
-        ImGui::DockBuilderDockWindow(WINDOW_NAME_3D_VIEW, level2leftTopRight);
+        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::PART_PALETTE), level1leftBottom);
+        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::ELEMENT_TREE), level2leftTopLeft);
+        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::VIEW_3D), level2leftTopRight);
     }
 
     void drawMainWindows() {
-        static std::tuple<std::string, bool *, std::function<void(bool *)>> windowFuncsAndState[]{
-                {WINDOW_NAME_3D_VIEW,               &show3dWindow,                  windows::draw3dWindow},
-                {WINDOW_NAME_ELEMENT_TREE,          &showElementTreeWindow,         windows::drawElementTreeWindow},
-                {WINDOW_NAME_ELEMENT_PROPERTIES,    &showElementPropertiesWindow,   windows::drawElementPropertiesWindow},
-                {WINDOW_NAME_PART_PALETTE,          &showPartPaletteWindow,         windows::drawPartPaletteWindow},
-                {WINDOW_NAME_SETTINGS,              &showSettingsWindow,            windows::drawSettingsWindow},
-                {WINDOW_NAME_ABOUT,                 &showAboutWindow,               windows::drawAboutWindow},
-                {WINDOW_NAME_SYSTEM_INFO,           &showSysInfoWindow,             windows::drawSysInfoWindow},
-                {WINDOW_NAME_DEBUG,                 &showDebugWindow,               windows::drawDebugWindow},
-                {WINDOW_NAME_IMGUI_DEMO,            &showDemoWindow,                ImGui::ShowDemoWindow},
-                {WINDOW_NAME_ORIENTATION_CUBE,      &showOrientationCube,           windows::drawOrientationCube},
-                {WINDOW_NAME_LOG,                   &showLogWindow,                 windows::drawLogWindow},
-                {WINDOW_NAME_GEAR_RATIO_CALCULATOR, &showGearRatioCalculatorWindow, windows::drawGearRatioCalculatorWindow},
-        };
 
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
@@ -337,8 +285,8 @@ namespace gui {
 
                 gui_internal::actionMenuItem(user_actions::EXIT);
 
-                ImGui::MenuItem(ICON_FA_INFO_CIRCLE " About", "", &showAboutWindow);
-                ImGui::MenuItem(ICON_FA_MICROCHIP " System Info", "", &showSysInfoWindow);
+                ImGui::MenuItem(ICON_FA_INFO_CIRCLE " About", "", windows::isVisible(windows::Id::ABOUT));
+                ImGui::MenuItem(ICON_FA_MICROCHIP " System Info", "", windows::isVisible(windows::Id::SYSTEM_INFO));
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Edit")) {
@@ -351,19 +299,19 @@ namespace gui {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("View")) {
-                ImGui::MenuItem(WINDOW_NAME_3D_VIEW, "", &show3dWindow);
-                ImGui::MenuItem(WINDOW_NAME_ORIENTATION_CUBE, "", &showOrientationCube);
+                ImGui::MenuItem(windows::getName(windows::Id::VIEW_3D), "", windows::isVisible(windows::Id::VIEW_3D));
+                ImGui::MenuItem(windows::getName(windows::Id::ORIENTATION_CUBE), "", windows::isVisible(windows::Id::ORIENTATION_CUBE));
                 ImGui::Separator();
-                ImGui::MenuItem(WINDOW_NAME_ELEMENT_TREE, "", &showElementTreeWindow);
-                ImGui::MenuItem(WINDOW_NAME_ELEMENT_PROPERTIES, "", &showElementPropertiesWindow);
+                ImGui::MenuItem(windows::getName(windows::Id::ELEMENT_TREE), "", windows::isVisible(windows::Id::ELEMENT_TREE));
+                ImGui::MenuItem(windows::getName(windows::Id::ELEMENT_PROPERTIES), "", windows::isVisible(windows::Id::ELEMENT_PROPERTIES));
                 ImGui::Separator();
-                ImGui::MenuItem(WINDOW_NAME_PART_PALETTE, "", &showPartPaletteWindow);
+                ImGui::MenuItem(windows::getName(windows::Id::PART_PALETTE), "", windows::isVisible(windows::Id::PART_PALETTE));
                 ImGui::Separator();
-                ImGui::MenuItem(WINDOW_NAME_SETTINGS, "", &showSettingsWindow);
+                ImGui::MenuItem(windows::getName(windows::Id::SETTINGS), "", windows::isVisible(windows::Id::SETTINGS));
                 ImGui::Separator();
-                ImGui::MenuItem(WINDOW_NAME_IMGUI_DEMO, "", &showDemoWindow);
-                ImGui::MenuItem(WINDOW_NAME_DEBUG, "", &showDebugWindow);
-                ImGui::MenuItem(WINDOW_NAME_LOG, "", &showLogWindow);
+                ImGui::MenuItem(windows::getName(windows::Id::IMGUI_DEMO), "", windows::isVisible(windows::Id::IMGUI_DEMO));
+                ImGui::MenuItem(windows::getName(windows::Id::DEBUG), "", windows::isVisible(windows::Id::DEBUG));
+                ImGui::MenuItem(windows::getName(windows::Id::LOG), "", windows::isVisible(windows::Id::LOG));
                 ImGui::Separator();
                 if (ImGui::MenuItem("Apply default window layout")) {
                     applyDefaultWindowLayout();
@@ -388,7 +336,7 @@ namespace gui {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Tools")) {
-                ImGui::MenuItem(WINDOW_NAME_GEAR_RATIO_CALCULATOR, "", &showGearRatioCalculatorWindow);
+                ImGui::MenuItem(windows::getName(windows::Id::GEAR_RATIO_CALCULATOR), "", windows::isVisible(windows::Id::GEAR_RATIO_CALCULATOR));
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Help")) {
@@ -401,26 +349,14 @@ namespace gui {
 
         dockspaceId = ImGui::DockSpaceOverViewport();
 
-        std::vector<std::pair<std::string, float>> drawingTimesMicroseconds;
-        for (const auto &winFuncState : windowFuncsAndState) {
-            const auto &windowName = std::get<0>(winFuncState);
-            const auto &windowState = std::get<1>(winFuncState);
-            const auto &windowFunc = std::get<2>(winFuncState);
+        windows::drawAll();
 
-            if (*windowState) {
-                auto before = std::chrono::high_resolution_clock::now();
-                windowFunc(windowState);
-                auto after = std::chrono::high_resolution_clock::now();
-                drawingTimesMicroseconds.emplace_back(windowName, std::chrono::duration_cast<std::chrono::nanoseconds>(after - before).count() / 1000.0);
-            }
-        }
-        metrics::lastWindowDrawingTimesUs = drawingTimesMicroseconds;
         lastScrollDeltaY = 0.0f;
 
         if (ImGui::BeginPopupModal("Please wait##Modal", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::Image(gui_internal::convertTextureId(logoTexture->getID()),
                          ImVec2(logoTexture->getSize().x, logoTexture->getSize().y),
-                         ImVec2(0, 1),ImVec2(1, 0));
+                         ImVec2(0, 1), ImVec2(1, 0));
             ImGui::Text("Please wait until this operation has finished.");
             ImGui::Separator();
             ImGui::Text("%s", blockingMessageText.c_str());
@@ -648,8 +584,7 @@ namespace gui {
         } else if (state == 'D') {
             if (ImGui::Begin(ICON_FA_DOWNLOAD" Downloading LDraw parts library", nullptr, windowFlags)) {
                 switch (parts_library_downloader::getStatus()) {
-                    case parts_library_downloader::DOING_NOTHING:
-                        downloadThread = std::thread(parts_library_downloader::downloadPartsLibrary);
+                    case parts_library_downloader::DOING_NOTHING:downloadThread = std::thread(parts_library_downloader::downloadPartsLibrary);
                         break;
                     case parts_library_downloader::IN_PROGRESS: {
                         auto progress = parts_library_downloader::getProgress();
@@ -657,7 +592,7 @@ namespace gui {
 
                         float progressFraction = 1.0f * progress.first / progress.second;
                         std::string speedTxt = std::to_string(progressFraction) + "%"
-                                + util::formatBytesValue(parts_library_downloader::getSpeedBytesPerSecond()) + "/s";
+                                               + util::formatBytesValue(parts_library_downloader::getSpeedBytesPerSecond()) + "/s";
                         ImGui::ProgressBar(progressFraction, ImVec2(-FLT_MIN, 0), speedTxt.c_str());
                         if (ImGui::Button(ICON_FA_STOP_CIRCLE" Cancel and exit program")) {
                             parts_library_downloader::stopDownload();
@@ -669,14 +604,13 @@ namespace gui {
                     }
                     case parts_library_downloader::FAILED:
                         ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
-                                           ICON_FA_TIMES_CIRCLE" Download failed with error code %d",parts_library_downloader::getErrorCode());
+                                           ICON_FA_TIMES_CIRCLE" Download failed with error code %d", parts_library_downloader::getErrorCode());
                         if (ImGui::Button(ICON_FA_CHEVRON_LEFT" Back")) {
                             parts_library_downloader::reset();
                             state = 'Z';
                         }
                         break;
-                    case parts_library_downloader::FINISHED:
-                        state = 'Z';
+                    case parts_library_downloader::FINISHED:state = 'Z';
                         parts_library_downloader::reset();
                         break;
                 }
@@ -698,7 +632,7 @@ namespace gui {
             ImGui::Begin("Please wait", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::Image(gui_internal::convertTextureId(logoTexture->getID()),
                          ImVec2(logoTexture->getSize().x, logoTexture->getSize().y),
-                         ImVec2(0, 1),ImVec2(1, 0));
+                         ImVec2(0, 1), ImVec2(1, 0));
             ImGui::Text("%s %s", gui_internal::getAnimatedHourglassIcon(), message.c_str());
             ImGui::ProgressBar(progress);
             ImGui::End();

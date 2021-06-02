@@ -1,11 +1,13 @@
 #include <list>
-#include "gui.h"
-#include "../tools/gears.h"
-#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../gui.h"
+#include "../../../tools/gears.h"
+#include "../../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 
-namespace gui {
-    void windows::drawGearRatioCalculatorWindow(bool *show) {
-        if (ImGui::Begin(WINDOW_NAME_GEAR_RATIO_CALCULATOR, show)) {
+#include "window_gear_ratio_calculator.h"
+
+namespace gui::windows::tools::gear_ratio_calculator {
+    void draw(Data &data) {
+        if (ImGui::Begin(data.name, &data.visible)) {
             static std::list<gears::GearPair> pairs;
             if (pairs.empty()) {
                 pairs.emplace_back(gears::GEAR_8T, gears::GEAR_8T);

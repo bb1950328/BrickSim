@@ -6,7 +6,7 @@
 #include "../element_tree.h"
 #include "camera.h"
 
-namespace orientation_cube {
+namespace graphics::orientation_cube {
 
     enum class CubeSide {
         RIGHT,

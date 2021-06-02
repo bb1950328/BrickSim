@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace system_info {
+namespace helpers::system_info {
     std::vector<std::pair<std::string, std::string>> getSystemInfo();
 }
 

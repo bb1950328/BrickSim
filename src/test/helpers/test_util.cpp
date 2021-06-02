@@ -3,9 +3,9 @@
 #include <fstream>
 #include <glm/gtc/epsilon.hpp>
 #include "catch2/catch.hpp"
-#include "../helpers/util.h"
-#include "../helpers/platform_detection.h"
-#include "testing_tools.h"
+#include "../../helpers/util.h"
+#include "../../helpers/platform_detection.h"
+#include "../testing_tools.h"
 
 TEST_CASE("util::startsWith") {
     CHECK(util::startsWith("helloWorld", "hell"));

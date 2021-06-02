@@ -1,5 +1,5 @@
 #include "catch2/catch.hpp"
-#include "../helpers/fraction.h"
+#include "../../helpers/fraction.h"
 
 TEST_CASE("fractionConstructor") {
     const Fraction half(1, 2);

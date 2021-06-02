@@ -281,7 +281,7 @@ namespace controller {
                     {"initialize thumbnail generator",      []() { thumbnailGenerator = std::make_shared<ThumbnailGenerator>(); }},
                     {"initialize BrickLink constants",      bricklink_constants_provider::initialize},
                     {"initialize keyboard shortcuts",       keyboard_shortcut_manager::initialize},
-                    {"initialize orientation cube generator", orientation_cube::initialize},
+                    {"initialize orientation cube generator", graphics::orientation_cube::initialize},
                     {"initialize transform gizmo", [](){transformGizmo = std::make_unique<transform_gizmo::TransformGizmo>(mainScene);}},
             };
             constexpr float progressStep = 1.0f/std::size(initSteps);
@@ -317,7 +317,7 @@ namespace controller {
             }
             spdlog::info("all background tasks finished, exiting now");
             gui::cleanup();
-            orientation_cube::cleanup();
+            graphics::orientation_cube::cleanup();
             SceneMeshCollection::deleteAllMeshes();
             scenes::deleteAll();
             shaders::cleanup();

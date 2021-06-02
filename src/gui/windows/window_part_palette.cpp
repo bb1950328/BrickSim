@@ -1,14 +1,16 @@
-#include "gui.h"
-#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
-#include "../ldr_files/ldr_colors.h"
-#include "gui_internal.h"
-#include "../ldr_files/ldr_file_repo.h"
-#include "../part_finder.h"
-#include "../controller.h"
+#include "../gui.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../ldr_files/ldr_colors.h"
+#include "../gui_internal.h"
+#include "../../ldr_files/ldr_file_repo.h"
+#include "../../part_finder.h"
+#include "../../controller.h"
 
-namespace gui {
-    void windows::drawPartPaletteWindow(bool *show) {
-        if (ImGui::Begin(WINDOW_NAME_PART_PALETTE, show)) {
+#include "window_part_palette.h"
+
+namespace gui::windows::part_palette {
+    void draw(Data& data) {
+        if (ImGui::Begin(data.name, &data.visible)) {
             static char searchTextBuffer[128] = {'\0'};
             ImGui::InputText(ICON_FA_SEARCH"##search", searchTextBuffer, 128);
             ImGui::SameLine();

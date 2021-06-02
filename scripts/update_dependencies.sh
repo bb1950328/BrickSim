@@ -25,7 +25,9 @@ git pull
 
 cd ../glm || exit 1
 git fetch --tags
-git checkout "$(get_latest_release g-truc/glm)"
+#git checkout "$(get_latest_release g-truc/glm)"
+git checkout master
+git pull
 
 cd ../IconFontCppHeaders || exit 1
 git checkout main

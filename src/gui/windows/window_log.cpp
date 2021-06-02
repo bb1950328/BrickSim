@@ -1,11 +1,13 @@
 #include <tinyfiledialogs.h>
 #include <filesystem>
 #include <fstream>
-#include "gui.h"
-#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
-#include "../latest_log_messages_tank.h"
+#include "../gui.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../latest_log_messages_tank.h"
 
-namespace gui {
+#include "window_log.h"
+
+namespace gui::windows::log {
     namespace {
         constexpr int NUM_LOG_FILTER_PATTERNS = 2;
         char const *logFilterPatterns[NUM_LOG_FILTER_PATTERNS] = {"*.log", "*.txt"};
@@ -35,8 +37,8 @@ namespace gui {
         }
     }
 
-    void windows::drawLogWindow(bool *show) {
-        if (ImGui::Begin(WINDOW_NAME_LOG, show)) {
+    void draw(Data& data) {
+        if (ImGui::Begin(data.name, &data.visible)) {
             static int minLevel;
             static float fontSize = ImGui::GetFontSize();
             ImGui::PushStyleColor(ImGuiCol_FrameBg, levelToColor(minLevel));

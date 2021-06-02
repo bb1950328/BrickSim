@@ -1,12 +1,14 @@
 #include <memory>
-#include "gui.h"
-#include "../types.h"
-#include "../graphics/scene.h"
-#include "../controller.h"
-#include "../config.h"
-#include "gui_internal.h"
+#include "../../types.h"
+#include "../../graphics/scene.h"
+#include "../../controller.h"
+#include "../../config.h"
+#include "../gui_internal.h"
 
-namespace gui {
+#include "window_view3d.h"
+#include "../gui.h"
+
+namespace gui::windows::view3d {
     std::shared_ptr<etree::Node> getNodeUnderCursor(const std::shared_ptr<Scene> &mainScene, const glm::svec2 &currentCursorPos) {
         const auto elementIdUnderCursor = mainScene->getSelectionPixel(currentCursorPos);
         auto nodeUnderCursor = elementIdUnderCursor != 0
@@ -15,9 +17,8 @@ namespace gui {
         return nodeUnderCursor;
     }
 
-    void windows::draw3dWindow(bool *show) {
-        ImGui::Begin(WINDOW_NAME_3D_VIEW, show, ImGuiWindowFlags_NoScrollWithMouse);
-        {
+    void draw(Data& data) {
+        if (ImGui::Begin(data.name, &data.visible, ImGuiWindowFlags_NoScrollWithMouse)) {
             ImGui::BeginChild("3DRender");
             const ImVec2 &regionAvail = ImGui::GetContentRegionAvail();
             controller::set3dViewSize((unsigned int) regionAvail.x, (unsigned int) regionAvail.y);

@@ -18,7 +18,7 @@ namespace keyboard_shortcut_manager {
         int key;
         uint8_t modifiers;
         Event event;
-        std::string getDisplayName();
+        std::string getDisplayName() const;
         KeyboardShortcut(int actionId, int key, uint8_t modifiers, Event event);
     };
 

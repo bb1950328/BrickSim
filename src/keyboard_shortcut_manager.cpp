@@ -150,7 +150,7 @@ namespace keyboard_shortcut_manager {
         return it->second;
     }
 
-    std::string KeyboardShortcut::getDisplayName() {
+    std::string KeyboardShortcut::getDisplayName() const {
         std::string displayName;
             for (const auto &mod : ALL_MODIFIERS) {
                 if (modifiers & mod) {

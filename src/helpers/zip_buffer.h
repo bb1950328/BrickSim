@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <filesystem>
+#include <optional>
 
 namespace zip_buffer {
     class BufferedZip {

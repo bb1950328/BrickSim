@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include <thread>
+#include <optional>
 
 class Task {
 public:

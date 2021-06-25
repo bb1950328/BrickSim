@@ -6,46 +6,44 @@
 
 namespace user_actions {
     namespace {
-
-        const std::vector<Action> ALL_ACTIONS = {
-                EXIT,
-                OPEN_FILE,
-                SAVE_FILE,
-                SAVE_FILE_AS,
-                SAVE_COPY_AS,
-                NEW_FILE,
-                UNDO,
-                REDO,
-                CUT,
-                COPY,
-                PASTE,
-                SELECT_ALL,
-                SELECT_NOTHING,
-                VIEW_3D_FRONT,
-                VIEW_3D_TOP,
-                VIEW_3D_RIGHT,
-                VIEW_3D_REAR,
-                VIEW_3D_BOTTOM,
-                VIEW_3D_LEFT,
-                VIEW_3D_ROTATE_UP,
-                VIEW_3D_ROTATE_DOWN,
-                VIEW_3D_ROTATE_LEFT,
-                VIEW_3D_ROTATE_RIGHT,
-                VIEW_3D_PAN_UP,
-                VIEW_3D_PAN_DOWN,
-                VIEW_3D_PAN_LEFT,
-                VIEW_3D_PAN_RIGHT,
-                DELETE_SELECTED,
-                HIDE_SELECTED,
-                UNHIDE_EVERYTHING,
-                APPLY_DEFAULT_WINDOW_LAYOUT,
-                TAKE_SCREENSHOT,
-                EXECUTE_ACTION_BY_NAME,
-                TOGGLE_TRANSFORM_GIZMO_ROTATION,
-        };
+        std::vector<Action> ALL_ACTIONS;
     }
 
     void initialize() {
+        ALL_ACTIONS.push_back(EXIT);
+        ALL_ACTIONS.push_back(OPEN_FILE);
+        ALL_ACTIONS.push_back(SAVE_FILE);
+        ALL_ACTIONS.push_back(SAVE_FILE_AS);
+        ALL_ACTIONS.push_back(SAVE_COPY_AS);
+        ALL_ACTIONS.push_back(NEW_FILE);
+        ALL_ACTIONS.push_back(UNDO);
+        ALL_ACTIONS.push_back(REDO);
+        ALL_ACTIONS.push_back(CUT);
+        ALL_ACTIONS.push_back(COPY);
+        ALL_ACTIONS.push_back(PASTE);
+        ALL_ACTIONS.push_back(SELECT_ALL);
+        ALL_ACTIONS.push_back(SELECT_NOTHING);
+        ALL_ACTIONS.push_back(VIEW_3D_FRONT);
+        ALL_ACTIONS.push_back(VIEW_3D_TOP);
+        ALL_ACTIONS.push_back(VIEW_3D_RIGHT);
+        ALL_ACTIONS.push_back(VIEW_3D_REAR);
+        ALL_ACTIONS.push_back(VIEW_3D_BOTTOM);
+        ALL_ACTIONS.push_back(VIEW_3D_LEFT);
+        ALL_ACTIONS.push_back(VIEW_3D_ROTATE_UP);
+        ALL_ACTIONS.push_back(VIEW_3D_ROTATE_DOWN);
+        ALL_ACTIONS.push_back(VIEW_3D_ROTATE_LEFT);
+        ALL_ACTIONS.push_back(VIEW_3D_ROTATE_RIGHT);
+        ALL_ACTIONS.push_back(VIEW_3D_PAN_UP);
+        ALL_ACTIONS.push_back(VIEW_3D_PAN_DOWN);
+        ALL_ACTIONS.push_back(VIEW_3D_PAN_LEFT);
+        ALL_ACTIONS.push_back(VIEW_3D_PAN_RIGHT);
+        ALL_ACTIONS.push_back(DELETE_SELECTED);
+        ALL_ACTIONS.push_back(HIDE_SELECTED);
+        ALL_ACTIONS.push_back(UNHIDE_EVERYTHING);
+        ALL_ACTIONS.push_back(APPLY_DEFAULT_WINDOW_LAYOUT);
+        ALL_ACTIONS.push_back(TAKE_SCREENSHOT);
+        ALL_ACTIONS.push_back(EXECUTE_ACTION_BY_NAME);
+        ALL_ACTIONS.push_back(TOGGLE_TRANSFORM_GIZMO_ROTATION);
 #ifdef NDEBUG
         for (int i = 0; i < ALL_ACTIONS.size(); ++i) {
             if (i != ALL_ACTIONS[i].id) {
@@ -118,6 +116,6 @@ namespace user_actions {
     extern const Action UNHIDE_EVERYTHING{29, "Unhide all elements", ICON_FA_EYE" Unhide all elements", controller::unhideAllElements};
     extern const Action APPLY_DEFAULT_WINDOW_LAYOUT{30, "Apply default window layout", ICON_FA_TH_LARGE" Apply default window layout", gui::applyDefaultWindowLayout};
     extern const Action TAKE_SCREENSHOT{31, "Take screenshot", ICON_FA_CAMERA" Take screenshot", gui::showScreenshotDialog};
-    extern const Action EXECUTE_ACTION_BY_NAME{32, "Find action", ICON_FA_SEARCH" Find action", gui::showExecuteActionByNameDialog};
+    extern const Action EXECUTE_ACTION_BY_NAME{32, "Find action", ICON_FA_SEARCH" Find action", [](){gui::showExecuteActionByNameDialog();}};
     extern const Action TOGGLE_TRANSFORM_GIZMO_ROTATION{33, "Toggle Transform Gizmo Rotation (World / Selected Element)", "Toggle Transform Gizmo Rotation (World / Selected Element)", controller::toggleTransformGizmoRotationState};
 }

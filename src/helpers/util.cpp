@@ -16,6 +16,7 @@
 
 #ifdef __SSE2__
 #include <immintrin.h>
+#include <glm/gtx/matrix_decompose.hpp>
 
 #elif defined(__ARM_NEON) || defined(__ARM_NEON__)
 #include <arm_neon.h>
@@ -211,15 +212,15 @@ namespace util {
     }
 
     void coutMat4(glm::mat4 mat) {
-        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
-        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
-        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
-        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][0], mat[1][0], mat[2][0], mat[3][0]);
+        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][1], mat[1][1], mat[2][1], mat[3][1]);
+        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][1], mat[1][1], mat[2][1], mat[3][1]);
+        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][3], mat[1][3], mat[2][3], mat[3][3]);
 
-        printf("{{%8.4f, %8.4f, %8.4f, %8.4f},", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
-        printf("{%8.4f, %8.4f, %8.4f, %8.4f},", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
-        printf("{%8.4f, %8.4f, %8.4f, %8.4f},", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
-        printf("{%8.4f, %8.4f, %8.4f, %8.4f}}\n", mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+        printf("┌%10.4f, %10.4f, %10.4f, %10.4f┐\n", mat[0][0], mat[1][0], mat[2][0], mat[3][0]);
+        printf("│%10.4f, %10.4f, %10.4f, %10.4f│\n", mat[0][1], mat[1][1], mat[2][1], mat[3][1]);
+        printf("│%10.4f, %10.4f, %10.4f, %10.4f│\n", mat[0][1], mat[1][1], mat[2][1], mat[3][1]);
+        printf("└%10.4f, %10.4f, %10.4f, %10.4f┘\n", mat[0][3], mat[1][3], mat[2][3], mat[3][3]);
     }
 
     void coutVec(glm::vec4 vec) {
@@ -670,5 +671,15 @@ namespace util {
         }
 
         return result;
+    }
+
+    DecomposedTransformation decomposeTransformationToStruct(const glm::mat4 &transformation) {
+        DecomposedTransformation result{};
+        glm::decompose(transformation, result.scale, result.orientation, result.translation, result.skew, result.perspective);
+        return result;
+    }
+
+    glm::mat4 DecomposedTransformation::orientationAsMat4() const {
+        return glm::toMat4(orientation);
     }
 }

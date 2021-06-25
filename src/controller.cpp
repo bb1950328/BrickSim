@@ -16,6 +16,7 @@
 #include "info_providers/bricklink_constants_provider.h"
 #include "graphics/orientation_cube.h"
 #include "metrics.h"
+#include "user_actions.h"
 
 #ifdef BRICKSIM_USE_RENDERDOC
 #include <link.h>
@@ -275,14 +276,15 @@ namespace controller {
             }
 
             Task initSteps[]{
-                    {"load color definitions",              ldr_color_repo::initialize},
-                    {"initialize file list",                [](float *progress) { ldr_file_repo::get().initialize(progress); }},
-                    {"initialize price guide provider",     price_guide_provider::initialize},
-                    {"initialize thumbnail generator",      []() { thumbnailGenerator = std::make_shared<ThumbnailGenerator>(); }},
-                    {"initialize BrickLink constants",      bricklink_constants_provider::initialize},
-                    {"initialize keyboard shortcuts",       keyboard_shortcut_manager::initialize},
+                    {"load color definitions",                ldr_color_repo::initialize},
+                    {"initialize file list",                  [](float *progress) { ldr_file_repo::get().initialize(progress); }},
+                    {"initialize price guide provider",       price_guide_provider::initialize},
+                    {"initialize thumbnail generator",        []() { thumbnailGenerator = std::make_shared<ThumbnailGenerator>(); }},
+                    {"initialize BrickLink constants",        bricklink_constants_provider::initialize},
+                    {"initialize keyboard shortcuts",         keyboard_shortcut_manager::initialize},
+                    {"initialize user actions",               user_actions::initialize},
                     {"initialize orientation cube generator", graphics::orientation_cube::initialize},
-                    {"initialize transform gizmo", [](){transformGizmo = std::make_unique<transform_gizmo::TransformGizmo>(mainScene);}},
+                    {"initialize transform gizmo",            [](){transformGizmo = std::make_unique<transform_gizmo::TransformGizmo>(mainScene);}},
             };
             constexpr float progressStep = 1.0f/std::size(initSteps);
             for (int i = 0; i < std::size(initSteps); ++i) {

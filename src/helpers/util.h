@@ -58,6 +58,15 @@ namespace util {
     glm::vec2 minForEachComponent(const glm::vec2 &a, const glm::vec2 &b);
     glm::vec3 minForEachComponent(const glm::vec3 &a, const glm::vec3 &b);
     glm::vec4 minForEachComponent(const glm::vec4 &a, const glm::vec4 &b);
+    struct DecomposedTransformation {
+        glm::quat orientation;
+        glm::vec3 skew;
+        glm::vec4 perspective;
+        glm::vec3 translation;
+        glm::vec3 scale;
+        [[ nodiscard ]] glm::mat4 orientationAsMat4() const;
+    };
+    DecomposedTransformation decomposeTransformationToStruct(const glm::mat4& transformation);
 
     //geometry functions
     glm::vec3 triangleCentroid(const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3);

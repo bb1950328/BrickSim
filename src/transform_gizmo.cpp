@@ -10,6 +10,11 @@
 #include <spdlog/fmt/ostr.h>
 #include <iostream>
 
+std::array<glm::vec4, 3> axisDirectionOffsetVectors = {
+        glm::vec4(1, 0, 0, 1),
+        glm::vec4(0, 1, 0, 1),
+        glm::vec4(0, 0, 1, 1),
+};
 std::array<glm::vec4, 3> axisDirectionVectors = {
         glm::vec4(1, 0, 0, 0),
         glm::vec4(0, 1, 0, 0),
@@ -37,24 +42,22 @@ namespace transform_gizmo {
         std::optional<glm::mat4> nowTransformation;
         PovState nowPovState;
         if (currentlySelectedNode != nullptr) {
-            auto nodeTransformation = glm::transpose(currentlySelectedNode->getAbsoluteTransformation());
             const static float configScale = config::get(config::GUI_SCALE) * config::get(config::TRANSFORM_GIZMO_SIZE);
 
-            glm::quat rotation;
-            glm::vec3 skewIgnore;
-            glm::vec4 perspectiveIgnore;
-            glm::vec3 translation;
-            glm::vec3 scaleIgnore;
-            glm::decompose(nodeTransformation, scaleIgnore, rotation, translation, skewIgnore, perspectiveIgnore);
+            const auto selectedNodeTransf = util::decomposeTransformationToStruct(glm::transpose(currentlySelectedNode->getAbsoluteTransformation()));
 
             glm::vec3 cameraPosLdu = glm::vec4(scene->getCamera()->getCameraPos(), 1.0f) * constants::OPENGL_TO_LDU;
-            glm::vec3 direction = glm::normalize(translation - cameraPosLdu);
-            glm::vec3 gizmoPos = cameraPosLdu + direction * 5.0f * configScale;
+            glm::vec3 direction = glm::normalize(selectedNodeTransf.translation - cameraPosLdu);
+            const auto cameraTargetDistance = glm::length(scene->getCamera()->getTargetPos() - scene->getCamera()->getCameraPos());
+            nodePosition = selectedNodeTransf.translation;
 
-            nowTransformation = glm::translate(gizmoPos);
+            nowTransformation = glm::scale(glm::translate(nodePosition), glm::vec3(cameraTargetDistance / constants::LDU_TO_OPENGL_SCALE / 10 * configScale));
             if (controller::getTransformGizmoRotationState() == RotationState::SELECTED_ELEMENT) {
-                nowTransformation.value() *= glm::toMat4(rotation);
+                nodeRotation = selectedNodeTransf.orientationAsMat4();
+                nowTransformation.value() *= nodeRotation;
                 direction = glm::vec4(direction, 0.0f) * nowTransformation.value();
+            } else {
+                nodeRotation = glm::mat4(1.0f);
             }
             node->setRelativeTransformation(glm::transpose(nowTransformation.value()));
 
@@ -133,7 +136,7 @@ namespace transform_gizmo {
     }
 
     TGNode::TGNode(const std::shared_ptr<etree::Node> &parent) : etree::Node(parent) {
-        visibleInElementTree = false;
+        visibleInElementTree = true;//todo change this back to false when debugging is finished
         visible = true;
         displayName = "Transform Gizmo";
         povState = PovState::XNEG_YNEG_ZNEG;
@@ -310,7 +313,7 @@ namespace transform_gizmo {
     void Translate1dOperation::update(const glm::vec2 &mouseDelta) {
         const auto currentPointOnTransformRay = getClosestPointOnTransformRay(startMousePos + mouseDelta);
         //spdlog::debug("{} <==> {}", glm::to_string(startPointOnTransformRay), glm::to_string(currentPointOnTransformRay));
-        spdlog::debug("mouseDelta={}, abs={}", mouseDelta, startMousePos+mouseDelta);
+        spdlog::debug("mouseDelta={}, abs={}", mouseDelta, startMousePos + mouseDelta);
         auto translation = glm::translate(currentPointOnTransformRay - startPointOnTransformRay);
         gizmo.currentlySelectedNode->setRelativeTransformation(startNodeRelTransformation * translation);
         gizmo.node->setRelativeTransformation(startGizmoRelTransformation * translation);
@@ -341,21 +344,26 @@ namespace transform_gizmo {
 
     glm::vec3 Translate1dOperation::getClosestPointOnTransformRay(const glm::svec2 &mouseCoords) {
         Ray3 currentMouseRay = gizmo.scene->screenCoordinatesToWorldRay(mouseCoords);
-        const auto centerVec = glm::normalize(gizmo.scene->getCamera()->getTargetPos()-gizmo.scene->getCamera()->getCameraPos());
-        spdlog::debug("currentMouseRay={}, centerVec={}", currentMouseRay, centerVec);
+        const auto centerVec = glm::normalize(gizmo.scene->getCamera()->getTargetPos() - gizmo.scene->getCamera()->getCameraPos());
+        //spdlog::debug("currentMouseRay={}, centerVec={}", currentMouseRay, centerVec);
         currentMouseRay *= constants::OPENGL_TO_LDU/*glm::scale(glm::vec3(constants::LDU_TO_OPENGL_SCALE))*/;
-        auto debugNodeTransformation = glm::translate(currentMouseRay.origin + glm::normalize(currentMouseRay.direction) * 250.0f);
+        //auto debugNodeTransformation = glm::translate(currentMouseRay.origin + glm::normalize(currentMouseRay.direction) * 250.0f);
+        auto debugNodeTransformation = glm::translate(util::closestLineBetweenTwoRays(currentMouseRay, transformRay).pointOnB);
         debugNodeTransformation = glm::scale(debugNodeTransformation, glm::vec3(10.0f));
         gizmo.debugNode->setRelativeTransformation(glm::transpose(debugNodeTransformation));
         return util::closestLineBetweenTwoRays(transformRay, currentMouseRay).pointOnA;
     }
 
     Ray3 Translate1dOperation::calculateTransformRay(int axis) {
-        const auto nodeAbsTransformation = glm::transpose(gizmo.currentlySelectedNode->getAbsoluteTransformation());
-        glm::vec4 direction = axisDirectionVectors[axis];
-        if (controller::getTransformGizmoRotationState() == RotationState::SELECTED_ELEMENT) {
+        const auto nodeAbsTransformation = glm::transpose(gizmo.node->getAbsoluteTransformation());
+        util::coutMat4(nodeAbsTransformation);
+        const auto dirStart = nodeAbsTransformation * glm::vec4(0.f, 0.f, 0.f, 1.f);
+        const auto dirEnd = nodeAbsTransformation * axisDirectionOffsetVectors[axis];
+        auto direction = glm::normalize(glm::vec3(dirStart - dirEnd));
+        const auto dir2 = gizmo.nodeRotation * axisDirectionVectors[axis];
+        /*if (controller::getTransformGizmoRotationState() == RotationState::SELECTED_ELEMENT) {
             direction = direction * nodeAbsTransformation;
-        }
+        }*/
         return {glm::vec3(nodeAbsTransformation[3]), direction};
     }
 
@@ -364,8 +372,8 @@ namespace transform_gizmo {
         gizmo.node->setRelativeTransformation(startGizmoRelTransformation);
     }
 
-    TransformOperation::TransformOperation(TransformGizmo &gizmo):
-              gizmo(gizmo) {}
+    TransformOperation::TransformOperation(TransformGizmo &gizmo) :
+            gizmo(gizmo) {}
 
     TransformOperation::~TransformOperation() = default;
 }

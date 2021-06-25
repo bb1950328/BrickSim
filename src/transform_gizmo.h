@@ -106,6 +106,8 @@ namespace transform_gizmo {
         std::optional<glm::mat4> lastTransformation;
         PovState lastState;
         std::unique_ptr<TransformOperation> currentTransformationOperation = nullptr;
+        glm::mat4 nodeRotation;
+        glm::vec3 nodePosition;
 
         std::shared_ptr<etree::Node> currentlySelectedNode;
     public:

@@ -101,14 +101,10 @@ namespace gui_internal {
 
     const char *getAnimatedHourglassIcon() {
         switch ((int) (glfwGetTime() * 6) % 3) {
-            case 0:
-                return ICON_FA_HOURGLASS_START;
-            case 1:
-                return ICON_FA_HOURGLASS_HALF;
-            case 2:
-                return ICON_FA_HOURGLASS_END;
-            default:
-                return ICON_FA_HOURGLASS;//should never happen
+            case 0:return ICON_FA_HOURGLASS_START;
+            case 1:return ICON_FA_HOURGLASS_HALF;
+            case 2:return ICON_FA_HOURGLASS_END;
+            default:return ICON_FA_HOURGLASS;//should never happen
         }
     }
 

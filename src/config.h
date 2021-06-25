@@ -182,6 +182,7 @@ namespace config {
     const Key<float> TRANSFORM_GIZMO_SIZE("transformGizmoSize", 1.0);
     const Key<bool> FACE_CULLING_ENABLED("faceCullingEnabled", true);
     const Key<bool> THREADING_ENABLED("threadingEnabled", true);
+    const Key<bool> USE_EULER_ANGLES("useEulerAngles", false);
 }
 
 #endif //BRICKSIM_CONFIG_H

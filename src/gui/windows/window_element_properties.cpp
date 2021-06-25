@@ -1,5 +1,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/ext/quaternion_trigonometric.hpp>
+#include <spdlog/spdlog.h>
 #include "../gui.h"
 #include "../../controller.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
@@ -12,7 +14,7 @@
 #include "window_element_properties.h"
 
 namespace gui::windows::element_properties {
-    void draw(Data& data) {
+    void draw(Data &data) {
         static std::shared_ptr<etree::Node> lastSelectedNode = nullptr;
         if (ImGui::Begin(data.name, &data.visible)) {
             if (controller::getSelectedNodes().empty()) {
@@ -51,30 +53,48 @@ namespace gui::windows::element_properties {
 
                 if (node->isTransformationUserEditable()) {
                     auto treeRelTransf = glm::transpose(node->getRelativeTransformation());
-                    glm::quat treeOrientation;
-                    glm::vec3 treeSkew;
-                    glm::vec4 treePerspective;
-                    glm::vec3 treePosition;
-                    glm::vec3 treeScale;
-                    glm::vec3 treeEulerAnglesRad;
-                    glm::decompose(treeRelTransf, treeScale, treeOrientation, treePosition, treeSkew, treePerspective);
-                    treeEulerAnglesRad = glm::eulerAngles(treeOrientation);
+
+                    const util::DecomposedTransformation decomposedTreeTransf = util::decomposeTransformationToStruct(treeRelTransf);
+
+                    const static bool useEulerAngles = config::get(config::USE_EULER_ANGLES);
+                    const auto treeEulerAnglesRad = glm::eulerAngles(decomposedTreeTransf.orientation);
 
                     static glm::vec3 inputEulerAnglesDeg;
+                    static glm::vec3 inputRotationQuatAxis;
+                    static float inputRotationQuatAngleDeg;
                     static glm::vec3 inputPosition;
                     static glm::vec3 inputScalePercent;
                     if (lastSelectedNode != node) {
                         inputEulerAnglesDeg = treeEulerAnglesRad * (float) (180.0f / M_PI);
-                        inputPosition = treePosition;
-                        inputScalePercent = treeScale * 100.0f;
+                        float angleRad = glm::angle(decomposedTreeTransf.orientation);
+                        inputRotationQuatAngleDeg = glm::degrees(angleRad);
+                        inputRotationQuatAxis = glm::axis(decomposedTreeTransf.orientation);
+                        inputPosition = decomposedTreeTransf.translation;
+                        inputScalePercent = decomposedTreeTransf.scale * 100.0f;
                     }
                     glm::vec3 inputEulerAnglesRad = inputEulerAnglesDeg * (float) (M_PI / 180.0f);
 
-                    if ((util::biggestValue(glm::abs(treePosition - inputPosition)) > 0.01)
-                        || (util::biggestValue(glm::abs(inputEulerAnglesRad - treeEulerAnglesRad)) > 0.0001)
-                        || (util::biggestValue(glm::abs(inputScalePercent / 100.0f - treeScale)) > 0.001)) {
-                        auto newRotation = glm::eulerAngleXYZ(inputEulerAnglesRad.x, inputEulerAnglesRad.y,
-                                                              inputEulerAnglesRad.z);
+                    auto currentInputAsQuad = glm::angleAxis(glm::radians(inputRotationQuatAngleDeg), glm::normalize(inputRotationQuatAxis));
+
+                    const bool translationChanged = util::biggestValue(glm::abs(decomposedTreeTransf.translation - inputPosition)) > 0.01;
+                    bool scaleChanged = util::biggestValue(glm::abs(inputScalePercent / 100.0f - decomposedTreeTransf.scale)) > 0.001;
+                    bool rotationChanged;
+                    if (useEulerAngles) {
+                        rotationChanged = util::biggestValue(glm::abs(inputEulerAnglesRad - treeEulerAnglesRad)) > 0.0001;
+                    } else {
+                        float matching = glm::dot(currentInputAsQuad, decomposedTreeTransf.orientation);
+                        rotationChanged = std::abs(matching-1.0f) > 0.001;
+                    }
+                    if (rotationChanged) {
+                        spdlog::info("rotation changed");
+                    }
+                    if (translationChanged || rotationChanged || scaleChanged) {
+                        glm::mat4 newRotation;
+                        if (useEulerAngles) {
+                            newRotation = glm::eulerAngleXYZ(inputEulerAnglesRad.x, inputEulerAnglesRad.y, inputEulerAnglesRad.z);
+                        } else {
+                            newRotation = glm::toMat4(currentInputAsQuad);
+                        }
                         auto newTranslation = glm::translate(glm::mat4(1.0f), inputPosition);
                         auto newScale = glm::scale(glm::mat4(1.0f), inputScalePercent / 100.0f);
                         auto newTransformation = newTranslation * newRotation * newScale;
@@ -84,7 +104,12 @@ namespace gui::windows::element_properties {
                         }
                     }
 
-                    ImGui::DragFloat3(ICON_FA_SYNC" Rotation", &inputEulerAnglesDeg[0], 1.0f, -180, 180, "%.1f°");
+                    if (useEulerAngles) {
+                        ImGui::DragFloat3(ICON_FA_SYNC" Rotation", &inputEulerAnglesDeg[0], 1.0f, -180, 180, "%.1f°");
+                    } else {
+                        ImGui::DragFloat3(ICON_FA_LOCATION_ARROW" Rotation Axis", &inputRotationQuatAxis[0], 0.01f, -1e9, +1e9, "%.2f");
+                        ImGui::DragFloat(ICON_FA_SYNC" Rotation Angle", &inputRotationQuatAngleDeg, 1.0f, 0, 360, "%.0f °");
+                    }
                     ImGui::DragFloat3(ICON_FA_ARROWS_ALT" Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
                     ImGui::DragFloat3(ICON_FA_EXPAND_ARROWS_ALT" Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
                 }

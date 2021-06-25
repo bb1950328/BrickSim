@@ -2,6 +2,7 @@
 #include "../config.h"
 #include "platform_detection.h"
 #include <glm/gtx/norm.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 #include <cstring>
 #include <stb_image_write.h>
 #include <stb_image.h>

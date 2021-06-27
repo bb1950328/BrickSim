@@ -3,9 +3,9 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/base_sink.h>
 #include <list>
-#include "helpers/platform_detection.h"
+#include "../helpers/platform_detection.h"
 
-namespace bricksim::latest_log_messages_tank {
+namespace bricksim::logging::latest_messages_tank {
     struct LogMessage {
         const long timestamp;
         const unsigned char level;

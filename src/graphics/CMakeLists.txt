@@ -7,6 +7,8 @@ target_sources(BrickSimLib PRIVATE
         overlay_2d.h
         scene.cpp
         scene.h
+        shaders.cpp
+        shaders.h
         texture.cpp
         texture.h
         thumbnail_generator.cpp

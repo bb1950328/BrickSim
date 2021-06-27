@@ -9,13 +9,12 @@ target_sources(BrickSimLib PRIVATE
         element_tree.h
         keyboard_shortcut_manager.cpp
         keyboard_shortcut_manager.h
-        latest_log_messages_tank.cpp
-        latest_log_messages_tank.h
+        logging/latest_log_messages_tank.cpp
+        logging/latest_log_messages_tank.h
         metrics.cpp
         metrics.h
         part_finder.cpp
         part_finder.h
-        graphics/shaders.cpp
         tasks.cpp
         tasks.h
         transform_gizmo.cpp
@@ -32,5 +31,6 @@ add_subdirectory(helpers)
 add_subdirectory(info_providers)
 add_subdirectory(ldr)
 add_subdirectory(lib)
+add_subdirectory(logging)
 add_subdirectory(test)
 add_subdirectory(tools)

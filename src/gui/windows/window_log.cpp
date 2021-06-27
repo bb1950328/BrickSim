@@ -3,7 +3,7 @@
 #include <fstream>
 #include "../gui.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
-#include "../../latest_log_messages_tank.h"
+#include "../../logging/latest_log_messages_tank.h"
 
 #include "window_log.h"
 
@@ -52,7 +52,7 @@ namespace bricksim::gui::windows::log {
             bool saveClicked = ImGui::Button(ICON_FA_SAVE" Save");
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_BAN" Clear")) {
-                latest_log_messages_tank::clear();
+                logging::latest_messages_tank::clear();
             }
 
             std::string exportResult;
@@ -64,7 +64,7 @@ namespace bricksim::gui::windows::log {
                 ImGui::TableSetupScrollFreeze(0, 1);
                 ImGui::TableHeadersRow();
 
-                auto it = latest_log_messages_tank::getIterator();
+                auto it = logging::latest_messages_tank::getIterator();
                 while (it.getCurrent() != nullptr) {
                     const auto message = *it.getCurrent();
                     it.operator++();

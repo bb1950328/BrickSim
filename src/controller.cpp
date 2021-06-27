@@ -10,13 +10,14 @@
 #include "gui/gui.h"
 #include "db.h"
 #include "helpers/util.h"
-#include "latest_log_messages_tank.h"
+#include "logging/latest_log_messages_tank.h"
 #include "graphics/shaders.h"
 #include "ldr/file_repo.h"
 #include "info_providers/bricklink_constants_provider.h"
 #include "graphics/orientation_cube.h"
 #include "metrics.h"
 #include "user_actions.h"
+#include "logging/logger.h"
 
 #ifdef BRICKSIM_USE_RENDERDOC
 #include <link.h>
@@ -247,9 +248,7 @@ namespace bricksim::controller {
         }
 
         bool initialize() {
-            const std::shared_ptr<latest_log_messages_tank::Sink<std::mutex>> x(new latest_log_messages_tank::Sink<std::mutex>);
-            spdlog::default_logger()->sinks().push_back(x);
-            spdlog::set_level(spdlog::level::trace);
+            logging::initialize();
 
             db::initialize();
 
@@ -331,7 +330,7 @@ namespace bricksim::controller {
             glfwTerminate();
             openGlInitialized = false;
             spdlog::info("GLFW terminated.");
-            spdlog::shutdown();
+            logging::cleanup();
         }
 
         void handleForegroundTasks() {

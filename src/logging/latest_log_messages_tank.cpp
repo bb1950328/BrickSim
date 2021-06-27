@@ -1,9 +1,8 @@
 #include "latest_log_messages_tank.h"
-#include "config.h"
+#include "../config.h"
 
-
-namespace bricksim::latest_log_messages_tank {
-    void addMessage(const latest_log_messages_tank::LogMessage &msg) {
+namespace bricksim::logging::latest_messages_tank {
+    void addMessage(const latest_messages_tank::LogMessage &msg) {
         if (msg.level >= minLevelForAlwaysKeeping) {
             alwaysKeepingMessages.push_back(msg);
         } else {

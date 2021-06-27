@@ -78,6 +78,8 @@ namespace transform_gizmo {
     };
 
     class TGNode : public etree::Node {
+        friend class TransformOperation;
+        friend class Translate1dOperation;
     private:
         std::array<std::shared_ptr<mesh::generated::ArrowNode>, 3> translate1dArrows;
         std::array<std::shared_ptr<mesh::generated::QuarterTorusNode>, 3> rotateQuarterTori;
@@ -103,6 +105,9 @@ namespace transform_gizmo {
         std::shared_ptr<Scene> scene;
         std::shared_ptr<TGNode> node;
         std::shared_ptr<mesh::generated::GeneratedMeshNode> debugNode;
+        std::shared_ptr<mesh::generated::GeneratedMeshNode> debugNode2;
+        std::shared_ptr<mesh::generated::GeneratedMeshNode> debugNode3;
+        std::shared_ptr<mesh::generated::GeneratedMeshNode> debugNode4;
         std::optional<glm::mat4> lastTransformation;
         PovState lastState;
         std::unique_ptr<TransformOperation> currentTransformationOperation = nullptr;

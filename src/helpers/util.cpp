@@ -16,6 +16,7 @@
 #endif
 
 #ifdef __SSE2__
+
 #include <immintrin.h>
 #include <glm/gtx/matrix_decompose.hpp>
 
@@ -626,52 +627,42 @@ namespace util {
     }
 
     ClosestLineBetweenTwoRaysResult closestLineBetweenTwoRays(const Ray3 &a, const Ray3 &b) {
-        //https://stackoverflow.com/a/29449042/8733066
-        if (a.origin == b.origin) {
-            return {a.origin, b.origin, 0.0f, 0.0f, 0.0f};
-        }
-        auto d3 = glm::cross(a.direction, b.direction);
+        const auto p1 = a.origin;
+        const auto d1 = glm::normalize(a.direction);
+        const auto p2 = b.origin;
+        const auto d2 = glm::normalize(b.direction);
 
-        ClosestLineBetweenTwoRaysResult result{};
-        if (d3 != glm::vec3(0, 0, 0)) {
-            //lines non-parallel
-
-            std::array<float, 12> matrix{
-                    a.direction.x,
-                    -b.direction.x,
-                    d3.x,
-                    b.origin.x - a.origin.x,
-
-                    a.direction.y,
-                    -b.direction.y,
-                    d3.y,
-                    b.origin.y - a.origin.y,
-
-                    a.direction.z,
-                    -b.direction.z,
-                    d3.z,
-                    b.origin.z - a.origin.z,
-            };
-            gaussianElimination(matrix);
-
-            result.distanceToPointA = matrix[3];
-            result.distanceToPointB = matrix[7];
-            result.distanceBetweenPoints = glm::length(matrix[11]*d3);
-            result.pointOnA = a.origin + result.distanceToPointA * a.direction;
-            result.pointOnB = b.origin + result.distanceToPointB * b.direction;
-        } else {
+        if (glm::all(glm::epsilonEqual(d1, d2, 0.001f))) {
             //rays are parallel -> we can do a normal projection
             //there are infinite solutions in this case so we set pointOnA to startA
-            glm::vec3 startToStart = a.origin - b.origin;
-            float x = (glm::dot(b.direction, startToStart) / glm::length2(b.direction));
-            result.pointOnA = a.origin;
-            result.pointOnB = b.origin + x * b.direction;
-            result.distanceToPointA = 0;
-            result.distanceToPointB = x;
-            result.distanceBetweenPoints = glm::length(result.pointOnA-result.pointOnB);
-        }
+            glm::vec3 startToStart = p1 - p2;
+            float x = (glm::dot(d2, startToStart) / glm::length2(d2));
+            auto pointOnB = p2 + x * d2;
+            return {
+                    .pointOnA = p1,
+                    .pointOnB = pointOnB,
+                    .distanceToPointA = 0,
+                    .distanceToPointB = x,
+                    .distanceBetweenPoints = glm::length(p1 - pointOnB),
+            };
+        } else {
+            //https://math.stackexchange.com/a/1702955
+            const auto n = glm::cross(d1, d2);
+            const auto n1 = glm::cross(d1, n);
+            const auto n2 = glm::cross(d2, n);
+            const auto factor1 = glm::dot((p2 - p1), n2) / glm::dot(d1, n2);
+            const auto factor2 = glm::dot((p1 - p2), n1) / glm::dot(d2, n1);
+            const auto c1 = p1 + factor1 * d1;
+            const auto c2 = p2 + factor2 * d2;
 
-        return result;
+            return {
+                    .pointOnA = c1,
+                    .pointOnB = c2,
+                    .distanceToPointA = factor1,
+                    .distanceToPointB = factor2,
+                    .distanceBetweenPoints = glm::length(c1 - c2),
+            };
+        }
     }
 
     DecomposedTransformation decomposeTransformationToStruct(const glm::mat4 &transformation) {

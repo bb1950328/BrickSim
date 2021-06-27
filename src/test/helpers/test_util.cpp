@@ -330,56 +330,73 @@ TEST_CASE("util::normalProjectionOnLine2") {
     CHECK(result.projectionLength == Approx(sqrt(2 * 2 + 1 * 1)));
 }
 
-void consistencyCheck(const glm::vec3 &startA, const glm::vec3 &dirA, const glm::vec3 &startB, const glm::vec3 &dirB, const util::ClosestLineBetweenTwoRaysResult &result) {
+void consistencyCheck(const Ray3 &a, const Ray3 &b, const util::ClosestLineBetweenTwoRaysResult &result) {
     CHECK(glm::length(result.pointOnA - result.pointOnB) == result.distanceBetweenPoints);
-    CHECK(startA + dirA * result.distanceToPointA == ApproxVec(result.pointOnA));
-    CHECK(startB + dirB * result.distanceToPointB == ApproxVec(result.pointOnB));
+    CHECK(a.origin + glm::normalize(a.direction) * result.distanceToPointA == ApproxVec(result.pointOnA));
+    CHECK(b.origin + glm::normalize(b.direction) * result.distanceToPointB == ApproxVec(result.pointOnB));
 }
 
 TEST_CASE("util::closestLineBetweenTwoRays0") {
     // https://keisan.casio.com/exec/system/1223531414
-    const glm::vec3 startA = {-1, 2, 0};
-    const glm::vec3 dirA = {2, 3, 1};
-    const glm::vec3 startB = {3, -4, 1};
-    const glm::vec3 dirB = {1, 2, 1};
-    auto result = util::closestLineBetweenTwoRays({startA, dirA}, {startB, dirB});
-    consistencyCheck(startA, dirA, startB, dirB, result);
+    const Ray3 a = {
+            {-1, 2, 0},
+            {2, 3, 1},
+    };
+    const Ray3 b = {
+            {3, -4, 1},
+            {1, 2, 1},
+    };
+    auto result = util::closestLineBetweenTwoRays(a, b);
+    consistencyCheck(a, b, result);
     CHECK(result.distanceBetweenPoints == Approx(6.3508529610859));
     CHECK(result.pointOnA == ApproxVec(glm::vec3(5, 11, 3)));
     CHECK(result.pointOnB == ApproxVec(glm::vec3(26 / 3.f, 22 / 3.f, 20 / 3.f)));
 }
 
 TEST_CASE("util::closestLineBetweenTwoRays1") {
-    const glm::vec3 startA = {1, 2, 3};
-    const glm::vec3 dirA = {2, 3, 4};
-    const glm::vec3 startB = {3, 2, 1};
-    const glm::vec3 dirB = {4, 3, 2};
-    auto result = util::closestLineBetweenTwoRays({startA, dirA}, {startB, dirB});
-    consistencyCheck(startA, dirA, startB, dirB, result);
+    //https://www.geogebra.org/calculator/ujvvt34f
+    const Ray3 a = {
+            {1, 2, 3},
+            {2, 3, 4},
+    };
+    const Ray3 b = {
+            {3, 2, 1},
+            {4, 3, 2},
+    };
+    auto result = util::closestLineBetweenTwoRays(a, b);
+    consistencyCheck(a, b, result);
     CHECK(result.distanceBetweenPoints == Approx(0.0f));
     CHECK(result.pointOnA == ApproxVec(glm::vec3(-1, -1, -1)));
     CHECK(result.pointOnB == ApproxVec(glm::vec3(-1, -1, -1)));
 }
 
 TEST_CASE("util::closestLineBetweenTwoRays2") {
-    const glm::vec3 startA = {1, 2, 3};
-    const glm::vec3 dirA = {2, 3, 4};
-    const glm::vec3 startB = {3, 2, 1};
-    const glm::vec3 dirB = dirA;
-    auto result = util::closestLineBetweenTwoRays({startA, dirA}, {startB, dirB});
-    consistencyCheck(startA, dirA, startB, dirB, result);
+    const Ray3 a = {
+            {1, 2, 3},
+            {2, 3, 4},
+    };
+    const Ray3 b = {
+            {3, 2, 1},
+            a.direction,
+    };
+    auto result = util::closestLineBetweenTwoRays(a, b);
+    consistencyCheck(a, b, result);
     CHECK(result.distanceBetweenPoints == Approx(2.7291529568841f));
-    CHECK(result.pointOnA == ApproxVec(startA));
+    CHECK(result.pointOnA == ApproxVec(a.origin));
     CHECK(result.pointOnB == ApproxVec(glm::vec3(3.27586198, 2.41379309, 1.5517242)));
 }
 
 TEST_CASE("util::closestLineBetweenTwoRays3") {
-    const glm::vec3 startA = {9999, 9999, 50};
-    const glm::vec3 dirA = {2, 3, 0};
-    const glm::vec3 startB = {9999, 9999, 150};
-    const glm::vec3 dirB = {3, 2, 0};
-    auto result = util::closestLineBetweenTwoRays({startA, dirA}, {startB, dirB});
-    consistencyCheck(startA, dirA, startB, dirB, result);
+    const Ray3 a = {
+            {9999, 9999, 50},
+            {2, 3, 0},
+    };
+    const Ray3 b = {
+            {9999, 9999, 150},
+            {3, 2, 0},
+    };
+    auto result = util::closestLineBetweenTwoRays(a, b);
+    consistencyCheck(a, b, result);
     CHECK(result.distanceBetweenPoints == Approx(100));
     CHECK(result.pointOnA == ApproxVec(glm::vec3(9999, 9999, 50)));
     CHECK(result.pointOnB == ApproxVec(glm::vec3(9999, 9999, 150)));

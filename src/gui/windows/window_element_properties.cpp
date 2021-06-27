@@ -52,66 +52,87 @@ namespace gui::windows::element_properties {
                 }
 
                 if (node->isTransformationUserEditable()) {
-                    auto treeRelTransf = glm::transpose(node->getRelativeTransformation());
-
+                    static glm::mat4 lastTreeTransf;
+                    const glm::mat4 treeRelTransf = glm::transpose(node->getRelativeTransformation());
                     const util::DecomposedTransformation decomposedTreeTransf = util::decomposeTransformationToStruct(treeRelTransf);
-
-                    const static bool useEulerAngles = config::get(config::USE_EULER_ANGLES);
-                    const auto treeEulerAnglesRad = glm::eulerAngles(decomposedTreeTransf.orientation);
-
-                    static glm::vec3 inputEulerAnglesDeg;
-                    static glm::vec3 inputRotationQuatAxis;
-                    static float inputRotationQuatAngleDeg;
-                    static glm::vec3 inputPosition;
-                    static glm::vec3 inputScalePercent;
-                    if (lastSelectedNode != node) {
-                        inputEulerAnglesDeg = treeEulerAnglesRad * (float) (180.0f / M_PI);
-                        float angleRad = glm::angle(decomposedTreeTransf.orientation);
-                        inputRotationQuatAngleDeg = glm::degrees(angleRad);
-                        inputRotationQuatAxis = glm::axis(decomposedTreeTransf.orientation);
-                        inputPosition = decomposedTreeTransf.translation;
-                        inputScalePercent = decomposedTreeTransf.scale * 100.0f;
+                    
+                    bool nodeHasChanged = lastSelectedNode != node;
+                    bool transformationHasChanged = lastTreeTransf!=treeRelTransf;
+                    lastTreeTransf = treeRelTransf;
+                    if (transformationHasChanged) {
+                        spdlog::debug("transformation changed");
                     }
-                    glm::vec3 inputEulerAnglesRad = inputEulerAnglesDeg * (float) (M_PI / 180.0f);
 
-                    auto currentInputAsQuad = glm::angleAxis(glm::radians(inputRotationQuatAngleDeg), glm::normalize(inputRotationQuatAxis));
-
-                    const bool translationChanged = util::biggestValue(glm::abs(decomposedTreeTransf.translation - inputPosition)) > 0.01;
-                    bool scaleChanged = util::biggestValue(glm::abs(inputScalePercent / 100.0f - decomposedTreeTransf.scale)) > 0.001;
+                    bool translationChanged;
+                    bool scaleChanged;
                     bool rotationChanged;
+
+                    static glm::vec3 inputPosition;
+                    {
+                        static glm::vec3 lastTreePosition;
+                        if (nodeHasChanged || transformationHasChanged) {
+                            lastTreePosition = inputPosition = decomposedTreeTransf.translation;
+                        }
+                        ImGui::DragFloat3(ICON_FA_ARROWS_ALT" Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
+                        translationChanged = glm::any(glm::epsilonNotEqual(decomposedTreeTransf.translation, inputPosition, 0.01f));
+                    }
+                    
+                    const static bool useEulerAngles = config::get(config::USE_EULER_ANGLES);
+                    static glm::vec3 inputEulerAnglesDeg;
+                    static glm::vec3 inputQuatAxis;
+                    static float inputQuatAngleDeg;
                     if (useEulerAngles) {
-                        rotationChanged = util::biggestValue(glm::abs(inputEulerAnglesRad - treeEulerAnglesRad)) > 0.0001;
+                        static glm::vec3 lastTreeEulerAnglesRad;
+                        auto currentTreeAnglesRad = glm::eulerAngles(decomposedTreeTransf.orientation);
+                        if (nodeHasChanged || transformationHasChanged) {
+                            lastTreeEulerAnglesRad = currentTreeAnglesRad;
+                            inputEulerAnglesDeg = glm::degrees(currentTreeAnglesRad);
+                        }
+                        ImGui::DragFloat3(ICON_FA_SYNC" Rotation", &inputEulerAnglesDeg[0], 1.0f, -180, 180, "%.1f°");
+                        rotationChanged = glm::any(glm::epsilonNotEqual(glm::radians(inputEulerAnglesDeg), lastTreeEulerAnglesRad, 0.0001f));
                     } else {
-                        float matching = glm::dot(currentInputAsQuad, decomposedTreeTransf.orientation);
-                        rotationChanged = std::abs(matching-1.0f) > 0.001;
+                        static glm::vec3 lastTreeQuatAxis;
+                        const glm::vec3 currentQuatAxis = glm::axis(decomposedTreeTransf.orientation);
+                        static float lastTreeQuatAngleDeg;
+                        const float currentTreeAngleDeg = glm::angle(decomposedTreeTransf.orientation);
+                        if (nodeHasChanged || transformationHasChanged) {
+                            lastTreeQuatAngleDeg = currentTreeAngleDeg;
+                            inputQuatAngleDeg = currentTreeAngleDeg;
+                            lastTreeQuatAxis = currentQuatAxis;
+                            inputQuatAxis = currentQuatAxis;
+                        }
+                        ImGui::DragFloat3(ICON_FA_LOCATION_ARROW" Rotation Axis", &inputQuatAxis[0], 0.01f, -1e9, +1e9, "%.2f");
+                        ImGui::DragFloat(ICON_FA_SYNC" Rotation Angle", &inputQuatAngleDeg, 1.0f, 0, 360, "%.0f °");
+                        rotationChanged = std::abs(lastTreeQuatAngleDeg - inputQuatAngleDeg) > 0.01 || glm::any(glm::epsilonNotEqual(inputQuatAxis, lastTreeQuatAxis, 0.001f));
                     }
-                    if (rotationChanged) {
-                        spdlog::info("rotation changed");
+                    
+                    static glm::vec3 inputScalePercent;
+                    {
+                        static glm::vec3 lastTreeScale;
+                        if (nodeHasChanged || lastTreeScale!=decomposedTreeTransf.scale) {
+                            lastTreeScale = decomposedTreeTransf.scale;
+                            inputScalePercent = decomposedTreeTransf.scale * 100.0f;
+                        }
+                        ImGui::DragFloat3(ICON_FA_EXPAND_ARROWS_ALT" Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
+                        scaleChanged = util::biggestValue(glm::abs(inputScalePercent / 100.0f - decomposedTreeTransf.scale)) > 0.001;
                     }
+
                     if (translationChanged || rotationChanged || scaleChanged) {
                         glm::mat4 newRotation;
                         if (useEulerAngles) {
-                            newRotation = glm::eulerAngleXYZ(inputEulerAnglesRad.x, inputEulerAnglesRad.y, inputEulerAnglesRad.z);
+                            newRotation = glm::eulerAngleXYZ(glm::radians(inputEulerAnglesDeg.x), glm::radians(inputEulerAnglesDeg.y), glm::radians(inputEulerAnglesDeg.z));
                         } else {
-                            newRotation = glm::toMat4(currentInputAsQuad);
+                            newRotation = glm::toMat4(glm::angleAxis(glm::radians(inputQuatAngleDeg), inputQuatAxis));
                         }
                         auto newTranslation = glm::translate(glm::mat4(1.0f), inputPosition);
                         auto newScale = glm::scale(glm::mat4(1.0f), inputScalePercent / 100.0f);
                         auto newTransformation = newTranslation * newRotation * newScale;
                         if (treeRelTransf != newTransformation) {
                             node->setRelativeTransformation(glm::transpose(newTransformation));
+                            spdlog::debug("user edited transformation in element properties");
                             controller::setElementTreeChanged(true);
                         }
                     }
-
-                    if (useEulerAngles) {
-                        ImGui::DragFloat3(ICON_FA_SYNC" Rotation", &inputEulerAnglesDeg[0], 1.0f, -180, 180, "%.1f°");
-                    } else {
-                        ImGui::DragFloat3(ICON_FA_LOCATION_ARROW" Rotation Axis", &inputRotationQuatAxis[0], 0.01f, -1e9, +1e9, "%.2f");
-                        ImGui::DragFloat(ICON_FA_SYNC" Rotation Angle", &inputRotationQuatAngleDeg, 1.0f, 0, 360, "%.0f °");
-                    }
-                    ImGui::DragFloat3(ICON_FA_ARROWS_ALT" Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
-                    ImGui::DragFloat3(ICON_FA_EXPAND_ARROWS_ALT" Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
                 }
                 if ((node->getType() & etree::NodeType::TYPE_MESH) > 0) {
                     auto meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node);

@@ -8,13 +8,10 @@ namespace bricksim::graphics {
     class Shader {
     public:
         unsigned int id;
-        /**
-         * constructor generates the shader on the fly
-         * @param vertexPath
-         * @param fragmentPath
-         */
-        Shader(const char *vertexPath, const char *fragmentPath);
-        Shader(const char *vertexPath, const char *fragmentPath, const char *geometryPath);
+        Shader(const char *vertexPath, const char *fragmentPath, const char *geometryPath= nullptr);
+        Shader(const char *vertexCodeBegin, const char *vertexCodeEnd,
+               const char *fragmentCodeBegin, const char *fragmentCodeEnd,
+               const char *geometryCodeBegin = nullptr, const char *geometryCodeEnd = nullptr);
 
         void use() const;
 
@@ -38,7 +35,8 @@ namespace bricksim::graphics {
     private:
         // utility function for checking shader compilation/linking errors.
         static void checkCompileErrors(GLuint shader, const std::string &type);
-        void compileShaders(const char *geometryPath, const std::string &vertexCode, const std::string &fragmentCode, const std::string &geometryCode);
+        void linkProgram(unsigned int vertex, unsigned int fragment, bool hasGeometry, unsigned int geometry);
+        int compileShader(const char *const code, int *length, int type, const char *const typeName);
     };
 
     namespace shaders {

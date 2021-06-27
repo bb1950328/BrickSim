@@ -40,16 +40,16 @@ namespace bricksim::gui {
         void setupFont(float scaleFactor, ImGuiIO &io) {
             auto fontName = config::get(config::FONT);
             const unsigned char *fontData;
-            unsigned int fontDataLength;
+            std::size_t fontDataLength;
             if (fontName == "Roboto") {
-                fontData = resources::fonts_Roboto_Regular_ttf;
-                fontDataLength = resources::fonts_Roboto_Regular_ttf_len;
+                fontData = resources::fonts::Roboto_Regular_ttf.data();
+                fontDataLength = resources::fonts::Roboto_Regular_ttf.size();
             } else {
                 if (fontName != "RobotoMono") {
                     spdlog::warn("invalid font config: \"{}\"", fontName);
                 }
-                fontData = resources::fonts_RobotoMono_Regular_ttf;
-                fontDataLength = resources::fonts_RobotoMono_Regular_ttf_len;
+                fontData = resources::fonts::RobotoMono_Regular_ttf.data();
+                fontDataLength = resources::fonts::RobotoMono_Regular_ttf.size();
             }
             ImFontConfig fontConfig;
             fontConfig.FontDataOwnedByAtlas = false;//otherwise ImGui tries to free() the data which causes a crash because the data is const
@@ -61,7 +61,7 @@ namespace bricksim::gui {
             iconsConfig.MergeMode = true;
             iconsConfig.PixelSnapH = true;
             iconsConfig.FontDataOwnedByAtlas = false;
-            io.Fonts->AddFontFromMemoryTTF((void *) resources::fonts_fa_solid_900_ttf, resources::fonts_fa_solid_900_ttf_len,
+            io.Fonts->AddFontFromMemoryTTF((void *) resources::fonts::fa_solid_900_ttf.data(), resources::fonts::fa_solid_900_ttf.size(),
                                            13.0f * scaleFactor, &iconsConfig, icons_ranges);
         }
 
@@ -156,7 +156,7 @@ namespace bricksim::gui {
         auto flipFlagBefore = util::isStbiFlipVertically();
         util::setStbiFlipVertically(false);
         GLFWimage images[1];
-        images[0].pixels = stbi_load_from_memory(resources::logo_icon_png, resources::logo_icon_png_len,
+        images[0].pixels = stbi_load_from_memory(resources::logos::logo_icon_png.data(), resources::logos::logo_icon_png.size(),
                                                  &images[0].width, &images[0].height, nullptr, 4); //rgba channels
         glfwSetWindowIcon(window, 1, images);
         stbi_image_free(images[0].pixels);
@@ -180,7 +180,7 @@ namespace bricksim::gui {
         // Setup Dear ImGui style
         setupStyle();
 
-        logoTexture = std::make_shared<graphics::Texture>(resources::logo_fit_nobg_png, resources::logo_fit_nobg_png_len);
+        logoTexture = std::make_shared<graphics::Texture>(resources::logos::logo_fit_nobg_png.data(), resources::logos::logo_fit_nobg_png.size());
 
         setupDone = true;
     }

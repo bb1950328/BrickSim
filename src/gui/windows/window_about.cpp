@@ -15,12 +15,12 @@ namespace bricksim::gui::windows::about {
 
         };
         const std::array<License, 6> licenses = {
-                License{"Apache License, Version 2.0", "https://www.apache.org/licenses/LICENSE-2.0", "Hugo", (char *) resources::licenses_Apache2_txt},
-                License{"2-Clause BSD License", "https://opensource.org/licenses/BSD-2-Clause", "pytorch/cpuinfo", (char *) resources::licenses_bsd2clause_txt},
-                License{"3-Clause BSD License", "https://opensource.org/licenses/BSD-3-Clause", "CMake, ", (char *) resources::licenses_bsd3clause_txt},
-                License{"GPLv3", "https://www.gnu.org/licenses/gpl-3.0.en.html", "BrickSim itself, Miniball", (char *) resources::licenses_GPLv3_txt},
-                License{"MIT", "https://opensource.org/licenses/MIT", "dear imgui, SQLiteCpp, glad, rapidjson, magic_enum", (char *) resources::licenses_MIT_txt},
-                License{"zlib", "https://opensource.org/licenses/Zlib", "GLFW, tinyfiledialogs", (char *) resources::licenses_zlib_txt},
+                License{"Apache License, Version 2.0", "https://www.apache.org/licenses/LICENSE-2.0", "Hugo", (char *) resources::licenses::Apache2_txt.data()},
+                License{"2-Clause BSD License", "https://opensource.org/licenses/BSD-2-Clause", "pytorch/cpuinfo", (char *) resources::licenses::bsd2clause_txt.data()},
+                License{"3-Clause BSD License", "https://opensource.org/licenses/BSD-3-Clause", "CMake, ", (char *) resources::licenses::bsd3clause_txt.data()},
+                License{"GPLv3", "https://www.gnu.org/licenses/gpl-3.0.en.html", "BrickSim itself, Miniball", (char *) resources::licenses::GPLv3_txt.data()},
+                License{"MIT", "https://opensource.org/licenses/MIT", "dear imgui, SQLiteCpp, glad, rapidjson, magic_enum", (char *) resources::licenses::MIT_txt.data()},
+                License{"zlib", "https://opensource.org/licenses/Zlib", "GLFW, tinyfiledialogs", (char *) resources::licenses::zlib_txt.data()},
         };
     }
 

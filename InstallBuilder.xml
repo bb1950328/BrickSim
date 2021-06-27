@@ -4,8 +4,8 @@
     <version>0.0.1</version>
     <readmeFile>${build_project_directory}/README.md</readmeFile>
     <licenseFile>${build_project_directory}/LICENSE</licenseFile>
-    <logoImage>${build_project_directory}/resources/logo_icon_48x48.png</logoImage>
-    <splashImage>${build_project_directory}/resources/logo_fit_314x163.png</splashImage>
+    <logoImage>${build_project_directory}/resources/logos/logo_icon_48x48.png</logoImage>
+    <splashImage>${build_project_directory}/resources/logos/logo_fit_314x163.png</splashImage>
     <osxPlatforms>osx-x86_64 osx-arm64</osxPlatforms>
     <componentList>
         <component>
@@ -26,7 +26,7 @@
                     <runInTerminal>0</runInTerminal>
                     <windowsExec>${installdir}/BrickSim.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
-                    <windowsIcon>${build_project_directory}/resources/logo_icon.ico</windowsIcon>
+                    <windowsIcon>${build_project_directory}/resources/logos/logo_icon.ico</windowsIcon>
                     <windowsPath>${installdir}</windowsPath>
                 </shortcut>
             </desktopShortcutList>
@@ -60,7 +60,7 @@
                     <platforms>linux</platforms>
                     <distributionFileList>
                         <distributionFile>
-                            <origin>${build_project_directory}/resources/logo_icon.png</origin>
+                            <origin>${build_project_directory}/resources/logos/logo_icon.png</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>${build_project_directory}/cmake-build/release32/BrickSim</origin>
@@ -74,7 +74,7 @@
                     <platforms>linux-x64</platforms>
                     <distributionFileList>
                         <distributionFile>
-                            <origin>${build_project_directory}/resources/logo_icon.png</origin>
+                            <origin>${build_project_directory}/resources/logos/logo_icon.png</origin>
                         </distributionFile>
                         <distributionFile>
                             <origin>${build_project_directory}/cmake-build/release64/BrickSim</origin>
@@ -91,7 +91,7 @@
                             <origin>${build_project_directory}/cmake-build/release32/BrickSim.exe</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>${build_project_directory}/resources/logo_icon.ico</origin>
+                            <origin>${build_project_directory}/resources/logos/logo_icon.ico</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -105,7 +105,7 @@
                             <origin>${build_project_directory}/cmake-build/release64/BrickSim.exe</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>${build_project_directory}/resources/logo_icon.ico</origin>
+                            <origin>${build_project_directory}/resources/logos/logo_icon.ico</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -124,7 +124,7 @@
                     <runInTerminal>0</runInTerminal>
                     <windowsExec>${installdir}/${uninstallerName}.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
-                    <windowsIcon>./resources/logo_icon_uninstall.ico</windowsIcon>
+                    <windowsIcon>./resources/logos/logo_icon_uninstall.ico</windowsIcon>
                     <windowsPath>${installdir}/</windowsPath>
                 </startMenuShortcut>
                 <startMenuShortcut>
@@ -134,7 +134,7 @@
                     <runInTerminal>0</runInTerminal>
                     <windowsExec>${installdir}/BrickSim.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
-                    <windowsIcon>${build_project_directory}/resources/logo_icon.ico</windowsIcon>
+                    <windowsIcon>${build_project_directory}/resources/logos/logo_icon.ico</windowsIcon>
                     <windowsPath>${installdir}</windowsPath>
                 </startMenuShortcut>
             </startMenuShortcutList>

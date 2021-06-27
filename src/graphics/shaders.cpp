@@ -3,13 +3,12 @@
 #include <fstream>
 #include <sstream>
 #include <spdlog/spdlog.h>
+#include "../constant_data/resources.h"
 
 namespace bricksim::graphics {
 
-    Shader::Shader(const char *vertexPath, const char *fragmentPath) : Shader(vertexPath, fragmentPath, nullptr) {
-    }
-
     Shader::Shader(const char *vertexPath, const char *fragmentPath, const char *geometryPath) {
+        const auto hasGeometry = geometryPath != nullptr;
         // 1. retrieve the vertex/fragment source code from filePath
         std::string vertexCode;
         std::string fragmentCode;
@@ -36,7 +35,7 @@ namespace bricksim::graphics {
             vertexCode = vShaderStream.str();
             fragmentCode = fShaderStream.str();
             // if geometry shader path is present, also load a geometry shader
-            if (geometryPath != nullptr) {
+            if (hasGeometry) {
                 gShaderFile.open(geometryPath);
                 std::stringstream gShaderStream;
                 gShaderStream << gShaderFile.rdbuf();
@@ -47,50 +46,31 @@ namespace bricksim::graphics {
         catch (std::ifstream::failure &e) {
             spdlog::error("shader file not read successfully {} {}", e.code().value(), e.code().message());
         }
-        compileShaders(geometryPath, vertexCode, fragmentCode, geometryCode);
+        controller::executeOpenGL([&]() {
+            linkProgram(compileShader(vertexCode.c_str(), nullptr, GL_VERTEX_SHADER, "VERTEX"),
+                        compileShader(fragmentCode.c_str(), nullptr, GL_FRAGMENT_SHADER, "FRAGMENT"),
+                        hasGeometry,
+                        hasGeometry ? compileShader(geometryCode.c_str(), nullptr, GL_GEOMETRY_SHADER, "GEOMETRY") : 0);
 
+        });
     }
 
-    void Shader::compileShaders(const char *geometryPath, const std::string &vertexCode, const std::string &fragmentCode, const std::string &geometryCode) {
-        controller::executeOpenGL([&]() {
-            const char *vShaderCode = vertexCode.c_str();
-            const char *fShaderCode = fragmentCode.c_str();
-            // 2. compile shaders
-            unsigned int vertex, fragment;
-            // vertex shader
-            vertex = glCreateShader(GL_VERTEX_SHADER);
-            glShaderSource(vertex, 1, &vShaderCode, nullptr);
-            glCompileShader(vertex);
-            checkCompileErrors(vertex, "VERTEX");
-            // fragment Shader
-            fragment = glCreateShader(GL_FRAGMENT_SHADER);
-            glShaderSource(fragment, 1, &fShaderCode, nullptr);
-            glCompileShader(fragment);
-            checkCompileErrors(fragment, "FRAGMENT");
-            // if geometry shader is given, compile geometry shader
-            unsigned int geometry;
-            if (geometryPath != nullptr) {
-                const char *gShaderCode = geometryCode.c_str();
-                geometry = glCreateShader(GL_GEOMETRY_SHADER);
-                glShaderSource(geometry, 1, &gShaderCode, nullptr);
-                glCompileShader(geometry);
-                checkCompileErrors(geometry, "GEOMETRY");
-            }
-            // shader Program
-            id = glCreateProgram();
-            glAttachShader(id, vertex);
-            glAttachShader(id, fragment);
-            if (geometryPath != nullptr)
-                glAttachShader(id, geometry);
-            glLinkProgram(id);
-            checkCompileErrors(id, "PROGRAM");
-            // delete the shaders as they're linked into our program now and no longer necessery
-            glDeleteShader(vertex);
-            glDeleteShader(fragment);
-            if (geometryPath != nullptr) {
-                glDeleteShader(geometry);
-            }
-        });
+    void Shader::linkProgram(unsigned int vertex, unsigned int fragment, const bool hasGeometry, unsigned int geometry) {
+        id = glCreateProgram();
+        glAttachShader(id, vertex);
+        glAttachShader(id, fragment);
+        if (hasGeometry) {
+            glAttachShader(id, geometry);
+        }
+        glLinkProgram(id);
+        checkCompileErrors(id, "PROGRAM");
+
+        // delete the shaders as they're linked into our program now and no longer necessery
+        glDeleteShader(vertex);
+        glDeleteShader(fragment);
+        if (hasGeometry) {
+            glDeleteShader(geometry);
+        }
     }
 
     void Shader::use() const {
@@ -169,6 +149,30 @@ namespace bricksim::graphics {
         });
     }
 
+    int Shader::compileShader(const char *const code, int *length, int type, const char *const typeName) {
+        int shaderId = glCreateShader(type);
+        glShaderSource(shaderId, 1, &code, length);
+        glCompileShader(shaderId);
+        checkCompileErrors(shaderId, typeName);
+        return shaderId;
+    }
+
+    Shader::Shader(const char *vertexCodeBegin, const char *const vertexCodeEnd,
+                   const char *fragmentCodeBegin, const char *fragmentCodeEnd,
+                   const char *geometryCodeBegin, const char *geometryCodeEnd) {
+        controller::executeOpenGL([&]() {
+            int vertexLength = vertexCodeEnd - vertexCodeBegin;
+            int fragmentLength = fragmentCodeEnd - fragmentCodeBegin;
+            bool hasGeometry = geometryCodeBegin != nullptr;
+            int geometryLength = geometryCodeEnd - geometryCodeBegin;
+            linkProgram(compileShader(vertexCodeBegin, &vertexLength, GL_VERTEX_SHADER, "VERTEX"),
+                        compileShader(fragmentCodeBegin, &fragmentLength, GL_FRAGMENT_SHADER, "FRAGMENT"),
+                        hasGeometry,
+                        hasGeometry ? compileShader(geometryCodeBegin, &geometryLength, GL_GEOMETRY_SHADER, "GEOMETRY") : 0);
+
+        });
+    }
+
     namespace shaders {
         namespace {
             std::map<shader_id_t, std::unique_ptr<Shader>> allShaders;
@@ -179,14 +183,35 @@ namespace bricksim::graphics {
         }
 
         void initialize() {
-            allShaders[TRIANGLE] = std::make_unique<Shader>("resources/shaders/triangle_shader.vsh", "resources/shaders/triangle_shader.fsh");
-            allShaders[TEXTURED_TRIANGLE] = std::make_unique<Shader>("resources/shaders/textured_triangle_shader.vsh", "resources/shaders/textured_triangle_shader.fsh");
-            allShaders[LINE] = std::make_unique<Shader>("resources/shaders/line_shader.vsh", "resources/shaders/line_shader.fsh");
-            allShaders[OPTIONAL_LINE] = std::make_unique<Shader>("resources/shaders/optional_line_shader.vsh", "resources/shaders/line_shader.fsh", "resources/shaders/optional_line_shader.gsh");
-            allShaders[OVERLAY] = std::make_unique<Shader>("resources/shaders/overlay_shader.vsh", "resources/shaders/simple_color_forwarding_shader.fsh");
-            allShaders[TRIANGLE_SELECTION] = std::make_unique<Shader>("resources/shaders/triangle_selection_shader.vsh", "resources/shaders/simple_color_forwarding_shader.fsh");
-            allShaders[TEXTURED_TRIANGLE_SELECTION] = std::make_unique<Shader>("resources/shaders/textured_triangle_selection_shader.vsh", "resources/shaders/simple_color_forwarding_shader.fsh");
-
+            if (is_directory(std::filesystem::path("./resources/shaders"))) {
+                spdlog::info("loading shaders from source files");
+                allShaders[TRIANGLE] = std::make_unique<Shader>("resources/shaders/triangle_shader.vsh", "resources/shaders/triangle_shader.fsh");
+                allShaders[TEXTURED_TRIANGLE] = std::make_unique<Shader>("resources/shaders/textured_triangle_shader.vsh", "resources/shaders/textured_triangle_shader.fsh");
+                allShaders[LINE] = std::make_unique<Shader>("resources/shaders/line_shader.vsh", "resources/shaders/line_shader.fsh");
+                allShaders[OPTIONAL_LINE] = std::make_unique<Shader>("resources/shaders/optional_line_shader.vsh", "resources/shaders/line_shader.fsh", "resources/shaders/optional_line_shader.gsh");
+                allShaders[OVERLAY] = std::make_unique<Shader>("resources/shaders/overlay_shader.vsh", "resources/shaders/simple_color_forwarding_shader.fsh");
+                allShaders[TRIANGLE_SELECTION] = std::make_unique<Shader>("resources/shaders/triangle_selection_shader.vsh", "resources/shaders/simple_color_forwarding_shader.fsh");
+                allShaders[TEXTURED_TRIANGLE_SELECTION] = std::make_unique<Shader>("resources/shaders/textured_triangle_selection_shader.vsh", "resources/shaders/simple_color_forwarding_shader.fsh");
+            } else {
+                spdlog::info("loading shaders from embedded data");
+                allShaders[TRIANGLE] = std::make_unique<Shader>((const char *) resources::shaders::triangle_shader_vsh.begin(), (const char *) resources::shaders::triangle_shader_vsh.end(),
+                                                                (const char *) resources::shaders::triangle_shader_fsh.begin(), (const char *) resources::shaders::triangle_shader_fsh.end());
+                allShaders[TEXTURED_TRIANGLE] = std::make_unique<Shader>((const char *) resources::shaders::textured_triangle_shader_vsh.begin(), (const char *) resources::shaders::textured_triangle_shader_vsh.end(),
+                                                                         (const char *) resources::shaders::textured_triangle_shader_fsh.begin(), (const char *) resources::shaders::textured_triangle_shader_fsh.end());
+                allShaders[LINE] = std::make_unique<Shader>((const char *) resources::shaders::line_shader_vsh.begin(), (const char *) resources::shaders::line_shader_vsh.end(),
+                                                            (const char *) resources::shaders::line_shader_fsh.begin(), (const char *) resources::shaders::line_shader_fsh.end());
+                allShaders[OPTIONAL_LINE] = std::make_unique<Shader>((const char *) resources::shaders::optional_line_shader_vsh.begin(), (const char *) resources::shaders::optional_line_shader_vsh.end(),
+                                                                     (const char *) resources::shaders::line_shader_fsh.begin(), (const char *) resources::shaders::line_shader_fsh.end(),
+                                                                     (const char *) resources::shaders::optional_line_shader_gsh.begin(), (const char *) resources::shaders::optional_line_shader_gsh.end());
+                allShaders[OVERLAY] = std::make_unique<Shader>((const char *) resources::shaders::overlay_shader_vsh.begin(), (const char *) resources::shaders::overlay_shader_vsh.end(),
+                                                               (const char *) resources::shaders::simple_color_forwarding_shader_fsh.begin(), (const char *) resources::shaders::simple_color_forwarding_shader_fsh.end());
+                allShaders[TRIANGLE_SELECTION] = std::make_unique<Shader>((const char *) resources::shaders::triangle_selection_shader_vsh.begin(), (const char *) resources::shaders::triangle_selection_shader_vsh.end(),
+                                                                          (const char *) resources::shaders::simple_color_forwarding_shader_fsh.begin(), (const char *) resources::shaders::simple_color_forwarding_shader_fsh.end());
+                allShaders[TEXTURED_TRIANGLE_SELECTION] = std::make_unique<Shader>((const char *) resources::shaders::textured_triangle_selection_shader_vsh.begin(),
+                                                                                   (const char *) resources::shaders::textured_triangle_selection_shader_vsh.end(),
+                                                                                   (const char *) resources::shaders::simple_color_forwarding_shader_fsh.begin(),
+                                                                                   (const char *) resources::shaders::simple_color_forwarding_shader_fsh.end());
+            }
             spdlog::debug("shader IDs: "
                           "TRIANGLE={} "
                           "TEXTURED_TRIANGLE={} "

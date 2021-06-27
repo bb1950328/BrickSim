@@ -7,7 +7,7 @@
 #include <set>
 #include "../helpers/fraction.h"
 
-namespace gears {
+namespace bricksim::gears {
     enum class GearType {
         EXTERNAL_SPUR,
         INTERNAL_SPUR,

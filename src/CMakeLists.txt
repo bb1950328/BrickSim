@@ -15,7 +15,7 @@ target_sources(BrickSimLib PRIVATE
         metrics.h
         part_finder.cpp
         part_finder.h
-        shaders/shaders.cpp
+        graphics/shaders.cpp
         tasks.cpp
         tasks.h
         transform_gizmo.cpp
@@ -30,7 +30,7 @@ add_subdirectory(graphics)
 add_subdirectory(gui)
 add_subdirectory(helpers)
 add_subdirectory(info_providers)
-add_subdirectory(ldr_files)
+add_subdirectory(ldr)
 add_subdirectory(lib)
 add_subdirectory(test)
 add_subdirectory(tools)

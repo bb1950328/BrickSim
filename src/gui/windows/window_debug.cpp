@@ -13,7 +13,7 @@
 #include "window_debug.h"
 #include "window_mesh_inspector.h"
 
-namespace gui::windows::debug {
+namespace bricksim::gui::windows::debug {
     namespace {
         void drawGeneralTab();
 
@@ -23,17 +23,17 @@ namespace gui::windows::debug {
 
         constexpr size_t MESHES_TAB_BUF_SIZE = 32;
 
-        void printSceneDescription(std::map<scene_id_t, std::shared_ptr<Scene>> &allScenes, scene_id_t sceneId, char *buf) {
+        void printSceneDescription(std::map<scene_id_t, std::shared_ptr<graphics::Scene>> &allScenes, scene_id_t sceneId, char *buf) {
             snprintf(buf, MESHES_TAB_BUF_SIZE, "%d (%d*%d)", sceneId, allScenes[sceneId]->getImageSize().x, allScenes[sceneId]->getImageSize().y);
         }
 
-        void drawColorLabel(const LdrColorReference &colorRef);
+        void drawColorLabel(const ldr::ColorReference &colorRef);
 
-        void drawMeshesList(char *buf, const std::shared_ptr<Scene> &selectedScene, float meshListTableHeight);
+        void drawMeshesList(char *buf, const std::shared_ptr<graphics::Scene> &selectedScene, float meshListTableHeight);
 
         void drawMeshesTab();
 
-        void drawMeshesList(char *buf, const std::shared_ptr<Scene> &selectedScene, float meshListTableHeight) {
+        void drawMeshesList(char *buf, const std::shared_ptr<graphics::Scene> &selectedScene, float meshListTableHeight) {
             const auto &meshes = selectedScene->getMeshCollection().getUsedMeshes();
             constexpr size_t maxSearchQueryLength = 32;
             static char searchQuery[maxSearchQueryLength] = {0};
@@ -253,8 +253,8 @@ namespace gui::windows::debug {
 
         void drawMeshesTab() {
             if (ImGui::BeginTabItem("Meshes")) {
-                auto allScenes = scenes::getAll();
-                static scene_id_t selectedSceneId = scenes::MAIN_SCENE_ID;
+                auto allScenes = graphics::scenes::getAll();
+                static scene_id_t selectedSceneId = graphics::scenes::MAIN_SCENE_ID;
                 static char buf[MESHES_TAB_BUF_SIZE];
                 printSceneDescription(allScenes, selectedSceneId, buf);
                 if (ImGui::BeginCombo("Scene", buf)) {

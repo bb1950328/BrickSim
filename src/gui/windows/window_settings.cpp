@@ -9,7 +9,7 @@
 
 #include "window_settings.h"
 
-namespace gui::windows::settings {
+namespace bricksim::gui::windows::settings {
     namespace {
         const char *GUI_STYLE_VALUES[] = {
                 "BrickSim",
@@ -90,7 +90,7 @@ namespace gui::windows::settings {
 
             //ISO 4217 guarantees that all currency codes are 3 chars in length
             if (currencyCodeStrings.empty()) {
-                const auto &currencies = bricklink_constants_provider::getCurrencies();
+                const auto &currencies = info_providers::bricklink_constants::getCurrencies();
                 currencyCodeStrings.reserve(4 * currencies.size());
                 currencyCodeInts.reserve(currencies.size());
                 for (const auto &currency : currencies) {

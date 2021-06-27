@@ -1,7 +1,7 @@
-namespace controller {
+namespace bricksim::controller {
     int run();
 }
 
 int main() {
-    return controller::run();
+    return bricksim::controller::run();
 }

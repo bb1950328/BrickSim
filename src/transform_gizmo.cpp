@@ -21,9 +21,9 @@ std::array<glm::vec4, 3> axisDirectionVectors = {
         glm::vec4(0, 0, 1, 0),
 };
 
-namespace transform_gizmo {
+namespace bricksim::transform_gizmo {
 
-    TransformGizmo::TransformGizmo(std::shared_ptr<Scene> scene) : scene(std::move(scene)) {
+    TransformGizmo::TransformGizmo(std::shared_ptr<graphics::Scene> scene) : scene(std::move(scene)) {
         node = std::make_shared<TGNode>(this->scene->getRootNode());
         this->scene->getRootNode()->addChild(node);
         node->initElements();
@@ -31,22 +31,22 @@ namespace transform_gizmo {
             arrow->layer = constants::TRANSFORM_GIZMO_LAYER;
         }
 
-        debugNode = std::make_shared<mesh::generated::UVSphereNode>(ldr_color_repo::getPureColor("#ff0000"), this->scene->getRootNode());
+        debugNode = std::make_shared<mesh::generated::UVSphereNode>(ldr::color_repo::getPureColor("#ff0000"), this->scene->getRootNode());
         debugNode->setRelativeTransformation(glm::scale(glm::mat4(1.0f), glm::vec3(10.0f)));
         debugNode->layer = 5;
         this->scene->getRootNode()->addChild(debugNode);
 
-        debugNode2 = std::make_shared<mesh::generated::UVSphereNode>(ldr_color_repo::getPureColor("#ffff00"), this->scene->getRootNode());
+        debugNode2 = std::make_shared<mesh::generated::UVSphereNode>(ldr::color_repo::getPureColor("#ffff00"), this->scene->getRootNode());
         debugNode2->setRelativeTransformation(glm::scale(glm::mat4(1.0f), glm::vec3(10.0f)));
         debugNode2->layer = 5;
         this->scene->getRootNode()->addChild(debugNode2);
 
-        debugNode3 = std::make_shared<mesh::generated::UVSphereNode>(ldr_color_repo::getPureColor("#ff0000"), this->scene->getRootNode());
+        debugNode3 = std::make_shared<mesh::generated::UVSphereNode>(ldr::color_repo::getPureColor("#ff0000"), this->scene->getRootNode());
         debugNode3->setRelativeTransformation(glm::scale(glm::mat4(1.0f), glm::vec3(10.0f)));
         debugNode3->layer = 5;
         this->scene->getRootNode()->addChild(debugNode3);
 
-        debugNode4 = std::make_shared<mesh::generated::UVSphereNode>(ldr_color_repo::getPureColor("#ffff00"), this->scene->getRootNode());
+        debugNode4 = std::make_shared<mesh::generated::UVSphereNode>(ldr::color_repo::getPureColor("#ffff00"), this->scene->getRootNode());
         debugNode4->setRelativeTransformation(glm::scale(glm::mat4(1.0f), glm::vec3(10.0f)));
         debugNode4->layer = 5;
         this->scene->getRootNode()->addChild(debugNode4);
@@ -160,7 +160,7 @@ namespace transform_gizmo {
     void TGNode::initElements() {
         uint8_t i = 0;
         for (const auto &colorCode : {"#FF0000", "#00FF00", "#0000FF"}) {
-            const auto &colorRef = ldr_color_repo::getPureColor(colorCode);
+            const auto &colorRef = ldr::color_repo::getPureColor(colorCode);
             translate1dArrows[i] = std::make_shared<mesh::generated::ArrowNode>(colorRef, shared_from_this());
             addChild(translate1dArrows[i]);
 
@@ -172,7 +172,7 @@ namespace transform_gizmo {
 
         i = 0;
         for (const auto &colorCode: {"#00ffff", "#ff00ff", "#ffff00"}) {
-            const auto &colorRef = ldr_color_repo::getPureColor(colorCode);
+            const auto &colorRef = ldr::color_repo::getPureColor(colorCode);
 
             translate2dArrows[i] = std::make_shared<TG2DArrowNode>(colorRef, shared_from_this());
             addChild(translate2dArrows[i]);
@@ -187,7 +187,7 @@ namespace transform_gizmo {
         rotateQuarterTori[1]->setRelativeTransformation(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
         rotateQuarterTori[2]->setRelativeTransformation(glm::rotate(glm::rotate(glm::radians(-90.0f), glm::vec3(1, 0, 0)), glm::radians(90.0f), glm::vec3(0, 0, 1)));
 
-        centerBall = std::make_shared<mesh::generated::UVSphereNode>(ldr_color_repo::getPureColor("#ffffff"), shared_from_this());
+        centerBall = std::make_shared<mesh::generated::UVSphereNode>(ldr::color_repo::getPureColor("#ffffff"), shared_from_this());
         centerBall->setRelativeTransformation(glm::scale(glm::vec3(mesh::generated::ArrowNode::LINE_RADIUS * 4)));
         addChild(centerBall);
     }
@@ -279,7 +279,7 @@ namespace transform_gizmo {
         constexpr float tipLength = 0.4f;
         constexpr glm::vec3 normal(1, 0, 0);
 
-        auto color = ldr_color_repo::getInstanceDummyColor();
+        auto color = ldr::color_repo::getInstanceDummyColor();
         auto baseIndex = mesh->getNextVertexIndex(color);
         /*0*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, 0.0f, 0.0f, 1.0f}, normal});
         /*1*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength, 0.0f, 1.0f}, normal});
@@ -313,7 +313,7 @@ namespace transform_gizmo {
         }
     }
 
-    TG2DArrowNode::TG2DArrowNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent) : MeshNode(color, parent) {
+    TG2DArrowNode::TG2DArrowNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) : MeshNode(color, parent) {
         displayName = "transform gizmo 2D move arrow";
     }
 

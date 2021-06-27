@@ -4,7 +4,7 @@
 #include "../../controller.h"
 #include "window_orientation_cube.h"
 
-namespace gui::windows::orientation_cube {
+namespace bricksim::gui::windows::orientation_cube {
     using namespace graphics::orientation_cube;
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {

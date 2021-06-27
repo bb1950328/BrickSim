@@ -4,7 +4,7 @@
 #include "../controller.h"
 #include "../constant_data/resources.h"
 
-namespace graphics::orientation_cube {
+namespace bricksim::graphics::orientation_cube {
     namespace {
         std::shared_ptr<Scene> scene;
         short size = 512;//todo config
@@ -84,7 +84,7 @@ namespace graphics::orientation_cube {
         return false;
     }
 
-    OrientationCubeSideMeshNode::OrientationCubeSideMeshNode(const std::shared_ptr<etree::Node> &parent, CubeSide side) : MeshNode(ldr_color_repo::getInstanceDummyColor(), parent), side(side) {}
+    OrientationCubeSideMeshNode::OrientationCubeSideMeshNode(const std::shared_ptr<etree::Node> &parent, CubeSide side) : MeshNode(ldr::color_repo::getInstanceDummyColor(), parent), side(side) {}
 
     void OrientationCubeSideMeshNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
         auto texture = std::make_shared<Texture>(resources::orientation_cube_jpg, resources::orientation_cube_jpg_len);

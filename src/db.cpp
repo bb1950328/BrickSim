@@ -3,7 +3,7 @@
 #include "db.h"
 
 
-namespace db {
+namespace bricksim::db {
     namespace {
         std::optional<SQLite::Database> configDb;
         std::optional<SQLite::Database> cacheDb;
@@ -155,13 +155,13 @@ namespace db {
     }
 
     namespace priceGuideCache {
-        std::optional<price_guide_provider::PriceGuide> get(const std::string &partCode, const std::string &currencyCode, const std::string &colorName) {
+        std::optional<info_providers::price_guide::PriceGuide> get(const std::string &partCode, const std::string &currencyCode, const std::string &colorName) {
             SQLite::Statement stmt(cacheDb.value(), "SELECT * FROM priceGuideCache WHERE partCode=? AND currencyCode=? AND colorName=?");
             stmt.bind(1, partCode);
             stmt.bind(2, currencyCode);
             stmt.bind(3, colorName);
             if (stmt.executeStep()) {
-                return price_guide_provider::PriceGuide{
+                return info_providers::price_guide::PriceGuide{
                         stmt.getColumn("available").getInt() != 0,
                         stmt.getColumn("currencyCode"),
                         stmt.getColumn("totalLots"),
@@ -175,7 +175,7 @@ namespace db {
             return {};
         }
 
-        void put(const std::string &partCode, const std::string &currencyCode, const std::string &colorName, const price_guide_provider::PriceGuide &value) {
+        void put(const std::string &partCode, const std::string &currencyCode, const std::string &colorName, const info_providers::price_guide::PriceGuide &value) {
             SQLite::Statement stmt(cacheDb.value(),
                                    "REPLACE INTO priceGuideCache (partCode,currencyCode,colorName,available,totalLots,totalQty,minPrice,avgPrice,qtyAvgPrice,maxPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
             stmt.bind(1, partCode);

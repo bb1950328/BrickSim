@@ -3,7 +3,7 @@
 
 #include "windows.h"
 
-namespace gui::windows::view3d {
+namespace bricksim::gui::windows::view3d {
     void draw(Data& data);
 }
 

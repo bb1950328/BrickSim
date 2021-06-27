@@ -10,7 +10,7 @@ constexpr int NUM_LDR_FILTER_PATTERNS = 4;
 constexpr int NUM_IMAGE_FILTER_PATTERNS = 4;
 constexpr int NUM_ZIP_FILTER_PATTERNS = 1;
 
-namespace gui {
+namespace bricksim::gui {
     namespace {
         void setupStyle();
         void setupFont(float scaleFactor, ImGuiIO &io);

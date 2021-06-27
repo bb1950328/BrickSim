@@ -9,7 +9,7 @@
 #include "graphics/scene.h"
 #include <array>
 
-namespace transform_gizmo {
+namespace bricksim::transform_gizmo {
 
     /**
      * From which angle the transform gizmo is currently seen
@@ -70,7 +70,7 @@ namespace transform_gizmo {
     class TG2DArrowNode : public etree::MeshNode {
     private:
     public:
-        TG2DArrowNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent);
+        TG2DArrowNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent);
         mesh_identifier_t getMeshIdentifier() const override;
         void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
         bool isDisplayNameUserEditable() const override;
@@ -102,7 +102,7 @@ namespace transform_gizmo {
         friend class TransformOperation;
         friend class Translate1dOperation;
     private:
-        std::shared_ptr<Scene> scene;
+        std::shared_ptr<graphics::Scene> scene;
         std::shared_ptr<TGNode> node;
         std::shared_ptr<mesh::generated::GeneratedMeshNode> debugNode;
         std::shared_ptr<mesh::generated::GeneratedMeshNode> debugNode2;
@@ -116,7 +116,7 @@ namespace transform_gizmo {
 
         std::shared_ptr<etree::Node> currentlySelectedNode;
     public:
-        explicit TransformGizmo(std::shared_ptr<Scene> scene);
+        explicit TransformGizmo(std::shared_ptr<graphics::Scene> scene);
         void update();
         bool ownsNode(const std::shared_ptr<etree::Node>& node_);
         void startDrag(std::shared_ptr<etree::Node> &draggedNode, glm::svec2 initialCursorPos);

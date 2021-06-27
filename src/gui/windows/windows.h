@@ -3,7 +3,7 @@
 
 #include "../../lib/magic_enum/include/magic_enum.hpp"
 
-namespace gui::windows {
+namespace bricksim::gui::windows {
     enum class Id {
         VIEW_3D,
         ELEMENT_TREE,

@@ -8,28 +8,28 @@
 #include "../../lib/Miniball.hpp"
 #include "mesh_line_data.h"
 
-namespace mesh {
+namespace bricksim::mesh {
 
-    void Mesh::addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transformation = glm::mat4(1.0f), const LdrColorReference mainColor = {}, bool bfcInverted = false) {
+    void Mesh::addLdrFile(const std::shared_ptr<ldr::File> &file, glm::mat4 transformation = glm::mat4(1.0f), const ldr::ColorReference mainColor = {}, bool bfcInverted = false) {
         for (const auto &element : file->elements) {
             switch (element->getType()) {
                 case 0: break;
-                case 1:addLdrSubfileReference(mainColor, std::dynamic_pointer_cast<LdrSubfileReference>(element), transformation, bfcInverted);
+                case 1:addLdrSubfileReference(mainColor, std::dynamic_pointer_cast<ldr::SubfileReference>(element), transformation, bfcInverted);
                     break;
-                case 2:addLdrLine(mainColor, dynamic_cast<LdrLine &&>(*element), transformation);
+                case 2:addLdrLine(mainColor, dynamic_cast<ldr::Line &&>(*element), transformation);
                     break;
-                case 3:addLdrTriangle(mainColor, dynamic_cast<LdrTriangle &&>(*element), transformation, bfcInverted);
+                case 3:addLdrTriangle(mainColor, dynamic_cast<ldr::Triangle &&>(*element), transformation, bfcInverted);
                     break;
-                case 4:addLdrQuadrilateral(mainColor, dynamic_cast<LdrQuadrilateral &&>(*element), transformation, bfcInverted);
+                case 4:addLdrQuadrilateral(mainColor, dynamic_cast<ldr::Quadrilateral &&>(*element), transformation, bfcInverted);
                     break;
-                case 5:addLdrOptionalLine(mainColor, dynamic_cast<LdrOptionalLine &&>(*element), transformation);
+                case 5:addLdrOptionalLine(mainColor, dynamic_cast<ldr::OptionalLine &&>(*element), transformation);
                     break;
             }
         }
     }
 
-    void Mesh::addLdrTriangle(const LdrColorReference mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted) {
-        const auto color = triangleElement.color.get()->code == LdrColor::MAIN_COLOR_CODE ? mainColor : triangleElement.color;
+    void Mesh::addLdrTriangle(const ldr::ColorReference mainColor, const ldr::Triangle &triangleElement, glm::mat4 transformation, bool bfcInverted) {
+        const auto color = triangleElement.color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : triangleElement.color;
         auto &verticesList = getVerticesList(color);
         auto &indicesList = getIndicesList(color);
         auto p1 = glm::vec3(triangleElement.x1, triangleElement.y1, triangleElement.z1);
@@ -63,7 +63,7 @@ namespace mesh {
         }
     }
 
-    void Mesh::addRawTriangle(const LdrColorReference color, const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3) {
+    void Mesh::addRawTriangle(const ldr::ColorReference color, const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3) {
         auto &verticesList = getVerticesList(color);
         auto &indicesList = getIndicesList(color);
         auto normal = glm::triangleNormal(p1, p2, p3);
@@ -90,32 +90,32 @@ namespace mesh {
         }
     }
 
-    unsigned int Mesh::getNextVertexIndex(LdrColorReference color) {
+    unsigned int Mesh::getNextVertexIndex(ldr::ColorReference color) {
         return getVerticesList(color).size();
     }
 
-    unsigned int Mesh::addRawTriangleVertex(LdrColorReference color, const TriangleVertex &vertex) {
+    unsigned int Mesh::addRawTriangleVertex(ldr::ColorReference color, const TriangleVertex &vertex) {
         std::vector<TriangleVertex> &verticesList = getVerticesList(color);
         verticesList.push_back(vertex);
         return verticesList.size() - 1;
     }
 
-    void Mesh::addRawTriangleIndex(LdrColorReference color, unsigned int triangleIndex) {
+    void Mesh::addRawTriangleIndex(ldr::ColorReference color, unsigned int triangleIndex) {
         getIndicesList(color).push_back(triangleIndex);
     }
 
-    void Mesh::addLdrSubfileReference(LdrColorReference mainColor, const std::shared_ptr<LdrSubfileReference> &sfElement, glm::mat4 transformation, bool bfcInverted) {
+    void Mesh::addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference> &sfElement, glm::mat4 transformation, bool bfcInverted) {
         auto sub_transformation = sfElement->getTransformationMatrix();
-        const auto color = sfElement->color.get()->code == LdrColor::MAIN_COLOR_CODE ? mainColor : sfElement->color;
+        const auto color = sfElement->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : sfElement->color;
         addLdrFile(sfElement->getFile(), sub_transformation * transformation, color, sfElement->bfcInverted ^ bfcInverted);
     }
 
-    void Mesh::addLdrQuadrilateral(LdrColorReference mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted) {
+    void Mesh::addLdrQuadrilateral(ldr::ColorReference mainColor, ldr::Quadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted) {
         auto p1 = glm::vec3(quadrilateral.x1, quadrilateral.y1, quadrilateral.z1);
         auto p2 = glm::vec3(quadrilateral.x2, quadrilateral.y2, quadrilateral.z2);
         auto p3 = glm::vec3(quadrilateral.x3, quadrilateral.y3, quadrilateral.z3);
         auto p4 = glm::vec3(quadrilateral.x4, quadrilateral.y4, quadrilateral.z4);
-        const auto color = quadrilateral.color.get()->code == LdrColor::MAIN_COLOR_CODE ? mainColor : quadrilateral.color;
+        const auto color = quadrilateral.color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : quadrilateral.color;
         auto normal = glm::triangleNormal(p1, p2, p3);
         auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f) * transformation);
 
@@ -156,7 +156,7 @@ namespace mesh {
         }
     }
 
-    std::vector<unsigned int> &Mesh::getIndicesList(const LdrColorReference color) {
+    std::vector<unsigned int> &Mesh::getIndicesList(const ldr::ColorReference color) {
         auto entry = triangleIndices.find(color);
         if (entry == triangleIndices.end()) {
             return triangleIndices[color] = std::vector<unsigned int>();
@@ -165,7 +165,7 @@ namespace mesh {
     }
 
 
-    std::vector<TriangleVertex> &Mesh::getVerticesList(const LdrColorReference color) {
+    std::vector<TriangleVertex> &Mesh::getVerticesList(const ldr::ColorReference color) {
         auto entry = triangleVertices.find(color);
         if (entry == triangleVertices.end()) {
             return triangleVertices[color] = std::vector<TriangleVertex>();
@@ -173,13 +173,13 @@ namespace mesh {
         return entry->second;
     }
 
-    void Mesh::addLdrLine(const LdrColorReference mainColor, const LdrLine &lineElement, glm::mat4 transformation) {
+    void Mesh::addLdrLine(const ldr::ColorReference mainColor, const ldr::Line &lineElement, glm::mat4 transformation) {
         glm::vec3 color;
         const auto lineElementColor = lineElement.color.get();
         const auto mainColorLocked = mainColor.get();
-        if (lineElementColor->code == LdrColor::MAIN_COLOR_CODE) {
+        if (lineElementColor->code == ldr::Color::MAIN_COLOR_CODE) {
             color = mainColorLocked->edge.asGlmVector();
-        } else if (lineElementColor->code == LdrColor::LINE_COLOR_CODE) {
+        } else if (lineElementColor->code == ldr::Color::LINE_COLOR_CODE) {
             color = glm::vec3(1 - util::vectorSum(mainColorLocked->value.asGlmVector()) / 3);//todo look up specification
         } else {
             color = lineElementColor->edge.asGlmVector();
@@ -190,13 +190,13 @@ namespace mesh {
         lineData.addVertex(lv2);
     }
 
-    void Mesh::addLdrOptionalLine(const LdrColorReference mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation) {
+    void Mesh::addLdrOptionalLine(const ldr::ColorReference mainColor, const ldr::OptionalLine &optionalLineElement, glm::mat4 transformation) {
         glm::vec3 color;
         const auto elementColor = optionalLineElement.color.get();
         const auto mainColorLocked = mainColor.get();
-        if (elementColor->code == LdrColor::MAIN_COLOR_CODE) {
+        if (elementColor->code == ldr::Color::MAIN_COLOR_CODE) {
             color = mainColorLocked->edge.asGlmVector();
-        } else if (elementColor->code == LdrColor::LINE_COLOR_CODE) {
+        } else if (elementColor->code == ldr::Color::LINE_COLOR_CODE) {
             color = glm::vec3(1 - util::vectorSum(mainColorLocked->value.asGlmVector()) / 3);//todo look up specification
         } else {
             color = elementColor->edge.asGlmVector();
@@ -211,15 +211,13 @@ namespace mesh {
         optionalLineData.addVertex(cv2);
     }
 
-    void Mesh::addTexturedTriangle(const std::shared_ptr<Texture> &texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3) {
+    void Mesh::addTexturedTriangle(const std::shared_ptr<graphics::Texture> &texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3) {
         auto &vertices = textureVertices[texture->getID()];
         vertices.emplace_back(pt1, tc1);
         vertices.emplace_back(pt2, tc2);
         vertices.emplace_back(pt3, tc3);
         textures[texture->getID()] = texture;
     }
-
-
 
     void Mesh::writeGraphicsData() {
         if (!already_initialized) {
@@ -486,24 +484,24 @@ namespace mesh {
 
     Mesh::~Mesh() = default;
 
-    void Mesh::setInstanceColor(TriangleInstance *instance, const LdrColorReference color) {
+    void Mesh::setInstanceColor(TriangleInstance *instance, const ldr::ColorReference color) {
         const auto colorLocked = color.get();
         instance->diffuseColor = colorLocked->value.asGlmVector();
         instance->shininess = 32.0f;
         //useful tool: http://www.cs.toronto.edu/~jacobson/phong-demo/
         switch (colorLocked->finish) {
-            case LdrColor::METAL:
-            case LdrColor::CHROME:
-            case LdrColor::PEARLESCENT:
+            case ldr::Color::METAL:
+            case ldr::Color::CHROME:
+            case ldr::Color::PEARLESCENT:
                 //todo find out what's the difference
                 instance->shininess *= 2;
                 instance->ambientFactor = 1;
                 instance->specularBrightness = 1;
                 break;
-            case LdrColor::MATTE_METALLIC:instance->ambientFactor = 0.6;
+            case ldr::Color::MATTE_METALLIC:instance->ambientFactor = 0.6;
                 instance->specularBrightness = 0.2;
                 break;
-            case LdrColor::RUBBER:instance->ambientFactor = 0.75;
+            case ldr::Color::RUBBER:instance->ambientFactor = 0.75;
                 instance->specularBrightness = 0;
                 break;
             default:instance->ambientFactor = 0.5;
@@ -512,10 +510,10 @@ namespace mesh {
         }
     }
 
-    std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> Mesh::generateTriangleInstancesArray(const LdrColorReference color) {
+    std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> Mesh::generateTriangleInstancesArray(const ldr::ColorReference color) {
         auto instancesArray = std::make_unique<TriangleInstance[]>(instances.size());
         unsigned int arr_cursor = 0;
-        if (color.get()->code == ldr_color_repo::INSTANCE_DUMMY_COLOR_CODE) {
+        if (color.get()->code == ldr::color_repo::INSTANCE_DUMMY_COLOR_CODE) {
             for (auto &instance : instances) {
                 instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * constants::LDU_TO_OPENGL);
                 //std::cout << "instance: " << std::endl;

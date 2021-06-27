@@ -19,7 +19,7 @@
 #include "windows/windows.h"
 #include <glad/glad.h>
 
-namespace gui {
+namespace bricksim::gui {
     namespace {
         char const *lFilterPatterns[NUM_LDR_FILTER_PATTERNS] = {"*.ldr", "*.dat", "*.mpd", "*.io"};
         char const *imageFilterPatterns[NUM_IMAGE_FILTER_PATTERNS] = {"*.png", "*.jpg", "*.bmp", "*.tga"};
@@ -33,7 +33,7 @@ namespace gui {
         float blockingMessageProgress = 0;
         bool openFindActionPopup = false;
 
-        std::shared_ptr<Texture> logoTexture;
+        std::shared_ptr<graphics::Texture> logoTexture;
 
         ImGuiID dockspaceId = 0;
 
@@ -180,7 +180,7 @@ namespace gui {
         // Setup Dear ImGui style
         setupStyle();
 
-        logoTexture = std::make_shared<Texture>(resources::logo_fit_nobg_png, resources::logo_fit_nobg_png_len);
+        logoTexture = std::make_shared<graphics::Texture>(resources::logo_fit_nobg_png, resources::logo_fit_nobg_png_len);
 
         setupDone = true;
     }
@@ -559,14 +559,14 @@ namespace gui {
                 ImGui::TextDisabled("'~' will be replaced with '%s' (the current home directory)", util::extendHomeDir("~").c_str());
                 auto enteredPath = std::filesystem::path(util::extendHomeDirPath(pathBuffer));
                 static std::filesystem::path lastCheckedPath;
-                static ldr_file_repo::LibraryType libraryType;
+                static ldr::file_repo::LibraryType libraryType;
                 if (lastCheckedPath != enteredPath) {
                     lastCheckedPath = enteredPath;
-                    libraryType = ldr_file_repo::getLibraryType(enteredPath);
+                    libraryType = ldr::file_repo::getLibraryType(enteredPath);
                 }
-                if (libraryType == ldr_file_repo::LibraryType::INVALID) {
+                if (libraryType == ldr::file_repo::LibraryType::INVALID) {
                     ImGui::TextColored(ImVec4(1, 0, 0, 1), ICON_FA_TIMES_CIRCLE" This path doesn't exist or isn't a valid LDraw parts library");
-                } else if (libraryType == ldr_file_repo::LibraryType::DIRECTORY) {
+                } else if (libraryType == ldr::file_repo::LibraryType::DIRECTORY) {
                     ImGui::TextColored(ImVec4(0, 1, 0, 1), ICON_FA_CHECK"This is a valid path to an LDraw parts library directory.");
                 } else {
                     ImGui::TextColored(ImVec4(0, 1, 0, 1), ICON_FA_CHECK" This is a valid path to an LDraw parts library zip.");

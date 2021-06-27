@@ -12,7 +12,7 @@
 #include <cpuinfo.h>
 #include <magic_enum.hpp>
 
-namespace helpers::system_info {
+namespace bricksim::helpers::system_info {
 
     std::vector<std::pair<std::string, std::string>> getSystemInfo() {
         std::vector<std::pair<std::string, std::string>> result;

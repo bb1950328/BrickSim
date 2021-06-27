@@ -3,7 +3,7 @@
 
 #include "../windows.h"
 
-namespace gui::windows::tools::gear_ratio_calculator {
+namespace bricksim::gui::windows::tools::gear_ratio_calculator {
     void draw(Data& data);
 }
 #endif //BRICKSIM_WINDOW_GEAR_RATIO_CALCULATOR_H

@@ -7,7 +7,7 @@
 
 #include "window_log.h"
 
-namespace gui::windows::log {
+namespace bricksim::gui::windows::log {
     namespace {
         constexpr int NUM_LOG_FILTER_PATTERNS = 2;
         char const *logFilterPatterns[NUM_LOG_FILTER_PATTERNS] = {"*.log", "*.txt"};

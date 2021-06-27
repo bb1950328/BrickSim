@@ -3,7 +3,7 @@
 
 #include "windows.h"
 
-namespace gui::windows::part_palette {
+namespace bricksim::gui::windows::part_palette {
     void draw(Data& data);
 }
 

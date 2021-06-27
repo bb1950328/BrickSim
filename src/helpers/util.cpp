@@ -24,7 +24,7 @@
 #include <arm_neon.h>
 #endif
 
-namespace util {
+namespace bricksim::util {
     namespace {
 
         bool isStbiVerticalFlipEnabled = false;

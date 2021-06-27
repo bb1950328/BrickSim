@@ -32,7 +32,7 @@
 //,	strItemName:				'Brick 2 x 4'
 //};
 
-namespace price_guide_provider {
+namespace bricksim::info_providers::price_guide {
     struct PriceGuide {
         bool available;
 

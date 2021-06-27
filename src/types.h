@@ -2,14 +2,14 @@
 #define BRICKSIM_TYPES_H
 
 #include <glm/fwd.hpp>
-
-typedef unsigned char layer_t;
-typedef unsigned char scene_id_t;
-typedef unsigned int element_id_t;
-typedef unsigned char color_component_t;
-typedef unsigned int texture_id_t;
-typedef uint64_t mesh_identifier_t;
-
+namespace bricksim {
+    typedef unsigned char layer_t;
+    typedef unsigned char scene_id_t;
+    typedef unsigned int element_id_t;
+    typedef unsigned char color_component_t;
+    typedef unsigned int texture_id_t;
+    typedef uint64_t mesh_identifier_t;
+}
 namespace glm {
     typedef vec<1, unsigned short, defaultp>	usvec1;
     typedef vec<2, unsigned short, defaultp>	usvec2;

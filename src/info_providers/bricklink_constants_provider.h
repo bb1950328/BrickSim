@@ -5,7 +5,7 @@
 #include <vector>
 #include <map>
 
-namespace bricklink {
+namespace bricksim::bricklink {
     struct ColorFamily {
         const int id;
         const std::string strName;
@@ -48,7 +48,7 @@ namespace bricklink {
     };
 }
 
-namespace bricklink_constants_provider {
+namespace bricksim::info_providers::bricklink_constants {
     void initialize(float *progress = nullptr);
 
     const std::map<int, bricklink::ColorFamily> &getColorFamilies();

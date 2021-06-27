@@ -1,6 +1,6 @@
 #include "metrics.h"
 
-namespace metrics {
+namespace bricksim::metrics {
     long individualBrickCount = 0;
     size_t vramUsageBytes = 0;
     size_t thumbnailBufferUsageBytes = 0;

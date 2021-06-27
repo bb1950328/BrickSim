@@ -10,7 +10,7 @@
 #include <utility>
 #include "db.h"
 
-namespace config {
+namespace bricksim::config {
     namespace {
         template<typename T>
         class ValuesCache {

@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <optional>
 
-namespace zip_buffer {
+namespace bricksim::zip_buffer {
     class BufferedZip {
 
     public:

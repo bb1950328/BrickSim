@@ -2,17 +2,17 @@
 #include <spdlog/spdlog.h>
 #include "mesh_generated.h"
 
-namespace mesh::generated {
+namespace bricksim::mesh::generated {
 
     mesh_identifier_t UVSphereNode::getMeshIdentifier() const {
         return constants::MESH_ID_UV_SPHERE;
     }
 
-    UVSphereNode::UVSphereNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent) : GeneratedMeshNode(color, parent) {}
+    UVSphereNode::UVSphereNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) : GeneratedMeshNode(color, parent) {}
 
     void UVSphereNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
 
-        const auto &color = ldr_color_repo::getInstanceDummyColor();
+        const auto &color = ldr::color_repo::getInstanceDummyColor();
         auto northPoleIndex = mesh->addRawTriangleVertex(color, TriangleVertex{glm::vec4(RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f)});
         auto southPoleIndex = mesh->addRawTriangleVertex(color, TriangleVertex{glm::vec4(-RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f)});
         auto firstMainIndex = mesh->getNextVertexIndex(color);
@@ -64,7 +64,7 @@ namespace mesh::generated {
         return "UV Sphere";
     }
 
-    GeneratedMeshNode::GeneratedMeshNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent) : MeshNode(color, parent) {}
+    GeneratedMeshNode::GeneratedMeshNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) : MeshNode(color, parent) {}
 
     bool GeneratedMeshNode::isDisplayNameUserEditable() const {
         return false;
@@ -78,7 +78,7 @@ namespace mesh::generated {
         return false;
     }
 
-    ArrowNode::ArrowNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent) : GeneratedMeshNode(color, parent) {}
+    ArrowNode::ArrowNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) : GeneratedMeshNode(color, parent) {}
 
     std::string ArrowNode::getDescription() {
         return "Arrow";
@@ -137,7 +137,7 @@ namespace mesh::generated {
         };
         unsigned long baseVertexCount = baseVertices.size();
 
-        auto color = ldr_color_repo::getInstanceDummyColor();
+        auto color = ldr::color_repo::getInstanceDummyColor();
 
         unsigned int firstIndex = mesh->getNextVertexIndex(color);
 
@@ -177,7 +177,7 @@ namespace mesh::generated {
         }
     }
 
-    QuarterTorusNode::QuarterTorusNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent) : GeneratedMeshNode(color, parent) {}
+    QuarterTorusNode::QuarterTorusNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) : GeneratedMeshNode(color, parent) {}
 
     std::string QuarterTorusNode::getDescription() {
         return "Quarter Torus";
@@ -188,7 +188,7 @@ namespace mesh::generated {
     }
 
     void QuarterTorusNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
-        const LdrColorReference &color = ldr_color_repo::getInstanceDummyColor();
+        const ldr::ColorReference &color = ldr::color_repo::getInstanceDummyColor();
         auto firstIndex = mesh->getNextVertexIndex(color);
 
         std::vector<TriangleVertex> baseVertices;
@@ -247,7 +247,7 @@ namespace mesh::generated {
         }
     }
 
-    CubeNode::CubeNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent) : GeneratedMeshNode(color, parent) {}
+    CubeNode::CubeNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) : GeneratedMeshNode(color, parent) {}
 
     std::string CubeNode::getDescription() {
         return "Cube";
@@ -258,8 +258,8 @@ namespace mesh::generated {
     }
 
     void CubeNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
-        std::vector<TriangleVertex> &verticesList = mesh->getVerticesList(ldr_color_repo::getInstanceDummyColor());
-        std::vector<unsigned int> &indicesList = mesh->getIndicesList(ldr_color_repo::getInstanceDummyColor());
+        std::vector<TriangleVertex> &verticesList = mesh->getVerticesList(ldr::color_repo::getInstanceDummyColor());
+        std::vector<unsigned int> &indicesList = mesh->getIndicesList(ldr::color_repo::getInstanceDummyColor());
         if (!verticesList.empty()) {
             spdlog::warn("CubeNode::addToMesh verticesList not empty, existing vertices are removed");
         }

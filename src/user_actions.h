@@ -7,7 +7,7 @@
 #include <functional>
 #include <string>
 
-namespace user_actions {
+namespace bricksim::user_actions {
     struct Action {
         const int id;
         const char* name;

@@ -6,7 +6,7 @@
 #include "db.h"
 #include "helpers/util.h"
 
-namespace keyboard_shortcut_manager {
+namespace bricksim::keyboard_shortcut_manager {
     namespace {
         std::map<int, const char *> MODIFIER_DISPLAY_NAMES = { // NOLINT(cert-err58-cpp)
                 {GLFW_MOD_SHIFT, "Shift"},

@@ -5,10 +5,9 @@
 #include "mesh.h"
 #include "../../element_tree.h"
 
-typedef std::pair<mesh_identifier_t, bool> mesh_key_t;
-
-namespace mesh {
-/**
+namespace bricksim::mesh {
+    typedef std::pair<mesh_identifier_t, bool> mesh_key_t;
+    /**
  * the purpose of this class is to manage the meshInstances of a Scene object
  */
     class SceneMeshCollection {
@@ -23,7 +22,7 @@ namespace mesh {
         std::vector<std::shared_ptr<etree::Node>> elementsSortedById;
 
         void updateMeshInstances();
-        void readElementTree(const std::shared_ptr<etree::Node> &node, const glm::mat4 &parentAbsoluteTransformation, std::optional<LdrColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId);
+        void readElementTree(const std::shared_ptr<etree::Node> &node, const glm::mat4 &parentAbsoluteTransformation, std::optional<ldr::ColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId);
         [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBoxInternal(const std::shared_ptr<const etree::MeshNode> &node) const;
 
         static std::map<mesh_key_t, std::shared_ptr<Mesh>> allMeshes;

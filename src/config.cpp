@@ -2,7 +2,7 @@
 #include "db.h"
 #include "config.h"
 
-namespace config {
+namespace bricksim::config {
 
     template<>
     [[nodiscard]] std::string get<std::string>(const Key<std::string> &key) {

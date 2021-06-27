@@ -3,7 +3,7 @@
 #include "../controller.h"
 #include "../helpers/util.h"
 
-namespace overlay2d {
+namespace bricksim::overlay2d {
     namespace {
         Vertex *generateVerticesForLine(Vertex *firstVertexLocation, coord_t start, coord_t end, length_t width, color::RGB color, coord_t viewportSize) {
             // 1----------------------------------2

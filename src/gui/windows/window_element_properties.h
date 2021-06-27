@@ -3,7 +3,7 @@
 
 #include "windows.h"
 
-namespace gui::windows::element_properties {
+namespace bricksim::gui::windows::element_properties {
     void draw(Data& data);
 }
 

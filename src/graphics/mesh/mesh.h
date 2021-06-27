@@ -15,14 +15,14 @@
 #include "mesh_line_data.h"
 
 
-namespace mesh {
+namespace bricksim::mesh {
 
     class Mesh {
     public:
-        std::map<LdrColorReference, std::vector<TriangleVertex>> triangleVertices;
-        std::map<LdrColorReference, std::vector<unsigned int>> triangleIndices;
+        std::map<ldr::ColorReference, std::vector<TriangleVertex>> triangleVertices;
+        std::map<ldr::ColorReference, std::vector<unsigned int>> triangleIndices;
 
-        std::map<LdrColorReference, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
+        std::map<ldr::ColorReference, unsigned int> VAOs, vertexVBOs, instanceVBOs, EBOs;
 
         /**
            |      scene=0      | scene=1 |
@@ -53,28 +53,28 @@ namespace mesh {
         Mesh &operator=(Mesh &) = delete;
         Mesh(const Mesh &) = delete;
 
-        void addLdrFile(const std::shared_ptr<LdrFile> &file, glm::mat4 transformation, LdrColorReference mainColor, bool bfcInverted);
-        void addLdrSubfileReference(LdrColorReference mainColor, const std::shared_ptr<LdrSubfileReference> &sfElement, glm::mat4 transformation, bool bfcInverted);
-        void addLdrLine(LdrColorReference mainColor, const LdrLine &lineElement, glm::mat4 transformation);
-        void addLdrTriangle(LdrColorReference mainColor, const LdrTriangle &triangleElement, glm::mat4 transformation, bool bfcInverted);
-        void addLdrQuadrilateral(LdrColorReference mainColor, LdrQuadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted);
-        void addLdrOptionalLine(LdrColorReference mainColor, const LdrOptionalLine &optionalLineElement, glm::mat4 transformation);
+        void addLdrFile(const std::shared_ptr<ldr::File> &file, glm::mat4 transformation, ldr::ColorReference mainColor, bool bfcInverted);
+        void addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference> &sfElement, glm::mat4 transformation, bool bfcInverted);
+        void addLdrLine(ldr::ColorReference mainColor, const ldr::Line &lineElement, glm::mat4 transformation);
+        void addLdrTriangle(ldr::ColorReference mainColor, const ldr::Triangle &triangleElement, glm::mat4 transformation, bool bfcInverted);
+        void addLdrQuadrilateral(ldr::ColorReference mainColor, ldr::Quadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted);
+        void addLdrOptionalLine(ldr::ColorReference mainColor, const ldr::OptionalLine &optionalLineElement, glm::mat4 transformation);
 
-        void addTexturedTriangle(const std::shared_ptr<Texture> &texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3);
-        void addRawTriangle(LdrColorReference color, const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3);
+        void addTexturedTriangle(const std::shared_ptr<graphics::Texture> &texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3);
+        void addRawTriangle(ldr::ColorReference color, const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3);
 
         /**
          * @param color
          * @param vertex
          * @return the index of the vertex. You have to call addRawTriangleIndex otherwise the vertex won't show up
          */
-        unsigned int addRawTriangleVertex(LdrColorReference color, const TriangleVertex &vertex);
-        unsigned int getNextVertexIndex(LdrColorReference color);
-        void addRawTriangleIndex(LdrColorReference color, unsigned int triangleIndex);
+        unsigned int addRawTriangleVertex(ldr::ColorReference color, const TriangleVertex &vertex);
+        unsigned int getNextVertexIndex(ldr::ColorReference color);
+        void addRawTriangleIndex(ldr::ColorReference color, unsigned int triangleIndex);
 
 
-        std::vector<unsigned int> &getIndicesList(LdrColorReference color);
-        std::vector<TriangleVertex> &getVerticesList(LdrColorReference color);
+        std::vector<unsigned int> &getIndicesList(ldr::ColorReference color);
+        std::vector<TriangleVertex> &getVerticesList(ldr::ColorReference color);
 
         void writeGraphicsData();
 
@@ -91,7 +91,7 @@ namespace mesh {
         LineData lineData{GL_LINES};
         LineData optionalLineData{GL_LINES_ADJACENCY};
 
-        std::map<texture_id_t, std::shared_ptr<Texture>> textures;
+        std::map<texture_id_t, std::shared_ptr<graphics::Texture>> textures;
         std::map<texture_id_t, std::vector<TexturedTriangleVertex>> textureVertices;
         std::map<texture_id_t, std::tuple<unsigned int, unsigned int, unsigned int>> textureTriangleVaoVertexVboInstanceVbo;
 
@@ -99,9 +99,9 @@ namespace mesh {
 
         size_t lastInstanceBufferSize = 0;
 
-        static void setInstanceColor(TriangleInstance *instance, LdrColorReference color);
+        static void setInstanceColor(TriangleInstance *instance, ldr::ColorReference color);
 
-        std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> generateTriangleInstancesArray(LdrColorReference color);
+        std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> generateTriangleInstancesArray(ldr::ColorReference color);
         std::unique_ptr<TexturedTriangleInstance[], std::default_delete<TexturedTriangleInstance[]>> generateTexturedTriangleInstancesArray();
 
         void initializeTriangleGraphics();

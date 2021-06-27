@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace helpers::system_info {
+namespace bricksim::helpers::system_info {
     std::vector<std::pair<std::string, std::string>> getSystemInfo();
 }
 

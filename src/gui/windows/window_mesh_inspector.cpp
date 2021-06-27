@@ -6,11 +6,11 @@
 #include "../gui.h"
 #include <sstream>
 
-namespace gui::windows::mesh_inspector {
+namespace bricksim::gui::windows::mesh_inspector {
     namespace {
         std::shared_ptr<mesh::Mesh> currentlyInspectingMesh;
 
-        void drawColorLabel(const LdrColorReference &colorRef) {
+        void drawColorLabel(const ldr::ColorReference &colorRef) {
             auto color = colorRef.get();
 
             const glm::vec3 &value = color->value.asGlmVector();
@@ -33,7 +33,7 @@ namespace gui::windows::mesh_inspector {
                 static int currentMode = 0;
                 ImGui::Combo("Mode", &currentMode, items, std::size(items));
 
-                static LdrColorReference currentColor = ldr_color_repo::NO_COLOR_CODE;
+                static ldr::ColorReference currentColor = ldr::color_repo::NO_COLOR_CODE;
                 bool selectFirst = mesh->triangleVertices.find(currentColor) == mesh->triangleVertices.end();
                 if (selectFirst) {
                     currentColor = mesh->triangleVertices.begin()->first;

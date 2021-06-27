@@ -8,7 +8,7 @@
 
 #include "window_part_palette.h"
 
-namespace gui::windows::part_palette {
+namespace bricksim::gui::windows::part_palette {
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
             static char searchTextBuffer[128] = {'\0'};
@@ -17,14 +17,14 @@ namespace gui::windows::part_palette {
             static int thumbnailZoomPercent = 100;//todo get from config
             ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8);
             ImGui::DragInt("##Zoom", &thumbnailZoomPercent, 5, 10, 500, " Zoom: %d%%");
-            static auto color = ldr_color_repo::get_color(1);//todo save in config
+            static auto color = ldr::color_repo::get_color(1);//todo save in config
             const glm::vec3 &col = color->value.asGlmVector();
             const ImVec4 &txtColor = gui_internal::getWhiteOrBlackBetterContrast(col);
             ImGui::PushStyleColor(ImGuiCol_Text, txtColor);
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(col.x, col.y, col.z, 1));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(col.x, col.y, col.z, .8));
 
-            LdrColorReference static colorChosenInPopup;
+            ldr::ColorReference static colorChosenInPopup;
             ImGui::SameLine();
             if (ImGui::Button(color->name.c_str())) {
                 colorChosenInPopup = color->asReference();
@@ -37,7 +37,7 @@ namespace gui::windows::part_palette {
                 const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
                 const int columnCount = 20;
 
-                for (const auto &colorGroup: ldr_color_repo::getAllColorsGroupedAndSortedByHue()) {
+                for (const auto &colorGroup: ldr::color_repo::getAllColorsGroupedAndSortedByHue()) {
                     if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
                         int i = 0;
                         for (const auto &currentColor : colorGroup.second) {
@@ -78,8 +78,8 @@ namespace gui::windows::part_palette {
             const auto totalWidth = ImGui::GetContentRegionAvailWidth();
             const auto itemSpacingX = ImGui::GetStyle().ItemSpacing.x;
             float thumbnailContainerWidth = totalWidth - categorySelectWidth - itemSpacingX;
-            //static const auto partsGrouped = ldr_file_repo::getAllPartsGroupedByCategory();
-            static const auto partCategories = ldr_file_repo::get().getAllCategories();
+            //static const auto partsGrouped = ldr::file_repo::getAllPartsGroupedByCategory();
+            static const auto partCategories = ldr::file_repo::get().getAllCategories();
             static std::set<std::string> selectedCategories = {*partCategories.begin()};//first category preselected
 
             ImGui::BeginChild("##categorySelectTree", ImVec2(categorySelectWidth, 0));
@@ -129,7 +129,7 @@ namespace gui::windows::part_palette {
             if (selectedCategories.size() > 1) {
                 for (const auto &category : selectedCategories) {
                     ImGui::Text("%s", category.c_str());
-                    for (const auto &part : ldr_file_repo::get().getAllFilesOfCategory(category)) {
+                    for (const auto &part : ldr::file_repo::get().getAllFilesOfCategory(category)) {
                         if (searchEmpty || searchPredicate.matches(*part)) {
                             gui_internal::drawPartThumbnail(actualThumbSizeSquared, part, color->asReference());
                             currentCol++;
@@ -146,7 +146,7 @@ namespace gui::windows::part_palette {
                     currentCol = 0;
                 }
             } else if (selectedCategories.size() == 1) {
-                for (const auto &part : ldr_file_repo::get().getAllFilesOfCategory(*selectedCategories.begin())) {
+                for (const auto &part : ldr::file_repo::get().getAllFilesOfCategory(*selectedCategories.begin())) {
                     if (searchEmpty || searchPredicate.matches(*part)) {
                         gui_internal::drawPartThumbnail(actualThumbSizeSquared, part, color->asReference());
                         currentCol++;
@@ -158,8 +158,8 @@ namespace gui::windows::part_palette {
                     }
                 }
             } else {
-                if (ldr_file_repo::get().areAllPartsLoaded()) {
-                    for (const auto &category : ldr_file_repo::get().getAllPartsGroupedByCategory()) {
+                if (ldr::file_repo::get().areAllPartsLoaded()) {
+                    for (const auto &category : ldr::file_repo::get().getAllPartsGroupedByCategory()) {
                         bool textWritten = false;
                         for (const auto &part : category.second) {
                             if (searchEmpty || searchPredicate.matches(*part)) {
@@ -185,12 +185,12 @@ namespace gui::windows::part_palette {
                     static bool taskAdded = false;
                     if (!taskAdded) {
                         controller::addBackgroundTask("Load remaining Parts", []() {
-                            ldr_file_repo::get().getAllPartsGroupedByCategory();
+                            ldr::file_repo::get().getAllPartsGroupedByCategory();
                         });
                         taskAdded = true;
                     }
-                    const auto loaded = ldr_file_repo::get().getLoadedPartsGroupedByCategory().size();
-                    const auto all = ldr_file_repo::get().getAllCategories().size();
+                    const auto loaded = ldr::file_repo::get().getLoadedPartsGroupedByCategory().size();
+                    const auto all = ldr::file_repo::get().getAllCategories().size();
                     ImGui::ProgressBar(loaded * 1.0f / all);
                     ImGui::Text("%c %lu of %lu categories loaded, please wait", gui_internal::getLoFiSpinner(), loaded, all);
                 }

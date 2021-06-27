@@ -1,7 +1,7 @@
 #include <map>
 #include "gears.h"
 
-namespace gears {
+namespace bricksim::gears {
     Gear::Gear(const int id,
                const char *description,
                const int numTeeth,

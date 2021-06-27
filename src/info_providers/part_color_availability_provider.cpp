@@ -3,11 +3,11 @@
 #include <spdlog/spdlog.h>
 #include <fstream>
 
-namespace part_color_availability_provider {
+namespace bricksim::info_providers::part_color_availability {
 
     namespace {
-        std::map<std::string, LdrColorReference> colorsByName;
-        std::map<const std::string, std::set<LdrColorReference>> colorsAvailable;
+        std::map<std::string, ldr::ColorReference> colorsByName;
+        std::map<const std::string, std::set<ldr::ColorReference>> colorsAvailable;
 
         bool isDataAvailable = false;
 
@@ -21,7 +21,7 @@ namespace part_color_availability_provider {
                 } else {
                     isDataAvailable = true;
 
-                    for (const auto &item : ldr_color_repo::getColors()) {
+                    for (const auto &item : ldr::color_repo::getColors()) {
                         colorsByName[item.second->name] = item.second->asReference();
                     }
 
@@ -51,7 +51,7 @@ namespace part_color_availability_provider {
         }
     }
 
-    std::optional<std::set<LdrColorReference>> getAvailableColorsForPart(const std::shared_ptr<LdrFile>& part) {
+    std::optional<std::set<ldr::ColorReference>> getAvailableColorsForPart(const std::shared_ptr<ldr::File>& part) {
         ensureDataLoaded();
         std::string partCode = part->metaInfo.name;
         util::replaceAll(partCode, ".dat", "");

@@ -1,7 +1,7 @@
 #include <cstring>
 #include "mesh_simple_classes.h"
 
-namespace mesh {
+namespace bricksim::mesh {
     bool MeshInstance::operator==(const MeshInstance &other) const {
         return std::memcmp(this, &other, sizeof(*this)) == 0;
         //return transformation == other.transformation && color.get() == other.color.get() && elementId == other.elementId && selected == other.selected && layer == other.layer && scene == other.scene;

@@ -3,7 +3,7 @@
 
 #include "mesh_simple_classes.h"
 
-namespace mesh {
+namespace bricksim::mesh {
     class LineData {
     public:
         explicit LineData(unsigned int drawMode);

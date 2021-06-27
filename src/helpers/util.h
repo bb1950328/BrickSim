@@ -7,7 +7,7 @@
 #include "ray.h"
 #include "../types.h"
 
-namespace util {
+namespace bricksim::util {
 
 #if _WIN32
     const char *const USER_ENV_VAR = "USERPROFILE";

@@ -7,7 +7,7 @@
 #include <set>
 #include "info_providers/price_guide_provider.h"
 
-namespace db {
+namespace bricksim::db {
     void initialize();
 
     void cleanup();
@@ -18,8 +18,8 @@ namespace db {
     }
 
     namespace priceGuideCache {
-        std::optional<price_guide_provider::PriceGuide> get(const std::string& partCode, const std::string& currencyCode, const std::string& colorName);
-        void put(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, const price_guide_provider::PriceGuide &value);
+        std::optional<info_providers::price_guide::PriceGuide> get(const std::string& partCode, const std::string& currencyCode, const std::string& colorName);
+        void put(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, const info_providers::price_guide::PriceGuide &value);
     }
 
     namespace fileList {

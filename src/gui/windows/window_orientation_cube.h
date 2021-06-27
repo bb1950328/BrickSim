@@ -3,7 +3,7 @@
 
 #include "windows.h"
 
-namespace gui::windows::orientation_cube {
+namespace bricksim::gui::windows::orientation_cube {
     void draw(Data& data);
 }
 

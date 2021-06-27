@@ -5,7 +5,7 @@
 #include <vector>
 #include <optional>
 
-namespace keyboard_shortcut_manager {
+namespace bricksim::keyboard_shortcut_manager {
     enum class Event {
         ON_PRESS = 1/*GLFW_PRESS*/,
         ON_REPEAT = 2/*GLFW_REPEAT*/,

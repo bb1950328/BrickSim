@@ -4,7 +4,7 @@
 #include "controller.h"
 #include "gui/gui.h"
 
-namespace user_actions {
+namespace bricksim::user_actions {
     namespace {
         std::vector<Action> ALL_ACTIONS;
     }

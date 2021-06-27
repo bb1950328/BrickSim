@@ -1,7 +1,7 @@
 #include "part_finder.h"
 #include "helpers/util.h"
 
-namespace part_finder {
+namespace bricksim::part_finder {
     namespace {
         std::map<std::string, Predicate> predicates;
     }
@@ -21,7 +21,7 @@ namespace part_finder {
 
     Predicate::Predicate(std::string expression) : expression(std::move(expression)) {}
 
-    bool Predicate::matches(const LdrFile &part) const {
+    bool Predicate::matches(const ldr::File &part) const {
         return (util::containsIgnoreCase(part.metaInfo.title, expression)
                 || util::containsIgnoreCase(part.metaInfo.name, expression)
                 || util::containsIgnoreCase(part.metaInfo.theme, expression)

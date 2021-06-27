@@ -3,7 +3,7 @@
 #include "bricklink_constants_provider.h"
 #include "../helpers/util.h"
 
-namespace bricklink_constants_provider {
+namespace bricksim::info_providers::bricklink_constants {
     namespace {
         bool initialized = false;
 

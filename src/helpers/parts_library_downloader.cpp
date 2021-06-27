@@ -5,7 +5,7 @@
 #include "util.h"
 #include "../config.h"
 
-namespace parts_library_downloader {
+namespace bricksim::parts_library_downloader {
     namespace {
         int progressFunc(void *clientp, long downloadTotal, long downloadNow, long uploadTotal, long uploadNow) {
             const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();

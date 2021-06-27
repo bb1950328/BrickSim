@@ -1,6 +1,6 @@
 #include "color.h"
 
-namespace color {
+namespace bricksim::color {
     RGB::RGB(const std::string &htmlCode) {
         std::sscanf(htmlCode.c_str(), "#%2hhx%2hhx%2hhx", &red, &green, &blue);
     }

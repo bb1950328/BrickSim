@@ -8,8 +8,8 @@
 #include "../ldr_files/ldr_colors.h"
 #include "../ldr_files/ldr_files.h"
 
-namespace part_color_availability_provider {
-    std::optional<std::set<LdrColorReference>> getAvailableColorsForPart(const std::shared_ptr<LdrFile>& part);
+namespace bricksim::info_providers::part_color_availability {
+    std::optional<std::set<ldr::ColorReference>> getAvailableColorsForPart(const std::shared_ptr<ldr::File>& part);
 }
 
 #endif //BRICKSIM_PART_COLOR_AVAILABILITY_PROVIDER_H

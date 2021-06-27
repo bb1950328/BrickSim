@@ -6,7 +6,7 @@
 #include <list>
 #include "helpers/platform_detection.h"
 
-namespace latest_log_messages_tank {
+namespace bricksim::latest_log_messages_tank {
     struct LogMessage {
         const long timestamp;
         const unsigned char level;

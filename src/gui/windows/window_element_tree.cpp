@@ -5,7 +5,7 @@
 
 #include "window_element_tree.h"
 
-namespace gui::windows::element_tree {
+namespace bricksim::gui::windows::element_tree {
     namespace {
         void draw_element_tree_node(std::shared_ptr<etree::Node> node) {
             if (node->visibleInElementTree) {

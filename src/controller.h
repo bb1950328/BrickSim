@@ -17,7 +17,7 @@
 #include <renderdoc_app.h>
 #endif
 
-namespace controller {
+namespace bricksim::controller {
     namespace {
         bool initializeGL();
         void window_size_callback(GLFWwindow *window, int width, int height);
@@ -71,7 +71,7 @@ namespace controller {
     void panViewLeft();
     void panViewRight();
 
-    void insertLdrElement(const std::shared_ptr<LdrFile>& ldrFile);
+    void insertLdrElement(const std::shared_ptr<ldr::File>& ldrFile);
     void deleteElement(const std::shared_ptr<etree::Node>& nodeToDelete);
 
     void deleteSelectedElements();
@@ -85,9 +85,9 @@ namespace controller {
     void setUserWantsToExit(bool val);
     std::set<std::shared_ptr<etree::Node>> & getSelectedNodes();
     std::shared_ptr<etree::RootNode> getElementTree();
-    std::shared_ptr<ThumbnailGenerator> getThumbnailGenerator();
-    std::shared_ptr<Scene> getMainScene();
-    std::shared_ptr<CadCamera> getMainSceneCamera();
+    std::shared_ptr<graphics::ThumbnailGenerator> getThumbnailGenerator();
+    std::shared_ptr<graphics::Scene> getMainScene();
+    std::shared_ptr<graphics::CadCamera> getMainSceneCamera();
 
     void executeOpenGL(std::function<void()> const &functor);
 

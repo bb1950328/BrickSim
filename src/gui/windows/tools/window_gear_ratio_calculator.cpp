@@ -5,7 +5,7 @@
 
 #include "window_gear_ratio_calculator.h"
 
-namespace gui::windows::tools::gear_ratio_calculator {
+namespace bricksim::gui::windows::tools::gear_ratio_calculator {
     void draw(Data &data) {
         if (ImGui::Begin(data.name, &data.visible)) {
             static std::list<gears::GearPair> pairs;

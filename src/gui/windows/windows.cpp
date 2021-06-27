@@ -21,7 +21,7 @@
 #include "windows.h"
 #include "../../metrics.h"
 
-namespace gui::windows {
+namespace bricksim::gui::windows {
     namespace {
         void drawImGuiDemo(Data& data) {
             ImGui::ShowDemoWindow(&data.visible);

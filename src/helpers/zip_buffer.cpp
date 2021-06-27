@@ -5,7 +5,7 @@
 #include "util.h"
 #include <sstream>
 
-namespace zip_buffer {
+namespace bricksim::zip_buffer {
 
     namespace {
         std::map<std::filesystem::path, BufferedZip> zips;

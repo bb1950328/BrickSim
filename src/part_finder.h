@@ -3,13 +3,13 @@
 
 #include "ldr_files/ldr_files.h"
 
-namespace part_finder {
+namespace bricksim::part_finder {
     class Predicate {
         //todo add more sophisticated search
     private:
         std::string expression;
     public:
-        [[nodiscard]] bool matches(const LdrFile& part) const;
+        [[nodiscard]] bool matches(const ldr::File& part) const;
         explicit Predicate(std::string expression);
     };
 

@@ -7,11 +7,11 @@
 #include "../../types.h"
 #include "mesh.h"
 
-namespace mesh::generated {
+namespace bricksim::mesh::generated {
 
     class GeneratedMeshNode : public etree::MeshNode {
     public:
-        GeneratedMeshNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent);
+        GeneratedMeshNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent);
         bool isDisplayNameUserEditable() const override;
         bool isTransformationUserEditable() const override;
         bool isColorUserEditable() const override;
@@ -21,7 +21,7 @@ namespace mesh::generated {
     public:
         static constexpr float RADIUS = 0.5f;
         static constexpr uint16_t DIVISIONS = 12;
-        UVSphereNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent);
+        UVSphereNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent);
         std::string getDescription() override;
         mesh_identifier_t getMeshIdentifier() const override;
         void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
@@ -32,7 +32,7 @@ namespace mesh::generated {
         static constexpr uint16_t NUM_CORNERS = 12;
         static constexpr float LINE_RADIUS = 0.03f;
         static constexpr float TIP_RADIUS = 3*LINE_RADIUS;
-        ArrowNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent);
+        ArrowNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent);
         std::string getDescription() override;
         mesh_identifier_t getMeshIdentifier() const override;
         void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
@@ -44,7 +44,7 @@ namespace mesh::generated {
         static constexpr float TUBE_RADIUS = 0.03f;
         static constexpr uint16_t DIVISIONS = 12;
         static constexpr bool WITH_ENDS = false;
-        QuarterTorusNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent);
+        QuarterTorusNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent);
         std::string getDescription() override;
         mesh_identifier_t getMeshIdentifier() const override;
         void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
@@ -52,7 +52,7 @@ namespace mesh::generated {
 
     class CubeNode : public GeneratedMeshNode {
     public:
-        CubeNode(const LdrColorReference &color, const std::shared_ptr<Node> &parent);
+        CubeNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent);
         std::string getDescription() override;
         mesh_identifier_t getMeshIdentifier() const override;
         void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;

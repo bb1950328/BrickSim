@@ -3,7 +3,7 @@
 #include "../../controller.h"
 #include "../../metrics.h"
 
-namespace mesh {
+namespace bricksim::mesh {
     void LineData::initBuffers(const std::vector<MeshInstance>& instances) {
         controller::executeOpenGL([this, &instances]() {
             //vao

@@ -5,8 +5,8 @@
 #include "../controller.h"
 #include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 
-namespace gui_internal {
-    bool drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<LdrFile> &part, const LdrColorReference color) {
+namespace bricksim::gui_internal {
+    bool drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<ldr::File> &part, const ldr::ColorReference color) {
         bool realThumbnailAvailable = false;
         const bool visible = ImGui::IsRectVisible(actualThumbSizeSquared);
         if (visible) {
@@ -23,7 +23,7 @@ namespace gui_internal {
             ImGui::Button(part->metaInfo.name.c_str(), actualThumbSizeSquared);
         }
         if (ImGui::IsItemHovered()) {
-            auto availableColors = part_color_availability_provider::getAvailableColorsForPart(part);
+            auto availableColors = info_providers::part_color_availability::getAvailableColorsForPart(part);
             std::string availText;
             if (availableColors.has_value() && !availableColors.value().empty()) {
                 if (availableColors.value().size() == 1) {
@@ -47,7 +47,7 @@ namespace gui_internal {
     }
 
     void drawColorGroup(const std::shared_ptr<etree::MeshNode> &ldrNode, const ImVec2 &buttonSize, const int columnCount,
-                        const std::pair<const std::string, std::vector<LdrColorReference>> &colorGroup) {
+                        const std::pair<const std::string, std::vector<ldr::ColorReference>> &colorGroup) {
         if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
             int i = 0;
             for (const auto &color : colorGroup.second) {

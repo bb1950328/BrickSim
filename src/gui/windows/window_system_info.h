@@ -3,7 +3,7 @@
 
 #include "windows.h"
 
-namespace gui::windows::system_info {
+namespace bricksim::gui::windows::system_info {
     void draw(Data& data);
 }
 

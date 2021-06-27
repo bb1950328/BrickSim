@@ -6,11 +6,11 @@
 #include "../db.h"
 #include <sstream>
 
-namespace price_guide_provider {
+namespace bricksim::info_providers::price_guide  {
     namespace {
 
         std::optional<bricklink::Currency> getCurrencyByCode(const std::string &code) {
-            for (const auto &currency : bricklink_constants_provider::getCurrencies()) {
+            for (const auto &currency : bricklink_constants::getCurrencies()) {
                 if (currency.second.codeCurrency == code) {
                     return {currency.second};
                 }
@@ -19,7 +19,7 @@ namespace price_guide_provider {
         }
 
         std::optional<bricklink::Color> getColorByName(const std::string &name) {
-            for (const auto &color : bricklink_constants_provider::getColors()) {
+            for (const auto &color : bricklink_constants::getColors()) {
                 if (util::equalsAlphanum(color.second.strColorName, name)) {
                     return {color.second};
                 }

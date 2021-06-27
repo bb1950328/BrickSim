@@ -4,7 +4,7 @@
 
 #include "window_about.h"
 
-namespace gui::windows::about {
+namespace bricksim::gui::windows::about {
 
     namespace {
         struct License {

@@ -11,7 +11,7 @@
 #include "db.h"
 #include "helpers/util.h"
 #include "latest_log_messages_tank.h"
-#include "shaders/shaders.h"
+#include "graphics/shaders.h"
 #include "ldr_files/ldr_file_repo.h"
 #include "info_providers/bricklink_constants_provider.h"
 #include "graphics/orientation_cube.h"
@@ -22,15 +22,15 @@
 #include <link.h>
 #endif
 
-namespace controller {
+namespace bricksim::controller {
     namespace {
         GLFWwindow *window;
         std::shared_ptr<etree::RootNode> elementTree;
         bool elementTreeChanged = false;
         bool selectionChanged = false;
-        std::shared_ptr<ThumbnailGenerator> thumbnailGenerator;
-        std::shared_ptr<Scene> mainScene;
-        std::shared_ptr<CadCamera> camera;
+        std::shared_ptr<graphics::ThumbnailGenerator> thumbnailGenerator;
+        std::shared_ptr<graphics::Scene> mainScene;
+        std::shared_ptr<graphics::CadCamera> camera;
         std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;
         unsigned int windowWidth;
         unsigned int windowHeight;
@@ -260,27 +260,27 @@ namespace controller {
 
             util::setStbiFlipVertically(true);
 
-            shaders::initialize();
+            graphics::shaders::initialize();
 
             elementTree = std::make_shared<etree::RootNode>();
-            camera = std::make_shared<CadCamera>();
-            mainScene = scenes::create(scenes::MAIN_SCENE_ID);
+            camera = std::make_shared<graphics::CadCamera>();
+            mainScene = graphics::scenes::create(graphics::scenes::MAIN_SCENE_ID);
             mainScene->setCamera(camera);
             mainScene->setRootNode(elementTree);
 
             gui::setWindow(window);
             gui::initialize();
 
-            while (!ldr_file_repo::checkLdrawLibraryLocation()) {
+            while (!ldr::file_repo::checkLdrawLibraryLocation()) {
                 loopPartsLibrarySetupPrompt();
             }
 
             Task initSteps[]{
-                    {"load color definitions",                ldr_color_repo::initialize},
-                    {"initialize file list",                  [](float *progress) { ldr_file_repo::get().initialize(progress); }},
-                    {"initialize price guide provider",       price_guide_provider::initialize},
-                    {"initialize thumbnail generator",        []() { thumbnailGenerator = std::make_shared<ThumbnailGenerator>(); }},
-                    {"initialize BrickLink constants",        bricklink_constants_provider::initialize},
+                    {"load color definitions",                ldr::color_repo::initialize},
+                    {"initialize file list",                  [](float *progress) { ldr::file_repo::get().initialize(progress); }},
+                    {"initialize price guide provider",       info_providers::price_guide::initialize},
+                    {"initialize thumbnail generator",        []() { thumbnailGenerator = std::make_shared<graphics::ThumbnailGenerator>(); }},
+                    {"initialize BrickLink constants",        info_providers::bricklink_constants::initialize},
                     {"initialize keyboard shortcuts",         keyboard_shortcut_manager::initialize},
                     {"initialize user actions",               user_actions::initialize},
                     {"initialize orientation cube generator", graphics::orientation_cube::initialize},
@@ -311,7 +311,7 @@ namespace controller {
         }
 
         void cleanup() {
-            ldr_file_repo::get().cleanup();
+            ldr::file_repo::get().cleanup();
             auto &bgTasks = getBackgroundTasks();
             spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
             for (auto &task : bgTasks) {
@@ -321,8 +321,8 @@ namespace controller {
             gui::cleanup();
             graphics::orientation_cube::cleanup();
             mesh::SceneMeshCollection::deleteAllMeshes();
-            scenes::deleteAll();
-            shaders::cleanup();
+            graphics::scenes::deleteAll();
+            graphics::shaders::cleanup();
             elementTree = nullptr;
             transformGizmo = nullptr;
             thumbnailGenerator = nullptr;
@@ -460,7 +460,7 @@ namespace controller {
 
     void openFile(const std::string &path) {
         foregroundTasks.push(new Task(std::string("Open ") + path, [path]() {
-            insertLdrElement(ldr_file_repo::get().getFile(path));
+            insertLdrElement(ldr::file_repo::get().getFile(path));
         }));
     }
 
@@ -574,23 +574,23 @@ namespace controller {
     void panViewLeft(){camera->mousePan(-1, 0);}
     void panViewRight(){camera->mousePan(+1, 0);}
 
-    void insertLdrElement(const std::shared_ptr<LdrFile>& ldrFile) {
+    void insertLdrElement(const std::shared_ptr<ldr::File>& ldrFile) {
         auto currentlyEditingLdrNode = std::dynamic_pointer_cast<etree::LdrNode>(currentlyEditingNode);
         switch (ldrFile->metaInfo.type) {
-            case MODEL:
-                currentlyEditingLdrNode = std::make_shared<etree::MpdNode>(ldrFile, LdrColorReference{2}, elementTree);
+            case ldr::MODEL:
+                currentlyEditingLdrNode = std::make_shared<etree::MpdNode>(ldrFile, ldr::ColorReference{2}, elementTree);
                 currentlyEditingNode = currentlyEditingLdrNode;
                 currentlyEditingLdrNode->createChildNodes();
                 elementTree->addChild(currentlyEditingNode);
                 break;
-            case MPD_SUBFILE:
+            case ldr::MPD_SUBFILE:
                 if (nullptr != currentlyEditingLdrNode) {
                     currentlyEditingLdrNode->addSubfileInstanceNode(ldrFile, {1});
                 }
                 break;
-            case PART:
+            case ldr::PART:
                 if (nullptr != currentlyEditingLdrNode) {
-                    currentlyEditingLdrNode->addChild(std::make_shared<etree::PartNode>(ldrFile, LdrColorReference{1}, currentlyEditingNode));
+                    currentlyEditingLdrNode->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr::ColorReference{1}, currentlyEditingNode));
                 }
                 break;
             default: return;
@@ -644,7 +644,7 @@ namespace controller {
         return elementTree;
     }
 
-    std::shared_ptr<ThumbnailGenerator> getThumbnailGenerator() {
+    std::shared_ptr<graphics::ThumbnailGenerator> getThumbnailGenerator() {
         return thumbnailGenerator;
     }
 
@@ -669,12 +669,12 @@ namespace controller {
         return std::make_tuple(lastFrameTimesSize, lastFrameTimes, lastFrameTimesStartIdx);
     }
 
-    std::shared_ptr<Scene> getMainScene() {
+    std::shared_ptr<graphics::Scene> getMainScene() {
         return mainScene;
     }
 
-    std::shared_ptr<CadCamera> getMainSceneCamera() {
-        return std::dynamic_pointer_cast<CadCamera>(mainScene->getCamera());
+    std::shared_ptr<graphics::CadCamera> getMainSceneCamera() {
+        return std::dynamic_pointer_cast<graphics::CadCamera>(mainScene->getCamera());
     }
 
     void executeOpenGL(std::function<void()> const &functor) {

@@ -5,7 +5,7 @@
 #include "../../ldr_files/ldr_file_repo.h"
 #include "../../controller.h"
 
-namespace mesh {
+namespace bricksim::mesh {
     std::map<mesh_key_t, std::shared_ptr<Mesh>> SceneMeshCollection::allMeshes;
 
     mesh_key_t SceneMeshCollection::getMeshKey(const std::shared_ptr<etree::MeshNode> &node, bool windingOrderInverse) {
@@ -57,13 +57,13 @@ namespace mesh {
 
     SceneMeshCollection::SceneMeshCollection(scene_id_t scene) : scene(scene) {}
 
-    void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node> &node, const glm::mat4 &parentAbsoluteTransformation, std::optional<LdrColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId) {
+    void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node> &node, const glm::mat4 &parentAbsoluteTransformation, std::optional<ldr::ColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId) {
         std::shared_ptr<etree::Node> nodeToParseChildren = node;
         glm::mat4 absoluteTransformation = parentAbsoluteTransformation * node->getRelativeTransformation();
         if (node->visible) {
             if ((node->getType() & etree::TYPE_MESH) > 0) {
                 std::shared_ptr<etree::MeshNode> meshNode;
-                LdrColorReference color;
+                ldr::ColorReference color;
                 std::shared_ptr<etree::MeshNode> nodeToGetColorFrom;
                 if (node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE) {
                     const auto instanceNode = std::dynamic_pointer_cast<etree::MpdSubfileInstanceNode>(node);
@@ -76,7 +76,7 @@ namespace mesh {
                     absoluteTransformation = node->getRelativeTransformation() * parentAbsoluteTransformation;
                     nodeToGetColorFrom = meshNode;
                 }
-                if (nodeToGetColorFrom->getElementColor().get()->code == LdrColor::MAIN_COLOR_CODE && parentColor.has_value()) {
+                if (nodeToGetColorFrom->getElementColor().get()->code == ldr::Color::MAIN_COLOR_CODE && parentColor.has_value()) {
                     color = parentColor.value();
                 } else {
                     color = nodeToGetColorFrom->getDisplayColor();
@@ -157,7 +157,7 @@ namespace mesh {
         if (selectionBoxMesh == nullptr) {
             selectionBoxMesh = std::make_shared<Mesh>();
             usedMeshes.insert(selectionBoxMesh);
-            selectionBoxMesh->addLdrFile(ldr_file_repo::get().getFile("box0.dat"), glm::mat4(1.0f), ldr_color_repo::getInstanceDummyColor(), false);
+            selectionBoxMesh->addLdrFile(ldr::file_repo::get().getFile("box0.dat"), glm::mat4(1.0f), ldr::color_repo::getInstanceDummyColor(), false);
         }
         selectionBoxMesh->instances.clear();
         if (!controller::getSelectedNodes().empty()) {

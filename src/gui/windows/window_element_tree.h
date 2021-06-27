@@ -3,7 +3,7 @@
 
 #include "windows.h"
 
-namespace gui::windows::element_tree {
+namespace bricksim::gui::windows::element_tree {
     void draw(Data& data);
 }
 #endif //BRICKSIM_WINDOW_ELEMENT_TREE_H

@@ -3,7 +3,7 @@
 
 #include "windows.h"
 
-namespace gui::windows::settings {
+namespace bricksim::gui::windows::settings {
     void draw(Data& data);
 }
 

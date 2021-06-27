@@ -3,7 +3,7 @@
 #include "../types.h"
 #include "../helpers/platform_detection.h"
 
-namespace constants {
+namespace bricksim::constants {
     constexpr float LDU_TO_OPENGL_SCALE = 0.01f;
     extern const glm::mat4 LDU_TO_OPENGL_ROTATION;
     extern const glm::mat4 LDU_TO_OPENGL;

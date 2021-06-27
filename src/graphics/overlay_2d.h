@@ -9,7 +9,7 @@
 #include "../types.h"
 #include "../helpers/color.h"
 
-namespace overlay2d {
+namespace bricksim::overlay2d {
     typedef glm::usvec2 coord_t;
 
     typedef short length_t;

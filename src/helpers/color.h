@@ -7,7 +7,7 @@
 //RGB is a macro in some windows header
 #undef RGB
 
-namespace color {
+namespace bricksim::color {
     glm::vec3 convertIntToColorVec3(unsigned int value);
     unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue);
 

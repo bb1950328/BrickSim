@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include "../../ldr_files/ldr_colors.h"
 
-namespace mesh {
+namespace bricksim::mesh {
     struct TriangleVertex {
         glm::vec4 position;
         glm::vec3 normal;
@@ -42,7 +42,7 @@ namespace mesh {
     };
 
     struct MeshInstance {
-        LdrColorReference color;
+        ldr::ColorReference color;
         glm::mat4 transformation;
         unsigned int elementId;
         bool selected;

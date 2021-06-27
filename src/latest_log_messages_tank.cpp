@@ -2,7 +2,7 @@
 #include "config.h"
 
 
-namespace latest_log_messages_tank {
+namespace bricksim::latest_log_messages_tank {
     void addMessage(const latest_log_messages_tank::LogMessage &msg) {
         if (msg.level >= minLevelForAlwaysKeeping) {
             alwaysKeepingMessages.push_back(msg);

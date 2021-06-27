@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-namespace metrics {
+namespace bricksim::metrics {
     extern long individualBrickCount;
     extern size_t vramUsageBytes;
     extern size_t thumbnailBufferUsageBytes;

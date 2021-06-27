@@ -8,8 +8,8 @@
 #include "window_view3d.h"
 #include "../gui.h"
 
-namespace gui::windows::view3d {
-    std::shared_ptr<etree::Node> getNodeUnderCursor(const std::shared_ptr<Scene> &mainScene, const glm::svec2 &currentCursorPos) {
+namespace bricksim::gui::windows::view3d {
+    std::shared_ptr<etree::Node> getNodeUnderCursor(const std::shared_ptr<graphics::Scene> &mainScene, const glm::svec2 &currentCursorPos) {
         const auto elementIdUnderCursor = mainScene->getSelectionPixel(currentCursorPos);
         auto nodeUnderCursor = elementIdUnderCursor != 0
                                ? mainScene->getMeshCollection().getElementById(elementIdUnderCursor)

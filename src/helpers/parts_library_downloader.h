@@ -3,7 +3,7 @@
 
 #include <utility>
 
-namespace parts_library_downloader {
+namespace bricksim::parts_library_downloader {
     enum Status {
         DOING_NOTHING,
         IN_PROGRESS,

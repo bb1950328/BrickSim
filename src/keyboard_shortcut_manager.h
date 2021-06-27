@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_KEYBOARD_SHORTCUT_MANAGER_H
-#define BRICKSIM_KEYBOARD_SHORTCUT_MANAGER_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -32,4 +31,3 @@ namespace bricksim::keyboard_shortcut_manager {
     std::optional<KeyboardShortcut>& getCaughtShortcut();
     void clearCaughtShortcut();
 }
-#endif //BRICKSIM_KEYBOARD_SHORTCUT_MANAGER_H

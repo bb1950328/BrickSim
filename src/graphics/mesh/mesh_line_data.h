@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_MESH_LINE_DATA_H
-#define BRICKSIM_MESH_LINE_DATA_H
+#pragma once
 
 #include "mesh_simple_classes.h"
 
@@ -20,4 +19,3 @@ namespace bricksim::mesh {
     };
 }
 
-#endif //BRICKSIM_MESH_LINE_DATA_H

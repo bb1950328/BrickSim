@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_SCENE_H
-#define BRICKSIM_SCENE_H
+#pragma once
 
 #include <filesystem>
 #include <map>
@@ -80,4 +79,3 @@ namespace bricksim::graphics {
         [[nodiscard]] overlay2d::ElementCollection &getOverlayCollection();
     };
 }
-#endif //BRICKSIM_SCENE_H

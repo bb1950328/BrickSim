@@ -1,7 +1,6 @@
-#ifndef BRICKSIM_LDR_REGULAR_FILE_REPO_H
-#define BRICKSIM_LDR_REGULAR_FILE_REPO_H
+#pragma once
 
-#include "ldr_file_repo.h"
+#include "file_repo.h"
 
 namespace bricksim::ldr::file_repo {
     class RegularFileRepo: public FileRepo {
@@ -14,4 +13,3 @@ namespace bricksim::ldr::file_repo {
         std::string getLibraryFileContent(std::string nameRelativeToRoot) override;
     };
 }
-#endif //BRICKSIM_LDR_REGULAR_FILE_REPO_H

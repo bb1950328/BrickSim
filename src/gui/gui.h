@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_GUI_H
-#define BRICKSIM_GUI_H
+#pragma once
 
 #include <imgui.h>
 #include <GLFW/glfw3.h>
@@ -56,4 +55,3 @@ namespace bricksim::gui {
     void closeBlockingMessage();
 };
 
-#endif //BRICKSIM_GUI_H

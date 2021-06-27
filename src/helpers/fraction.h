@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_FRACTION_H
-#define BRICKSIM_FRACTION_H
+#pragma once
 
 #include <string>
 
@@ -55,4 +54,3 @@ namespace bricksim {
         friend std::ostream &operator<<(std::ostream &os, const Fraction &fraction);
     };
 }
-#endif //BRICKSIM_FRACTION_H

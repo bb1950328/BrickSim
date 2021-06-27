@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_CONFIG_H
-#define BRICKSIM_CONFIG_H
+#pragma once
 
 #include <map>
 #include <mutex>
@@ -185,4 +184,3 @@ namespace bricksim::config {
     const Key<bool> USE_EULER_ANGLES("useEulerAngles", false);
 }
 
-#endif //BRICKSIM_CONFIG_H

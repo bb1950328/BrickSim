@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_CAMERA_H
-#define BRICKSIM_CAMERA_H
+#pragma once
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -60,4 +59,3 @@ namespace bricksim::graphics {
         glm::vec3 cameraPos, target;
     };
 }
-#endif //BRICKSIM_CAMERA_H

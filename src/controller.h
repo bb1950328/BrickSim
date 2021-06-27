@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_CONTROLLER_H
-#define BRICKSIM_CONTROLLER_H
+#pragma once
 
 #include <GLFW/glfw3.h>
 #include <string>
@@ -8,7 +7,7 @@
 #include <queue>
 #include "element_tree.h"
 #include "types.h"
-#include "ldr_files/ldr_files.h"
+#include "ldr/files.h"
 #include "transform_gizmo.h"
 #include "graphics/thumbnail_generator.h"
 #include "tasks.h"
@@ -105,4 +104,3 @@ namespace bricksim::controller {
 #endif
 };
 
-#endif //BRICKSIM_CONTROLLER_H

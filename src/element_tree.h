@@ -1,10 +1,9 @@
-#ifndef BRICKSIM_ELEMENT_TREE_H
-#define BRICKSIM_ELEMENT_TREE_H
+#pragma once
 
 #include <memory>
 #include "helpers/color.h"
 #include "constant_data/constants.h"
-#include "ldr_files/ldr_colors.h"
+#include "ldr/colors.h"
 #include "graphics/mesh/mesh.h"
 
 namespace bricksim::etree {
@@ -144,4 +143,3 @@ namespace bricksim::etree {
 }
 
 
-#endif //BRICKSIM_ELEMENT_TREE_H

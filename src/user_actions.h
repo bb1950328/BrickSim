@@ -1,8 +1,7 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cert-err58-cpp"
 
-#ifndef BRICKSIM_USER_ACTIONS_H
-#define BRICKSIM_USER_ACTIONS_H
+#pragma once
 
 #include <functional>
 #include <string>
@@ -57,6 +56,5 @@ namespace bricksim::user_actions {
     const std::vector<Action>& getAllActions();
     const Action& getAction(int id);
 }
-#endif //BRICKSIM_USER_ACTIONS_H
 
 #pragma clang diagnostic pop

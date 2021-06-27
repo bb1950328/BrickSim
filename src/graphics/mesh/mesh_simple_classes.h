@@ -1,8 +1,7 @@
-#ifndef BRICKSIM_MESH_SIMPLE_CLASSES_H
-#define BRICKSIM_MESH_SIMPLE_CLASSES_H
+#pragma once
 
 #include <glm/glm.hpp>
-#include "../../ldr_files/ldr_colors.h"
+#include "../../ldr/colors.h"
 
 namespace bricksim::mesh {
     struct TriangleVertex {
@@ -57,4 +56,3 @@ namespace bricksim::mesh {
         unsigned int count;
     };
 }
-#endif //BRICKSIM_MESH_SIMPLE_CLASSES_H

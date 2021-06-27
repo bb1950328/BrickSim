@@ -12,7 +12,7 @@
 #include "helpers/util.h"
 #include "latest_log_messages_tank.h"
 #include "graphics/shaders.h"
-#include "ldr_files/ldr_file_repo.h"
+#include "ldr/file_repo.h"
 #include "info_providers/bricklink_constants_provider.h"
 #include "graphics/orientation_cube.h"
 #include "metrics.h"

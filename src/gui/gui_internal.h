@@ -1,12 +1,11 @@
-#ifndef BRICKSIM_GUI_INTERNAL_H
-#define BRICKSIM_GUI_INTERNAL_H
+#pragma once
 
 #include <imgui.h>
 #include <memory>
 #include <glm/glm.hpp>
 #include <vector>
-#include "../ldr_files/ldr_files.h"
-#include "../ldr_files/ldr_colors.h"
+#include "../ldr/files.h"
+#include "../ldr/colors.h"
 #include "../element_tree.h"
 #include "../user_actions.h"
 
@@ -34,4 +33,3 @@ namespace bricksim::gui_internal {
     void actionMenuItem(const user_actions::Action &action, const char *alternativeDescription);
 }
 
-#endif //BRICKSIM_GUI_INTERNAL_H

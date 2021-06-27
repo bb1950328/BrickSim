@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_RAY_H
-#define BRICKSIM_RAY_H
+#pragma once
 
 #include <glm/glm.hpp>
 #include <glm/gtx/io.hpp>
@@ -36,4 +35,3 @@ namespace bricksim {
     typedef Ray<2> Ray2;
     typedef Ray<3> Ray3;
 }
-#endif //BRICKSIM_RAY_H

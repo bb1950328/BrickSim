@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_PARTS_LIBRARY_DOWNLOADER_H
-#define BRICKSIM_PARTS_LIBRARY_DOWNLOADER_H
+#pragma once
 
 #include <utility>
 
@@ -28,4 +27,3 @@ namespace bricksim::parts_library_downloader {
     void stopDownload();
     int getErrorCode();
 }
-#endif //BRICKSIM_PARTS_LIBRARY_DOWNLOADER_H

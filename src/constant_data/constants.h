@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_CONSTANTS_H
-#define BRICKSIM_CONSTANTS_H
+#pragma once
 #include "../types.h"
 #include "../helpers/platform_detection.h"
 
@@ -27,4 +26,3 @@ namespace bricksim::constants {
     extern const uint16_t gitCommitCount;
     extern const char *gitCommitHash;
 }
-#endif //BRICKSIM_CONSTANTS_H

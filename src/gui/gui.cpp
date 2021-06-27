@@ -14,7 +14,7 @@
 #include "../controller.h"
 #include "gui_internal.h"
 #include "../metrics.h"
-#include "../ldr_files/ldr_file_repo.h"
+#include "../ldr/file_repo.h"
 #include "../helpers/parts_library_downloader.h"
 #include "windows/windows.h"
 #include <glad/glad.h>

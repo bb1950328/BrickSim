@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_TRANSFORM_GIZMO_H
-#define BRICKSIM_TRANSFORM_GIZMO_H
+#pragma once
 
 #include <glm/glm.hpp>
 #include "types.h"
@@ -125,4 +124,3 @@ namespace bricksim::transform_gizmo {
         virtual ~TransformGizmo();
     };
 }
-#endif //BRICKSIM_TRANSFORM_GIZMO_H

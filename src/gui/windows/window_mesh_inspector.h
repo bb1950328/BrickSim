@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_WINDOW_MESH_INSPECTOR_H
-#define BRICKSIM_WINDOW_MESH_INSPECTOR_H
+#pragma once
 
 #include "windows.h"
 #include "../../graphics/mesh/mesh.h"
@@ -15,4 +14,3 @@ namespace bricksim::gui::windows::mesh_inspector {
     void setCurrentlyInspectingMesh(std::shared_ptr<mesh::Mesh> mesh);
 }
 
-#endif //BRICKSIM_WINDOW_MESH_INSPECTOR_H

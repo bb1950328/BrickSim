@@ -1,7 +1,6 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cert-err58-cpp"
-#ifndef BRICKSIM_GEARS_H
-#define BRICKSIM_GEARS_H
+#pragma once
 
 #include <memory>
 #include <set>
@@ -100,6 +99,5 @@ namespace bricksim::gears {
     };
 }
 
-#endif //BRICKSIM_GEARS_H
 
 #pragma clang diagnostic pop

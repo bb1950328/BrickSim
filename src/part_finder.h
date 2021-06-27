@@ -1,7 +1,6 @@
-#ifndef BRICKSIM_PART_FINDER_H
-#define BRICKSIM_PART_FINDER_H
+#pragma once
 
-#include "ldr_files/ldr_files.h"
+#include "ldr/files.h"
 
 namespace bricksim::part_finder {
     class Predicate {
@@ -16,4 +15,3 @@ namespace bricksim::part_finder {
     const Predicate& getPredicate(const std::string& expression);
 }
 
-#endif //BRICKSIM_PART_FINDER_H

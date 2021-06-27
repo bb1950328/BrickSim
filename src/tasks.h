@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_TASKS_H
-#define BRICKSIM_TASKS_H
+#pragma once
 
 #include <functional>
 #include <string>
@@ -26,4 +25,3 @@ namespace bricksim {
         float progress = 0;
     };
 }
-#endif //BRICKSIM_TASKS_H

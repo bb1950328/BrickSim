@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_METRICS_H
-#define BRICKSIM_METRICS_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -15,4 +14,3 @@ namespace bricksim::metrics {
     extern std::vector<std::pair<const char*, unsigned int>> mainloopTimePointsUs;
 }
 
-#endif //BRICKSIM_METRICS_H

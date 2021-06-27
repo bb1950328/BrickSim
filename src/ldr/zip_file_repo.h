@@ -1,10 +1,9 @@
-#ifndef BRICKSIM_LDR_ZIP_FILE_REPO_H
-#define BRICKSIM_LDR_ZIP_FILE_REPO_H
+#pragma once
 
 
 #include <mutex>
 #include <zip.h>
-#include "ldr_file_repo.h"
+#include "file_repo.h"
 
 namespace bricksim::ldr::file_repo {
     class ZipFileRepo: public FileRepo {
@@ -22,4 +21,3 @@ namespace bricksim::ldr::file_repo {
         static std::string getZipRootFolder(zip_t* archive);//including / at the end
     };
 }
-#endif //BRICKSIM_LDR_ZIP_FILE_REPO_H

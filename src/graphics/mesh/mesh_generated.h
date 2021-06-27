@@ -1,9 +1,8 @@
-#ifndef BRICKSIM_MESH_GENERATED_H
-#define BRICKSIM_MESH_GENERATED_H
+#pragma once
 
 #include <memory>
 #include "../../element_tree.h"
-#include "../../ldr_files/ldr_colors.h"
+#include "../../ldr/colors.h"
 #include "../../types.h"
 #include "mesh.h"
 
@@ -59,4 +58,3 @@ namespace bricksim::mesh::generated {
     };
 }
 
-#endif //BRICKSIM_MESH_GENERATED_H

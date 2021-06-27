@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_MESH_COLLECTION_H
-#define BRICKSIM_MESH_COLLECTION_H
+#pragma once
 
 #include <set>
 #include "mesh.h"
@@ -51,4 +50,3 @@ namespace bricksim::mesh {
         static void deleteAllMeshes();
     };
 }
-#endif //BRICKSIM_MESH_COLLECTION_H

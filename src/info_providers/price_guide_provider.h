@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_PRICE_GUIDE_PROVIDER_H
-#define BRICKSIM_PRICE_GUIDE_PROVIDER_H
+#pragma once
 
 #include <optional>
 //price guide 3001.dat CHF black: https://www.bricklink.com/v2/catalog/catalogitem_pgtab.page?idItem=264&idColor=11&st=2&gm=0&gc=0&ei=0&prec=4&showflag=0&showbulk=0&currency=136
@@ -52,4 +51,3 @@ namespace bricksim::info_providers::price_guide {
     std::optional<PriceGuide> getPriceGuideIfCached(const std::string& partCode, const std::string& currencyCode, const std::string& colorName);
 }
 
-#endif //BRICKSIM_PRICE_GUIDE_PROVIDER_H

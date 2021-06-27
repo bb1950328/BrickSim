@@ -1,12 +1,11 @@
-#ifndef BRICKSIM_LDR_FILES_H
-#define BRICKSIM_LDR_FILES_H
+#pragma once
 
 
 #include <string>
 #include <vector>
 #include <memory>
 #include <set>
-#include "ldr_colors.h"
+#include "colors.h"
 namespace bricksim::ldr {
     class FileElement;
 
@@ -165,4 +164,3 @@ namespace bricksim::ldr {
     };
 }
 
-#endif //BRICKSIM_LDR_FILES_H

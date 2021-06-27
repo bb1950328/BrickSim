@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_LDR_COLORS_H
-#define BRICKSIM_LDR_COLORS_H
+#pragma once
 
 #include "../helpers/color.h"
 #include <memory>
@@ -89,4 +88,3 @@ namespace bricksim::ldr {
         ColorReference getPureColor(const char *htmlCode);
     };
 }
-#endif //BRICKSIM_LDR_COLORS_H

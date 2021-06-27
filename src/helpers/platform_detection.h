@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_PLATFORM_DETECTION_H
-#define BRICKSIM_PLATFORM_DETECTION_H
+#pragma once
 
 // from https://stackoverflow.com/questions/5919996/how-to-detect-reliably-mac-os-x-ios-linux-windows-in-c-preprocessor
 
@@ -50,4 +49,3 @@ namespace bricksim::detected_platform {
 }
 
 
-#endif //BRICKSIM_PLATFORM_DETECTION_H

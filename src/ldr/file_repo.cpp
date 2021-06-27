@@ -1,11 +1,11 @@
 #include <zip.h>
 #include <spdlog/spdlog.h>
 #include <thread>
-#include "ldr_file_repo.h"
+#include "file_repo.h"
 #include "../helpers/util.h"
 #include "../config.h"
-#include "ldr_zip_file_repo.h"
-#include "ldr_regular_file_repo.h"
+#include "zip_file_repo.h"
+#include "regular_file_repo.h"
 #include "../db.h"
 
 namespace bricksim::ldr::file_repo {

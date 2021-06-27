@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_ORIENTATION_CUBE_H
-#define BRICKSIM_ORIENTATION_CUBE_H
+#pragma once
 
 #include "../types.h"
 #include "mesh/mesh.h"
@@ -55,4 +54,3 @@ namespace bricksim::graphics::orientation_cube {
     void cleanup();
 };
 
-#endif //BRICKSIM_ORIENTATION_CUBE_H

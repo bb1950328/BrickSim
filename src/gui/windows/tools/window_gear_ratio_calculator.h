@@ -1,9 +1,7 @@
-#ifndef BRICKSIM_WINDOW_GEAR_RATIO_CALCULATOR_H
-#define BRICKSIM_WINDOW_GEAR_RATIO_CALCULATOR_H
+#pragma once
 
 #include "../windows.h"
 
 namespace bricksim::gui::windows::tools::gear_ratio_calculator {
     void draw(Data& data);
 }
-#endif //BRICKSIM_WINDOW_GEAR_RATIO_CALCULATOR_H

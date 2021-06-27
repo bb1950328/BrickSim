@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_TYPES_H
-#define BRICKSIM_TYPES_H
+#pragma once
 
 #include <glm/fwd.hpp>
 namespace bricksim {
@@ -21,4 +20,3 @@ namespace glm {
     typedef vec<4, signed short, defaultp>	    svec4;
 }
 
-#endif //BRICKSIM_TYPES_H

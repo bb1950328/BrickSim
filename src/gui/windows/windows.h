@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_WINDOWS_H
-#define BRICKSIM_WINDOWS_H
+#pragma once
 
 #include "../../lib/magic_enum/include/magic_enum.hpp"
 
@@ -35,4 +34,3 @@ namespace bricksim::gui::windows {
     const char* getName(Id id);
 }
 
-#endif //BRICKSIM_WINDOWS_H

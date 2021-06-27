@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_DB_H
-#define BRICKSIM_DB_H
+#pragma once
 
 #include <string>
 #include <optional>
@@ -49,7 +48,7 @@ namespace bricksim::db {
 
         void deleteAll();
     }
-    
+
     namespace key_shortcuts {
         typedef std::tuple<int, int, uint8_t, uint8_t> record_t;
         std::vector<record_t> loadShortcuts();
@@ -58,4 +57,3 @@ namespace bricksim::db {
     }
 }
 
-#endif //BRICKSIM_DB_H

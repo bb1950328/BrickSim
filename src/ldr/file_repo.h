@@ -1,12 +1,11 @@
-#ifndef BRICKSIM_LDR_FILE_REPO_H
-#define BRICKSIM_LDR_FILE_REPO_H
+#pragma once
 
 
 #include <filesystem>
 #include <set>
 #include <vector>
 #include <map>
-#include "ldr_files.h"
+#include "files.h"
 
 namespace bricksim::ldr::file_repo {
 
@@ -78,4 +77,3 @@ namespace bricksim::ldr::file_repo {
     LibraryType getLibraryType(const std::filesystem::path& path);
 }
 
-#endif //BRICKSIM_LDR_FILE_REPO_H

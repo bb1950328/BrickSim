@@ -1,5 +1,5 @@
 #include <spdlog/spdlog.h>
-#include "ldr_zip_file_repo.h"
+#include "zip_file_repo.h"
 
 namespace bricksim::ldr::file_repo {
     bool ZipFileRepo::isValidBasePath(const std::filesystem::path& basePath) {

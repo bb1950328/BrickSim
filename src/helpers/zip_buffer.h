@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_ZIP_BUFFER_H
-#define BRICKSIM_ZIP_BUFFER_H
+#pragma once
 
 #include <string>
 #include <map>
@@ -26,4 +25,3 @@ namespace bricksim::zip_buffer {
     void closeZipFile(const std::filesystem::path&);
 }
 
-#endif //BRICKSIM_ZIP_BUFFER_H

@@ -1,10 +1,9 @@
-#ifndef BRICKSIM_MESH_H
-#define BRICKSIM_MESH_H
+#pragma once
 
 #include <glm/glm.hpp>
 #include "../../types.h"
-#include "../../ldr_files/ldr_colors.h"
-#include "../../ldr_files/ldr_files.h"
+#include "../../ldr/colors.h"
+#include "../../ldr/files.h"
 #include "../texture.h"
 #include <map>
 #include <vector>
@@ -114,4 +113,3 @@ namespace bricksim::mesh {
     };
 }
 
-#endif //BRICKSIM_MESH_H

@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_SHADERS_H
-#define BRICKSIM_SHADERS_H
+#pragma once
 
 #include <string>
 #include <glm/glm.hpp>
@@ -59,4 +58,3 @@ namespace bricksim::graphics {
         void cleanup();
     }
 }
-#endif //BRICKSIM_SHADERS_H

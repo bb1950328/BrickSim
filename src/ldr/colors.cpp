@@ -1,5 +1,5 @@
-#include "ldr_colors.h"
-#include "ldr_file_repo.h"
+#include "colors.h"
+#include "file_repo.h"
 #include "../helpers/util.h"
 #include <sstream>
 

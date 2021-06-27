@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_COLOR_H
-#define BRICKSIM_COLOR_H
+#pragma once
 
 #include <glm/glm.hpp>
 #include <string>
@@ -55,4 +54,3 @@ namespace bricksim::color {
         [[nodiscard]] glm::vec3 asGlmVector() const;
     };
 }
-#endif //BRICKSIM_COLOR_H

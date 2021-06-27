@@ -2,7 +2,7 @@
 #include "mesh_collection.h"
 #include "../../helpers/util.h"
 #include "../../metrics.h"
-#include "../../ldr_files/ldr_file_repo.h"
+#include "../../ldr/file_repo.h"
 #include "../../controller.h"
 
 namespace bricksim::mesh {

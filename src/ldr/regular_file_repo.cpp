@@ -1,5 +1,5 @@
 #include <spdlog/spdlog.h>
-#include "ldr_regular_file_repo.h"
+#include "regular_file_repo.h"
 #include "../helpers/util.h"
 
 namespace bricksim::ldr::file_repo {

@@ -1,10 +1,9 @@
-#ifndef BRICKSIM_THUMBNAIL_GENERATOR_H
-#define BRICKSIM_THUMBNAIL_GENERATOR_H
+#pragma once
 
 #include <memory>
 #include <list>
-#include "../ldr_files/ldr_files.h"
-#include "../ldr_files/ldr_colors.h"
+#include "../ldr/files.h"
+#include "../ldr/colors.h"
 #include "scene.h"
 
 namespace bricksim::graphics {
@@ -40,4 +39,3 @@ namespace bricksim::graphics {
 
     };
 }
-#endif //BRICKSIM_THUMBNAIL_GENERATOR_H

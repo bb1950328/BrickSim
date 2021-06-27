@@ -1,8 +1,8 @@
 #include "../gui.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
-#include "../../ldr_files/ldr_colors.h"
+#include "../../ldr/colors.h"
 #include "../gui_internal.h"
-#include "../../ldr_files/ldr_file_repo.h"
+#include "../../ldr/file_repo.h"
 #include "../../part_finder.h"
 #include "../../controller.h"
 

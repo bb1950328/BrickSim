@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_TEXTURE_H
-#define BRICKSIM_TEXTURE_H
+#pragma once
 
 #include <filesystem>
 #include <glm/glm.hpp>
@@ -25,4 +24,3 @@ namespace bricksim::graphics {
         [[nodiscard]] glm::ivec2 getSize() const;
     };
 }
-#endif //BRICKSIM_TEXTURE_H

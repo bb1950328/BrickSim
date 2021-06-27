@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_LATEST_LOG_MESSAGES_TANK_H
-#define BRICKSIM_LATEST_LOG_MESSAGES_TANK_H
+#pragma once
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/base_sink.h>
@@ -79,4 +78,3 @@ namespace bricksim::latest_log_messages_tank {
     };
 }
 
-#endif //BRICKSIM_LATEST_LOG_MESSAGES_TANK_H

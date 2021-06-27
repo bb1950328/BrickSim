@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_BRICKLINK_CONSTANTS_PROVIDER_H
-#define BRICKSIM_BRICKLINK_CONSTANTS_PROVIDER_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -59,4 +58,3 @@ namespace bricksim::info_providers::bricklink_constants {
     const std::map<int, bricklink::Continent> &getContinents();
 }
 
-#endif //BRICKSIM_BRICKLINK_CONSTANTS_PROVIDER_H

@@ -1,5 +1,4 @@
-#ifndef BRICKSIM_TESTING_TOOLS_H
-#define BRICKSIM_TESTING_TOOLS_H
+#pragma once
 
 #include <glm/gtx/io.hpp>
 
@@ -38,4 +37,3 @@ public:
     }
 };
 
-#endif //BRICKSIM_TESTING_TOOLS_H

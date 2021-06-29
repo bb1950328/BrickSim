@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/gtx/io.hpp>
+#include <catch2/catch.hpp>
 
 constexpr auto FLOAT_EPSILON = std::numeric_limits<float>::epsilon() * 100;
 

@@ -19,10 +19,9 @@ namespace bricksim::gui::windows::part_palette {
             ImGui::DragInt("##Zoom", &thumbnailZoomPercent, 5, 10, 500, " Zoom: %d%%");
             static auto color = ldr::color_repo::get_color(1);//todo save in config
             const glm::vec3 &col = color->value.asGlmVector();
-            const ImVec4 &txtColor = gui_internal::getWhiteOrBlackBetterContrast(col);
-            ImGui::PushStyleColor(ImGuiCol_Text, txtColor);
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(col.x, col.y, col.z, 1));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(col.x, col.y, col.z, .8));
+            ImGui::PushStyleColor(ImGuiCol_Text, gui_internal::getWhiteOrBlackBetterContrast(col));
+            ImGui::PushStyleColor(ImGuiCol_Button, color->value);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, glm::vec4(col, .8));
 
             ldr::ColorReference static colorChosenInPopup;
             ImGui::SameLine();
@@ -46,8 +45,7 @@ namespace bricksim::gui::windows::part_palette {
                                 ImGui::SameLine();
                             }
                             ImGui::PushID(currentColorValue->code);
-                            const ImColor imColor = ImColor(currentColorValue->value.red, currentColorValue->value.green, currentColorValue->value.blue);
-                            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4) imColor);
+                            ImGui::PushStyleColor(ImGuiCol_Button, currentColorValue->value);
                             if (ImGui::Button(colorChosenInPopup.code == currentColorValue->code ? ICON_FA_CHECK : "", buttonSize)) {
                                 colorChosenInPopup = currentColorValue->code;
                             }
@@ -75,7 +73,7 @@ namespace bricksim::gui::windows::part_palette {
             }
 
             static float categorySelectWidth = 250;//todo save
-            const auto totalWidth = ImGui::GetContentRegionAvailWidth();
+            const auto totalWidth = ImGui::GetContentRegionAvail().x;
             const auto itemSpacingX = ImGui::GetStyle().ItemSpacing.x;
             float thumbnailContainerWidth = totalWidth - categorySelectWidth - itemSpacingX;
             //static const auto partsGrouped = ldr::file_repo::getAllPartsGroupedByCategory();
@@ -120,7 +118,7 @@ namespace bricksim::gui::windows::part_palette {
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(thumbnailSpacing, thumbnailSpacing));
             auto actualThumbSize = std::floor(controller::getThumbnailGenerator()->size / 100.0 * thumbnailZoomPercent);
             auto actualThumbSizeSquared = ImVec2(actualThumbSize, actualThumbSize);
-            int columns = std::max(1.0, std::floor((ImGui::GetContentRegionAvailWidth() + thumbnailSpacing) / (actualThumbSize + thumbnailSpacing)));
+            int columns = std::max(1.0, std::floor((ImGui::GetContentRegionAvail().x + thumbnailSpacing) / (actualThumbSize + thumbnailSpacing)));
             int currentCol = 0;
 
             const bool searchEmpty = searchTextBuffer[0] == '\0';

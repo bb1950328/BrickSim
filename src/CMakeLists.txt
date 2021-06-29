@@ -3,6 +3,7 @@ target_sources(BrickSimLib PRIVATE
         config.h
         controller.cpp
         controller.h
+        custom_imconfig.h
         db.cpp
         db.h
         element_tree.cpp

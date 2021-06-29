@@ -2,6 +2,7 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/ext/quaternion_trigonometric.hpp>
 #include <spdlog/spdlog.h>
+#include <imgui.h>
 #include "../gui.h"
 #include "../../controller.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
@@ -37,8 +38,7 @@ namespace bricksim::gui::windows::element_properties {
                     ImGui::PopTextWrapPos();
                     ImGui::EndTooltip();
                 }
-                auto typeColor = getColorOfType(node->getType()).asGlmVector();
-                //ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(typeColor.x, typeColor.y, typeColor.z, 1.0));//todo make this affect only text but not label
+                //ImGui::PushStyleColor(ImGuiCol_Text, getColorOfType(node->getType()));//todo make this affect only text but not label
                 static char typeBuffer[255];
                 strcpy(typeBuffer, getDisplayNameOfType(node->getType()));
                 ImGui::InputText("Type", typeBuffer, 255, ImGuiInputTextFlags_ReadOnly);
@@ -154,7 +154,7 @@ namespace bricksim::gui::windows::element_properties {
                         if (!isColor16) {
                             const auto buttonWidth = ImGui::GetFontSize() * 1.5f;
                             const ImVec2 &buttonSize = ImVec2(buttonWidth, buttonWidth);
-                            const int columnCount = std::floor(ImGui::GetContentRegionAvailWidth() / (buttonWidth + ImGui::GetStyle().ItemSpacing.x));
+                            const int columnCount = std::floor(ImGui::GetContentRegionAvail().x / (buttonWidth + ImGui::GetStyle().ItemSpacing.x));
 
                             std::optional<std::set<ldr::ColorReference>> availableColors = std::nullopt;
                             if (meshNode->getType() == etree::TYPE_PART) {
@@ -246,7 +246,7 @@ namespace bricksim::gui::windows::element_properties {
                                 auto colorValue = color.get();
                                 auto col = colorValue->value.asGlmVector();
                                 if (util::vectorSum(glm::abs(windowBg - col)) < 0.3) {
-                                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(col.x, col.y, col.z, 1.0f));
+                                    ImGui::PushStyleColor(ImGuiCol_Text, colorValue->value);
                                     auto bgColor = gui_internal::getWhiteOrBlackBetterContrast(col);
                                     ImGui::PushStyleColor(ImGuiCol_Button, bgColor);
                                     ImGui::PushStyleColor(ImGuiCol_ButtonActive, bgColor);
@@ -254,7 +254,7 @@ namespace bricksim::gui::windows::element_properties {
                                     ImGui::Button(text);
                                     ImGui::PopStyleColor(4);
                                 } else {
-                                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(col.x, col.y, col.z, 1.0f));
+                                    ImGui::PushStyleColor(ImGuiCol_Text, colorValue->value);
                                     ImGui::Text("%s", text);
                                     ImGui::PopStyleColor();
                                 }

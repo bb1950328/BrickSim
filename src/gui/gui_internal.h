@@ -15,7 +15,7 @@ namespace bricksim::gui_internal {
      */
     bool drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<ldr::File> &part, const ldr::ColorReference color);
 
-    ImVec4 getWhiteOrBlackBetterContrast(const glm::vec3 &col);
+    color::RGB getWhiteOrBlackBetterContrast(const glm::vec3 &col);
 
     void drawColorGroup(const std::shared_ptr<etree::MeshNode> &ldrNode, const ImVec2 &buttonSize, int columnCount,
                         const std::pair<const std::string, std::vector<ldr::ColorReference>> &colorGroup);

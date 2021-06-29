@@ -13,13 +13,10 @@ namespace bricksim::gui::windows::mesh_inspector {
         void drawColorLabel(const ldr::ColorReference &colorRef) {
             auto color = colorRef.get();
 
-            const glm::vec3 &value = color->value.asGlmVector();
-            const glm::vec3 &edge = color->edge.asGlmVector();
-            const ImVec4 valueImVec = ImVec4(value.x, value.y, value.z, 1.0f);
-            ImGui::PushStyleColor(ImGuiCol_Button, valueImVec);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, valueImVec);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, valueImVec);
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(edge.x, edge.y, edge.z, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_Button, color->value);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, color->value);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color->value);
+            ImGui::PushStyleColor(ImGuiCol_Text, color->edge);
 
             std::string text = std::to_string(color->code) + ": " + color->name;
             ImGui::Button(text.c_str());
@@ -74,10 +71,10 @@ namespace bricksim::gui::windows::mesh_inspector {
                     ImGui::Text("%u", index);
 
                     ImGui::TableNextColumn();
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+                    ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::RED);
                     ImGui::Text("%.2f", vertex.position.x);
                     ImGui::PopStyleColor();
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 1, 0, 1));
+                    ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::GREEN);
                     ImGui::SameLine();
                     ImGui::Text("%.2f", vertex.position.y);
                     ImGui::PopStyleColor();
@@ -85,17 +82,17 @@ namespace bricksim::gui::windows::mesh_inspector {
                     ImGui::SameLine();
                     ImGui::Text("%.2f", vertex.position.z);
                     ImGui::PopStyleColor();
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1));
+                    ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::GRAY);
                     ImGui::SameLine();
                     ImGui::Text("%.2f", vertex.position.w);
                     ImGui::PopStyleColor();
 
 
                     ImGui::TableNextColumn();
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+                    ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::RED);
                     ImGui::Text("%.2f", vertex.normal.x);
                     ImGui::PopStyleColor();
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 1, 0, 1));
+                    ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::GREEN);
                     ImGui::SameLine();
                     ImGui::Text("%.2f", vertex.normal.y);
                     ImGui::PopStyleColor();

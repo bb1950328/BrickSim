@@ -42,8 +42,8 @@ namespace bricksim::gui_internal {
         return visible;
     }
 
-    ImVec4 getWhiteOrBlackBetterContrast(const glm::vec3 &col) {
-        return util::vectorSum(col) > 1.5 ? ImVec4(0, 0, 0, 1) : ImVec4(1, 1, 1, 1);
+    color::RGB getWhiteOrBlackBetterContrast(const glm::vec3 &col) {
+        return util::vectorSum(col) > 1.5 ? color::RGB::BLACK : color::RGB::WHITE;
     }
 
     void drawColorGroup(const std::shared_ptr<etree::MeshNode> &ldrNode, const ImVec2 &buttonSize, const int columnCount,
@@ -56,8 +56,7 @@ namespace bricksim::gui_internal {
                     ImGui::SameLine();
                 }
                 ImGui::PushID(colorValue->code);
-                const ImColor imColor = ImColor(colorValue->value.red, colorValue->value.green, colorValue->value.blue);
-                ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4) imColor);
+                ImGui::PushStyleColor(ImGuiCol_Button, colorValue->value);
                 if (ImGui::Button(ldrNode->getDisplayColor().code == color.code ? ICON_FA_CHECK : "", buttonSize)) {
                     ldrNode->setColor(color);
                     controller::setElementTreeChanged(true);

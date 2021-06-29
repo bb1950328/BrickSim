@@ -9,8 +9,7 @@ namespace bricksim::gui::windows::element_tree {
     namespace {
         void draw_element_tree_node(std::shared_ptr<etree::Node> node) {
             if (node->visibleInElementTree) {
-                auto colorVec = glm::vec4(getColorOfType(node->getType()).asGlmVector(), 1.0);
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(colorVec.x, colorVec.y, colorVec.z, colorVec.w));
+                ImGui::PushStyleColor(ImGuiCol_Text, getColorOfType(node->getType()));
 
                 bool itemClicked = false;
                 if (node->getChildren().empty()) {

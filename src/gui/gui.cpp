@@ -565,11 +565,11 @@ namespace bricksim::gui {
                     libraryType = ldr::file_repo::getLibraryType(enteredPath);
                 }
                 if (libraryType == ldr::file_repo::LibraryType::INVALID) {
-                    ImGui::TextColored(ImVec4(1, 0, 0, 1), ICON_FA_TIMES_CIRCLE" This path doesn't exist or isn't a valid LDraw parts library");
+                    ImGui::TextColored(color::RGB::RED, ICON_FA_TIMES_CIRCLE" This path doesn't exist or isn't a valid LDraw parts library");
                 } else if (libraryType == ldr::file_repo::LibraryType::DIRECTORY) {
-                    ImGui::TextColored(ImVec4(0, 1, 0, 1), ICON_FA_CHECK"This is a valid path to an LDraw parts library directory.");
+                    ImGui::TextColored(color::RGB::GREEN, ICON_FA_CHECK"This is a valid path to an LDraw parts library directory.");
                 } else {
-                    ImGui::TextColored(ImVec4(0, 1, 0, 1), ICON_FA_CHECK" This is a valid path to an LDraw parts library zip.");
+                    ImGui::TextColored(color::RGB::GREEN, ICON_FA_CHECK" This is a valid path to an LDraw parts library zip.");
                 }
                 if (ImGui::Button(ICON_FA_BAN" Cancel")) {
                     state = 'A';
@@ -603,8 +603,7 @@ namespace bricksim::gui {
                         break;
                     }
                     case parts_library_downloader::FAILED:
-                        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
-                                           ICON_FA_TIMES_CIRCLE" Download failed with error code %d", parts_library_downloader::getErrorCode());
+                        ImGui::TextColored(color::RGB::RED, ICON_FA_TIMES_CIRCLE" Download failed with error code %d", parts_library_downloader::getErrorCode());
                         if (ImGui::Button(ICON_FA_CHEVRON_LEFT" Back")) {
                             parts_library_downloader::reset();
                             state = 'Z';

@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Generated Sources" pattern="file:src/constant_data/resources.cpp||file:src/constant_data/resources.h" />
+</component>

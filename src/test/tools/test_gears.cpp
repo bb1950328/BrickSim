@@ -1,5 +1,5 @@
-#include "catch2/catch.hpp"
 #include "../../tools/gears.h"
+#include "catch2/catch.hpp"
 namespace bricksim {
     TEST_CASE("Gear Constants") {
         CHECK(gears::WORM_GEAR->numTeeth == 1);

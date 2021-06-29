@@ -1,6 +1,6 @@
-#include <spdlog/spdlog.h>
 #include "regular_file_repo.h"
 #include "../helpers/util.h"
+#include <spdlog/spdlog.h>
 
 namespace bricksim::ldr::file_repo {
 
@@ -17,9 +17,9 @@ namespace bricksim::ldr::file_repo {
         return true;
     }
 
-    std::vector<std::string> RegularFileRepo::listAllFileNames(float *progress) {
+    std::vector<std::string> RegularFileRepo::listAllFileNames(float* progress) {
         std::vector<std::string> files;
-        for (const auto &entry : std::filesystem::recursive_directory_iterator(basePath)) {
+        for (const auto& entry: std::filesystem::recursive_directory_iterator(basePath)) {
             auto path = util::withoutBasePath(entry.path(), basePath).string();
             auto pathWithForwardSlash = util::replaceChar(path, '\\', '/');
 
@@ -41,9 +41,10 @@ namespace bricksim::ldr::file_repo {
 
     RegularFileRepo::~RegularFileRepo() = default;
 
-    RegularFileRepo::RegularFileRepo(const std::filesystem::path &basePath) : FileRepo(basePath) {
+    RegularFileRepo::RegularFileRepo(const std::filesystem::path& basePath) :
+        FileRepo(basePath) {
         if (!isValidBasePath(basePath)) {
-            throw std::invalid_argument("invalid basePath: "+basePath.string());
+            throw std::invalid_argument("invalid basePath: " + basePath.string());
         }
     }
 }

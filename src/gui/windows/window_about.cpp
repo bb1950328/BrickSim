@@ -1,5 +1,5 @@
-#include "../gui.h"
 #include "../../constant_data/resources.h"
+#include "../gui.h"
 #include "../gui_internal.h"
 
 #include "window_about.h"
@@ -8,19 +8,18 @@ namespace bricksim::gui::windows::about {
 
     namespace {
         struct License {
-            const char *const name;
-            const char *const hyperlink;
-            const char *const usedIn;
-            const char *const text;
-
+            const char* const name;
+            const char* const hyperlink;
+            const char* const usedIn;
+            const char* const text;
         };
         const std::array<License, 6> licenses = {
-                License{"Apache License, Version 2.0", "https://www.apache.org/licenses/LICENSE-2.0", "Hugo", (char *) resources::licenses::Apache2_txt.data()},
-                License{"2-Clause BSD License", "https://opensource.org/licenses/BSD-2-Clause", "pytorch/cpuinfo", (char *) resources::licenses::bsd2clause_txt.data()},
-                License{"3-Clause BSD License", "https://opensource.org/licenses/BSD-3-Clause", "CMake, ", (char *) resources::licenses::bsd3clause_txt.data()},
-                License{"GPLv3", "https://www.gnu.org/licenses/gpl-3.0.en.html", "BrickSim itself, Miniball", (char *) resources::licenses::GPLv3_txt.data()},
-                License{"MIT", "https://opensource.org/licenses/MIT", "dear imgui, SQLiteCpp, glad, rapidjson, magic_enum", (char *) resources::licenses::MIT_txt.data()},
-                License{"zlib", "https://opensource.org/licenses/Zlib", "GLFW, tinyfiledialogs", (char *) resources::licenses::zlib_txt.data()},
+                License{"Apache License, Version 2.0", "https://www.apache.org/licenses/LICENSE-2.0", "Hugo", (char*)resources::licenses::Apache2_txt.data()},
+                License{"2-Clause BSD License", "https://opensource.org/licenses/BSD-2-Clause", "pytorch/cpuinfo", (char*)resources::licenses::bsd2clause_txt.data()},
+                License{"3-Clause BSD License", "https://opensource.org/licenses/BSD-3-Clause", "CMake, ", (char*)resources::licenses::bsd3clause_txt.data()},
+                License{"GPLv3", "https://www.gnu.org/licenses/gpl-3.0.en.html", "BrickSim itself, Miniball", (char*)resources::licenses::GPLv3_txt.data()},
+                License{"MIT", "https://opensource.org/licenses/MIT", "dear imgui, SQLiteCpp, glad, rapidjson, magic_enum", (char*)resources::licenses::MIT_txt.data()},
+                License{"zlib", "https://opensource.org/licenses/Zlib", "GLFW, tinyfiledialogs", (char*)resources::licenses::zlib_txt.data()},
         };
     }
 
@@ -46,7 +45,8 @@ namespace bricksim::gui::windows::about {
                     ImGui::TextWrapped("Developing a program like this is very time-consuming. "
                                        "Currently, all direct contributors have spent %.1f hours for this program. \n"
                                        "But this is only the tip of the iceberg. "
-                                       "BrickSim can only exists thanks to many open source libraries.", constants::totalWorkHours);
+                                       "BrickSim can only exists thanks to many open source libraries.",
+                                       constants::totalWorkHours);
                     ImGui::TextWrapped("You can find the direct dependencies on ");
                     gui_internal::drawHyperlinkButton("https://bricksim.org/docs/technical_info/technologies_dependencies/");
                     ImGui::TextWrapped("This program wouldn't be possible without the LDraw Parts library. The shapes of all the parts in this program are"
@@ -65,7 +65,7 @@ namespace bricksim::gui::windows::about {
                     ImGui::EndTabItem();
                 }
                 if (ImGui::BeginTabItem("Licenses")) {
-                    for (const auto &license : licenses) {
+                    for (const auto& license: licenses) {
                         if (ImGui::CollapsingHeader(license.name)) {
                             ImGui::Text("Libraries under this license: %s", license.usedIn);
                             ImGui::Text("More information available under ");

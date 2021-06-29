@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../types.h"
-#include "mesh/mesh.h"
 #include "../element_tree.h"
+#include "../types.h"
 #include "camera.h"
+#include "mesh/mesh.h"
 
 namespace bricksim::graphics::orientation_cube {
 
@@ -19,6 +19,7 @@ namespace bricksim::graphics::orientation_cube {
     namespace {
         class OrientationCubeSideMeshNode : public etree::MeshNode {
             const CubeSide side;
+
         public:
             mesh_identifier_t getMeshIdentifier() const override;
 
@@ -37,12 +38,13 @@ namespace bricksim::graphics::orientation_cube {
             glm::vec3 viewPos;
             glm::mat4 viewMatrix;
             glm::vec3 target{0.0f, 0.0f, 0.0f};
+
         public:
             void setPitchYaw(float newPitch, float newYaw);
 
-            [[nodiscard]] const glm::mat4 &getViewMatrix() const override;
-            [[nodiscard]] const glm::vec3 &getCameraPos() const override;
-            [[nodiscard]] const glm::vec3 &getTargetPos() const override;
+            [[nodiscard]] const glm::mat4& getViewMatrix() const override;
+            [[nodiscard]] const glm::vec3& getCameraPos() const override;
+            [[nodiscard]] const glm::vec3& getTargetPos() const override;
         };
     }
 
@@ -53,4 +55,3 @@ namespace bricksim::graphics::orientation_cube {
     short getSize();
     void cleanup();
 };
-

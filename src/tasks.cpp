@@ -1,22 +1,23 @@
-#include <spdlog/spdlog.h>
 #include "tasks.h"
 #include "config.h"
+#include <spdlog/spdlog.h>
 
 namespace bricksim {
-    Task::Task(std::string name, const std::function<void()> &taskFunctionNoProgress, bool autostart) :
-            Task(std::move(name), [taskFunctionNoProgress](float *ignore) { taskFunctionNoProgress(); }, autostart) {
+    Task::Task(std::string name, const std::function<void()>& taskFunctionNoProgress, bool autostart) :
+        Task(
+                std::move(name), [taskFunctionNoProgress](float* ignore) { taskFunctionNoProgress(); }, autostart) {
         progress = 0.5;
     }
 
-    Task::Task(std::string name, std::function<void(float *)> taskFunction, bool autostart) :
-            name(std::move(name)), function(std::move(taskFunction)) {
+    Task::Task(std::string name, std::function<void(float*)> taskFunction, bool autostart) :
+        name(std::move(name)), function(std::move(taskFunction)) {
         is_done = false;
         if (autostart) {
             startThread();
         }
     }
 
-    const std::string &Task::getName() const {
+    const std::string& Task::getName() const {
         return name;
     }
 

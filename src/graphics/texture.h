@@ -1,8 +1,8 @@
 #pragma once
 
+#include "../types.h"
 #include <filesystem>
 #include <glm/glm.hpp>
-#include "../types.h"
 namespace bricksim::graphics {
     class Texture {
     private:
@@ -11,12 +11,13 @@ namespace bricksim::graphics {
         int height;
         int nrChannels;
 
-        static unsigned int copyTextureToVram(int imgWidth, int imgHeight, int nrChannels, const unsigned char *data);
+        static unsigned int copyTextureToVram(int imgWidth, int imgHeight, int nrChannels, const unsigned char* data);
+
     public:
-        explicit Texture(const std::filesystem::path &image);
-        Texture(const unsigned char *fileData, unsigned int dataSize);
-        Texture &operator=(const Texture &) = delete;
-        Texture(const Texture &) = delete;
+        explicit Texture(const std::filesystem::path& image);
+        Texture(const unsigned char* fileData, unsigned int dataSize);
+        Texture& operator=(const Texture&) = delete;
+        Texture(const Texture&) = delete;
         ~Texture();
 
         void bind(uint8_t slot = 0) const;

@@ -1,11 +1,10 @@
 #pragma once
 
-
+#include "files.h"
 #include <filesystem>
+#include <map>
 #include <set>
 #include <vector>
-#include <map>
-#include "files.h"
 
 namespace bricksim::ldr::file_repo {
 
@@ -26,7 +25,7 @@ namespace bricksim::ldr::file_repo {
     class FileRepo {
     public:
         explicit FileRepo(std::filesystem::path basePath);
-        FileRepo & operator=(FileRepo&) = delete;
+        FileRepo& operator=(FileRepo&) = delete;
         FileRepo(const FileRepo&) = delete;
         void initialize(float* progress);
 
@@ -35,7 +34,7 @@ namespace bricksim::ldr::file_repo {
         std::filesystem::path& getBasePath();
         std::set<std::string> getAllCategories();
 
-        std::set<std::shared_ptr<File>> getAllFilesOfCategory(const std::string &categoryName);
+        std::set<std::shared_ptr<File>> getAllFilesOfCategory(const std::string& categoryName);
         bool areAllPartsLoaded();
         void cleanup();
 
@@ -43,15 +42,16 @@ namespace bricksim::ldr::file_repo {
          * @param progress range from 0.0f to 0.5f
          * @return vector of file names relative to root of library
          */
-        virtual std::vector<std::string> listAllFileNames(float *progress) = 0;
+        virtual std::vector<std::string> listAllFileNames(float* progress) = 0;
         virtual std::string getLibraryFileContent(FileType type, std::string name) = 0;
         virtual std::string getLibraryFileContent(std::string nameRelativeToRoot) = 0;
         virtual ~FileRepo();
         std::map<std::string, std::set<std::shared_ptr<File>>> getAllPartsGroupedByCategory();
         std::map<std::string, std::set<std::shared_ptr<File>>> getLoadedPartsGroupedByCategory();
+
     protected:
         static std::string readFileFromFilesystem(const std::filesystem::path& path);
-        static bool shouldFileBeSavedInList(const std::string &filename);
+        static bool shouldFileBeSavedInList(const std::string& filename);
         /**
          * @param type
          * @param name how it's referenced in line type 1. subparts for example are s\abc.dat
@@ -72,8 +72,7 @@ namespace bricksim::ldr::file_repo {
     };
 
     FileRepo& get();
-    bool tryToInitializeWithLibraryPath(const std::filesystem::path &path);
+    bool tryToInitializeWithLibraryPath(const std::filesystem::path& path);
     bool checkLdrawLibraryLocation();
     LibraryType getLibraryType(const std::filesystem::path& path);
 }
-

@@ -1,28 +1,28 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
-#include <string>
-#include <memory>
-#include <functional>
-#include <queue>
 #include "element_tree.h"
-#include "types.h"
-#include "ldr/files.h"
-#include "transform_gizmo.h"
 #include "graphics/thumbnail_generator.h"
+#include "ldr/files.h"
 #include "tasks.h"
+#include "transform_gizmo.h"
+#include "types.h"
+#include <GLFW/glfw3.h>
+#include <functional>
+#include <memory>
+#include <queue>
+#include <string>
 
 #ifdef BRICKSIM_USE_RENDERDOC
-#include <renderdoc_app.h>
+    #include <renderdoc_app.h>
 #endif
 
 namespace bricksim::controller {
     namespace {
         bool initializeGL();
-        void window_size_callback(GLFWwindow *window, int width, int height);
+        void window_size_callback(GLFWwindow* window, int width, int height);
         void setWindowSize(unsigned int width, unsigned int height);
         void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-        void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+        void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
         void checkForFinishedBackgroundTasks();
         void glfwErrorCallback(int code, const char* message);
         bool initialize();
@@ -56,7 +56,7 @@ namespace bricksim::controller {
     void nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed);
 
     bool isNodeDraggable(const std::shared_ptr<etree::Node>& node);
-    void startNodeDrag(std::shared_ptr<etree::Node> &node, const glm::svec2 initialCursorPos);
+    void startNodeDrag(std::shared_ptr<etree::Node>& node, const glm::svec2 initialCursorPos);
     void updateNodeDragDelta(glm::usvec2 delta);
     void endNodeDrag();
 
@@ -82,25 +82,24 @@ namespace bricksim::controller {
 
     void setElementTreeChanged(bool val);
     void setUserWantsToExit(bool val);
-    std::set<std::shared_ptr<etree::Node>> & getSelectedNodes();
+    std::set<std::shared_ptr<etree::Node>>& getSelectedNodes();
     std::shared_ptr<etree::RootNode> getElementTree();
     std::shared_ptr<graphics::ThumbnailGenerator> getThumbnailGenerator();
     std::shared_ptr<graphics::Scene> getMainScene();
     std::shared_ptr<graphics::CadCamera> getMainSceneCamera();
 
-    void executeOpenGL(std::function<void()> const &functor);
+    void executeOpenGL(std::function<void()> const& functor);
 
-    std::map<unsigned int, Task *> & getBackgroundTasks();
+    std::map<unsigned int, Task*>& getBackgroundTasks();
     void addBackgroundTask(std::string name, const std::function<void()>& function);
 
-    std::queue<Task *>& getForegroundTasks();
+    std::queue<Task*>& getForegroundTasks();
 
     [[nodiscard]] bool doesUserWantToExit();
 
-    std::tuple<unsigned short, float *, unsigned short> getLastFrameTimes();
+    std::tuple<unsigned short, float*, unsigned short> getLastFrameTimes();
 
 #ifdef BRICKSIM_USE_RENDERDOC
-    RENDERDOC_API_1_1_2 *getRenderdocAPI();
+    RENDERDOC_API_1_1_2* getRenderdocAPI();
 #endif
 };
-

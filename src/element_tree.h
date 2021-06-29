@@ -1,10 +1,10 @@
 #pragma once
 
-#include <memory>
-#include "helpers/color.h"
 #include "constant_data/constants.h"
-#include "ldr/colors.h"
 #include "graphics/mesh/mesh.h"
+#include "helpers/color.h"
+#include "ldr/colors.h"
+#include <memory>
 
 namespace bricksim::etree {
     enum NodeType {
@@ -18,8 +18,8 @@ namespace bricksim::etree {
         TYPE_PART = (1u << 6u) | TYPE_LDRFILE,
     };
 
-    const char *getDisplayNameOfType(const NodeType &type);
-    color::RGB getColorOfType(const NodeType &type);
+    const char* getDisplayNameOfType(const NodeType& type);
+    color::RGB getColorOfType(const NodeType& type);
 
     class Node : public std::enable_shared_from_this<Node> {
     public:
@@ -31,11 +31,11 @@ namespace bricksim::etree {
         std::string displayName;
         bool selected = false;
         NodeType type = TYPE_OTHER;
-        layer_t layer=constants::DEFAULT_LAYER;//todo think about inheritance of this attribute
+        layer_t layer = constants::DEFAULT_LAYER;//todo think about inheritance of this attribute
 
-        [[nodiscard]] const glm::mat4 &getRelativeTransformation() const;
-        void setRelativeTransformation(const glm::mat4 &newValue);
-        const glm::mat4 &getAbsoluteTransformation() const;
+        [[nodiscard]] const glm::mat4& getRelativeTransformation() const;
+        void setRelativeTransformation(const glm::mat4& newValue);
+        const glm::mat4& getAbsoluteTransformation() const;
         [[nodiscard]] virtual bool isTransformationUserEditable() const;
 
         NodeType getType() const;
@@ -43,11 +43,12 @@ namespace bricksim::etree {
         [[nodiscard]] virtual bool isDisplayNameUserEditable() const = 0;
         virtual std::string getDescription();
 
-        [[nodiscard]] const std::vector<std::shared_ptr<Node>> &getChildren() const;
+        [[nodiscard]] const std::vector<std::shared_ptr<Node>>& getChildren() const;
         void addChild(const std::shared_ptr<Node>& newChild);
         bool isChildOf(const std::shared_ptr<Node>& possibleParent) const;
         void removeChild(const std::shared_ptr<Node>& childToDelete);
         virtual ~Node();
+
     protected:
         std::vector<std::shared_ptr<Node>> children;
         glm::mat4 relativeTransformation = glm::mat4(1.0f);
@@ -74,6 +75,7 @@ namespace bricksim::etree {
         [[nodiscard]] ldr::ColorReference getDisplayColor() const;
         void setColor(ldr::ColorReference newColor);
         ldr::ColorReference getElementColor() const;
+
     private:
         ldr::ColorReference color;
     };
@@ -99,6 +101,7 @@ namespace bricksim::etree {
          * finds the subfileNode and creates a MpdSubfileInstanceNode as child of this
          */
         void addSubfileInstanceNode(const std::shared_ptr<ldr::File>& subFile, ldr::ColorReference instanceColor);
+
     private:
         bool childNodesCreated = false;
     };
@@ -141,5 +144,3 @@ namespace bricksim::etree {
 
     std::shared_ptr<Node> getFirstSelectedNode(std::shared_ptr<Node> rootNode);
 }
-
-

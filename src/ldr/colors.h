@@ -1,15 +1,16 @@
 #pragma once
 
 #include "../helpers/color.h"
-#include <memory>
 #include <map>
-#include <vector>
+#include <memory>
 #include <optional>
+#include <vector>
 
 namespace bricksim::ldr {
     struct ColorMaterial {
         enum Type {
-            GLITTER, SPECKLE
+            GLITTER,
+            SPECKLE
         };
         Type type;
         color::RGB value;
@@ -26,7 +27,13 @@ namespace bricksim::ldr {
     class Color : public std::enable_shared_from_this<Color> {
     public:
         enum Finish {
-            NONE, CHROME, PEARLESCENT, RUBBER, MATTE_METALLIC, METAL, MATERIAL
+            NONE,
+            CHROME,
+            PEARLESCENT,
+            RUBBER,
+            MATTE_METALLIC,
+            METAL,
+            MATERIAL
         };
 
         typedef int code_t;
@@ -36,7 +43,7 @@ namespace bricksim::ldr {
 
         Color() = default;
 
-        explicit Color(const std::string &line);
+        explicit Color(const std::string& line);
         std::string name;
         code_t code;
         color::RGB value;
@@ -55,15 +62,15 @@ namespace bricksim::ldr {
     public:
         ColorReference();
         Color::code_t code;
-        ColorReference(Color::code_t code); // NOLINT(google-explicit-constructor)
-        explicit ColorReference(const std::shared_ptr<Color> &fromColor);
+        ColorReference(Color::code_t code);// NOLINT(google-explicit-constructor)
+        explicit ColorReference(const std::shared_ptr<Color>& fromColor);
         [[nodiscard]] std::shared_ptr<const Color> get() const;
-        bool operator==(const ColorReference &rhs) const;
-        bool operator!=(const ColorReference &rhs) const;
-        bool operator<(const ColorReference &rhs) const;
-        bool operator>(const ColorReference &rhs) const;
-        bool operator<=(const ColorReference &rhs) const;
-        bool operator>=(const ColorReference &rhs) const;
+        bool operator==(const ColorReference& rhs) const;
+        bool operator!=(const ColorReference& rhs) const;
+        bool operator<(const ColorReference& rhs) const;
+        bool operator>(const ColorReference& rhs) const;
+        bool operator<=(const ColorReference& rhs) const;
+        bool operator>=(const ColorReference& rhs) const;
     };
 
     namespace color_repo {
@@ -77,14 +84,14 @@ namespace bricksim::ldr {
 
         class PureColor : public Color {
         public:
-            PureColor(const char *hexCode);
+            PureColor(const char* hexCode);
         };
 
         void initialize();
         std::shared_ptr<const Color> get_color(Color::code_t colorCode);
         std::map<std::string, std::vector<ColorReference>> getAllColorsGroupedAndSortedByHue();
-        std::map<int, std::shared_ptr<Color>> &getColors();
+        std::map<int, std::shared_ptr<Color>>& getColors();
         ColorReference getInstanceDummyColor();
-        ColorReference getPureColor(const char *htmlCode);
+        ColorReference getPureColor(const char* htmlCode);
     };
 }

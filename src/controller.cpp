@@ -1,31 +1,31 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image.h"
-#include "stb_image_write.h"
-#include <spdlog/spdlog.h>
-#include <glad/glad.h>
 #include "controller.h"
 #include "config.h"
-#include "keyboard_shortcut_manager.h"
-#include "gui/gui.h"
 #include "db.h"
-#include "helpers/util.h"
-#include "logging/latest_log_messages_tank.h"
-#include "graphics/shaders.h"
-#include "ldr/file_repo.h"
-#include "info_providers/bricklink_constants_provider.h"
 #include "graphics/orientation_cube.h"
-#include "metrics.h"
-#include "user_actions.h"
+#include "graphics/shaders.h"
+#include "gui/gui.h"
+#include "helpers/util.h"
+#include "info_providers/bricklink_constants_provider.h"
+#include "keyboard_shortcut_manager.h"
+#include "ldr/file_repo.h"
+#include "logging/latest_log_messages_tank.h"
 #include "logging/logger.h"
+#include "metrics.h"
+#include "stb_image.h"
+#include "stb_image_write.h"
+#include "user_actions.h"
+#include <glad/glad.h>
+#include <spdlog/spdlog.h>
 
 #ifdef BRICKSIM_USE_RENDERDOC
-#include <link.h>
+    #include <link.h>
 #endif
 
 namespace bricksim::controller {
     namespace {
-        GLFWwindow *window;
+        GLFWwindow* window;
         std::shared_ptr<etree::RootNode> elementTree;
         bool elementTreeChanged = false;
         bool selectionChanged = false;
@@ -49,8 +49,8 @@ namespace bricksim::controller {
         DraggingNodeType currentlyDraggingNodeType = DraggingNodeType::NONE;//todo change this to object oriented design
         transform_gizmo::RotationState transformGizmoRotationState = transform_gizmo::RotationState::WORLD;
 
-        std::map<unsigned int, Task *> backgroundTasks;//todo smart pointer
-        std::queue<Task *> foregroundTasks;
+        std::map<unsigned int, Task*> backgroundTasks;//todo smart pointer
+        std::queue<Task*> foregroundTasks;
 
         std::chrono::milliseconds idle_sleep(25);
 
@@ -61,12 +61,11 @@ namespace bricksim::controller {
         std::vector<std::pair<const char*, unsigned int>> mainloopTimePointsUsTmp;
 
 #ifdef BRICKSIM_USE_RENDERDOC
-        RENDERDOC_API_1_1_2 *rdoc_api = nullptr;
+        RENDERDOC_API_1_1_2* rdoc_api = nullptr;
 #endif
 
-        void APIENTRY openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
-        {
-            if (id==131185 || id==131169) {
+        void APIENTRY openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+            if (id == 131185 || id == 131169) {
                 //Buffer detailed info: Buffer object 2 (bound to GL_ELEMENT_ARRAY_BUFFER_ARB, usage hint is GL_STREAM_DRAW) will use VIDEO memory as the source for buffer object operations.
                 //Framebuffer detailed info: The driver allocated storage for renderbuffer 1.
                 return;
@@ -116,8 +115,8 @@ namespace bricksim::controller {
             glfwSetErrorCallback(glfwErrorCallback);
             glfwInit();
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, enableDebugOutput?3:2);
-            glfwWindowHint(GLFW_SAMPLES, (int) (config::get(config::MSAA_SAMPLES)));
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, enableDebugOutput ? 3 : 2);
+            glfwWindowHint(GLFW_SAMPLES, (int)(config::get(config::MSAA_SAMPLES)));
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
             if (enableDebugOutput) {
@@ -151,7 +150,7 @@ namespace bricksim::controller {
             glfwSetScrollCallback(window, scroll_callback);
             glfwSetKeyCallback(window, keyCallback);
 
-            if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
+            if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
                 spdlog::error("Failed to initialize GLAD");
                 return false;
             }
@@ -175,10 +174,9 @@ namespace bricksim::controller {
             }
 
 #ifdef BRICKSIM_USE_RENDERDOC
-            if(void *mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD))
-            {
+            if (void* mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD)) {
                 auto RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
-                int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void **)&rdoc_api);
+                int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void**)&rdoc_api);
                 assert(ret == 1);
             }
 #endif
@@ -188,21 +186,21 @@ namespace bricksim::controller {
             return true;
         }
 
-        void window_size_callback(GLFWwindow *_, int width, int height) {
-            if (windowWidth != width || windowHeight!=height) {
+        void window_size_callback(GLFWwindow* _, int width, int height) {
+            if (windowWidth != width || windowHeight != height) {
                 windowWidth = width;
                 windowHeight = height;
-                controller::executeOpenGL([&](){
+                controller::executeOpenGL([&]() {
                     glViewport(0, 0, width, height);
                 });
             }
         }
 
-        void keyCallback(GLFWwindow *_, int key, int scancode, int action, int mods) {
+        void keyCallback(GLFWwindow* _, int key, int scancode, int action, int mods) {
             keyboard_shortcut_manager::shortcutPressed(key, action, mods, gui::areKeysCaptured());
         }
 
-        void scroll_callback(GLFWwindow *_, double xoffset, double yoffset) {
+        void scroll_callback(GLFWwindow* _, double xoffset, double yoffset) {
             //todo use xoffset to do something, maybe pan?
             gui::setLastScrollDeltaY(yoffset);
             if (ImGui::GetIO().WantCaptureMouse) {
@@ -210,7 +208,6 @@ namespace bricksim::controller {
             }
             camera->moveForwardBackward((float)yoffset);
         }
-
 
         void checkForFinishedBackgroundTasks() {
             static double lastCheck = 0;
@@ -236,12 +233,12 @@ namespace bricksim::controller {
                 gui::beginFrame();
                 status = gui::drawPartsLibrarySetupScreen();
                 gui::endFrame();
-                executeOpenGL([](){
+                executeOpenGL([]() {
                     glfwSwapBuffers(window);
                     glfwPollEvents();
                 });
             }
-            if (status==gui::PartsLibrarySetupResponse::REQUEST_EXIT || glfwWindowShouldClose(window)) {
+            if (status == gui::PartsLibrarySetupResponse::REQUEST_EXIT || glfwWindowShouldClose(window)) {
                 cleanup();
                 throw std::invalid_argument("user requested exit in parts library setup screen");//todo make cleaner solution
             }
@@ -275,19 +272,19 @@ namespace bricksim::controller {
             }
 
             Task initSteps[]{
-                    {"load color definitions",                ldr::color_repo::initialize},
-                    {"initialize file list",                  [](float *progress) { ldr::file_repo::get().initialize(progress); }},
-                    {"initialize price guide provider",       info_providers::price_guide::initialize},
-                    {"initialize thumbnail generator",        []() { thumbnailGenerator = std::make_shared<graphics::ThumbnailGenerator>(); }},
-                    {"initialize BrickLink constants",        info_providers::bricklink_constants::initialize},
-                    {"initialize keyboard shortcuts",         keyboard_shortcut_manager::initialize},
-                    {"initialize user actions",               user_actions::initialize},
+                    {"load color definitions", ldr::color_repo::initialize},
+                    {"initialize file list", [](float* progress) { ldr::file_repo::get().initialize(progress); }},
+                    {"initialize price guide provider", info_providers::price_guide::initialize},
+                    {"initialize thumbnail generator", []() { thumbnailGenerator = std::make_shared<graphics::ThumbnailGenerator>(); }},
+                    {"initialize BrickLink constants", info_providers::bricklink_constants::initialize},
+                    {"initialize keyboard shortcuts", keyboard_shortcut_manager::initialize},
+                    {"initialize user actions", user_actions::initialize},
                     {"initialize orientation cube generator", graphics::orientation_cube::initialize},
-                    {"initialize transform gizmo",            [](){transformGizmo = std::make_unique<transform_gizmo::TransformGizmo>(mainScene);}},
+                    {"initialize transform gizmo", []() { transformGizmo = std::make_unique<transform_gizmo::TransformGizmo>(mainScene); }},
             };
-            constexpr float progressStep = 1.0f/std::size(initSteps);
+            constexpr float progressStep = 1.0f / std::size(initSteps);
             for (int i = 0; i < std::size(initSteps); ++i) {
-                auto &currentStep = initSteps[i];
+                auto& currentStep = initSteps[i];
                 currentStep.startThread();
                 while (!currentStep.isDone()) {
                     if (gui::isSetupDone()) {
@@ -295,7 +292,7 @@ namespace bricksim::controller {
                         gui::drawWaitMessage(currentStep.getName(), progressStep * (i + currentStep.getProgress()));
                         gui::endFrame();
 
-                        executeOpenGL([](){
+                        executeOpenGL([]() {
                             glfwSwapBuffers(window);
                             glfwPollEvents();
                         });
@@ -311,9 +308,9 @@ namespace bricksim::controller {
 
         void cleanup() {
             ldr::file_repo::get().cleanup();
-            auto &bgTasks = getBackgroundTasks();
+            auto& bgTasks = getBackgroundTasks();
             spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
-            for (auto &task : bgTasks) {
+            for (auto& task: bgTasks) {
                 task.second->joinThread();
             }
             spdlog::info("all background tasks finished, exiting now");
@@ -335,7 +332,7 @@ namespace bricksim::controller {
 
         void handleForegroundTasks() {
             while (!foregroundTasks.empty()) {
-                Task *&frontTask = foregroundTasks.front();
+                Task*& frontTask = foregroundTasks.front();
                 if (!frontTask->isStarted()) {
                     frontTask->startThread();
                 }
@@ -349,15 +346,15 @@ namespace bricksim::controller {
             }
         }
 
-        void glfwErrorCallback(int code, const char *message) {
+        void glfwErrorCallback(int code, const char* message) {
             spdlog::error("GLFW Error: {} {}", code, message);
         }
-        
+
         void copyMainloopTimePoints() {
             metrics::mainloopTimePointsUs = mainloopTimePointsUsTmp;
             mainloopTimePointsUsTmp.clear();
         }
-        
+
         void addMainloopTimePoint(const char* name) {
             const auto now = std::chrono::high_resolution_clock::now();
             mainloopTimePointsUsTmp.emplace_back(name, std::chrono::duration_cast<std::chrono::microseconds>(now - lastMainloopTimePoint).count());
@@ -369,7 +366,7 @@ namespace bricksim::controller {
         spdlog::info("BrickSim started.");
         const auto startupTime = std::chrono::high_resolution_clock::now();
         if (initialize()) {
-            spdlog::info("Initialisation finished in {}s", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()-startupTime).count()/1000.0f);
+            spdlog::info("Initialisation finished in {}s", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startupTime).count() / 1000.0f);
         } else {
             spdlog::critical("Initialisation failed, exiting now.");
             return 1;
@@ -433,8 +430,8 @@ namespace bricksim::controller {
             } while (glfwGetTime() - loopStart < 1.0 / 60 && moreWork);
             addMainloopTimePoint("work on thumbnails");
             auto after = std::chrono::high_resolution_clock::now();
-            lastFrameTimes[lastFrameTimesStartIdx] = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()/1000.0f;
-            lastFrameTimesStartIdx = (lastFrameTimesStartIdx+1)%lastFrameTimesSize;
+            lastFrameTimes[lastFrameTimesStartIdx] = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0f;
+            lastFrameTimesStartIdx = (lastFrameTimesStartIdx + 1) % lastFrameTimesSize;
             addMainloopTimePoint("add frame time");
             glFinish();
             addMainloopTimePoint("glFinish");
@@ -457,7 +454,7 @@ namespace bricksim::controller {
         mainScene->setImageSize({width, height});
     }
 
-    void openFile(const std::string &path) {
+    void openFile(const std::string& path) {
         foregroundTasks.push(new Task(std::string("Open ") + path, [path]() {
             insertLdrElement(ldr::file_repo::get().getFile(path));
         }));
@@ -467,11 +464,11 @@ namespace bricksim::controller {
         //todo implement
     }
 
-    void saveFileAs(const std::string &path) {
+    void saveFileAs(const std::string& path) {
         //todo implement
     }
 
-    void saveCopyAs(const std::string &path) {
+    void saveCopyAs(const std::string& path) {
         //todo implement
     }
 
@@ -487,18 +484,17 @@ namespace bricksim::controller {
         //todo implement
     }
 
-    void cutSelectedObject(){
+    void cutSelectedObject() {
         //todo implement
     }
 
-    void copySelectedObject(){
+    void copySelectedObject() {
         //todo implement
     }
 
-    void pasteObject(){
+    void pasteObject() {
         //todo implement
     }
-
 
     void nodeSelectAddRemove(const std::shared_ptr<etree::Node>& node) {
         auto iterator = selectedNodes.find(node);
@@ -512,7 +508,7 @@ namespace bricksim::controller {
     }
 
     void nodeSelectSet(const std::shared_ptr<etree::Node>& node) {
-        for (const auto &selectedNode : selectedNodes) {
+        for (const auto& selectedNode: selectedNodes) {
             selectedNode->selected = false;
         }
         selectedNodes.clear();
@@ -552,7 +548,7 @@ namespace bricksim::controller {
     }
 
     void nodeSelectNone() {
-        for (const auto &node : selectedNodes) {
+        for (const auto& node: selectedNodes) {
             node->selected = false;
         }
         selectedNodes.clear();
@@ -564,14 +560,14 @@ namespace bricksim::controller {
     }
 
     //todo test these values
-    void rotateViewUp(){camera->mouseRotate(0, -1);}
-    void rotateViewDown(){camera->mouseRotate(0, +1);}
-    void rotateViewLeft(){camera->mouseRotate(-1, 0);}
-    void rotateViewRight(){camera->mouseRotate(+1, 0);}
-    void panViewUp(){camera->mousePan(0, -1);}
-    void panViewDown(){camera->mousePan(0, +1);}
-    void panViewLeft(){camera->mousePan(-1, 0);}
-    void panViewRight(){camera->mousePan(+1, 0);}
+    void rotateViewUp() { camera->mouseRotate(0, -1); }
+    void rotateViewDown() { camera->mouseRotate(0, +1); }
+    void rotateViewLeft() { camera->mouseRotate(-1, 0); }
+    void rotateViewRight() { camera->mouseRotate(+1, 0); }
+    void panViewUp() { camera->mousePan(0, -1); }
+    void panViewDown() { camera->mousePan(0, +1); }
+    void panViewLeft() { camera->mousePan(-1, 0); }
+    void panViewRight() { camera->mousePan(+1, 0); }
 
     void insertLdrElement(const std::shared_ptr<ldr::File>& ldrFile) {
         auto currentlyEditingLdrNode = std::dynamic_pointer_cast<etree::LdrNode>(currentlyEditingNode);
@@ -605,20 +601,20 @@ namespace bricksim::controller {
     }
 
     void deleteSelectedElements() {
-        for (const auto &node : selectedNodes) {
+        for (const auto& node: selectedNodes) {
             deleteElement(node);
         }
     }
 
     void hideSelectedElements() {
-        for (const auto &node : selectedNodes) {
+        for (const auto& node: selectedNodes) {
             node->visible = false;
         }
     }
 
     void unhideElementRecursively(const std::shared_ptr<etree::Node>& node) {
         node->visible = false;
-        for (const auto &child : node->getChildren()) {
+        for (const auto& child: node->getChildren()) {
             unhideElementRecursively(child);
         }
     }
@@ -635,7 +631,7 @@ namespace bricksim::controller {
         userWantsToExit = val;
     }
 
-    std::set<std::shared_ptr<etree::Node>> & getSelectedNodes() {
+    std::set<std::shared_ptr<etree::Node>>& getSelectedNodes() {
         return selectedNodes;
     }
 
@@ -647,20 +643,20 @@ namespace bricksim::controller {
         return thumbnailGenerator;
     }
 
-    std::map<unsigned int, Task *> &getBackgroundTasks() {
+    std::map<unsigned int, Task*>& getBackgroundTasks() {
         checkForFinishedBackgroundTasks();
         return backgroundTasks;
     }
 
-    void addBackgroundTask(std::string name, const std::function<void()> &function) {
+    void addBackgroundTask(std::string name, const std::function<void()>& function) {
         static unsigned int sId = 0;
         unsigned int id = sId++;
-        auto *task = new Task(std::move(name), function);
+        auto* task = new Task(std::move(name), function);
         backgroundTasks.insert(std::make_pair(id, task));
         task->startThread();
     }
 
-    std::queue<Task *> &getForegroundTasks() {
+    std::queue<Task*>& getForegroundTasks() {
         return foregroundTasks;
     }
 
@@ -676,7 +672,7 @@ namespace bricksim::controller {
         return std::dynamic_pointer_cast<graphics::CadCamera>(mainScene->getCamera());
     }
 
-    void executeOpenGL(std::function<void()> const &functor) {
+    void executeOpenGL(std::function<void()> const& functor) {
         if (!openGlInitialized) {
             throw std::invalid_argument("attempting to use OpenGL, but OpenGL isn't initialized");
         }
@@ -694,8 +690,8 @@ namespace bricksim::controller {
     void toggleTransformGizmoRotationState() {
         transformGizmoRotationState =
                 transformGizmoRotationState == transform_gizmo::RotationState::WORLD
-                ? transform_gizmo::RotationState::SELECTED_ELEMENT
-                : transform_gizmo::RotationState::WORLD;
+                        ? transform_gizmo::RotationState::SELECTED_ELEMENT
+                        : transform_gizmo::RotationState::WORLD;
     }
 
     void nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed) {
@@ -712,15 +708,15 @@ namespace bricksim::controller {
         }
     }
 
-    bool isNodeClickable(const std::shared_ptr<etree::Node> &node) {
+    bool isNodeClickable(const std::shared_ptr<etree::Node>& node) {
         return !transformGizmo->ownsNode(node);
     }
 
-    bool isNodeDraggable(const std::shared_ptr<etree::Node> &node) {
+    bool isNodeDraggable(const std::shared_ptr<etree::Node>& node) {
         return transformGizmo->ownsNode(node);
     }
 
-    void startNodeDrag(std::shared_ptr<etree::Node> &node, const glm::svec2 initialCursorPos) {
+    void startNodeDrag(std::shared_ptr<etree::Node>& node, const glm::svec2 initialCursorPos) {
         if (transformGizmo->ownsNode(node)) {
             transformGizmo->startDrag(node, initialCursorPos);
             currentlyDraggingNodeType = DraggingNodeType::TRANSFORM_GIZMO;
@@ -750,7 +746,7 @@ namespace bricksim::controller {
     }
 
 #ifdef BRICKSIM_USE_RENDERDOC
-    RENDERDOC_API_1_1_2 *getRenderdocAPI() {
+    RENDERDOC_API_1_1_2* getRenderdocAPI() {
         return rdoc_api;
     }
 #endif

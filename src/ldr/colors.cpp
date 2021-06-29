@@ -1,10 +1,10 @@
 #include "colors.h"
-#include "file_repo.h"
 #include "../helpers/util.h"
+#include "file_repo.h"
 #include <sstream>
 
 namespace bricksim::ldr {
-    Color::Color(const std::string &line) {
+    Color::Color(const std::string& line) {
         std::stringstream linestream(line);//todo optimize this one day (using strtok instead of stringstream)
         linestream >> name;
         while (linestream.rdbuf()->in_avail() != 0) {
@@ -73,13 +73,13 @@ namespace bricksim::ldr {
                 } else {
                     return "Transparent";
                 }
-            case CHROME:return "Chrome";
-            case PEARLESCENT:return "Pearlescent";
-            case RUBBER:return "Rubber";
-            case MATTE_METALLIC:return "Matte-metallic";
-            case METAL:return "Metal";
-            case MATERIAL:return "Special Material";
-            default:return "Other";
+            case CHROME: return "Chrome";
+            case PEARLESCENT: return "Pearlescent";
+            case RUBBER: return "Rubber";
+            case MATTE_METALLIC: return "Matte-metallic";
+            case METAL: return "Metal";
+            case MATERIAL: return "Special Material";
+            default: return "Other";
         }
     }
 
@@ -127,7 +127,7 @@ namespace bricksim::ldr {
                 instDummyColor = std::make_shared<LdrInstanceDummyColor>();
                 colors[INSTANCE_DUMMY_COLOR_CODE] = instDummyColor;
                 std::sort(hueSortedCodes.begin(), hueSortedCodes.end(),
-                          [](const int &a, const int &b) {
+                          [](const int& a, const int& b) {
                               return color::HSV(get_color(a)->value).hue < color::HSV(get_color(b)->value).hue;
                           });
                 initialized = true;
@@ -136,7 +136,7 @@ namespace bricksim::ldr {
 
         std::map<std::string, std::vector<ColorReference>> getAllColorsGroupedAndSortedByHue() {
             std::map<std::string, std::vector<ColorReference>> result;
-            for (const auto &colorPair : colors) {
+            for (const auto& colorPair: colors) {
                 if (colorPair.second->visibleInLists
                     && colorPair.first != Color::MAIN_COLOR_CODE
                     && colorPair.first != Color::LINE_COLOR_CODE) {
@@ -146,7 +146,7 @@ namespace bricksim::ldr {
             return result;
         }
 
-        std::map<int, std::shared_ptr<Color>> &getColors() {
+        std::map<int, std::shared_ptr<Color>>& getColors() {
             return colors;
         }
 
@@ -154,7 +154,7 @@ namespace bricksim::ldr {
             return ColorReference(INSTANCE_DUMMY_COLOR_CODE);
         }
 
-        ColorReference getPureColor(const char *htmlCode) {
+        ColorReference getPureColor(const char* htmlCode) {
             auto it = pureColors.find(htmlCode);
             if (it == pureColors.end()) {
                 auto color = std::make_shared<PureColor>(htmlCode);
@@ -171,7 +171,7 @@ namespace bricksim::ldr {
             visibleInLists = false;
         }
 
-        PureColor::PureColor(const char *hexCode) {
+        PureColor::PureColor(const char* hexCode) {
             name = std::string("Pure ") + hexCode;
             code = getUnusedCode();
             value = edge = color::RGB(hexCode);
@@ -184,33 +184,36 @@ namespace bricksim::ldr {
         return color_repo::get_color(code);
     }
 
-    bool ColorReference::operator==(const ColorReference &rhs) const {
+    bool ColorReference::operator==(const ColorReference& rhs) const {
         return code == rhs.code;
     }
 
-    bool ColorReference::operator!=(const ColorReference &rhs) const {
+    bool ColorReference::operator!=(const ColorReference& rhs) const {
         return !(rhs == *this);
     }
 
-    bool ColorReference::operator<(const ColorReference &rhs) const {
+    bool ColorReference::operator<(const ColorReference& rhs) const {
         return code < rhs.code;
     }
 
-    bool ColorReference::operator>(const ColorReference &rhs) const {
+    bool ColorReference::operator>(const ColorReference& rhs) const {
         return rhs < *this;
     }
 
-    bool ColorReference::operator<=(const ColorReference &rhs) const {
+    bool ColorReference::operator<=(const ColorReference& rhs) const {
         return !(rhs < *this);
     }
 
-    bool ColorReference::operator>=(const ColorReference &rhs) const {
+    bool ColorReference::operator>=(const ColorReference& rhs) const {
         return !(*this < rhs);
     }
 
-    ColorReference::ColorReference(int code) : code(code) {}
+    ColorReference::ColorReference(int code) :
+        code(code) {}
 
-    ColorReference::ColorReference() : code(color_repo::NO_COLOR_CODE) {}
+    ColorReference::ColorReference() :
+        code(color_repo::NO_COLOR_CODE) {}
 
-    ColorReference::ColorReference(const std::shared_ptr<Color> &fromColor) : code(fromColor->code) {}
+    ColorReference::ColorReference(const std::shared_ptr<Color>& fromColor) :
+        code(fromColor->code) {}
 }

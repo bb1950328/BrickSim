@@ -1,6 +1,6 @@
+#include "mesh_generated.h"
 #include <glm/gtx/transform.hpp>
 #include <spdlog/spdlog.h>
-#include "mesh_generated.h"
 
 namespace bricksim::mesh::generated {
 
@@ -8,11 +8,11 @@ namespace bricksim::mesh::generated {
         return constants::MESH_ID_UV_SPHERE;
     }
 
-    UVSphereNode::UVSphereNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) : GeneratedMeshNode(color, parent) {}
+    UVSphereNode::UVSphereNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
+        GeneratedMeshNode(color, parent) {}
 
     void UVSphereNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
-
-        const auto &color = ldr::color_repo::getInstanceDummyColor();
+        const auto& color = ldr::color_repo::getInstanceDummyColor();
         auto northPoleIndex = mesh->addRawTriangleVertex(color, TriangleVertex{glm::vec4(RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f)});
         auto southPoleIndex = mesh->addRawTriangleVertex(color, TriangleVertex{glm::vec4(-RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f)});
         auto firstMainIndex = mesh->getNextVertexIndex(color);
@@ -64,7 +64,8 @@ namespace bricksim::mesh::generated {
         return "UV Sphere";
     }
 
-    GeneratedMeshNode::GeneratedMeshNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) : MeshNode(color, parent) {}
+    GeneratedMeshNode::GeneratedMeshNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
+        MeshNode(color, parent) {}
 
     bool GeneratedMeshNode::isDisplayNameUserEditable() const {
         return false;
@@ -78,7 +79,8 @@ namespace bricksim::mesh::generated {
         return false;
     }
 
-    ArrowNode::ArrowNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) : GeneratedMeshNode(color, parent) {}
+    ArrowNode::ArrowNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
+        GeneratedMeshNode(color, parent) {}
 
     std::string ArrowNode::getDescription() {
         return "Arrow";
@@ -95,36 +97,29 @@ namespace bricksim::mesh::generated {
 
         TriangleVertex backCoverVertex{
                 glm::vec4(backCenter.x, backCenter.y + LINE_RADIUS, backCenter.z, 1.0f),
-                glm::vec3(-1.0f, 0.0f, 0.0f)
-        };
+                glm::vec3(-1.0f, 0.0f, 0.0f)};
 
         TriangleVertex lineBackVertex{
                 backCoverVertex.position,
-                glm::vec3(0.0f, 1.0f, 0.0f)
-        };
+                glm::vec3(0.0f, 1.0f, 0.0f)};
         TriangleVertex lineBeforeTipVertex{
                 glm::vec4(beforeTipCenter.x, beforeTipCenter.y + LINE_RADIUS, beforeTipCenter.z, 1.0f),
-                lineBackVertex.normal
-        };
+                lineBackVertex.normal};
 
         TriangleVertex ringInnerVertex{
                 lineBeforeTipVertex.position,
-                backCoverVertex.normal
-        };
+                backCoverVertex.normal};
         TriangleVertex ringOuterVertex{
                 glm::vec4(beforeTipCenter.x, beforeTipCenter.y + TIP_RADIUS, beforeTipCenter.z, 1.0f),
-                ringInnerVertex.normal
-        };
+                ringInnerVertex.normal};
 
         TriangleVertex tipEdgeVertex{
                 ringOuterVertex.position,
-                glm::normalize(glm::vec3(TIP_RADIUS, tip.x - beforeTipCenter.x, 0.0f))
-        };
+                glm::normalize(glm::vec3(TIP_RADIUS, tip.x - beforeTipCenter.x, 0.0f))};
 
         TriangleVertex tipVertex{
                 glm::vec4(tip, 1.0f),
-                tipEdgeVertex.normal
-        };
+                tipEdgeVertex.normal};
 
         std::vector<TriangleVertex> baseVertices{
                 backCoverVertex,
@@ -143,7 +138,7 @@ namespace bricksim::mesh::generated {
 
         for (uint16_t i = 0; i < NUM_CORNERS; ++i) {
             auto rotationMatrix = glm::rotate((float)(2 * M_PI * i / NUM_CORNERS), glm::vec3(1.0f, 0.0f, 0.0f));
-            for (const auto &vertex : baseVertices) {
+            for (const auto& vertex: baseVertices) {
                 mesh->addRawTriangleVertex(color, {vertex.position * rotationMatrix, glm::vec4(vertex.normal, 0.0f) * rotationMatrix});
             }
         }
@@ -177,7 +172,8 @@ namespace bricksim::mesh::generated {
         }
     }
 
-    QuarterTorusNode::QuarterTorusNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) : GeneratedMeshNode(color, parent) {}
+    QuarterTorusNode::QuarterTorusNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
+        GeneratedMeshNode(color, parent) {}
 
     std::string QuarterTorusNode::getDescription() {
         return "Quarter Torus";
@@ -188,7 +184,7 @@ namespace bricksim::mesh::generated {
     }
 
     void QuarterTorusNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
-        const ldr::ColorReference &color = ldr::color_repo::getInstanceDummyColor();
+        const ldr::ColorReference& color = ldr::color_repo::getInstanceDummyColor();
         auto firstIndex = mesh->getNextVertexIndex(color);
 
         std::vector<TriangleVertex> baseVertices;
@@ -247,7 +243,8 @@ namespace bricksim::mesh::generated {
         }
     }
 
-    CubeNode::CubeNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) : GeneratedMeshNode(color, parent) {}
+    CubeNode::CubeNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
+        GeneratedMeshNode(color, parent) {}
 
     std::string CubeNode::getDescription() {
         return "Cube";
@@ -258,8 +255,8 @@ namespace bricksim::mesh::generated {
     }
 
     void CubeNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
-        std::vector<TriangleVertex> &verticesList = mesh->getVerticesList(ldr::color_repo::getInstanceDummyColor());
-        std::vector<unsigned int> &indicesList = mesh->getIndicesList(ldr::color_repo::getInstanceDummyColor());
+        std::vector<TriangleVertex>& verticesList = mesh->getVerticesList(ldr::color_repo::getInstanceDummyColor());
+        std::vector<unsigned int>& indicesList = mesh->getIndicesList(ldr::color_repo::getInstanceDummyColor());
         if (!verticesList.empty()) {
             spdlog::warn("CubeNode::addToMesh verticesList not empty, existing vertices are removed");
         }
@@ -286,12 +283,12 @@ namespace bricksim::mesh::generated {
                 {-N, +N, -N, 1.0f},//6
                 {-N, -N, -N, 1.0f},//7
         };
-        glm::vec3 normalXneg{-1,0,0};
-        glm::vec3 normalXpos{+1,0,0};
-        glm::vec3 normalYneg{0,-1,0};
-        glm::vec3 normalYpos{0,+1,0};
-        glm::vec3 normalZneg{0,0,-1};
-        glm::vec3 normalZpos{0,0,+1};
+        glm::vec3 normalXneg{-1, 0, 0};
+        glm::vec3 normalXpos{+1, 0, 0};
+        glm::vec3 normalYneg{0, -1, 0};
+        glm::vec3 normalYpos{0, +1, 0};
+        glm::vec3 normalZneg{0, 0, -1};
+        glm::vec3 normalZpos{0, 0, +1};
 
         verticesList.assign({
                 {pos[0], normalXpos},
@@ -326,12 +323,12 @@ namespace bricksim::mesh::generated {
         });
 
         indicesList.assign({
-                 0+0,  0+1,  0+2,  0+2,  0+3,  0+0,//X+
-                 4+0,  4+1,  4+2,  4+2,  4+3,  4+0,//X-
-                 8+0,  8+1,  8+2,  8+2,  8+3,  8+0,//Y+
-                12+0, 12+1, 12+2, 12+2, 12+3, 12+0,//Y-
-                16+0, 16+1, 16+2, 16+2, 16+3, 16+0,//Z+
-                20+0, 20+1, 20+2, 20+2, 20+3, 20+0,//Z-
+                0 + 0, 0 + 1, 0 + 2, 0 + 2, 0 + 3, 0 + 0,      //X+
+                4 + 0, 4 + 1, 4 + 2, 4 + 2, 4 + 3, 4 + 0,      //X-
+                8 + 0, 8 + 1, 8 + 2, 8 + 2, 8 + 3, 8 + 0,      //Y+
+                12 + 0, 12 + 1, 12 + 2, 12 + 2, 12 + 3, 12 + 0,//Y-
+                16 + 0, 16 + 1, 16 + 2, 16 + 2, 16 + 3, 16 + 0,//Z+
+                20 + 0, 20 + 1, 20 + 2, 20 + 2, 20 + 3, 20 + 0,//Z-
         });
     }
 }

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/base_sink.h>
-#include <list>
 #include "../helpers/platform_detection.h"
+#include <list>
+#include <spdlog/sinks/base_sink.h>
+#include <spdlog/spdlog.h>
 
 namespace bricksim::logging::latest_messages_tank {
     struct LogMessage {
@@ -12,7 +12,7 @@ namespace bricksim::logging::latest_messages_tank {
         std::string formattedTime;
         std::string message;
 
-        LogMessage(long timestamp, unsigned char level, const std::string &formattedTime, const std::string &message);
+        LogMessage(long timestamp, unsigned char level, const std::string& formattedTime, const std::string& message);
     };
 
     namespace {
@@ -31,19 +31,19 @@ namespace bricksim::logging::latest_messages_tank {
 
         self_type operator++();
 
-        [[nodiscard]] const LogMessage *getCurrent() const;
+        [[nodiscard]] const LogMessage* getCurrent() const;
 
     private:
         std::vector<LogMessage>::const_iterator itA;
         std::list<LogMessage>::const_iterator itB;
         std::vector<LogMessage>::const_iterator endA;
         std::list<LogMessage>::const_iterator endB;
-        LogMessage const *current{};
+        LogMessage const* current{};
     };
 
     void initialize();
 
-    void addMessage(const LogMessage &msg);
+    void addMessage(const LogMessage& msg);
 
     iterator getIterator();
 
@@ -52,7 +52,7 @@ namespace bricksim::logging::latest_messages_tank {
     template<typename Mutex>
     class Sink : public spdlog::sinks::base_sink<Mutex> {
     protected:
-        void sink_it_(const spdlog::details::log_msg &msg) override {
+        void sink_it_(const spdlog::details::log_msg& msg) override {
             constexpr auto timeBufSize = sizeof("12:34:56.789");
             static char timeBuf[timeBufSize];
             const time_t timestamp = spdlog::log_clock::to_time_t(msg.time);
@@ -69,7 +69,7 @@ namespace bricksim::logging::latest_messages_tank {
             //todo std::strcpy(message.get(), msg.payload.data());
             addMessage(LogMessage(
                     static_cast<long>(timeMs),
-                    (const unsigned char) msg.level,
+                    (const unsigned char)msg.level,
                     timeBuf,
                     message));
         }
@@ -77,4 +77,3 @@ namespace bricksim::logging::latest_messages_tank {
         void flush_() override {}
     };
 }
-

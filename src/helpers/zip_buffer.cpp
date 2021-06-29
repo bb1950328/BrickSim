@@ -1,9 +1,9 @@
-#include <zip.h>
-#include <cstring>
-#include <spdlog/spdlog.h>
 #include "zip_buffer.h"
 #include "util.h"
+#include <cstring>
+#include <spdlog/spdlog.h>
 #include <sstream>
+#include <zip.h>
 
 namespace bricksim::zip_buffer {
 
@@ -11,7 +11,7 @@ namespace bricksim::zip_buffer {
         std::map<std::filesystem::path, BufferedZip> zips;
     }
 
-    BufferedZip *openZipFile(const std::filesystem::path &path, const std::optional<std::string> &password, bool caseSensitive, const std::optional<std::string>& prefixToReplace) {
+    BufferedZip* openZipFile(const std::filesystem::path& path, const std::optional<std::string>& password, bool caseSensitive, const std::optional<std::string>& prefixToReplace) {
         zips.emplace(path, BufferedZip(path, password, caseSensitive, prefixToReplace));
         return &(zips.find(path)->second);
     }
@@ -27,7 +27,7 @@ namespace bricksim::zip_buffer {
         this->caseSensitive = caseSensitive;
         auto zipNameStem = path.stem().string();
         int errCode;
-        struct zip *zArchive = zip_open(path.string().c_str(), 0, &errCode);
+        struct zip* zArchive = zip_open(path.string().c_str(), 0, &errCode);
         if (zArchive == nullptr) {
             char errMessageBuffer[100];
             zip_error_to_str(errMessageBuffer, sizeof(errMessageBuffer), errCode, errno);//todo this function is deprecated
@@ -39,23 +39,23 @@ namespace bricksim::zip_buffer {
         }
 
         for (zip_int64_t i = 0; i < zip_get_num_entries(zArchive, 0); i++) {
-            struct zip_stat sb{};
+            struct zip_stat sb {};
             if (zip_stat_index(zArchive, i, 0, &sb) == 0) {
                 if (sb.name[strlen(sb.name) - 1] == '/') {
                     //safe_create_dir(sb.name);
                 } else {
-                    struct zip_file *zFile = zip_fopen_index(zArchive, i, 0);
+                    struct zip_file* zFile = zip_fopen_index(zArchive, i, 0);
                     if (!zFile) {
                         throw std::invalid_argument(std::string("can't open ") + sb.name + " in " + path.string());
                     }
                     std::string fileNameToSave(sb.name);
                     if (util::startsWith(fileNameToSave, zipNameStem)) {
-                        fileNameToSave.erase(0, zipNameStem.size()+1);//plus 1 is for slash
+                        fileNameToSave.erase(0, zipNameStem.size() + 1);//plus 1 is for slash
                     } else if (prefixToReplace.has_value() && util::startsWith(fileNameToSave, prefixToReplace.value())) {
-                        fileNameToSave.erase(0, prefixToReplace->size()+1);
+                        fileNameToSave.erase(0, prefixToReplace->size() + 1);
                     }
                     const auto fileNameToSaveLower = util::asLower(fileNameToSave);
-                    const auto& key = caseSensitive?fileNameToSave:fileNameToSaveLower;
+                    const auto& key = caseSensitive ? fileNameToSave : fileNameToSaveLower;
                     if (util::endsWith(fileNameToSaveLower, ".txt")
                         || util::endsWith(fileNameToSaveLower, ".dat")
                         || util::endsWith(fileNameToSaveLower, ".ldr")
@@ -90,7 +90,7 @@ namespace bricksim::zip_buffer {
             stream << buffer;
             return stream;
         } else {
-            throw std::invalid_argument(std::string("no such file in this zip! ")+filename);
+            throw std::invalid_argument(std::string("no such file in this zip! ") + filename);
         }
     }
 
@@ -99,11 +99,11 @@ namespace bricksim::zip_buffer {
         if (it != textFiles.end()) {
             return &it->second;
         } else {
-            throw std::invalid_argument(std::string("no such file in this zip! ")+filename);
+            throw std::invalid_argument(std::string("no such file in this zip! ") + filename);
         }
     }
 
     std::string BufferedZip::convertFilenameToKey(const std::string& filename) const {
-        return caseSensitive?filename:util::asLower(filename);
+        return caseSensitive ? filename : util::asLower(filename);
     }
 }

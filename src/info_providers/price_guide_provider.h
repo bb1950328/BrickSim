@@ -31,6 +31,8 @@
 //,	strItemName:				'Brick 2 x 4'
 //};
 
+#include <string>
+
 namespace bricksim::info_providers::price_guide {
     struct PriceGuide {
         bool available;
@@ -50,4 +52,3 @@ namespace bricksim::info_providers::price_guide {
     PriceGuide getPriceGuide(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, bool forceRefresh = false);
     std::optional<PriceGuide> getPriceGuideIfCached(const std::string& partCode, const std::string& currencyCode, const std::string& colorName);
 }
-

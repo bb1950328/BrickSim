@@ -1,14 +1,15 @@
 #pragma once
 
-#include <memory>
-#include <list>
-#include "../ldr/files.h"
 #include "../ldr/colors.h"
+#include "../ldr/files.h"
 #include "scene.h"
+#include <list>
+#include <memory>
 
 namespace bricksim::graphics {
     class ThumbnailGenerator {
         typedef std::pair<std::shared_ptr<ldr::File>, ldr::ColorReference> file_key_t;
+
     private:
         std::shared_ptr<Scene> scene;
         const std::shared_ptr<FitContentCamera> camera;
@@ -26,16 +27,15 @@ namespace bricksim::graphics {
 
         glm::vec3 rotationDegrees;
         ThumbnailGenerator();
-        unsigned int getThumbnail(const std::shared_ptr<ldr::File> &ldrFile, ldr::ColorReference color);
-        std::optional<unsigned int> getThumbnailNonBlocking(const std::shared_ptr<ldr::File> &ldrFile, ldr::ColorReference color);
-        bool isThumbnailAvailable(const std::shared_ptr<ldr::File> &ldrFile, ldr::ColorReference color);
+        unsigned int getThumbnail(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color);
+        std::optional<unsigned int> getThumbnailNonBlocking(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color);
+        bool isThumbnailAvailable(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color);
 
         void discardOldestImages(int reserve_space_for = 1);
         void discardAllImages();
 
         bool workOnRenderQueue();
         bool renderQueueEmpty();
-        void removeFromRenderQueue(const std::shared_ptr<ldr::File> &ldrFile, ldr::ColorReference color);
-
+        void removeFromRenderQueue(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color);
     };
 }

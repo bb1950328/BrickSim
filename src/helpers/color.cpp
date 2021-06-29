@@ -1,7 +1,7 @@
 #include "color.h"
 
 namespace bricksim::color {
-    RGB::RGB(const std::string &htmlCode) {
+    RGB::RGB(const std::string& htmlCode) {
         std::sscanf(htmlCode.c_str(), "#%2hhx%2hhx%2hhx", &red, &green, &blue);
     }
     RGB::RGB(glm::vec3 vector) {
@@ -10,7 +10,8 @@ namespace bricksim::color {
         blue = vector.z * 255;
     }
 
-    RGB::RGB(color_component_t red, color_component_t green, color_component_t blue) : red(red), green(green), blue(blue) {}
+    RGB::RGB(color_component_t red, color_component_t green, color_component_t blue) :
+        red(red), green(green), blue(blue) {}
 
     RGB::RGB(const HSV& hsv) {
         if (hsv.saturation == 0) {
@@ -21,7 +22,7 @@ namespace bricksim::color {
             float h = hsv.hue / 255.0f;
             float s = hsv.saturation / 255.0f;
             float v = hsv.value / 255.0f;
-            auto i = (int) std::floor(h * 6);
+            auto i = (int)std::floor(h * 6);
             auto f = h * 6 - i;
             auto p = v * (1.0f - s);
             auto q = v * (1.0f - s * f);
@@ -115,7 +116,7 @@ namespace bricksim::color {
             } else {
                 h = 4.0f + gc - rc;
             }
-            hue = (((h / 255 / 6.0f) - (int) (h / 255 / 6.0f)) * 255.0f);
+            hue = (((h / 255 / 6.0f) - (int)(h / 255 / 6.0f)) * 255.0f);
         }
     }
 
@@ -133,7 +134,7 @@ namespace bricksim::color {
     }
 
     unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue) {
-        unsigned int result = ((unsigned int) red) << 16u | ((unsigned int) green) << 8u | blue;
+        unsigned int result = ((unsigned int)red) << 16u | ((unsigned int)green) << 8u | blue;
         return result;
     }
 }

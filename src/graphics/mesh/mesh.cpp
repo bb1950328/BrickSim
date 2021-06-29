@@ -1,37 +1,42 @@
-#include <glm/gtx/normal.hpp>
-#include <glad/glad.h>
 #include "mesh.h"
 #include "../../config.h"
-#include "../../helpers/util.h"
 #include "../../controller.h"
-#include "../../metrics.h"
+#include "../../helpers/util.h"
 #include "../../lib/Miniball.hpp"
+#include "../../metrics.h"
 #include "mesh_line_data.h"
+#include <glad/glad.h>
+#include <glm/gtx/normal.hpp>
 
 namespace bricksim::mesh {
 
-    void Mesh::addLdrFile(const std::shared_ptr<ldr::File> &file, glm::mat4 transformation = glm::mat4(1.0f), const ldr::ColorReference mainColor = {}, bool bfcInverted = false) {
-        for (const auto &element : file->elements) {
+    void Mesh::addLdrFile(const std::shared_ptr<ldr::File>& file, glm::mat4 transformation = glm::mat4(1.0f), const ldr::ColorReference mainColor = {}, bool bfcInverted = false) {
+        for (const auto& element: file->elements) {
             switch (element->getType()) {
                 case 0: break;
-                case 1:addLdrSubfileReference(mainColor, std::dynamic_pointer_cast<ldr::SubfileReference>(element), transformation, bfcInverted);
+                case 1:
+                    addLdrSubfileReference(mainColor, std::dynamic_pointer_cast<ldr::SubfileReference>(element), transformation, bfcInverted);
                     break;
-                case 2:addLdrLine(mainColor, dynamic_cast<ldr::Line &&>(*element), transformation);
+                case 2:
+                    addLdrLine(mainColor, dynamic_cast<ldr::Line&&>(*element), transformation);
                     break;
-                case 3:addLdrTriangle(mainColor, dynamic_cast<ldr::Triangle &&>(*element), transformation, bfcInverted);
+                case 3:
+                    addLdrTriangle(mainColor, dynamic_cast<ldr::Triangle&&>(*element), transformation, bfcInverted);
                     break;
-                case 4:addLdrQuadrilateral(mainColor, dynamic_cast<ldr::Quadrilateral &&>(*element), transformation, bfcInverted);
+                case 4:
+                    addLdrQuadrilateral(mainColor, dynamic_cast<ldr::Quadrilateral&&>(*element), transformation, bfcInverted);
                     break;
-                case 5:addLdrOptionalLine(mainColor, dynamic_cast<ldr::OptionalLine &&>(*element), transformation);
+                case 5:
+                    addLdrOptionalLine(mainColor, dynamic_cast<ldr::OptionalLine&&>(*element), transformation);
                     break;
             }
         }
     }
 
-    void Mesh::addLdrTriangle(const ldr::ColorReference mainColor, const ldr::Triangle &triangleElement, glm::mat4 transformation, bool bfcInverted) {
+    void Mesh::addLdrTriangle(const ldr::ColorReference mainColor, const ldr::Triangle& triangleElement, glm::mat4 transformation, bool bfcInverted) {
         const auto color = triangleElement.color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : triangleElement.color;
-        auto &verticesList = getVerticesList(color);
-        auto &indicesList = getIndicesList(color);
+        auto& verticesList = getVerticesList(color);
+        auto& indicesList = getIndicesList(color);
         auto p1 = glm::vec3(triangleElement.x1, triangleElement.y1, triangleElement.z1);
         auto p2 = glm::vec3(triangleElement.x2, triangleElement.y2, triangleElement.z2);
         auto p3 = glm::vec3(triangleElement.x3, triangleElement.y3, triangleElement.z3);
@@ -63,9 +68,9 @@ namespace bricksim::mesh {
         }
     }
 
-    void Mesh::addRawTriangle(const ldr::ColorReference color, const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3) {
-        auto &verticesList = getVerticesList(color);
-        auto &indicesList = getIndicesList(color);
+    void Mesh::addRawTriangle(const ldr::ColorReference color, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3) {
+        auto& verticesList = getVerticesList(color);
+        auto& indicesList = getIndicesList(color);
         auto normal = glm::triangleNormal(p1, p2, p3);
         auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f));
         TriangleVertex vertex1{glm::vec4(p1, 1.0f), transformedNormal};
@@ -94,8 +99,8 @@ namespace bricksim::mesh {
         return getVerticesList(color).size();
     }
 
-    unsigned int Mesh::addRawTriangleVertex(ldr::ColorReference color, const TriangleVertex &vertex) {
-        std::vector<TriangleVertex> &verticesList = getVerticesList(color);
+    unsigned int Mesh::addRawTriangleVertex(ldr::ColorReference color, const TriangleVertex& vertex) {
+        std::vector<TriangleVertex>& verticesList = getVerticesList(color);
         verticesList.push_back(vertex);
         return verticesList.size() - 1;
     }
@@ -104,13 +109,13 @@ namespace bricksim::mesh {
         getIndicesList(color).push_back(triangleIndex);
     }
 
-    void Mesh::addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference> &sfElement, glm::mat4 transformation, bool bfcInverted) {
+    void Mesh::addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, glm::mat4 transformation, bool bfcInverted) {
         auto sub_transformation = sfElement->getTransformationMatrix();
         const auto color = sfElement->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : sfElement->color;
         addLdrFile(sfElement->getFile(), sub_transformation * transformation, color, sfElement->bfcInverted ^ bfcInverted);
     }
 
-    void Mesh::addLdrQuadrilateral(ldr::ColorReference mainColor, ldr::Quadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted) {
+    void Mesh::addLdrQuadrilateral(ldr::ColorReference mainColor, ldr::Quadrilateral&& quadrilateral, glm::mat4 transformation, bool bfcInverted) {
         auto p1 = glm::vec3(quadrilateral.x1, quadrilateral.y1, quadrilateral.z1);
         auto p2 = glm::vec3(quadrilateral.x2, quadrilateral.y2, quadrilateral.z2);
         auto p3 = glm::vec3(quadrilateral.x3, quadrilateral.y3, quadrilateral.z3);
@@ -128,14 +133,14 @@ namespace bricksim::mesh {
             std::swap(vertex2, vertex4);
         }
 
-        auto &vertices_list = getVerticesList(color);
+        auto& vertices_list = getVerticesList(color);
         unsigned int idx = vertices_list.size();
         vertices_list.push_back(vertex1);
         vertices_list.push_back(vertex2);
         vertices_list.push_back(vertex3);
         vertices_list.push_back(vertex4);
 
-        auto &indices_list = getIndicesList(color);
+        auto& indices_list = getIndicesList(color);
         //triangle 1
         indices_list.push_back(idx);
         indices_list.push_back(idx + 1);
@@ -156,7 +161,7 @@ namespace bricksim::mesh {
         }
     }
 
-    std::vector<unsigned int> &Mesh::getIndicesList(const ldr::ColorReference color) {
+    std::vector<unsigned int>& Mesh::getIndicesList(const ldr::ColorReference color) {
         auto entry = triangleIndices.find(color);
         if (entry == triangleIndices.end()) {
             return triangleIndices[color] = std::vector<unsigned int>();
@@ -164,8 +169,7 @@ namespace bricksim::mesh {
         return entry->second;
     }
 
-
-    std::vector<TriangleVertex> &Mesh::getVerticesList(const ldr::ColorReference color) {
+    std::vector<TriangleVertex>& Mesh::getVerticesList(const ldr::ColorReference color) {
         auto entry = triangleVertices.find(color);
         if (entry == triangleVertices.end()) {
             return triangleVertices[color] = std::vector<TriangleVertex>();
@@ -173,7 +177,7 @@ namespace bricksim::mesh {
         return entry->second;
     }
 
-    void Mesh::addLdrLine(const ldr::ColorReference mainColor, const ldr::Line &lineElement, glm::mat4 transformation) {
+    void Mesh::addLdrLine(const ldr::ColorReference mainColor, const ldr::Line& lineElement, glm::mat4 transformation) {
         glm::vec3 color;
         const auto lineElementColor = lineElement.color.get();
         const auto mainColorLocked = mainColor.get();
@@ -190,7 +194,7 @@ namespace bricksim::mesh {
         lineData.addVertex(lv2);
     }
 
-    void Mesh::addLdrOptionalLine(const ldr::ColorReference mainColor, const ldr::OptionalLine &optionalLineElement, glm::mat4 transformation) {
+    void Mesh::addLdrOptionalLine(const ldr::ColorReference mainColor, const ldr::OptionalLine& optionalLineElement, glm::mat4 transformation) {
         glm::vec3 color;
         const auto elementColor = optionalLineElement.color.get();
         const auto mainColorLocked = mainColor.get();
@@ -211,8 +215,8 @@ namespace bricksim::mesh {
         optionalLineData.addVertex(cv2);
     }
 
-    void Mesh::addTexturedTriangle(const std::shared_ptr<graphics::Texture> &texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3) {
-        auto &vertices = textureVertices[texture->getID()];
+    void Mesh::addTexturedTriangle(const std::shared_ptr<graphics::Texture>& texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3) {
+        auto& vertices = textureVertices[texture->getID()];
         vertices.emplace_back(pt1, tc1);
         vertices.emplace_back(pt2, tc2);
         vertices.emplace_back(pt3, tc3);
@@ -250,10 +254,10 @@ namespace bricksim::mesh {
 
     void Mesh::initializeTriangleGraphics() {
         controller::executeOpenGL([this]() {
-            for (const auto &entry: triangleIndices) {
+            for (const auto& entry: triangleIndices) {
                 const auto color = entry.first;
-                const std::vector<unsigned int> &indices = entry.second;
-                const std::vector<TriangleVertex> &vertices = triangleVertices.find(color)->second;
+                const std::vector<unsigned int>& indices = entry.second;
+                const std::vector<TriangleVertex>& vertices = triangleVertices.find(color)->second;
 
                 unsigned int vao, vertexVbo, instanceVbo, ebo;
 
@@ -270,10 +274,10 @@ namespace bricksim::mesh {
 
                 // position attribute
                 glEnableVertexAttribArray(0);
-                glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, (void *) nullptr);
+                glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, (void*)nullptr);
                 // normal attribute
                 glEnableVertexAttribArray(1);
-                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(TriangleVertex, normal));
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)offsetof(TriangleVertex, normal));
 
                 //instanceVbo
                 auto instancesArray = generateTriangleInstancesArray(color);
@@ -284,19 +288,19 @@ namespace bricksim::mesh {
                 glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
 
                 glEnableVertexAttribArray(2);
-                glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TriangleInstance, diffuseColor));
+                glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, instance_size, (void*)offsetof(TriangleInstance, diffuseColor));
                 glEnableVertexAttribArray(3);
-                glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TriangleInstance, ambientFactor));
+                glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, instance_size, (void*)offsetof(TriangleInstance, ambientFactor));
                 glEnableVertexAttribArray(4);
-                glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TriangleInstance, specularBrightness));
+                glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, instance_size, (void*)offsetof(TriangleInstance, specularBrightness));
                 glEnableVertexAttribArray(5);
-                glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TriangleInstance, shininess));
+                glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, instance_size, (void*)offsetof(TriangleInstance, shininess));
                 glEnableVertexAttribArray(6);
-                glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TriangleInstance, idColor));
+                glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, instance_size, (void*)offsetof(TriangleInstance, idColor));
                 for (int j = 0; j < 4; ++j) {
                     glEnableVertexAttribArray(7 + j);
                     glVertexAttribPointer(7 + j, 4, GL_FLOAT, GL_FALSE, instance_size,
-                                          (void *) (offsetof(TriangleInstance, transformation) + 4 * j * sizeof(float)));
+                                          (void*)(offsetof(TriangleInstance, transformation) + 4 * j * sizeof(float)));
                 }
 
                 for (int i = 2; i < 11; ++i) {
@@ -324,9 +328,9 @@ namespace bricksim::mesh {
         auto instancesArray = generateTexturedTriangleInstancesArray();
 
         controller::executeOpenGL([this, &instancesArray]() {
-            for (const auto &item : textureVertices) {
+            for (const auto& item: textureVertices) {
                 const auto id = item.first;
-                const auto &vertices = item.second;
+                const auto& vertices = item.second;
 
                 unsigned int vao, vertexVbo, instanceVbo;
 
@@ -343,11 +347,11 @@ namespace bricksim::mesh {
 
                 //position attribute
                 glEnableVertexAttribArray(0);
-                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, (void *) (offsetof(TexturedTriangleVertex, position)));
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, (void*)(offsetof(TexturedTriangleVertex, position)));
 
                 //texCoord attribute
                 glEnableVertexAttribArray(1);
-                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize, (void *) (offsetof(TexturedTriangleVertex, textureCoord)));
+                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize, (void*)(offsetof(TexturedTriangleVertex, textureCoord)));
 
                 //instanceVbo
                 glGenBuffers(1, &instanceVbo);
@@ -356,20 +360,20 @@ namespace bricksim::mesh {
                 glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
 
                 glEnableVertexAttribArray(2);
-                glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, instance_size, (void *) offsetof(TexturedTriangleInstance, idColor));
+                glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, instance_size, (void*)offsetof(TexturedTriangleInstance, idColor));
                 glVertexAttribDivisor(2, 1);
 
                 glEnableVertexAttribArray(3);
-                glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(TexturedTriangleInstance, transformation) + 0 * sizeof(float)));
+                glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, instance_size, (void*)(offsetof(TexturedTriangleInstance, transformation) + 0 * sizeof(float)));
                 glVertexAttribDivisor(3, 1);
                 glEnableVertexAttribArray(4);
-                glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(TexturedTriangleInstance, transformation) + 4 * sizeof(float)));
+                glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, instance_size, (void*)(offsetof(TexturedTriangleInstance, transformation) + 4 * sizeof(float)));
                 glVertexAttribDivisor(4, 1);
                 glEnableVertexAttribArray(5);
-                glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(TexturedTriangleInstance, transformation) + 8 * sizeof(float)));
+                glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, instance_size, (void*)(offsetof(TexturedTriangleInstance, transformation) + 8 * sizeof(float)));
                 glVertexAttribDivisor(5, 1);
                 glEnableVertexAttribArray(6);
-                glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (offsetof(TexturedTriangleInstance, transformation) + 12 * sizeof(float)));
+                glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, instance_size, (void*)(offsetof(TexturedTriangleInstance, transformation) + 12 * sizeof(float)));
                 glVertexAttribDivisor(6, 1);
 
                 /*for (int j = 3; j < 7; ++j) {
@@ -393,7 +397,7 @@ namespace bricksim::mesh {
                 metrics::vramUsageBytes -= lastInstanceBufferSize;
                 metrics::vramUsageBytes += newBufferSize;
                 lastInstanceBufferSize = newBufferSize;
-                for (const auto &entry: triangleIndices) {
+                for (const auto& entry: triangleIndices) {
                     const auto color = entry.first;
                     auto instanceVbo = instanceVBOs[color];
                     auto instancesArray = generateTriangleInstancesArray(color);
@@ -413,8 +417,8 @@ namespace bricksim::mesh {
                 optionalLineData.rewriteInstanceBuffer(instancesArray);
 
                 if (!textureTriangleVaoVertexVboInstanceVbo.empty()) {
-                    const auto &texturedTriangleInstancesArray = generateTexturedTriangleInstancesArray();
-                    for (const auto &item : textureTriangleVaoVertexVboInstanceVbo) {
+                    const auto& texturedTriangleInstancesArray = generateTexturedTriangleInstancesArray();
+                    for (const auto& item: textureTriangleVaoVertexVboInstanceVbo) {
                         glBindBuffer(GL_ARRAY_BUFFER, std::get<2>(item.second));
                         glBufferData(GL_ARRAY_BUFFER, instances.size() * sizeof(TexturedTriangleInstance), &texturedTriangleInstancesArray[0], GL_STATIC_DRAW);
                     }
@@ -425,13 +429,11 @@ namespace bricksim::mesh {
         }
     }
 
-
-
     void Mesh::drawTriangleGraphics(scene_id_t sceneId, layer_t layer) {
         auto range = getSceneLayerInstanceRange(sceneId, layer);
         if (range.has_value() && range->count > 0) {
-            for (const auto &entry: triangleIndices) {
-                const std::vector<unsigned int> &indices = entry.second;
+            for (const auto& entry: triangleIndices) {
+                const std::vector<unsigned int>& indices = entry.second;
                 if (!indices.empty()) {
                     const auto color = entry.first;
                     glBindVertexArray(VAOs[color]);
@@ -444,7 +446,7 @@ namespace bricksim::mesh {
     void Mesh::drawTexturedTriangleGraphics(scene_id_t sceneId, layer_t layer) {
         auto range = getSceneLayerInstanceRange(sceneId, layer);
         if (range.has_value() && range->count > 0) {
-            for (const auto &item : textureVertices) {
+            for (const auto& item: textureVertices) {
                 if (!item.second.empty()) {
                     textures[item.first]->bind();
                     glBindVertexArray(std::get<0>(textureTriangleVaoVertexVboInstanceVbo[item.first]));
@@ -454,12 +456,9 @@ namespace bricksim::mesh {
         }
     }
 
-
-
-
     void Mesh::deallocateGraphics() {
         controller::executeOpenGL([this]() {
-            for (const auto &entry: triangleIndices) {
+            for (const auto& entry: triangleIndices) {
                 const auto color = entry.first;
                 unsigned int vao = VAOs[color];
                 unsigned int vertexVbo = vertexVBOs[color];
@@ -471,8 +470,8 @@ namespace bricksim::mesh {
                 glDeleteBuffers(1, &ebo);
             }
 
-            for (const auto &item : textureTriangleVaoVertexVboInstanceVbo) {
-                const auto &[vao, vertexVbo, instanceVbo] = item.second;
+            for (const auto& item: textureTriangleVaoVertexVboInstanceVbo) {
+                const auto& [vao, vertexVbo, instanceVbo] = item.second;
                 glDeleteVertexArrays(1, &vao);
                 glDeleteBuffers(1, &vertexVbo);
                 glDeleteBuffers(1, &instanceVbo);
@@ -484,7 +483,7 @@ namespace bricksim::mesh {
 
     Mesh::~Mesh() = default;
 
-    void Mesh::setInstanceColor(TriangleInstance *instance, const ldr::ColorReference color) {
+    void Mesh::setInstanceColor(TriangleInstance* instance, const ldr::ColorReference color) {
         const auto colorLocked = color.get();
         instance->diffuseColor = colorLocked->value.asGlmVector();
         instance->shininess = 32.0f;
@@ -498,13 +497,16 @@ namespace bricksim::mesh {
                 instance->ambientFactor = 1;
                 instance->specularBrightness = 1;
                 break;
-            case ldr::Color::MATTE_METALLIC:instance->ambientFactor = 0.6;
+            case ldr::Color::MATTE_METALLIC:
+                instance->ambientFactor = 0.6;
                 instance->specularBrightness = 0.2;
                 break;
-            case ldr::Color::RUBBER:instance->ambientFactor = 0.75;
+            case ldr::Color::RUBBER:
+                instance->ambientFactor = 0.75;
                 instance->specularBrightness = 0;
                 break;
-            default:instance->ambientFactor = 0.5;
+            default:
+                instance->ambientFactor = 0.5;
                 instance->specularBrightness = 0.5;
                 break;
         }
@@ -514,7 +516,7 @@ namespace bricksim::mesh {
         auto instancesArray = std::make_unique<TriangleInstance[]>(instances.size());
         unsigned int arr_cursor = 0;
         if (color.get()->code == ldr::color_repo::INSTANCE_DUMMY_COLOR_CODE) {
-            for (auto &instance : instances) {
+            for (auto& instance: instances) {
                 instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * constants::LDU_TO_OPENGL);
                 //std::cout << "instance: " << std::endl;
                 //util::coutMat4(instancesArray[arr_cursor].transformation);
@@ -526,7 +528,7 @@ namespace bricksim::mesh {
             TriangleInstance inst{};
             setInstanceColor(&inst, color);
             std::fill_n(instancesArray.get(), instances.size(), inst);
-            for (auto &instance : instances) {
+            for (auto& instance: instances) {
                 instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * constants::LDU_TO_OPENGL);
                 instancesArray[arr_cursor].idColor = color::convertIntToColorVec3(instance.elementId);
                 arr_cursor++;
@@ -538,7 +540,7 @@ namespace bricksim::mesh {
     std::unique_ptr<TexturedTriangleInstance[], std::default_delete<TexturedTriangleInstance[]>> Mesh::generateTexturedTriangleInstancesArray() {
         auto array = std::make_unique<TexturedTriangleInstance[]>(instances.size());
         for (int i = 0; i < instances.size(); ++i) {
-            auto &instance = instances[i];
+            auto& instance = instances[i];
             array[i].idColor = color::convertIntToColorVec3(instance.elementId);
             array[i].transformation = glm::transpose(instance.transformation * constants::LDU_TO_OPENGL);
         }
@@ -551,18 +553,18 @@ namespace bricksim::mesh {
                 minimalEnclosingBall = std::make_pair(glm::vec3(0.0f), 0.0f);
             } else {
                 std::list<std::vector<float>> lp;
-                for (const auto &entry : triangleVertices) {
-                    for (const auto &vertex : entry.second) {
-                        lp.push_back((std::vector<float>) {vertex.position.x, vertex.position.y, vertex.position.z});
+                for (const auto& entry: triangleVertices) {
+                    for (const auto& vertex: entry.second) {
+                        lp.push_back((std::vector<float>){vertex.position.x, vertex.position.y, vertex.position.z});
                     }
                 }
-                for (const auto &item : textureVertices) {
-                    for (const auto &vertex : item.second) {
-                        lp.push_back((std::vector<float>) {vertex.position.x, vertex.position.y, vertex.position.z});
+                for (const auto& item: textureVertices) {
+                    for (const auto& vertex: item.second) {
+                        lp.push_back((std::vector<float>){vertex.position.x, vertex.position.y, vertex.position.z});
                     }
                 }
 
-                typedef std::list<std::vector<float> >::const_iterator PointIterator;
+                typedef std::list<std::vector<float>>::const_iterator PointIterator;
                 typedef std::vector<float>::const_iterator CoordIterator;
 
                 Miniball::Miniball<Miniball::CoordAccessor<PointIterator, CoordIterator>> mb(3, lp.begin(), lp.end());
@@ -578,12 +580,12 @@ namespace bricksim::mesh {
         if (it == instanceSceneLayerRanges.end()) {
             return {};
         }
-        const auto &layerMap = it->second;
+        const auto& layerMap = it->second;
         unsigned int start;
         unsigned int count;
         if (layerMap.size() > 1) {
             count = 0;
-            for (const auto &item : layerMap) {
+            for (const auto& item: layerMap) {
                 count += item.second.count;
                 start = std::min(start, item.second.start);
             }
@@ -596,9 +598,9 @@ namespace bricksim::mesh {
     }
 
     std::optional<InstanceRange> Mesh::getSceneLayerInstanceRange(scene_id_t sceneId, layer_t layer) {
-        const auto &it = instanceSceneLayerRanges.find(sceneId);
+        const auto& it = instanceSceneLayerRanges.find(sceneId);
         if (it != instanceSceneLayerRanges.end()) {
-            const auto &it2 = it->second.find(layer);
+            const auto& it2 = it->second.find(layer);
             if (it2 != it->second.end()) {
                 return it2->second;
             }
@@ -606,7 +608,7 @@ namespace bricksim::mesh {
         return {};
     }
 
-    void Mesh::updateInstancesOfScene(scene_id_t sceneId, const std::vector<MeshInstance> &newSceneInstances) {
+    void Mesh::updateInstancesOfScene(scene_id_t sceneId, const std::vector<MeshInstance>& newSceneInstances) {
         if (newSceneInstances.empty()) {
             deleteInstancesOfScene(sceneId);
             return;
@@ -618,11 +620,11 @@ namespace bricksim::mesh {
                 auto firstIndex = sceneRange->start;
                 auto afterLastIndex = firstIndex + sceneRange->count;
                 instances.erase(instances.begin() + firstIndex, instances.begin() + afterLastIndex);
-                for (auto &item : instanceSceneLayerRanges) {
-                    auto &layerMap = item.second;
+                for (auto& item: instanceSceneLayerRanges) {
+                    auto& layerMap = item.second;
                     if (layerMap.cbegin()->second.start >= afterLastIndex) {
                         //the instances of this scene are located after the sceneId, we have to update the ranges
-                        for (auto &layerRange : layerMap) {
+                        for (auto& layerRange: layerMap) {
                             layerRange.second.start -= sceneRange->count;
                         }
                     }
@@ -638,7 +640,7 @@ namespace bricksim::mesh {
                 layer_t currentLayer = sourceIt->layer;
                 unsigned int layerStart = sceneRange->start;
                 unsigned int currentLayerInstanceCount = 0;
-                auto &thisSceneRanges = instanceSceneLayerRanges[sceneId];
+                auto& thisSceneRanges = instanceSceneLayerRanges[sceneId];
                 thisSceneRanges.clear();
                 while (sourceIt != newSceneInstances.end()) {
                     if (destinationIt->operator!=(*sourceIt)) {
@@ -677,8 +679,8 @@ namespace bricksim::mesh {
         }
     }
 
-    void Mesh::appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<MeshInstance> &newSceneInstances) {
-        auto &thisSceneRanges = instanceSceneLayerRanges[sceneId];
+    void Mesh::appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<MeshInstance>& newSceneInstances) {
+        auto& thisSceneRanges = instanceSceneLayerRanges[sceneId];
         thisSceneRanges.clear();
 
         auto sourceIt = newSceneInstances.cbegin();
@@ -707,17 +709,17 @@ namespace bricksim::mesh {
 
     size_t Mesh::getTriangleCount() {
         size_t count = 0;
-        for (const auto &entry : triangleIndices) {
+        for (const auto& entry: triangleIndices) {
             count += entry.second.size();
         }
         return count / 3;
     }
 
-    LineData &Mesh::getLineData() {
+    LineData& Mesh::getLineData() {
         return lineData;
     }
 
-    LineData &Mesh::getOptionalLineData() {
+    LineData& Mesh::getOptionalLineData() {
         return optionalLineData;
     }
 }

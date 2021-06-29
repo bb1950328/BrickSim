@@ -5,23 +5,23 @@
 
 namespace bricksim::etree {
 
-    const glm::mat4 &Node::getRelativeTransformation() const {
+    const glm::mat4& Node::getRelativeTransformation() const {
         return relativeTransformation;
     }
 
-    void Node::setRelativeTransformation(const glm::mat4 &newValue) {
+    void Node::setRelativeTransformation(const glm::mat4& newValue) {
         relativeTransformation = newValue;
         invalidateAbsoluteTransformation();
     }
 
     void Node::invalidateAbsoluteTransformation() {
         absoluteTransformationValid = false;
-        for (const auto &child: children) {
+        for (const auto& child: children) {
             child->invalidateAbsoluteTransformation();
         }
     }
 
-    const glm::mat4 &Node::getAbsoluteTransformation() const {
+    const glm::mat4& Node::getAbsoluteTransformation() const {
         if (!absoluteTransformationValid) {
             absoluteTransformation = relativeTransformation * parent.lock()->getAbsoluteTransformation();
             absoluteTransformationValid = true;
@@ -33,7 +33,8 @@ namespace bricksim::etree {
         return type;
     }
 
-    Node::Node(std::shared_ptr<Node> parent) : parent(std::move(parent)) {
+    Node::Node(std::shared_ptr<Node> parent) :
+        parent(std::move(parent)) {
         type = TYPE_OTHER;
     }
 
@@ -45,7 +46,7 @@ namespace bricksim::etree {
         return true;
     }
 
-    const std::vector<std::shared_ptr<Node>> &Node::getChildren() const {
+    const std::vector<std::shared_ptr<Node>>& Node::getChildren() const {
         return children;
     }
 
@@ -76,7 +77,7 @@ namespace bricksim::etree {
 
     void LdrNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
         auto dummyColor = ldr::color_repo::getInstanceDummyColor();
-        for (const auto& element : ldrFile->elements) {
+        for (const auto& element: ldrFile->elements) {
             switch (element->getType()) {
                 case 0: break;
                 case 1: {
@@ -84,15 +85,18 @@ namespace bricksim::etree {
                     if (childrenWithOwnNode.find(sfElement) == childrenWithOwnNode.end()) {
                         mesh->addLdrSubfileReference(dummyColor, sfElement, glm::mat4(1.0f), windingInversed);
                     }
-                }
+                } break;
+                case 2:
+                    mesh->addLdrLine(dummyColor, dynamic_cast<ldr::Line&&>(*element), glm::mat4(1.0f));//todo find out what these weird casts do (also in Mesh::addLdrFile)
                     break;
-                case 2: mesh->addLdrLine(dummyColor, dynamic_cast<ldr::Line &&>(*element), glm::mat4(1.0f));//todo find out what these weird casts do (also in Mesh::addLdrFile)
+                case 3:
+                    mesh->addLdrTriangle(dummyColor, dynamic_cast<ldr::Triangle&&>(*element), glm::mat4(1.0f), windingInversed);
                     break;
-                case 3: mesh->addLdrTriangle(dummyColor, dynamic_cast<ldr::Triangle &&>(*element), glm::mat4(1.0f), windingInversed);
+                case 4:
+                    mesh->addLdrQuadrilateral(dummyColor, dynamic_cast<ldr::Quadrilateral&&>(*element), glm::mat4(1.0f), windingInversed);
                     break;
-                case 4: mesh->addLdrQuadrilateral(dummyColor, dynamic_cast<ldr::Quadrilateral &&>(*element), glm::mat4(1.0f), windingInversed);
-                    break;
-                case 5: mesh->addLdrOptionalLine(dummyColor, dynamic_cast<ldr::OptionalLine &&>(*element), glm::mat4(1.0f));
+                case 5:
+                    mesh->addLdrOptionalLine(dummyColor, dynamic_cast<ldr::OptionalLine&&>(*element), glm::mat4(1.0f));
                     break;
             }
         }
@@ -101,7 +105,7 @@ namespace bricksim::etree {
     std::shared_ptr<MpdSubfileNode> findMpdNodeAndAddSubfileNode(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& actualNode) {
         if (actualNode->getType() == TYPE_MULTI_PART_DOCUMENT) {
             //check if the subfileNode already exists
-            for (const auto &child : actualNode->getChildren()) {
+            for (const auto& child: actualNode->getChildren()) {
                 if (child->getType() == TYPE_MPD_SUBFILE) {
                     auto mpdSubfileChild = std::dynamic_pointer_cast<MpdSubfileNode>(child);
                     if (ldrFile == mpdSubfileChild->ldrFile) {
@@ -121,7 +125,8 @@ namespace bricksim::etree {
         }
     }
 
-    LdrNode::LdrNode(NodeType nodeType, const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) : MeshNode(ldrColor, parent), ldrFile(ldrFile) {
+    LdrNode::LdrNode(NodeType nodeType, const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) :
+        MeshNode(ldrColor, parent), ldrFile(ldrFile) {
         type = nodeType;
         this->parent = parent;
         this->setColor(ldrColor);
@@ -139,8 +144,8 @@ namespace bricksim::etree {
     bool LdrNode::isDisplayNameUserEditable() const {
         switch (ldrFile->metaInfo.type) {
             case ldr::MODEL:
-            case ldr::MPD_SUBFILE:return true;
-            default:return false;
+            case ldr::MPD_SUBFILE: return true;
+            default: return false;
         }
     }
 
@@ -152,7 +157,7 @@ namespace bricksim::etree {
 
     void LdrNode::createChildNodes() {
         if (!childNodesCreated) {
-            for (const auto &element: ldrFile->elements) {
+            for (const auto& element: ldrFile->elements) {
                 if (element->getType() == 1) {
                     auto sfElement = std::dynamic_pointer_cast<ldr::SubfileReference>(element);
                     auto subFile = sfElement->getFile();
@@ -175,7 +180,8 @@ namespace bricksim::etree {
         }
     }
 
-    RootNode::RootNode() : Node(nullptr) {
+    RootNode::RootNode() :
+        Node(nullptr) {
         type = TYPE_ROOT;
         displayName = "Root";
         absoluteTransformation = relativeTransformation;
@@ -202,7 +208,8 @@ namespace bricksim::etree {
         return false;
     }
 
-    MpdSubfileInstanceNode::MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, std::shared_ptr<Node> parent) : mpdSubfileNode(mpdSubfileNode), MeshNode(color, std::move(parent)) {
+    MpdSubfileInstanceNode::MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, std::shared_ptr<Node> parent) :
+        mpdSubfileNode(mpdSubfileNode), MeshNode(color, std::move(parent)) {
         type = TYPE_MPD_SUBFILE_INSTANCE;
         this->displayName = mpdSubfileNode->displayName;
     }
@@ -219,14 +226,16 @@ namespace bricksim::etree {
         return true;
     }
 
-    MpdNode::MpdNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) : LdrNode(TYPE_MULTI_PART_DOCUMENT, ldrFile, ldrColor, parent) {
+    MpdNode::MpdNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) :
+        LdrNode(TYPE_MULTI_PART_DOCUMENT, ldrFile, ldrColor, parent) {
     }
 
     bool MpdSubfileNode::isDisplayNameUserEditable() const {
         return true;
     }
 
-    MpdSubfileNode::MpdSubfileNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference color, const std::shared_ptr<Node>& parent) : LdrNode(TYPE_MPD_SUBFILE, ldrFile, color, parent) {
+    MpdSubfileNode::MpdSubfileNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference color, const std::shared_ptr<Node>& parent) :
+        LdrNode(TYPE_MPD_SUBFILE, ldrFile, color, parent) {
         visible = false;
     }
 
@@ -234,10 +243,12 @@ namespace bricksim::etree {
         return false;
     }
 
-    PartNode::PartNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) : LdrNode(TYPE_PART, ldrFile, ldrColor, parent) {
+    PartNode::PartNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) :
+        LdrNode(TYPE_PART, ldrFile, ldrColor, parent) {
     }
 
-    MeshNode::MeshNode(ldr::ColorReference color, std::shared_ptr<Node> parent) : Node(std::move(parent)), color(color) {
+    MeshNode::MeshNode(ldr::ColorReference color, std::shared_ptr<Node> parent) :
+        Node(std::move(parent)), color(color) {
         type = TYPE_MESH;
     }
 
@@ -259,7 +270,7 @@ namespace bricksim::etree {
         return color;
     }
 
-    const char *getDisplayNameOfType(const NodeType &type) {
+    const char* getDisplayNameOfType(const NodeType& type) {
         switch (type) {
             case TYPE_ROOT: return "Root";
             case TYPE_MESH: return "Mesh";
@@ -273,7 +284,7 @@ namespace bricksim::etree {
         }
     }
 
-    color::RGB getColorOfType(const NodeType &type) {
+    color::RGB getColorOfType(const NodeType& type) {
         switch (type) {
             case TYPE_MPD_SUBFILE_INSTANCE: return config::get(config::COLOR_MPD_SUBFILE_INSTANCE);
             case TYPE_MPD_SUBFILE: return config::get(config::COLOR_MPD_SUBFILE);
@@ -291,7 +302,7 @@ namespace bricksim::etree {
         if (rootNode->selected) {
             return rootNode;
         }
-        for (const auto &child : rootNode->getChildren()) {
+        for (const auto& child: rootNode->getChildren()) {
             auto retVal = getFirstSelectedNode(child);
             if (retVal) {
                 return retVal;

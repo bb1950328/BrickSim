@@ -1,18 +1,18 @@
-#include <glm/gtx/transform.hpp>
 #include "mesh_collection.h"
-#include "../../helpers/util.h"
-#include "../../metrics.h"
-#include "../../ldr/file_repo.h"
 #include "../../controller.h"
+#include "../../helpers/util.h"
+#include "../../ldr/file_repo.h"
+#include "../../metrics.h"
+#include <glm/gtx/transform.hpp>
 
 namespace bricksim::mesh {
     std::map<mesh_key_t, std::shared_ptr<Mesh>> SceneMeshCollection::allMeshes;
 
-    mesh_key_t SceneMeshCollection::getMeshKey(const std::shared_ptr<etree::MeshNode> &node, bool windingOrderInverse) {
+    mesh_key_t SceneMeshCollection::getMeshKey(const std::shared_ptr<etree::MeshNode>& node, bool windingOrderInverse) {
         return std::make_pair(node->getMeshIdentifier(), windingOrderInverse);
     }
 
-    std::shared_ptr<Mesh> SceneMeshCollection::getMesh(mesh_key_t key, const std::shared_ptr<etree::MeshNode> &node) {
+    std::shared_ptr<Mesh> SceneMeshCollection::getMesh(mesh_key_t key, const std::shared_ptr<etree::MeshNode>& node) {
         auto it = allMeshes.find(key);
         if (it == allMeshes.end()) {
             std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
@@ -32,32 +32,33 @@ namespace bricksim::mesh {
     }
 
     void SceneMeshCollection::drawLineGraphics(const layer_t layer) const {
-        for (const auto &mesh: usedMeshes) {
+        for (const auto& mesh: usedMeshes) {
             mesh->getLineData().draw(mesh->getSceneLayerInstanceRange(scene, layer));
         }
     }
 
     void SceneMeshCollection::drawOptionalLineGraphics(const layer_t layer) const {
-        for (const auto &mesh: usedMeshes) {
+        for (const auto& mesh: usedMeshes) {
             mesh->getOptionalLineData().draw(mesh->getSceneLayerInstanceRange(scene, layer));
         }
     }
 
     void SceneMeshCollection::drawTriangleGraphics(const layer_t layer) const {
-        for (const auto &mesh: usedMeshes) {
+        for (const auto& mesh: usedMeshes) {
             mesh->drawTriangleGraphics(scene, layer);
         }
     }
 
     void SceneMeshCollection::drawTexturedTriangleGraphics(const layer_t layer) const {
-        for (const auto &mesh: usedMeshes) {
+        for (const auto& mesh: usedMeshes) {
             mesh->drawTexturedTriangleGraphics(scene, layer);
         }
     }
 
-    SceneMeshCollection::SceneMeshCollection(scene_id_t scene) : scene(scene) {}
+    SceneMeshCollection::SceneMeshCollection(scene_id_t scene) :
+        scene(scene) {}
 
-    void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node> &node, const glm::mat4 &parentAbsoluteTransformation, std::optional<ldr::ColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId) {
+    void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4& parentAbsoluteTransformation, std::optional<ldr::ColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId) {
         std::shared_ptr<etree::Node> nodeToParseChildren = node;
         glm::mat4 absoluteTransformation = parentAbsoluteTransformation * node->getRelativeTransformation();
         if (node->visible) {
@@ -103,7 +104,7 @@ namespace bricksim::mesh {
                 elementsSortedById.push_back(node);
                 newMeshInstances[meshKey].push_back(newInstance);
             }
-            for (const auto &child: nodeToParseChildren->getChildren()) {
+            for (const auto& child: nodeToParseChildren->getChildren()) {
                 if (child->visible) {
                     readElementTree(child, absoluteTransformation, parentColor, selectionTargetElementId);
                 }
@@ -122,10 +123,10 @@ namespace bricksim::mesh {
         readElementTree(rootNode, glm::mat4(1.0f), {}, std::nullopt);
         updateMeshInstances();
         nodesWithChildrenAlreadyVisited.clear();
-        for (const auto &mesh: usedMeshes) {
+        for (const auto& mesh: usedMeshes) {
             mesh->writeGraphicsData();
         }
-        for (const auto &mesh: lastUsedMeshes) {
+        for (const auto& mesh: lastUsedMeshes) {
             mesh->writeGraphicsData();
         }
         auto after = std::chrono::high_resolution_clock::now();
@@ -134,19 +135,19 @@ namespace bricksim::mesh {
     }
 
     void SceneMeshCollection::updateMeshInstances() {
-        for (const auto &pair : newMeshInstances) {
+        for (const auto& pair: newMeshInstances) {
             auto meshKey = pair.first;
             auto newInstancesOfThisScene = pair.second;
             auto mesh = allMeshes[meshKey];
 
-            std::sort(newInstancesOfThisScene.begin(), newInstancesOfThisScene.end(), [](MeshInstance &a, MeshInstance &b) {
+            std::sort(newInstancesOfThisScene.begin(), newInstancesOfThisScene.end(), [](MeshInstance& a, MeshInstance& b) {
                 return a.layer > b.layer;
             });
 
             mesh->updateInstancesOfScene(scene, newInstancesOfThisScene);
             lastUsedMeshes.erase(mesh);
         }
-        for (const auto &notUsedAnymoreMesh : lastUsedMeshes) {
+        for (const auto& notUsedAnymoreMesh: lastUsedMeshes) {
             notUsedAnymoreMesh->deleteInstancesOfScene(scene);
         }
         newMeshInstances.clear();
@@ -161,7 +162,7 @@ namespace bricksim::mesh {
         }
         selectionBoxMesh->instances.clear();
         if (!controller::getSelectedNodes().empty()) {
-            for (const auto &node : controller::getSelectedNodes()) {
+            for (const auto& node: controller::getSelectedNodes()) {
                 if (node->getType() & etree::TYPE_MESH) {
                     //todo draw selection as line if only one part is selected
                     // fix the transformation (click the red 2x4 tile for example)
@@ -188,14 +189,14 @@ namespace bricksim::mesh {
         selectionBoxMesh->writeGraphicsData();
     }
 
-    std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBox(const std::shared_ptr<const etree::MeshNode> &node) const {
+    std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBox(const std::shared_ptr<const etree::MeshNode>& node) const {
         auto result = getBoundingBoxInternal(node);
         return {glm::vec4(result.first, 1.0f) * node->getAbsoluteTransformation(),
                 glm::vec4(result.second, 1.0f) * node->getAbsoluteTransformation()};
     }
 
-//relative to parameter node
-    std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBoxInternal(const std::shared_ptr<const etree::MeshNode> &node) const {
+    //relative to parameter node
+    std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBoxInternal(const std::shared_ptr<const etree::MeshNode>& node) const {
         //todo something here is wrong for subfile instances
         glm::mat4 absoluteTransformation;
         absoluteTransformation = node->getAbsoluteTransformation();
@@ -205,9 +206,9 @@ namespace bricksim::mesh {
         bool first = true;
         if (it != allMeshes.end()) {
             const auto mesh = it->second;
-            for (const auto &colorPair : mesh->triangleVertices) {
-                for (const auto &triangleVertex : colorPair.second) {//todo check if iterating over line vertices is faster
-                    const glm::vec4 &position = triangleVertex.position;
+            for (const auto& colorPair: mesh->triangleVertices) {
+                for (const auto& triangleVertex: colorPair.second) {//todo check if iterating over line vertices is faster
+                    const glm::vec4& position = triangleVertex.position;
                     if (first) {
                         first = false;
                         x1 = x2 = position.x;
@@ -225,10 +226,10 @@ namespace bricksim::mesh {
             }
         }
         bool isSubfileInstance = node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE;
-        const auto &children = isSubfileInstance
-                               ? std::dynamic_pointer_cast<const etree::MpdSubfileInstanceNode>(node)->mpdSubfileNode->getChildren()
-                               : node->getChildren();
-        for (const auto &child : children) {
+        const auto& children = isSubfileInstance
+                                       ? std::dynamic_pointer_cast<const etree::MpdSubfileInstanceNode>(node)->mpdSubfileNode->getChildren()
+                                       : node->getChildren();
+        for (const auto& child: children) {
             if (child->getType() & etree::TYPE_MESH) {
                 auto childResult = getBoundingBoxInternal(std::dynamic_pointer_cast<const etree::MeshNode>(child));
                 childResult.first = glm::vec4(childResult.first, 1.0f) * child->getRelativeTransformation();
@@ -257,19 +258,18 @@ namespace bricksim::mesh {
         //std::cout << node->displayName << ": (" << x1 << ", " << y1 << ", " << z1 << "), (" << x2 << ", " << y2 << ", " << z2 << ")" << std::endl;
         return {
                 glm::vec4(x1, y1, z1, 1.0f),
-                glm::vec4(x2, y2, z2, 1.0f)
-        };
+                glm::vec4(x2, y2, z2, 1.0f)};
     }
 
-    const std::set<layer_t> &SceneMeshCollection::getLayersInUse() const {
+    const std::set<layer_t>& SceneMeshCollection::getLayersInUse() const {
         return layersInUse;
     }
 
-    const std::shared_ptr<etree::Node> &SceneMeshCollection::getRootNode() const {
+    const std::shared_ptr<etree::Node>& SceneMeshCollection::getRootNode() const {
         return rootNode;
     }
 
-    void SceneMeshCollection::setRootNode(const std::shared_ptr<etree::Node> &newRootNode) {
+    void SceneMeshCollection::setRootNode(const std::shared_ptr<etree::Node>& newRootNode) {
         SceneMeshCollection::rootNode = newRootNode;
     }
 
@@ -277,7 +277,7 @@ namespace bricksim::mesh {
         allMeshes.clear();
     }
 
-    const std::set<std::shared_ptr<Mesh>> &SceneMeshCollection::getUsedMeshes() const {
+    const std::set<std::shared_ptr<Mesh>>& SceneMeshCollection::getUsedMeshes() const {
         return usedMeshes;
     }
 }

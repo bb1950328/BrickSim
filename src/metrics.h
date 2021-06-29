@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace bricksim::metrics {
     extern long individualBrickCount;
@@ -13,4 +13,3 @@ namespace bricksim::metrics {
     extern float lastSceneRenderTimeMs;
     extern std::vector<std::pair<const char*, unsigned int>> mainloopTimePointsUs;
 }
-

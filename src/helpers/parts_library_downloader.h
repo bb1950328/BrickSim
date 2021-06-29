@@ -14,7 +14,7 @@ namespace bricksim::parts_library_downloader {
         long downNow = 0;
         int bytesPerSecond = 0;
         Status status = DOING_NOTHING;
-        int progressFunc(void *clientp, long downloadTotal, long downloadNow, long uploadTotal, long uploadNow);
+        int progressFunc(void* clientp, long downloadTotal, long downloadNow, long uploadTotal, long uploadNow);
         bool shouldStop = false;
         long lastProgressCalledMs;
         int errorCode = -1;

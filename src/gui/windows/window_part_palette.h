@@ -5,4 +5,3 @@
 namespace bricksim::gui::windows::part_palette {
     void draw(Data& data);
 }
-

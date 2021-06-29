@@ -33,4 +33,3 @@ namespace bricksim::gui::windows {
 
     const char* getName(Id id);
 }
-

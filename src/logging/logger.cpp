@@ -1,6 +1,6 @@
-#include <memory>
 #include "logger.h"
 #include "latest_log_messages_tank.h"
+#include <memory>
 
 namespace bricksim::logging {
 

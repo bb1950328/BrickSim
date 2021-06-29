@@ -1,32 +1,33 @@
 #pragma once
 
-#include <map>
-#include <mutex>
-#include "helpers/util.h"
+#include "db.h"
 #include "helpers/color.h"
+#include "helpers/util.h"
 #include <cstring>
 #include <functional>
+#include <map>
+#include <mutex>
 #include <utility>
-#include "db.h"
 
 namespace bricksim::config {
     namespace {
         template<typename T>
         class ValuesCache {
             //using const char* as key is ok here because there's only one instance of each key
-            std::map<const char *, T> values;
+            std::map<const char*, T> values;
 
-            std::function<void(const char *, T)> writeFunction;
-            std::function<std::optional<T>(const char *)> readFunction;
+            std::function<void(const char*, T)> writeFunction;
+            std::function<std::optional<T>(const char*)> readFunction;
 
             std::mutex mutex;
+
         public:
-            T get(const char *key, T defaultValue);
+            T get(const char* key, T defaultValue);
 
-            void set(const char *key, T value);
+            void set(const char* key, T value);
 
-            ValuesCache(std::function<void(const char *, T)> writeFunction,
-                        std::function<std::optional<T>(const char *)> readFunction);
+            ValuesCache(std::function<void(const char*, T)> writeFunction,
+                        std::function<std::optional<T>(const char*)> readFunction);
 
             void clear();
         };
@@ -36,7 +37,7 @@ namespace bricksim::config {
         ValuesCache<double> doubleValues(db::config::setDouble, db::config::getDouble);
 
         template<typename T>
-        T ValuesCache<T>::get(const char *key, T defaultValue) {
+        T ValuesCache<T>::get(const char* key, T defaultValue) {
             const auto it = values.find(key);
             if (it == values.end()) {
                 std::lock_guard<std::mutex> lg(mutex);
@@ -52,7 +53,7 @@ namespace bricksim::config {
         }
 
         template<typename T>
-        void ValuesCache<T>::set(const char *key, T value) {
+        void ValuesCache<T>::set(const char* key, T value) {
             std::lock_guard<std::mutex> lg(mutex);
             writeFunction(key, value);
             values[key] = value;
@@ -60,11 +61,11 @@ namespace bricksim::config {
 
         template<typename T>
         ValuesCache<T>::ValuesCache(
-                const std::function<void(const char *, T)> writeFunction,
-                const std::function<std::optional<T>(const char *)> readFunction)
-                :writeFunction(std::move(writeFunction)),
-                 readFunction(std::move(readFunction)),
-                 mutex() {}
+                const std::function<void(const char*, T)> writeFunction,
+                const std::function<std::optional<T>(const char*)> readFunction) :
+            writeFunction(std::move(writeFunction)),
+            readFunction(std::move(readFunction)),
+            mutex() {}
 
         template<typename T>
         void ValuesCache<T>::clear() {
@@ -72,81 +73,78 @@ namespace bricksim::config {
         }
     }
 
-    template<typename T> requires (
+    template<typename T>
+    requires(
             std::is_same<T, std::string>::value
-            || std::is_convertible_v<T, int>
-            || std::is_convertible_v<T, double>
-            || std::is_convertible_v<T, color::RGB>
-    )
-    class Key {
+            || std::is_convertible_v<T, int> || std::is_convertible_v<T, double> || std::is_convertible_v<T, color::RGB>) class Key {
     public:
-        const char *const name;
+        const char* const name;
         const T defaultValue;
 
-        Key(const char *const name, const T defaultValue) : name(name), defaultValue(defaultValue) {}
+        Key(const char* const name, const T defaultValue) :
+            name(name), defaultValue(defaultValue) {}
 
-        bool operator==(const Key &rhs) const {
+        bool operator==(const Key& rhs) const {
             return std::strcmp(name, rhs.name) == 0;
         }
 
-        bool operator!=(const Key &rhs) const {
+        bool operator!=(const Key& rhs) const {
             return !(rhs == *this);
         }
     };
 
     template<typename T>
-    [[nodiscard]] T get(const Key<T> &key) = delete;
+    [[nodiscard]] T get(const Key<T>& key) = delete;
 
     template<>
-    [[nodiscard]] std::string get<std::string>(const Key<std::string> &key);
+    [[nodiscard]] std::string get<std::string>(const Key<std::string>& key);
 
     template<>
-    [[nodiscard]] int get<int>(const Key<int> &key);
+    [[nodiscard]] int get<int>(const Key<int>& key);
 
     template<>
-    [[nodiscard]] double get<double>(const Key<double> &key);
+    [[nodiscard]] double get<double>(const Key<double>& key);
 
     template<>
-    [[nodiscard]] color::RGB get<color::RGB>(const Key<color::RGB> &key);
+    [[nodiscard]] color::RGB get<color::RGB>(const Key<color::RGB>& key);
 
     template<>
-    [[nodiscard]] float get<float>(const Key<float> &key);
+    [[nodiscard]] float get<float>(const Key<float>& key);
 
     template<>
-    [[nodiscard]] bool get<bool>(const Key<bool> &key);
-
+    [[nodiscard]] bool get<bool>(const Key<bool>& key);
 
     template<typename T, typename V>
     requires std::is_convertible_v<V, T>
-    void set(const Key<T> &key, const V &value);
+    void set(const Key<T>& key, const V& value);
 
     template<typename V>
-    void set(const Key<std::string> &key, const V &value) {
+    void set(const Key<std::string>& key, const V& value) {
         stringValues.set(key.name, value);
     }
 
     template<typename V>
-    void set(const Key<int> &key, const V &value) {
+    void set(const Key<int>& key, const V& value) {
         intValues.set(key.name, value);
     }
 
     template<typename V>
-    void set(const Key<double> &key, const V &value) {
+    void set(const Key<double>& key, const V& value) {
         doubleValues.set(key.name, value);
     }
 
     template<typename V>
-    void set(const Key<float> &key, const V &value) {
+    void set(const Key<float>& key, const V& value) {
         doubleValues.set(key.name, value);
     }
 
     template<typename V>
-    void set(const Key<bool> &key, const V &value) {
+    void set(const Key<bool>& key, const V& value) {
         intValues.set(key.name, value);
     }
 
     template<>
-    void set(const Key<color::RGB> &key, const color::RGB &value);
+    void set(const Key<color::RGB>& key, const color::RGB& value);
 
     void resetAllToDefault();
 
@@ -183,4 +181,3 @@ namespace bricksim::config {
     const Key<bool> THREADING_ENABLED("threadingEnabled", true);
     const Key<bool> USE_EULER_ANGLES("useEulerAngles", false);
 }
-

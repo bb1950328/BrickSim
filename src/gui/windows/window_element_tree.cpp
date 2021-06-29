@@ -1,7 +1,7 @@
-#include <memory>
-#include "../gui.h"
-#include "../../element_tree.h"
 #include "../../controller.h"
+#include "../../element_tree.h"
+#include "../gui.h"
+#include <memory>
 
 #include "window_element_tree.h"
 
@@ -24,7 +24,7 @@ namespace bricksim::gui::windows::element_tree {
                     auto flags = node->selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None;
                     if (ImGui::TreeNodeEx(node->displayName.c_str(), flags)) {
                         itemClicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
-                        for (const auto &child: node->getChildren()) {
+                        for (const auto& child: node->getChildren()) {
                             draw_element_tree_node(child);
                         }
                         ImGui::TreePop();
@@ -40,7 +40,7 @@ namespace bricksim::gui::windows::element_tree {
 
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
-            for (const auto &rootChild : controller::getElementTree()->getChildren()) {
+            for (const auto& rootChild: controller::getElementTree()->getChildren()) {
                 draw_element_tree_node(rootChild);
             }
         }

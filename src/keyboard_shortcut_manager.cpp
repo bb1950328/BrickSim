@@ -1,14 +1,15 @@
-#include <map>
-#include <GLFW/glfw3.h>
-#include <spdlog/spdlog.h>
 #include "keyboard_shortcut_manager.h"
-#include "user_actions.h"
 #include "db.h"
 #include "helpers/util.h"
+#include "user_actions.h"
+#include <GLFW/glfw3.h>
+#include <map>
+#include <spdlog/spdlog.h>
 
 namespace bricksim::keyboard_shortcut_manager {
     namespace {
-        std::map<int, const char *> MODIFIER_DISPLAY_NAMES = { // NOLINT(cert-err58-cpp)
+        std::map<int, const char*> MODIFIER_DISPLAY_NAMES = {
+                // NOLINT(cert-err58-cpp)
                 {GLFW_MOD_SHIFT, "Shift"},
                 {GLFW_MOD_CONTROL, "Ctrl"},
                 {GLFW_MOD_ALT, "Alt"},
@@ -26,7 +27,8 @@ namespace bricksim::keyboard_shortcut_manager {
         uint8_t ALL_MODIFIERS_MASK = GLFW_MOD_SHIFT | GLFW_MOD_CONTROL | GLFW_MOD_ALT | GLFW_MOD_SUPER;
         const int ALL_MODIFIER_KEYS[] = {GLFW_KEY_LEFT_SHIFT, GLFW_KEY_RIGHT_SHIFT, GLFW_KEY_LEFT_CONTROL, GLFW_KEY_RIGHT_CONTROL, GLFW_KEY_LEFT_ALT, GLFW_KEY_RIGHT_ALT, GLFW_KEY_LEFT_SUPER, GLFW_KEY_RIGHT_SUPER};
 
-        std::map<int, const char*> MISC_KEY_DISPLAY_NAMES = { // NOLINT(cert-err58-cpp)
+        std::map<int, const char*> MISC_KEY_DISPLAY_NAMES = {
+                // NOLINT(cert-err58-cpp)
                 {GLFW_KEY_BACKSPACE, "Backspace"},
                 {GLFW_KEY_ENTER, "Enter"},
                 {GLFW_KEY_INSERT, "Ins"},
@@ -45,14 +47,15 @@ namespace bricksim::keyboard_shortcut_manager {
                 {GLFW_KEY_ESCAPE, "Esc"},
         };
 
-        const std::vector<KeyboardShortcut> DEFAULT_SHORTCUTS = { // NOLINT(cert-err58-cpp)
+        const std::vector<KeyboardShortcut> DEFAULT_SHORTCUTS = {
+                // NOLINT(cert-err58-cpp)
                 {user_actions::COPY.id, GLFW_KEY_C, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
                 {user_actions::CUT.id, GLFW_KEY_X, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
                 {user_actions::PASTE.id, GLFW_KEY_V, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
                 {user_actions::SAVE_FILE.id, GLFW_KEY_S, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
-                {user_actions::SAVE_FILE_AS.id, GLFW_KEY_S, (uint8_t)(GLFW_MOD_CONTROL|GLFW_MOD_SHIFT), (Event)Event::ON_PRESS},
+                {user_actions::SAVE_FILE_AS.id, GLFW_KEY_S, (uint8_t)(GLFW_MOD_CONTROL | GLFW_MOD_SHIFT), (Event)Event::ON_PRESS},
                 {user_actions::SELECT_ALL.id, GLFW_KEY_A, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
-                {user_actions::SELECT_NOTHING.id, GLFW_KEY_A, (uint8_t)(GLFW_MOD_CONTROL|GLFW_MOD_SHIFT), (Event)Event::ON_PRESS},
+                {user_actions::SELECT_NOTHING.id, GLFW_KEY_A, (uint8_t)(GLFW_MOD_CONTROL | GLFW_MOD_SHIFT), (Event)Event::ON_PRESS},
                 {user_actions::UNDO.id, GLFW_KEY_Z, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
                 //todo add more
         };
@@ -63,7 +66,7 @@ namespace bricksim::keyboard_shortcut_manager {
         std::optional<KeyboardShortcut> caughtShortcut;
 
         void saveDefaultToDb() {
-            for (const auto &shortcut : DEFAULT_SHORTCUTS) {
+            for (const auto& shortcut: DEFAULT_SHORTCUTS) {
                 db::key_shortcuts::saveShortcut({shortcut.actionId, shortcut.key, shortcut.modifiers, (uint8_t)shortcut.event});
             }
         }
@@ -76,20 +79,19 @@ namespace bricksim::keyboard_shortcut_manager {
             shortcuts = DEFAULT_SHORTCUTS;
             spdlog::info("key_shortcuts were empty in DB, load default shortcuts");
         } else {
-            for (const auto &record : dbShortcuts) {
+            for (const auto& record: dbShortcuts) {
                 shortcuts.emplace_back(
                         std::get<0>(record),
                         std::get<1>(record),
                         std::get<2>(record),
-                        (Event) std::get<3>(record)
-                );
+                        (Event)std::get<3>(record));
             }
         }
     }
 
     void shortcutPressed(int key, int keyAction, int modifiers, bool isCapturedByGui) {
-        for (const auto &modifierKey : ALL_MODIFIER_KEYS) {
-            if (modifierKey==key) {
+        for (const auto& modifierKey: ALL_MODIFIER_KEYS) {
+            if (modifierKey == key) {
                 return;
             }
         }
@@ -101,7 +103,7 @@ namespace bricksim::keyboard_shortcut_manager {
             return;
         }
         if (!isCapturedByGui) {
-            for (auto &shortcut : shortcuts) {
+            for (auto& shortcut: shortcuts) {
                 if (shortcut.key == key && shortcut.event == event && (shortcut.modifiers & modifiers) == shortcut.modifiers) {
                     spdlog::debug("event {} matched shortcut, executing action", shortcut.getDisplayName());
                     user_actions::executeAction(shortcut.actionId);
@@ -112,13 +114,13 @@ namespace bricksim::keyboard_shortcut_manager {
         }
     }
 
-    std::vector<KeyboardShortcut> &getAllShortcuts() {
+    std::vector<KeyboardShortcut>& getAllShortcuts() {
         return shortcuts;
     }
 
-    void replaceAllShortcuts(std::vector<KeyboardShortcut> &newShortcuts) {
+    void replaceAllShortcuts(std::vector<KeyboardShortcut>& newShortcuts) {
         db::key_shortcuts::deleteAll();
-        for (const auto &shortcut : newShortcuts) {
+        for (const auto& shortcut: newShortcuts) {
             db::key_shortcuts::saveShortcut({shortcut.actionId, shortcut.key, shortcut.modifiers, (uint8_t)shortcut.event});
         }
         shortcuts = newShortcuts;
@@ -128,7 +130,7 @@ namespace bricksim::keyboard_shortcut_manager {
         shouldCatchNextShortcut = doCatch;
     }
 
-    std::optional<KeyboardShortcut> &getCaughtShortcut() {
+    std::optional<KeyboardShortcut>& getCaughtShortcut() {
         return caughtShortcut;
     }
 
@@ -136,12 +138,12 @@ namespace bricksim::keyboard_shortcut_manager {
         caughtShortcut = {};
     }
 
-    const std::string & getShortcutForAction(int actionId) {
+    const std::string& getShortcutForAction(int actionId) {
         static std::map<int, std::string> cache;
         auto it = cache.find(actionId);
         if (it == cache.end()) {
-            for (auto &shortcut : shortcuts) {
-                if (shortcut.actionId==actionId) {
+            for (auto& shortcut: shortcuts) {
+                if (shortcut.actionId == actionId) {
                     return cache[actionId] = shortcut.getDisplayName();
                 }
             }
@@ -152,32 +154,32 @@ namespace bricksim::keyboard_shortcut_manager {
 
     std::string KeyboardShortcut::getDisplayName() const {
         std::string displayName;
-            for (const auto &mod : ALL_MODIFIERS) {
-                if (modifiers & mod) {
-                    displayName += MODIFIER_DISPLAY_NAMES[mod];
-                    displayName += '+';
-                }
+        for (const auto& mod: ALL_MODIFIERS) {
+            if (modifiers & mod) {
+                displayName += MODIFIER_DISPLAY_NAMES[mod];
+                displayName += '+';
             }
-            if (GLFW_KEY_KP_0 <= key && key <= GLFW_KEY_KP_EQUAL) {
-                displayName += "NUM";
-            }
+        }
+        if (GLFW_KEY_KP_0 <= key && key <= GLFW_KEY_KP_EQUAL) {
+            displayName += "NUM";
+        }
 
-            const auto *keyName = glfwGetKeyName(key, 0);
-            std::map<int, const char*>::iterator miscNameIt;
-            if (keyName) {
-                displayName += keyName;
-            } else if (GLFW_KEY_F1 <= key && key <= GLFW_KEY_F25) {
-                displayName += 'F';
-                displayName += std::to_string(key-GLFW_KEY_F1+1);
-            } else if ((miscNameIt=MISC_KEY_DISPLAY_NAMES.find(key))!=MISC_KEY_DISPLAY_NAMES.end()) {
-                displayName += miscNameIt->second;
-            }
-            else {
-                displayName += '?';
-            }
+        const auto* keyName = glfwGetKeyName(key, 0);
+        std::map<int, const char*>::iterator miscNameIt;
+        if (keyName) {
+            displayName += keyName;
+        } else if (GLFW_KEY_F1 <= key && key <= GLFW_KEY_F25) {
+            displayName += 'F';
+            displayName += std::to_string(key - GLFW_KEY_F1 + 1);
+        } else if ((miscNameIt = MISC_KEY_DISPLAY_NAMES.find(key)) != MISC_KEY_DISPLAY_NAMES.end()) {
+            displayName += miscNameIt->second;
+        } else {
+            displayName += '?';
+        }
         util::toUpperInPlace(displayName.data());
         return displayName;
     }
 
-    KeyboardShortcut::KeyboardShortcut(int actionId, int key, uint8_t modifiers, Event event) : actionId(actionId), key(key), modifiers(modifiers), event(event) {}
+    KeyboardShortcut::KeyboardShortcut(int actionId, int key, uint8_t modifiers, Event event) :
+        actionId(actionId), key(key), modifiers(modifiers), event(event) {}
 }

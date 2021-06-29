@@ -1,18 +1,17 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include "../../types.h"
 #include "../../ldr/colors.h"
 #include "../../ldr/files.h"
+#include "../../types.h"
 #include "../texture.h"
-#include <map>
-#include <vector>
-#include <string>
-#include <memory>
-#include <glad/glad.h>
-#include "mesh_simple_classes.h"
 #include "mesh_line_data.h"
-
+#include "mesh_simple_classes.h"
+#include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace bricksim::mesh {
 
@@ -35,7 +34,6 @@ namespace bricksim::mesh {
         LineData& getLineData();
         LineData& getOptionalLineData();
 
-
         std::map<scene_id_t, std::map<layer_t, InstanceRange>> instanceSceneLayerRanges;
         std::optional<InstanceRange> getSceneInstanceRange(scene_id_t sceneId);
         std::optional<InstanceRange> getSceneLayerInstanceRange(scene_id_t sceneId, layer_t layer);
@@ -43,37 +41,36 @@ namespace bricksim::mesh {
          * @param sceneId
          * @param newSceneInstances must be ordered by layer
          */
-        void updateInstancesOfScene(scene_id_t sceneId, const std::vector<MeshInstance> &newSceneInstances);
+        void updateInstancesOfScene(scene_id_t sceneId, const std::vector<MeshInstance>& newSceneInstances);
         void deleteInstancesOfScene(scene_id_t sceneId);
 
         std::string name = "?";
 
         Mesh() = default;
-        Mesh &operator=(Mesh &) = delete;
-        Mesh(const Mesh &) = delete;
+        Mesh& operator=(Mesh&) = delete;
+        Mesh(const Mesh&) = delete;
 
-        void addLdrFile(const std::shared_ptr<ldr::File> &file, glm::mat4 transformation, ldr::ColorReference mainColor, bool bfcInverted);
-        void addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference> &sfElement, glm::mat4 transformation, bool bfcInverted);
-        void addLdrLine(ldr::ColorReference mainColor, const ldr::Line &lineElement, glm::mat4 transformation);
-        void addLdrTriangle(ldr::ColorReference mainColor, const ldr::Triangle &triangleElement, glm::mat4 transformation, bool bfcInverted);
-        void addLdrQuadrilateral(ldr::ColorReference mainColor, ldr::Quadrilateral &&quadrilateral, glm::mat4 transformation, bool bfcInverted);
-        void addLdrOptionalLine(ldr::ColorReference mainColor, const ldr::OptionalLine &optionalLineElement, glm::mat4 transformation);
+        void addLdrFile(const std::shared_ptr<ldr::File>& file, glm::mat4 transformation, ldr::ColorReference mainColor, bool bfcInverted);
+        void addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, glm::mat4 transformation, bool bfcInverted);
+        void addLdrLine(ldr::ColorReference mainColor, const ldr::Line& lineElement, glm::mat4 transformation);
+        void addLdrTriangle(ldr::ColorReference mainColor, const ldr::Triangle& triangleElement, glm::mat4 transformation, bool bfcInverted);
+        void addLdrQuadrilateral(ldr::ColorReference mainColor, ldr::Quadrilateral&& quadrilateral, glm::mat4 transformation, bool bfcInverted);
+        void addLdrOptionalLine(ldr::ColorReference mainColor, const ldr::OptionalLine& optionalLineElement, glm::mat4 transformation);
 
-        void addTexturedTriangle(const std::shared_ptr<graphics::Texture> &texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3);
-        void addRawTriangle(ldr::ColorReference color, const glm::vec3 &p1, const glm::vec3 &p2, const glm::vec3 &p3);
+        void addTexturedTriangle(const std::shared_ptr<graphics::Texture>& texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3);
+        void addRawTriangle(ldr::ColorReference color, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3);
 
         /**
          * @param color
          * @param vertex
          * @return the index of the vertex. You have to call addRawTriangleIndex otherwise the vertex won't show up
          */
-        unsigned int addRawTriangleVertex(ldr::ColorReference color, const TriangleVertex &vertex);
+        unsigned int addRawTriangleVertex(ldr::ColorReference color, const TriangleVertex& vertex);
         unsigned int getNextVertexIndex(ldr::ColorReference color);
         void addRawTriangleIndex(ldr::ColorReference color, unsigned int triangleIndex);
 
-
-        std::vector<unsigned int> &getIndicesList(ldr::ColorReference color);
-        std::vector<TriangleVertex> &getVerticesList(ldr::ColorReference color);
+        std::vector<unsigned int>& getIndicesList(ldr::ColorReference color);
+        std::vector<TriangleVertex>& getVerticesList(ldr::ColorReference color);
 
         void writeGraphicsData();
 
@@ -85,6 +82,7 @@ namespace bricksim::mesh {
 
         std::pair<glm::vec3, float> getMinimalEnclosingBall();
         size_t getTriangleCount();
+
     private:
         std::optional<std::pair<glm::vec3, float>> minimalEnclosingBall;
         LineData lineData{GL_LINES};
@@ -98,7 +96,7 @@ namespace bricksim::mesh {
 
         size_t lastInstanceBufferSize = 0;
 
-        static void setInstanceColor(TriangleInstance *instance, ldr::ColorReference color);
+        static void setInstanceColor(TriangleInstance* instance, ldr::ColorReference color);
 
         std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> generateTriangleInstancesArray(ldr::ColorReference color);
         std::unique_ptr<TexturedTriangleInstance[], std::default_delete<TexturedTriangleInstance[]>> generateTexturedTriangleInstancesArray();
@@ -109,7 +107,6 @@ namespace bricksim::mesh {
         void rewriteInstanceBuffer();
 
         void addMinEnclosingBallLines();
-        void appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<MeshInstance> &newSceneInstances);
+        void appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<MeshInstance>& newSceneInstances);
     };
 }
-

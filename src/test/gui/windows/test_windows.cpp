@@ -1,9 +1,9 @@
-#include "catch2/catch.hpp"
 #include "../../../gui/windows/windows.h"
+#include "catch2/catch.hpp"
 
 namespace bricksim {
     TEST_CASE("windowDataCorrect") {
-        const auto &data = gui::windows::getData();
+        const auto& data = gui::windows::getData();
         const auto idCount = magic_enum::enum_count<gui::windows::Id>();
         for (int i = 0; i < idCount; ++i) {
             const auto id = magic_enum::enum_value<gui::windows::Id>(i);

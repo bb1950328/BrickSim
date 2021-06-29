@@ -5,4 +5,3 @@
 namespace bricksim::gui::windows::about {
     void draw(Data& data);
 }
-

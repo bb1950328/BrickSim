@@ -1,13 +1,13 @@
+#include "../../controller.h"
+#include "../../graphics/scene.h"
+#include "../../helpers/util.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../metrics.h"
+#include "../../types.h"
+#include "../gui.h"
+#include <glm/gtx/io.hpp>
 #include <map>
 #include <memory>
-#include "../gui.h"
-#include "../../types.h"
-#include "../../graphics/scene.h"
-#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
-#include "../../controller.h"
-#include "../../metrics.h"
-#include "../../helpers/util.h"
-#include <glm/gtx/io.hpp>
 #include <sstream>
 
 #include "window_debug.h"
@@ -23,22 +23,22 @@ namespace bricksim::gui::windows::debug {
 
         constexpr size_t MESHES_TAB_BUF_SIZE = 32;
 
-        void printSceneDescription(std::map<scene_id_t, std::shared_ptr<graphics::Scene>> &allScenes, scene_id_t sceneId, char *buf) {
+        void printSceneDescription(std::map<scene_id_t, std::shared_ptr<graphics::Scene>>& allScenes, scene_id_t sceneId, char* buf) {
             snprintf(buf, MESHES_TAB_BUF_SIZE, "%d (%d*%d)", sceneId, allScenes[sceneId]->getImageSize().x, allScenes[sceneId]->getImageSize().y);
         }
 
-        void drawColorLabel(const ldr::ColorReference &colorRef);
+        void drawColorLabel(const ldr::ColorReference& colorRef);
 
-        void drawMeshesList(char *buf, const std::shared_ptr<graphics::Scene> &selectedScene, float meshListTableHeight);
+        void drawMeshesList(char* buf, const std::shared_ptr<graphics::Scene>& selectedScene, float meshListTableHeight);
 
         void drawMeshesTab();
 
-        void drawMeshesList(char *buf, const std::shared_ptr<graphics::Scene> &selectedScene, float meshListTableHeight) {
-            const auto &meshes = selectedScene->getMeshCollection().getUsedMeshes();
+        void drawMeshesList(char* buf, const std::shared_ptr<graphics::Scene>& selectedScene, float meshListTableHeight) {
+            const auto& meshes = selectedScene->getMeshCollection().getUsedMeshes();
             constexpr size_t maxSearchQueryLength = 32;
             static char searchQuery[maxSearchQueryLength] = {0};
             static std::shared_ptr<mesh::Mesh> currentlyInspectingMesh = nullptr;
-            ImGui::InputText(ICON_FA_FILTER" Mesh Name Filter", searchQuery, maxSearchQueryLength);
+            ImGui::InputText(ICON_FA_FILTER " Mesh Name Filter", searchQuery, maxSearchQueryLength);
             if (ImGui::BeginChild("##meshesListWrapper", ImVec2(0.0f, meshListTableHeight))) {
                 if (ImGui::BeginTable("Meshes", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti)) {
                     enum Column {
@@ -59,33 +59,33 @@ namespace bricksim::gui::windows::debug {
                     if (noSearchQuery) {
                         sortedMeshes.reserve(meshes.size());
                     }
-                    for (const auto &item : meshes) {
+                    for (const auto& item: meshes) {
                         if (noSearchQuery || util::containsIgnoreCase(item->name, searchQuery)) {
                             sortedMeshes.push_back(item);
                         }
                     }
-                    ImGuiTableSortSpecs *sortSpecs = ImGui::TableGetSortSpecs();
-                    std::sort(sortedMeshes.begin(), sortedMeshes.end(), [&](const std::shared_ptr<mesh::Mesh> &a, const std::shared_ptr<mesh::Mesh> &b) {
+                    ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs();
+                    std::sort(sortedMeshes.begin(), sortedMeshes.end(), [&](const std::shared_ptr<mesh::Mesh>& a, const std::shared_ptr<mesh::Mesh>& b) {
                         for (int i = 0; i < sortSpecs->SpecsCount; ++i) {
-                            const auto &spec = sortSpecs->Specs[i];
+                            const auto& spec = sortSpecs->Specs[i];
 #ifdef BRICKSIM_PLATFORM_MACOS
                             //for some reason, the GitHub Actions MacOS Compiler can't compile the spaceship operator code
                             //so here is a alternative.
                             //todo fix that so this alternative can be removed
-                            if (spec.ColumnUserID==NAME) {
+                            if (spec.ColumnUserID == NAME) {
                                 const auto cmp = a->name.compare(b->name);
                                 if (cmp > 0) {
                                     return false;
                                 } else if (cmp < 0) {
                                     return true;
                                 }
-                            } else if (spec.ColumnUserID==INSTANCE_COUNT) {
+                            } else if (spec.ColumnUserID == INSTANCE_COUNT) {
                                 if (a->instances.size() > b->instances.size()) {
                                     return false;
                                 } else if (a->instances.size() < b->instances.size()) {
                                     return true;
                                 }
-                            } else if (spec.ColumnUserID==TRIANGLE_COUNT) {
+                            } else if (spec.ColumnUserID == TRIANGLE_COUNT) {
                                 if (a->getTriangleCount() > b->getTriangleCount()) {
                                     return false;
                                 } else if (a->getTriangleCount() < b->getTriangleCount()) {
@@ -114,7 +114,7 @@ namespace bricksim::gui::windows::debug {
                         return false;
                     });
 
-                    for (const auto &mesh : sortedMeshes) {
+                    for (const auto& mesh: sortedMeshes) {
                         ImGui::TableNextRow();
 
                         ImGui::TableNextColumn();
@@ -128,9 +128,9 @@ namespace bricksim::gui::windows::debug {
 
                         ImGui::TableNextColumn();
                         if (mesh == currentlyInspectingMesh) {
-                            ImGui::Text(ICON_FA_CHECK" Inspecting");
+                            ImGui::Text(ICON_FA_CHECK " Inspecting");
                         } else {
-                            snprintf(buf, MESHES_TAB_BUF_SIZE, ICON_FA_INFO" Inspect##%zu", std::hash<std::string>()(mesh->name));
+                            snprintf(buf, MESHES_TAB_BUF_SIZE, ICON_FA_INFO " Inspect##%zu", std::hash<std::string>()(mesh->name));
                             if (ImGui::Button(buf)) {
                                 mesh_inspector::setCurrentlyInspectingMesh(mesh);
                                 *isVisible(Id::MESH_INSPECTOR) = true;
@@ -146,15 +146,15 @@ namespace bricksim::gui::windows::debug {
 
         void drawGeneralTab() {
             if (ImGui::BeginTabItem("General")) {
-                const auto &bgTasks = controller::getBackgroundTasks();
+                const auto& bgTasks = controller::getBackgroundTasks();
                 if (!bgTasks.empty()) {
                     ImGui::Text("%zu background tasks:", bgTasks.size());
-                    for (const auto &task : bgTasks) {
+                    for (const auto& task: bgTasks) {
                         ImGui::BulletText("%s", task.second->getName().c_str());
                     }
                 }
 
-                if (ImGui::Button(ICON_FA_SYNC" Reread element tree now")) {
+                if (ImGui::Button(ICON_FA_SYNC " Reread element tree now")) {
                     controller::setElementTreeChanged(true);
                 }
 
@@ -169,18 +169,18 @@ namespace bricksim::gui::windows::debug {
                 const auto arrPtr = std::get<1>(lastFrameTimes);
                 const auto startIdx = std::get<2>(lastFrameTimes);
                 const auto endIdx = (startIdx - 1) % count;
-                ImGui::Text(ICON_FA_CHART_LINE" Application render average %.3f ms/frame (%.1f FPS)", arrPtr[endIdx], 1000.0 / arrPtr[endIdx]);
+                ImGui::Text(ICON_FA_CHART_LINE " Application render average %.3f ms/frame (%.1f FPS)", arrPtr[endIdx], 1000.0 / arrPtr[endIdx]);
                 ImGui::PlotLines("ms/frame", arrPtr, count, startIdx);
-                ImGui::Text(ICON_FA_STOPWATCH" Last 3D View render time: %.3f ms", metrics::lastSceneRenderTimeMs);
-                ImGui::Text(ICON_FA_MEMORY" Total graphics buffer size: %s", util::formatBytesValue(metrics::vramUsageBytes).c_str());
-                ImGui::Text(ICON_FA_IMAGES" Total thumbnail buffer size: %s", util::formatBytesValue(metrics::thumbnailBufferUsageBytes).c_str());
-                ImGui::Text(ICON_FA_SYNC" Last element tree reread: %.2f ms", metrics::lastElementTreeRereadMs);
-                ImGui::Text(ICON_FA_HISTORY" Last thumbnail render time: %.2f ms", metrics::lastThumbnailRenderingTimeMs);
+                ImGui::Text(ICON_FA_STOPWATCH " Last 3D View render time: %.3f ms", metrics::lastSceneRenderTimeMs);
+                ImGui::Text(ICON_FA_MEMORY " Total graphics buffer size: %s", util::formatBytesValue(metrics::vramUsageBytes).c_str());
+                ImGui::Text(ICON_FA_IMAGES " Total thumbnail buffer size: %s", util::formatBytesValue(metrics::thumbnailBufferUsageBytes).c_str());
+                ImGui::Text(ICON_FA_SYNC " Last element tree reread: %.2f ms", metrics::lastElementTreeRereadMs);
+                ImGui::Text(ICON_FA_HISTORY " Last thumbnail render time: %.2f ms", metrics::lastThumbnailRenderingTimeMs);
 
                 constexpr auto performanceTableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable;
 
                 if (ImGui::BeginTable("Mainloop Time Points", 2, performanceTableFlags)) {
-                    for (const auto &timePointsUs : metrics::mainloopTimePointsUs) {
+                    for (const auto& timePointsUs: metrics::mainloopTimePointsUs) {
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
                         ImGui::Text("%s", timePointsUs.first);
@@ -190,8 +190,8 @@ namespace bricksim::gui::windows::debug {
                     ImGui::EndTable();
                 }
 
-                if (ImGui::BeginTable(ICON_FA_WINDOW_RESTORE" Window drawing times", 2, performanceTableFlags)) {
-                    for (const auto &item : metrics::lastWindowDrawingTimesUs) {
+                if (ImGui::BeginTable(ICON_FA_WINDOW_RESTORE " Window drawing times", 2, performanceTableFlags)) {
+                    for (const auto& item: metrics::lastWindowDrawingTimesUs) {
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
                         ImGui::Text("%s", item.first.c_str());
@@ -206,7 +206,7 @@ namespace bricksim::gui::windows::debug {
         }
 
         void drawCameraTab() {
-            if (ImGui::BeginTabItem(ICON_FA_CAMERA" Camera")) {
+            if (ImGui::BeginTabItem(ICON_FA_CAMERA " Camera")) {
                 auto camera = controller::getMainSceneCamera();
                 if (ImGui::BeginTable("##cameraTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                     ImGui::TableNextRow();
@@ -258,7 +258,7 @@ namespace bricksim::gui::windows::debug {
                 static char buf[MESHES_TAB_BUF_SIZE];
                 printSceneDescription(allScenes, selectedSceneId, buf);
                 if (ImGui::BeginCombo("Scene", buf)) {
-                    for (const auto &scene : allScenes) {
+                    for (const auto& scene: allScenes) {
                         const bool isSelected = scene.first == selectedSceneId;
                         printSceneDescription(allScenes, scene.first, buf);
                         if (ImGui::Selectable(buf, isSelected)) {
@@ -272,7 +272,7 @@ namespace bricksim::gui::windows::debug {
                     ImGui::EndCombo();
                 }
 
-                auto &selectedScene = allScenes[selectedSceneId];
+                auto& selectedScene = allScenes[selectedSceneId];
                 float meshListTableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 3;
                 drawMeshesList(buf, selectedScene, meshListTableHeight);
                 ImGui::Text("%zu Meshes", selectedScene->getMeshCollection().getUsedMeshes().size());
@@ -283,7 +283,7 @@ namespace bricksim::gui::windows::debug {
 
     }
 
-    void draw(Data &data) {
+    void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
             if (ImGui::BeginTabBar("##debugTabBar")) {
                 drawGeneralTab();

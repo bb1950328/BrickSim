@@ -1,9 +1,9 @@
-#include <spdlog/spdlog.h>
 #include "files.h"
 #include "../helpers/util.h"
 #include "file_repo.h"
-#include <sstream>
 #include <iostream>
+#include <spdlog/spdlog.h>
+#include <sstream>
 
 namespace bricksim::ldr {
     WindingOrder inverseWindingOrder(WindingOrder order) {
@@ -13,21 +13,23 @@ namespace bricksim::ldr {
     std::shared_ptr<ldr::FileElement> ldr::FileElement::parse_line(std::string line, BfcState bfcState) {
         std::string line_content = line.length() > 2 ? line.substr(2) : "";
         switch (line[0] - '0') {
-            //@formatter:off
-        case 0: return std::make_shared<CommentOrMetaElement>(line_content);
-        case 1: return std::make_shared<SubfileReference>(line_content, bfcState.invertNext);
-        case 2: return std::make_shared<Line>(line_content);
-        case 3: return std::make_shared<Triangle>(line_content, bfcState.windingOrder);
-        case 4: return std::make_shared<Quadrilateral>(line_content, bfcState.windingOrder);
-        case 5: return std::make_shared<OptionalLine>(line_content);
-        default: /*throw std::invalid_argument("The line is not valid: \"" + line + "\"");*/ spdlog::warn("invalid line: {}", line); return nullptr;
-        //@formatter:on
+                //@formatter:off
+            case 0: return std::make_shared<CommentOrMetaElement>(line_content);
+            case 1: return std::make_shared<SubfileReference>(line_content, bfcState.invertNext);
+            case 2: return std::make_shared<Line>(line_content);
+            case 3: return std::make_shared<Triangle>(line_content, bfcState.windingOrder);
+            case 4: return std::make_shared<Quadrilateral>(line_content, bfcState.windingOrder);
+            case 5: return std::make_shared<OptionalLine>(line_content);
+            default: /*throw std::invalid_argument("The line is not valid: \"" + line + "\"");*/
+                spdlog::warn("invalid line: {}", line);
+                return nullptr;
+                //@formatter:on
         }
     }
 
     FileElement::~FileElement() = default;
 
-    std::shared_ptr<File> File::parseFile(ldr::FileType fileType, const std::string &name, const std::string &content) {
+    std::shared_ptr<File> File::parseFile(ldr::FileType fileType, const std::string& name, const std::string& content) {
         auto mainFile = std::make_shared<File>();
         mainFile->metaInfo.type = fileType;
         std::stringstream contentStream;
@@ -53,7 +55,7 @@ namespace bricksim::ldr {
                     fileLines[currentSubFileName] += ("\n" + line);
                 }
             }
-            for (auto const &entry: fileLines) {
+            for (auto const& entry: fileLines) {
                 std::shared_ptr<File> currentFile;
                 if (entry.first == name) {
                     currentFile = mainFile;
@@ -67,7 +69,7 @@ namespace bricksim::ldr {
                     }
                 }
 
-                const std::string &currentFileContent = entry.second;
+                const std::string& currentFileContent = entry.second;
                 std::string::size_type pos;
                 std::string::size_type prev = 0;
                 while ((pos = currentFileContent.find('\n', prev)) != std::string::npos) {
@@ -85,7 +87,7 @@ namespace bricksim::ldr {
         return mainFile;
     }
 
-    void File::addTextLine(const std::string &line) {
+    void File::addTextLine(const std::string& line) {
         auto trimmed = util::trim(line);
         unsigned int currentStep = elements.empty() ? 0 : elements.back()->step;
         if (!trimmed.empty()) {
@@ -134,7 +136,7 @@ namespace bricksim::ldr {
     }
 
     void File::printStructure(int indent) {
-        for (const auto &elem : elements) {
+        for (const auto& elem: elements) {
             if (elem->getType() == 1) {
                 auto subfileRef = std::dynamic_pointer_cast<SubfileReference>(elem);
                 for (int i = 0; i < indent; ++i) {
@@ -155,7 +157,7 @@ namespace bricksim::ldr {
     void File::preLoadSubfilesAndEstimateComplexityInternal() {
         referenceCount++;
         if (!subfilesPreloadedAndComplexityEstimated) {
-            for (const auto &elem: elements) {
+            for (const auto& elem: elements) {
                 if (elem->getType() == 1) {
                     std::shared_ptr<File> subFile = std::dynamic_pointer_cast<SubfileReference>(elem)->getFile();
                     subFile->preLoadSubfilesAndEstimateComplexityInternal();
@@ -172,7 +174,7 @@ namespace bricksim::ldr {
         }
     }
 
-    const std::string &File::getDescription() const {
+    const std::string& File::getDescription() const {
         if (!metaInfo.title.empty()) {
             return metaInfo.title;
         } else if (!metaInfo.name.empty()) {
@@ -188,7 +190,7 @@ namespace bricksim::ldr {
         return (metaInfo.type != SUBPART && metaInfo.type != PRIMITIVE);// todo spend more time here, I think there's much more potential here
     }
 
-    const std::size_t &File::getHash() const {
+    const std::size_t& File::getHash() const {
         if (hash == 0) {
             hash = std::hash<std::string>{}(metaInfo.name);
         }
@@ -197,13 +199,14 @@ namespace bricksim::ldr {
 
     File::~File() = default;
 
-    CommentOrMetaElement::CommentOrMetaElement(const std::string &line) {
+    CommentOrMetaElement::CommentOrMetaElement(const std::string& line) {
         content = line;
     }
 
-    SubfileReference::SubfileReference(std::string &line, bool bfcInverted) : bfcInverted(bfcInverted) {
-        char *rest = &line[0];
-        char *pch = strtok_r(rest, " \t", &rest);
+    SubfileReference::SubfileReference(std::string& line, bool bfcInverted) :
+        bfcInverted(bfcInverted) {
+        char* rest = &line[0];
+        char* pch = strtok_r(rest, " \t", &rest);
         color = atoi(pch);
         pch = strtok_r(rest, " \t", &rest);
         x = atof(pch);
@@ -232,9 +235,9 @@ namespace bricksim::ldr {
         filename = util::trim(std::string(rest));
     }
 
-    Line::Line(std::string &line) {
-        char *rest = &line[0];
-        char *pch = strtok_r(rest, " \t", &rest);
+    Line::Line(std::string& line) {
+        char* rest = &line[0];
+        char* pch = strtok_r(rest, " \t", &rest);
         color = atoi(pch);
         pch = strtok_r(rest, " \t", &rest);
         x1 = atof(pch);
@@ -250,9 +253,9 @@ namespace bricksim::ldr {
         z2 = atof(pch);
     }
 
-    Triangle::Triangle(std::string &line, WindingOrder order) {
-        char *rest = &line[0];
-        char *pch = strtok_r(rest, " \t", &rest);
+    Triangle::Triangle(std::string& line, WindingOrder order) {
+        char* rest = &line[0];
+        char* pch = strtok_r(rest, " \t", &rest);
         color = atoi(pch);
         pch = strtok_r(rest, " \t", &rest);
         x1 = atof(pch);
@@ -289,9 +292,9 @@ namespace bricksim::ldr {
         }
     }
 
-    Quadrilateral::Quadrilateral(std::string &line, WindingOrder order) {
-        char *rest = &line[0];
-        char *pch = strtok_r(rest, " \t", &rest);
+    Quadrilateral::Quadrilateral(std::string& line, WindingOrder order) {
+        char* rest = &line[0];
+        char* pch = strtok_r(rest, " \t", &rest);
         color = atoi(pch);
         pch = strtok_r(rest, " \t", &rest);
         x1 = atof(pch);
@@ -340,9 +343,9 @@ namespace bricksim::ldr {
         }
     }
 
-    OptionalLine::OptionalLine(std::string &line) {
-        char *rest = &line[0];
-        char *pch = strtok_r(rest, " \t", &rest);
+    OptionalLine::OptionalLine(std::string& line) {
+        char* rest = &line[0];
+        char* pch = strtok_r(rest, " \t", &rest);
         color = atoi(pch);
         pch = strtok_r(rest, " \t", &rest);
         x1 = atof(pch);
@@ -390,8 +393,7 @@ namespace bricksim::ldr {
                 a, b, c, x,
                 d, e, f, y,
                 g, h, i, z,
-                0.0f, 0.0f, 0.0f, 1.0f
-        };
+                0.0f, 0.0f, 0.0f, 1.0f};
     }
 
     int Line::getType() const {
@@ -410,7 +412,7 @@ namespace bricksim::ldr {
         return 5;
     }
 
-    bool ldr::FileMetaInfo::addLine(const std::string &line) {
+    bool ldr::FileMetaInfo::addLine(const std::string& line) {
         if (firstLine) {
             title = util::trim(line);
             firstLine = false;
@@ -443,7 +445,7 @@ namespace bricksim::ldr {
         return true;
     }
 
-    std::ostream &operator<<(std::ostream &os, const ldr::FileMetaInfo &info) {
+    std::ostream& operator<<(std::ostream& os, const ldr::FileMetaInfo& info) {
         if (!info.title.empty()) {
             os << "0 " << info.title << std::endl;
         }
@@ -460,13 +462,14 @@ namespace bricksim::ldr {
             os << "0 !KEYWORDS ";
             size_t lineWidth = 13;
             bool first = true;
-            for (const auto &kw : info.keywords) {
+            for (const auto& kw: info.keywords) {
                 if (!first) {
                     lineWidth += 2;
                 }
                 lineWidth += kw.size();
                 if (lineWidth > 80) {
-                    os << std::endl << "0 !KEYWORDS ";
+                    os << std::endl
+                       << "0 !KEYWORDS ";
                     lineWidth = 13 + kw.size();
                     first = true;
                 }
@@ -479,7 +482,7 @@ namespace bricksim::ldr {
             os << std::endl;
         }
         if (!info.history.empty()) {
-            for (const auto &historyElement : info.history) {
+            for (const auto& historyElement: info.history) {
                 os << "0 !HISTORY " << historyElement << std::endl;
             }
         }
@@ -492,7 +495,7 @@ namespace bricksim::ldr {
         return os;
     }
 
-    const std::string &ldr::FileMetaInfo::getCategory() {
+    const std::string& ldr::FileMetaInfo::getCategory() {
         if (category == "????") {
             const auto firstSpace = title.find(' ');
             auto start = 0;

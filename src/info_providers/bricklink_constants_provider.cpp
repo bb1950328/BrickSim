@@ -1,7 +1,7 @@
-#include <spdlog/spdlog.h>
-#include <rapidjson/document.h>
 #include "bricklink_constants_provider.h"
 #include "../helpers/util.h"
+#include <rapidjson/document.h>
+#include <spdlog/spdlog.h>
 
 namespace bricksim::info_providers::bricklink_constants {
     namespace {
@@ -9,8 +9,8 @@ namespace bricksim::info_providers::bricklink_constants {
 
         constexpr long fileSizeEstimated = 1056551;
         float* initialisationProgress;
-        int globalConstantsDownloadProgress(void *ptr, long downTotal, long downNow, long upTotal, long upNow) {
-            if (initialisationProgress!= nullptr) {
+        int globalConstantsDownloadProgress(void* ptr, long downTotal, long downNow, long upTotal, long upNow) {
+            if (initialisationProgress != nullptr) {
                 *initialisationProgress = 0.99f * std::min(downNow, fileSizeEstimated) / fileSizeEstimated;
             }
             return 0;
@@ -24,7 +24,7 @@ namespace bricksim::info_providers::bricklink_constants {
         std::map<int, bricklink::Continent> continents;
     }
 
-    void initialize(float *progress) {
+    void initialize(float* progress) {
         if (initialized) {
             spdlog::warn("bricklink_constants_provider::initialize() already called");
         }
@@ -45,105 +45,80 @@ namespace bricksim::info_providers::bricklink_constants {
 
         response.second = response.second.substr(startPos);
 
-        while (response.second.back()!=';') {
+        while (response.second.back() != ';') {
             response.second.pop_back();
         }
         response.second.pop_back();
-
 
         rapidjson::Document d;
         d.Parse(response.second.c_str());
 
         assert(d.IsObject());
 
-        for (const auto &colorFamily : d["color_families"].GetArray()) {
+        for (const auto& colorFamily: d["color_families"].GetArray()) {
             std::vector<int> arrColorsVector;
             const auto arrColors = colorFamily["arrColors"].GetArray();
-            for (const auto &arrColor : arrColors) {
+            for (const auto& arrColor: arrColors) {
                 arrColorsVector.push_back(arrColor.GetInt());
             }
             auto id = colorFamily["idColorFamily"].GetInt();
-            colorFamilies.insert({id, {id,
-                                       colorFamily["strName"].GetString(),
-                                       colorFamily["strRGBAHex"].GetString(),
-                                       arrColorsVector}});
+            colorFamilies.insert({id, {id, colorFamily["strName"].GetString(), colorFamily["strRGBAHex"].GetString(), arrColorsVector}});
         }
 
-        for (const auto &item : d["color_types"].GetArray()) {
+        for (const auto& item: d["color_types"].GetArray()) {
             auto typeColor = item["typeColor"].GetInt();
             colorTypes.insert({typeColor, {typeColor, item["strName"].GetString()}});
         }
 
-        for (const auto &color : d["colors"].GetArray()) {
+        for (const auto& color: d["colors"].GetArray()) {
             auto idColor = color["idColor"].GetInt();
-            const char *strColorName = color["strColorName"].GetString();
+            const char* strColorName = color["strColorName"].GetString();
             int typeColor = color["typeColor"].GetInt();
-            const char *strColorHex = color["strColorHex"].GetString();
-            const char *strColorSort = color["strColorSort"].IsNull()?"":color["strColorSort"].GetString();
-            colors.insert({idColor, {
-                    idColor,
-                    strColorName,
-                    typeColor,
-                    strColorHex,
-                    strColorSort}
-            });
+            const char* strColorHex = color["strColorHex"].GetString();
+            const char* strColorSort = color["strColorSort"].IsNull() ? "" : color["strColorSort"].GetString();
+            colors.insert({idColor, {idColor, strColorName, typeColor, strColorHex, strColorSort}});
         }
 
-        for (const auto &currency : d["currencies"].GetArray()) {
+        for (const auto& currency: d["currencies"].GetArray()) {
             auto idCurrency = currency["idCurrency"].GetInt();
-            currencies.insert({idCurrency, {
-                idCurrency,
-                currency["codeCurrency"].GetString(),
-                currency["sign_long"].GetString(),
-                currency["sign_short"].GetString(),
-                currency["fraction"].GetInt()
-            }});
+            currencies.insert({idCurrency, {idCurrency, currency["codeCurrency"].GetString(), currency["sign_long"].GetString(), currency["sign_short"].GetString(), currency["fraction"].GetInt()}});
         }
 
-        for (const auto &country : d["countries"].GetArray()) {
+        for (const auto& country: d["countries"].GetArray()) {
             auto codeCountry = country["codeCountry"].GetString();
-            countries.insert({codeCountry, {
-                codeCountry,
-                country["strCountryName"].GetString(),
-                country["idCurrency"].GetInt(),
-                country["idContinent"].GetInt(),
-                country["isEUCountry"].GetBool()
-            }});
+            countries.insert({codeCountry, {codeCountry, country["strCountryName"].GetString(), country["idCurrency"].GetInt(), country["idContinent"].GetInt(), country["isEUCountry"].GetBool()}});
         }
 
-        for (const auto &continent : d["continents"].GetArray()) {
+        for (const auto& continent: d["continents"].GetArray()) {
             auto idContinent = continent["idContinent"].GetInt();
-            continents.insert({idContinent, {
-                idContinent,
-                continent["strContinentName"].GetString()
-            }});
+            continents.insert({idContinent, {idContinent, continent["strContinentName"].GetString()}});
         }
 
         *progress = 1.0f;
         initialized = true;
     }
 
-    const std::map<int, bricklink::ColorFamily> &getColorFamilies() {
+    const std::map<int, bricklink::ColorFamily>& getColorFamilies() {
         return colorFamilies;
     }
 
-    const std::map<int, bricklink::ColorType> &getColorTypes() {
+    const std::map<int, bricklink::ColorType>& getColorTypes() {
         return colorTypes;
     }
 
-    const std::map<int, bricklink::Color> &getColors() {
+    const std::map<int, bricklink::Color>& getColors() {
         return colors;
     }
 
-    const std::map<int, bricklink::Currency> &getCurrencies() {
+    const std::map<int, bricklink::Currency>& getCurrencies() {
         return currencies;
     }
 
-    const std::map<std::string, bricklink::Country> &getCountries() {
+    const std::map<std::string, bricklink::Country>& getCountries() {
         return countries;
     }
 
-    const std::map<int, bricklink::Continent> &getContinents() {
+    const std::map<int, bricklink::Continent>& getContinents() {
         return continents;
     }
 }

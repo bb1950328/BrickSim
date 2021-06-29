@@ -7,6 +7,7 @@ namespace bricksim::part_finder {
         //todo add more sophisticated search
     private:
         std::string expression;
+
     public:
         [[nodiscard]] bool matches(const ldr::File& part) const;
         explicit Predicate(std::string expression);
@@ -14,4 +15,3 @@ namespace bricksim::part_finder {
 
     const Predicate& getPredicate(const std::string& expression);
 }
-

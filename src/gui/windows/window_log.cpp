@@ -1,16 +1,16 @@
-#include <tinyfiledialogs.h>
-#include <filesystem>
-#include <fstream>
-#include "../gui.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "../../logging/latest_log_messages_tank.h"
+#include "../gui.h"
+#include <filesystem>
+#include <fstream>
+#include <tinyfiledialogs.h>
 
 #include "window_log.h"
 
 namespace bricksim::gui::windows::log {
     namespace {
         constexpr int NUM_LOG_FILTER_PATTERNS = 2;
-        char const *logFilterPatterns[NUM_LOG_FILTER_PATTERNS] = {"*.log", "*.txt"};
+        char const* logFilterPatterns[NUM_LOG_FILTER_PATTERNS] = {"*.log", "*.txt"};
 
         ImVec4 levelToColor(const unsigned char level) {
             switch (level) {
@@ -24,7 +24,7 @@ namespace bricksim::gui::windows::log {
             }
         }
 
-        const char *levelToText(const unsigned char level) {
+        const char* levelToText(const unsigned char level) {
             switch (level) {
                 case 0: return "TRACE";
                 case 1: return "DEBUG";
@@ -47,11 +47,11 @@ namespace bricksim::gui::windows::log {
             ImGui::PopStyleColor();
 
             ImGui::SameLine();
-            bool copyClicked = ImGui::Button(ICON_FA_CLIPBOARD" Copy");
+            bool copyClicked = ImGui::Button(ICON_FA_CLIPBOARD " Copy");
             ImGui::SameLine();
-            bool saveClicked = ImGui::Button(ICON_FA_SAVE" Save");
+            bool saveClicked = ImGui::Button(ICON_FA_SAVE " Save");
             ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_BAN" Clear")) {
+            if (ImGui::Button(ICON_FA_BAN " Clear")) {
                 logging::latest_messages_tank::clear();
             }
 
@@ -100,7 +100,7 @@ namespace bricksim::gui::windows::log {
                 }
                 if (saveClicked) {
                     const auto path = std::filesystem::path(tinyfd_saveFileDialog("Save log to file", nullptr,
-                                                            NUM_LOG_FILTER_PATTERNS, logFilterPatterns, nullptr));
+                                                                                  NUM_LOG_FILTER_PATTERNS, logFilterPatterns, nullptr));
                     std::ofstream outFile(path);
                     outFile << exportResult;
                     outFile.close();

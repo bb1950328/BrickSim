@@ -1,12 +1,12 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include "types.h"
-#include "helpers/ray.h"
 #include "element_tree.h"
 #include "graphics/mesh/mesh_generated.h"
 #include "graphics/scene.h"
+#include "helpers/ray.h"
+#include "types.h"
 #include <array>
+#include <glm/glm.hpp>
 
 namespace bricksim::transform_gizmo {
 
@@ -46,16 +46,17 @@ namespace bricksim::transform_gizmo {
         virtual void update(const glm::vec2& mouseDelta) = 0;
         virtual void cancel() = 0;
         virtual constexpr TransformType getType() = 0;
-        explicit TransformOperation(TransformGizmo &gizmo);
+        explicit TransformOperation(TransformGizmo& gizmo);
         virtual ~TransformOperation();
     };
 
     class Translate1dOperation : public TransformOperation {
     public:
-        Translate1dOperation(TransformGizmo &gizmo, const glm::vec2 &startMousePos, int axis);
-        void update(const glm::vec2 &mouseDelta) override;
+        Translate1dOperation(TransformGizmo& gizmo, const glm::vec2& startMousePos, int axis);
+        void update(const glm::vec2& mouseDelta) override;
         void cancel() override;
         constexpr TransformType getType() override;
+
     private:
         glm::vec3 getClosestPointOnTransformRay(const glm::svec2& mouseCoords);
         Ray3 calculateTransformRay(int axis);
@@ -69,7 +70,7 @@ namespace bricksim::transform_gizmo {
     class TG2DArrowNode : public etree::MeshNode {
     private:
     public:
-        TG2DArrowNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent);
+        TG2DArrowNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent);
         mesh_identifier_t getMeshIdentifier() const override;
         void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
         bool isDisplayNameUserEditable() const override;
@@ -79,14 +80,16 @@ namespace bricksim::transform_gizmo {
     class TGNode : public etree::Node {
         friend class TransformOperation;
         friend class Translate1dOperation;
+
     private:
         std::array<std::shared_ptr<mesh::generated::ArrowNode>, 3> translate1dArrows;
         std::array<std::shared_ptr<mesh::generated::QuarterTorusNode>, 3> rotateQuarterTori;
         std::array<std::shared_ptr<TG2DArrowNode>, 3> translate2dArrows;
         std::shared_ptr<mesh::generated::UVSphereNode> centerBall;
         PovState povState;
+
     public:
-        explicit TGNode(const std::shared_ptr<etree::Node> &parent);
+        explicit TGNode(const std::shared_ptr<etree::Node>& parent);
         void initElements();
         bool isTransformationUserEditable() const override;
         bool isDisplayNameUserEditable() const override;
@@ -100,6 +103,7 @@ namespace bricksim::transform_gizmo {
     class TransformGizmo {
         friend class TransformOperation;
         friend class Translate1dOperation;
+
     private:
         std::shared_ptr<graphics::Scene> scene;
         std::shared_ptr<TGNode> node;
@@ -114,11 +118,12 @@ namespace bricksim::transform_gizmo {
         glm::vec3 nodePosition;
 
         std::shared_ptr<etree::Node> currentlySelectedNode;
+
     public:
         explicit TransformGizmo(std::shared_ptr<graphics::Scene> scene);
         void update();
         bool ownsNode(const std::shared_ptr<etree::Node>& node_);
-        void startDrag(std::shared_ptr<etree::Node> &draggedNode, glm::svec2 initialCursorPos);
+        void startDrag(std::shared_ptr<etree::Node>& draggedNode, glm::svec2 initialCursorPos);
         void updateCurrentDragDelta(glm::svec2 totalDragDelta);
         void endDrag();
         virtual ~TransformGizmo();

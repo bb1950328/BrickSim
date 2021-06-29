@@ -1,8 +1,8 @@
-#include <ostream>
-#include <sstream>
-#include "../gui.h"
 #include "../../helpers/system_info.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../gui.h"
+#include <ostream>
+#include <sstream>
 
 #include "window_system_info.h"
 
@@ -12,7 +12,7 @@ namespace bricksim::gui::windows::system_info {
         if (ImGui::Begin(data.name, &data.visible, ImGuiWindowFlags_AlwaysAutoResize)) {
             static const auto infoLines = getSystemInfo();
             if (ImGui::BeginTable("##sysInfoTable", 2)) {
-                for (const auto &line: infoLines) {
+                for (const auto& line: infoLines) {
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
                     ImGui::Text("%s", line.first.c_str());
@@ -22,15 +22,15 @@ namespace bricksim::gui::windows::system_info {
                 ImGui::EndTable();
             }
 
-            if (ImGui::Button(ICON_FA_COPY" Copy to clipboard")) {
+            if (ImGui::Button(ICON_FA_COPY " Copy to clipboard")) {
                 std::stringstream result;
-                for (const auto &line: infoLines) {
+                for (const auto& line: infoLines) {
                     result << line.first << "\t" << line.second << std::endl;
                 }
                 glfwSetClipboardString(getWindow(), result.str().data());
             }
             ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_WINDOW_CLOSE" Close")) {
+            if (ImGui::Button(ICON_FA_WINDOW_CLOSE " Close")) {
                 data.visible = false;
             }
         }

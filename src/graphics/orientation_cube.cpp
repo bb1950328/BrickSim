@@ -1,8 +1,8 @@
-#include <glm/ext/matrix_transform.hpp>
 #include "orientation_cube.h"
-#include "scene.h"
-#include "../controller.h"
 #include "../constant_data/resources.h"
+#include "../controller.h"
+#include "scene.h"
+#include <glm/ext/matrix_transform.hpp>
 
 namespace bricksim::graphics::orientation_cube {
     namespace {
@@ -29,7 +29,7 @@ namespace bricksim::graphics::orientation_cube {
         }
         scene = scenes::create(scenes::ORIENTATION_CUBE_SCENE_ID);
 
-        const auto &rootNode = std::make_shared<etree::RootNode>();
+        const auto& rootNode = std::make_shared<etree::RootNode>();
         scene->setRootNode(rootNode);
         rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::RIGHT));
         rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::BOTTOM));
@@ -62,9 +62,9 @@ namespace bricksim::graphics::orientation_cube {
 
     std::optional<CubeSide> getSide(glm::usvec2 pos) {
         updateCamera();
-        const element_id_t elementId = scene->getSelectionPixel(pos.x, size-pos.y);
-        if (elementId != 0)  {
-            const auto &element = scene->getMeshCollection().getElementById(elementId);
+        const element_id_t elementId = scene->getSelectionPixel(pos.x, size - pos.y);
+        if (elementId != 0) {
+            const auto& element = scene->getMeshCollection().getElementById(elementId);
             if (element != nullptr) {
                 return std::dynamic_pointer_cast<OrientationCubeSideMeshNode>(element)->getSide();
             }
@@ -77,14 +77,15 @@ namespace bricksim::graphics::orientation_cube {
     }
 
     mesh_identifier_t OrientationCubeSideMeshNode::getMeshIdentifier() const {
-        return constants::MESH_ID_ORIENTATION_CUBE_FIRST+static_cast<int>(side);
+        return constants::MESH_ID_ORIENTATION_CUBE_FIRST + static_cast<int>(side);
     }
 
     bool OrientationCubeSideMeshNode::isDisplayNameUserEditable() const {
         return false;
     }
 
-    OrientationCubeSideMeshNode::OrientationCubeSideMeshNode(const std::shared_ptr<etree::Node> &parent, CubeSide side) : MeshNode(ldr::color_repo::getInstanceDummyColor(), parent), side(side) {}
+    OrientationCubeSideMeshNode::OrientationCubeSideMeshNode(const std::shared_ptr<etree::Node>& parent, CubeSide side) :
+        MeshNode(ldr::color_repo::getInstanceDummyColor(), parent), side(side) {}
 
     void OrientationCubeSideMeshNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
         auto texture = std::make_shared<Texture>(resources::orientation_cube_jpg.data(), resources::orientation_cube_jpg.size());
@@ -106,76 +107,76 @@ namespace bricksim::graphics::orientation_cube {
             case CubeSide::RIGHT:
                 mesh->addTexturedTriangle(texture,
                                           {+1, +1, +1}, {1.0f / 6, 1}, /*rearRightBottom*/
-                                          {+1, -1, -1}, {0, 0}, /*frontRightTop*/
-                                          {+1, +1, -1}, {0, 1}/*frontRightBottom*/
-                );// Right A
+                                          {+1, -1, -1}, {0, 0},        /*frontRightTop*/
+                                          {+1, +1, -1}, {0, 1}         /*frontRightBottom*/
+                );                                                     // Right A
                 mesh->addTexturedTriangle(texture,
-                                          {+1, -1, -1}, {0, 0}, /*frontRightTop*/
+                                          {+1, -1, -1}, {0, 0},        /*frontRightTop*/
                                           {+1, +1, +1}, {1.0f / 6, 1}, /*rearRightBottom*/
-                                          {+1, -1, +1}, {1.0f / 6, 0}/*rearRightTop*/
-                );// Right B
+                                          {+1, -1, +1}, {1.0f / 6, 0}  /*rearRightTop*/
+                );                                                     // Right B
                 break;
             case CubeSide::BOTTOM:
                 mesh->addTexturedTriangle(texture,
                                           {+1, -1, -1}, {1.0f / 3, 1},//frontRightTop
                                           {-1, -1, +1}, {1.0f / 6, 0},//rearLeftTop
-                                          {-1, -1, -1}, {1.0f / 6, 1}//frontLeftTop
-                );//Top A
+                                          {-1, -1, -1}, {1.0f / 6, 1} //frontLeftTop
+                );                                                    //Top A
                 mesh->addTexturedTriangle(texture,
                                           {-1, -1, +1}, {1.0f / 6, 0},//rearLeftTop
                                           {+1, -1, -1}, {1.0f / 3, 1},//frontRightTop
-                                          {+1, -1, +1}, {1.0f / 3, 0}//rearRightTop
-                );//Top B
+                                          {+1, -1, +1}, {1.0f / 3, 0} //rearRightTop
+                );                                                    //Top B
                 break;
             case CubeSide::BACK:
                 mesh->addTexturedTriangle(texture,
                                           {-1, +1, +1}, {1.0f / 2, 1},//rearLeftBottom
                                           {+1, -1, +1}, {1.0f / 3, 0},//rearRightTop
-                                          {+1, +1, +1}, {1.0f / 3, 1}//rearRightBottom
-                );//Back A
+                                          {+1, +1, +1}, {1.0f / 3, 1} //rearRightBottom
+                );                                                    //Back A
                 mesh->addTexturedTriangle(texture,
                                           {+1, -1, +1}, {1.0f / 3, 0},//rearRightTop
                                           {-1, +1, +1}, {1.0f / 2, 1},//rearLeftBottom
-                                          {-1, -1, +1}, {1.0f / 2, 0}//rearLeftTop
-                );//Back B
+                                          {-1, -1, +1}, {1.0f / 2, 0} //rearLeftTop
+                );                                                    //Back B
 
                 break;
             case CubeSide::LEFT:
                 mesh->addTexturedTriangle(texture,
                                           {-1, +1, -1}, {2.0f / 3, 1},//frontLeftBottom
                                           {-1, -1, +1}, {1.0f / 2, 0},//rearLeftTop
-                                          {-1, +1, +1}, {1.0f / 2, 1}//rearLeftBottom
-                );//Left A
+                                          {-1, +1, +1}, {1.0f / 2, 1} //rearLeftBottom
+                );                                                    //Left A
                 mesh->addTexturedTriangle(texture,
                                           {-1, -1, +1}, {1.0f / 2, 0},//rearLeftTop
                                           {-1, +1, -1}, {2.0f / 3, 1},//frontLeftBottom
-                                          {-1, -1, -1}, {2.0f / 3, 0}//frontLeftTop
-                );//Left B
+                                          {-1, -1, -1}, {2.0f / 3, 0} //frontLeftTop
+                );                                                    //Left B
 
                 break;
             case CubeSide::TOP:
                 mesh->addTexturedTriangle(texture,
                                           {+1, +1, +1}, {5.0f / 6, 1},//rearRightBottom
                                           {-1, +1, -1}, {2.0f / 3, 0},//frontLeftBottom
-                                          {-1, +1, +1}, {2.0f / 3, 1}//rearLeftBottom
-                );//Bottom A
+                                          {-1, +1, +1}, {2.0f / 3, 1} //rearLeftBottom
+                );                                                    //Bottom A
                 mesh->addTexturedTriangle(texture,
                                           {-1, +1, -1}, {2.0f / 3, 0},//frontLeftBottom
                                           {+1, +1, +1}, {5.0f / 6, 1},//rearRightBottom
-                                          {+1, +1, -1}, {5.0f / 6, 0}//frontRightBottom
-                );//Bottom B
+                                          {+1, +1, -1}, {5.0f / 6, 0} //frontRightBottom
+                );                                                    //Bottom B
                 break;
             case CubeSide::FRONT:
                 mesh->addTexturedTriangle(texture,
-                                          {+1, +1, -1}, {1, 1},//frontRightBottom
+                                          {+1, +1, -1}, {1, 1},       //frontRightBottom
                                           {-1, -1, -1}, {5.0f / 6, 0},//frontLeftTop
-                                          {-1, +1, -1}, {5.0f / 6, 1}//frontLeftBottom
-                );//Front A
+                                          {-1, +1, -1}, {5.0f / 6, 1} //frontLeftBottom
+                );                                                    //Front A
                 mesh->addTexturedTriangle(texture,
                                           {-1, -1, -1}, {5.0f / 6, 0},//frontLeftTop
-                                          {+1, +1, -1}, {1, 1},//frontRightBottom
-                                          {+1, -1, -1}, {1, 0}//frontRightTop
-                );//Front B
+                                          {+1, +1, -1}, {1, 1},       //frontRightBottom
+                                          {+1, -1, -1}, {1, 0}        //frontRightTop
+                );                                                    //Front B
         }
         mesh->name = "Orientation Cube";
     }
@@ -193,21 +194,20 @@ namespace bricksim::graphics::orientation_cube {
             viewPos = glm::vec3(
                     distance * std::cos(pitch) * std::cos(yaw),
                     distance * std::sin(pitch),
-                    distance * std::sin(yaw) * std::cos(pitch)
-            );
+                    distance * std::sin(yaw) * std::cos(pitch));
             viewMatrix = glm::lookAt(viewPos, target, {0.0f, 1.0f, 0.0f});
         }
     }
 
-    const glm::mat4 &OrientationCubeCamera::getViewMatrix() const {
+    const glm::mat4& OrientationCubeCamera::getViewMatrix() const {
         return viewMatrix;
     }
 
-    const glm::vec3 &OrientationCubeCamera::getCameraPos() const {
+    const glm::vec3& OrientationCubeCamera::getCameraPos() const {
         return viewPos;
     }
 
-    const glm::vec3 &OrientationCubeCamera::getTargetPos() const {
+    const glm::vec3& OrientationCubeCamera::getTargetPos() const {
         return target;
     }
 }

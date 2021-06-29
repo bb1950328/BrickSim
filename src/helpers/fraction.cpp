@@ -1,15 +1,16 @@
-#include <stdexcept>
+#include "fraction.h"
 #include <numeric>
 #include <ostream>
-#include "fraction.h"
+#include <stdexcept>
 
 namespace bricksim {
-    Fraction::Fraction(long a, long b) : a(a), b(b) {
+    Fraction::Fraction(long a, long b) :
+        a(a), b(b) {
         checkBnot0();
         simplify();
     }
 
-    Fraction::Fraction(const Fraction &copyFrom) = default;
+    Fraction::Fraction(const Fraction& copyFrom) = default;
 
     void Fraction::checkBnot0() const {
         if (0 == b) {
@@ -23,23 +24,23 @@ namespace bricksim {
         b /= gcd;
     }
 
-    Fraction Fraction::operator+(const Fraction &other) const {
+    Fraction Fraction::operator+(const Fraction& other) const {
         return Fraction(a * other.b + other.a * b, b * other.b);
     }
 
-    Fraction Fraction::operator-(const Fraction &other) const {
+    Fraction Fraction::operator-(const Fraction& other) const {
         return Fraction(a * other.b - other.a * b, b * other.b);
     }
 
-    Fraction Fraction::operator*(const Fraction &other) const {
+    Fraction Fraction::operator*(const Fraction& other) const {
         return Fraction(a * other.a, b * other.b);
     }
 
-    Fraction Fraction::operator/(const Fraction &other) const {
+    Fraction Fraction::operator/(const Fraction& other) const {
         return Fraction(a * other.b, b * other.a);
     }
 
-    Fraction Fraction::operator+=(const Fraction &other) {
+    Fraction Fraction::operator+=(const Fraction& other) {
         auto tmpA = a * other.b + other.a * b;
         auto tmpB = b * other.b;
         a = tmpA;
@@ -47,7 +48,7 @@ namespace bricksim {
         return Fraction(*this);
     }
 
-    Fraction Fraction::operator-=(const Fraction &other) {
+    Fraction Fraction::operator-=(const Fraction& other) {
         auto tmpA = a * other.b - other.a * b;
         auto tmpB = b * other.b;
         a = tmpA;
@@ -56,14 +57,14 @@ namespace bricksim {
         return Fraction(*this);
     }
 
-    Fraction Fraction::operator*=(const Fraction &other) {
+    Fraction Fraction::operator*=(const Fraction& other) {
         a = a * other.a;
         b = b * other.b;
         simplify();
         return Fraction(*this);
     }
 
-    Fraction Fraction::operator/=(const Fraction &other) {
+    Fraction Fraction::operator/=(const Fraction& other) {
         a = a * other.b;
         b = b * other.a;
         simplify();
@@ -110,31 +111,31 @@ namespace bricksim {
         return Fraction(*this);
     }
 
-    bool Fraction::operator==(const Fraction &other) const {
+    bool Fraction::operator==(const Fraction& other) const {
         return a == other.a && b == other.b;
     }
 
-    bool Fraction::operator!=(const Fraction &other) const {
+    bool Fraction::operator!=(const Fraction& other) const {
         return a != other.a || b != other.b;
     }
 
-    bool Fraction::operator>(const Fraction &other) const {
+    bool Fraction::operator>(const Fraction& other) const {
         return a * other.b > other.a * b;
     }
 
-    bool Fraction::operator<(const Fraction &other) const {
+    bool Fraction::operator<(const Fraction& other) const {
         return a * other.b < other.a * b;
     }
 
-    bool Fraction::operator>=(const Fraction &other) const {
+    bool Fraction::operator>=(const Fraction& other) const {
         return (a == other.a && b == other.b) || a * other.b > other.a * b;
     }
 
-    bool Fraction::operator<=(const Fraction &other) const {
+    bool Fraction::operator<=(const Fraction& other) const {
         return (a == other.a && b == other.b) || a * other.b < other.a * b;
     }
 
-    std::ostream &operator<<(std::ostream &os, const Fraction &fraction) {
+    std::ostream& operator<<(std::ostream& os, const Fraction& fraction) {
         os << "(" << fraction.a << " / " << fraction.b << ")";
         return os;
     }

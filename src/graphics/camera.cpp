@@ -1,7 +1,7 @@
-#include <glm/ext/matrix_transform.hpp>
 #include "camera.h"
 #include "../config.h"
 #include "mesh/mesh_collection.h"
+#include <glm/ext/matrix_transform.hpp>
 
 namespace bricksim::graphics {
     void CadCamera::updateVectors() {
@@ -16,9 +16,9 @@ namespace bricksim::graphics {
 
     CadCamera::CadCamera() {
         target = glm::vec3(0.0f, 0.0f, 0.0f);
-        mouseRotateSensitivity = (float) config::get(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY);
-        mousePanSensitivity = (float) config::get(config::MOUSE_3DVIEW_PAN_SENSITIVITY);
-        mouseZoomSensitivity = (float) config::get(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY);
+        mouseRotateSensitivity = (float)config::get(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY);
+        mousePanSensitivity = (float)config::get(config::MOUSE_3DVIEW_PAN_SENSITIVITY);
+        mouseZoomSensitivity = (float)config::get(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY);
         updateVectors();
     }
 
@@ -34,8 +34,7 @@ namespace bricksim::graphics {
             glm::vec3 up{
                     cos(glm::radians(yaw)) * cos(glm::radians(pitch + 90)),
                     sin(glm::radians(pitch + 90)),
-                    sin(glm::radians(yaw)) * cos(glm::radians(pitch + 90))
-            };
+                    sin(glm::radians(yaw)) * cos(glm::radians(pitch + 90))};
             glm::vec3 right{-sin(glm::radians(yaw)), 0, cos(glm::radians(yaw))};
 
             glm::vec3 move = x_delta * mousePanSensitivity / 30 * right + y_delta * mousePanSensitivity / 30 * up;
@@ -52,30 +51,36 @@ namespace bricksim::graphics {
         updateVectors();
     }
 
-    const glm::vec3 &CadCamera::getCameraPos() const {
+    const glm::vec3& CadCamera::getCameraPos() const {
         return cameraPos;
     }
 
     void CadCamera::setStandardView(int i) {
         switch (i) {
-            case 1: yaw = 90.0f;
+            case 1:
+                yaw = 90.0f;
                 pitch = 0.0f;
-                break; //Front
-            case 2: yaw = 90.0f;
+                break;//Front
+            case 2:
+                yaw = 90.0f;
                 pitch = 89.99f;
-                break; //Top
-            case 3: yaw = 0.0f;
+                break;//Top
+            case 3:
+                yaw = 0.0f;
                 pitch = 0.0f;
-                break; //Right
-            case 4: yaw = 270.0f;
+                break;//Right
+            case 4:
+                yaw = 270.0f;
                 pitch = 0.0f;
-                break; //Rear
-            case 5: yaw = 90.0f;
+                break;//Rear
+            case 5:
+                yaw = 90.0f;
                 pitch = -89.99f;
-                break; //Bottom
-            case 6: yaw = 180.0f;
+                break;//Bottom
+            case 6:
+                yaw = 180.0f;
                 pitch = 0.0f;
-                break; //Left
+                break;//Left
             default: throw std::invalid_argument("1...6 only");
         }
         target = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -107,11 +112,11 @@ namespace bricksim::graphics {
         yaw = value;
     }
 
-    const glm::mat4 &CadCamera::getViewMatrix() const {
+    const glm::mat4& CadCamera::getViewMatrix() const {
         return viewMatrix;
     }
 
-    const glm::vec3 &CadCamera::getTargetPos() const {
+    const glm::vec3& CadCamera::getTargetPos() const {
         return target;
     }
 
@@ -123,11 +128,10 @@ namespace bricksim::graphics {
         mousePan(delta.x, delta.y);
     }
 
-
-    void FitContentCamera::setRootNode(const std::shared_ptr<etree::MeshNode> &node) {
+    void FitContentCamera::setRootNode(const std::shared_ptr<etree::MeshNode>& node) {
         //todo make this work for any node, not just simple parts
-        const auto &mesh = mesh::SceneMeshCollection::getMesh(mesh::SceneMeshCollection::getMeshKey(node, false), node);
-        const auto &minimalEnclosingBall = mesh->getMinimalEnclosingBall();
+        const auto& mesh = mesh::SceneMeshCollection::getMesh(mesh::SceneMeshCollection::getMeshKey(node, false), node);
+        const auto& minimalEnclosingBall = mesh->getMinimalEnclosingBall();
         auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL_SCALE;
         target = glm::vec4(minimalEnclosingBall.first, 1.0f) * constants::LDU_TO_OPENGL;
 
@@ -136,25 +140,25 @@ namespace bricksim::graphics {
         auto s = glm::radians(45.0f);//todo make variable
         auto t = glm::radians(45.0f);
         cameraPos = glm::vec3(
-                distance * std::cos(s) * std::cos(t),
-                distance * std::sin(s) * std::cos(t),
-                distance * std::sin(t)
-        ) + target;
+                            distance * std::cos(s) * std::cos(t),
+                            distance * std::sin(s) * std::cos(t),
+                            distance * std::sin(t))
+                    + target;
 
         viewMatrix = glm::lookAt(cameraPos,
                                  glm::vec3(0) + target,
                                  glm::vec3(0.0f, 1.0f, 0.0f));
     }
 
-    const glm::mat4 &FitContentCamera::getViewMatrix() const {
+    const glm::mat4& FitContentCamera::getViewMatrix() const {
         return viewMatrix;
     }
 
-    const glm::vec3 &FitContentCamera::getCameraPos() const {
+    const glm::vec3& FitContentCamera::getCameraPos() const {
         return cameraPos;
     }
 
-    const glm::vec3 &FitContentCamera::getTargetPos() const {
+    const glm::vec3& FitContentCamera::getTargetPos() const {
         return target;
     }
 }

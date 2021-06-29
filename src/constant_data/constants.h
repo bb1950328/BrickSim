@@ -1,6 +1,6 @@
 #pragma once
-#include "../types.h"
 #include "../helpers/platform_detection.h"
+#include "../types.h"
 
 namespace bricksim::constants {
     constexpr float LDU_TO_OPENGL_SCALE = 0.01f;
@@ -20,9 +20,9 @@ namespace bricksim::constants {
     extern const uint16_t versionMajor;
     extern const uint16_t versionMinor;
     extern const uint16_t versionPatch;
-    extern const char *versionString;
+    extern const char* versionString;
 
     extern const float totalWorkHours;
     extern const uint16_t gitCommitCount;
-    extern const char *gitCommitHash;
+    extern const char* gitCommitHash;
 }

@@ -1,7 +1,6 @@
+#include "db.h"
 #include <SQLiteCpp/Database.h>
 #include <spdlog/spdlog.h>
-#include "db.h"
-
 
 namespace bricksim::db {
     namespace {
@@ -40,7 +39,7 @@ namespace bricksim::db {
             stmt.exec();
         }
 
-        void escapeSqlStringLiterals(std::string &str) {
+        void escapeSqlStringLiterals(std::string& str) {
             auto it = str.find('\'');
             while (it != std::string::npos) {
                 str.insert(it, 1, '\'');
@@ -137,7 +136,7 @@ namespace bricksim::db {
     }
 
     namespace requestCache {
-        std::optional<std::string> get(const std::string &url) {
+        std::optional<std::string> get(const std::string& url) {
             SQLite::Statement stmt(cacheDb.value(), "SELECT response FROM requestCache WHERE url=?;");
             stmt.bind(1, url);
             if (stmt.executeStep()) {
@@ -146,7 +145,7 @@ namespace bricksim::db {
             return {};
         }
 
-        void put(const std::string &url, const std::string &response) {
+        void put(const std::string& url, const std::string& response) {
             SQLite::Statement stmt(cacheDb.value(), "INSERT INTO requestCache (url, response) VALUES (?, ?);");
             stmt.bind(1, url);
             stmt.bind(2, response);
@@ -155,7 +154,7 @@ namespace bricksim::db {
     }
 
     namespace priceGuideCache {
-        std::optional<info_providers::price_guide::PriceGuide> get(const std::string &partCode, const std::string &currencyCode, const std::string &colorName) {
+        std::optional<info_providers::price_guide::PriceGuide> get(const std::string& partCode, const std::string& currencyCode, const std::string& colorName) {
             SQLite::Statement stmt(cacheDb.value(), "SELECT * FROM priceGuideCache WHERE partCode=? AND currencyCode=? AND colorName=?");
             stmt.bind(1, partCode);
             stmt.bind(2, currencyCode);
@@ -169,13 +168,12 @@ namespace bricksim::db {
                         static_cast<float>(stmt.getColumn("minPrice").getDouble()),
                         static_cast<float>(stmt.getColumn("avgPrice").getDouble()),
                         static_cast<float>(stmt.getColumn("qtyAvgPrice").getDouble()),
-                        static_cast<float>(stmt.getColumn("maxPrice").getDouble())
-                };
+                        static_cast<float>(stmt.getColumn("maxPrice").getDouble())};
             }
             return {};
         }
 
-        void put(const std::string &partCode, const std::string &currencyCode, const std::string &colorName, const info_providers::price_guide::PriceGuide &value) {
+        void put(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, const info_providers::price_guide::PriceGuide& value) {
             SQLite::Statement stmt(cacheDb.value(),
                                    "REPLACE INTO priceGuideCache (partCode,currencyCode,colorName,available,totalLots,totalQty,minPrice,avgPrice,qtyAvgPrice,maxPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
             stmt.bind(1, partCode);
@@ -220,7 +218,7 @@ namespace bricksim::db {
             return {};
         }
 
-        void setString(const char* key, const std::string &value) {
+        void setString(const char* key, const std::string& value) {
             SQLite::Statement query(configDb.value(), "REPLACE INTO strings (key, value) VALUES (?, ?)");
             query.bind(1, key);
             query.bind(2, value);
@@ -257,7 +255,7 @@ namespace bricksim::db {
             return -1;
         }
 
-        void put(const std::string &name, const std::string &title, const std::string &category) {
+        void put(const std::string& name, const std::string& title, const std::string& category) {
             SQLite::Statement stmt(cacheDb.value(), "INSERT INTO files (name, title, category) VALUES (?, ?, ?);");
             stmt.bind(1, name);
             stmt.bind(2, title);
@@ -283,7 +281,7 @@ namespace bricksim::db {
             return result;
         }
 
-        std::set<std::string> getAllPartsForCategory(const std::string &category) {
+        std::set<std::string> getAllPartsForCategory(const std::string& category) {
             SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files WHERE category=?;");
             stmt.bind(1, category);
             std::set<std::string> result;
@@ -293,7 +291,7 @@ namespace bricksim::db {
             return result;
         }
 
-        std::optional<std::string> containsFile(const std::string &name) {
+        std::optional<std::string> containsFile(const std::string& name) {
             SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files WHERE name=?;");
             stmt.bind(1, name);
             if (stmt.executeStep()) {
@@ -303,24 +301,22 @@ namespace bricksim::db {
             }
         }
 
-        std::optional<Entry> findFile(const std::string &name) {
+        std::optional<Entry> findFile(const std::string& name) {
             SQLite::Statement stmt(cacheDb.value(), "SELECT name, title, category FROM files WHERE name=?;");
             stmt.bind(1, name);
             if (stmt.executeStep()) {
-                return {{
-                                stmt.getColumn(0),
-                                stmt.getColumn(1),
-                                stmt.getColumn(2)
-                        }};
+                return {{stmt.getColumn(0),
+                         stmt.getColumn(1),
+                         stmt.getColumn(2)}};
             } else {
                 return {};
             }
         }
 
-        void put(const std::vector<Entry> &entries) {
+        void put(const std::vector<Entry>& entries) {
             std::string command = "INSERT INTO files (name, title, category) VALUES ";
             std::string name, title, category;
-            for (const auto &entry : entries) {
+            for (const auto& entry: entries) {
                 name = entry.name;
                 title = entry.title;
                 category = entry.category;
@@ -352,8 +348,7 @@ namespace bricksim::db {
                         stmt.getColumn(0).getInt(),
                         stmt.getColumn(1).getInt(),
                         stmt.getColumn(2).getInt(),
-                        stmt.getColumn(3).getInt()
-                );
+                        stmt.getColumn(3).getInt());
             }
             return result;
         }

@@ -14,26 +14,26 @@ namespace bricksim::detected_platform {
         BIT64
     };
 
-    constexpr Bits bits = sizeof(void *) == 4 ? BIT32 : BIT64;
+    constexpr Bits bits = sizeof(void*) == 4 ? BIT32 : BIT64;
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     constexpr Platform platform = WINDOWS;
-#define BRICKSIM_PLATFORM_WINDOWS
+    #define BRICKSIM_PLATFORM_WINDOWS
 #elif __APPLE__
-#include <TargetConditionals.h>
-#if TARGET_IPHONE_SIMULATOR
+    #include <TargetConditionals.h>
+    #if TARGET_IPHONE_SIMULATOR
     constexpr Platform platform = OTHER;
-#elif TARGET_OS_IPHONE
+    #elif TARGET_OS_IPHONE
     constexpr Platform platform = OTHER;
-#elif TARGET_OS_MAC
+    #elif TARGET_OS_MAC
     constexpr Platform platform = MACOS;
-#define BRICKSIM_PLATFORM_MACOS
-#else
+        #define BRICKSIM_PLATFORM_MACOS
+    #else
     constexpr Platform platform = OTHER;
-#endif
+    #endif
 #elif __linux__
     constexpr Platform platform = LINUX;
-#define BRICKSIM_PLATFORM_LINUX
+    #define BRICKSIM_PLATFORM_LINUX
 #elif __unix__
     //unix but not linux
     constexpr Platform platform = OTHER;
@@ -47,5 +47,3 @@ namespace bricksim::detected_platform {
     constexpr bool macOS = platform == MACOS;
     constexpr bool windows = platform == WINDOWS;
 }
-
-

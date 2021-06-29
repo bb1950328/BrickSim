@@ -1,14 +1,14 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include <vector>
-#include <optional>
 
 namespace bricksim::keyboard_shortcut_manager {
     enum class Event {
-        ON_PRESS = 1/*GLFW_PRESS*/,
-        ON_REPEAT = 2/*GLFW_REPEAT*/,
-        ON_RELEASE = 0/*GLFW_RELEASE*/,
+        ON_PRESS = 1 /*GLFW_PRESS*/,
+        ON_REPEAT = 2 /*GLFW_REPEAT*/,
+        ON_RELEASE = 0 /*GLFW_RELEASE*/,
     };
 
     class KeyboardShortcut {
@@ -25,7 +25,7 @@ namespace bricksim::keyboard_shortcut_manager {
     void shortcutPressed(int key, int keyAction, int modifiers, bool isCapturedByGui);
     std::vector<KeyboardShortcut>& getAllShortcuts();
     void replaceAllShortcuts(std::vector<KeyboardShortcut>& newShortcuts);
-    const std::string & getShortcutForAction(int actionId);
+    const std::string& getShortcutForAction(int actionId);
 
     void setCatchNextShortcut(bool doCatch);
     std::optional<KeyboardShortcut>& getCaughtShortcut();

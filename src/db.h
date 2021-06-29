@@ -1,10 +1,10 @@
 #pragma once
 
-#include <string>
-#include <optional>
-#include <vector>
-#include <set>
 #include "info_providers/price_guide_provider.h"
+#include <optional>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace bricksim::db {
     void initialize();
@@ -18,7 +18,7 @@ namespace bricksim::db {
 
     namespace priceGuideCache {
         std::optional<info_providers::price_guide::PriceGuide> get(const std::string& partCode, const std::string& currencyCode, const std::string& colorName);
-        void put(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, const info_providers::price_guide::PriceGuide &value);
+        void put(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, const info_providers::price_guide::PriceGuide& value);
     }
 
     namespace fileList {
@@ -56,4 +56,3 @@ namespace bricksim::db {
         void deleteAll();
     }
 }
-

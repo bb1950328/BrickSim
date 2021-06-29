@@ -1,14 +1,14 @@
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/string_cast.hpp>
-#include <glm/gtx/transform.hpp>
 #include "transform_gizmo.h"
 #include "config.h"
 #include "controller.h"
 #include "helpers/util.h"
-#include <spdlog/spdlog.h>
-#include <spdlog/fmt/ostr.h>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/transform.hpp>
 #include <iostream>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
 
 std::array<glm::vec4, 3> axisDirectionOffsetVectors = {
         glm::vec4(1, 0, 0, 1),
@@ -23,11 +23,12 @@ std::array<glm::vec4, 3> axisDirectionVectors = {
 
 namespace bricksim::transform_gizmo {
 
-    TransformGizmo::TransformGizmo(std::shared_ptr<graphics::Scene> scene) : scene(std::move(scene)) {
+    TransformGizmo::TransformGizmo(std::shared_ptr<graphics::Scene> scene) :
+        scene(std::move(scene)) {
         node = std::make_shared<TGNode>(this->scene->getRootNode());
         this->scene->getRootNode()->addChild(node);
         node->initElements();
-        for (const auto &arrow : node->getChildren()) {
+        for (const auto& arrow: node->getChildren()) {
             arrow->layer = constants::TRANSFORM_GIZMO_LAYER;
         }
 
@@ -79,31 +80,29 @@ namespace bricksim::transform_gizmo {
             float yaw = std::atan2(direction.x, direction.z);
             float pitch = std::atan2(direction.y, direction.y);
 
-
             if (yaw <= 0) {
                 if (yaw <= -0.5 * M_PI) {
                     nowPovState = pitch < 0
-                                  ? PovState::XPOS_YPOS_ZPOS
-                                  : PovState::XPOS_YPOS_ZNEG;
+                                          ? PovState::XPOS_YPOS_ZPOS
+                                          : PovState::XPOS_YPOS_ZNEG;
                 } else {
                     nowPovState = pitch < 0
-                                  ? PovState::XPOS_YNEG_ZPOS
-                                  : PovState::XPOS_YNEG_ZNEG;
+                                          ? PovState::XPOS_YNEG_ZPOS
+                                          : PovState::XPOS_YNEG_ZNEG;
                 }
             } else {
                 if (yaw <= 0.5 * M_PI) {
                     nowPovState = pitch < 0
-                                  ? PovState::XNEG_YNEG_ZPOS
-                                  : PovState::XNEG_YNEG_ZNEG;
+                                          ? PovState::XNEG_YNEG_ZPOS
+                                          : PovState::XNEG_YNEG_ZNEG;
                 } else {
                     nowPovState = pitch < 0
-                                  ? PovState::XNEG_YPOS_ZPOS
-                                  : PovState::XNEG_YPOS_ZNEG;
+                                          ? PovState::XNEG_YPOS_ZPOS
+                                          : PovState::XNEG_YPOS_ZNEG;
                 }
             }
 
             node->setPovState(nowPovState);
-
 
             node->visible = true;
         } else {
@@ -121,12 +120,12 @@ namespace bricksim::transform_gizmo {
         scene->getRootNode()->removeChild(node);
     }
 
-    bool TransformGizmo::ownsNode(const std::shared_ptr<etree::Node> &node_) {
+    bool TransformGizmo::ownsNode(const std::shared_ptr<etree::Node>& node_) {
         return node_->isChildOf(this->node);
     }
 
-    void TransformGizmo::startDrag(std::shared_ptr<etree::Node> &draggedNode, const glm::svec2 initialCursorPos) {
-        auto[type, axis] = node->getTransformTypeAndAxis(draggedNode);
+    void TransformGizmo::startDrag(std::shared_ptr<etree::Node>& draggedNode, const glm::svec2 initialCursorPos) {
+        auto [type, axis] = node->getTransformTypeAndAxis(draggedNode);
         spdlog::debug("start transform gizmo drag (type={}, axis={}, initialCursorPos={})", type, axis, glm::to_string(initialCursorPos));
         if (type == TRANSLATE_1D) {
             currentTransformationOperation = std::make_unique<Translate1dOperation>(*this, glm::vec2(initialCursorPos), axis);
@@ -150,7 +149,8 @@ namespace bricksim::transform_gizmo {
         return false;
     }
 
-    TGNode::TGNode(const std::shared_ptr<etree::Node> &parent) : etree::Node(parent) {
+    TGNode::TGNode(const std::shared_ptr<etree::Node>& parent) :
+        etree::Node(parent) {
         visibleInElementTree = true;//todo change this back to false when debugging is finished
         visible = true;
         displayName = "Transform Gizmo";
@@ -159,8 +159,8 @@ namespace bricksim::transform_gizmo {
 
     void TGNode::initElements() {
         uint8_t i = 0;
-        for (const auto &colorCode : {"#FF0000", "#00FF00", "#0000FF"}) {
-            const auto &colorRef = ldr::color_repo::getPureColor(colorCode);
+        for (const auto& colorCode: {"#FF0000", "#00FF00", "#0000FF"}) {
+            const auto& colorRef = ldr::color_repo::getPureColor(colorCode);
             translate1dArrows[i] = std::make_shared<mesh::generated::ArrowNode>(colorRef, shared_from_this());
             addChild(translate1dArrows[i]);
 
@@ -171,8 +171,8 @@ namespace bricksim::transform_gizmo {
         }
 
         i = 0;
-        for (const auto &colorCode: {"#00ffff", "#ff00ff", "#ffff00"}) {
-            const auto &colorRef = ldr::color_repo::getPureColor(colorCode);
+        for (const auto& colorCode: {"#00ffff", "#ff00ff", "#ffff00"}) {
+            const auto& colorRef = ldr::color_repo::getPureColor(colorCode);
 
             translate2dArrows[i] = std::make_shared<TG2DArrowNode>(colorRef, shared_from_this());
             addChild(translate2dArrows[i]);
@@ -204,9 +204,9 @@ namespace bricksim::transform_gizmo {
     }
 
     void TGNode::updateTransformations() {
-        bool newX = (uint8_t) (povState) & (1 << 2);
-        bool newY = (uint8_t) (povState) & (1 << 1);
-        bool newZ = (uint8_t) (povState) & (1 << 0);
+        bool newX = (uint8_t)(povState) & (1 << 2);
+        bool newY = (uint8_t)(povState) & (1 << 1);
+        bool newZ = (uint8_t)(povState) & (1 << 0);
 
         const auto translationArrowX = glm::translate(glm::vec3(newX ? 0.0f : -1.0f, 0.0f, 0.0f));
         translate1dArrows[0]->setRelativeTransformation(glm::transpose(translationArrowX));
@@ -244,7 +244,7 @@ namespace bricksim::transform_gizmo {
         return "Transform Gizmo";
     }
 
-    std::pair<TransformType, int> TGNode::getTransformTypeAndAxis(std::shared_ptr<etree::Node> &node) {
+    std::pair<TransformType, int> TGNode::getTransformTypeAndAxis(std::shared_ptr<etree::Node>& node) {
         if (node == centerBall) {
             return {TRANSLATE_3D, 0};
         }
@@ -281,24 +281,36 @@ namespace bricksim::transform_gizmo {
 
         auto color = ldr::color_repo::getInstanceDummyColor();
         auto baseIndex = mesh->getNextVertexIndex(color);
-        /*0*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, 0.0f, 0.0f, 1.0f}, normal});
-        /*1*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength, 0.0f, 1.0f}, normal});
-        /*2*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, tipWidth, 1.0f}, normal});
-        /*3*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, lineWidth, 1.0f}, normal});
-        /*4*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, lineWidth, lineWidth, 1.0f}, normal});
-        /*5*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, lineWidth, outerSideLength - tipLength, 1.0f}, normal});
-        /*6*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, tipWidth, outerSideLength - tipLength, 1.0f}, normal});
-        /*7*/mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, 0.0f, outerSideLength, 1.0f}, normal});
+        /*0*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, 0.0f, 0.0f, 1.0f}, normal});
+        /*1*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength, 0.0f, 1.0f}, normal});
+        /*2*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, tipWidth, 1.0f}, normal});
+        /*3*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, lineWidth, 1.0f}, normal});
+        /*4*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, lineWidth, lineWidth, 1.0f}, normal});
+        /*5*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, lineWidth, outerSideLength - tipLength, 1.0f}, normal});
+        /*6*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, tipWidth, outerSideLength - tipLength, 1.0f}, normal});
+        /*7*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, 0.0f, outerSideLength, 1.0f}, normal});
 
         constexpr auto triangleCount = 6;
 
         constexpr std::array<unsigned int, 3 * triangleCount> indices = {
-                0, 4, 1,
-                4, 3, 1,
-                3, 2, 1,
-                0, 7, 4,
-                4, 7, 5,
-                5, 7, 6,
+                0,
+                4,
+                1,
+                4,
+                3,
+                1,
+                3,
+                2,
+                1,
+                0,
+                7,
+                4,
+                4,
+                7,
+                5,
+                5,
+                7,
+                6,
         };
 
         for (int i = 0; i < triangleCount; ++i) {
@@ -313,7 +325,8 @@ namespace bricksim::transform_gizmo {
         }
     }
 
-    TG2DArrowNode::TG2DArrowNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) : MeshNode(color, parent) {
+    TG2DArrowNode::TG2DArrowNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
+        MeshNode(color, parent) {
         displayName = "transform gizmo 2D move arrow";
     }
 
@@ -325,7 +338,7 @@ namespace bricksim::transform_gizmo {
         return "Transform Gizmo 2D Arrow Node";
     }
 
-    void Translate1dOperation::update(const glm::vec2 &mouseDelta) {
+    void Translate1dOperation::update(const glm::vec2& mouseDelta) {
         const auto currentPointOnTransformRay = getClosestPointOnTransformRay(startMousePos + mouseDelta);
         auto translation = glm::translate(currentPointOnTransformRay - startPointOnTransformRay);
         spdlog::debug("currentPointOnTransformRay={}", currentPointOnTransformRay);
@@ -339,18 +352,18 @@ namespace bricksim::transform_gizmo {
         return TRANSLATE_1D;
     }
 
-    Translate1dOperation::Translate1dOperation(TransformGizmo &gizmo, const glm::vec2 &startMousePos, int axis) :
-            TransformOperation(gizmo),
-            transformRay(calculateTransformRay(axis)),
-            startPointOnTransformRay(getClosestPointOnTransformRay(startMousePos)),
-            startMousePos(startMousePos),
-            startNodeRelTransformation(glm::transpose(gizmo.currentlySelectedNode->getRelativeTransformation())),
-            startGizmoRelTransformation(glm::transpose(gizmo.node->getRelativeTransformation())) {
+    Translate1dOperation::Translate1dOperation(TransformGizmo& gizmo, const glm::vec2& startMousePos, int axis) :
+        TransformOperation(gizmo),
+        transformRay(calculateTransformRay(axis)),
+        startPointOnTransformRay(getClosestPointOnTransformRay(startMousePos)),
+        startMousePos(startMousePos),
+        startNodeRelTransformation(glm::transpose(gizmo.currentlySelectedNode->getRelativeTransformation())),
+        startGizmoRelTransformation(glm::transpose(gizmo.node->getRelativeTransformation())) {
         spdlog::debug("transformRay={}", transformRay);
         spdlog::debug("startPointOnTransformRay={}", startPointOnTransformRay);
     }
 
-    glm::vec3 Translate1dOperation::getClosestPointOnTransformRay(const glm::svec2 &mouseCoords) {
+    glm::vec3 Translate1dOperation::getClosestPointOnTransformRay(const glm::svec2& mouseCoords) {
         Ray3 currentMouseRay = gizmo.scene->screenCoordinatesToWorldRay(mouseCoords);
         const auto centerVec = glm::normalize(gizmo.scene->getCamera()->getTargetPos() - gizmo.scene->getCamera()->getCameraPos());
         spdlog::debug("currentMouseRay={}, centerVec={}", currentMouseRay, centerVec);
@@ -380,8 +393,8 @@ namespace bricksim::transform_gizmo {
         gizmo.node->setRelativeTransformation(startGizmoRelTransformation);
     }
 
-    TransformOperation::TransformOperation(TransformGizmo &gizmo) :
-            gizmo(gizmo) {}
+    TransformOperation::TransformOperation(TransformGizmo& gizmo) :
+        gizmo(gizmo) {}
 
     TransformOperation::~TransformOperation() = default;
 }

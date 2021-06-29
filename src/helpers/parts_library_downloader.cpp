@@ -1,20 +1,20 @@
-#include <chrono>
-#include <spdlog/spdlog.h>
-#include <fstream>
 #include "parts_library_downloader.h"
-#include "util.h"
 #include "../config.h"
+#include "util.h"
+#include <chrono>
+#include <fstream>
+#include <spdlog/spdlog.h>
 
 namespace bricksim::parts_library_downloader {
     namespace {
-        int progressFunc(void *clientp, long downloadTotal, long downloadNow, long uploadTotal, long uploadNow) {
+        int progressFunc(void* clientp, long downloadTotal, long downloadNow, long uploadTotal, long uploadNow) {
             const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             const auto msDiff = now - lastProgressCalledMs;
-            const auto bytesDiff = downloadNow-downNow;
-            bytesPerSecond = (int)(0.001*bytesDiff/msDiff);
+            const auto bytesDiff = downloadNow - downNow;
+            bytesPerSecond = (int)(0.001 * bytesDiff / msDiff);
             downNow = downloadNow;
             downTotal = downloadTotal;
-            return shouldStop?1:0;
+            return shouldStop ? 1 : 0;
         }
     }
 
@@ -67,4 +67,3 @@ namespace bricksim::parts_library_downloader {
         return errorCode;
     }
 }
-

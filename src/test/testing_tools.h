@@ -12,14 +12,16 @@ class ApproxVec {
 private:
     std::vector<Approx> approxes;
     glm::vec<L, T, Q> value;
+
 public:
-    explicit ApproxVec(const glm::vec<L, T, Q> &value) : value(value) {
+    explicit ApproxVec(const glm::vec<L, T, Q>& value) :
+        value(value) {
         for (int i = 0; i < L; ++i) {
             approxes.push_back(Approx(value[i]));
         }
     }
 
-    bool operator==(const glm::vec<L, T, Q> &rhs) const {
+    bool operator==(const glm::vec<L, T, Q>& rhs) const {
         bool result = true;
         for (int i = 0; i < L; ++i) {
             result &= approxes[i] == rhs[i];
@@ -27,13 +29,12 @@ public:
         return result;
     }
 
-    bool operator!=(const glm::vec<L, T, Q> &rhs) const {
+    bool operator!=(const glm::vec<L, T, Q>& rhs) const {
         return !(rhs == *this);
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const ApproxVec &vec) {
+    friend std::ostream& operator<<(std::ostream& os, const ApproxVec& vec) {
         os << vec.value;
         return os;
     }
 };
-

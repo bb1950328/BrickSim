@@ -1,16 +1,16 @@
-#include <imgui.h>
-#include <memory>
-#include <utility>
 #include "window_mesh_inspector.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "../gui.h"
+#include <imgui.h>
+#include <memory>
 #include <sstream>
+#include <utility>
 
 namespace bricksim::gui::windows::mesh_inspector {
     namespace {
         std::shared_ptr<mesh::Mesh> currentlyInspectingMesh;
 
-        void drawColorLabel(const ldr::ColorReference &colorRef) {
+        void drawColorLabel(const ldr::ColorReference& colorRef) {
             auto color = colorRef.get();
 
             ImGui::PushStyleColor(ImGuiCol_Button, color->value);
@@ -24,9 +24,9 @@ namespace bricksim::gui::windows::mesh_inspector {
             ImGui::PopStyleColor(4);
         }
 
-        void drawTriangleVerticesTab(std::shared_ptr<mesh::Mesh> &mesh) {
+        void drawTriangleVerticesTab(std::shared_ptr<mesh::Mesh>& mesh) {
             if (ImGui::BeginTabItem("Triangle Vertices")) {
-                const char *items[] = {"Vertices & Indices separate", "\"Inline\" Indices"};
+                const char* items[] = {"Vertices & Indices separate", "\"Inline\" Indices"};
                 static int currentMode = 0;
                 ImGui::Combo("Mode", &currentMode, items, std::size(items));
 
@@ -36,7 +36,7 @@ namespace bricksim::gui::windows::mesh_inspector {
                     currentColor = mesh->triangleVertices.begin()->first;
                 }
                 if (ImGui::BeginCombo("Color", currentColor.get()->name.c_str())) {
-                    for (const auto &vertexGroup : mesh->triangleVertices) {
+                    for (const auto& vertexGroup: mesh->triangleVertices) {
                         auto color = vertexGroup.first;
                         const bool isSelected = currentColor == color;
                         if (ImGui::Selectable(color.get()->name.c_str(), isSelected)) {
@@ -50,7 +50,7 @@ namespace bricksim::gui::windows::mesh_inspector {
                     ImGui::EndCombo();
                 }
 
-                bool copyVerticesToClipboard = ImGui::Button(ICON_FA_CLIPBOARD" Copy Vertices as CSV");
+                bool copyVerticesToClipboard = ImGui::Button(ICON_FA_CLIPBOARD " Copy Vertices as CSV");
                 bool copyIndicesToClipboard = false;
                 if (currentMode == 0) {
                     ImGui::SameLine();
@@ -63,7 +63,7 @@ namespace bricksim::gui::windows::mesh_inspector {
                     toClipboard << "pos.x;pos.y;pos.z;pos.w;normal.x;normal.y;normal.z" << std::endl;
                 }
 
-                auto drawVertexRow = [&copyVerticesToClipboard, &toClipboard](unsigned int index, const mesh::TriangleVertex &vertex) {
+                auto drawVertexRow = [&copyVerticesToClipboard, &toClipboard](unsigned int index, const mesh::TriangleVertex& vertex) {
                     ImGui::TableNextRow();
                     ImGui::PushItemWidth(-1.0f);
 
@@ -86,7 +86,6 @@ namespace bricksim::gui::windows::mesh_inspector {
                     ImGui::SameLine();
                     ImGui::Text("%.2f", vertex.position.w);
                     ImGui::PopStyleColor();
-
 
                     ImGui::TableNextColumn();
                     ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::RED);
@@ -112,8 +111,8 @@ namespace bricksim::gui::windows::mesh_inspector {
                 float totalAvailableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 2;
                 float verticesTableHeight = currentMode == 0 ? totalAvailableHeight / 2 : totalAvailableHeight;
                 float indicesTableHeight = currentMode == 0 ? verticesTableHeight : 0.0f;
-                const auto &vertexList = mesh->triangleVertices[currentColor];
-                const auto &indexList = mesh->triangleIndices[currentColor];
+                const auto& vertexList = mesh->triangleVertices[currentColor];
+                const auto& indexList = mesh->triangleIndices[currentColor];
                 if (ImGui::BeginChild("##triangleVerticesTableWrapper", ImVec2(0.0f, verticesTableHeight))) {
                     if (ImGui::BeginTable("##triangleVerticesTable", 3, ImGuiTableFlags_Borders)) {
                         ImGui::TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 3);
@@ -126,7 +125,7 @@ namespace bricksim::gui::windows::mesh_inspector {
                                 drawVertexRow(index, vertexList[index]);
                             }
                         } else {
-                            for (const auto &index : indexList) {
+                            for (const auto& index: indexList) {
                                 drawVertexRow(index, vertexList[index]);
                             }
                         }
@@ -138,7 +137,7 @@ namespace bricksim::gui::windows::mesh_inspector {
 
                 if (currentMode == 0 && ImGui::BeginChild("##triangleIndicesTableWrapper", ImVec2(0.0f, indicesTableHeight))) {
                     if (ImGui::BeginTable("##triangleIndicesTable", 1, ImGuiTableFlags_Borders)) {
-                        for (const auto &index : indexList) {
+                        for (const auto& index: indexList) {
                             ImGui::TableNextRow();
                             ImGui::TableNextColumn();
                             ImGui::Text("%u", index);
@@ -160,7 +159,7 @@ namespace bricksim::gui::windows::mesh_inspector {
             }
         }
 
-        void drawInstancesTab(std::shared_ptr<mesh::Mesh> &mesh) {
+        void drawInstancesTab(std::shared_ptr<mesh::Mesh>& mesh) {
             if (ImGui::BeginTabItem("Instances")) {
                 ImGui::Text("%zu Instances:", mesh->instances.size());
                 float instancesTableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 2;
@@ -176,7 +175,7 @@ namespace bricksim::gui::windows::mesh_inspector {
                         ImGui::TableSetupScrollFreeze(0, 1);
                         ImGui::TableHeadersRow();
 
-                        for (const auto &inst : mesh->instances) {
+                        for (const auto& inst: mesh->instances) {
                             ImGui::TableNextRow();
 
                             ImGui::TableNextColumn();
@@ -195,7 +194,7 @@ namespace bricksim::gui::windows::mesh_inspector {
                             ImGui::Text(inst.selected ? ICON_FA_CHECK_SQUARE : ICON_FA_SQUARE);
 
                             ImGui::TableNextColumn();
-                            const auto &mat = inst.transformation;
+                            const auto& mat = inst.transformation;
                             ImGui::Text("%8.4f, %8.4f, %8.4f, %8.4f", mat[0][0], mat[0][1], mat[0][2], mat[0][3]);
                             ImGui::Text("%8.4f, %8.4f, %8.4f, %8.4f", mat[1][0], mat[1][1], mat[1][2], mat[1][3]);
                             ImGui::Text("%8.4f, %8.4f, %8.4f, %8.4f", mat[2][0], mat[2][1], mat[2][2], mat[2][3]);
@@ -209,7 +208,7 @@ namespace bricksim::gui::windows::mesh_inspector {
             }
         }
 
-        void drawGeneralTab(std::shared_ptr<mesh::Mesh> &mesh) {
+        void drawGeneralTab(std::shared_ptr<mesh::Mesh>& mesh) {
             if (ImGui::BeginTabItem("General")) {
                 if (ImGui::BeginTable("##meshInspectorGeneralInfoTable", 2)) {
                     ImGui::TableNextRow();
@@ -237,7 +236,7 @@ namespace bricksim::gui::windows::mesh_inspector {
                     ImGui::TableSetupColumn("EBO");
                     ImGui::TableHeadersRow();
 
-                    for (const auto &vao : mesh->VAOs) {
+                    for (const auto& vao: mesh->VAOs) {
                         auto colorRef = vao.first;
                         ImGui::TableNextRow();
 
@@ -260,11 +259,11 @@ namespace bricksim::gui::windows::mesh_inspector {
                 }
 
                 if (ImGui::CollapsingHeader("Instance Scene/Layer Ranges")) {
-                    for (const auto &sceneMap : mesh->instanceSceneLayerRanges) {
-                        const auto text = "Scene " + std::to_string((int) sceneMap.first);
+                    for (const auto& sceneMap: mesh->instanceSceneLayerRanges) {
+                        const auto text = "Scene " + std::to_string((int)sceneMap.first);
                         if (ImGui::TreeNode(text.c_str())) {
-                            for (const auto &range : sceneMap.second) {
-                                ImGui::BulletText("Layer %d: start=%u, end=%u, count=%u", (int) range.first, range.second.start, range.second.start + range.second.count, range.second.count);
+                            for (const auto& range: sceneMap.second) {
+                                ImGui::BulletText("Layer %d: start=%u, end=%u, count=%u", (int)range.first, range.second.start, range.second.start + range.second.count, range.second.count);
                             }
                             ImGui::TreePop();
                         }
@@ -276,7 +275,7 @@ namespace bricksim::gui::windows::mesh_inspector {
         }
     }
 
-    void draw(Data &data) {
+    void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible, ImGuiWindowFlags_None)) {
             if (currentlyInspectingMesh == nullptr) {
                 ImGui::Text("Currently there's no mesh selected for inspection. Select one in the debug window.");
@@ -287,7 +286,7 @@ namespace bricksim::gui::windows::mesh_inspector {
 
                 ImGui::EndTabBar();
             }
-            if (ImGui::Button(ICON_FA_WINDOW_CLOSE" Close")) {
+            if (ImGui::Button(ICON_FA_WINDOW_CLOSE " Close")) {
                 data.visible = false;
             }
         }

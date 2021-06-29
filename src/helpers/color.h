@@ -1,8 +1,8 @@
 #pragma once
 
+#include "../types.h"
 #include <glm/glm.hpp>
 #include <string>
-#include "../types.h"
 //RGB is a macro in some windows header
 #undef RGB
 
@@ -16,7 +16,7 @@ namespace bricksim::color {
     public:
         RGB() = default;
 
-        explicit RGB(const std::string &htmlCode);
+        explicit RGB(const std::string& htmlCode);
         explicit RGB(glm::vec3 vector);
         explicit RGB(const HSV& hsv);
 

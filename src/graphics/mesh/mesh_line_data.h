@@ -8,9 +8,10 @@ namespace bricksim::mesh {
         explicit LineData(unsigned int drawMode);
         void initBuffers(const std::vector<MeshInstance>& instances);
         void freeBuffers();
-        void draw(const std::optional<InstanceRange> &sceneLayerInstanceRange);
-        void addVertex(const LineVertex &vertex);
+        void draw(const std::optional<InstanceRange>& sceneLayerInstanceRange);
+        void addVertex(const LineVertex& vertex);
         void rewriteInstanceBuffer(const std::vector<glm::mat4>& instances);
+
     private:
         std::vector<LineVertex> vertices;
         std::vector<unsigned int> indices;
@@ -18,4 +19,3 @@ namespace bricksim::mesh {
         const unsigned int drawMode;
     };
 }
-

@@ -1,20 +1,21 @@
-#include <glad/glad.h>
-#include <spdlog/spdlog.h>
-#include <glm/ext/matrix_clip_space.hpp>
 #include "scene.h"
+#include "../config.h"
 #include "../controller.h"
 #include "../helpers/util.h"
-#include "shaders.h"
-#include "../config.h"
 #include "../metrics.h"
+#include "shaders.h"
+#include <glad/glad.h>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <spdlog/spdlog.h>
 
 #ifdef BRICKSIM_USE_RENDERDOC
 
-#include <renderdoc.h>
+    #include <renderdoc.h>
 
 #endif
 namespace bricksim::graphics {
-    CompleteFramebuffer::CompleteFramebuffer(glm::usvec2 size_) : size(size_) { // NOLINT(cppcoreguidelines-pro-type-member-init)
+    CompleteFramebuffer::CompleteFramebuffer(glm::usvec2 size_) :
+        size(size_) {// NOLINT(cppcoreguidelines-pro-type-member-init)
         controller::executeOpenGL([this]() {
             allocate();
         });
@@ -31,13 +32,12 @@ namespace bricksim::graphics {
         // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
         glGenRenderbuffers(1, &renderBufferObject);
         glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size.x, size.y); // use a single renderbuffer object for both a depth AND stencil buffer.
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size.x, size.y);// use a single renderbuffer object for both a depth AND stencil buffer.
 
         glGenFramebuffers(1, &framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject); // now actually attach it
-
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject);// now actually attach it
 
         // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -60,12 +60,12 @@ namespace bricksim::graphics {
         spdlog::debug("deleted CompleteFramebuffer. FBO={}, TexBO={}, RBO={}", framebuffer, textureColorbuffer, renderBufferObject);
     }
 
-    void CompleteFramebuffer::saveImage(const std::filesystem::path &path) const {
+    void CompleteFramebuffer::saveImage(const std::filesystem::path& path) const {
         spdlog::info("saveImage(\"{}\")", path.string());
         const int channels = 3;
 
         auto data = std::vector<GLubyte>();
-        data.resize((size_t) size.x * size.y * channels);
+        data.resize((size_t)size.x * size.y * channels);
         controller::executeOpenGL([this, &data]() {
             glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
             glReadPixels(0, 0, size.x, size.y, GL_RGB, GL_UNSIGNED_BYTE, &data[0]);
@@ -82,11 +82,11 @@ namespace bricksim::graphics {
         return framebuffer;
     }
 
-    const glm::usvec2 &CompleteFramebuffer::getSize() const {
+    const glm::usvec2& CompleteFramebuffer::getSize() const {
         return size;
     }
 
-    void CompleteFramebuffer::setSize(const glm::usvec2 &newSize) {
+    void CompleteFramebuffer::setSize(const glm::usvec2& newSize) {
         if (size == newSize) {
             return;
         }
@@ -105,7 +105,8 @@ namespace bricksim::graphics {
         return renderBufferObject;
     }
 
-    Scene::Scene(scene_id_t sceneId) : image({64, 64}), meshCollection(sceneId), id(sceneId), imageUpToDate(false), elementTreeRereadNeeded(false) {
+    Scene::Scene(scene_id_t sceneId) :
+        image({64, 64}), meshCollection(sceneId), id(sceneId), imageUpToDate(false), elementTreeRereadNeeded(false) {
         setImageSize({10, 10});
     }
 
@@ -137,7 +138,7 @@ namespace bricksim::graphics {
             const glm::mat4 projectionView = projectionMatrix * camera->getViewMatrix();
             controller::executeOpenGL([&]() {
 #ifdef BRICKSIM_USE_RENDERDOC
-                const auto *renderdocApi = controller::getRenderdocAPI();
+                const auto* renderdocApi = controller::getRenderdocAPI();
                 if (renderdocApi) {
                     renderdocApi->StartFrameCapture(nullptr, nullptr);
                 }
@@ -147,13 +148,13 @@ namespace bricksim::graphics {
                 glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                const auto &triangleSelectionShader = shaders::get(shaders::TRIANGLE_SELECTION);
-                const auto &texturedTriangleSelectionShader = shaders::get(shaders::TEXTURED_TRIANGLE_SELECTION);
+                const auto& triangleSelectionShader = shaders::get(shaders::TRIANGLE_SELECTION);
+                const auto& texturedTriangleSelectionShader = shaders::get(shaders::TEXTURED_TRIANGLE_SELECTION);
                 triangleSelectionShader.use();
                 triangleSelectionShader.setMat4("projectionView", projectionView);
                 texturedTriangleSelectionShader.use();
                 texturedTriangleSelectionShader.setMat4("projectionView", projectionView);
-                for (const auto &layer : meshCollection.getLayersInUse()) {
+                for (const auto& layer: meshCollection.getLayersInUse()) {
                     glClear(GL_DEPTH_BUFFER_BIT);
                     triangleSelectionShader.use();
                     meshCollection.drawTriangleGraphics(layer);
@@ -184,31 +185,31 @@ namespace bricksim::graphics {
         }
     }
 
-    const std::shared_ptr<etree::Node> &Scene::getRootNode() const {
+    const std::shared_ptr<etree::Node>& Scene::getRootNode() const {
         return rootNode;
     }
 
-    void Scene::setRootNode(const std::shared_ptr<etree::Node> &newRootNode) {
+    void Scene::setRootNode(const std::shared_ptr<etree::Node>& newRootNode) {
         rootNode = newRootNode;
         meshCollection.setRootNode(rootNode);
         elementTreeChanged();
     }
 
-    const std::shared_ptr<Camera> &Scene::getCamera() const {
+    const std::shared_ptr<Camera>& Scene::getCamera() const {
         return camera;
     }
 
-    void Scene::setCamera(const std::shared_ptr<Camera> &newCamera) {
+    void Scene::setCamera(const std::shared_ptr<Camera>& newCamera) {
         camera = newCamera;
         imageUpToDate = false;
     }
 
-    const glm::usvec2 &Scene::getImageSize() const {
+    const glm::usvec2& Scene::getImageSize() const {
         return imageSize;
     }
 
-    void Scene::setImageSize(const glm::usvec2 &newImageSize) {
-        projectionMatrix = glm::perspective(glm::radians(50.0f), (float) newImageSize.x / (float) newImageSize.y, 0.01f, 1000.0f);
+    void Scene::setImageSize(const glm::usvec2& newImageSize) {
+        projectionMatrix = glm::perspective(glm::radians(50.0f), (float)newImageSize.x / (float)newImageSize.y, 0.01f, 1000.0f);
         Scene::imageSize = newImageSize;
     }
 
@@ -235,7 +236,7 @@ namespace bricksim::graphics {
             auto before = std::chrono::high_resolution_clock::now();
             controller::executeOpenGL([this]() {
 #ifdef BRICKSIM_USE_RENDERDOC
-                const auto *renderdocApi = controller::getRenderdocAPI();
+                const auto* renderdocApi = controller::getRenderdocAPI();
                 if (renderdocApi) {
                     renderdocApi->StartFrameCapture(nullptr, nullptr);
                 }
@@ -243,17 +244,17 @@ namespace bricksim::graphics {
                 glBindFramebuffer(GL_FRAMEBUFFER, image.getFBO());
                 //spdlog::error("rendering to texture {}", image.getTexBO());
                 glViewport(0, 0, imageSize.x, imageSize.y);
-                const auto &bgColor = config::get(config::BACKGROUND_COLOR).asGlmVector();
+                const auto& bgColor = config::get(config::BACKGROUND_COLOR).asGlmVector();
                 glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 glm::mat4 view = camera->getViewMatrix();
-                const glm::mat4 &projectionView = projectionMatrix * view;
+                const glm::mat4& projectionView = projectionMatrix * view;
 
-                const auto &triangleShader = shaders::get(shaders::TRIANGLE);
-                const auto &textureShader = shaders::get(shaders::TEXTURED_TRIANGLE);
-                const auto &lineShader = shaders::get(shaders::LINE);
-                const auto &optionalLineShader = shaders::get(shaders::OPTIONAL_LINE);
+                const auto& triangleShader = shaders::get(shaders::TRIANGLE);
+                const auto& textureShader = shaders::get(shaders::TEXTURED_TRIANGLE);
+                const auto& lineShader = shaders::get(shaders::LINE);
+                const auto& optionalLineShader = shaders::get(shaders::OPTIONAL_LINE);
                 triangleShader.use();
                 triangleShader.setVec3("viewPos", camera->getCameraPos());
                 triangleShader.setMat4("projectionView", projectionView);
@@ -270,7 +271,7 @@ namespace bricksim::graphics {
                 textureShader.use();
                 textureShader.setMat4("projectionView", projectionView);
 
-                for (const auto &layer : meshCollection.getLayersInUse()) {
+                for (const auto& layer: meshCollection.getLayersInUse()) {
                     glClear(GL_DEPTH_BUFFER_BIT);
                     triangleShader.use();
                     meshCollection.drawTriangleGraphics(layer);
@@ -314,19 +315,19 @@ namespace bricksim::graphics {
         elementTreeRereadNeeded = true;
     }
 
-    const CompleteFramebuffer &Scene::getImage() const {
+    const CompleteFramebuffer& Scene::getImage() const {
         return image;
     }
 
-    const std::optional<CompleteFramebuffer> &Scene::getSelectionImage() const {
+    const std::optional<CompleteFramebuffer>& Scene::getSelectionImage() const {
         return selection;
     }
 
-    const mesh::SceneMeshCollection &Scene::getMeshCollection() const {
+    const mesh::SceneMeshCollection& Scene::getMeshCollection() const {
         return meshCollection;
     }
 
-    overlay2d::ElementCollection &Scene::getOverlayCollection() {
+    overlay2d::ElementCollection& Scene::getOverlayCollection() {
         return overlayCollection;
     }
 
@@ -378,7 +379,7 @@ namespace bricksim::graphics {
             createdScenes.clear();
         }
 
-        std::map<scene_id_t, std::shared_ptr<Scene>> &getAll() {
+        std::map<scene_id_t, std::shared_ptr<Scene>>& getAll() {
             return createdScenes;
         }
     }

@@ -1,7 +1,7 @@
 #include "part_color_availability_provider.h"
 #include "../helpers/util.h"
-#include <spdlog/spdlog.h>
 #include <fstream>
+#include <spdlog/spdlog.h>
 
 namespace bricksim::info_providers::part_color_availability {
 
@@ -21,7 +21,7 @@ namespace bricksim::info_providers::part_color_availability {
                 } else {
                     isDataAvailable = true;
 
-                    for (const auto &item : ldr::color_repo::getColors()) {
+                    for (const auto& item: ldr::color_repo::getColors()) {
                         colorsByName[item.second->name] = item.second->asReference();
                     }
 
@@ -31,9 +31,9 @@ namespace bricksim::info_providers::part_color_availability {
                     std::getline(codesFile, line);//skip header
                     while (std::getline(codesFile, line)) {
                         auto firstTab = line.find('\t');
-                        auto secondTab = line.find('\t', firstTab+1);
+                        auto secondTab = line.find('\t', firstTab + 1);
                         auto partCode = line.substr(0, firstTab);
-                        auto colorName = line.substr(firstTab+1, secondTab-firstTab-1);
+                        auto colorName = line.substr(firstTab + 1, secondTab - firstTab - 1);
                         colorName = util::translateBrickLinkColorNameToLDraw(colorName);
                         auto it = colorsByName.find(colorName);
                         if (it != colorsByName.end()) {
@@ -56,7 +56,7 @@ namespace bricksim::info_providers::part_color_availability {
         std::string partCode = part->metaInfo.name;
         util::replaceAll(partCode, ".dat", "");
         auto it = colorsAvailable.find(partCode);
-        if (it==colorsAvailable.end()) {
+        if (it == colorsAvailable.end()) {
             return {};
         } else {
             return it->second;

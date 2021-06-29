@@ -1,12 +1,12 @@
-#include <list>
-#include "../../gui.h"
-#include "../../../tools/gears.h"
 #include "../../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../../tools/gears.h"
+#include "../../gui.h"
+#include <list>
 
 #include "window_gear_ratio_calculator.h"
 
 namespace bricksim::gui::windows::tools::gear_ratio_calculator {
-    void draw(Data &data) {
+    void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
             static std::list<gears::GearPair> pairs;
             if (pairs.empty()) {
@@ -41,7 +41,7 @@ namespace bricksim::gui::windows::tools::gear_ratio_calculator {
                     sprintf(labelBuf, "##%d", iComboBox);
                     ++iComboBox;
                     if (ImGui::BeginCombo(labelBuf, it->getDriver()->description)) {
-                        for (const auto &gear : gears::ALL_GEARS) {
+                        for (const auto& gear: gears::ALL_GEARS) {
                             const auto id1 = it->getDriver()->id;
                             const auto id2 = gear->id;
                             const bool is_selected = (id1 == id2);
@@ -61,7 +61,7 @@ namespace bricksim::gui::windows::tools::gear_ratio_calculator {
                     ++iComboBox;
                     ImGui::TableSetColumnIndex(1);
                     if (ImGui::BeginCombo(labelBuf, it->getFollower()->description)) {
-                        for (const auto &gear : gears::ALL_GEARS) {
+                        for (const auto& gear: gears::ALL_GEARS) {
                             const bool is_selected = (it->getFollower()->id == gear->id);
                             if (ImGui::Selectable(gear->description, is_selected)) {
                                 const gears::gear_t driver = it->getDriver();
@@ -84,7 +84,7 @@ namespace bricksim::gui::windows::tools::gear_ratio_calculator {
                 }
                 ImGui::EndTable();
             }
-            if (ImGui::Button(ICON_FA_PLUS" Add Gear Pair")) {
+            if (ImGui::Button(ICON_FA_PLUS " Add Gear Pair")) {
                 pairs.emplace_back(gears::GEAR_8T, gears::GEAR_8T);
             }
             ImGui::Separator();

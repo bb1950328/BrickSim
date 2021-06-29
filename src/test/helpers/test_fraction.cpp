@@ -1,5 +1,5 @@
-#include "catch2/catch.hpp"
 #include "../../helpers/fraction.h"
+#include "catch2/catch.hpp"
 
 namespace bricksim {
     TEST_CASE("fractionConstructor") {
@@ -11,7 +11,7 @@ namespace bricksim {
         CHECK(third.getA() == 1);
         CHECK(third.getB() == 3);
 
-        const Fraction thirdCopy(third); // NOLINT(performance-unnecessary-copy-initialization)
+        const Fraction thirdCopy(third);// NOLINT(performance-unnecessary-copy-initialization)
         CHECK(thirdCopy.getA() == 1);
         CHECK(thirdCopy.getB() == 3);
     }

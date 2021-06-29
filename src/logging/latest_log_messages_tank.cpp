@@ -2,7 +2,7 @@
 #include "../config.h"
 
 namespace bricksim::logging::latest_messages_tank {
-    void addMessage(const latest_messages_tank::LogMessage &msg) {
+    void addMessage(const latest_messages_tank::LogMessage& msg) {
         if (msg.level >= minLevelForAlwaysKeeping) {
             alwaysKeepingMessages.push_back(msg);
         } else {
@@ -26,17 +26,17 @@ namespace bricksim::logging::latest_messages_tank {
         alwaysKeepingMessages.clear();
     }
 
-
-    iterator::iterator() : itA(alwaysKeepingMessages.cbegin()), itB(lastNMessages.cbegin()), endA(alwaysKeepingMessages.cend()), endB(lastNMessages.cend()) {
+    iterator::iterator() :
+        itA(alwaysKeepingMessages.cbegin()), itB(lastNMessages.cbegin()), endA(alwaysKeepingMessages.cend()), endB(lastNMessages.cend()) {
         this->operator++();
     }
 
     iterator::self_type iterator::operator++() {
         self_type i = *this;
-        if (itA != endA && (itB==endB || itA->timestamp < itB->timestamp)) {
+        if (itA != endA && (itB == endB || itA->timestamp < itB->timestamp)) {
             current = itA.base();
             itA++;
-        } else if (itB != endB){
+        } else if (itB != endB) {
             current = &(*itB);
             itB++;
         } else {
@@ -45,9 +45,10 @@ namespace bricksim::logging::latest_messages_tank {
         return i;
     }
 
-    const LogMessage *iterator::getCurrent() const {
+    const LogMessage* iterator::getCurrent() const {
         return current;
     }
 
-    LogMessage::LogMessage(const long timestamp, const unsigned char level, const std::string &formattedTime, const std::string &message) : timestamp(timestamp), level(level), formattedTime(formattedTime), message(message) {}
+    LogMessage::LogMessage(const long timestamp, const unsigned char level, const std::string& formattedTime, const std::string& message) :
+        timestamp(timestamp), level(level), formattedTime(formattedTime), message(message) {}
 }

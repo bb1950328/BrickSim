@@ -1,36 +1,35 @@
-#include <memory>
-#include "../../types.h"
-#include "../../graphics/scene.h"
-#include "../../controller.h"
 #include "../../config.h"
+#include "../../controller.h"
+#include "../../graphics/scene.h"
+#include "../../types.h"
 #include "../gui_internal.h"
+#include <memory>
 
-#include "window_view3d.h"
 #include "../gui.h"
+#include "window_view3d.h"
 
 namespace bricksim::gui::windows::view3d {
-    std::shared_ptr<etree::Node> getNodeUnderCursor(const std::shared_ptr<graphics::Scene> &mainScene, const glm::svec2 &currentCursorPos) {
+    std::shared_ptr<etree::Node> getNodeUnderCursor(const std::shared_ptr<graphics::Scene>& mainScene, const glm::svec2& currentCursorPos) {
         const auto elementIdUnderCursor = mainScene->getSelectionPixel(currentCursorPos);
         auto nodeUnderCursor = elementIdUnderCursor != 0
-                               ? mainScene->getMeshCollection().getElementById(elementIdUnderCursor)
-                               : nullptr;
+                                       ? mainScene->getMeshCollection().getElementById(elementIdUnderCursor)
+                                       : nullptr;
         return nodeUnderCursor;
     }
 
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible, ImGuiWindowFlags_NoScrollWithMouse)) {
             ImGui::BeginChild("3DRender");
-            const ImVec2 &regionAvail = ImGui::GetContentRegionAvail();
-            controller::set3dViewSize((unsigned int) regionAvail.x, (unsigned int) regionAvail.y);
-            const auto &mainScene = controller::getMainScene();
-            const ImVec2 &windowPos = ImGui::GetWindowPos();
-            const ImVec2 &regionMin = ImGui::GetWindowContentRegionMin();
-            const ImVec2 &mousePos = ImGui::GetMousePos();
-            const ImVec2 &regionMax = ImGui::GetWindowContentRegionMax();
+            const ImVec2& regionAvail = ImGui::GetContentRegionAvail();
+            controller::set3dViewSize((unsigned int)regionAvail.x, (unsigned int)regionAvail.y);
+            const auto& mainScene = controller::getMainScene();
+            const ImVec2& windowPos = ImGui::GetWindowPos();
+            const ImVec2& regionMin = ImGui::GetWindowContentRegionMin();
+            const ImVec2& mousePos = ImGui::GetMousePos();
+            const ImVec2& regionMax = ImGui::GetWindowContentRegionMax();
             const glm::svec2 relCursorPos = {
                     mousePos.x - windowPos.x - regionMin.x,
-                    mousePos.y - windowPos.y - regionMin.y
-            };
+                    mousePos.y - windowPos.y - regionMin.y};
             bool isInWindow = (windowPos.x + regionMin.x <= mousePos.x
                                && mousePos.x <= windowPos.x + regionMax.x
                                && windowPos.y + regionMin.y <= mousePos.y
@@ -42,7 +41,7 @@ namespace bricksim::gui::windows::view3d {
                 DRAG_ELEMENT,
             };
             if (isInWindow) {
-                const ImGuiIO &imGuiIo = ImGui::GetIO();
+                const ImGuiIO& imGuiIo = ImGui::GetIO();
 
                 const bool currentLeftMouseDown = imGuiIo.MouseDown[ImGuiMouseButton_Left];
                 const bool currentMiddleMouseDown = imGuiIo.MouseDown[ImGuiMouseButton_Middle];
@@ -106,20 +105,22 @@ namespace bricksim::gui::windows::view3d {
                     }
                 }
 
-
                 switch (dragMode) {
-                    case NOT_DRAGGING:break;
-                    case ROTATE_CAMERA:controller::getMainSceneCamera()->mouseRotate(deltaCursorPos);
+                    case NOT_DRAGGING: break;
+                    case ROTATE_CAMERA:
+                        controller::getMainSceneCamera()->mouseRotate(deltaCursorPos);
                         break;
-                    case PAN_CAMERA:controller::getMainSceneCamera()->mousePan(deltaCursorPos);
+                    case PAN_CAMERA:
+                        controller::getMainSceneCamera()->mousePan(deltaCursorPos);
                         break;
-                    case DRAG_ELEMENT:controller::updateNodeDragDelta(totalDragDelta);
+                    case DRAG_ELEMENT:
+                        controller::updateNodeDragDelta(totalDragDelta);
                         break;
                 }
 
                 auto lastScrollDeltaY = getLastScrollDeltaY();
                 if (std::abs(lastScrollDeltaY) > 0.01) {
-                    controller::getMainSceneCamera()->moveForwardBackward((float) lastScrollDeltaY);
+                    controller::getMainSceneCamera()->moveForwardBackward((float)lastScrollDeltaY);
                 }
 
                 lastLeftMouseDown = currentLeftMouseDown;
@@ -129,9 +130,9 @@ namespace bricksim::gui::windows::view3d {
                 lastAnyMouseDown = currentlyAnyMouseDown;
             }
             mainScene->setImageSize({regionAvail.x, regionAvail.y});
-            const auto &image = config::get(config::DISPLAY_SELECTION_BUFFER)
-                                ? mainScene->getSelectionImage().value()
-                                : mainScene->getImage();
+            const auto& image = config::get(config::DISPLAY_SELECTION_BUFFER)
+                                        ? mainScene->getSelectionImage().value()
+                                        : mainScene->getImage();
             auto texture3dView = gui_internal::convertTextureId(image.getTexBO());
             //ImGui::ImageButton(texture3dView, ImVec2(image.getSize().x, image.getSize().y), ImVec2(0, 1), ImVec2(1, 0), 0);
             ImGui::Image(texture3dView, ImVec2(image.getSize().x, image.getSize().y), ImVec2(0, 1), ImVec2(1, 0));

@@ -1,14 +1,14 @@
-#include <spdlog/spdlog.h>
+#include "thumbnail_generator.h"
+#include "../config.h"
+#include "../controller.h"
+#include "../metrics.h"
 #include <glad/glad.h>
 #include <glm/ext/matrix_clip_space.hpp>
-#include "thumbnail_generator.h"
-#include "../metrics.h"
-#include "../controller.h"
-#include "../config.h"
+#include <spdlog/spdlog.h>
 
 namespace bricksim::graphics {
 
-    unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<ldr::File> &ldrFile, const ldr::ColorReference color) {
+    unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference color) {
         if (renderedRotationDegrees != rotationDegrees) {
             discardAllImages();
             renderedRotationDegrees = rotationDegrees;
@@ -56,7 +56,7 @@ namespace bricksim::graphics {
 
     void ThumbnailGenerator::discardAllImages() {
         controller::executeOpenGL([this]() {
-            for (const auto &item : images) {
+            for (const auto& item: images) {
                 glDeleteTextures(1, &item.second);
             }
         });
@@ -75,11 +75,11 @@ namespace bricksim::graphics {
                 images.erase(lastAccessedIt);
                 deletedCount++;
             }
-            metrics::thumbnailBufferUsageBytes -= (size_t) size * size * 3 * deletedCount;
+            metrics::thumbnailBufferUsageBytes -= (size_t)size * size * 3 * deletedCount;
         });
     }
 
-    std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const std::shared_ptr<ldr::File> &ldrFile, ldr::ColorReference color) {
+    std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color) {
         if (renderedRotationDegrees != rotationDegrees) {
             discardAllImages();
             renderedRotationDegrees = rotationDegrees;
@@ -98,7 +98,7 @@ namespace bricksim::graphics {
 
     bool ThumbnailGenerator::workOnRenderQueue() {
         if (!renderRequests.empty()) {
-            const auto &request = renderRequests.front();
+            const auto& request = renderRequests.front();
             getThumbnail(request.first, request.second);
             renderRequests.pop_front();
         }
@@ -112,7 +112,7 @@ namespace bricksim::graphics {
             glGenTextures(1, &destinationTextureId);
 
             // bind fbo as read / draw fbo
-            const auto &image = scene->getImage();
+            const auto& image = scene->getImage();
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, image.getFBO());
             glBindFramebuffer(GL_READ_FRAMEBUFFER, image.getFBO());
 
@@ -125,7 +125,6 @@ namespace bricksim::graphics {
             glBindTexture(GL_TEXTURE_2D, destinationTextureId);
             glFramebufferTexture2D(GL_TEXTURE_2D, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, destinationTextureId, 0);
             glReadBuffer(GL_COLOR_ATTACHMENT1);
-
 
             // specify source, destination drawing (sub)rectangles.
             glBlitFramebuffer(0, 0, size, size,
@@ -143,12 +142,12 @@ namespace bricksim::graphics {
         return renderRequests.empty();
     }
 
-    bool ThumbnailGenerator::isThumbnailAvailable(const std::shared_ptr<ldr::File> &ldrFile, ldr::ColorReference color) {
+    bool ThumbnailGenerator::isThumbnailAvailable(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color) {
         file_key_t fileKey = {ldrFile, color};
         return images.find(fileKey) != images.end();
     }
 
-    void ThumbnailGenerator::removeFromRenderQueue(const std::shared_ptr<ldr::File> &ldrFile, ldr::ColorReference color) {
+    void ThumbnailGenerator::removeFromRenderQueue(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color) {
         file_key_t fileKey = {ldrFile, color};
         auto it = std::find(renderRequests.begin(), renderRequests.end(), fileKey);
         if (it != renderRequests.end()) {
@@ -156,11 +155,11 @@ namespace bricksim::graphics {
         }
     }
 
-    ThumbnailGenerator::ThumbnailGenerator()
-            : camera(std::make_shared<FitContentCamera>()),
-              size(config::get(config::THUMBNAIL_SIZE)),
-              projection(glm::perspective(glm::radians(50.0f), 1.0f, 0.001f, 1000.0f)),
-              rotationDegrees(glm::vec3(45, -45, 0)) {
+    ThumbnailGenerator::ThumbnailGenerator() :
+        camera(std::make_shared<FitContentCamera>()),
+        size(config::get(config::THUMBNAIL_SIZE)),
+        projection(glm::perspective(glm::radians(50.0f), 1.0f, 0.001f, 1000.0f)),
+        rotationDegrees(glm::vec3(45, -45, 0)) {
         maxCachedThumbnails = config::get(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
         scene = scenes::create(scenes::THUMBNAIL_SCENE_ID);
         scene->setCamera(camera);

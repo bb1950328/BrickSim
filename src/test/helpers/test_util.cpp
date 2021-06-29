@@ -1,11 +1,11 @@
+#include "../../helpers/platform_detection.h"
+#include "../../helpers/util.h"
+#include "../testing_tools.h"
+#include "catch2/catch.hpp"
 #include "glm/gtx/transform.hpp"
-#include <iostream>
 #include <fstream>
 #include <glm/gtc/epsilon.hpp>
-#include "catch2/catch.hpp"
-#include "../../helpers/util.h"
-#include "../../helpers/platform_detection.h"
-#include "../testing_tools.h"
+#include <iostream>
 
 namespace bricksim {
     TEST_CASE("util::startsWith") {
@@ -76,7 +76,7 @@ namespace bricksim {
         CHECK(util::extendHomeDir("/abc~def") == "/abc~def");
         CHECK(util::extendHomeDir("/abc~") == "/abc~");
 
-        const char *expected = detected_platform::windows ? "~\\abc" : "~/abc";
+        const char* expected = detected_platform::windows ? "~\\abc" : "~/abc";
         CHECK(util::replaceHomeDir(util::extendHomeDir("~\\abc")) == expected);
     }
 
@@ -244,8 +244,12 @@ namespace bricksim {
     }
 
 //these are macros because when using lambdas the catch error output is less readable
-#define CHECK_EQUALS_ALPHANUM(a, b) CHECK(util::equalsAlphanum(a, b)); CHECK(util::equalsAlphanum(b, a));
-#define CHECK_FALSE_EQUALS_ALPHANUM(a, b) CHECK_FALSE(util::equalsAlphanum(a, b)); CHECK_FALSE(util::equalsAlphanum(b, a));
+#define CHECK_EQUALS_ALPHANUM(a, b)    \
+    CHECK(util::equalsAlphanum(a, b)); \
+    CHECK(util::equalsAlphanum(b, a));
+#define CHECK_FALSE_EQUALS_ALPHANUM(a, b)    \
+    CHECK_FALSE(util::equalsAlphanum(a, b)); \
+    CHECK_FALSE(util::equalsAlphanum(b, a));
 
     TEST_CASE("util::equalsAlphanum") {
         CHECK_EQUALS_ALPHANUM("", "");
@@ -331,7 +335,7 @@ namespace bricksim {
         CHECK(result.projectionLength == Approx(sqrt(2 * 2 + 1 * 1)));
     }
 
-    void consistencyCheck(const Ray3 &a, const Ray3 &b, const util::ClosestLineBetweenTwoRaysResult &result) {
+    void consistencyCheck(const Ray3& a, const Ray3& b, const util::ClosestLineBetweenTwoRaysResult& result) {
         CHECK(glm::length(result.pointOnA - result.pointOnB) == result.distanceBetweenPoints);
         CHECK(a.origin + glm::normalize(a.direction) * result.distanceToPointA == ApproxVec(result.pointOnA));
         CHECK(b.origin + glm::normalize(b.direction) * result.distanceToPointB == ApproxVec(result.pointOnB));
@@ -341,11 +345,11 @@ namespace bricksim {
         // https://keisan.casio.com/exec/system/1223531414
         const Ray3 a = {
                 {-1, 2, 0},
-                {2,  3, 1},
+                {2, 3, 1},
         };
         const Ray3 b = {
                 {3, -4, 1},
-                {1, 2,  1},
+                {1, 2, 1},
         };
         auto result = util::closestLineBetweenTwoRays(a, b);
         consistencyCheck(a, b, result);
@@ -390,11 +394,11 @@ namespace bricksim {
     TEST_CASE("util::closestLineBetweenTwoRays3") {
         const Ray3 a = {
                 {9999, 9999, 50},
-                {2,    3,    0},
+                {2, 3, 0},
         };
         const Ray3 b = {
                 {9999, 9999, 150},
-                {3,    2,    0},
+                {3, 2, 0},
         };
         auto result = util::closestLineBetweenTwoRays(a, b);
         consistencyCheck(a, b, result);

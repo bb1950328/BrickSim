@@ -1,11 +1,11 @@
-#include <glad/glad.h>
 #include "overlay_2d.h"
 #include "../controller.h"
 #include "../helpers/util.h"
+#include <glad/glad.h>
 
 namespace bricksim::overlay2d {
     namespace {
-        Vertex *generateVerticesForLine(Vertex *firstVertexLocation, coord_t start, coord_t end, length_t width, color::RGB color, coord_t viewportSize) {
+        Vertex* generateVerticesForLine(Vertex* firstVertexLocation, coord_t start, coord_t end, length_t width, color::RGB color, coord_t viewportSize) {
             // 1----------------------------------2
             // |                                  |
             // + start                        end +
@@ -33,7 +33,7 @@ namespace bricksim::overlay2d {
             return 6;
         }
 
-        Vertex *generateVerticesForTriangle(Vertex *firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize) {
+        Vertex* generateVerticesForTriangle(Vertex* firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize) {
             *firstVertexLocation = {toNDC(p0, viewportSize), color.asGlmVector()};
             if (((p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y)) > 0) {
                 //already counterclockwise
@@ -48,7 +48,7 @@ namespace bricksim::overlay2d {
             return firstVertexLocation;
         }
 
-        Vertex *generateVerticesForCCWTriangle(Vertex *firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize) {
+        Vertex* generateVerticesForCCWTriangle(Vertex* firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize) {
             *firstVertexLocation = {toNDC(p0, viewportSize), color.asGlmVector()};
             firstVertexLocation++;
             *firstVertexLocation = {toNDC(p1, viewportSize), color.asGlmVector()};
@@ -62,12 +62,12 @@ namespace bricksim::overlay2d {
             return 3;
         }
 
-        Vertex *generateVerticesForSquare(Vertex *firstVertexLocation, coord_t center, length_t sideLength, color::RGB color, coord_t viewportSize) {
+        Vertex* generateVerticesForSquare(Vertex* firstVertexLocation, coord_t center, length_t sideLength, color::RGB color, coord_t viewportSize) {
             const float halfSideLength = sideLength / 2;
-            auto p1 = glm::vec2{(float) center.x - halfSideLength, (float) center.y + halfSideLength};
-            auto p2 = glm::vec2{(float) center.x + halfSideLength, (float) center.y + halfSideLength};
-            auto p3 = glm::vec2{(float) center.x + halfSideLength, (float) center.y - halfSideLength};
-            auto p4 = glm::vec2{(float) center.x - halfSideLength, (float) center.y - halfSideLength};
+            auto p1 = glm::vec2{(float)center.x - halfSideLength, (float)center.y + halfSideLength};
+            auto p2 = glm::vec2{(float)center.x + halfSideLength, (float)center.y + halfSideLength};
+            auto p3 = glm::vec2{(float)center.x + halfSideLength, (float)center.y - halfSideLength};
+            auto p4 = glm::vec2{(float)center.x - halfSideLength, (float)center.y - halfSideLength};
             return generateVerticesForQuad(firstVertexLocation, p1, p2, p3, p4, color, viewportSize);
         }
 
@@ -75,7 +75,7 @@ namespace bricksim::overlay2d {
             return 6;
         }
 
-        Vertex *generateVerticesForRegularPolygon(Vertex *firstVertexLocation, coord_t center, length_t radius, short numEdges, color::RGB color,
+        Vertex* generateVerticesForRegularPolygon(Vertex* firstVertexLocation, coord_t center, length_t radius, short numEdges, color::RGB color,
                                                   coord_t viewportSize) {
             float angleStep = 2 * M_PI / numEdges;
             const glm::vec2 p0 = toNDC(coord_t{radius + center.x, center.y}, viewportSize);
@@ -98,7 +98,7 @@ namespace bricksim::overlay2d {
         }
 
         constexpr unsigned int getVertexCountForRegularPolygon(short numEdges) {
-            return (numEdges - 2)*3;
+            return (numEdges - 2) * 3;
         }
 
         /**
@@ -106,7 +106,7 @@ namespace bricksim::overlay2d {
          * |     |
          * p4 -- p3
          */
-        Vertex *generateVerticesForQuad(Vertex *firstVertexLocation, const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec2 &p4,
+        Vertex* generateVerticesForQuad(Vertex* firstVertexLocation, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& p4,
                                         color::RGB color, coord_t viewportSize) {
             *firstVertexLocation = {toNDC(p1, viewportSize), color.asGlmVector()};
             ++firstVertexLocation;
@@ -128,18 +128,18 @@ namespace bricksim::overlay2d {
         }
 
         constexpr glm::vec2 toNDC(coord_t coord, coord_t viewportSize) {
-            return glm::vec2((float) coord.x / (float) viewportSize.x * 2 - 1,
-                             (float) coord.y / (float) viewportSize.y * 2 - 1);
+            return glm::vec2((float)coord.x / (float)viewportSize.x * 2 - 1,
+                             (float)coord.y / (float)viewportSize.y * 2 - 1);
         }
 
         constexpr glm::vec2 toNDC(glm::vec2 coord, coord_t viewportSize) {
-            return glm::vec2(coord.x / (float) viewportSize.x * 2 - 1,
-                             coord.y / (float) viewportSize.y * 2 - 1);
+            return glm::vec2(coord.x / (float)viewportSize.x * 2 - 1,
+                             coord.y / (float)viewportSize.y * 2 - 1);
         }
     }
 
-    Vertex::Vertex(const glm::vec2 &position, const glm::vec3 &color) : position(position), color(color) {}
-
+    Vertex::Vertex(const glm::vec2& position, const glm::vec3& color) :
+        position(position), color(color) {}
 
     Element::Element() = default;
 
@@ -151,22 +151,22 @@ namespace bricksim::overlay2d {
         return verticesHaveChanged;
     }
 
-    void ElementCollection::verticesHaveChanged(const std::shared_ptr<Element> &changedElement) {
+    void ElementCollection::verticesHaveChanged(const std::shared_ptr<Element>& changedElement) {
         changedElements.insert(changedElement);
     }
 
     void ElementCollection::updateVertices(coord_t viewportSize) {
         const bool viewportSizeChanged = lastWrittenViewportSize != viewportSize;
-        const auto &elementsToUpdate = viewportSizeChanged ? elements : changedElements;
+        const auto& elementsToUpdate = viewportSizeChanged ? elements : changedElements;
         unsigned int changedVerticesCount = 0;
         if (hasChangedElements() || viewportSizeChanged) {
             bool needToRewriteEverything = false;
             std::vector<VertexRange> changedRanges;
             auto firstVertex = vertices.begin();
-            for (const auto &elem : elementsToUpdate) {
+            for (const auto& elem: elementsToUpdate) {
                 auto vertexRangesIt = vertexRanges.find(elem);
                 const bool elementIsNew = vertexRangesIt == vertexRanges.end();
-                VertexRange &range = elementIsNew ? vertexRanges[elem] : vertexRangesIt->second;
+                VertexRange& range = elementIsNew ? vertexRanges[elem] : vertexRangesIt->second;
                 const bool elementIsDeleted = elements.find(elem) == elements.end();
                 const auto newVertexCount = elementIsDeleted ? 0 : elem->getVertexCount();
                 const bool elementVertexCountChanged = range.count != newVertexCount;
@@ -180,7 +180,7 @@ namespace bricksim::overlay2d {
                     }
 
                     //adjust ranges after current
-                    for (auto &item : vertexRanges) {
+                    for (auto& item: vertexRanges) {
                         if (item.second.start > range.start) {
                             item.second.count -= range.count;
                         }
@@ -192,11 +192,11 @@ namespace bricksim::overlay2d {
                     vertices.resize(vertices.size() + newVertexCount);
                     auto firstVertexLocation = &vertices[range.start];
                     auto lastVertexLocation = elem->writeVertices(firstVertexLocation, viewportSize);
-                    assert(lastVertexLocation-firstVertexLocation==elem->getVertexCount() && "Element::writeVertices() must increment vertex pointer by vertexCount");
+                    assert(lastVertexLocation - firstVertexLocation == elem->getVertexCount() && "Element::writeVertices() must increment vertex pointer by vertexCount");
                 } else {
                     auto firstVertexLocation = &vertices[range.start];
                     auto lastVertexLocation = elem->writeVertices(firstVertexLocation, viewportSize);
-                    assert(lastVertexLocation-firstVertexLocation==elem->getVertexCount() && "Element::writeVertices() must increment vertex pointer by vertexCount");
+                    assert(lastVertexLocation - firstVertexLocation == elem->getVertexCount() && "Element::writeVertices() must increment vertex pointer by vertexCount");
                     if (!needToRewriteEverything) {
                         changedRanges.push_back(range);
                     }
@@ -210,7 +210,7 @@ namespace bricksim::overlay2d {
                     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
                     changedVerticesCount = vertices.size();
                 } else {
-                    for (const auto &range : changedRanges) {
+                    for (const auto& range: changedRanges) {
                         glBufferSubData(GL_ARRAY_BUFFER, range.start * sizeof(Vertex), range.count * sizeof(Vertex), &vertices[range.start]);
                         changedVerticesCount += range.count;
                     }
@@ -222,7 +222,7 @@ namespace bricksim::overlay2d {
         }
     }
 
-    ElementCollection::ElementCollection() { // NOLINT(cppcoreguidelines-pro-type-member-init)
+    ElementCollection::ElementCollection() {// NOLINT(cppcoreguidelines-pro-type-member-init)
         controller::executeOpenGL([&]() {
             glGenVertexArrays(1, &vao);
             glBindVertexArray(vao);
@@ -231,10 +231,10 @@ namespace bricksim::overlay2d {
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
             glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, position));
+            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
 
             glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, color));
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
 
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
@@ -253,12 +253,12 @@ namespace bricksim::overlay2d {
         glDrawArrays(GL_TRIANGLES, 0, vertices.size());
     }
 
-    void ElementCollection::addElement(const std::shared_ptr<Element> &element) {
+    void ElementCollection::addElement(const std::shared_ptr<Element>& element) {
         elements.insert(element);
         verticesHaveChanged(element);
     }
 
-    void ElementCollection::removeElement(const std::shared_ptr<Element> &element) {
+    void ElementCollection::removeElement(const std::shared_ptr<Element>& element) {
         elements.erase(element);
         verticesHaveChanged(element);
     }
@@ -269,7 +269,7 @@ namespace bricksim::overlay2d {
 
     bool ElementCollection::hasChangedElements() {
         //todo maybe not the best design (changing state and returning something)
-        for (auto &item : elements) {
+        for (auto& item: elements) {
             if (item->haveVerticesChanged()) {
                 changedElements.insert(item);
                 item->setVerticesHaveChanged(false);
@@ -286,28 +286,29 @@ namespace bricksim::overlay2d {
         return getVertexCountForLine();
     }
 
-    Vertex *LineElement::writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) {
+    Vertex* LineElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
         return generateVerticesForLine(firstVertexLocation, start, end, width, color, viewportSize);
     }
 
-    LineElement::LineElement(coord_t start, coord_t end, length_t width, color::RGB color) : start(start), end(end), width(width), color(color) {
+    LineElement::LineElement(coord_t start, coord_t end, length_t width, color::RGB color) :
+        start(start), end(end), width(width), color(color) {
         setVerticesHaveChanged(true);
     }
 
-    const coord_t &LineElement::getStart() const {
+    const coord_t& LineElement::getStart() const {
         return start;
     }
 
-    void LineElement::setStart(const coord_t &value) {
+    void LineElement::setStart(const coord_t& value) {
         LineElement::start = value;
         setVerticesHaveChanged(true);
     }
 
-    const coord_t &LineElement::getEnd() const {
+    const coord_t& LineElement::getEnd() const {
         return end;
     }
 
-    void LineElement::setEnd(const coord_t &value) {
+    void LineElement::setEnd(const coord_t& value) {
         end = value;
         setVerticesHaveChanged(true);
     }
@@ -321,23 +322,23 @@ namespace bricksim::overlay2d {
         setVerticesHaveChanged(true);
     }
 
-    const color::RGB &LineElement::getColor() const {
+    const color::RGB& LineElement::getColor() const {
         return color;
     }
 
-    void LineElement::setColor(const color::RGB &value) {
+    void LineElement::setColor(const color::RGB& value) {
         LineElement::color = value;
         setVerticesHaveChanged(true);
     }
 
-    TriangleElement::TriangleElement(const coord_t &p0, const coord_t &p1, const coord_t &p2, const color::RGB &color)
-            : p0(p0), p1(p1), p2(p2), color(color) {}
+    TriangleElement::TriangleElement(const coord_t& p0, const coord_t& p1, const coord_t& p2, const color::RGB& color) :
+        p0(p0), p1(p1), p2(p2), color(color) {}
 
     bool TriangleElement::isPointInside(coord_t point) {
         //https://stackoverflow.com/a/2049593/8733066
-        int d1 = ((int) point.x - p1.x) * ((int) p0.y - p1.y) - ((int) p0.x - p1.x) * ((int) point.y - p1.y);
-        int d2 = ((int) point.x - p2.x) * ((int) p1.y - p2.y) - ((int) p1.x - p2.x) * ((int) point.y - p2.y);
-        int d3 = ((int) point.x - p0.x) * ((int) p2.y - p0.y) - ((int) p2.x - p0.x) * ((int) point.y - p0.y);
+        int d1 = ((int)point.x - p1.x) * ((int)p0.y - p1.y) - ((int)p0.x - p1.x) * ((int)point.y - p1.y);
+        int d2 = ((int)point.x - p2.x) * ((int)p1.y - p2.y) - ((int)p1.x - p2.x) * ((int)point.y - p2.y);
+        int d3 = ((int)point.x - p0.x) * ((int)p2.y - p0.y) - ((int)p2.x - p0.x) * ((int)point.y - p0.y);
 
         return (d1 >= 0 && d2 >= 0 && d3 >= 0) || (d1 <= 0 && d2 <= 0 && d3 <= 0);
     }
@@ -346,65 +347,65 @@ namespace bricksim::overlay2d {
         return getVertexCountForTriangle();
     }
 
-    Vertex *TriangleElement::writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) {
+    Vertex* TriangleElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
         return generateVerticesForTriangle(firstVertexLocation, p0, p1, p2, color, viewportSize);
     }
 
-    const coord_t &TriangleElement::getP0() const {
+    const coord_t& TriangleElement::getP0() const {
         return p0;
     }
 
-    void TriangleElement::setP0(const coord_t &value) {
+    void TriangleElement::setP0(const coord_t& value) {
         TriangleElement::p0 = value;
         setVerticesHaveChanged(true);
     }
 
-    const coord_t &TriangleElement::getP1() const {
+    const coord_t& TriangleElement::getP1() const {
         return p1;
     }
 
-    void TriangleElement::setP1(const coord_t &value) {
+    void TriangleElement::setP1(const coord_t& value) {
         TriangleElement::p1 = value;
         setVerticesHaveChanged(true);
     }
 
-    const coord_t &TriangleElement::getP2() const {
+    const coord_t& TriangleElement::getP2() const {
         return p2;
     }
 
-    void TriangleElement::setP2(const coord_t &value) {
+    void TriangleElement::setP2(const coord_t& value) {
         TriangleElement::p2 = value;
         setVerticesHaveChanged(true);
     }
 
-    const color::RGB &TriangleElement::getColor() const {
+    const color::RGB& TriangleElement::getColor() const {
         return color;
     }
 
-    void TriangleElement::setColor(const color::RGB &value) {
+    void TriangleElement::setColor(const color::RGB& value) {
         TriangleElement::color = value;
     }
 
-    SquareElement::SquareElement(const coord_t &center, length_t sideLength, const color::RGB &color)
-            : center(center), sideLength(sideLength), color(color) {}
+    SquareElement::SquareElement(const coord_t& center, length_t sideLength, const color::RGB& color) :
+        center(center), sideLength(sideLength), color(color) {}
 
     bool SquareElement::isPointInside(coord_t point) {
-        return std::abs((int) point.x - center.x) < sideLength/2 && std::abs((int) point.y - center.y) < sideLength/2;
+        return std::abs((int)point.x - center.x) < sideLength / 2 && std::abs((int)point.y - center.y) < sideLength / 2;
     }
 
     unsigned int SquareElement::getVertexCount() {
         return getVertexCountForSquare();
     }
 
-    Vertex *SquareElement::writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) {
+    Vertex* SquareElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
         return generateVerticesForSquare(firstVertexLocation, center, sideLength, color, viewportSize);
     }
 
-    const coord_t &SquareElement::getCenter() const {
+    const coord_t& SquareElement::getCenter() const {
         return center;
     }
 
-    void SquareElement::setCenter(const coord_t &value) {
+    void SquareElement::setCenter(const coord_t& value) {
         SquareElement::center = value;
         setVerticesHaveChanged(true);
     }
@@ -418,39 +419,39 @@ namespace bricksim::overlay2d {
         setVerticesHaveChanged(true);
     }
 
-    const color::RGB &SquareElement::getColor() const {
+    const color::RGB& SquareElement::getColor() const {
         return color;
     }
 
-    void SquareElement::setColor(const color::RGB &value) {
+    void SquareElement::setColor(const color::RGB& value) {
         SquareElement::color = value;
         setVerticesHaveChanged(true);
     }
 
-    RegularPolygonElement::RegularPolygonElement(const coord_t &center, length_t radius, short numEdges, const color::RGB &color)
-    : center(center), radius(radius), numEdges(numEdges), color(color) {}
+    RegularPolygonElement::RegularPolygonElement(const coord_t& center, length_t radius, short numEdges, const color::RGB& color) :
+        center(center), radius(radius), numEdges(numEdges), color(color) {}
 
     bool RegularPolygonElement::isPointInside(coord_t point) {
         //todo this is for a circle so it's wrong for points near the middle between two corners for polygons with low edge count
         // calculate the distance from center to outline for the angle between center and point
-        const auto dx = (int)point.x-center.x;
-        const auto dy = (int)point.y-center.y;
-        return std::sqrt(dx*dx+dy*dy)<radius;
+        const auto dx = (int)point.x - center.x;
+        const auto dy = (int)point.y - center.y;
+        return std::sqrt(dx * dx + dy * dy) < radius;
     }
 
     unsigned int RegularPolygonElement::getVertexCount() {
         return getVertexCountForRegularPolygon(numEdges);
     }
 
-    Vertex *RegularPolygonElement::writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) {
+    Vertex* RegularPolygonElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
         return generateVerticesForRegularPolygon(firstVertexLocation, center, radius, numEdges, color, viewportSize);
     }
 
-    const coord_t &RegularPolygonElement::getCenter() const {
+    const coord_t& RegularPolygonElement::getCenter() const {
         return center;
     }
 
-    void RegularPolygonElement::setCenter(const coord_t &value) {
+    void RegularPolygonElement::setCenter(const coord_t& value) {
         RegularPolygonElement::center = value;
         setVerticesHaveChanged(true);
     }
@@ -469,23 +470,25 @@ namespace bricksim::overlay2d {
     }
 
     void RegularPolygonElement::setNumEdges(short value) {
-        assert(value>2);
+        assert(value > 2);
         RegularPolygonElement::numEdges = value;
         setVerticesHaveChanged(true);
     }
 
-    const color::RGB &RegularPolygonElement::getColor() const {
+    const color::RGB& RegularPolygonElement::getColor() const {
         return color;
     }
 
-    void RegularPolygonElement::setColor(const color::RGB &value) {
+    void RegularPolygonElement::setColor(const color::RGB& value) {
         RegularPolygonElement::color = value;
         setVerticesHaveChanged(true);
     }
 
-    ArrowElement::ArrowElement(const coord_t &start, const coord_t &anEnd, length_t lineWidth, const color::RGB &color, float tipLengthFactor,
-                               float tipWidthFactor) : start(start), end(anEnd), lineWidth(lineWidth), tipLengthFactor(tipLengthFactor),
-                                                              tipWidthFactor(tipWidthFactor), color(color) {}
+    ArrowElement::ArrowElement(const coord_t& start, const coord_t& anEnd, length_t lineWidth, const color::RGB& color, float tipLengthFactor,
+                               float tipWidthFactor) :
+        start(start),
+        end(anEnd), lineWidth(lineWidth), tipLengthFactor(tipLengthFactor),
+        tipWidthFactor(tipWidthFactor), color(color) {}
 
     bool ArrowElement::isPointInside(coord_t point) {
         const auto normalProjection = util::normalProjectionOnLineClamped(start, end, point);
@@ -494,18 +497,18 @@ namespace bricksim::overlay2d {
         float tipLength = calculateTipLength();
         if (projLengthFromEnd > tipLength) {
             //on the line part
-            return normalProjection.distancePointToLine < lineWidth/2;
+            return normalProjection.distancePointToLine < lineWidth / 2;
         } else {
             //on the tip part
-            return normalProjection.distancePointToLine < projLengthFromEnd/tipLength*tipWidth/2;
+            return normalProjection.distancePointToLine < projLengthFromEnd / tipLength * tipWidth / 2;
         }
     }
 
     unsigned int ArrowElement::getVertexCount() {
-        return 5*getVertexCountForTriangle();
+        return 5 * getVertexCountForTriangle();
     }
 
-    Vertex *ArrowElement::writeVertices(Vertex *firstVertexLocation, coord_t viewportSize) {
+    Vertex* ArrowElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
         //               5
         //               |  \
         // 1-------------3      \
@@ -528,8 +531,8 @@ namespace bricksim::overlay2d {
         const glm::vec2 p2 = startFloat + halfEdge;
         const glm::vec2 p3 = normalLineEnd - halfEdge;
         const glm::vec2 p4 = normalLineEnd + halfEdge;
-        const glm::vec2 p5 = normalLineEnd - halfEdge*tipWidthFactor;
-        const glm::vec2 p6 = normalLineEnd + halfEdge*tipWidthFactor;
+        const glm::vec2 p5 = normalLineEnd - halfEdge * tipWidthFactor;
+        const glm::vec2 p6 = normalLineEnd + halfEdge * tipWidthFactor;
 
         firstVertexLocation = generateVerticesForCCWTriangle(firstVertexLocation, p5, p3, end, color, viewportSize);
         firstVertexLocation = generateVerticesForCCWTriangle(firstVertexLocation, p3, p1, end, color, viewportSize);
@@ -541,27 +544,27 @@ namespace bricksim::overlay2d {
     }
 
     float ArrowElement::calculateTipLength() const {
-        return lineWidth*tipLengthFactor;
+        return lineWidth * tipLengthFactor;
     }
 
     float ArrowElement::calculateTipWidth() const {
-        return lineWidth*tipWidthFactor;
+        return lineWidth * tipWidthFactor;
     }
 
-    const coord_t &ArrowElement::getStart() const {
+    const coord_t& ArrowElement::getStart() const {
         return start;
     }
 
-    void ArrowElement::setStart(const coord_t &value) {
+    void ArrowElement::setStart(const coord_t& value) {
         ArrowElement::start = value;
         setVerticesHaveChanged(true);
     }
 
-    const coord_t &ArrowElement::getEnd() const {
+    const coord_t& ArrowElement::getEnd() const {
         return end;
     }
 
-    void ArrowElement::setEnd(const coord_t &value) {
+    void ArrowElement::setEnd(const coord_t& value) {
         end = value;
         setVerticesHaveChanged(true);
     }
@@ -593,11 +596,11 @@ namespace bricksim::overlay2d {
         setVerticesHaveChanged(true);
     }
 
-    const color::RGB &ArrowElement::getColor() const {
+    const color::RGB& ArrowElement::getColor() const {
         return color;
     }
 
-    void ArrowElement::setColor(const color::RGB &value) {
+    void ArrowElement::setColor(const color::RGB& value) {
         ArrowElement::color = value;
         setVerticesHaveChanged(true);
     }

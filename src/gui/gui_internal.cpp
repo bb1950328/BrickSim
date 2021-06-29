@@ -1,12 +1,12 @@
 #include "gui_internal.h"
-#include "../info_providers/part_color_availability_provider.h"
-#include "../helpers/util.h"
-#include "../keyboard_shortcut_manager.h"
 #include "../controller.h"
+#include "../helpers/util.h"
+#include "../info_providers/part_color_availability_provider.h"
+#include "../keyboard_shortcut_manager.h"
 #include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 
 namespace bricksim::gui_internal {
-    bool drawPartThumbnail(const ImVec2 &actualThumbSizeSquared, const std::shared_ptr<ldr::File> &part, const ldr::ColorReference color) {
+    bool drawPartThumbnail(const ImVec2& actualThumbSizeSquared, const std::shared_ptr<ldr::File>& part, const ldr::ColorReference color) {
         bool realThumbnailAvailable = false;
         const bool visible = ImGui::IsRectVisible(actualThumbSizeSquared);
         if (visible) {
@@ -42,15 +42,15 @@ namespace bricksim::gui_internal {
         return visible;
     }
 
-    color::RGB getWhiteOrBlackBetterContrast(const glm::vec3 &col) {
+    color::RGB getWhiteOrBlackBetterContrast(const glm::vec3& col) {
         return util::vectorSum(col) > 1.5 ? color::RGB::BLACK : color::RGB::WHITE;
     }
 
-    void drawColorGroup(const std::shared_ptr<etree::MeshNode> &ldrNode, const ImVec2 &buttonSize, const int columnCount,
-                        const std::pair<const std::string, std::vector<ldr::ColorReference>> &colorGroup) {
+    void drawColorGroup(const std::shared_ptr<etree::MeshNode>& ldrNode, const ImVec2& buttonSize, const int columnCount,
+                        const std::pair<const std::string, std::vector<ldr::ColorReference>>& colorGroup) {
         if (ImGui::TreeNodeEx(colorGroup.first.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
             int i = 0;
-            for (const auto &color : colorGroup.second) {
+            for (const auto& color: colorGroup.second) {
                 const auto colorValue = color.get();
                 if (i % columnCount > 0) {
                     ImGui::SameLine();
@@ -61,7 +61,7 @@ namespace bricksim::gui_internal {
                     ldrNode->setColor(color);
                     controller::setElementTreeChanged(true);
                 }
-                ImGui::PopStyleColor(/*3*/1);
+                ImGui::PopStyleColor(/*3*/ 1);
                 ImGui::PopID();
                 if (ImGui::IsItemHovered()) {
                     ImGui::BeginTooltip();
@@ -74,7 +74,7 @@ namespace bricksim::gui_internal {
         }
     }
 
-    void drawHyperlinkButton(const std::string &url) {
+    void drawHyperlinkButton(const std::string& url) {
         const auto buttonHoveredColor = ImGui::GetColorU32(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
         ImGui::PushStyleColor(ImGuiCol_Text, buttonHoveredColor);
         ImGui::PushTextWrapPos(-1.0f);
@@ -95,34 +95,34 @@ namespace bricksim::gui_internal {
     }
 
     char getLoFiSpinner() {
-        return "|/-\\"[(int) (glfwGetTime() * 8) % 4];
+        return "|/-\\"[(int)(glfwGetTime() * 8) % 4];
     }
 
-    const char *getAnimatedHourglassIcon() {
-        switch ((int) (glfwGetTime() * 6) % 3) {
-            case 0:return ICON_FA_HOURGLASS_START;
-            case 1:return ICON_FA_HOURGLASS_HALF;
-            case 2:return ICON_FA_HOURGLASS_END;
-            default:return ICON_FA_HOURGLASS;//should never happen
+    const char* getAnimatedHourglassIcon() {
+        switch ((int)(glfwGetTime() * 6) % 3) {
+            case 0: return ICON_FA_HOURGLASS_START;
+            case 1: return ICON_FA_HOURGLASS_HALF;
+            case 2: return ICON_FA_HOURGLASS_END;
+            default: return ICON_FA_HOURGLASS;//should never happen
         }
     }
 
     ImTextureID convertTextureId(unsigned int textureId) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
-        return (ImTextureID) textureId;
+        return (ImTextureID)textureId;
 #pragma GCC diagnostic pop
     }
 
-    const char *getShortcutText(const user_actions::Action &action) {
+    const char* getShortcutText(const user_actions::Action& action) {
         return keyboard_shortcut_manager::getShortcutForAction(action.id).c_str();
     }
 
-    void actionMenuItem(const user_actions::Action &action) {
+    void actionMenuItem(const user_actions::Action& action) {
         actionMenuItem(action, action.nameWithIcon);
     }
 
-    void actionMenuItem(const user_actions::Action &action, const char *alternativeDescription) {
+    void actionMenuItem(const user_actions::Action& action, const char* alternativeDescription) {
         if (ImGui::MenuItem(alternativeDescription, gui_internal::getShortcutText(action))) {
             user_actions::executeAction(action.id);
         }

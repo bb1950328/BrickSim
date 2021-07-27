@@ -1,7 +1,6 @@
-
 tasks:
   - init: ./setup_workspace.sh
 vscode:
   extensions:
     - ms-vscode.cmake-tools
-    - ms-vscode.cpptools
+    - twxs.cmake

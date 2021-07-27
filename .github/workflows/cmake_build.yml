@@ -572,7 +572,8 @@ jobs:
           ls -l -R "/Volumes/InstallBuilder Enterprise"
           /Volumes/InstallBuilder\ Enterprise/installbuilder-enterprise-21.6.0-osx-installer.app/Contents/MacOS/installbuilder.sh \
                   --mode unattended --prefix ${{ runner.workspace }}/installbuilder
-          sudo hdiutil detach "/Volumes/InstallBuilder Enterprise"
+          #sudo hdiutil detach "/Volumes/InstallBuilder Enterprise"
+        #todo find out why the previous line causes error "hdiutil: couldn't unmount "disk2" - Resource busy"
 
       - uses: actions/checkout@v2
         with:

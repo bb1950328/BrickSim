@@ -84,21 +84,21 @@ namespace bricksim::transform_gizmo {
                 if (yaw <= -0.5 * M_PI) {
                     nowPovState = pitch < 0
                                           ? PovState::XPOS_YPOS_ZPOS
-                                          : PovState::XPOS_YPOS_ZNEG;
+                                          : PovState::XPOS_YNEG_ZPOS;
                 } else {
                     nowPovState = pitch < 0
-                                          ? PovState::XPOS_YNEG_ZPOS
+                                          ? PovState::XPOS_YPOS_ZNEG
                                           : PovState::XPOS_YNEG_ZNEG;
                 }
             } else {
                 if (yaw <= 0.5 * M_PI) {
                     nowPovState = pitch < 0
-                                          ? PovState::XNEG_YNEG_ZPOS
+                                          ? PovState::XNEG_YPOS_ZNEG
                                           : PovState::XNEG_YNEG_ZNEG;
                 } else {
                     nowPovState = pitch < 0
                                           ? PovState::XNEG_YPOS_ZPOS
-                                          : PovState::XNEG_YPOS_ZNEG;
+                                          : PovState::XNEG_YNEG_ZPOS;
                 }
             }
 
@@ -180,12 +180,12 @@ namespace bricksim::transform_gizmo {
             ++i;
         }
 
-        translate1dArrows[1]->setRelativeTransformation(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
-        translate1dArrows[2]->setRelativeTransformation(glm::rotate(glm::radians(-90.0f), glm::vec3(0, 0, 1)));
+        translate1dArrows[1]->setRelativeTransformation(glm::rotate(glm::radians(-90.0f), glm::vec3(0, 0, 1)));
+        translate1dArrows[2]->setRelativeTransformation(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
 
         rotateQuarterTori[0]->setRelativeTransformation(glm::rotate(glm::radians(-90.0f), glm::vec3(1, 0, 0)));
-        rotateQuarterTori[1]->setRelativeTransformation(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
-        rotateQuarterTori[2]->setRelativeTransformation(glm::rotate(glm::rotate(glm::radians(-90.0f), glm::vec3(1, 0, 0)), glm::radians(90.0f), glm::vec3(0, 0, 1)));
+        rotateQuarterTori[1]->setRelativeTransformation(glm::rotate(glm::rotate(glm::radians(-90.0f), glm::vec3(1, 0, 0)), glm::radians(90.0f), glm::vec3(0, 0, 1)));
+        rotateQuarterTori[2]->setRelativeTransformation(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
 
         centerBall = std::make_shared<mesh::generated::UVSphereNode>(ldr::color_repo::getPureColor("#ffffff"), shared_from_this());
         centerBall->setRelativeTransformation(glm::scale(glm::vec3(mesh::generated::ArrowNode::LINE_RADIUS * 4)));
@@ -211,12 +211,12 @@ namespace bricksim::transform_gizmo {
         const auto translationArrowX = glm::translate(glm::vec3(newX ? 0.0f : -1.0f, 0.0f, 0.0f));
         translate1dArrows[0]->setRelativeTransformation(glm::transpose(translationArrowX));
 
-        const auto rotationArrowY = glm::rotate(glm::radians(-90.0f), glm::vec3(0, 1, 0));
-        const auto translationArrowY = glm::translate(glm::vec3(newY ? 0.0f : -1.0f, 0.0f, 0.0f));
+        const auto rotationArrowY = glm::rotate(glm::radians(90.0f), glm::vec3(0, 0, 1));
+        const auto translationArrowY = glm::translate(glm::vec3(newZ ? 0.0f : -1.0f, 0.0f, 0.0f));
         translate1dArrows[1]->setRelativeTransformation(glm::transpose(rotationArrowY * translationArrowY));
 
-        const auto rotationArrowZ = glm::rotate(glm::radians(90.0f), glm::vec3(0, 0, 1));
-        const auto translationArrowZ = glm::translate(glm::vec3(newZ ? 0.0f : -1.0f, 0.0f, 0.0f));
+        const auto rotationArrowZ = glm::rotate(glm::radians(-90.0f), glm::vec3(0, 1, 0));
+        const auto translationArrowZ = glm::translate(glm::vec3(newY ? 0.0f : -1.0f, 0.0f, 0.0f));
         translate1dArrows[2]->setRelativeTransformation(glm::transpose(rotationArrowZ * translationArrowZ));
 
         const auto torusScale = glm::scale(glm::vec3(1.3f));
@@ -227,14 +227,14 @@ namespace bricksim::transform_gizmo {
         rotateQuarterTori[0]->setRelativeTransformation(torusScale * rotateTorusX);
         translate2dArrows[0]->setRelativeTransformation(move2dArrowScale * rotateTorusX);
 
-        float angleTorusY = newX ? (newZ ? 90.0f : 180.0f) : (newZ ? 0.0f : -90.0f);
-        const auto rotateTorusY1 = glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0));
+        float angleTorusY = newX ? (newY ? 0.0f : 90.0f) : (newY ? -90.0f : 180.0f);
+        const auto rotateTorusY1 = glm::rotate(glm::radians(90.0f), glm::vec3(0, 0, 1));
         const auto rotateTorusY2 = glm::rotate(glm::radians(angleTorusY), glm::vec3(1, 0, 0));
         rotateQuarterTori[1]->setRelativeTransformation(torusScale * rotateTorusY2 * rotateTorusY1);
         translate2dArrows[1]->setRelativeTransformation(move2dArrowScale * rotateTorusY2 * rotateTorusY1);
 
-        float angleTorusZ = newX ? (newY ? 0.0f : 90.0f) : (newY ? -90.0f : 180.0f);
-        const auto rotateTorusZ1 = glm::rotate(glm::radians(90.0f), glm::vec3(0, 0, 1));
+        float angleTorusZ = newX ? (newZ ? 90.0f : 180.0f) : (newZ ? 0.0f : -90.0f);
+        const auto rotateTorusZ1 = glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0));
         const auto rotateTorusZ2 = glm::rotate(glm::radians(angleTorusZ), glm::vec3(1, 0, 0));
         rotateQuarterTori[2]->setRelativeTransformation(torusScale * rotateTorusZ2 * rotateTorusZ1);
         translate2dArrows[2]->setRelativeTransformation(move2dArrowScale * rotateTorusZ2 * rotateTorusZ1);
@@ -342,8 +342,8 @@ namespace bricksim::transform_gizmo {
         const auto currentPointOnTransformRay = getClosestPointOnTransformRay(startMousePos + mouseDelta);
         auto translation = glm::translate(currentPointOnTransformRay - startPointOnTransformRay);
         spdlog::debug("currentPointOnTransformRay={}", currentPointOnTransformRay);
-        const auto newSelectedNodeTransformation = startNodeRelTransformation * translation;
-        const auto newGizmoTransformation = startGizmoRelTransformation * translation;
+        const auto newSelectedNodeTransformation = translation * startNodeRelTransformation;
+        const auto newGizmoTransformation = translation * startGizmoRelTransformation;
         gizmo.currentlySelectedNode->setRelativeTransformation(glm::transpose(newSelectedNodeTransformation));
         gizmo.node->setRelativeTransformation(glm::transpose(newGizmoTransformation));
     }

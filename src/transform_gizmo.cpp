@@ -31,26 +31,6 @@ namespace bricksim::transform_gizmo {
         for (const auto& arrow: node->getChildren()) {
             arrow->layer = constants::TRANSFORM_GIZMO_LAYER;
         }
-
-        debugNode = std::make_shared<mesh::generated::UVSphereNode>(ldr::color_repo::getPureColor("#ff0000"), this->scene->getRootNode());
-        debugNode->setRelativeTransformation(glm::scale(glm::mat4(1.0f), glm::vec3(10.0f)));
-        debugNode->layer = 5;
-        this->scene->getRootNode()->addChild(debugNode);
-
-        debugNode2 = std::make_shared<mesh::generated::UVSphereNode>(ldr::color_repo::getPureColor("#ffff00"), this->scene->getRootNode());
-        debugNode2->setRelativeTransformation(glm::scale(glm::mat4(1.0f), glm::vec3(10.0f)));
-        debugNode2->layer = 5;
-        this->scene->getRootNode()->addChild(debugNode2);
-
-        debugNode3 = std::make_shared<mesh::generated::UVSphereNode>(ldr::color_repo::getPureColor("#ff0000"), this->scene->getRootNode());
-        debugNode3->setRelativeTransformation(glm::scale(glm::mat4(1.0f), glm::vec3(10.0f)));
-        debugNode3->layer = 5;
-        this->scene->getRootNode()->addChild(debugNode3);
-
-        debugNode4 = std::make_shared<mesh::generated::UVSphereNode>(ldr::color_repo::getPureColor("#ffff00"), this->scene->getRootNode());
-        debugNode4->setRelativeTransformation(glm::scale(glm::mat4(1.0f), glm::vec3(10.0f)));
-        debugNode4->layer = 5;
-        this->scene->getRootNode()->addChild(debugNode4);
     }
 
     void TransformGizmo::update() {
@@ -341,7 +321,6 @@ namespace bricksim::transform_gizmo {
     void Translate1dOperation::update(const glm::vec2& mouseDelta) {
         const auto currentPointOnTransformRay = getClosestPointOnTransformRay(startMousePos + mouseDelta);
         auto translation = glm::translate(currentPointOnTransformRay - startPointOnTransformRay);
-        spdlog::debug("currentPointOnTransformRay={}", currentPointOnTransformRay);
         const auto newSelectedNodeTransformation = translation * startNodeRelTransformation;
         const auto newGizmoTransformation = translation * startGizmoRelTransformation;
         gizmo.currentlySelectedNode->setRelativeTransformation(glm::transpose(newSelectedNodeTransformation));
@@ -359,26 +338,12 @@ namespace bricksim::transform_gizmo {
         startMousePos(startMousePos),
         startNodeRelTransformation(glm::transpose(gizmo.currentlySelectedNode->getRelativeTransformation())),
         startGizmoRelTransformation(glm::transpose(gizmo.node->getRelativeTransformation())) {
-        spdlog::debug("transformRay={}", transformRay);
-        spdlog::debug("startPointOnTransformRay={}", startPointOnTransformRay);
     }
 
     glm::vec3 Translate1dOperation::getClosestPointOnTransformRay(const glm::svec2& mouseCoords) {
         Ray3 currentMouseRay = gizmo.scene->screenCoordinatesToWorldRay(mouseCoords);
-        const auto centerVec = glm::normalize(gizmo.scene->getCamera()->getTargetPos() - gizmo.scene->getCamera()->getCameraPos());
-        spdlog::debug("currentMouseRay={}, centerVec={}", currentMouseRay, centerVec);
         currentMouseRay *= constants::OPENGL_TO_LDU;
-        //auto debugNodeTransformation = glm::translate(currentMouseRay.origin + glm::normalize(currentMouseRay.direction) * 250.0f);
-        auto closestLineResult = util::closestLineBetweenTwoRays(currentMouseRay, transformRay);
-        spdlog::debug("currentMouseRay={}, transformRay={}, pointOnA={}, pointOnB={}, distanceBetweenPoints={}", currentMouseRay, transformRay, closestLineResult.pointOnA, closestLineResult.pointOnB, closestLineResult.distanceBetweenPoints);
-        const auto pointOnTransformRay = closestLineResult.pointOnB;
-
-        gizmo.debugNode->setRelativeTransformation(glm::transpose(glm::scale(glm::translate(pointOnTransformRay), glm::vec3(10.0f))));
-        gizmo.debugNode2->setRelativeTransformation(glm::transpose(glm::scale(glm::translate(closestLineResult.pointOnA), glm::vec3(10.0f))));
-        gizmo.debugNode3->setRelativeTransformation(glm::transpose(glm::scale(glm::translate(transformRay.origin), glm::vec3(10.0f))));
-        gizmo.debugNode4->setRelativeTransformation(glm::transpose(glm::scale(glm::translate(currentMouseRay.origin), glm::vec3(10.0f))));
-
-        return pointOnTransformRay;
+        return util::closestLineBetweenTwoRays(currentMouseRay, transformRay).pointOnB;
     }
 
     Ray3 Translate1dOperation::calculateTransformRay(int axis) {

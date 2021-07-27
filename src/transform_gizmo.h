@@ -107,10 +107,6 @@ namespace bricksim::transform_gizmo {
     private:
         std::shared_ptr<graphics::Scene> scene;
         std::shared_ptr<TGNode> node;
-        std::shared_ptr<mesh::generated::GeneratedMeshNode> debugNode;
-        std::shared_ptr<mesh::generated::GeneratedMeshNode> debugNode2;
-        std::shared_ptr<mesh::generated::GeneratedMeshNode> debugNode3;
-        std::shared_ptr<mesh::generated::GeneratedMeshNode> debugNode4;
         std::optional<glm::mat4> lastTransformation;
         PovState lastState;
         std::unique_ptr<TransformOperation> currentTransformationOperation = nullptr;

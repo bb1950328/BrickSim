@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <string>
+#include <optional>
 
 namespace bricksim::util {
 
@@ -89,6 +90,8 @@ namespace bricksim::util {
         float distanceBetweenPoints;
     };
     ClosestLineBetweenTwoRaysResult closestLineBetweenTwoRays(const Ray3& a, const Ray3& b);
+
+    std::optional<glm::vec3> rayPlaneIntersection(const Ray3& ray, const Ray3& planeNormal);
 
     // texture/image functions
     std::string translateBrickLinkColorNameToLDraw(std::string colorName);

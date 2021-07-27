@@ -671,6 +671,15 @@ namespace bricksim::util {
         return result;
     }
 
+    std::optional<glm::vec3> rayPlaneIntersection(const Ray3 &ray, const Ray3 &planeNormal) {
+        //https://math.stackexchange.com/a/2121529/945069
+        const auto normalizedRayDir = glm::normalize(ray.direction);
+        const auto normalizedPlaneDir = glm::normalize(planeNormal.direction);
+        const float rayScale = glm::dot(normalizedPlaneDir, (planeNormal.origin - ray.origin)) / glm::dot(normalizedPlaneDir, normalizedRayDir);
+        //todo maybe return empty if rayScale < 0
+        return ray.origin + rayScale * normalizedRayDir;
+    }
+
     glm::mat4 DecomposedTransformation::orientationAsMat4() const {
         return glm::toMat4(orientation);
     }

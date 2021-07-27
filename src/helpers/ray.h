@@ -31,6 +31,10 @@ namespace bricksim {
             direction = directionPlusOne * transformation;
             return *this;
         }
+
+        void normalizeDirection() {
+            direction = glm::normalize(direction);
+        }
     };
 
     typedef Ray<2> Ray2;

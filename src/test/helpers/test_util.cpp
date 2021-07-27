@@ -406,4 +406,12 @@ namespace bricksim {
         CHECK(result.pointOnA == ApproxVec(glm::vec3(9999, 9999, 50)));
         CHECK(result.pointOnB == ApproxVec(glm::vec3(9999, 9999, 150)));
     }
+
+    TEST_CASE("util::rayPlaneIntersection1") {
+        //https://www.geogebra.org/calculator/gzzhkpdz
+        const Ray3 ray = {{1, 2, 3}, {4, 5, 6}};
+        const Ray3 plane = {{3, 2, 1}, {3, 4, 1}};
+        auto result = util::rayPlaneIntersection(ray, plane);
+        CHECK(result == ApproxVec(glm::vec3(1.421052631578947, 2.526315789473684, 3.631578947368421)));
+    }
 }

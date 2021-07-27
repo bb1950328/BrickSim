@@ -40,13 +40,19 @@ namespace bricksim::transform_gizmo {
     class TransformGizmo;
 
     class TransformOperation {
+    protected:
+        Ray3 calculateAxisRay(int axis);
+        glm::mat4 startGizmoRelTransformation;
+        glm::mat4 startNodeRelTransformation;
+        const glm::vec2 startMousePos;
     public:
-        TransformGizmo& gizmo;
+        TransformOperation(TransformGizmo& gizmo, const glm::vec2 &startMousePos);
 
+        TransformGizmo& gizmo;
         virtual void update(const glm::vec2& mouseDelta) = 0;
-        virtual void cancel() = 0;
+        virtual void cancel();
         virtual constexpr TransformType getType() = 0;
-        explicit TransformOperation(TransformGizmo& gizmo);
+
         virtual ~TransformOperation();
     };
 
@@ -54,17 +60,20 @@ namespace bricksim::transform_gizmo {
     public:
         Translate1dOperation(TransformGizmo& gizmo, const glm::vec2& startMousePos, int axis);
         void update(const glm::vec2& mouseDelta) override;
-        void cancel() override;
         constexpr TransformType getType() override;
 
     private:
         glm::vec3 getClosestPointOnTransformRay(const glm::svec2& mouseCoords);
-        Ray3 calculateTransformRay(int axis);
         const Ray3 transformRay;
-        glm::mat4 startNodeRelTransformation;
-        glm::mat4 startGizmoRelTransformation;
         glm::vec3 startPointOnTransformRay;
-        const glm::vec2 startMousePos;
+    };
+
+    class Translate2dOperation : public TransformOperation {
+    public:
+        Translate2dOperation(TransformGizmo &gizmo, const glm::vec2 &startMousePos, int axis);
+        void update(const glm::vec2 &mouseDelta) override;
+        constexpr TransformType getType() override;
+        Ray<3> planeNormal;
     };
 
     class TG2DArrowNode : public etree::MeshNode {
@@ -80,6 +89,7 @@ namespace bricksim::transform_gizmo {
     class TGNode : public etree::Node {
         friend class TransformOperation;
         friend class Translate1dOperation;
+        friend class Translate2dOperation;
 
     private:
         std::array<std::shared_ptr<mesh::generated::ArrowNode>, 3> translate1dArrows;
@@ -103,6 +113,7 @@ namespace bricksim::transform_gizmo {
     class TransformGizmo {
         friend class TransformOperation;
         friend class Translate1dOperation;
+        friend class Translate2dOperation;
 
     private:
         std::shared_ptr<graphics::Scene> scene;

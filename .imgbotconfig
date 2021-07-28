@@ -1,5 +1,6 @@
 {
     "ignoredFiles": [
-        "docs/*"
+        "docs/*",
+        "resources/orientation_cube.png"
     ]
 }

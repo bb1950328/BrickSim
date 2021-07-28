@@ -59,9 +59,6 @@ namespace bricksim::gui::windows::element_properties {
                     bool nodeHasChanged = lastSelectedNode != node;
                     bool transformationHasChanged = lastTreeTransf != treeRelTransf;
                     lastTreeTransf = treeRelTransf;
-                    if (transformationHasChanged) {
-                        spdlog::debug("transformation changed");
-                    }
 
                     bool translationChanged;
                     bool scaleChanged;

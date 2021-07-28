@@ -35,7 +35,7 @@ namespace bricksim::graphics {
             glGenTextures(1, &textureId);
             glBindTexture(GL_TEXTURE_2D, textureId);
 
-            GLenum format;
+            GLint format;
             if (nrChannels == 1) {
                 format = GL_RED;
             } else if (nrChannels == 3) {

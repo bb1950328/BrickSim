@@ -23,7 +23,7 @@ namespace bricksim::etree {
 
     class Node : public std::enable_shared_from_this<Node> {
     public:
-        explicit Node(std::shared_ptr<Node> parent);
+        explicit Node(const std::shared_ptr<Node>& parent);
         Node(const Node&) = delete;
         bool visible = true;
         bool visibleInElementTree = true;
@@ -47,6 +47,9 @@ namespace bricksim::etree {
         void addChild(const std::shared_ptr<Node>& newChild);
         bool isChildOf(const std::shared_ptr<Node>& possibleParent) const;
         void removeChild(const std::shared_ptr<Node>& childToDelete);
+
+        std::shared_ptr<Node> getRoot();
+
         virtual ~Node();
 
     protected:

@@ -8,7 +8,7 @@ namespace bricksim::etree {
     private:
         glm::vec3 position;
     public:
-        PointDebugNode(const std::shared_ptr<Node> &parent);
+        explicit PointDebugNode(const std::shared_ptr<Node> &parent);
         std::string getDescription() override;
         const glm::vec3 &getPosition() const;
         void setPosition(const glm::vec3 &newPosition);

@@ -89,7 +89,7 @@ namespace bricksim::ldr {
         };
 
         void initialize();
-        std::shared_ptr<const Color> get_color(Color::code_t colorCode);
+        std::shared_ptr<const Color> getColor(Color::code_t colorCode);
         std::map<std::string, std::vector<ColorReference>> getAllColorsGroupedAndSortedByHue();
         std::map<int, std::shared_ptr<Color>>& getColors();
         ColorReference getInstanceDummyColor();

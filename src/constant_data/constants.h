@@ -9,6 +9,7 @@ namespace bricksim::constants {
     extern const glm::mat4 OPENGL_TO_LDU;
     constexpr layer_t DEFAULT_LAYER = 0;
     constexpr layer_t TRANSFORM_GIZMO_LAYER = 32;
+    constexpr layer_t DEBUG_NODES_LAYER = 40;
 
     constexpr mesh_identifier_t MESH_ID_ORIENTATION_CUBE_FIRST = 1;//6 sides
     constexpr mesh_identifier_t MESH_ID_ARROW = 7;

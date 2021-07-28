@@ -25,6 +25,7 @@ bricksim::Ray3 bricksim::transform_gizmo::TransformOperation::calculateAxisRay(i
     const auto arrowTransformation = gizmo.node->translate1dArrows[axis]->getAbsoluteTransformation();
     auto ray = Ray3({0, 0, 0}, {1, 0, 0});
     ray *= arrowTransformation;
+    ray.origin = glm::vec3(glm::transpose(gizmo.node->getAbsoluteTransformation())[3]);
     return ray;
 }
 
@@ -352,8 +353,8 @@ namespace bricksim::transform_gizmo {
     }
 
     void TransformOperation::cancel() {
-        gizmo.currentlySelectedNode->setRelativeTransformation(startNodeRelTransformation);
-        gizmo.node->setRelativeTransformation(startGizmoRelTransformation);
+        gizmo.currentlySelectedNode->setRelativeTransformation(glm::transpose(startNodeRelTransformation));
+        gizmo.node->setRelativeTransformation(glm::transpose(startGizmoRelTransformation));
     }
 
     TransformOperation::TransformOperation(TransformGizmo &gizmo, const glm::vec2 &startMousePos) :
@@ -364,13 +365,22 @@ namespace bricksim::transform_gizmo {
 
     TransformOperation::~TransformOperation() = default;
 
+    Translate2dOperation::Translate2dOperation(TransformGizmo &gizmo, const glm::vec2 &startMousePos, int axis)
+            : TransformOperation(gizmo, startMousePos),
+              planeNormal(calculateAxisRay(axis)) {
+        Ray3 startMouseRay = gizmo.scene->screenCoordinatesToWorldRay(startMousePos);
+        startMouseRay *= constants::OPENGL_TO_LDU;
+        startPointOnPlane = util::rayPlaneIntersection(startMouseRay, planeNormal).value();
+        auto relPos = glm::vec3(glm::transpose(gizmo.currentlySelectedNode->getRelativeTransformation())[3]);
+        this->planeNormal = Ray3(startPointOnPlane, planeNormal.direction);
+    }
+
     void Translate2dOperation::update(const glm::vec2 &mouseDelta) {
-        Ray3 currentMouseRay = gizmo.scene->screenCoordinatesToWorldRay(startMousePos+mouseDelta);
+        Ray3 currentMouseRay = gizmo.scene->screenCoordinatesToWorldRay(startMousePos + mouseDelta);
         currentMouseRay *= constants::OPENGL_TO_LDU;
         const auto currentPointOnPlane = util::rayPlaneIntersection(currentMouseRay, planeNormal);
         if (currentPointOnPlane) {
-            const glm::vec3 delta = currentPointOnPlane.value() - planeNormal.origin;
-            spdlog::debug("delta={}", delta);
+            const glm::vec3 delta = currentPointOnPlane.value() - startPointOnPlane;
             const auto translation = glm::translate(delta);
             gizmo.currentlySelectedNode->setRelativeTransformation(glm::transpose(translation * startNodeRelTransformation));
             gizmo.node->setRelativeTransformation(glm::transpose(translation * startGizmoRelTransformation));
@@ -379,13 +389,5 @@ namespace bricksim::transform_gizmo {
 
     constexpr TransformType Translate2dOperation::getType() {
         return TRANSLATE_2D;
-    }
-
-    Translate2dOperation::Translate2dOperation(TransformGizmo &gizmo, const glm::vec2 &startMousePos, int axis)
-            : TransformOperation(gizmo, startMousePos),
-              planeNormal(calculateAxisRay(axis)) {
-        Ray3 startMouseRay = gizmo.scene->screenCoordinatesToWorldRay(startMousePos);
-        startMouseRay *= constants::OPENGL_TO_LDU;
-        this->planeNormal = Ray3(util::rayPlaneIntersection(startMouseRay, planeNormal).value(), planeNormal.direction);
     }
 }

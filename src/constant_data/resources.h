@@ -22,7 +22,7 @@ namespace bricksim::resources {
         extern const std::array<uint8_t, 14020> logo_icon_png;
         extern const std::array<uint8_t, 3192> logo_icon_48x48_png;
     }
-    extern const std::array<uint8_t, 34934> orientation_cube_png;
+    extern const std::array<uint8_t, 55379> orientation_cube_png;
     namespace shaders {
         extern const std::array<uint8_t, 105> line_shader_fsh;
         extern const std::array<uint8_t, 666> line_shader_vsh;

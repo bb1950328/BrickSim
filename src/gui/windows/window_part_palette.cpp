@@ -17,7 +17,7 @@ namespace bricksim::gui::windows::part_palette {
             static int thumbnailZoomPercent = 100;//todo get from config
             ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8);
             ImGui::DragInt("##Zoom", &thumbnailZoomPercent, 5, 10, 500, " Zoom: %d%%");
-            static auto color = ldr::color_repo::get_color(1);//todo save in config
+            static auto color = ldr::color_repo::getColor(1);//todo save in config
             const glm::vec3& col = color->value.asGlmVector();
             ImGui::PushStyleColor(ImGuiCol_Text, gui_internal::getWhiteOrBlackBetterContrast(col));
             ImGui::PushStyleColor(ImGuiCol_Button, color->value);

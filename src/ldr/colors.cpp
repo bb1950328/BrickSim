@@ -100,7 +100,7 @@ namespace bricksim::ldr {
             }
         }
 
-        std::shared_ptr<const Color> get_color(const Color::code_t colorCode) {
+        std::shared_ptr<const Color> getColor(int colorCode) {
             auto iterator = colors.find(colorCode);
             if (iterator == colors.end()) {
                 return colors[1];
@@ -128,7 +128,7 @@ namespace bricksim::ldr {
                 colors[INSTANCE_DUMMY_COLOR_CODE] = instDummyColor;
                 std::sort(hueSortedCodes.begin(), hueSortedCodes.end(),
                           [](const int& a, const int& b) {
-                              return color::HSV(get_color(a)->value).hue < color::HSV(get_color(b)->value).hue;
+                              return color::HSV(getColor(a)->value).hue < color::HSV(getColor(b)->value).hue;
                           });
                 initialized = true;
             }
@@ -193,7 +193,7 @@ namespace bricksim::ldr {
     }
 
     std::shared_ptr<const Color> ColorReference::get() const {
-        return color_repo::get_color(code);
+        return color_repo::getColor(code);
     }
 
     bool ColorReference::operator==(const ColorReference& rhs) const {

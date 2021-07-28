@@ -4,6 +4,7 @@
 namespace bricksim::etree {
     PointDebugNode::PointDebugNode(const std::shared_ptr<Node> &parent) : UVSphereNode(ldr::color_repo::getPureColor(color::getRandom()), parent), position(0.f, 0.f, 0.f) {
         visibleInElementTree = false;
+        layer = constants::DEBUG_NODES_LAYER;
     }
 
     std::string PointDebugNode::getDescription() {
@@ -15,7 +16,7 @@ namespace bricksim::etree {
     }
 
     void PointDebugNode::setPosition(const glm::vec3 &newPosition) {
-        setRelativeTransformation(glm::scale(glm::translate(newPosition), {10, 10, 10}));
+        setRelativeTransformation(glm::transpose(glm::scale(glm::translate(newPosition), {10, 10, 10})));
         position = newPosition;
     }
 

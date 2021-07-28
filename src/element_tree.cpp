@@ -33,8 +33,8 @@ namespace bricksim::etree {
         return type;
     }
 
-    Node::Node(std::shared_ptr<Node> parent) :
-        parent(std::move(parent)) {
+    Node::Node(const std::shared_ptr<Node>& parent) :
+        parent(parent) {
         type = TYPE_OTHER;
     }
 
@@ -67,6 +67,11 @@ namespace bricksim::etree {
     bool Node::isChildOf(const std::shared_ptr<Node>& possibleParent) const {
         auto parentLocked = parent.lock();
         return parentLocked == possibleParent || (parentLocked != nullptr && parentLocked->isChildOf(possibleParent));
+    }
+
+    std::shared_ptr<Node> Node::getRoot() {
+        const auto parentSp = parent.lock();
+        return !parentSp ? shared_from_this() : parentSp->getRoot();
     }
 
     Node::~Node() = default;

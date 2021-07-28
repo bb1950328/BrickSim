@@ -5,6 +5,7 @@
 #include "graphics/scene.h"
 #include "helpers/ray.h"
 #include "types.h"
+#include "helpers/debug_nodes.h"
 #include <array>
 #include <glm/glm.hpp>
 
@@ -69,6 +70,7 @@ namespace bricksim::transform_gizmo {
     };
 
     class Translate2dOperation : public TransformOperation {
+        glm::vec3 startPointOnPlane;
     public:
         Translate2dOperation(TransformGizmo &gizmo, const glm::vec2 &startMousePos, int axis);
         void update(const glm::vec2 &mouseDelta) override;

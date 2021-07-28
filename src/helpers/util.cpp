@@ -676,8 +676,11 @@ namespace bricksim::util {
         const auto normalizedRayDir = glm::normalize(ray.direction);
         const auto normalizedPlaneDir = glm::normalize(planeNormal.direction);
         const float rayScale = glm::dot(normalizedPlaneDir, (planeNormal.origin - ray.origin)) / glm::dot(normalizedPlaneDir, normalizedRayDir);
-        //todo maybe return empty if rayScale < 0
-        return ray.origin + rayScale * normalizedRayDir;
+        if (rayScale < 0) {
+            return {};
+        } else {
+            return ray.origin + rayScale * normalizedRayDir;
+        }
     }
 
     glm::mat4 DecomposedTransformation::orientationAsMat4() const {

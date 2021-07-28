@@ -414,4 +414,36 @@ namespace bricksim {
         auto result = util::rayPlaneIntersection(ray, plane);
         CHECK(result == ApproxVec(glm::vec3(1.421052631578947, 2.526315789473684, 3.631578947368421)));
     }
+
+    TEST_CASE("util::rayPlaneIntersection2") {
+        //https://www.geogebra.org/calculator/ukzyhnuk
+        const Ray3 ray = {{1, 2, 3}, {4, -1, 2}};
+        const Ray3 plane = {{12, 2, -2}, {3, -4, 1}};
+        auto result = util::rayPlaneIntersection(ray, plane);
+        CHECK(result == ApproxVec(glm::vec3(7.222222222222221, 0.444444444444445, 6.111111111111111)));
+    }
+
+    TEST_CASE("util::rayPlaneIntersection3") {
+        //https://www.geogebra.org/m/vq6chbwb
+        const Ray3 ray = {{1, 0, 0}, {4, -1, -2}};
+        const Ray3 plane = {{12, 9, -2}, {3, 8, 1}};
+        auto result = util::rayPlaneIntersection(ray, plane);
+        CHECK(result == ApproxVec(glm::vec3(207.0, -51.5, -103.0)));
+    }
+
+    TEST_CASE("util::rayPlaneIntersection4") {
+        //https://www.geogebra.org/calculator/bdjqrttr
+        const Ray3 ray = {{1, 2, 3}, {-4, -1, 2}};
+        const Ray3 plane = {{12, 2, -2}, {3, -4, 1}};
+        auto result = util::rayPlaneIntersection(ray, plane);
+        CHECK(!result.has_value());
+    }
+
+    TEST_CASE("util::rayPlaneIntersection5") {
+        //ray is parallel to plane
+        const Ray3 ray = {{0, 0, 10}, {1, 0, 0}};
+        const Ray3 plane = {{0, 0, 0}, {0, 0, 1}};
+        auto result = util::rayPlaneIntersection(ray, plane);
+        CHECK(!result.has_value());
+    }
 }

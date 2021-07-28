@@ -84,7 +84,8 @@ namespace bricksim::ldr {
 
         class PureColor : public Color {
         public:
-            PureColor(const char* hexCode);
+            explicit PureColor(std::string hexCode);
+            explicit PureColor(color::RGB color);
         };
 
         void initialize();
@@ -92,6 +93,7 @@ namespace bricksim::ldr {
         std::map<std::string, std::vector<ColorReference>> getAllColorsGroupedAndSortedByHue();
         std::map<int, std::shared_ptr<Color>>& getColors();
         ColorReference getInstanceDummyColor();
-        ColorReference getPureColor(const char* htmlCode);
+        ColorReference getPureColor(const std::string& htmlCode);
+        ColorReference getPureColor(const color::RGB& color);
     };
 }

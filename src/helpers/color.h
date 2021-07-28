@@ -3,6 +3,7 @@
 #include "../types.h"
 #include <glm/glm.hpp>
 #include <string>
+#include <random>
 //RGB is a macro in some windows header
 #undef RGB
 
@@ -49,8 +50,15 @@ namespace bricksim::color {
         HSV() = default;
         explicit HSV(glm::vec3 vector);
         explicit HSV(RGB rgb);
+        HSV(color_component_t hue, color_component_t saturation, color_component_t value);
 
         color_component_t hue, saturation, value;
         [[nodiscard]] glm::vec3 asGlmVector() const;
     };
+
+    /**
+     * the RNG is initialized with a static seed to get reproducible results
+     * @return a random color. the saturation and the value of the HSV representation are always 255.
+     */
+    RGB getRandom();
 }

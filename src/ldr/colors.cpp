@@ -154,7 +154,7 @@ namespace bricksim::ldr {
             return ColorReference(INSTANCE_DUMMY_COLOR_CODE);
         }
 
-        ColorReference getPureColor(const char* htmlCode) {
+        ColorReference getPureColor(const std::string& htmlCode) {
             auto it = pureColors.find(htmlCode);
             if (it == pureColors.end()) {
                 auto color = std::make_shared<PureColor>(htmlCode);
@@ -164,6 +164,10 @@ namespace bricksim::ldr {
             return it->second;
         }
 
+        ColorReference getPureColor(const color::RGB& color) {
+            return getPureColor(color.asHtmlCode());
+        }
+
         LdrInstanceDummyColor::LdrInstanceDummyColor() {
             name = "Instance Dummy Color";
             code = INSTANCE_DUMMY_COLOR_CODE;
@@ -171,10 +175,18 @@ namespace bricksim::ldr {
             visibleInLists = false;
         }
 
-        PureColor::PureColor(const char* hexCode) {
+        PureColor::PureColor(std::string hexCode) {
             name = std::string("Pure ") + hexCode;
             code = getUnusedCode();
             value = edge = color::RGB(hexCode);
+            finish = RUBBER;
+            visibleInLists = false;
+        }
+
+        PureColor::PureColor(color::RGB color) {
+            name = std::string("Pure ") + color.asHtmlCode();
+            code = getUnusedCode();
+            value = edge = color;
             finish = RUBBER;
             visibleInLists = false;
         }

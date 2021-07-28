@@ -124,6 +124,8 @@ namespace bricksim::color {
         return glm::vec3(hue / 255.0f, saturation / 255.0f, value / 255.0f);
     }
 
+    HSV::HSV(color_component_t hue, color_component_t saturation, color_component_t value) : hue(hue), saturation(saturation), value(value) {}
+
     glm::vec3 convertIntToColorVec3(unsigned int value) {
         unsigned char bluePart = value & 0xffu;//blue first is intended
         value >>= 8u;
@@ -136,5 +138,10 @@ namespace bricksim::color {
     unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue) {
         unsigned int result = ((unsigned int)red) << 16u | ((unsigned int)green) << 8u | blue;
         return result;
+    }
+
+    RGB getRandom() {
+        static std::mt19937 rng(123456789ul); // NOLINT(cert-msc51-cpp)
+        return RGB(HSV(rng()&0xff, 0xff, 0xff));
     }
 }

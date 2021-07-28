@@ -3,4 +3,7 @@ tasks:
 vscode:
   extensions:
     - ms-vscode.cmake-tools
+    - llvm-vs-code-extensions.vscode-clangd
+    - notskm.clang-tidy
     - twxs.cmake
+    - ms-python.python

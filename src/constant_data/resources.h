@@ -8,12 +8,12 @@ namespace bricksim::resources {
         extern const std::array<uint8_t, 204528> fa_solid_900_ttf;
     }
     namespace licenses {
-        extern const std::array<uint8_t, 11323> Apache2_txt;
-        extern const std::array<uint8_t, 35128> GPLv3_txt;
-        extern const std::array<uint8_t, 1068> MIT_txt;
-        extern const std::array<uint8_t, 1321> bsd2clause_txt;
-        extern const std::array<uint8_t, 1519> bsd3clause_txt;
-        extern const std::array<uint8_t, 855> zlib_txt;
+        extern const std::array<uint8_t, 11523> Apache2_txt;
+        extern const std::array<uint8_t, 35801> GPLv3_txt;
+        extern const std::array<uint8_t, 1088> MIT_txt;
+        extern const std::array<uint8_t, 1345> bsd2clause_txt;
+        extern const std::array<uint8_t, 1547> bsd3clause_txt;
+        extern const std::array<uint8_t, 873> zlib_txt;
     }
     namespace logos {
         extern const std::array<uint8_t, 91911> logo_svg;
@@ -24,17 +24,17 @@ namespace bricksim::resources {
     }
     extern const std::array<uint8_t, 55379> orientation_cube_png;
     namespace shaders {
-        extern const std::array<uint8_t, 105> line_shader_fsh;
-        extern const std::array<uint8_t, 666> line_shader_vsh;
-        extern const std::array<uint8_t, 1020> optional_line_shader_gsh;
-        extern const std::array<uint8_t, 699> optional_line_shader_vsh;
-        extern const std::array<uint8_t, 187> overlay_shader_vsh;
-        extern const std::array<uint8_t, 105> simple_color_forwarding_shader_fsh;
-        extern const std::array<uint8_t, 337> textured_triangle_selection_shader_vsh;
-        extern const std::array<uint8_t, 186> textured_triangle_shader_fsh;
-        extern const std::array<uint8_t, 388> textured_triangle_shader_vsh;
-        extern const std::array<uint8_t, 556> triangle_selection_shader_vsh;
-        extern const std::array<uint8_t, 967> triangle_shader_fsh;
-        extern const std::array<uint8_t, 859> triangle_shader_vsh;
+        extern const std::array<uint8_t, 113> line_shader_fsh;
+        extern const std::array<uint8_t, 711> line_shader_vsh;
+        extern const std::array<uint8_t, 1046> optional_line_shader_gsh;
+        extern const std::array<uint8_t, 746> optional_line_shader_vsh;
+        extern const std::array<uint8_t, 197> overlay_shader_vsh;
+        extern const std::array<uint8_t, 113> simple_color_forwarding_shader_fsh;
+        extern const std::array<uint8_t, 351> textured_triangle_selection_shader_vsh;
+        extern const std::array<uint8_t, 198> textured_triangle_shader_fsh;
+        extern const std::array<uint8_t, 404> textured_triangle_shader_vsh;
+        extern const std::array<uint8_t, 572> triangle_selection_shader_vsh;
+        extern const std::array<uint8_t, 1007> triangle_shader_fsh;
+        extern const std::array<uint8_t, 900> triangle_shader_vsh;
     }
 }

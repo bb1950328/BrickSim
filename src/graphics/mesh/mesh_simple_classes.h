@@ -5,7 +5,7 @@
 
 namespace bricksim::mesh {
     struct TriangleVertex {
-        glm::vec4 position;
+        glm::vec3 position;
         glm::vec3 normal;
 
         bool operator==(const TriangleVertex& other) const;
@@ -21,7 +21,7 @@ namespace bricksim::mesh {
     };
 
     struct LineVertex {
-        glm::vec4 position;
+        glm::vec3 position;
         glm::vec3 color;
 
         bool operator==(const LineVertex& other) const;

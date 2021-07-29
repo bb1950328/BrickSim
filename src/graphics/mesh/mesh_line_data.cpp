@@ -19,7 +19,7 @@ namespace bricksim::mesh {
 
             // position attribute
             glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, (void*)nullptr);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)nullptr);
             // color attribute
             glEnableVertexAttribArray(1);
             glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)offsetof(LineVertex, color));

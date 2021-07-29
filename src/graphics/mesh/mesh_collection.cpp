@@ -208,7 +208,7 @@ namespace bricksim::mesh {
             const auto mesh = it->second;
             for (const auto& colorPair: mesh->triangleVertices) {
                 for (const auto& triangleVertex: colorPair.second) {//todo check if iterating over line vertices is faster
-                    const glm::vec4& position = triangleVertex.position;
+                    const glm::vec3& position = triangleVertex.position;
                     if (first) {
                         first = false;
                         x1 = x2 = position.x;

@@ -60,7 +60,7 @@ namespace bricksim::gui::windows::mesh_inspector {
                 std::stringstream toClipboard;
 
                 if (copyVerticesToClipboard) {
-                    toClipboard << "pos.x;pos.y;pos.z;pos.w;normal.x;normal.y;normal.z" << std::endl;
+                    toClipboard << "pos.x;pos.y;pos.z;normal.x;normal.y;normal.z" << std::endl;
                 }
 
                 auto drawVertexRow = [&copyVerticesToClipboard, &toClipboard](unsigned int index, const mesh::TriangleVertex& vertex) {
@@ -82,10 +82,6 @@ namespace bricksim::gui::windows::mesh_inspector {
                     ImGui::SameLine();
                     ImGui::Text("%.2f", vertex.position.z);
                     ImGui::PopStyleColor();
-                    ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::GRAY);
-                    ImGui::SameLine();
-                    ImGui::Text("%.2f", vertex.position.w);
-                    ImGui::PopStyleColor();
 
                     ImGui::TableNextColumn();
                     ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::RED);
@@ -103,7 +99,7 @@ namespace bricksim::gui::windows::mesh_inspector {
                     ImGui::PopItemWidth();
 
                     if (copyVerticesToClipboard) {
-                        toClipboard << vertex.position.x << ';' << vertex.position.y << ';' << vertex.position.z << ';' << vertex.position.w;
+                        toClipboard << vertex.position.x << ';' << vertex.position.y << ';' << vertex.position.z;
                         toClipboard << ';' << vertex.normal.x << ';' << vertex.normal.y << ';' << vertex.normal.z << std::endl;
                     }
                 };

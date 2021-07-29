@@ -270,14 +270,14 @@ namespace bricksim::transform_gizmo {
 
         auto color = ldr::color_repo::getInstanceDummyColor();
         auto baseIndex = mesh->getNextVertexIndex(color);
-        /*0*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, 0.0f, 0.0f, 1.0f}, normal});
-        /*1*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength, 0.0f, 1.0f}, normal});
-        /*2*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, tipWidth, 1.0f}, normal});
-        /*3*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, lineWidth, 1.0f}, normal});
-        /*4*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, lineWidth, lineWidth, 1.0f}, normal});
-        /*5*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, lineWidth, outerSideLength - tipLength, 1.0f}, normal});
-        /*6*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, tipWidth, outerSideLength - tipLength, 1.0f}, normal});
-        /*7*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, 0.0f, outerSideLength, 1.0f}, normal});
+        /*0*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, 0.0f, 0.0f}, normal});
+        /*1*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength, 0.0f}, normal});
+        /*2*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, tipWidth}, normal});
+        /*3*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, lineWidth}, normal});
+        /*4*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, lineWidth, lineWidth}, normal});
+        /*5*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, lineWidth, outerSideLength - tipLength}, normal});
+        /*6*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, tipWidth, outerSideLength - tipLength}, normal});
+        /*7*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, 0.0f, outerSideLength}, normal});
 
         constexpr auto triangleCount = 6;
 

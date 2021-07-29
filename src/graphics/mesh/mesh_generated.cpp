@@ -139,7 +139,7 @@ namespace bricksim::mesh::generated {
         for (uint16_t i = 0; i < NUM_CORNERS; ++i) {
             auto rotationMatrix = glm::rotate((float)(2 * M_PI * i / NUM_CORNERS), glm::vec3(1.0f, 0.0f, 0.0f));
             for (const auto& vertex: baseVertices) {
-                mesh->addRawTriangleVertex(color, {vertex.position * rotationMatrix, glm::vec4(vertex.normal, 0.0f) * rotationMatrix});
+                mesh->addRawTriangleVertex(color, {glm::vec4(vertex.position, 1.f) * rotationMatrix, glm::vec4(vertex.normal, 0.0f) * rotationMatrix});
             }
         }
 
@@ -202,7 +202,7 @@ namespace bricksim::mesh::generated {
             float angle = i * angleRatio * angleStep;
             auto rotation = glm::rotate(angle, glm::vec3(-1.0f, 0.0f, 0.0f));
             for (int j = 0; j < DIVISIONS; ++j) {
-                mesh->addRawTriangleVertex(color, TriangleVertex{baseVertices[j].position * rotation, glm::vec4(baseVertices[j].normal, 0.0f) * rotation});
+                mesh->addRawTriangleVertex(color, TriangleVertex{glm::vec4(baseVertices[j].position, 1.f) * rotation, glm::vec4(baseVertices[j].normal, 0.0f) * rotation});
             }
         }
 
@@ -222,7 +222,7 @@ namespace bricksim::mesh::generated {
         if (WITH_ENDS) {
             auto capAFirstIndex = mesh->getNextVertexIndex(color);
             for (int j = 0; j < DIVISIONS; ++j) {
-                mesh->addRawTriangleVertex(color, TriangleVertex{baseVertices[j].position, glm::vec3(0.0f, 0.0f, 1.0f)});
+                mesh->addRawTriangleVertex(color, TriangleVertex{glm::vec4(baseVertices[j].position, 1.f), glm::vec3(0.0f, 0.0f, 1.0f)});
                 if (j > 1) {
                     mesh->addRawTriangleIndex(color, capAFirstIndex);
                     mesh->addRawTriangleIndex(color, capAFirstIndex + j - 1);
@@ -233,7 +233,7 @@ namespace bricksim::mesh::generated {
             auto capBFirstIndex = mesh->getNextVertexIndex(color);
             auto endRotation = glm::rotate(0.5f * float(M_PI), glm::vec3(1.0f, 0.0f, 0.0f));
             for (int j = 0; j < DIVISIONS; ++j) {
-                mesh->addRawTriangleVertex(color, TriangleVertex{baseVertices[j].position * endRotation, glm::vec4(0.0f, 0.0f, -1.0f, 0.0f) * endRotation});
+                mesh->addRawTriangleVertex(color, TriangleVertex{glm::vec4(baseVertices[j].position, 1.f) * endRotation, glm::vec4(0.0f, 0.0f, -1.0f, 0.0f) * endRotation});
                 if (j > 1) {
                     mesh->addRawTriangleIndex(color, capBFirstIndex);
                     mesh->addRawTriangleIndex(color, capBFirstIndex + j - 1);

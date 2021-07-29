@@ -74,9 +74,9 @@ namespace bricksim::mesh {
         auto& indicesList = getIndicesList(color);
         auto normal = glm::triangleNormal(p1, p2, p3);
         auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f));
-        TriangleVertex vertex1{glm::vec4(p1, 1.0f), transformedNormal};
-        TriangleVertex vertex2{glm::vec4(p2, 1.0f), transformedNormal};
-        TriangleVertex vertex3{glm::vec4(p3, 1.0f), transformedNormal};
+        TriangleVertex vertex1{p1, transformedNormal};
+        TriangleVertex vertex2{p2, transformedNormal};
+        TriangleVertex vertex3{p3, transformedNormal};
 
         auto idx1 = verticesList.size();
         verticesList.push_back(vertex1);
@@ -245,12 +245,12 @@ namespace bricksim::mesh {
         const auto ball = getMinimalEnclosingBall();
         auto center = ball.first;
         auto radius = ball.second;
-        lineData.addVertex({glm::vec4(center.x + radius, center.y, center.z, 1), glm::vec3(1, 0, 0)});
-        lineData.addVertex({glm::vec4(center.x - radius, center.y, center.z, 1), glm::vec3(1, 0, 0)});
-        lineData.addVertex({glm::vec4(center.x, center.y + radius, center.z, 1), glm::vec3(0, 1, 0)});
-        lineData.addVertex({glm::vec4(center.x, center.y - radius, center.z, 1), glm::vec3(0, 1, 0)});
-        lineData.addVertex({glm::vec4(center.x, center.y, center.z + radius, 1), glm::vec3(0, 0, 1)});
-        lineData.addVertex({glm::vec4(center.x, center.y, center.z - radius, 1), glm::vec3(0, 0, 1)});
+        lineData.addVertex({{center.x + radius, center.y, center.z}, {1, 0, 0}});
+        lineData.addVertex({{center.x - radius, center.y, center.z}, {1, 0, 0}});
+        lineData.addVertex({{center.x, center.y + radius, center.z}, {0, 1, 0}});
+        lineData.addVertex({{center.x, center.y - radius, center.z}, {0, 1, 0}});
+        lineData.addVertex({{center.x, center.y, center.z + radius}, {0, 0, 1}});
+        lineData.addVertex({{center.x, center.y, center.z - radius}, {0, 0, 1}});
     }
 
     void Mesh::initializeTriangleGraphics() {
@@ -275,7 +275,7 @@ namespace bricksim::mesh {
 
                 // position attribute
                 glEnableVertexAttribArray(0);
-                glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, vertex_size, (void*)nullptr);
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)nullptr);
                 // normal attribute
                 glEnableVertexAttribArray(1);
                 glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)offsetof(TriangleVertex, normal));

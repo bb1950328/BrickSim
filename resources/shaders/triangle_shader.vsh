@@ -1,5 +1,5 @@
 #version 330 core
-layout (location = 0) in vec4 aPos;
+layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec3 aDiffuseColor;
 layout (location = 3) in float aAmbientFactor;
@@ -19,7 +19,7 @@ uniform mat4 projectionView;
 
 void main()
 {
-   fragPos = vec3(transformation * aPos);
+   fragPos = vec3(transformation * vec4(aPos, 1.0));
    bNormal = mat3(transpose(inverse(transformation))) * aNormal;
 
    gl_Position = projectionView * vec4(fragPos, 1.0);

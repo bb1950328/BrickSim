@@ -1,5 +1,5 @@
 #version 330 core
-layout (location = 0) in vec4 aPos;
+layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aColor;
 layout (location = 2) in mat4 transformation;
 
@@ -16,9 +16,9 @@ void main()
       transf2[0][3] = 0;
       transf2[1][3] = 0;
       transf2[2][3] = 0;
-      gl_Position = projectionView * transf2 * aPos;
+      gl_Position = projectionView * transf2 * vec4(aPos, 1.0);
    } else {
       bColor = aColor;
-      gl_Position = projectionView * transformation * aPos;
+      gl_Position = projectionView * transformation * vec4(aPos, 1.0);
    }
 }

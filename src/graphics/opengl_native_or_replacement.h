@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glad/glad.h>
+#include <cstddef>
 
 namespace bricksim::graphics::opengl_native_or_replacement {
     void drawElementsInstancedBaseInstance(GLenum mode,

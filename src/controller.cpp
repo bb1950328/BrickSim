@@ -114,8 +114,8 @@ namespace bricksim::controller {
             const auto enableDebugOutput = config::get(config::ENABLE_GL_DEBUG_OUTPUT);
             glfwSetErrorCallback(glfwErrorCallback);
             glfwInit();
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, enableDebugOutput ? 3 : 2);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
             glfwWindowHint(GLFW_SAMPLES, (int)(config::get(config::MSAA_SAMPLES)));
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 

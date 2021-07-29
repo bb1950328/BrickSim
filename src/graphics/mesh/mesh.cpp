@@ -4,6 +4,7 @@
 #include "../../helpers/util.h"
 #include "../../lib/Miniball.hpp"
 #include "../../metrics.h"
+#include "../opengl_native_or_replacement.h"
 #include "mesh_line_data.h"
 #include <glad/glad.h>
 #include <glm/gtx/normal.hpp>
@@ -437,7 +438,9 @@ namespace bricksim::mesh {
                 if (!indices.empty()) {
                     const auto color = entry.first;
                     glBindVertexArray(VAOs[color]);
-                    glDrawElementsInstancedBaseInstance(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start);
+                    graphics::opengl_native_or_replacement::drawElementsInstancedBaseInstance(
+                            GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, range->count, range->start,
+                            instanceVBOs[color], instances.size() * sizeof(TriangleInstance), sizeof(TriangleInstance));
                 }
             }
         }
@@ -449,8 +452,12 @@ namespace bricksim::mesh {
             for (const auto& item: textureVertices) {
                 if (!item.second.empty()) {
                     textures[item.first]->bind();
-                    glBindVertexArray(std::get<0>(textureTriangleVaoVertexVboInstanceVbo[item.first]));
-                    glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, item.second.size(), range->count, range->start);
+                    unsigned int& vao = std::get<0>(textureTriangleVaoVertexVboInstanceVbo[item.first]);
+                    unsigned int& instanceVbo = std::get<2>(textureTriangleVaoVertexVboInstanceVbo[item.first]);
+                    glBindVertexArray(vao);
+                    graphics::opengl_native_or_replacement::drawArraysInstancedBaseInstance(
+                            GL_TRIANGLES, 0, item.second.size(), range->count, range->start,
+                            instanceVbo, instances.size() * sizeof(TexturedTriangleInstance), sizeof(TexturedTriangleInstance));
                 }
             }
         }

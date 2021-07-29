@@ -152,17 +152,20 @@ namespace bricksim {
     }
 
     TEST_CASE("util::biggestValue") {
-        CHECK(util::biggestValue({1000, 1}) == 1000);
-        CHECK(util::biggestValue({1, 1000}) == 1000);
+        CHECK(util::biggestValue(glm::vec2{1000, 1}) == 1000);
+        CHECK(util::biggestValue(glm::vec2{1, 1000}) == 1000);
 
-        CHECK(util::biggestValue({1000, 1, 2}) == 1000);
-        CHECK(util::biggestValue({1, 1000, 2}) == 1000);
-        CHECK(util::biggestValue({1, 2, 1000}) == 1000);
+        CHECK(util::biggestValue(glm::vec3{1000, 1, 2}) == 1000);
+        CHECK(util::biggestValue(glm::vec3{1, 1000, 2}) == 1000);
+        CHECK(util::biggestValue(glm::vec3{1, 2, 1000}) == 1000);
 
-        CHECK(util::biggestValue({1000, 1, 2, 3}) == 1000);
-        CHECK(util::biggestValue({1, 1000, 2, 3}) == 1000);
-        CHECK(util::biggestValue({1, 2, 1000, 3}) == 1000);
-        CHECK(util::biggestValue({1, 2, 3, 1000}) == 1000);
+        CHECK(util::biggestValue(glm::vec4{1000, 1, 2, 3}) == 1000);
+        CHECK(util::biggestValue(glm::vec4{1, 1000, 2, 3}) == 1000);
+        CHECK(util::biggestValue(glm::vec4{1, 2, 1000, 3}) == 1000);
+        CHECK(util::biggestValue(glm::vec4{1, 2, 3, 1000}) == 1000);
+
+        CHECK(util::biggestValue(glm::vec<2, short, glm::defaultp>(1, 2)) == 2);
+        CHECK(util::biggestValue(glm::vec<2, unsigned long, glm::defaultp>(static_cast<unsigned long>(-1), 1)) == static_cast<unsigned long>(-1));
     }
 
     TEST_CASE("util::doesTransformationInverseWindingOrder") {
@@ -176,9 +179,9 @@ namespace bricksim {
     }
 
     TEST_CASE("util::vectorSum") {
-        CHECK(util::vectorSum({1.0f, 2.0f}) == Approx(3.0f));
-        CHECK(util::vectorSum({1.0f, 2.0f, 3.0f}) == Approx(6.0f));
-        CHECK(util::vectorSum({1.0f, 2.0f, 3.0f, 4.0f}) == Approx(10.0f));
+        CHECK(util::vectorSum(glm::vec2{1.0f, 2.0f}) == Approx(3.0f));
+        CHECK(util::vectorSum(glm::vec3{1.0f, 2.0f, 3.0f}) == Approx(6.0f));
+        CHECK(util::vectorSum(glm::vec4{1.0f, 2.0f, 3.0f, 4.0f}) == Approx(10.0f));
     }
 
     TEST_CASE("util::formatBytesValue") {
@@ -235,12 +238,12 @@ namespace bricksim {
     }
 
     TEST_CASE("util::minForEachComponent") {
-        CHECK(util::minForEachComponent({1, 1}, {2, 2}) == glm::vec2(1, 1));
-        CHECK(util::minForEachComponent({1, 2}, {2, 1}) == glm::vec2(1, 1));
+        CHECK(util::minForEachComponent(glm::vec2{1, 1}, glm::vec2{2, 2}) == glm::vec2(1, 1));
+        CHECK(util::minForEachComponent(glm::vec2{1, 2}, glm::vec2{2, 1}) == glm::vec2(1, 1));
 
-        CHECK(util::minForEachComponent({1, 2, 3}, {3, 2, 1}) == glm::vec3(1, 2, 1));
+        CHECK(util::minForEachComponent(glm::vec3{1, 2, 3}, glm::vec3{3, 2, 1}) == glm::vec3(1, 2, 1));
 
-        CHECK(util::minForEachComponent({1, 2, 3, 4}, {5, 4, 3, 2}) == glm::vec4(1, 2, 3, 2));
+        CHECK(util::minForEachComponent(glm::vec4{1, 2, 3, 4}, glm::vec4{5, 4, 3, 2}) == glm::vec4(1, 2, 3, 2));
     }
 
 //these are macros because when using lambdas the catch error output is less readable

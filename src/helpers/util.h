@@ -46,18 +46,33 @@ namespace bricksim::util {
     //os functions
     void openDefaultBrowser(const std::string& link);
 
-    //vector/glm functions
-    void coutMat4(glm::mat4 mat);
-    void coutVec(glm::vec4 vec);
-    float biggestValue(glm::vec2 vector);
-    float biggestValue(glm::vec3 vector);
-    float biggestValue(glm::vec4 vector);
-    float vectorSum(glm::vec2 vector);
-    float vectorSum(glm::vec3 vector);
-    float vectorSum(glm::vec4 vector);
-    glm::vec2 minForEachComponent(const glm::vec2& a, const glm::vec2& b);
-    glm::vec3 minForEachComponent(const glm::vec3& a, const glm::vec3& b);
-    glm::vec4 minForEachComponent(const glm::vec4& a, const glm::vec4& b);
+    template<glm::length_t L, typename T, glm::qualifier Q>
+    T biggestValue(glm::vec<L, T, Q> vector) {
+        T max = vector[0];
+        for (int i = 1; i < L; ++i) {
+            max = std::max(max, vector[i]);
+        }
+        return max;
+    }
+
+    template<glm::length_t L, typename T, glm::qualifier Q>
+    T vectorSum(glm::vec<L, T, Q> vector) {
+        T sum = 0;
+        for (int i = 0; i < L; ++i) {
+            sum += vector[i];
+        }
+        return sum;
+    }
+
+    template<glm::length_t L, typename T, glm::qualifier Q>
+    glm::vec<L, T, Q> minForEachComponent(const glm::vec<L, T, Q>& a, const glm::vec<L, T, Q>& b) {
+        glm::vec<L, T, Q> res;
+        for (int i = 0; i < L; ++i) {
+            res[i] = std::min(a[i], b[i]);
+        }
+        return res;
+    }
+
     struct DecomposedTransformation {
         glm::quat orientation;
         glm::vec3 skew;

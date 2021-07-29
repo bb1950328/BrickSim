@@ -213,22 +213,6 @@ namespace bricksim::util {
         }
     }
 
-    void coutMat4(glm::mat4 mat) {
-        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][0], mat[1][0], mat[2][0], mat[3][0]);
-        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][1], mat[1][1], mat[2][1], mat[3][1]);
-        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][1], mat[1][1], mat[2][1], mat[3][1]);
-        //printf("%8.4f, %8.4f, %8.4f, %8.4f\n", mat[0][3], mat[1][3], mat[2][3], mat[3][3]);
-
-        printf("┌%10.4f, %10.4f, %10.4f, %10.4f┐\n", mat[0][0], mat[1][0], mat[2][0], mat[3][0]);
-        printf("│%10.4f, %10.4f, %10.4f, %10.4f│\n", mat[0][1], mat[1][1], mat[2][1], mat[3][1]);
-        printf("│%10.4f, %10.4f, %10.4f, %10.4f│\n", mat[0][1], mat[1][1], mat[2][1], mat[3][1]);
-        printf("└%10.4f, %10.4f, %10.4f, %10.4f┘\n", mat[0][3], mat[1][3], mat[2][3], mat[3][3]);
-    }
-
-    void coutVec(glm::vec4 vec) {
-        printf("{%8.4f, %8.4f, %8.4f, %8.4f}\n", vec[0], vec[1], vec[2], vec[3]);
-    }
-
     void replaceAll(std::string& str, const std::string& from, const std::string& to) {
         //https://stackoverflow.com/a/3418285/8733066
         //todo maybe this has optimization potential
@@ -252,18 +236,6 @@ namespace bricksim::util {
             }
         }
         return result;
-    }
-
-    float biggestValue(glm::vec2 vector) {
-        return std::max(vector.x, vector.y);
-    }
-
-    float biggestValue(glm::vec3 vector) {
-        return std::max(std::max(vector.x, vector.y), vector.z);
-    }
-
-    float biggestValue(glm::vec4 vector) {
-        return std::max(std::max(vector.x, vector.y), std::max(vector.z, vector.w));
     }
 
     void openDefaultBrowser(const std::string& link) {
@@ -301,18 +273,6 @@ namespace bricksim::util {
         return glm::dot(cross, vec3) < 0.0f;
     }
 
-    float vectorSum(glm::vec2 vector) {
-        return vector.x + vector.y;
-    }
-
-    float vectorSum(glm::vec3 vector) {
-        return vector.x + vector.y + vector.z;
-    }
-
-    float vectorSum(glm::vec4 vector) {
-        return vector.x + vector.y + vector.z + vector.w;
-    }
-
     std::string formatBytesValue(uint64_t bytes) {
         double doubleBytes = bytes;
         static std::string bytePrefixes[] = {"B", "KB", "MB", "GB", "TB"};
@@ -348,18 +308,6 @@ namespace bricksim::util {
 
         /* Now we know that's zero, memcmp with self. */
         return memcmp(data, p, length) == 0;
-    }
-
-    glm::vec2 minForEachComponent(const glm::vec2& a, const glm::vec2& b) {
-        return {std::min(a.x, b.x), std::min(a.y, b.y)};
-    }
-
-    glm::vec3 minForEachComponent(const glm::vec3& a, const glm::vec3& b) {
-        return {std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z)};
-    }
-
-    glm::vec4 minForEachComponent(const glm::vec4& a, const glm::vec4& b) {
-        return {std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z), std::min(a.w, b.w)};
     }
 
     std::string translateBrickLinkColorNameToLDraw(std::string colorName) {

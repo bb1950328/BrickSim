@@ -7,6 +7,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/transform.hpp>
 #include <iostream>
+#include <magic_enum.hpp>
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 
@@ -46,12 +47,13 @@ namespace bricksim::transform_gizmo {
         std::optional<glm::mat4> nowTransformation;
         PovState nowPovState;
         if (currentlySelectedNode != nullptr) {
+            //todo skip this calculation if nothing changed
             const static float configScale = config::get(config::GUI_SCALE) * config::get(config::TRANSFORM_GIZMO_SIZE);
 
             const auto selectedNodeTransf = util::decomposeTransformationToStruct(glm::transpose(currentlySelectedNode->getAbsoluteTransformation()));
 
             glm::vec3 cameraPosLdu = glm::vec4(scene->getCamera()->getCameraPos(), 1.0f) * constants::OPENGL_TO_LDU;
-            glm::vec3 direction = glm::normalize(selectedNodeTransf.translation - cameraPosLdu);
+            //glm::vec3 direction = glm::normalize(selectedNodeTransf.translation - cameraPosLdu);
             const auto cameraTargetDistance = glm::length(scene->getCamera()->getTargetPos() - scene->getCamera()->getCameraPos());
             nodePosition = selectedNodeTransf.translation;
 
@@ -59,13 +61,25 @@ namespace bricksim::transform_gizmo {
             if (controller::getTransformGizmoRotationState() == RotationState::SELECTED_ELEMENT) {
                 nodeRotation = selectedNodeTransf.orientationAsMat4();
                 nowTransformation.value() *= nodeRotation;
-                direction = glm::vec4(direction, 0.0f) * nowTransformation.value();
+                //direction = glm::vec4(direction, 0.0f) * nowTransformation.value();
             } else {
                 nodeRotation = glm::mat4(1.0f);
             }
             node->setRelativeTransformation(glm::transpose(nowTransformation.value()));
 
-            float yaw = std::atan2(direction.x, direction.z);
+            const glm::mat4 absTransf = node->getAbsoluteTransformation();
+            float angles[3];
+            for (int i = 0; i < 3; ++i) {
+                const glm::vec3 pt = absTransf * axisDirectionOffsetVectors[i];
+                const float angle = glm::degrees(util::getAngleBetweenThreePointsUnsigned(pt, absTransf[3], cameraPosLdu));//todo remove degrees
+                std::cout << angle << "\t";
+                angles[i] = angle;
+            }
+            PovState povState = static_cast<PovState>((angles[0] < 90) << 2 | (angles[1] < 90) << 1 | (angles[2] < 90));
+            node->setPovState(povState);
+            std::cout << magic_enum::enum_name(povState) << std::endl;
+
+            /*float yaw = std::atan2(direction.x, direction.z);
             float pitch = std::atan2(direction.y, direction.y);
 
             if (yaw <= 0) {
@@ -90,7 +104,7 @@ namespace bricksim::transform_gizmo {
                 }
             }
 
-            node->setPovState(nowPovState);
+            node->setPovState(nowPovState);*/
 
             node->visible = true;
         } else {
@@ -200,6 +214,7 @@ namespace bricksim::transform_gizmo {
     }
 
     void TGNode::updateTransformations() {
+        //todo i think this can be more efficient if all 8 possibilities are precalculated
         bool newX = (uint8_t)(povState) & (1 << 2);
         bool newY = (uint8_t)(povState) & (1 << 1);
         bool newZ = (uint8_t)(povState) & (1 << 0);
@@ -208,28 +223,28 @@ namespace bricksim::transform_gizmo {
         translate1dArrows[0]->setRelativeTransformation(glm::transpose(translationArrowX));
 
         const auto rotationArrowY = glm::rotate(glm::radians(90.0f), glm::vec3(0, 0, 1));
-        const auto translationArrowY = glm::translate(glm::vec3(newZ ? 0.0f : -1.0f, 0.0f, 0.0f));
+        const auto translationArrowY = glm::translate(glm::vec3(newY ? 0.0f : -1.0f, 0.0f, 0.0f));
         translate1dArrows[1]->setRelativeTransformation(glm::transpose(rotationArrowY * translationArrowY));
 
         const auto rotationArrowZ = glm::rotate(glm::radians(-90.0f), glm::vec3(0, 1, 0));
-        const auto translationArrowZ = glm::translate(glm::vec3(newY ? 0.0f : -1.0f, 0.0f, 0.0f));
+        const auto translationArrowZ = glm::translate(glm::vec3(newZ ? 0.0f : -1.0f, 0.0f, 0.0f));
         translate1dArrows[2]->setRelativeTransformation(glm::transpose(rotationArrowZ * translationArrowZ));
 
         const auto torusScale = glm::scale(glm::vec3(1.3f));
         const auto move2dArrowScale = glm::scale(glm::vec3(0.6f));
 
-        float angleTorusX = newY ? (newZ ? 0.0f : -90.0f) : (newZ ? 90.0f : 180.0f);
+        float angleTorusX = newZ ? (newY ? 0.0f : -90.0f) : (newY ? 90.0f : 180.0f);
         const auto rotateTorusX = glm::rotate(glm::radians(angleTorusX), glm::vec3(1, 0, 0));
         rotateQuarterTori[0]->setRelativeTransformation(torusScale * rotateTorusX);
         translate2dArrows[0]->setRelativeTransformation(move2dArrowScale * rotateTorusX);
 
-        float angleTorusY = newX ? (newY ? 0.0f : 90.0f) : (newY ? -90.0f : 180.0f);
+        float angleTorusY = newX ? (newZ ? 0.0f : 90.0f) : (newZ ? -90.0f : 180.0f);
         const auto rotateTorusY1 = glm::rotate(glm::radians(90.0f), glm::vec3(0, 0, 1));
         const auto rotateTorusY2 = glm::rotate(glm::radians(angleTorusY), glm::vec3(1, 0, 0));
         rotateQuarterTori[1]->setRelativeTransformation(torusScale * rotateTorusY2 * rotateTorusY1);
         translate2dArrows[1]->setRelativeTransformation(move2dArrowScale * rotateTorusY2 * rotateTorusY1);
 
-        float angleTorusZ = newX ? (newZ ? 90.0f : 180.0f) : (newZ ? 0.0f : -90.0f);
+        float angleTorusZ = newX ? (newY ? 90.0f : 180.0f) : (newY ? 0.0f : -90.0f);
         const auto rotateTorusZ1 = glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0));
         const auto rotateTorusZ2 = glm::rotate(glm::radians(angleTorusZ), glm::vec3(1, 0, 0));
         rotateQuarterTori[2]->setRelativeTransformation(torusScale * rotateTorusZ2 * rotateTorusZ1);
@@ -412,7 +427,6 @@ namespace bricksim::transform_gizmo {
         currentMouseRay *= constants::OPENGL_TO_LDU;
         const auto currentPointOnPlane = util::rayPlaneIntersection(currentMouseRay, this->axis).value();
         const float totalRotationAngle = util::getAngleBetweenThreePointsSigned(startPointOnPlane, axis.origin, currentPointOnPlane, axis.direction);
-        spdlog::debug("{}°", glm::degrees(totalRotationAngle));
         const auto rotation = glm::rotate(totalRotationAngle, glm::normalize(axis.direction));
 
         const glm::mat4 newNodeTransf = startNodeTransfDecomposed.translationAsMat4() * rotation * startNodeTransfDecomposed.orientationAsMat4() * startNodeTransfDecomposed.scaleAsMat4();

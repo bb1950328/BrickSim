@@ -5,9 +5,9 @@ namespace bricksim::color {
         std::sscanf(htmlCode.c_str(), "#%2hhx%2hhx%2hhx", &red, &green, &blue);
     }
     RGB::RGB(glm::vec3 vector) {
-        red = vector.x * 255;
-        green = vector.y * 255;
-        blue = vector.z * 255;
+        red = static_cast<color_component_t>(std::clamp(vector.x, 0.f, 1.f)*255+.5f);
+        green = static_cast<color_component_t>(std::clamp(vector.y, 0.f, 1.f)*255+.5f);
+        blue = static_cast<color_component_t>(std::clamp(vector.z, 0.f, 1.f)*255+.5f);
     }
 
     RGB::RGB(color_component_t red, color_component_t green, color_component_t blue) :
@@ -93,9 +93,9 @@ namespace bricksim::color {
     const RGB RGB::NAVY{0, 0, 128};
 
     HSV::HSV(glm::vec3 vector) {
-        hue = vector.x * 255;
-        saturation = vector.y * 255;
-        value = vector.z * 255;
+        hue = static_cast<color_component_t>(std::clamp(vector.x, 0.f, 1.f)*255+.5f);
+        saturation = static_cast<color_component_t>(std::clamp(vector.y, 0.f, 1.f)*255+.5f);
+        value = static_cast<color_component_t>(std::clamp(vector.z, 0.f, 1.f)*255+.5f);
     }
 
     HSV::HSV(RGB rgb) {

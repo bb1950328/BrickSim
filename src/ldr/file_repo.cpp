@@ -2,6 +2,7 @@
 #include "../config.h"
 #include "../db.h"
 #include "../helpers/util.h"
+#include "file_reader.h"
 #include "regular_file_repo.h"
 #include "zip_file_repo.h"
 #include <spdlog/spdlog.h>
@@ -139,9 +140,11 @@ namespace bricksim::ldr::file_repo {
     }
 
     std::shared_ptr<File> FileRepo::addFileWithContent(const std::string& name, ldr::FileType type, const std::string& content) {
-        auto file = File::parseFile(type, name, content);
-        files.emplace(util::asLower(name), std::make_pair(type, file));
-        return file;
+        auto readResults = readComplexFile(name, content, type);
+        for (const auto& newFile: readResults) {
+            files.emplace(util::asLower(newFile.first), std::make_pair(newFile.second->metaInfo.type, newFile.second));
+        }
+        return readResults[name];
     }
 
     std::filesystem::path& FileRepo::getBasePath() {

@@ -64,11 +64,11 @@ namespace bricksim::ldr {
         [[nodiscard]] const std::size_t& getHash() const;
         static std::shared_ptr<File> parseFile(FileType fileType, const std::string& name, const std::string& content);
 
+        void addTextLine(const std::string& line);
+
     private:
         mutable std::size_t hash = 0;
         BfcState bfcState;
-
-        void addTextLine(const std::string& line);
     };
 
     class FileElement {

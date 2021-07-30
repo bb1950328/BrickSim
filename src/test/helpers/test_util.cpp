@@ -449,4 +449,27 @@ namespace bricksim {
         auto result = util::rayPlaneIntersection(ray, plane);
         CHECK(!result.has_value());
     }
+
+    TEST_CASE("util::getAngleBetweenThreePointsUnsigned 1") {
+        //https://www.geogebra.org/calculator/enejk3cx
+        const float angle = util::getAngleBetweenThreePointsUnsigned({3, 5, 7}, {5, 2, 8}, {9, -2, 4});
+        CHECK(glm::degrees(angle) == Approx(128.112926500986674));
+    }
+
+    TEST_CASE("util::getAngleBetweenThreePointsUnsigned 2") {
+        const float angle = util::getAngleBetweenThreePointsUnsigned({1, 2, 3}, {3, 2, 1}, {1, 1, 1});
+        CHECK(glm::degrees(angle) == Approx(50.76848));
+    }
+
+    TEST_CASE("util::getAngleBetweenThreePointsUnsigned 3") {
+        const float angle = util::getAngleBetweenThreePointsUnsigned({1, 0, 0}, {0, 0, 0}, {0, 1, 0});
+        CHECK(glm::degrees(angle) == Approx(90.0));
+    }
+
+    TEST_CASE("util::getAngleBetweenThreePointsUnsigned 4") {
+        const float angle = util::getAngleBetweenThreePointsUnsigned({1, 0, 0}, {0, 0, 0}, {-5, 0, 0});
+        CHECK(glm::degrees(angle) == Approx(180.0));
+    }
+
+    //todo tests for util::getAngleBetweenThreePointsSigned
 }

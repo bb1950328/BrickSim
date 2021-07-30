@@ -619,7 +619,7 @@ namespace bricksim::util {
         return result;
     }
 
-    std::optional<glm::vec3> rayPlaneIntersection(const Ray3 &ray, const Ray3 &planeNormal) {
+    std::optional<glm::vec3> rayPlaneIntersection(const Ray3& ray, const Ray3& planeNormal) {
         //https://math.stackexchange.com/a/2121529/945069
         const auto normalizedRayDir = glm::normalize(ray.direction);
         const auto normalizedPlaneDir = glm::normalize(planeNormal.direction);
@@ -631,7 +631,27 @@ namespace bricksim::util {
         }
     }
 
+    float getAngleBetweenThreePointsUnsigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c) {
+        const auto ab = b - a;
+        const auto bc = b - c;
+        return std::acos(glm::dot(ab, bc) / (glm::length(ab) * glm::length(bc)));
+    }
+
+    float getAngleBetweenThreePointsSigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& planeNormal) {
+        const auto ab = b - a;
+        const auto cb = b - c;
+        return std::atan2(glm::dot(glm::cross(ab, cb), glm::normalize(planeNormal)), glm::dot(ab, cb));
+    }
+
     glm::mat4 DecomposedTransformation::orientationAsMat4() const {
         return glm::toMat4(orientation);
+    }
+
+    glm::mat4 DecomposedTransformation::translationAsMat4() const {
+        return glm::translate(glm::mat4(1.0f), translation);
+    }
+
+    glm::mat4 DecomposedTransformation::scaleAsMat4() const {
+        return glm::scale(glm::mat4(1.0f), scale);
     }
 }

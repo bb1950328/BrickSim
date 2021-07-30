@@ -378,6 +378,7 @@ namespace bricksim::controller {
         //openFile("test_files/bricks_test.ldr");
         openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
+        //openFile("car.ldr");
 
         while (!glfwWindowShouldClose(window) && !userWantsToExit) {
             copyMainloopTimePoints();

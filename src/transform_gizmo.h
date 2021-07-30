@@ -3,9 +3,10 @@
 #include "element_tree.h"
 #include "graphics/mesh/mesh_generated.h"
 #include "graphics/scene.h"
-#include "helpers/ray.h"
-#include "types.h"
 #include "helpers/debug_nodes.h"
+#include "helpers/ray.h"
+#include "helpers/util.h"
+#include "types.h"
 #include <array>
 #include <glm/glm.hpp>
 
@@ -46,8 +47,9 @@ namespace bricksim::transform_gizmo {
         glm::mat4 startGizmoRelTransformation;
         glm::mat4 startNodeRelTransformation;
         const glm::vec2 startMousePos;
+
     public:
-        TransformOperation(TransformGizmo& gizmo, const glm::vec2 &startMousePos);
+        TransformOperation(TransformGizmo& gizmo, const glm::vec2& startMousePos);
 
         TransformGizmo& gizmo;
         virtual void update(const glm::vec2& mouseDelta) = 0;
@@ -71,11 +73,24 @@ namespace bricksim::transform_gizmo {
 
     class Translate2dOperation : public TransformOperation {
         glm::vec3 startPointOnPlane;
+
     public:
-        Translate2dOperation(TransformGizmo &gizmo, const glm::vec2 &startMousePos, int axis);
-        void update(const glm::vec2 &mouseDelta) override;
+        Translate2dOperation(TransformGizmo& gizmo, const glm::vec2& startMousePos, int axis);
+        void update(const glm::vec2& mouseDelta) override;
         constexpr TransformType getType() override;
         Ray<3> planeNormal;
+    };
+
+    class RotateOperation : public TransformOperation {
+        Ray3 axis;
+        glm::vec3 startPointOnPlane;
+        util::DecomposedTransformation startNodeTransfDecomposed;
+        util::DecomposedTransformation startGizmoTransfDecomposed;
+
+    public:
+        RotateOperation(TransformGizmo& gizmo, const glm::vec2& startMousePos, int axis);
+        void update(const glm::vec2& mouseDelta) override;
+        constexpr TransformType getType() override;
     };
 
     class TG2DArrowNode : public etree::MeshNode {
@@ -116,6 +131,7 @@ namespace bricksim::transform_gizmo {
         friend class TransformOperation;
         friend class Translate1dOperation;
         friend class Translate2dOperation;
+        friend class RotateOperation;
 
     private:
         std::shared_ptr<graphics::Scene> scene;

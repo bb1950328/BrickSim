@@ -33,7 +33,8 @@ namespace bricksim::ldr {
             RUBBER,
             MATTE_METALLIC,
             METAL,
-            MATERIAL
+            MATERIAL,
+            PURE
         };
 
         typedef int code_t;
@@ -84,7 +85,7 @@ namespace bricksim::ldr {
 
         class PureColor : public Color {
         public:
-            explicit PureColor(std::string hexCode);
+            explicit PureColor(const std::string& hexCode);
             explicit PureColor(color::RGB color);
         };
 

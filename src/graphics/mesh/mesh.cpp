@@ -512,6 +512,10 @@ namespace bricksim::mesh {
                 instance->ambientFactor = 0.75;
                 instance->specularBrightness = 0;
                 break;
+            case ldr::Color::PURE:
+                instance->ambientFactor = 1;
+                instance->specularBrightness = 0;
+                break;
             default:
                 instance->ambientFactor = 0.5;
                 instance->specularBrightness = 0.5;

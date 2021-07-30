@@ -2,11 +2,9 @@
 #include "config.h"
 #include "controller.h"
 #include "helpers/util.h"
-#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/transform.hpp>
-#include <iostream>
 #include <magic_enum.hpp>
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
@@ -33,8 +31,8 @@ bricksim::Ray3 bricksim::transform_gizmo::TransformOperation::calculateAxisRay(i
 namespace bricksim::transform_gizmo {
 
     TransformGizmo::TransformGizmo(std::shared_ptr<graphics::Scene> scene) :
-        scene(std::move(scene)) {
-        node = std::make_shared<TGNode>(this->scene->getRootNode());
+        scene(std::move(scene)),
+        node(std::make_shared<TGNode>(this->scene->getRootNode())) {
         this->scene->getRootNode()->addChild(node);
         node->initElements();
         for (const auto& arrow: node->getChildren()) {
@@ -47,64 +45,42 @@ namespace bricksim::transform_gizmo {
         std::optional<glm::mat4> nowTransformation;
         PovState nowPovState;
         if (currentlySelectedNode != nullptr) {
-            //todo skip this calculation if nothing changed
             const static float configScale = config::get(config::GUI_SCALE) * config::get(config::TRANSFORM_GIZMO_SIZE);
 
-            const auto selectedNodeTransf = util::decomposeTransformationToStruct(glm::transpose(currentlySelectedNode->getAbsoluteTransformation()));
+            static glm::mat4 lastNodeAbsTransf;
+            static glm::vec3 lastCameraPosLdu;
 
+            const glm::mat4 nodeAbsTransf = currentlySelectedNode->getAbsoluteTransformation();
             glm::vec3 cameraPosLdu = glm::vec4(scene->getCamera()->getCameraPos(), 1.0f) * constants::OPENGL_TO_LDU;
-            //glm::vec3 direction = glm::normalize(selectedNodeTransf.translation - cameraPosLdu);
-            const auto cameraTargetDistance = glm::length(scene->getCamera()->getTargetPos() - scene->getCamera()->getCameraPos());
-            nodePosition = selectedNodeTransf.translation;
 
-            nowTransformation = glm::scale(glm::translate(nodePosition), glm::vec3(cameraTargetDistance / constants::LDU_TO_OPENGL_SCALE / 10 * configScale));
-            if (controller::getTransformGizmoRotationState() == RotationState::SELECTED_ELEMENT) {
-                nodeRotation = selectedNodeTransf.orientationAsMat4();
-                nowTransformation.value() *= nodeRotation;
-                //direction = glm::vec4(direction, 0.0f) * nowTransformation.value();
-            } else {
-                nodeRotation = glm::mat4(1.0f);
-            }
-            node->setRelativeTransformation(glm::transpose(nowTransformation.value()));
+            if (lastNodeAbsTransf != nodeAbsTransf || lastCameraPosLdu != cameraPosLdu) {
+                lastNodeAbsTransf = nodeAbsTransf;
+                lastCameraPosLdu = cameraPosLdu;
 
-            const glm::mat4 absTransf = node->getAbsoluteTransformation();
-            float angles[3];
-            for (int i = 0; i < 3; ++i) {
-                const glm::vec3 pt = absTransf * axisDirectionOffsetVectors[i];
-                const float angle = glm::degrees(util::getAngleBetweenThreePointsUnsigned(pt, absTransf[3], cameraPosLdu));//todo remove degrees
-                std::cout << angle << "\t";
-                angles[i] = angle;
-            }
-            PovState povState = static_cast<PovState>((angles[0] < 90) << 2 | (angles[1] < 90) << 1 | (angles[2] < 90));
-            node->setPovState(povState);
-            std::cout << magic_enum::enum_name(povState) << std::endl;
+                const auto selectedNodeTransf = util::decomposeTransformationToStruct(glm::transpose(nodeAbsTransf));
 
-            /*float yaw = std::atan2(direction.x, direction.z);
-            float pitch = std::atan2(direction.y, direction.y);
+                const auto cameraTargetDistance = glm::length(scene->getCamera()->getTargetPos() - scene->getCamera()->getCameraPos());
+                nodePosition = selectedNodeTransf.translation;
 
-            if (yaw <= 0) {
-                if (yaw <= -0.5 * M_PI) {
-                    nowPovState = pitch < 0
-                                          ? PovState::XPOS_YPOS_ZPOS
-                                          : PovState::XPOS_YNEG_ZPOS;
+                nowTransformation = glm::scale(glm::translate(nodePosition), glm::vec3(cameraTargetDistance / constants::LDU_TO_OPENGL_SCALE / 10 * configScale));
+                if (controller::getTransformGizmoRotationState() == RotationState::SELECTED_ELEMENT) {
+                    nodeRotation = selectedNodeTransf.orientationAsMat4();
+                    nowTransformation.value() *= nodeRotation;
                 } else {
-                    nowPovState = pitch < 0
-                                          ? PovState::XPOS_YPOS_ZNEG
-                                          : PovState::XPOS_YNEG_ZNEG;
+                    nodeRotation = glm::mat4(1.0f);
                 }
-            } else {
-                if (yaw <= 0.5 * M_PI) {
-                    nowPovState = pitch < 0
-                                          ? PovState::XNEG_YPOS_ZNEG
-                                          : PovState::XNEG_YNEG_ZNEG;
-                } else {
-                    nowPovState = pitch < 0
-                                          ? PovState::XNEG_YPOS_ZPOS
-                                          : PovState::XNEG_YNEG_ZPOS;
-                }
-            }
+                node->setRelativeTransformation(glm::transpose(nowTransformation.value()));
 
-            node->setPovState(nowPovState);*/
+                const glm::mat4 absTransf = node->getAbsoluteTransformation();
+                int povState = 0;
+                for (int i = 0; i < 3; ++i) {
+                    const glm::vec3 pt = absTransf * axisDirectionOffsetVectors[i];
+                    const float angle = util::getAngleBetweenThreePointsUnsigned(pt, absTransf[3], cameraPosLdu);
+                    povState = povState << 1 | (angle < glm::radians(90.f));
+                }
+                nowPovState = static_cast<PovState>(povState);
+                node->setPovState(nowPovState);
+            }
 
             node->visible = true;
         } else {
@@ -161,7 +137,7 @@ namespace bricksim::transform_gizmo {
 
     TGNode::TGNode(const std::shared_ptr<etree::Node>& parent) :
         etree::Node(parent) {
-        visibleInElementTree = true;//todo change this back to false when debugging is finished
+        visibleInElementTree = false;
         visible = true;
         displayName = "Transform Gizmo";
         povState = PovState::XNEG_YNEG_ZNEG;

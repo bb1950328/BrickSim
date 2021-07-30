@@ -1,5 +1,6 @@
 #include "opengl_native_or_replacement.h"
 #include <vector>
+#include <spdlog/spdlog.h>
 
 namespace bricksim::graphics::opengl_native_or_replacement {
 
@@ -44,6 +45,12 @@ namespace bricksim::graphics::opengl_native_or_replacement {
             glDrawArraysInstanced(mode, first, count, instancecount);
 
             glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(originalData.size()), &originalData[0], GL_STATIC_DRAW);
+        }
+    }
+
+    void initialize() {
+        if (!glDrawElementsInstancedBaseInstance) {
+            spdlog::warn("GL_ARB_base_instance extension not supported by GPU");
         }
     }
 }

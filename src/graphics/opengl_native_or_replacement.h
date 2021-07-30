@@ -4,6 +4,8 @@
 #include <cstddef>
 
 namespace bricksim::graphics::opengl_native_or_replacement {
+    void initialize();
+
     void drawElementsInstancedBaseInstance(GLenum mode,
                                            GLsizei count,
                                            GLenum type,

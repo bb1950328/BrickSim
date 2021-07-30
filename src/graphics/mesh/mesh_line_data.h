@@ -16,6 +16,7 @@ namespace bricksim::mesh {
         std::vector<LineVertex> vertices;
         std::vector<unsigned int> indices;
         unsigned int vao, vertexVBO, instanceVBO, ebo;
+        size_t instanceCount;
         const unsigned int drawMode;
     };
 }

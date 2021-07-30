@@ -36,9 +36,9 @@ namespace bricksim::graphics {
         void setStandardView(int i);
 
     private:
-        float pitch = 0.0f;   // up/down angle
-        float yaw = 0.0f;     // left/right angle
-        float distance = 3.0f;// distance between target point and camera
+        float pitch = 45.f;   // up/down angle
+        float yaw = 45.f;     // left/right angle
+        float distance = 12.0f;// distance between target point and camera
 
         glm::vec3 front, target, cameraPos;
         const glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);

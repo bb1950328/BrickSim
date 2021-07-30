@@ -10,20 +10,18 @@ namespace bricksim::ldr {
         return order == CW ? CCW : CW;
     }
 
-    std::shared_ptr<ldr::FileElement> ldr::FileElement::parse_line(std::string line, BfcState bfcState) {
-        std::string line_content = line.length() > 2 ? line.substr(2) : "";
+    std::shared_ptr<ldr::FileElement> ldr::FileElement::parseLine(const std::string& line, BfcState bfcState) {
+        std::string lineContent = line.length() > 2 ? line.substr(2) : "";
         switch (line[0] - '0') {
-                //@formatter:off
-            case 0: return std::make_shared<CommentOrMetaElement>(line_content);
-            case 1: return std::make_shared<SubfileReference>(line_content, bfcState.invertNext);
-            case 2: return std::make_shared<Line>(line_content);
-            case 3: return std::make_shared<Triangle>(line_content, bfcState.windingOrder);
-            case 4: return std::make_shared<Quadrilateral>(line_content, bfcState.windingOrder);
-            case 5: return std::make_shared<OptionalLine>(line_content);
+            case 0: return std::make_shared<CommentOrMetaElement>(lineContent);
+            case 1: return std::make_shared<SubfileReference>(lineContent, bfcState.invertNext);
+            case 2: return std::make_shared<Line>(lineContent);
+            case 3: return std::make_shared<Triangle>(lineContent, bfcState.windingOrder);
+            case 4: return std::make_shared<Quadrilateral>(lineContent, bfcState.windingOrder);
+            case 5: return std::make_shared<OptionalLine>(lineContent);
             default: /*throw std::invalid_argument("The line is not valid: \"" + line + "\"");*/
                 spdlog::warn("invalid line: {}", line);
                 return nullptr;
-                //@formatter:on
         }
     }
 
@@ -91,7 +89,7 @@ namespace bricksim::ldr {
         auto trimmed = util::trim(line);
         unsigned int currentStep = elements.empty() ? 0 : elements.back()->step;
         if (!trimmed.empty()) {
-            auto element = ldr::FileElement::parse_line(trimmed, bfcState);
+            auto element = ldr::FileElement::parseLine(trimmed, bfcState);
             if (element != nullptr) {
                 bfcState.invertNext = false;
                 if (element->getType() == 0) {
@@ -148,32 +146,6 @@ namespace bricksim::ldr {
         }
     }
 
-    void File::preLoadSubfilesAndEstimateComplexity() {
-        if (!subfilesPreloadedAndComplexityEstimated) {
-            preLoadSubfilesAndEstimateComplexityInternal();
-        }
-    }
-
-    void File::preLoadSubfilesAndEstimateComplexityInternal() {
-        referenceCount++;
-        if (!subfilesPreloadedAndComplexityEstimated) {
-            for (const auto& elem: elements) {
-                if (elem->getType() == 1) {
-                    std::shared_ptr<File> subFile = std::dynamic_pointer_cast<SubfileReference>(elem)->getFile();
-                    subFile->preLoadSubfilesAndEstimateComplexityInternal();
-                    estimatedComplexity += subFile->estimatedComplexity;
-                } else if (elem->getType() == 2) {
-                    estimatedComplexity += 1;
-                } else if (elem->getType() == 3) {
-                    estimatedComplexity += 2;
-                } else if (elem->getType() == 4) {
-                    estimatedComplexity += 3;
-                }
-            }
-            subfilesPreloadedAndComplexityEstimated = true;
-        }
-    }
-
     const std::string& File::getDescription() const {
         if (!metaInfo.title.empty()) {
             return metaInfo.title;
@@ -182,12 +154,6 @@ namespace bricksim::ldr {
         }
         static std::string unknown = "?";
         return unknown;
-    }
-
-    long File::instancedMinComplexity = -1;
-
-    bool File::isComplexEnoughForOwnMesh() const {
-        return (metaInfo.type != SUBPART && metaInfo.type != PRIMITIVE);// todo spend more time here, I think there's much more potential here
     }
 
     const std::size_t& File::getHash() const {
@@ -455,8 +421,8 @@ namespace bricksim::ldr {
         if (!info.author.empty()) {
             os << "0 Author: " << info.author << std::endl;
         }
-        if (!info.category.empty()) {
-            os << "0 !CATEGORY " << info.category << std::endl;
+        if (info.category.has_value() && !info.category->empty()) {
+            os << "0 !CATEGORY " << info.category.value() << std::endl;
         }
         if (!info.keywords.empty()) {
             os << "0 !KEYWORDS ";
@@ -496,7 +462,7 @@ namespace bricksim::ldr {
     }
 
     const std::string& ldr::FileMetaInfo::getCategory() {
-        if (category == "????") {
+        if (category->empty()) {
             const auto firstSpace = title.find(' ');
             auto start = 0;
             while (title[start] == '_' || title[start] == '~' || title[start] == '=') {
@@ -504,6 +470,6 @@ namespace bricksim::ldr {
             }
             category = title.substr(start, firstSpace - start);
         }
-        return category;
+        return category.value();
     }
 }

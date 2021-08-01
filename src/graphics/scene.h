@@ -58,6 +58,8 @@ namespace bricksim::graphics {
         glm::mat4 projectionMatrix;
         glm::mat4 currentImageViewMatrix, currentSelectionImageViewMatrix;
         bool imageUpToDate, selectionImageUpToDate, elementTreeRereadNeeded;
+        bool drawTriangles = true, drawLines = true;
+        bool currentImageDrawTriangles = true, currentImageDrawLines = true;
         void rereadElementTreeIfNeeded();
 
     public:
@@ -79,5 +81,7 @@ namespace bricksim::graphics {
         [[nodiscard]] const std::optional<CompleteFramebuffer>& getSelectionImage() const;
         [[nodiscard]] const mesh::SceneMeshCollection& getMeshCollection() const;
         [[nodiscard]] overlay2d::ElementCollection& getOverlayCollection();
+        [[nodiscard]] bool* isDrawTriangles();
+        [[nodiscard]] bool* isDrawLines();
     };
 }

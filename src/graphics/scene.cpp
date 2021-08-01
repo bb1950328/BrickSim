@@ -232,6 +232,12 @@ namespace bricksim::graphics {
             imageUpToDate = false;
         }
 
+        if (currentImageDrawTriangles != drawTriangles || currentImageDrawLines != drawLines) {
+            currentImageDrawTriangles = drawTriangles;
+            currentImageDrawLines = drawLines;
+            imageUpToDate = false;
+        }
+
         if (!imageUpToDate) {
             auto before = std::chrono::high_resolution_clock::now();
             controller::executeOpenGL([this]() {
@@ -255,37 +261,44 @@ namespace bricksim::graphics {
                 const auto& textureShader = shaders::get(shaders::TEXTURED_TRIANGLE);
                 const auto& lineShader = shaders::get(shaders::LINE);
                 const auto& optionalLineShader = shaders::get(shaders::OPTIONAL_LINE);
-                triangleShader.use();
-                triangleShader.setVec3("viewPos", camera->getCameraPos());
-                triangleShader.setMat4("projectionView", projectionView);
-                glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-                glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
-                glm::vec3 ambientColor = diffuseColor * glm::vec3(1.3f);
-                triangleShader.setVec3("light.position", camera->getCameraPos());
 
-                //todo do not call these every time
-                triangleShader.setVec3("light.ambient", ambientColor);
-                triangleShader.setVec3("light.diffuse", diffuseColor);
-                triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+                if (drawTriangles) {
+                    triangleShader.use();
+                    triangleShader.setVec3("viewPos", camera->getCameraPos());
+                    triangleShader.setMat4("projectionView", projectionView);
+                    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+                    glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+                    glm::vec3 ambientColor = diffuseColor * glm::vec3(1.3f);
+                    triangleShader.setVec3("light.position", camera->getCameraPos());
 
-                textureShader.use();
-                textureShader.setMat4("projectionView", projectionView);
+                    //todo do not call these every time
+                    triangleShader.setVec3("light.ambient", ambientColor);
+                    triangleShader.setVec3("light.diffuse", diffuseColor);
+                    triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+                    textureShader.use();
+                    textureShader.setMat4("projectionView", projectionView);
+                }
 
                 for (const auto& layer: meshCollection.getLayersInUse()) {
                     glClear(GL_DEPTH_BUFFER_BIT);
-                    triangleShader.use();
-                    meshCollection.drawTriangleGraphics(layer);
+                    if (drawTriangles) {
+                        triangleShader.use();
+                        meshCollection.drawTriangleGraphics(layer);
 
-                    textureShader.use();
-                    meshCollection.drawTexturedTriangleGraphics(layer);
+                        textureShader.use();
+                        meshCollection.drawTexturedTriangleGraphics(layer);
+                    }
 
-                    lineShader.use();
-                    lineShader.setMat4("projectionView", projectionView);
-                    meshCollection.drawLineGraphics(layer);
+                    if (drawLines) {
+                        lineShader.use();
+                        lineShader.setMat4("projectionView", projectionView);
+                        meshCollection.drawLineGraphics(layer);
 
-                    optionalLineShader.use();
-                    optionalLineShader.setMat4("projectionView", projectionView);
-                    meshCollection.drawOptionalLineGraphics(layer);
+                        optionalLineShader.use();
+                        optionalLineShader.setMat4("projectionView", projectionView);
+                        meshCollection.drawOptionalLineGraphics(layer);
+                    }
                 }
 
                 if (overlayCollection.hasElements()) {
@@ -352,6 +365,13 @@ namespace bricksim::graphics {
         const auto cameraPos = camera->getCameraPos();
         worldPos /= worldPos.w;
         return {cameraPos, glm::normalize(glm::vec3(worldPos) - cameraPos)};
+    }
+
+    [[nodiscard]] bool* Scene::isDrawTriangles() {
+        return &drawTriangles;
+    }
+    [[nodiscard]] bool* Scene::isDrawLines() {
+        return &drawLines;
     }
 
     namespace scenes {

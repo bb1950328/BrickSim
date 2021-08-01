@@ -271,6 +271,7 @@ namespace bricksim::gui {
     }
 
     void drawMainWindows() {
+        const std::shared_ptr<graphics::Scene>& mainScene = controller::getMainScene();
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
                 gui_internal::actionMenuItem(user_actions::NEW_FILE);
@@ -332,6 +333,8 @@ namespace bricksim::gui {
                 gui_internal::actionMenuItem(user_actions::VIEW_3D_BOTTOM, "Bottom");
                 gui_internal::actionMenuItem(user_actions::VIEW_3D_LEFT, "Left");
                 ImGui::Separator();
+                ImGui::MenuItem("Show Surfaces", "", mainScene->isDrawTriangles());
+                ImGui::MenuItem("Show Lines", "", mainScene->isDrawLines());
                 gui_internal::actionMenuItem(user_actions::TAKE_SCREENSHOT);
                 ImGui::EndMenu();
             }

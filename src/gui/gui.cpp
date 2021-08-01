@@ -305,6 +305,8 @@ namespace bricksim::gui {
                 ImGui::Separator();
                 ImGui::MenuItem(windows::getName(windows::Id::PART_PALETTE), "", windows::isVisible(windows::Id::PART_PALETTE));
                 ImGui::Separator();
+                ImGui::MenuItem(windows::getName(windows::Id::MODEL_INFO), "", windows::isVisible(windows::Id::MODEL_INFO));
+                ImGui::Separator();
                 ImGui::MenuItem(windows::getName(windows::Id::SETTINGS), "", windows::isVisible(windows::Id::SETTINGS));
                 ImGui::Separator();
                 ImGui::MenuItem(windows::getName(windows::Id::IMGUI_DEMO), "", windows::isVisible(windows::Id::IMGUI_DEMO));

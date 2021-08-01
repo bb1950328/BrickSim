@@ -13,6 +13,8 @@ target_sources(BrickSimLib PRIVATE
         window_log.h
         window_mesh_inspector.cpp
         window_mesh_inspector.h
+        window_model_info.cpp
+        window_model_info.h
         window_orientation_cube.cpp
         window_orientation_cube.h
         window_part_palette.cpp

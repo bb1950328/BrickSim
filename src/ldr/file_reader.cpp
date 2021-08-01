@@ -15,22 +15,29 @@ namespace bricksim::ldr {
 
         size_t lineStart = 0;
         size_t lineEnd = 0;
+        bool firstFile = true;
         while (lineEnd < content.size()) {
             lineEnd = content.find_first_of("\r\n", lineStart);
-            if (lineEnd==std::string::npos) {
+            if (lineEnd == std::string::npos) {
                 break;
             }
             ++lineEnd;
-            std::string line = content.substr(lineStart, lineEnd-lineStart);
+            std::string line = content.substr(lineStart, lineEnd - lineStart);
 
             if (util::startsWith(line, "0 FILE")) {
                 const auto currentName = util::trim(line.substr(7));
-                const auto it = files.find(currentName);
-                if (it != files.end()) {
-                    currentFile = it->second;
-                } else {
-                    currentFile = std::make_shared<File>();
+                if (firstFile) {
+                    firstFile = false;
                     files.emplace(currentName, currentFile.value());
+                } else {
+                    const auto it = files.find(currentName);
+                    if (it != files.end()) {
+                        currentFile = it->second;
+                    } else {
+                        currentFile = std::make_shared<File>();
+                        currentFile.value()->metaInfo.type = MPD_SUBFILE;
+                        files.emplace(currentName, currentFile.value());
+                    }
                 }
             } else if (util::startsWith(line, "0 NOFILE") || util::startsWith(line, "0 !DATA")) {
                 //todo save !DATA somewhere instead of ignoring it
@@ -50,7 +57,7 @@ namespace bricksim::ldr {
         size_t lineEnd = 0;
         while (lineEnd < content.size()) {
             lineEnd = content.find_first_of("\r\n", lineStart);
-            if (lineEnd==std::string::npos) {
+            if (lineEnd == std::string::npos) {
                 break;
             }
             ++lineEnd;

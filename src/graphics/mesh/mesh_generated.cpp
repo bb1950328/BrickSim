@@ -13,9 +13,10 @@ namespace bricksim::mesh::generated {
 
     void UVSphereNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
         const auto& color = ldr::color_repo::getInstanceDummyColor();
-        auto northPoleIndex = mesh->addRawTriangleVertex(color, TriangleVertex{glm::vec4(RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f)});
-        auto southPoleIndex = mesh->addRawTriangleVertex(color, TriangleVertex{glm::vec4(-RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f)});
-        auto firstMainIndex = mesh->getNextVertexIndex(color);
+        auto& triangleData = mesh->getTriangleData(color);
+        auto northPoleIndex = triangleData.addRawVertex(TriangleVertex{glm::vec4(RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f)});
+        auto southPoleIndex = triangleData.addRawVertex(TriangleVertex{glm::vec4(-RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f)});
+        auto firstMainIndex = triangleData.getVertexCount();
 
         float latDeltaRadians = M_PI / DIVISIONS;
         float lonDeltaRadians = 2.0f * M_PI / DIVISIONS;
@@ -31,31 +32,31 @@ namespace bricksim::mesh::generated {
             for (uint16_t iLon = 0; iLon < DIVISIONS; ++iLon) {
                 float y = std::sin(iLon * lonDeltaRadians) * latLineRadius;
                 float z = std::cos(iLon * lonDeltaRadians) * latLineRadius;
-                mesh->addRawTriangleVertex(color, TriangleVertex{glm::vec4(x, y, z, 1.0f), glm::vec3(x, y, z) * (1 / RADIUS)});
+                triangleData.addRawVertex(TriangleVertex{glm::vec4(x, y, z, 1.0f), glm::vec3(x, y, z) * (1 / RADIUS)});
             }
         }
 
-        auto lastMainIndex = mesh->getNextVertexIndex(color) - 1;
+        auto lastMainIndex = triangleData.getVertexCount() - 1;
 
         for (int i1 = 0, i2 = 1; i1 < DIVISIONS; ++i1, i2 = (i1 + 1) % DIVISIONS) {
             //north cap
-            mesh->addRawTriangleIndex(color, northPoleIndex);
-            mesh->addRawTriangleIndex(color, firstMainIndex + i2 + secondIdxDelta);
-            mesh->addRawTriangleIndex(color, firstMainIndex + i1 + thirdIdxDelta);
+            triangleData.addRawIndex(northPoleIndex);
+            triangleData.addRawIndex(firstMainIndex + i2 + secondIdxDelta);
+            triangleData.addRawIndex(firstMainIndex + i1 + thirdIdxDelta);
 
             //south cap
-            mesh->addRawTriangleIndex(color, southPoleIndex);
-            mesh->addRawTriangleIndex(color, lastMainIndex - i2 + secondIdxDelta);
-            mesh->addRawTriangleIndex(color, lastMainIndex - i1 + thirdIdxDelta);
+            triangleData.addRawIndex(southPoleIndex);
+            triangleData.addRawIndex(lastMainIndex - i2 + secondIdxDelta);
+            triangleData.addRawIndex(lastMainIndex - i1 + thirdIdxDelta);
 
             for (int j1 = 0, j2 = 1; j1 < DIVISIONS - 2; ++j1, ++j2) {
-                mesh->addRawTriangleIndex(color, firstMainIndex + j1 * DIVISIONS + i1);
-                mesh->addRawTriangleIndex(color, firstMainIndex + j1 * DIVISIONS + i2 + secondIdxDelta);
-                mesh->addRawTriangleIndex(color, firstMainIndex + j2 * DIVISIONS + i2 + thirdIdxDelta);
+                triangleData.addRawIndex(firstMainIndex + j1 * DIVISIONS + i1);
+                triangleData.addRawIndex(firstMainIndex + j1 * DIVISIONS + i2 + secondIdxDelta);
+                triangleData.addRawIndex(firstMainIndex + j2 * DIVISIONS + i2 + thirdIdxDelta);
 
-                mesh->addRawTriangleIndex(color, firstMainIndex + j2 * DIVISIONS + i2);
-                mesh->addRawTriangleIndex(color, firstMainIndex + j2 * DIVISIONS + i1 + secondIdxDelta);
-                mesh->addRawTriangleIndex(color, firstMainIndex + j1 * DIVISIONS + i1 + thirdIdxDelta);
+                triangleData.addRawIndex(firstMainIndex + j2 * DIVISIONS + i2);
+                triangleData.addRawIndex(firstMainIndex + j2 * DIVISIONS + i1 + secondIdxDelta);
+                triangleData.addRawIndex(firstMainIndex + j1 * DIVISIONS + i1 + thirdIdxDelta);
             }
         }
     }
@@ -134,12 +135,14 @@ namespace bricksim::mesh::generated {
 
         auto color = ldr::color_repo::getInstanceDummyColor();
 
-        unsigned int firstIndex = mesh->getNextVertexIndex(color);
+        auto& triangleData = mesh->getTriangleData(color);
+
+        unsigned int firstIndex = triangleData.getVertexCount();
 
         for (uint16_t i = 0; i < NUM_CORNERS; ++i) {
             auto rotationMatrix = glm::rotate((float)(2 * M_PI * i / NUM_CORNERS), glm::vec3(1.0f, 0.0f, 0.0f));
             for (const auto& vertex: baseVertices) {
-                mesh->addRawTriangleVertex(color, {glm::vec4(vertex.position, 1.f) * rotationMatrix, glm::vec4(vertex.normal, 0.0f) * rotationMatrix});
+                triangleData.addRawVertex({glm::vec4(vertex.position, 1.f) * rotationMatrix, glm::vec4(vertex.normal, 0.0f) * rotationMatrix});
             }
         }
 
@@ -149,9 +152,9 @@ namespace bricksim::mesh::generated {
 
         //special treatment for back circle
         for (uint16_t i1 = 1, i2 = 2; i2 < NUM_CORNERS; ++i2, ++i1) {
-            mesh->addRawTriangleIndex(color, firstIndex);
-            mesh->addRawTriangleIndex(color, firstIndex + baseVertexCount * i1 + secondIdxDelta);
-            mesh->addRawTriangleIndex(color, firstIndex + baseVertexCount * i2 + thirdIdxDelta);
+            triangleData.addRawIndex(firstIndex);
+            triangleData.addRawIndex(firstIndex + baseVertexCount * i1 + secondIdxDelta);
+            triangleData.addRawIndex(firstIndex + baseVertexCount * i2 + thirdIdxDelta);
         }
 
         //       vtx0     vtx1
@@ -161,13 +164,13 @@ namespace bricksim::mesh::generated {
         // i2 -----+-------+
         for (uint16_t i0 = 0, i1 = 1; i0 < NUM_CORNERS; ++i0, i1 = (i0 + 1) % NUM_CORNERS) {
             for (int vtx0 = 0, vtx1 = 1; vtx1 < baseVertexCount; ++vtx0, ++vtx1) {
-                mesh->addRawTriangleIndex(color, firstIndex + i0 * baseVertexCount + vtx0);
-                mesh->addRawTriangleIndex(color, firstIndex + i0 * baseVertexCount + vtx1 + secondIdxDelta);
-                mesh->addRawTriangleIndex(color, firstIndex + i1 * baseVertexCount + vtx1 + thirdIdxDelta);
+                triangleData.addRawIndex(firstIndex + i0 * baseVertexCount + vtx0);
+                triangleData.addRawIndex(firstIndex + i0 * baseVertexCount + vtx1 + secondIdxDelta);
+                triangleData.addRawIndex(firstIndex + i1 * baseVertexCount + vtx1 + thirdIdxDelta);
 
-                mesh->addRawTriangleIndex(color, firstIndex + i1 * baseVertexCount + vtx1);
-                mesh->addRawTriangleIndex(color, firstIndex + i1 * baseVertexCount + vtx0 + secondIdxDelta);
-                mesh->addRawTriangleIndex(color, firstIndex + i0 * baseVertexCount + vtx0 + thirdIdxDelta);
+                triangleData.addRawIndex(firstIndex + i1 * baseVertexCount + vtx1);
+                triangleData.addRawIndex(firstIndex + i1 * baseVertexCount + vtx0 + secondIdxDelta);
+                triangleData.addRawIndex(firstIndex + i0 * baseVertexCount + vtx0 + thirdIdxDelta);
             }
         }
     }
@@ -185,7 +188,8 @@ namespace bricksim::mesh::generated {
 
     void QuarterTorusNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
         const ldr::ColorReference& color = ldr::color_repo::getInstanceDummyColor();
-        auto firstIndex = mesh->getNextVertexIndex(color);
+        auto& triangleData = mesh->getTriangleData(color);
+        auto firstIndex = triangleData.getVertexCount();
 
         std::vector<TriangleVertex> baseVertices;
         float angleStep = 2 * M_PI / DIVISIONS;
@@ -202,42 +206,42 @@ namespace bricksim::mesh::generated {
             float angle = i * angleRatio * angleStep;
             auto rotation = glm::rotate(angle, glm::vec3(-1.0f, 0.0f, 0.0f));
             for (int j = 0; j < DIVISIONS; ++j) {
-                mesh->addRawTriangleVertex(color, TriangleVertex{glm::vec4(baseVertices[j].position, 1.f) * rotation, glm::vec4(baseVertices[j].normal, 0.0f) * rotation});
+                triangleData.addRawVertex(TriangleVertex{glm::vec4(baseVertices[j].position, 1.f) * rotation, glm::vec4(baseVertices[j].normal, 0.0f) * rotation});
             }
         }
 
         //todo windingOrder
         for (int i1 = 0, i2 = 1; i1 < DIVISIONS; ++i1, ++i2) {
             for (int j1 = 0, j2 = 1; j1 < DIVISIONS; ++j1, j2 = (j1 + 1) % DIVISIONS) {
-                mesh->addRawTriangleIndex(color, firstIndex + i1 * DIVISIONS + j1);
-                mesh->addRawTriangleIndex(color, firstIndex + i1 * DIVISIONS + j2);
-                mesh->addRawTriangleIndex(color, firstIndex + i2 * DIVISIONS + j2);
+                triangleData.addRawIndex(firstIndex + i1 * DIVISIONS + j1);
+                triangleData.addRawIndex(firstIndex + i1 * DIVISIONS + j2);
+                triangleData.addRawIndex(firstIndex + i2 * DIVISIONS + j2);
 
-                mesh->addRawTriangleIndex(color, firstIndex + i2 * DIVISIONS + j2);
-                mesh->addRawTriangleIndex(color, firstIndex + i2 * DIVISIONS + j1);
-                mesh->addRawTriangleIndex(color, firstIndex + i1 * DIVISIONS + j1);
+                triangleData.addRawIndex(firstIndex + i2 * DIVISIONS + j2);
+                triangleData.addRawIndex(firstIndex + i2 * DIVISIONS + j1);
+                triangleData.addRawIndex(firstIndex + i1 * DIVISIONS + j1);
             }
         }
 
         if (WITH_ENDS) {
-            auto capAFirstIndex = mesh->getNextVertexIndex(color);
+            auto capAFirstIndex = triangleData.getVertexCount();
             for (int j = 0; j < DIVISIONS; ++j) {
-                mesh->addRawTriangleVertex(color, TriangleVertex{glm::vec4(baseVertices[j].position, 1.f), glm::vec3(0.0f, 0.0f, 1.0f)});
+                triangleData.addRawVertex(TriangleVertex{glm::vec4(baseVertices[j].position, 1.f), glm::vec3(0.0f, 0.0f, 1.0f)});
                 if (j > 1) {
-                    mesh->addRawTriangleIndex(color, capAFirstIndex);
-                    mesh->addRawTriangleIndex(color, capAFirstIndex + j - 1);
-                    mesh->addRawTriangleIndex(color, capAFirstIndex + j);
+                    triangleData.addRawIndex(capAFirstIndex);
+                    triangleData.addRawIndex(capAFirstIndex + j - 1);
+                    triangleData.addRawIndex(capAFirstIndex + j);
                 }
             }
 
-            auto capBFirstIndex = mesh->getNextVertexIndex(color);
+            auto capBFirstIndex = triangleData.getVertexCount();
             auto endRotation = glm::rotate(0.5f * float(M_PI), glm::vec3(1.0f, 0.0f, 0.0f));
             for (int j = 0; j < DIVISIONS; ++j) {
-                mesh->addRawTriangleVertex(color, TriangleVertex{glm::vec4(baseVertices[j].position, 1.f) * endRotation, glm::vec4(0.0f, 0.0f, -1.0f, 0.0f) * endRotation});
+                triangleData.addRawVertex(TriangleVertex{glm::vec4(baseVertices[j].position, 1.f) * endRotation, glm::vec4(0.0f, 0.0f, -1.0f, 0.0f) * endRotation});
                 if (j > 1) {
-                    mesh->addRawTriangleIndex(color, capBFirstIndex);
-                    mesh->addRawTriangleIndex(color, capBFirstIndex + j - 1);
-                    mesh->addRawTriangleIndex(color, capBFirstIndex + j);
+                    triangleData.addRawIndex(capBFirstIndex);
+                    triangleData.addRawIndex(capBFirstIndex + j - 1);
+                    triangleData.addRawIndex(capBFirstIndex + j);
                 }
             }
         }
@@ -255,9 +259,9 @@ namespace bricksim::mesh::generated {
     }
 
     void CubeNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
-        std::vector<TriangleVertex>& verticesList = mesh->getVerticesList(ldr::color_repo::getInstanceDummyColor());
-        std::vector<unsigned int>& indicesList = mesh->getIndicesList(ldr::color_repo::getInstanceDummyColor());
-        if (!verticesList.empty()) {
+        const ldr::ColorReference& color = ldr::color_repo::getInstanceDummyColor();
+        auto& triangleData = mesh->getTriangleData(color);
+        if (triangleData.getVertexCount() > 0) {
             spdlog::warn("CubeNode::addToMesh verticesList not empty, existing vertices are removed");
         }
         if (windingInversed) {
@@ -290,45 +294,45 @@ namespace bricksim::mesh::generated {
         glm::vec3 normalZneg{0, 0, -1};
         glm::vec3 normalZpos{0, 0, +1};
 
-        verticesList.assign({
-                {pos[0], normalXpos},
-                {pos[4], normalXpos},
-                {pos[5], normalXpos},
-                {pos[1], normalXpos},
+        triangleData.addRawVertex({pos[0], normalXpos});
+        triangleData.addRawVertex({pos[4], normalXpos});
+        triangleData.addRawVertex({pos[5], normalXpos});
+        triangleData.addRawVertex({pos[1], normalXpos});
 
-                {pos[3], normalXneg},
-                {pos[6], normalXneg},
-                {pos[7], normalXneg},
-                {pos[2], normalXneg},
+        triangleData.addRawVertex({pos[3], normalXneg});
+        triangleData.addRawVertex({pos[6], normalXneg});
+        triangleData.addRawVertex({pos[7], normalXneg});
+        triangleData.addRawVertex({pos[2], normalXneg});
 
-                {pos[1], normalYpos},
-                {pos[5], normalYpos},
-                {pos[6], normalYpos},
-                {pos[3], normalYpos},
+        triangleData.addRawVertex({pos[1], normalYpos});
+        triangleData.addRawVertex({pos[5], normalYpos});
+        triangleData.addRawVertex({pos[6], normalYpos});
+        triangleData.addRawVertex({pos[3], normalYpos});
 
-                {pos[2], normalYneg},
-                {pos[7], normalYneg},
-                {pos[4], normalYneg},
-                {pos[0], normalYneg},
+        triangleData.addRawVertex({pos[2], normalYneg});
+        triangleData.addRawVertex({pos[7], normalYneg});
+        triangleData.addRawVertex({pos[4], normalYneg});
+        triangleData.addRawVertex({pos[0], normalYneg});
 
-                {pos[0], normalZpos},
-                {pos[1], normalZpos},
-                {pos[3], normalZpos},
-                {pos[2], normalZpos},
+        triangleData.addRawVertex({pos[0], normalZpos});
+        triangleData.addRawVertex({pos[1], normalZpos});
+        triangleData.addRawVertex({pos[3], normalZpos});
+        triangleData.addRawVertex({pos[2], normalZpos});
 
-                {pos[5], normalZneg},
-                {pos[4], normalZneg},
-                {pos[7], normalZneg},
-                {pos[6], normalZneg},
-        });
+        triangleData.addRawVertex({pos[5], normalZneg});
+        triangleData.addRawVertex({pos[4], normalZneg});
+        triangleData.addRawVertex({pos[7], normalZneg});
+        triangleData.addRawVertex({pos[6], normalZneg});
 
-        indicesList.assign({
-                0 + 0, 0 + 1, 0 + 2, 0 + 2, 0 + 3, 0 + 0,      //X+
-                4 + 0, 4 + 1, 4 + 2, 4 + 2, 4 + 3, 4 + 0,      //X-
-                8 + 0, 8 + 1, 8 + 2, 8 + 2, 8 + 3, 8 + 0,      //Y+
-                12 + 0, 12 + 1, 12 + 2, 12 + 2, 12 + 3, 12 + 0,//Y-
-                16 + 0, 16 + 1, 16 + 2, 16 + 2, 16 + 3, 16 + 0,//Z+
-                20 + 0, 20 + 1, 20 + 2, 20 + 2, 20 + 3, 20 + 0,//Z-
-        });
+        for (const auto idx: {
+                     0 + 0, 0 + 1, 0 + 2, 0 + 2, 0 + 3, 0 + 0,      //X+
+                     4 + 0, 4 + 1, 4 + 2, 4 + 2, 4 + 3, 4 + 0,      //X-
+                     8 + 0, 8 + 1, 8 + 2, 8 + 2, 8 + 3, 8 + 0,      //Y+
+                     12 + 0, 12 + 1, 12 + 2, 12 + 2, 12 + 3, 12 + 0,//Y-
+                     16 + 0, 16 + 1, 16 + 2, 16 + 2, 16 + 3, 16 + 0,//Z+
+                     20 + 0, 20 + 1, 20 + 2, 20 + 2, 20 + 3, 20 + 0,//Z-
+             }) {
+            triangleData.addRawIndex(idx);
+        }
     }
 }

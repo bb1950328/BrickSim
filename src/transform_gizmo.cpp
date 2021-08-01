@@ -269,15 +269,16 @@ namespace bricksim::transform_gizmo {
         constexpr glm::vec3 normal(1, 0, 0);
 
         auto color = ldr::color_repo::getInstanceDummyColor();
-        auto baseIndex = mesh->getNextVertexIndex(color);
-        /*0*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, 0.0f, 0.0f}, normal});
-        /*1*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength, 0.0f}, normal});
-        /*2*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, tipWidth}, normal});
-        /*3*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, lineWidth}, normal});
-        /*4*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, lineWidth, lineWidth}, normal});
-        /*5*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, lineWidth, outerSideLength - tipLength}, normal});
-        /*6*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, tipWidth, outerSideLength - tipLength}, normal});
-        /*7*/ mesh->addRawTriangleVertex(color, mesh::TriangleVertex{{0.0f, 0.0f, outerSideLength}, normal});
+        auto& triangleData = mesh->getTriangleData(color);
+        auto baseIndex = triangleData.getVertexCount();
+        /*0*/ triangleData.addRawVertex(mesh::TriangleVertex{{0.0f, 0.0f, 0.0f}, normal});
+        /*1*/ triangleData.addRawVertex(mesh::TriangleVertex{{0.0f, outerSideLength, 0.0f}, normal});
+        /*2*/ triangleData.addRawVertex(mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, tipWidth}, normal});
+        /*3*/ triangleData.addRawVertex(mesh::TriangleVertex{{0.0f, outerSideLength - tipLength, lineWidth}, normal});
+        /*4*/ triangleData.addRawVertex(mesh::TriangleVertex{{0.0f, lineWidth, lineWidth}, normal});
+        /*5*/ triangleData.addRawVertex(mesh::TriangleVertex{{0.0f, lineWidth, outerSideLength - tipLength}, normal});
+        /*6*/ triangleData.addRawVertex(mesh::TriangleVertex{{0.0f, tipWidth, outerSideLength - tipLength}, normal});
+        /*7*/ triangleData.addRawVertex(mesh::TriangleVertex{{0.0f, 0.0f, outerSideLength}, normal});
 
         constexpr auto triangleCount = 6;
 
@@ -303,14 +304,14 @@ namespace bricksim::transform_gizmo {
         };
 
         for (int i = 0; i < triangleCount; ++i) {
-            mesh->addRawTriangleIndex(color, baseIndex + indices[3 * i + 0]);
-            mesh->addRawTriangleIndex(color, baseIndex + indices[3 * i + 1]);
-            mesh->addRawTriangleIndex(color, baseIndex + indices[3 * i + 2]);
+            triangleData.addRawIndex(baseIndex + indices[3 * i + 0]);
+            triangleData.addRawIndex(baseIndex + indices[3 * i + 1]);
+            triangleData.addRawIndex(baseIndex + indices[3 * i + 2]);
 
             //adding the same but with the other winding order so it's visible from both sides
-            mesh->addRawTriangleIndex(color, baseIndex + indices[3 * i + 0]);
-            mesh->addRawTriangleIndex(color, baseIndex + indices[3 * i + 2]);
-            mesh->addRawTriangleIndex(color, baseIndex + indices[3 * i + 1]);
+            triangleData.addRawIndex(baseIndex + indices[3 * i + 0]);
+            triangleData.addRawIndex(baseIndex + indices[3 * i + 2]);
+            triangleData.addRawIndex(baseIndex + indices[3 * i + 1]);
         }
     }
 

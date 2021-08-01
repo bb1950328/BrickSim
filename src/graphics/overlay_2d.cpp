@@ -218,7 +218,7 @@ namespace bricksim::overlay2d {
             });
             changedElements.clear();
             lastWrittenViewportSize = viewportSize;
-            //spdlog::debug("overlay2d with VAO={} updated {} of {} vertices", vao, changedVerticesCount, vertices.size());
+            //spdlog::debug("overlay2d with VAO={} updated {} of {} vertices", VAO, changedVerticesCount, vertices.size());
         }
     }
 

@@ -1,0 +1,9 @@
+0 FILE triangle_test.ldr
+0 just a triangle to test software
+0 Author: bb1950328
+0 Name: triangle_test.ldr
+0 !LDRAW_ORG Model
+0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
+0 !THEME Technic
+
+3 2 0 0 0 0 0 40 0 40 0

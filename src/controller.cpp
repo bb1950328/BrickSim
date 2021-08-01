@@ -376,10 +376,11 @@ namespace bricksim::controller {
         }
 
         //openFile("test_files/bricks_test.ldr");
-        //openFile("~/Downloads/arocs.mpd");
+        //openFile("test_files/triangle_test.ldr");
+        openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
         //openFile("car.ldr");
-        openFile("~/Downloads/datsville_sf_rev531_inlined_y_boxed_n.ldr");
+        //openFile("~/Downloads/datsville_sf_rev531_inlined_y_boxed_n.ldr");
 
         while (!glfwWindowShouldClose(window) && !userWantsToExit) {
             copyMainloopTimePoints();

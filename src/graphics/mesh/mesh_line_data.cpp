@@ -7,7 +7,7 @@
 namespace bricksim::mesh {
     void LineData::initBuffers(const std::vector<MeshInstance> &instances) {
         controller::executeOpenGL([this, &instances]() {
-            //vao
+            //VAO
             glGenVertexArrays(1, &vao);
             glBindVertexArray(vao);
 

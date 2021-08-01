@@ -34,6 +34,7 @@ namespace bricksim::mesh {
         float shininess;
         glm::vec3 idColor;
         glm::mat4 transformation;
+        void setColor(ldr::ColorReference color);
     };
 
     struct TexturedTriangleInstance {

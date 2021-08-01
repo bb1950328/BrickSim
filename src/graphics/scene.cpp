@@ -10,7 +10,7 @@
 
 #ifdef BRICKSIM_USE_RENDERDOC
 
-    #include <renderdoc.h>
+    #include <renderdoc_app.h>
 
 #endif
 namespace bricksim::graphics {
@@ -248,7 +248,6 @@ namespace bricksim::graphics {
                 }
 #endif
                 glBindFramebuffer(GL_FRAMEBUFFER, image.getFBO());
-                //spdlog::error("rendering to texture {}", image.getTexBO());
                 glViewport(0, 0, imageSize.x, imageSize.y);
                 const auto& bgColor = config::get(config::BACKGROUND_COLOR).asGlmVector();
                 glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.0f);

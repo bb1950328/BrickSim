@@ -206,7 +206,8 @@ namespace bricksim::mesh {
         bool first = true;
         if (it != allMeshes.end()) {
             const auto mesh = it->second;
-            for (const auto& colorPair: mesh->triangleVertices) {
+            //todo implement this together with minimalenclosingball
+            /*for (const auto& colorPair: mesh->triangleVertices) {
                 for (const auto& triangleVertex: colorPair.second) {//todo check if iterating over line vertices is faster
                     const glm::vec3& position = triangleVertex.position;
                     if (first) {
@@ -223,7 +224,7 @@ namespace bricksim::mesh {
                         z2 = std::max(z2, position.z);
                     }
                 }
-            }
+            }*/
         }
         bool isSubfileInstance = node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE;
         const auto& children = isSubfileInstance

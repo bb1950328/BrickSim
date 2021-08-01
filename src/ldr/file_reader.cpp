@@ -16,12 +16,17 @@ namespace bricksim::ldr {
         size_t lineStart = 0;
         size_t lineEnd = 0;
         bool firstFile = true;
-        while (lineEnd < content.size()) {
+        bool hasMoreLines = true;
+        while (hasMoreLines) {
             lineEnd = content.find_first_of("\r\n", lineStart);
             if (lineEnd == std::string::npos) {
-                break;
+                hasMoreLines = false;
+                lineEnd = content.size();
             }
             ++lineEnd;
+            if (content[lineEnd] == '\n') {
+                lineEnd++;
+            }
             std::string line = content.substr(lineStart, lineEnd - lineStart);
 
             if (util::startsWith(line, "0 FILE")) {

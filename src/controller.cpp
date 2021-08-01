@@ -407,6 +407,7 @@ namespace bricksim::controller {
             }
 
             transformGizmo->update();
+            addMainloopTimePoint("transformGizmo->update()");
 
             mainScene->updateImage();
             //mainScene->getImage().saveImage("debugMainScene.jpg");

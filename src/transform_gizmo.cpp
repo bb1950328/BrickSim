@@ -41,7 +41,9 @@ namespace bricksim::transform_gizmo {
     }
 
     void TransformGizmo::update() {
-        currentlySelectedNode = getFirstSelectedNode(scene->getRootNode());
+        std::set<std::shared_ptr<etree::Node>>& selectedNodes = controller::getSelectedNodes();
+        currentlySelectedNode = selectedNodes.size() == 1 ? *selectedNodes.begin() : nullptr;
+
         std::optional<glm::mat4> nowTransformation;
         PovState nowPovState;
         if (currentlySelectedNode != nullptr) {
@@ -87,7 +89,7 @@ namespace bricksim::transform_gizmo {
             node->visible = false;
             nowTransformation = {};
         }
-        if (nowTransformation != lastTransformation || nowPovState != lastState) {
+        if (nowTransformation != lastTransformation || (node->visible && nowPovState != lastState)) {
             scene->elementTreeChanged();
             lastTransformation = nowTransformation;
             lastState = nowPovState;

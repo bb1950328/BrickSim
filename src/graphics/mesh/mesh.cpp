@@ -8,6 +8,7 @@
 #include "mesh_line_data.h"
 #include <glad/glad.h>
 #include <glm/gtx/normal.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace bricksim::mesh {
 
@@ -168,6 +169,9 @@ namespace bricksim::mesh {
 
     void Mesh::writeGraphicsData() {
         if (!already_initialized) {
+            if (!outerDimensions.has_value()) {
+                calculateOuterDimensions();
+            }
             if (config::get(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES)) {
                 addMinEnclosingBallLines();
             }
@@ -187,9 +191,8 @@ namespace bricksim::mesh {
     }
 
     void Mesh::addMinEnclosingBallLines() {
-        const auto ball = getMinimalEnclosingBall();
-        auto center = ball.first;
-        auto radius = ball.second;
+        auto center = outerDimensions.value().minEnclosingBallCenter;
+        auto radius = outerDimensions.value().minEnclosingBallRadius;
         lineData.addVertex({{center.x + radius, center.y, center.z}, {1, 0, 0}});
         lineData.addVertex({{center.x - radius, center.y, center.z}, {1, 0, 0}});
         lineData.addVertex({{center.x, center.y + radius, center.z}, {0, 1, 0}});
@@ -337,36 +340,6 @@ namespace bricksim::mesh {
         return array;
     }
 
-    std::pair<glm::vec3, float> Mesh::getMinimalEnclosingBall() {
-        if (!minimalEnclosingBall.has_value()) {
-            //todo get this data when copying the vertices to the VRAM
-            minimalEnclosingBall = std::make_pair(glm::vec3(0.0f), 0.0f);
-            /*if (triangleVertices.empty()) {
-                minimalEnclosingBall = std::make_pair(glm::vec3(0.0f), 0.0f);
-            } else {
-                std::list<std::vector<float>> lp;
-                for (const auto& entry: triangleVertices) {
-                    for (const auto& vertex: entry.second) {
-                        lp.push_back((std::vector<float>){vertex.position.x, vertex.position.y, vertex.position.z});
-                    }
-                }
-                for (const auto& item: textureVertices) {
-                    for (const auto& vertex: item.second) {
-                        lp.push_back((std::vector<float>){vertex.position.x, vertex.position.y, vertex.position.z});
-                    }
-                }
-
-                typedef std::list<std::vector<float>>::const_iterator PointIterator;
-                typedef std::vector<float>::const_iterator CoordIterator;
-
-                Miniball::Miniball<Miniball::CoordAccessor<PointIterator, CoordIterator>> mb(3, lp.begin(), lp.end());
-                glm::vec3 center(mb.center()[0], mb.center()[1], mb.center()[2]);
-                minimalEnclosingBall = std::make_pair(center, std::sqrt(mb.squared_radius()));
-            }*/
-        }
-        return minimalEnclosingBall.value();
-    }
-
     std::optional<InstanceRange> Mesh::getSceneInstanceRange(scene_id_t sceneId) {
         auto it = instanceSceneLayerRanges.find(sceneId);
         if (it == instanceSceneLayerRanges.end()) {
@@ -501,7 +474,10 @@ namespace bricksim::mesh {
     size_t Mesh::getTriangleCount() {
         size_t count = 0;
         for (const auto& item: triangleData) {
-            count += item.second.getVertexCount();
+            count += item.second.getIndexCount();
+        }
+        for (const auto& item: textureVertices) {
+            count += item.second.size();
         }
         return count / 3;
     }
@@ -527,6 +503,76 @@ namespace bricksim::mesh {
         const std::optional<InstanceRange>& range = getSceneLayerInstanceRange(sceneId, layer);
         for (auto& item: triangleData) {
             item.second.draw(range);
+        }
+    }
+    const std::optional<OuterDimensions>& Mesh::getOuterDimensions() {
+        if (!outerDimensions.has_value()) {
+            calculateOuterDimensions();
+        }
+        return outerDimensions;
+    }
+
+    void Mesh::calculateOuterDimensions() {
+        size_t vertexCount = 0;
+        for (const auto& item: textureVertices) {
+            vertexCount += item.second.size();
+        }
+        for (const auto& item: triangleData) {
+            vertexCount += item.second.getVertexCount();
+        }
+        if (vertexCount > 0) {
+            auto coords = std::make_unique<float*[]>(vertexCount);
+            size_t coordsCursor = 0;
+            for (auto& item: textureVertices) {
+                for (auto& vertex: item.second) {
+                    coords[coordsCursor] = &vertex.position[0];
+                    ++coordsCursor;
+                }
+            }
+
+            for (auto& item: triangleData) {
+                item.second.fillVerticesForOuterDimensions(coords, coordsCursor);
+            }
+
+            Miniball::Miniball<Miniball::CoordAccessor<float* const*, const float*>> mb(3, coords.get(), coords.get() + vertexCount);
+
+            float minX, maxX = coords[0][0];
+            float minY, maxY = coords[0][1];
+            float minZ, maxZ = coords[0][2];
+            for (coordsCursor = 1; coordsCursor < vertexCount; ++coordsCursor) {
+                float x = coords[coordsCursor][0];
+                float y = coords[coordsCursor][1];
+                float z = coords[coordsCursor][2];
+                if (minX > x) {
+                    minX = x;
+                } else if (x > maxX) {
+                    maxX = x;
+                }
+                if (minY > y) {
+                    minY = y;
+                } else if (y > maxY) {
+                    maxY = y;
+                }
+                if (minZ > z) {
+                    minZ = z;
+                } else if (z > maxZ) {
+                    maxZ = z;
+                }
+            }
+
+            outerDimensions = OuterDimensions{
+                    .smallestBoxCorner1 = {minX, minY, minZ},
+                    .smallestBoxCorner2 = {maxX, maxY, maxZ},
+                    .minEnclosingBallCenter = {mb.center()[0], mb.center()[1], mb.center()[2]},
+                    .minEnclosingBallRadius = std::sqrt(mb.squared_radius()),
+            };
+        } else {
+            outerDimensions = OuterDimensions{
+                .smallestBoxCorner1 = {0, 0, 0},
+                .smallestBoxCorner2 = {0, 0, 0},
+                .minEnclosingBallCenter = {0, 0, 0},
+                .minEnclosingBallRadius = 0.f,
+            };
         }
     }
 }

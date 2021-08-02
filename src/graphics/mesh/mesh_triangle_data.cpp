@@ -1,6 +1,7 @@
 #include "mesh_triangle_data.h"
 #include "../../config.h"
 #include "../../controller.h"
+#include "../../lib/Miniball.hpp"
 #include "../../metrics.h"
 #include "../opengl_native_or_replacement.h"
 
@@ -153,5 +154,12 @@ namespace bricksim::mesh {
     void TriangleData::addVertexWithIndex(const TriangleVertex& vertex) {
         indices.push_back(vertices.size());
         vertices.push_back(vertex);
+    }
+
+    void TriangleData::fillVerticesForOuterDimensions(std::unique_ptr<float*[]>& coords, size_t& coordCursor) {
+        for (auto& item: vertices) {
+            coords[coordCursor] = &item.position[0];
+            ++coordCursor;
+        }
     }
 }

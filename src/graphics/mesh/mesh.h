@@ -65,14 +65,15 @@ namespace bricksim::mesh {
         void deallocateGraphics();
         virtual ~Mesh();
 
-        std::pair<glm::vec3, float> getMinimalEnclosingBall();
         size_t getTriangleCount();
+        const std::optional<OuterDimensions>& getOuterDimensions();
 
     private:
-        std::optional<std::pair<glm::vec3, float>> minimalEnclosingBall;
         LineData lineData{GL_LINES};
         LineData optionalLineData{GL_LINES_ADJACENCY};
         std::map<ldr::ColorReference, TriangleData> triangleData;
+
+        std::optional<OuterDimensions> outerDimensions = {};
 
         std::map<texture_id_t, std::shared_ptr<graphics::Texture>> textures;
         std::map<texture_id_t, std::vector<TexturedTriangleVertex>> textureVertices;
@@ -87,6 +88,7 @@ namespace bricksim::mesh {
         void rewriteInstanceBuffer();
 
         void addMinEnclosingBallLines();
+        void calculateOuterDimensions();
         void appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<MeshInstance>& newSceneInstances);
     };
 }

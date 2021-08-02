@@ -57,4 +57,10 @@ namespace bricksim::mesh {
         unsigned int start;
         unsigned int count;
     };
+
+    struct OuterDimensions {
+        glm::vec3 smallestBoxCorner1, smallestBoxCorner2;
+        glm::vec3 minEnclosingBallCenter;
+        float minEnclosingBallRadius;
+    };
 }

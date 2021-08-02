@@ -19,6 +19,8 @@ namespace bricksim::mesh {
         void rewriteInstanceBuffer(const std::vector<MeshInstance>& instances);
         size_t getVertexCount() const;
         size_t getIndexCount() const;
+        void fillVerticesForOuterDimensions(std::unique_ptr<float*[]>& coords, size_t& coordCursor);
+
     private:
         ldr::ColorReference color;
         std::vector<TriangleVertex> vertices;

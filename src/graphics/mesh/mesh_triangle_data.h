@@ -28,5 +28,7 @@ namespace bricksim::mesh {
 
         size_t instanceCount;
         size_t lastInstanceBufferSize = 0;
+        bool dataAlreadyDeleted = false;
+        size_t uploadedVertexCount, uploadedIndexCount;
     };
 }

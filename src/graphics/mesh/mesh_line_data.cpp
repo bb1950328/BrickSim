@@ -1,4 +1,5 @@
 #include "mesh_line_data.h"
+#include "../../config.h"
 #include "../../controller.h"
 #include "../../metrics.h"
 #include "../opengl_native_or_replacement.h"
@@ -50,6 +51,18 @@ namespace bricksim::mesh {
             metrics::vramUsageBytes += sizeof(unsigned int) * indices.size();
 
             delete[] instancesArray;
+
+          if (config::get(config::DELETE_VERTEX_DATA_AFTER_UPLOADING)) {
+              dataAlreadyDeleted = true;
+              uploadedVertexCount = vertices.size();
+              uploadedIndexCount = indices.size();
+              metrics::memorySavedByDeletingVertexData += vertices.capacity() * sizeof(LineVertex);
+              metrics::memorySavedByDeletingVertexData += indices.capacity() * sizeof(unsigned int);
+              vertices.clear();
+              indices.clear();
+              vertices.shrink_to_fit();
+              indices.shrink_to_fit();
+          }
         });
     }
 
@@ -63,10 +76,10 @@ namespace bricksim::mesh {
     }
 
     void LineData::draw(const std::optional<InstanceRange> &sceneLayerInstanceRange) {
-        if (sceneLayerInstanceRange.has_value() && sceneLayerInstanceRange->count > 0 && !indices.empty()) {
+        if (sceneLayerInstanceRange.has_value() && sceneLayerInstanceRange->count > 0 && getIndexCount() > 0) {
             glBindVertexArray(vao);
             graphics::opengl_native_or_replacement::drawElementsInstancedBaseInstance(
-                    drawMode, indices.size(), GL_UNSIGNED_INT, nullptr, sceneLayerInstanceRange->count, sceneLayerInstanceRange->start,
+                    drawMode, getIndexCount(), GL_UNSIGNED_INT, nullptr, sceneLayerInstanceRange->count, sceneLayerInstanceRange->start,
                     instanceVBO, instanceCount * sizeof(glm::mat4), sizeof(glm::mat4));
         }
     }
@@ -92,4 +105,10 @@ namespace bricksim::mesh {
 
     LineData::LineData(const unsigned int drawMode) :
             drawMode(drawMode) {}
+    size_t LineData::getVertexCount() const {
+        return dataAlreadyDeleted ? uploadedVertexCount : vertices.size();
+    }
+    size_t LineData::getIndexCount() const {
+        return dataAlreadyDeleted ? uploadedIndexCount : indices.size();
+    }
 }

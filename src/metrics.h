@@ -12,4 +12,5 @@ namespace bricksim::metrics {
     extern std::vector<std::pair<std::string, float>> lastWindowDrawingTimesUs;
     extern float lastSceneRenderTimeMs;
     extern std::vector<std::pair<const char*, unsigned int>> mainloopTimePointsUs;
+    extern size_t memorySavedByDeletingVertexData;
 }

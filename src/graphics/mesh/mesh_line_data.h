@@ -18,5 +18,11 @@ namespace bricksim::mesh {
         unsigned int vao, vertexVBO, instanceVBO, ebo;
         size_t instanceCount;
         const unsigned int drawMode;
+
+        bool dataAlreadyDeleted = false;
+        size_t uploadedVertexCount, uploadedIndexCount;
+
+        size_t getVertexCount() const;
+        size_t getIndexCount() const;
     };
 }

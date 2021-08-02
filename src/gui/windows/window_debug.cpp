@@ -174,6 +174,7 @@ namespace bricksim::gui::windows::debug {
                 ImGui::Text(ICON_FA_STOPWATCH " Last 3D View render time: %.3f ms", metrics::lastSceneRenderTimeMs);
                 ImGui::Text(ICON_FA_MEMORY " Total graphics buffer size: %s", util::formatBytesValue(metrics::vramUsageBytes).c_str());
                 ImGui::Text(ICON_FA_IMAGES " Total thumbnail buffer size: %s", util::formatBytesValue(metrics::thumbnailBufferUsageBytes).c_str());
+                ImGui::Text("Memory saved by deleting vertex data from RAM: %s", util::formatBytesValue(metrics::memorySavedByDeletingVertexData).c_str());
                 ImGui::Text(ICON_FA_SYNC " Last element tree reread: %.2f ms", metrics::lastElementTreeRereadMs);
                 ImGui::Text(ICON_FA_HISTORY " Last thumbnail render time: %.2f ms", metrics::lastThumbnailRenderingTimeMs);
 

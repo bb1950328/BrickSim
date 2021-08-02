@@ -1,4 +1,5 @@
 #include "mesh_triangle_data.h"
+#include "../../config.h"
 #include "../../controller.h"
 #include "../../metrics.h"
 #include "../opengl_native_or_replacement.h"
@@ -60,6 +61,18 @@ namespace bricksim::mesh {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &(indices[0]), GL_STATIC_DRAW);
             metrics::vramUsageBytes += sizeof(unsigned int) * indices.size();
+
+            if (config::get(config::DELETE_VERTEX_DATA_AFTER_UPLOADING)) {
+                dataAlreadyDeleted = true;
+                uploadedVertexCount = vertices.size();
+                uploadedIndexCount = indices.size();
+                metrics::memorySavedByDeletingVertexData += vertices.capacity() * sizeof(TriangleVertex);
+                metrics::memorySavedByDeletingVertexData += indices.capacity() * sizeof(unsigned int);
+                vertices.clear();
+                indices.clear();
+                vertices.shrink_to_fit();
+                indices.shrink_to_fit();
+            }
         });
     }
 
@@ -73,17 +86,17 @@ namespace bricksim::mesh {
     }
 
     void TriangleData::draw(const std::optional<InstanceRange>& sceneLayerInstanceRange) {
-        if (sceneLayerInstanceRange.has_value() && sceneLayerInstanceRange->count > 0 && !indices.empty()) {
+        if (sceneLayerInstanceRange.has_value() && sceneLayerInstanceRange->count > 0 && getIndexCount() > 0) {
             glBindVertexArray(VAO);
             graphics::opengl_native_or_replacement::drawElementsInstancedBaseInstance(
-                    GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr, sceneLayerInstanceRange->count, sceneLayerInstanceRange->start,
+                    GL_TRIANGLES, getIndexCount(), GL_UNSIGNED_INT, nullptr, sceneLayerInstanceRange->count, sceneLayerInstanceRange->start,
                     instanceVBO, instanceCount * sizeof(TriangleInstance), sizeof(TriangleInstance));
         }
     }
     void TriangleData::rewriteInstanceBuffer(const std::vector<MeshInstance>& instances) {
         instanceCount = instances.size();
         controller::executeOpenGL([&]() {
-            size_t newBufferSize = (sizeof(TriangleInstance) * indices.size() + 2 * sizeof(glm::mat4)) * instanceCount;
+            size_t newBufferSize = sizeof(TriangleInstance) * instanceCount;
             metrics::vramUsageBytes -= lastInstanceBufferSize;
             metrics::vramUsageBytes += newBufferSize;
             lastInstanceBufferSize = newBufferSize;
@@ -121,11 +134,11 @@ namespace bricksim::mesh {
     }
 
     size_t TriangleData::getVertexCount() const {
-        return vertices.size();
+        return dataAlreadyDeleted ? uploadedVertexCount : vertices.size();
     }
 
     size_t TriangleData::getIndexCount() const {
-        return indices.size();
+        return dataAlreadyDeleted ? uploadedIndexCount : indices.size();
     }
 
     unsigned int TriangleData::addRawVertex(const TriangleVertex& vertex) {

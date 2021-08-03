@@ -40,7 +40,7 @@ fi
 if [[ "$OS" == "linux" ]]; then
   echo "Installing packages using apt-get..."
   sudo apt-get update
-  sudo apt-get install -y build-essential gcc-11 g++-11 gcc-multilib g++-multilib gcc-11-multilib g++-11-multilib \
+  sudo apt-get install -y build-essential gcc-10 g++-10 gcc-multilib g++-multilib gcc-10-multilib g++-10-multilib \
                           cmake mesa-utils libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev ninja-build
 
   if $install_32bit_packages; then

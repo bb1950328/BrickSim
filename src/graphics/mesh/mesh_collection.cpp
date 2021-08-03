@@ -198,6 +198,7 @@ namespace bricksim::mesh {
     //relative to parameter node
     std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBoxInternal(const std::shared_ptr<const etree::MeshNode>& node) const {
         //todo something here is wrong for subfile instances
+        // and rework this in general
         glm::mat4 absoluteTransformation;
         absoluteTransformation = node->getAbsoluteTransformation();
         bool windingInversed = util::doesTransformationInverseWindingOrder(absoluteTransformation);
@@ -205,25 +206,14 @@ namespace bricksim::mesh {
         float x1 = 0, x2 = 0, y1 = 0, y2 = 0, z1 = 0, z2 = 0;
         bool first = true;
         if (it != allMeshes.end()) {
-            const auto mesh = it->second;
-            for (const auto& colorPair: mesh->triangleVertices) {
-                for (const auto& triangleVertex: colorPair.second) {//todo check if iterating over line vertices is faster
-                    const glm::vec3& position = triangleVertex.position;
-                    if (first) {
-                        first = false;
-                        x1 = x2 = position.x;
-                        y1 = y2 = position.y;
-                        z1 = z2 = position.z;
-                    } else {
-                        x1 = std::min(x1, position.x);
-                        x2 = std::max(x2, position.x);
-                        y1 = std::min(y1, position.y);
-                        y2 = std::max(y2, position.y);
-                        z1 = std::min(z1, position.z);
-                        z2 = std::max(z2, position.z);
-                    }
-                }
-            }
+            const auto& mesh = it->second;
+            const auto& outerDimensions = mesh->getOuterDimensions();
+            x1 = outerDimensions->smallestBoxCorner1.x;
+            x2 = outerDimensions->smallestBoxCorner2.x;
+            y1 = outerDimensions->smallestBoxCorner1.y;
+            y2 = outerDimensions->smallestBoxCorner2.y;
+            z1 = outerDimensions->smallestBoxCorner1.z;
+            z2 = outerDimensions->smallestBoxCorner2.z;
         }
         bool isSubfileInstance = node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE;
         const auto& children = isSubfileInstance

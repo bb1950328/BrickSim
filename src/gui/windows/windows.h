@@ -17,6 +17,7 @@ namespace bricksim::gui::windows {
         ORIENTATION_CUBE,
         LOG,
         GEAR_RATIO_CALCULATOR,
+        MODEL_INFO,
     };
     struct Data {
         const Id id;

@@ -46,53 +46,35 @@ namespace bricksim::ldr {
         [[nodiscard]] const std::string& getCategory();
 
     private:
-        std::string category = "????";//0 !CATEGORY xxxx
+        std::optional<std::string> category;//0 !CATEGORY xxxx
         bool firstLine = true;
     };
 
     class File {
     public:
-        unsigned long long estimatedComplexity = 0;
-        unsigned int referenceCount = 0;
-
         File() = default;
         virtual ~File();
 
         std::vector<std::shared_ptr<FileElement>> elements;
         std::set<std::shared_ptr<File>> mpdSubFiles;
-
-        void printStructure(int indent = 0);
-
-        void preLoadSubfilesAndEstimateComplexity();
-
-        [[nodiscard]] const std::string& getDescription() const;
-        [[nodiscard]] const std::size_t& getHash() const;
-
-        [[nodiscard]] bool isComplexEnoughForOwnMesh() const;
-
         FileMetaInfo metaInfo;
 
+        void printStructure(int indent = 0);
+        [[nodiscard]] const std::string& getDescription() const;
+        [[nodiscard]] const std::size_t& getHash() const;
         static std::shared_ptr<File> parseFile(FileType fileType, const std::string& name, const std::string& content);
-
-    private:
-        mutable std::size_t hash = 0;
-
-        bool subfilesPreloadedAndComplexityEstimated = false;
 
         void addTextLine(const std::string& line);
 
-        void preLoadSubfilesAndEstimateComplexityInternal();
-        static long instancedMinComplexity;
-
+    private:
+        mutable std::size_t hash = 0;
         BfcState bfcState;
     };
 
     class FileElement {
     public:
-        static std::shared_ptr<FileElement> parse_line(std::string line, BfcState bfcState);
-
+        static std::shared_ptr<FileElement> parseLine(const std::string& line, BfcState bfcState);
         [[nodiscard]] virtual int getType() const = 0;
-
         virtual ~FileElement();
 
         unsigned int step = 0;//0 is before the first "0 STEP" line

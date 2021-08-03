@@ -175,19 +175,19 @@ namespace bricksim::ldr {
             visibleInLists = false;
         }
 
-        PureColor::PureColor(std::string hexCode) {
-            name = std::string("Pure ") + hexCode;
+        PureColor::PureColor(const std::string& hexCode) {
+            name = "Pure " + hexCode;
             code = getUnusedCode();
             value = edge = color::RGB(hexCode);
-            finish = RUBBER;
+            finish = PURE;
             visibleInLists = false;
         }
 
         PureColor::PureColor(color::RGB color) {
-            name = std::string("Pure ") + color.asHtmlCode();
+            name = "Pure " + color.asHtmlCode();
             code = getUnusedCode();
             value = edge = color;
-            finish = RUBBER;
+            finish = PURE;
             visibleInLists = false;
         }
     }

@@ -271,6 +271,7 @@ namespace bricksim::gui {
     }
 
     void drawMainWindows() {
+        const std::shared_ptr<graphics::Scene>& mainScene = controller::getMainScene();
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
                 gui_internal::actionMenuItem(user_actions::NEW_FILE);
@@ -305,6 +306,8 @@ namespace bricksim::gui {
                 ImGui::Separator();
                 ImGui::MenuItem(windows::getName(windows::Id::PART_PALETTE), "", windows::isVisible(windows::Id::PART_PALETTE));
                 ImGui::Separator();
+                ImGui::MenuItem(windows::getName(windows::Id::MODEL_INFO), "", windows::isVisible(windows::Id::MODEL_INFO));
+                ImGui::Separator();
                 ImGui::MenuItem(windows::getName(windows::Id::SETTINGS), "", windows::isVisible(windows::Id::SETTINGS));
                 ImGui::Separator();
                 ImGui::MenuItem(windows::getName(windows::Id::IMGUI_DEMO), "", windows::isVisible(windows::Id::IMGUI_DEMO));
@@ -330,6 +333,8 @@ namespace bricksim::gui {
                 gui_internal::actionMenuItem(user_actions::VIEW_3D_BOTTOM, "Bottom");
                 gui_internal::actionMenuItem(user_actions::VIEW_3D_LEFT, "Left");
                 ImGui::Separator();
+                ImGui::MenuItem("Show Surfaces", "", mainScene->isDrawTriangles());
+                ImGui::MenuItem("Show Lines", "", mainScene->isDrawLines());
                 gui_internal::actionMenuItem(user_actions::TAKE_SCREENSHOT);
                 ImGui::EndMenu();
             }

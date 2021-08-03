@@ -1,6 +1,8 @@
 target_sources(BrickSimLib PRIVATE
         colors.cpp
         colors.h
+        file_reader.cpp
+        file_reader.h
         file_repo.cpp
         file_repo.h
         files.cpp

@@ -131,9 +131,9 @@ namespace bricksim::graphics {
     void FitContentCamera::setRootNode(const std::shared_ptr<etree::MeshNode>& node) {
         //todo make this work for any node, not just simple parts
         const auto& mesh = mesh::SceneMeshCollection::getMesh(mesh::SceneMeshCollection::getMeshKey(node, false), node);
-        const auto& minimalEnclosingBall = mesh->getMinimalEnclosingBall();
-        auto meshRadius = minimalEnclosingBall.second * constants::LDU_TO_OPENGL_SCALE;
-        target = glm::vec4(minimalEnclosingBall.first, 1.0f) * constants::LDU_TO_OPENGL;
+        const auto& outerDimensions = mesh->getOuterDimensions();
+        auto meshRadius = outerDimensions->minEnclosingBallRadius * constants::LDU_TO_OPENGL_SCALE;
+        target = glm::vec4(outerDimensions->minEnclosingBallCenter, 1.0f) * constants::LDU_TO_OPENGL;
 
         //todo calculate the distance from fov instead of this
         auto distance = meshRadius * 2.45f;

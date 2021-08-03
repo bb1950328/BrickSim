@@ -34,6 +34,7 @@ namespace bricksim::mesh {
         float shininess;
         glm::vec3 idColor;
         glm::mat4 transformation;
+        void setColor(ldr::ColorReference color);
     };
 
     struct TexturedTriangleInstance {
@@ -55,5 +56,11 @@ namespace bricksim::mesh {
     struct InstanceRange {
         unsigned int start;
         unsigned int count;
+    };
+
+    struct OuterDimensions {
+        glm::vec3 smallestBoxCorner1, smallestBoxCorner2;
+        glm::vec3 minEnclosingBallCenter;
+        float minEnclosingBallRadius;
     };
 }

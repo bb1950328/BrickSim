@@ -42,7 +42,7 @@ if [[ "$OS" == "linux" ]]; then
   if $install_32bit_packages; then
     sudo apt-get install -y libgl1-mesa-dev:i386 libglu1-mesa-dev:i386 freeglut3-dev:i386 libzstd-dev:i386  \
                             zlib1g-dev:i386 libssl-dev:i386 libcurl4-openssl-dev:i386 libtbb-dev:i386 \
-                            libbz2-dev:i386 liblzma-dev:i386
+                            libbz2-dev:i386 liblzma-dev:i386 mesa-common-dev:i386
   fi
   echo "packages installed."
 fi

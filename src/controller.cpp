@@ -16,6 +16,7 @@
 #include "stb_image.h"
 #include "stb_image_write.h"
 #include "user_actions.h"
+#include "graphics/opengl_native_or_replacement.h"
 #include <glad/glad.h>
 #include <spdlog/spdlog.h>
 
@@ -166,7 +167,7 @@ namespace bricksim::controller {
             GLint flags;
             glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
 
-            if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+            if (flags & GL_CONTEXT_FLAG_DEBUG_BIT && glDebugMessageCallback) {
                 glEnable(GL_DEBUG_OUTPUT);
                 glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
                 glDebugMessageCallback(static_cast<GLDEBUGPROC>(openGlDebugMessageCallback), nullptr);
@@ -180,6 +181,8 @@ namespace bricksim::controller {
                 assert(ret == 1);
             }
 #endif
+
+            graphics::opengl_native_or_replacement::initialize();
 
             spdlog::info("OpenGL initialized");
             openGlInitialized = true;
@@ -373,8 +376,11 @@ namespace bricksim::controller {
         }
 
         //openFile("test_files/bricks_test.ldr");
+        //openFile("test_files/triangle_test.ldr");
         openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
+        //openFile("car.ldr");
+        //openFile("~/Downloads/datsville_sf_rev531_inlined_y_boxed_n.ldr");
 
         while (!glfwWindowShouldClose(window) && !userWantsToExit) {
             copyMainloopTimePoints();
@@ -402,6 +408,7 @@ namespace bricksim::controller {
             }
 
             transformGizmo->update();
+            addMainloopTimePoint("transformGizmo->update()");
 
             mainScene->updateImage();
             //mainScene->getImage().saveImage("debugMainScene.jpg");

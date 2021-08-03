@@ -80,6 +80,8 @@ namespace bricksim::util {
         glm::vec3 translation;
         glm::vec3 scale;
         [[nodiscard]] glm::mat4 orientationAsMat4() const;
+        [[nodiscard]] glm::mat4 translationAsMat4() const;
+        [[nodiscard]] glm::mat4 scaleAsMat4() const;
     };
     DecomposedTransformation decomposeTransformationToStruct(const glm::mat4& transformation);
 
@@ -107,6 +109,9 @@ namespace bricksim::util {
     ClosestLineBetweenTwoRaysResult closestLineBetweenTwoRays(const Ray3& a, const Ray3& b);
 
     std::optional<glm::vec3> rayPlaneIntersection(const Ray3& ray, const Ray3& planeNormal);
+
+    float getAngleBetweenThreePointsUnsigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
+    float getAngleBetweenThreePointsSigned(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c, const glm::vec3 &planeNormal);
 
     // texture/image functions
     std::string translateBrickLinkColorNameToLDraw(std::string colorName);

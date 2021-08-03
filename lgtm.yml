@@ -10,9 +10,12 @@ extraction:
   cpp:
     configure:
       command:
-        - ./setup_workspace.sh only64bit
-        - mkdir -p cmake-build/release64
-        - cmake . -DCMAKE_BUILD_TYPE=Release -G Ninja
+        - "mkdir custom_cmake"
+        - "wget --quiet -O - https://github.com/Kitware/CMake/releases/download/v3.21.1/cmake-3.21.1-linux-x86_64.tar.gz | tar --strip-components=1 -xz -C custom_cmake"
+        - "export PATH=$(pwd)/custom_cmake/bin:${PATH}"
+        - "./setup_workspace.sh only64bit"
+        - "mkdir -p cmake-build/release64"
+        - "cmake . -DCMAKE_BUILD_TYPE=Release -G Ninja"
     index:
       build_command:
         - cd cmake-build/release64 && cmake --build . --target BrickSim --config Release -j $(nproc --all)

@@ -8,10 +8,14 @@ path_classifiers:
 
 extraction:
   cpp:
+    prepare:
+      packages:
+        - gcc-10
+        - g++-10
     configure:
       command:
-        - "export CC=gcc-11"
-        - "export CXX=g++-11"
+        - "export CC=gcc-10"
+        - "export CXX=g++-10"
         - "mkdir custom_cmake"
         - "wget --quiet -O - https://github.com/Kitware/CMake/releases/download/v3.21.1/cmake-3.21.1-linux-x86_64.tar.gz | tar --strip-components=1 -xz -C custom_cmake"
         - "export PATH=$(pwd)/custom_cmake/bin:${PATH}"
@@ -21,3 +25,4 @@ extraction:
     index:
       build_command:
         - cd cmake-build/release64 && cmake --build . --target BrickSim --config Release -j $(nproc --all)
+

@@ -12,7 +12,7 @@
 
 namespace bricksim::mesh {
 
-    void Mesh::addLdrFile(const std::shared_ptr<ldr::File>& file, glm::mat4 transformation = glm::mat4(1.0f), const ldr::ColorReference mainColor = {}, bool bfcInverted = false) {
+    void Mesh::addLdrFile(ldr::ColorReference mainColor, const std::shared_ptr<ldr::File>& file, const glm::mat4& transformation, bool bfcInverted) {
         for (const auto& element: file->elements) {
             switch (element->getType()) {
                 case 0: break;
@@ -20,27 +20,27 @@ namespace bricksim::mesh {
                     addLdrSubfileReference(mainColor, std::dynamic_pointer_cast<ldr::SubfileReference>(element), transformation, bfcInverted);
                     break;
                 case 2:
-                    addLdrLine(mainColor, dynamic_cast<ldr::Line&&>(*element), transformation);
+                    addLdrLine(mainColor, std::dynamic_pointer_cast<ldr::Line>(element), transformation);
                     break;
                 case 3:
-                    addLdrTriangle(mainColor, dynamic_cast<ldr::Triangle&&>(*element), transformation, bfcInverted);
+                    addLdrTriangle(mainColor, std::dynamic_pointer_cast<ldr::Triangle>(element), transformation, bfcInverted);
                     break;
                 case 4:
-                    addLdrQuadrilateral(mainColor, dynamic_cast<ldr::Quadrilateral&&>(*element), transformation, bfcInverted);
+                    addLdrQuadrilateral(mainColor, std::dynamic_pointer_cast<ldr::Quadrilateral>(element), transformation, bfcInverted);
                     break;
                 case 5:
-                    addLdrOptionalLine(mainColor, dynamic_cast<ldr::OptionalLine&&>(*element), transformation);
+                    addLdrOptionalLine(mainColor, std::dynamic_pointer_cast<ldr::OptionalLine>(element), transformation);
                     break;
             }
         }
     }
 
-    void Mesh::addLdrTriangle(const ldr::ColorReference mainColor, const ldr::Triangle& triangleElement, glm::mat4 transformation, bool bfcInverted) {
-        const auto color = triangleElement.color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : triangleElement.color;
+    void Mesh::addLdrTriangle(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::Triangle>& triangleElement, const glm::mat4& transformation, bool bfcInverted) {
+        const auto color = triangleElement->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : triangleElement->color;
         auto& data = getTriangleData(color);
-        auto p1 = glm::vec3(triangleElement.x1, triangleElement.y1, triangleElement.z1);
-        auto p2 = glm::vec3(triangleElement.x2, triangleElement.y2, triangleElement.z2);
-        auto p3 = glm::vec3(triangleElement.x3, triangleElement.y3, triangleElement.z3);
+        auto p1 = glm::vec3(triangleElement->x1, triangleElement->y1, triangleElement->z1);
+        auto p2 = glm::vec3(triangleElement->x2, triangleElement->y2, triangleElement->z2);
+        auto p3 = glm::vec3(triangleElement->x3, triangleElement->y3, triangleElement->z3);
         auto normal = glm::triangleNormal(p1, p2, p3);
         auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f) * transformation);
         TriangleVertex vertex1{glm::vec4(p1, 1.0f) * transformation, transformedNormal};
@@ -69,18 +69,18 @@ namespace bricksim::mesh {
         }
     }
 
-    void Mesh::addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, glm::mat4 transformation, bool bfcInverted) {
+    void Mesh::addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, const glm::mat4& transformation, bool bfcInverted) {
         auto sub_transformation = sfElement->getTransformationMatrix();
         const auto color = sfElement->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : sfElement->color;
-        addLdrFile(sfElement->getFile(), sub_transformation * transformation, color, sfElement->bfcInverted ^ bfcInverted);
+        addLdrFile(color, sfElement->getFile(), sub_transformation * transformation, sfElement->bfcInverted ^ bfcInverted);
     }
 
-    void Mesh::addLdrQuadrilateral(ldr::ColorReference mainColor, ldr::Quadrilateral&& quadrilateral, glm::mat4 transformation, bool bfcInverted) {
-        auto p1 = glm::vec3(quadrilateral.x1, quadrilateral.y1, quadrilateral.z1);
-        auto p2 = glm::vec3(quadrilateral.x2, quadrilateral.y2, quadrilateral.z2);
-        auto p3 = glm::vec3(quadrilateral.x3, quadrilateral.y3, quadrilateral.z3);
-        auto p4 = glm::vec3(quadrilateral.x4, quadrilateral.y4, quadrilateral.z4);
-        const auto color = quadrilateral.color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : quadrilateral.color;
+    void Mesh::addLdrQuadrilateral(ldr::ColorReference mainColor, const std::shared_ptr<ldr::Quadrilateral>& quadrilateral, const glm::mat4& transformation, bool bfcInverted) {
+        auto p1 = glm::vec3(quadrilateral->x1, quadrilateral->y1, quadrilateral->z1);
+        auto p2 = glm::vec3(quadrilateral->x2, quadrilateral->y2, quadrilateral->z2);
+        auto p3 = glm::vec3(quadrilateral->x3, quadrilateral->y3, quadrilateral->z3);
+        auto p4 = glm::vec3(quadrilateral->x4, quadrilateral->y4, quadrilateral->z4);
+        const auto color = quadrilateral->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : quadrilateral->color;
         auto normal = glm::triangleNormal(p1, p2, p3);
         auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f) * transformation);
 
@@ -121,9 +121,9 @@ namespace bricksim::mesh {
         }
     }
 
-    void Mesh::addLdrLine(const ldr::ColorReference mainColor, const ldr::Line& lineElement, glm::mat4 transformation) {
+    void Mesh::addLdrLine(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::Line>& lineElement, const glm::mat4& transformation) {
         glm::vec3 color;
-        const auto lineElementColor = lineElement.color.get();
+        const auto lineElementColor = lineElement->color.get();
         const auto mainColorLocked = mainColor.get();
         if (lineElementColor->code == ldr::Color::MAIN_COLOR_CODE) {
             color = mainColorLocked->edge.asGlmVector();
@@ -132,15 +132,15 @@ namespace bricksim::mesh {
         } else {
             color = lineElementColor->edge.asGlmVector();
         }
-        LineVertex lv1{glm::vec4(lineElement.x1, lineElement.y1, lineElement.z1, 1.0f) * transformation, color};
-        LineVertex lv2{glm::vec4(lineElement.x2, lineElement.y2, lineElement.z2, 1.0f) * transformation, color};
+        LineVertex lv1{glm::vec4(lineElement->x1, lineElement->y1, lineElement->z1, 1.0f) * transformation, color};
+        LineVertex lv2{glm::vec4(lineElement->x2, lineElement->y2, lineElement->z2, 1.0f) * transformation, color};
         lineData.addVertex(lv1);
         lineData.addVertex(lv2);
     }
 
-    void Mesh::addLdrOptionalLine(const ldr::ColorReference mainColor, const ldr::OptionalLine& optionalLineElement, glm::mat4 transformation) {
+    void Mesh::addLdrOptionalLine(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::OptionalLine>& optionalLineElement, const glm::mat4& transformation) {
         glm::vec3 color;
-        const auto elementColor = optionalLineElement.color.get();
+        const auto elementColor = optionalLineElement->color.get();
         const auto mainColorLocked = mainColor.get();
         if (elementColor->code == ldr::Color::MAIN_COLOR_CODE) {
             color = mainColorLocked->edge.asGlmVector();
@@ -149,10 +149,10 @@ namespace bricksim::mesh {
         } else {
             color = elementColor->edge.asGlmVector();
         }
-        LineVertex cv1{glm::vec4(optionalLineElement.controlX1, optionalLineElement.controlY1, optionalLineElement.controlZ1, 1.0f) * transformation, color};
-        LineVertex lv1{glm::vec4(optionalLineElement.x1, optionalLineElement.y1, optionalLineElement.z1, 1.0f) * transformation, color};
-        LineVertex lv2{glm::vec4(optionalLineElement.x2, optionalLineElement.y2, optionalLineElement.z2, 1.0f) * transformation, color};
-        LineVertex cv2{glm::vec4(optionalLineElement.controlX2, optionalLineElement.controlY2, optionalLineElement.controlZ2, 1.0f) * transformation, color};
+        LineVertex cv1{glm::vec4(optionalLineElement->controlX1, optionalLineElement->controlY1, optionalLineElement->controlZ1, 1.0f) * transformation, color};
+        LineVertex lv1{glm::vec4(optionalLineElement->x1, optionalLineElement->y1, optionalLineElement->z1, 1.0f) * transformation, color};
+        LineVertex lv2{glm::vec4(optionalLineElement->x2, optionalLineElement->y2, optionalLineElement->z2, 1.0f) * transformation, color};
+        LineVertex cv2{glm::vec4(optionalLineElement->controlX2, optionalLineElement->controlY2, optionalLineElement->controlZ2, 1.0f) * transformation, color};
         optionalLineData.addVertex(cv1);
         optionalLineData.addVertex(lv1);
         optionalLineData.addVertex(lv2);
@@ -181,8 +181,10 @@ namespace bricksim::mesh {
             }
 
             initializeTexturedTriangleGraphics();
-            lineData.initBuffers(instances);
-            optionalLineData.initBuffers(instances);
+
+            const std::vector<glm::mat4> instancesForLineData = getInstancesForLineData();
+            lineData.initBuffers(instancesForLineData);
+            optionalLineData.initBuffers(instancesForLineData);
 
             already_initialized = true;
         } else {
@@ -267,14 +269,7 @@ namespace bricksim::mesh {
         if (instancesHaveChanged) {
             //todo just clear buffer data when no instances
             controller::executeOpenGL([this]() {
-                std::vector<glm::mat4> instancesArray;
-                instancesArray.resize(instances.size());
-                for (int i = 0; i < instances.size(); ++i) {
-                    instancesArray[i] = glm::transpose(instances[i].transformation * constants::LDU_TO_OPENGL);
-                    if (instances[i].selected) {
-                        instancesArray[i][2][3] = 1;
-                    }
-                }
+                std::vector<glm::mat4> instancesArray = getInstancesForLineData();
                 lineData.rewriteInstanceBuffer(instancesArray);
                 optionalLineData.rewriteInstanceBuffer(instancesArray);
 
@@ -293,6 +288,15 @@ namespace bricksim::mesh {
 
             instancesHaveChanged = false;
         }
+    }
+    std::vector<glm::mat4> Mesh::getInstancesForLineData() {
+        std::vector<glm::mat4> instancesArray;
+        instancesArray.resize(instances.size());
+        for (int i = 0; i < instances.size(); ++i) {
+            instancesArray[i] = glm::transpose(instances[i].transformation * constants::LDU_TO_OPENGL);
+            instancesArray[i][2][3] = instances[i].selected;
+        }
+                return instancesArray;
     }
 
     void Mesh::drawTexturedTriangleGraphics(scene_id_t sceneId, layer_t layer) {

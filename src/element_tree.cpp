@@ -92,16 +92,16 @@ namespace bricksim::etree {
                     }
                 } break;
                 case 2:
-                    mesh->addLdrLine(dummyColor, dynamic_cast<ldr::Line&&>(*element), glm::mat4(1.0f));//todo find out what these weird casts do (also in Mesh::addLdrFile)
+                    mesh->addLdrLine(dummyColor, std::dynamic_pointer_cast<ldr::Line>(element), glm::mat4(1.0f));
                     break;
                 case 3:
-                    mesh->addLdrTriangle(dummyColor, dynamic_cast<ldr::Triangle&&>(*element), glm::mat4(1.0f), windingInversed);
+                    mesh->addLdrTriangle(dummyColor, std::dynamic_pointer_cast<ldr::Triangle>(element), glm::mat4(1.0f), windingInversed);
                     break;
                 case 4:
-                    mesh->addLdrQuadrilateral(dummyColor, dynamic_cast<ldr::Quadrilateral&&>(*element), glm::mat4(1.0f), windingInversed);
+                    mesh->addLdrQuadrilateral(dummyColor, std::dynamic_pointer_cast<ldr::Quadrilateral>(element), glm::mat4(1.0f), windingInversed);
                     break;
                 case 5:
-                    mesh->addLdrOptionalLine(dummyColor, dynamic_cast<ldr::OptionalLine&&>(*element), glm::mat4(1.0f));
+                    mesh->addLdrOptionalLine(dummyColor, std::dynamic_pointer_cast<ldr::OptionalLine>(element), glm::mat4(1.0f));
                     break;
             }
         }

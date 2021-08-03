@@ -26,7 +26,7 @@ namespace bricksim::mesh {
         std::vector<TriangleVertex> vertices;
         std::vector<unsigned int> indices;
         unsigned int VAO, vertexVBO, instanceVBO, EBO;
-        std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> generateInstancesArray(const std::vector<MeshInstance>& instances);
+        std::vector<TriangleInstance> generateInstancesArray(const std::vector<MeshInstance>& instances);
 
         size_t instanceCount;
         size_t lastInstanceBufferSize = 0;

@@ -6,7 +6,7 @@ namespace bricksim::mesh {
     class LineData {
     public:
         explicit LineData(unsigned int drawMode);
-        void initBuffers(const std::vector<MeshInstance>& instances);
+        void initBuffers(const std::vector<glm::mat4>& instances);
         void freeBuffers();
         void draw(const std::optional<InstanceRange>& sceneLayerInstanceRange);
         void addVertex(const LineVertex& vertex);

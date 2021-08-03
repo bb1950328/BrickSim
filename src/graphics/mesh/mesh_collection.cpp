@@ -158,7 +158,7 @@ namespace bricksim::mesh {
         if (selectionBoxMesh == nullptr) {
             selectionBoxMesh = std::make_shared<Mesh>();
             usedMeshes.insert(selectionBoxMesh);
-            selectionBoxMesh->addLdrFile(ldr::file_repo::get().getFile("box0.dat"), glm::mat4(1.0f), ldr::color_repo::getInstanceDummyColor(), false);
+            selectionBoxMesh->addLdrFile(ldr::color_repo::getInstanceDummyColor(), ldr::file_repo::get().getFile("box0.dat"), glm::mat4(1.0f), false);
         }
         selectionBoxMesh->instances.clear();
         if (!controller::getSelectedNodes().empty()) {

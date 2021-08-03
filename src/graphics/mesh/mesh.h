@@ -48,12 +48,12 @@ namespace bricksim::mesh {
         Mesh& operator=(Mesh&) = delete;
         Mesh(const Mesh&) = delete;
 
-        void addLdrFile(const std::shared_ptr<ldr::File>& file, glm::mat4 transformation, ldr::ColorReference mainColor, bool bfcInverted);
-        void addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, glm::mat4 transformation, bool bfcInverted);
-        void addLdrLine(ldr::ColorReference mainColor, const ldr::Line& lineElement, glm::mat4 transformation);
-        void addLdrTriangle(ldr::ColorReference mainColor, const ldr::Triangle& triangleElement, glm::mat4 transformation, bool bfcInverted);
-        void addLdrQuadrilateral(ldr::ColorReference mainColor, ldr::Quadrilateral&& quadrilateral, glm::mat4 transformation, bool bfcInverted);
-        void addLdrOptionalLine(ldr::ColorReference mainColor, const ldr::OptionalLine& optionalLineElement, glm::mat4 transformation);
+        void addLdrFile(ldr::ColorReference mainColor, const std::shared_ptr<ldr::File>& file, const glm::mat4& transformation, bool bfcInverted);
+        void addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, const glm::mat4& transformation, bool bfcInverted);
+        void addLdrLine(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::Line>& lineElement, const glm::mat4& transformation);
+        void addLdrTriangle(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::Triangle>& triangleElement, const glm::mat4& transformation, bool bfcInverted);
+        void addLdrQuadrilateral(ldr::ColorReference mainColor, const std::shared_ptr<ldr::Quadrilateral>& quadrilateral, const glm::mat4& transformation, bool bfcInverted);
+        void addLdrOptionalLine(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::OptionalLine>& optionalLineElement, const glm::mat4& transformation);
 
         void addTexturedTriangle(const std::shared_ptr<graphics::Texture>& texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3);
 
@@ -90,5 +90,6 @@ namespace bricksim::mesh {
         void addMinEnclosingBallLines();
         void calculateOuterDimensions();
         void appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<MeshInstance>& newSceneInstances);
+        std::vector<glm::mat4> getInstancesForLineData();
     };
 }

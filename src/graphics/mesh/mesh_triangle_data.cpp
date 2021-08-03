@@ -111,27 +111,31 @@ namespace bricksim::mesh {
         color(color) {
     }
 
-    std::unique_ptr<TriangleInstance[], std::default_delete<TriangleInstance[]>> TriangleData::generateInstancesArray(const std::vector<MeshInstance>& instances) {
-        auto instancesArray = std::make_unique<TriangleInstance[]>(instances.size());
-        unsigned int arr_cursor = 0;
+    std::vector<TriangleInstance> TriangleData::generateInstancesArray(const std::vector<MeshInstance>& instances) {
         if (color.get()->code == ldr::color_repo::INSTANCE_DUMMY_COLOR_CODE) {
+            std::vector<TriangleInstance> array;
+            array.reserve(instances.size());
             for (auto& instance: instances) {
-                instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * constants::LDU_TO_OPENGL);
-                instancesArray[arr_cursor].setColor(instance.color);
-                instancesArray[arr_cursor].idColor = color::convertIntToColorVec3(instance.elementId);
-                arr_cursor++;
+                TriangleInstance inst{
+                        .idColor = color::convertIntToColorVec3(instance.elementId),
+                        .transformation = glm::transpose(instance.transformation * constants::LDU_TO_OPENGL),
+                };
+                inst.setColor(instance.color);
+                array.push_back(inst);
             }
+            return array;
         } else {
             TriangleInstance inst{};
             inst.setColor(color);
-            std::fill_n(instancesArray.get(), instances.size(), inst);
+            std::vector<TriangleInstance> array(instances.size(), inst);
+            auto it = array.begin();
             for (auto& instance: instances) {
-                instancesArray[arr_cursor].transformation = glm::transpose(instance.transformation * constants::LDU_TO_OPENGL);
-                instancesArray[arr_cursor].idColor = color::convertIntToColorVec3(instance.elementId);
-                arr_cursor++;
+                (*it).transformation = glm::transpose(instance.transformation * constants::LDU_TO_OPENGL);
+                (*it).idColor = color::convertIntToColorVec3(instance.elementId);
+                ++it;
             }
+            return array;
         }
-        return instancesArray;
     }
 
     size_t TriangleData::getVertexCount() const {

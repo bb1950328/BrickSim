@@ -6,7 +6,7 @@
 #include <glad/glad.h>
 
 namespace bricksim::mesh {
-    void LineData::initBuffers(const std::vector<MeshInstance> &instances) {
+    void LineData::initBuffers(const std::vector<glm::mat4>& instances) {
         controller::executeOpenGL([this, &instances]() {
             //VAO
             glGenVertexArrays(1, &vao);
@@ -21,26 +21,21 @@ namespace bricksim::mesh {
 
             // position attribute
             glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) nullptr);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)nullptr);
             // color attribute
             glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void *) offsetof(LineVertex, color));
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)offsetof(LineVertex, color));
 
             //instanceVbo
             instanceCount = instances.size();
-            auto *instancesArray = new glm::mat4[instanceCount];//todo smart pointer/array
-            for (int i = 0; i < instanceCount; ++i) {
-                instancesArray[i] = glm::transpose(instances[i].transformation * constants::LDU_TO_OPENGL);
-            }
-
             glGenBuffers(1, &instanceVBO);
             glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-            size_t instance_size = sizeof(glm::mat4);
-            glBufferData(GL_ARRAY_BUFFER, instanceCount * instance_size, &instancesArray[0], GL_STATIC_DRAW);
+            size_t instanceSize = sizeof(glm::mat4);
+            glBufferData(GL_ARRAY_BUFFER, instanceCount * instanceSize, &instances[0], GL_STATIC_DRAW);
 
             for (int j = 2; j < 6; ++j) {
                 glEnableVertexAttribArray(j);
-                glVertexAttribPointer(j, 4, GL_FLOAT, GL_FALSE, instance_size, (void *) (4 * (j - 2) * sizeof(float)));
+                glVertexAttribPointer(j, 4, GL_FLOAT, GL_FALSE, instanceSize, (void*)(4 * (j - 2) * sizeof(float)));
                 glVertexAttribDivisor(j, 1);
             }
 
@@ -50,19 +45,17 @@ namespace bricksim::mesh {
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &(indices)[0], GL_STATIC_DRAW);
             metrics::vramUsageBytes += sizeof(unsigned int) * indices.size();
 
-            delete[] instancesArray;
-
-          if (config::get(config::DELETE_VERTEX_DATA_AFTER_UPLOADING)) {
-              dataAlreadyDeleted = true;
-              uploadedVertexCount = vertices.size();
-              uploadedIndexCount = indices.size();
-              metrics::memorySavedByDeletingVertexData += vertices.capacity() * sizeof(LineVertex);
-              metrics::memorySavedByDeletingVertexData += indices.capacity() * sizeof(unsigned int);
-              vertices.clear();
-              indices.clear();
-              vertices.shrink_to_fit();
-              indices.shrink_to_fit();
-          }
+            if (config::get(config::DELETE_VERTEX_DATA_AFTER_UPLOADING)) {
+                dataAlreadyDeleted = true;
+                uploadedVertexCount = vertices.size();
+                uploadedIndexCount = indices.size();
+                metrics::memorySavedByDeletingVertexData += vertices.capacity() * sizeof(LineVertex);
+                metrics::memorySavedByDeletingVertexData += indices.capacity() * sizeof(unsigned int);
+                vertices.clear();
+                indices.clear();
+                vertices.shrink_to_fit();
+                indices.shrink_to_fit();
+            }
         });
     }
 
@@ -75,7 +68,7 @@ namespace bricksim::mesh {
         });
     }
 
-    void LineData::draw(const std::optional<InstanceRange> &sceneLayerInstanceRange) {
+    void LineData::draw(const std::optional<InstanceRange>& sceneLayerInstanceRange) {
         if (sceneLayerInstanceRange.has_value() && sceneLayerInstanceRange->count > 0 && getIndexCount() > 0) {
             glBindVertexArray(vao);
             graphics::opengl_native_or_replacement::drawElementsInstancedBaseInstance(
@@ -84,8 +77,8 @@ namespace bricksim::mesh {
         }
     }
 
-    void LineData::addVertex(const LineVertex &vertex) {
-        for (int i = (int) vertices.size() - 1; i >= std::max((int) vertices.size() - 12, 0); --i) {
+    void LineData::addVertex(const LineVertex& vertex) {
+        for (int i = (int)vertices.size() - 1; i >= std::max((int)vertices.size() - 12, 0); --i) {
             if (vertex.position == vertices[i].position && vertex.color == vertices[i].color) {
                 indices.push_back(i);
                 return;
@@ -95,7 +88,7 @@ namespace bricksim::mesh {
         vertices.push_back(vertex);
     }
 
-    void LineData::rewriteInstanceBuffer(const std::vector<glm::mat4> &instances) {
+    void LineData::rewriteInstanceBuffer(const std::vector<glm::mat4>& instances) {
         controller::executeOpenGL([this, &instances]() {
             constexpr size_t instance_size = sizeof(glm::mat4);
             glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
@@ -104,7 +97,7 @@ namespace bricksim::mesh {
     }
 
     LineData::LineData(const unsigned int drawMode) :
-            drawMode(drawMode) {}
+        drawMode(drawMode) {}
     size_t LineData::getVertexCount() const {
         return dataAlreadyDeleted ? uploadedVertexCount : vertices.size();
     }

@@ -141,6 +141,7 @@ set(ENABLE_LZMA OFF)
 set(ENABLE_ZSTD OFF)
 add_subdirectory(src/lib/libzip)
 target_link_libraries(BrickSimLib PUBLIC libzip::zip)
+target_compile_options(zip PRIVATE -Wno-nullability-completeness)
 
 # SqliteCpp
 set(SQLITECPP_USE_STACK_PROTECTION OFF)

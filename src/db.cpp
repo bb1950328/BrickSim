@@ -1,5 +1,6 @@
 #include "db.h"
 #include <SQLiteCpp/Database.h>
+#include <filesystem>
 #include <spdlog/spdlog.h>
 
 namespace bricksim::db {

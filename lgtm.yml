@@ -1,0 +1,21 @@
+path_classifiers:
+  test:
+    - src/test
+  library:
+    - src/lib
+  docs:
+    - docs
+
+extraction:
+  cpp:
+    configure:
+      command:
+        - ./setup_workspace.sh only64bit
+        - mkdir -p cmake-build/release64
+        - cmake . -DCMAKE_BUILD_TYPE=Release -G Ninja
+    index:
+      build_command:
+        - cd cmake-build/release64 && cmake --build . --target BrickSim --config Release -j $(nproc --all)
+  csharp:
+    index:
+      buildless: true

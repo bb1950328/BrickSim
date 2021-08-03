@@ -20,7 +20,6 @@ jobs:
       matrix:
         include: [
           { arch: x86_64, bits: 64 },
-          { arch: i386, bits: 32 }
         ]
 
     name: Linux Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
@@ -30,13 +29,9 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
-
-    - if: ${{ matrix.arch == 'i386' }}
-      # set up multiarch
-      run: sudo dpkg --add-architecture i386
     
     - name: Setup Workspace
-      run: ./setup_workspace.sh only${{ matrix.bits }}bit
+      run: ./setup_workspace.sh
 
     - if: "contains(github.event.head_commit.message, 'codeql')"
       name: Initialize CodeQL
@@ -181,7 +176,6 @@ jobs:
       matrix:
         include: [
           { arch: x86_64, bits: 64 },
-          { arch: i386, bits: 32 }
         ]
 
     name: Linux Installer Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
@@ -226,12 +220,7 @@ jobs:
 
       - name: Build Installer
         run: |
-          if [[ ${{ matrix.bits }} -eq 32 ]]; then
-            PLATFORM="linux"
-          else
-            PLATFORM="linux-x64"
-          fi
-          ${{ runner.workspace }}/installbuilder/bin/builder build $GITHUB_WORKSPACE/InstallBuilder.xml $PLATFORM \
+          ${{ runner.workspace }}/installbuilder/bin/builder build $GITHUB_WORKSPACE/InstallBuilder.xml linux-x64 \
                         --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v) --license ${{ runner.workspace }}/license.xml
       - name: Delete license file
         run: rm ${{ runner.workspace }}/license.xml
@@ -274,7 +263,7 @@ jobs:
             mingw-w64-x86_64-glm
 
       - name: Setup workspace
-        run: ./setup_workspace.sh only64bit
+        run: ./setup_workspace.sh
 
       - name: Install ccache
         run: pacman -S mingw-w64-x86_64-ccache --noconfirm --needed

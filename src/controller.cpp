@@ -659,7 +659,7 @@ namespace bricksim::controller {
         static unsigned int sId = 0;
         unsigned int id = sId++;
         auto* task = new Task(std::move(name), function);
-        backgroundTasks.insert(std::make_pair(id, task));
+        backgroundTasks.emplace(id, task);
         task->startThread();
     }
 

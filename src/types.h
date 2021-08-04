@@ -2,9 +2,8 @@
 
 #include <glm/fwd.hpp>
 #include <map>
-#include <unordered_map>
 #include <set>
-#include <unordered_set>
+#include <robin_hood.h>
 
 namespace bricksim {
     typedef unsigned char layer_t;
@@ -17,13 +16,13 @@ namespace bricksim {
     template <typename K, typename V>
     using omap_t = std::map<K, V>;
     template <typename K, typename V>
-    using uomap_t = std::unordered_map<K, V>;
+    using uomap_t = robin_hood::unordered_map<K, V>;
 
     template <typename T>
     using oset_t = std::set<T>;
 
     template <typename T>
-    using uoset_t = std::unordered_set<T>;
+    using uoset_t = robin_hood::unordered_set<T>;
 }
 namespace glm {
     typedef vec<1, unsigned short, defaultp> usvec1;

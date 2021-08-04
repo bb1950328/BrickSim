@@ -143,6 +143,6 @@ namespace bricksim::util {
 
     template<typename T1, typename... Ts>
     std::size_t combinedHash(const T1& value1, const Ts&... values) {
-        return combinedHash(values...) * 31 + std::hash<T1>()(value1);
+        return combinedHash(values...) * 31 + robin_hood::hash<T1>()(value1);
     }
 }

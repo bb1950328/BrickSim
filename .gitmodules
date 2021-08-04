@@ -47,3 +47,6 @@
 [submodule "src/lib/fast_float"]
 	path = src/lib/fast_float
 	url = git@github.com:fastfloat/fast_float.git
+[submodule "src/lib/robin-hood-hashing"]
+	path = src/lib/robin-hood-hashing
+	url = git@github.com:martinus/robin-hood-hashing.git

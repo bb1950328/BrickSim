@@ -101,7 +101,7 @@ namespace bricksim::ldr {
 
     const std::size_t& File::getHash() const {
         if (hash == 0) {
-            hash = std::hash<std::string>{}(metaInfo.name);
+            hash = robin_hood::hash<std::string>{}(metaInfo.name);
         }
         return hash;
     }

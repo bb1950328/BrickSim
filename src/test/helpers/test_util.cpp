@@ -472,8 +472,8 @@ namespace bricksim {
     }
 
     TEST_CASE("util::combinedHash") {
-        CHECK(util::combinedHash(123, 456) != std::hash<int>()(123));
-        CHECK(util::combinedHash(123, 456) != std::hash<int>()(456));
+        CHECK(util::combinedHash(123, 456) != robin_hood::hash<int>()(123));
+        CHECK(util::combinedHash(123, 456) != robin_hood::hash<int>()(456));
         CHECK(util::combinedHash(123, 456) != util::combinedHash(456, 123));
 
         CHECK(util::combinedHash(123, 456, 789) != util::combinedHash(123, 456));

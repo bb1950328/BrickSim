@@ -62,12 +62,12 @@ namespace bricksim::info_providers::bricklink_constants {
                 arrColorsVector.push_back(arrColor.GetInt());
             }
             auto id = colorFamily["idColorFamily"].GetInt();
-            colorFamilies.insert({id, {id, colorFamily["strName"].GetString(), colorFamily["strRGBAHex"].GetString(), arrColorsVector}});
+            colorFamilies.emplace(id, bricklink::ColorFamily{id, colorFamily["strName"].GetString(), colorFamily["strRGBAHex"].GetString(), arrColorsVector});
         }
 
         for (const auto& item: d["color_types"].GetArray()) {
             auto typeColor = item["typeColor"].GetInt();
-            colorTypes.insert({typeColor, {typeColor, item["strName"].GetString()}});
+            colorTypes.emplace(typeColor, bricklink::ColorType{typeColor, item["strName"].GetString()});
         }
 
         for (const auto& color: d["colors"].GetArray()) {
@@ -76,22 +76,22 @@ namespace bricksim::info_providers::bricklink_constants {
             int typeColor = color["typeColor"].GetInt();
             const char* strColorHex = color["strColorHex"].GetString();
             const char* strColorSort = color["strColorSort"].IsNull() ? "" : color["strColorSort"].GetString();
-            colors.insert({idColor, {idColor, strColorName, typeColor, strColorHex, strColorSort}});
+            colors.emplace(idColor, bricklink::Color{idColor, strColorName, typeColor, strColorHex, strColorSort});
         }
 
         for (const auto& currency: d["currencies"].GetArray()) {
             auto idCurrency = currency["idCurrency"].GetInt();
-            currencies.insert({idCurrency, {idCurrency, currency["codeCurrency"].GetString(), currency["sign_long"].GetString(), currency["sign_short"].GetString(), currency["fraction"].GetInt()}});
+            currencies.emplace(idCurrency, bricklink::Currency{idCurrency, currency["codeCurrency"].GetString(), currency["sign_long"].GetString(), currency["sign_short"].GetString(), currency["fraction"].GetInt()});
         }
 
         for (const auto& country: d["countries"].GetArray()) {
             auto codeCountry = country["codeCountry"].GetString();
-            countries.insert({codeCountry, {codeCountry, country["strCountryName"].GetString(), country["idCurrency"].GetInt(), country["idContinent"].GetInt(), country["isEUCountry"].GetBool()}});
+            countries.emplace(codeCountry, bricklink::Country{codeCountry, country["strCountryName"].GetString(), country["idCurrency"].GetInt(), country["idContinent"].GetInt(), country["isEUCountry"].GetBool()});
         }
 
         for (const auto& continent: d["continents"].GetArray()) {
             auto idContinent = continent["idContinent"].GetInt();
-            continents.insert({idContinent, {idContinent, continent["strContinentName"].GetString()}});
+            continents.emplace(idContinent, bricklink::Continent{idContinent, continent["strContinentName"].GetString()});
         }
 
         *progress = 1.0f;

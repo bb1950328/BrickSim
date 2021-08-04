@@ -217,6 +217,10 @@ target_link_libraries(BrickSimLib PRIVATE compile_time_hash)
 add_subdirectory(src/lib/fast_float)
 target_link_libraries(BrickSimLib PRIVATE fast_float)
 
+#robin-hood-hashing
+add_subdirectory(src/lib/robin-hood-hashing)
+target_link_libraries(BrickSimLib PUBLIC robin_hood::robin_hood)
+
 add_subdirectory(src)
 
 if (WIN32)

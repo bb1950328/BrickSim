@@ -28,64 +28,6 @@ namespace bricksim::ldr {
 
     FileElement::~FileElement() = default;
 
-    std::shared_ptr<File> File::parseFile(ldr::FileType fileType, const std::string& name, const std::string& content) {
-        auto mainFile = std::make_shared<File>();
-        mainFile->metaInfo.type = fileType;
-        std::stringstream contentStream;
-        //todo refactor this function. i think this is faster without stringstream...
-        // also the content is copied twice (content -> fileLines -> addTextLine param)
-        contentStream << content;
-        if (fileType == MODEL) {
-            std::string currentSubFileName = name;
-            std::map<std::string, std::string> fileLines;
-            bool firstFile = true;
-            for (std::string line; getline(contentStream, line);) {
-                if (util::startsWith(line, "0 FILE")) {
-                    if (!firstFile) {
-                        currentSubFileName = util::trim(line.substr(7));
-                    } else {
-                        firstFile = false;
-                    }
-                } else if (util::startsWith(line, "0 !DATA")) {
-                    currentSubFileName = util::trim(line.substr(8));
-                } else if (util::startsWith(line, "0 NOFILE")) {
-                    currentSubFileName = "";
-                } else if (!currentSubFileName.empty()) {
-                    fileLines[currentSubFileName] += ("\n" + line);
-                }
-            }
-            for (auto const& entry: fileLines) {
-                std::shared_ptr<File> currentFile;
-                if (entry.first == name) {
-                    currentFile = mainFile;
-                } else {
-                    if (util::startsWith(entry.second, "0 !: ")) {
-                        //todo parse base64 data and store it somewhere
-                        continue;
-                    } else {
-                        currentFile = ldr::file_repo::get().addFileWithContent(entry.first, MPD_SUBFILE, "");
-                        mainFile->mpdSubFiles.insert(currentFile);
-                    }
-                }
-
-                const std::string& currentFileContent = entry.second;
-                std::string::size_type pos;
-                std::string::size_type prev = 0;
-                while ((pos = currentFileContent.find('\n', prev)) != std::string::npos) {
-                    currentFile->addTextLine(currentFileContent.substr(prev, pos - prev));
-                    prev = pos + 1;
-                }
-                currentFile->addTextLine(currentFileContent.substr(prev));
-            }
-        } else {
-            for (std::string line; getline(contentStream, line);) {
-                mainFile->addTextLine(line);
-            }
-        }
-
-        return mainFile;
-    }
-
     void File::addTextLine(const std::string& line) {
         auto trimmed = util::trim(line);
         unsigned int currentStep = elements.empty() ? 0 : elements.back()->step;

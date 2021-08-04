@@ -14,7 +14,7 @@ namespace bricksim::config {
         template<typename T>
         class ValuesCache {
             //using const char* as key is ok here because there's only one instance of each key
-            std::map<const char*, T> values;
+            uomap_t<const char*, T> values;
 
             std::function<void(const char*, T)> writeFunction;
             std::function<std::optional<T>(const char*)> readFunction;

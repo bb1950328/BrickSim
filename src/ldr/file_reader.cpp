@@ -4,13 +4,13 @@
 #include <spdlog/spdlog.h>
 
 namespace bricksim::ldr {
-    std::map<std::string, std::shared_ptr<File>> readComplexFile(const std::string& name, const std::string& content, FileType mainFileType) {
+    uomap_t<std::string, std::shared_ptr<File>> readComplexFile(const std::string& name, const std::string& content, FileType mainFileType) {
         if (mainFileType != MODEL) {
             return {{name, readSimpleFile(name, content, mainFileType)}};
         }
         auto mainFile = std::make_shared<File>();
         mainFile->metaInfo.type = mainFileType;
-        std::map<std::string, std::shared_ptr<File>> files = {{name, mainFile}};
+        uomap_t<std::string, std::shared_ptr<File>> files = {{name, mainFile}};
         std::optional<std::shared_ptr<File>> currentFile = mainFile;
 
         size_t lineStart = 0;

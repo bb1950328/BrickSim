@@ -7,5 +7,5 @@
 #include <set>
 
 namespace bricksim::info_providers::part_color_availability {
-    std::optional<std::set<ldr::ColorReference>> getAvailableColorsForPart(const std::shared_ptr<ldr::File>& part);
+    std::optional<uoset_t<ldr::ColorReference>> getAvailableColorsForPart(const std::shared_ptr<ldr::File>& part);
 }

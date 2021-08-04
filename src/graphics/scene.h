@@ -41,7 +41,7 @@ namespace bricksim::graphics {
         constexpr scene_id_t ORIENTATION_CUBE_SCENE_ID = 20;
         std::shared_ptr<Scene> create(scene_id_t sceneId);
         std::shared_ptr<Scene> get(scene_id_t sceneId);
-        std::map<scene_id_t, std::shared_ptr<Scene>>& getAll();
+        uomap_t<scene_id_t, std::shared_ptr<Scene>>& getAll();
         void deleteAll();
     }
 

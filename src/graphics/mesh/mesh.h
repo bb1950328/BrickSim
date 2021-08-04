@@ -30,12 +30,12 @@ namespace bricksim::mesh {
 
         [[nodiscard]] LineData& getLineData();
         [[nodiscard]] LineData& getOptionalLineData();
-        [[nodiscard]] std::map<ldr::ColorReference, TriangleData>& getAllTriangleData();
+        [[nodiscard]] uomap_t<ldr::ColorReference, TriangleData>& getAllTriangleData();
         [[nodiscard]] TriangleData& getTriangleData(ldr::ColorReference color);
-        [[nodiscard]] std::map<texture_id_t, TexturedTriangleData>& getAllTexturedTriangleData();
+        [[nodiscard]] uomap_t<texture_id_t, TexturedTriangleData>& getAllTexturedTriangleData();
         [[nodiscard]] TexturedTriangleData& getTexturedTriangleData(std::shared_ptr<graphics::Texture>& texture);
 
-        std::map<scene_id_t, std::map<layer_t, InstanceRange>> instanceSceneLayerRanges;
+        uomap_t<scene_id_t, uomap_t<layer_t, InstanceRange>> instanceSceneLayerRanges;
         std::optional<InstanceRange> getSceneInstanceRange(scene_id_t sceneId);
         std::optional<InstanceRange> getSceneLayerInstanceRange(scene_id_t sceneId, layer_t layer);
         /**
@@ -72,8 +72,8 @@ namespace bricksim::mesh {
     private:
         LineData lineData{GL_LINES};
         LineData optionalLineData{GL_LINES_ADJACENCY};
-        std::map<ldr::ColorReference, TriangleData> triangleData;
-        std::map<texture_id_t, TexturedTriangleData> texturedTriangleData;
+        uomap_t<ldr::ColorReference, TriangleData> triangleData;
+        uomap_t<texture_id_t, TexturedTriangleData> texturedTriangleData;
 
 
         bool alreadyInitialized = false;

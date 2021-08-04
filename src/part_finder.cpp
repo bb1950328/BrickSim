@@ -3,7 +3,7 @@
 
 namespace bricksim::part_finder {
     namespace {
-        std::map<std::string, Predicate> predicates;
+        uomap_t<std::string, Predicate> predicates;
     }
 
     const Predicate& getPredicate(const std::string& expression) {

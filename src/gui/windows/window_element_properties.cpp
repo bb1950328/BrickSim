@@ -153,7 +153,7 @@ namespace bricksim::gui::windows::element_properties {
                             const ImVec2& buttonSize = ImVec2(buttonWidth, buttonWidth);
                             const int columnCount = std::floor(ImGui::GetContentRegionAvail().x / (buttonWidth + ImGui::GetStyle().ItemSpacing.x));
 
-                            std::optional<std::set<ldr::ColorReference>> availableColors = std::nullopt;
+                            std::optional<uoset_t<ldr::ColorReference>> availableColors = std::nullopt;
                             if (meshNode->getType() == etree::TYPE_PART) {
                                 availableColors = info_providers::part_color_availability::getAvailableColorsForPart(std::dynamic_pointer_cast<etree::LdrNode>(meshNode)->ldrFile);
                             }
@@ -208,7 +208,7 @@ namespace bricksim::gui::windows::element_properties {
                                 }
                             }
                         }
-                        std::map<ldr::ColorReference, const info_providers::price_guide::PriceGuide> pGuides;
+                        uomap_t<ldr::ColorReference, const info_providers::price_guide::PriceGuide> pGuides;
                         if (availableColors.has_value()) {
                             for (const auto& item: availableColors.value()) {
                                 auto pg = info_providers::price_guide::getPriceGuideIfCached(partCode, currencyCode,

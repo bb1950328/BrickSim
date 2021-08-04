@@ -172,7 +172,7 @@ namespace bricksim::graphics {
 
     namespace shaders {
         namespace {
-            std::map<shader_id_t, std::unique_ptr<Shader>> allShaders;
+            uomap_t<shader_id_t, std::unique_ptr<Shader>> allShaders;
         }
 
         const Shader& get(shader_id_t id) {

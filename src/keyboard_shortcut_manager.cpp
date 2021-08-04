@@ -8,7 +8,7 @@
 
 namespace bricksim::keyboard_shortcut_manager {
     namespace {
-        std::map<int, const char*> MODIFIER_DISPLAY_NAMES = {
+        uomap_t<int, const char*> MODIFIER_DISPLAY_NAMES = {
                 // NOLINT(cert-err58-cpp)
                 {GLFW_MOD_SHIFT, "Shift"},
                 {GLFW_MOD_CONTROL, "Ctrl"},
@@ -27,7 +27,7 @@ namespace bricksim::keyboard_shortcut_manager {
         uint8_t ALL_MODIFIERS_MASK = GLFW_MOD_SHIFT | GLFW_MOD_CONTROL | GLFW_MOD_ALT | GLFW_MOD_SUPER;
         const int ALL_MODIFIER_KEYS[] = {GLFW_KEY_LEFT_SHIFT, GLFW_KEY_RIGHT_SHIFT, GLFW_KEY_LEFT_CONTROL, GLFW_KEY_RIGHT_CONTROL, GLFW_KEY_LEFT_ALT, GLFW_KEY_RIGHT_ALT, GLFW_KEY_LEFT_SUPER, GLFW_KEY_RIGHT_SUPER};
 
-        std::map<int, const char*> MISC_KEY_DISPLAY_NAMES = {
+        uomap_t<int, const char*> MISC_KEY_DISPLAY_NAMES = {
                 // NOLINT(cert-err58-cpp)
                 {GLFW_KEY_BACKSPACE, "Backspace"},
                 {GLFW_KEY_ENTER, "Enter"},
@@ -139,7 +139,7 @@ namespace bricksim::keyboard_shortcut_manager {
     }
 
     const std::string& getShortcutForAction(int actionId) {
-        static std::map<int, std::string> cache;
+        static uomap_t<int, std::string> cache;
         auto it = cache.find(actionId);
         if (it == cache.end()) {
             for (auto& shortcut: shortcuts) {
@@ -165,7 +165,7 @@ namespace bricksim::keyboard_shortcut_manager {
         }
 
         const auto* keyName = glfwGetKeyName(key, 0);
-        std::map<int, const char*>::iterator miscNameIt;
+        uomap_t<int, const char*>::iterator miscNameIt;
         if (keyName) {
             displayName += keyName;
         } else if (GLFW_KEY_F1 <= key && key <= GLFW_KEY_F25) {

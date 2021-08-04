@@ -414,9 +414,10 @@ namespace bricksim::mesh {
     LineData& Mesh::getOptionalLineData() {
         return optionalLineData;
     }
-    std::map<ldr::ColorReference, TriangleData>& Mesh::getAllTriangleData() {
+    uomap_t<ldr::ColorReference, TriangleData>& Mesh::getAllTriangleData() {
         return triangleData;
     }
+
     TriangleData& Mesh::getTriangleData(const ldr::ColorReference color) {
         auto it = triangleData.find(color);
         if (it == triangleData.end()) {
@@ -497,7 +498,7 @@ namespace bricksim::mesh {
             };
         }
     }
-    std::map<texture_id_t, TexturedTriangleData>& Mesh::getAllTexturedTriangleData() {
+    uomap_t<texture_id_t, TexturedTriangleData>& Mesh::getAllTexturedTriangleData() {
         return texturedTriangleData;
     }
     TexturedTriangleData& Mesh::getTexturedTriangleData(std::shared_ptr<graphics::Texture>& texture) {

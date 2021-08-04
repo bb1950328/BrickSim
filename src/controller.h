@@ -82,7 +82,7 @@ namespace bricksim::controller {
 
     void setElementTreeChanged(bool val);
     void setUserWantsToExit(bool val);
-    std::set<std::shared_ptr<etree::Node>>& getSelectedNodes();
+    uoset_t<std::shared_ptr<etree::Node>>& getSelectedNodes();
     std::shared_ptr<etree::RootNode> getElementTree();
     std::shared_ptr<graphics::ThumbnailGenerator> getThumbnailGenerator();
     std::shared_ptr<graphics::Scene> getMainScene();
@@ -90,7 +90,7 @@ namespace bricksim::controller {
 
     void executeOpenGL(std::function<void()> const& functor);
 
-    std::map<unsigned int, Task*>& getBackgroundTasks();
+    uomap_t<unsigned int, Task*>& getBackgroundTasks();
     void addBackgroundTask(std::string name, const std::function<void()>& function);
 
     std::queue<Task*>& getForegroundTasks();

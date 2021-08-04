@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "../types.h"
 
 namespace bricksim::bricklink {
     struct ColorFamily {
@@ -50,10 +51,10 @@ namespace bricksim::bricklink {
 namespace bricksim::info_providers::bricklink_constants {
     void initialize(float* progress = nullptr);
 
-    const std::map<int, bricklink::ColorFamily>& getColorFamilies();
-    const std::map<int, bricklink::ColorType>& getColorTypes();
-    const std::map<int, bricklink::Color>& getColors();
-    const std::map<int, bricklink::Currency>& getCurrencies();
-    const std::map<std::string, bricklink::Country>& getCountries();
-    const std::map<int, bricklink::Continent>& getContinents();
+    const uomap_t<int, bricklink::ColorFamily>& getColorFamilies();
+    const uomap_t<int, bricklink::ColorType>& getColorTypes();
+    const uomap_t<int, bricklink::Color>& getColors();
+    const uomap_t<int, bricklink::Currency>& getCurrencies();
+    const uomap_t<std::string, bricklink::Country>& getCountries();
+    const uomap_t<int, bricklink::Continent>& getContinents();
 }

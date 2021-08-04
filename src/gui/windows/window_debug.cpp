@@ -23,7 +23,7 @@ namespace bricksim::gui::windows::debug {
 
         constexpr size_t MESHES_TAB_BUF_SIZE = 32;
 
-        void printSceneDescription(std::map<scene_id_t, std::shared_ptr<graphics::Scene>>& allScenes, scene_id_t sceneId, char* buf) {
+        void printSceneDescription(uomap_t<scene_id_t, std::shared_ptr<graphics::Scene>>& allScenes, scene_id_t sceneId, char* buf) {
             snprintf(buf, MESHES_TAB_BUF_SIZE, "%d (%d*%d)", sceneId, allScenes[sceneId]->getImageSize().x, allScenes[sceneId]->getImageSize().y);
         }
 

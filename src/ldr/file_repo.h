@@ -32,9 +32,9 @@ namespace bricksim::ldr::file_repo {
         std::shared_ptr<File> getFile(const std::string& name);
         std::shared_ptr<File> addFileWithContent(const std::string& name, FileType type, const std::string& content);
         std::filesystem::path& getBasePath();
-        std::set<std::string> getAllCategories();
+        oset_t<std::string> getAllCategories();
 
-        std::set<std::shared_ptr<File>> getAllFilesOfCategory(const std::string& categoryName);
+        oset_t<std::shared_ptr<File>> getAllFilesOfCategory(const std::string& categoryName);
         bool areAllPartsLoaded();
         void cleanup();
 
@@ -46,8 +46,8 @@ namespace bricksim::ldr::file_repo {
         virtual std::string getLibraryFileContent(FileType type, std::string name) = 0;
         virtual std::string getLibraryFileContent(std::string nameRelativeToRoot) = 0;
         virtual ~FileRepo();
-        std::map<std::string, std::set<std::shared_ptr<File>>> getAllPartsGroupedByCategory();
-        std::map<std::string, std::set<std::shared_ptr<File>>> getLoadedPartsGroupedByCategory();
+        omap_t<std::string, oset_t<std::shared_ptr<File>>> getAllPartsGroupedByCategory();
+        omap_t<std::string, oset_t<std::shared_ptr<File>>> getLoadedPartsGroupedByCategory();
 
     protected:
         static std::string readFileFromFilesystem(const std::filesystem::path& path);
@@ -67,8 +67,8 @@ namespace bricksim::ldr::file_repo {
         std::filesystem::path basePath;
 
     private:
-        std::map<std::string, std::pair<FileType, std::shared_ptr<File>>> files;
-        std::map<std::string, std::set<std::shared_ptr<File>>> partsByCategory;
+        uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>> files;
+        omap_t<std::string, oset_t<std::shared_ptr<File>>> partsByCategory;
     };
 
     FileRepo& get();

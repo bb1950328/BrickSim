@@ -1,6 +1,7 @@
 #pragma once
 
 #include "info_providers/price_guide_provider.h"
+#include "types.h"
 #include <optional>
 #include <set>
 #include <string>
@@ -30,9 +31,9 @@ namespace bricksim::db {
         int getSize();
         void put(const std::string& name, const std::string& title, const std::string& category);
         void put(const std::vector<Entry>& entries);
-        std::set<std::string> getAllCategories();
-        std::set<std::string> getAllFiles();
-        std::set<std::string> getAllPartsForCategory(const std::string& category);
+        oset_t<std::string> getAllCategories();
+        uoset_t<std::string> getAllFiles();
+        oset_t<std::string> getAllPartsForCategory(const std::string& category);
         std::optional<std::string> containsFile(const std::string& name);
         std::optional<Entry> findFile(const std::string& name);
     }

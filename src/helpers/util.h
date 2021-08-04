@@ -4,8 +4,8 @@
 #include "ray.h"
 #include <filesystem>
 #include <glm/glm.hpp>
-#include <string>
 #include <optional>
+#include <string>
 
 namespace bricksim::util {
 
@@ -111,7 +111,7 @@ namespace bricksim::util {
     std::optional<glm::vec3> rayPlaneIntersection(const Ray3& ray, const Ray3& planeNormal);
 
     float getAngleBetweenThreePointsUnsigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
-    float getAngleBetweenThreePointsSigned(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c, const glm::vec3 &planeNormal);
+    float getAngleBetweenThreePointsSigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& planeNormal);
 
     // texture/image functions
     std::string translateBrickLinkColorNameToLDraw(std::string colorName);
@@ -135,4 +135,14 @@ namespace bricksim::util {
     std::pair<int, std::string> requestGET(const std::string& url, bool useCache = true, size_t sizeLimit = 0, int (*progressFunc)(void*, long, long, long, long) = nullptr);
 
     std::string readFileToString(const std::filesystem::path& path);
+
+    template<class none = void>
+    std::size_t combinedHash() {
+        return 17;
+    }
+
+    template<typename T1, typename... Ts>
+    std::size_t combinedHash(const T1& value1, const Ts&... values) {
+        return combinedHash(values...) * 31 + std::hash<T1>()(value1);
+    }
 }

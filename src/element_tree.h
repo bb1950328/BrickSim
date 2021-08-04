@@ -96,7 +96,7 @@ namespace bricksim::etree {
         void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
         std::string getDescription() override;
         std::shared_ptr<ldr::File> ldrFile;
-        std::set<std::shared_ptr<ldr::SubfileReference>> childrenWithOwnNode;
+        uoset_t<std::shared_ptr<ldr::SubfileReference>> childrenWithOwnNode;
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
 

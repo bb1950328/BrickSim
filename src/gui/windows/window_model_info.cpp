@@ -26,7 +26,7 @@ namespace bricksim::gui::windows::model_info {
 
     void draw(bricksim::gui::windows::Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
-            std::set<std::shared_ptr<etree::Node>> nodes = controller::getSelectedNodes();
+            uoset_t<std::shared_ptr<etree::Node>> nodes = controller::getSelectedNodes();
             if (!nodes.empty()) {
                 ImGui::Text("Statistics of the %zu selected elements:", nodes.size());
             } else {

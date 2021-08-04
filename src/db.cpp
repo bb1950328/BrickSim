@@ -264,28 +264,28 @@ namespace bricksim::db {
             stmt.exec();
         }
 
-        std::set<std::string> getAllCategories() {
-            SQLite::Statement stmt(cacheDb.value(), "SELECT DISTINCT category FROM files;");
-            std::set<std::string> result;
+        oset_t<std::string> getAllCategories() {
+            SQLite::Statement stmt(cacheDb.value(), "SELECT DISTINCT category FROM files ORDER BY category;");
+            oset_t<std::string> result;
             while (stmt.executeStep()) {
                 result.insert(stmt.getColumn(0));
             }
             return result;
         }
 
-        std::set<std::string> getAllFiles() {
+        uoset_t<std::string> getAllFiles() {
             SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files;");
-            std::set<std::string> result;
+            uoset_t<std::string> result;
             while (stmt.executeStep()) {
                 result.insert(stmt.getColumn(0));
             }
             return result;
         }
 
-        std::set<std::string> getAllPartsForCategory(const std::string& category) {
-            SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files WHERE category=?;");
+        oset_t<std::string> getAllPartsForCategory(const std::string& category) {
+            SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files WHERE category=? ORDER BY title;");
             stmt.bind(1, category);
-            std::set<std::string> result;
+            oset_t<std::string> result;
             while (stmt.executeStep()) {
                 result.insert(stmt.getColumn(0));
             }

@@ -14,6 +14,4 @@ target_sources(BrickSimLib PRIVATE
         system_info.h
         util.cpp
         util.h
-        zip_buffer.cpp
-        zip_buffer.h
         )

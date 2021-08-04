@@ -375,7 +375,7 @@ namespace bricksim::graphics {
 
     namespace scenes {
         namespace {
-            std::map<scene_id_t, std::shared_ptr<Scene>> createdScenes;
+            uomap_t<scene_id_t, std::shared_ptr<Scene>> createdScenes;
         }
 
         std::shared_ptr<Scene> create(scene_id_t sceneId) {
@@ -398,7 +398,7 @@ namespace bricksim::graphics {
             createdScenes.clear();
         }
 
-        std::map<scene_id_t, std::shared_ptr<Scene>>& getAll() {
+        uomap_t<scene_id_t, std::shared_ptr<Scene>>& getAll() {
             return createdScenes;
         }
     }

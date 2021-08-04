@@ -7,7 +7,7 @@ namespace bricksim::gears {
                const int numTeeth,
                const int radiusLdu,
                const GearType type,
-               std::set<const char*> ldrParts) :
+               uoset_t<const char*> ldrParts) :
         id(id),
         description(description),
         numTeeth(numTeeth),
@@ -81,7 +81,7 @@ namespace bricksim::gears {
     }
 
     gear_collection_t& getAllGearsOfType(GearType type) {
-        static std::map<GearType, std::set<gear_t>> byType;
+        static omap_t<GearType, oset_t<gear_t>> byType;
         if (byType.empty()) {
             for (const auto& gear: ALL_GEARS) {
                 byType[gear->type].insert(gear);

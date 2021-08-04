@@ -31,9 +31,9 @@ namespace bricksim::overlay2d {
 
     class ElementCollection {
     private:
-        std::set<std::shared_ptr<Element>> elements;
-        std::set<std::shared_ptr<Element>> changedElements;
-        std::map<std::shared_ptr<Element>, VertexRange> vertexRanges;
+        uoset_t<std::shared_ptr<Element>> elements;
+        uoset_t<std::shared_ptr<Element>> changedElements;
+        uomap_t<std::shared_ptr<Element>, VertexRange> vertexRanges;
         std::vector<Vertex> vertices;
         coord_t lastWrittenViewportSize{0, 0};
 

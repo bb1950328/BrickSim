@@ -78,7 +78,7 @@ namespace bricksim::gui::windows::part_palette {
             float thumbnailContainerWidth = totalWidth - categorySelectWidth - itemSpacingX;
             //static const auto partsGrouped = ldr::file_repo::getAllPartsGroupedByCategory();
             static const auto partCategories = ldr::file_repo::get().getAllCategories();
-            static std::set<std::string> selectedCategories = {*partCategories.begin()};//first category preselected
+            static uoset_t<std::string> selectedCategories = {*partCategories.begin()};//first category preselected
 
             ImGui::BeginChild("##categorySelectTree", ImVec2(categorySelectWidth, 0));
             for (const auto& category: partCategories) {

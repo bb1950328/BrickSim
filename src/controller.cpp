@@ -41,7 +41,7 @@ namespace bricksim::controller {
 
         bool userWantsToExit = false;
 
-        std::set<std::shared_ptr<etree::Node>> selectedNodes;
+        uoset_t<std::shared_ptr<etree::Node>> selectedNodes;
         std::shared_ptr<etree::Node> currentlyEditingNode;
         enum class DraggingNodeType {
             NONE,
@@ -50,7 +50,7 @@ namespace bricksim::controller {
         DraggingNodeType currentlyDraggingNodeType = DraggingNodeType::NONE;//todo change this to object oriented design
         transform_gizmo::RotationState transformGizmoRotationState = transform_gizmo::RotationState::WORLD;
 
-        std::map<unsigned int, Task*> backgroundTasks;//todo smart pointer
+        uomap_t<unsigned int, Task*> backgroundTasks;//todo smart pointer
         std::queue<Task*> foregroundTasks;
 
         std::chrono::milliseconds idle_sleep(25);
@@ -311,7 +311,7 @@ namespace bricksim::controller {
 
         void cleanup() {
             ldr::file_repo::get().cleanup();
-            auto& bgTasks = getBackgroundTasks();
+            const auto& bgTasks = getBackgroundTasks();
             spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
             for (auto& task: bgTasks) {
                 task.second->joinThread();
@@ -638,7 +638,7 @@ namespace bricksim::controller {
         userWantsToExit = val;
     }
 
-    std::set<std::shared_ptr<etree::Node>>& getSelectedNodes() {
+    uoset_t<std::shared_ptr<etree::Node>>& getSelectedNodes() {
         return selectedNodes;
     }
 
@@ -650,7 +650,7 @@ namespace bricksim::controller {
         return thumbnailGenerator;
     }
 
-    std::map<unsigned int, Task*>& getBackgroundTasks() {
+    uomap_t<unsigned int, Task*>& getBackgroundTasks() {
         checkForFinishedBackgroundTasks();
         return backgroundTasks;
     }

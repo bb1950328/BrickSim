@@ -13,7 +13,7 @@ namespace bricksim::graphics {
             discardAllImages();
             renderedRotationDegrees = rotationDegrees;
         }
-        file_key_t fileKey = {ldrFile, color};
+        thumbnail_file_key_t fileKey = {ldrFile, color};
         auto imgIt = images.find(fileKey);
         if (imgIt == images.end()) {
             spdlog::debug("rendering thumbnail {} in {}", ldrFile->getDescription(), color.get()->name);
@@ -84,7 +84,7 @@ namespace bricksim::graphics {
             discardAllImages();
             renderedRotationDegrees = rotationDegrees;
         }
-        file_key_t fileKey = {ldrFile, color};
+        thumbnail_file_key_t fileKey = {ldrFile, color};
         auto imgIt = images.find(fileKey);
         if (imgIt == images.end()) {
             if (std::find(renderRequests.begin(), renderRequests.end(), fileKey) == renderRequests.end()) {
@@ -143,12 +143,12 @@ namespace bricksim::graphics {
     }
 
     bool ThumbnailGenerator::isThumbnailAvailable(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color) {
-        file_key_t fileKey = {ldrFile, color};
+        thumbnail_file_key_t fileKey = {ldrFile, color};
         return images.find(fileKey) != images.end();
     }
 
     void ThumbnailGenerator::removeFromRenderQueue(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color) {
-        file_key_t fileKey = {ldrFile, color};
+        thumbnail_file_key_t fileKey = {ldrFile, color};
         auto it = std::find(renderRequests.begin(), renderRequests.end(), fileKey);
         if (it != renderRequests.end()) {
             renderRequests.erase(it);

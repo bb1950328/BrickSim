@@ -16,12 +16,12 @@ namespace bricksim::info_providers::bricklink_constants {
             return 0;
         }
 
-        std::map<int, bricklink::ColorFamily> colorFamilies;
-        std::map<int, bricklink::ColorType> colorTypes;
-        std::map<int, bricklink::Color> colors;
-        std::map<int, bricklink::Currency> currencies;
-        std::map<std::string, bricklink::Country> countries;
-        std::map<int, bricklink::Continent> continents;
+        uomap_t<int, bricklink::ColorFamily> colorFamilies;
+        uomap_t<int, bricklink::ColorType> colorTypes;
+        uomap_t<int, bricklink::Color> colors;
+        uomap_t<int, bricklink::Currency> currencies;
+        uomap_t<std::string, bricklink::Country> countries;
+        uomap_t<int, bricklink::Continent> continents;
     }
 
     void initialize(float* progress) {
@@ -98,27 +98,27 @@ namespace bricksim::info_providers::bricklink_constants {
         initialized = true;
     }
 
-    const std::map<int, bricklink::ColorFamily>& getColorFamilies() {
+    const uomap_t<int, bricklink::ColorFamily>& getColorFamilies() {
         return colorFamilies;
     }
 
-    const std::map<int, bricklink::ColorType>& getColorTypes() {
+    const uomap_t<int, bricklink::ColorType>& getColorTypes() {
         return colorTypes;
     }
 
-    const std::map<int, bricklink::Color>& getColors() {
+    const uomap_t<int, bricklink::Color>& getColors() {
         return colors;
     }
 
-    const std::map<int, bricklink::Currency>& getCurrencies() {
+    const uomap_t<int, bricklink::Currency>& getCurrencies() {
         return currencies;
     }
 
-    const std::map<std::string, bricklink::Country>& getCountries() {
+    const uomap_t<std::string, bricklink::Country>& getCountries() {
         return countries;
     }
 
-    const std::map<int, bricklink::Continent>& getContinents() {
+    const uomap_t<int, bricklink::Continent>& getContinents() {
         return continents;
     }
 }

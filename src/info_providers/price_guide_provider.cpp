@@ -27,7 +27,7 @@ namespace bricksim::info_providers::price_guide {
             return {};
         }
 
-        std::map<const std::string, int> idItems;
+        uomap_t<std::string, int> idItems;
 
         int getIdItem(const std::string& partCode) {
             //todo save in cache db

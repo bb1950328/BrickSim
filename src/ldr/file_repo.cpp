@@ -247,8 +247,8 @@ namespace bricksim::ldr::file_repo {
         }
     }
 
-    std::set<std::string> FileRepo::getAllCategories() {
-        static std::set<std::string> result;
+    oset_t<std::string> FileRepo::getAllCategories() {
+        static oset_t<std::string> result;
         if (result.empty()) {
             result = db::fileList::getAllCategories();
             for (const auto& pseudoCategory: PSEUDO_CATEGORIES) {
@@ -258,11 +258,11 @@ namespace bricksim::ldr::file_repo {
         return result;
     }
 
-    std::set<std::shared_ptr<File>> FileRepo::getAllFilesOfCategory(const std::string& categoryName) {
+    oset_t<std::shared_ptr<File>> FileRepo::getAllFilesOfCategory(const std::string& categoryName) {
         auto it = partsByCategory.find(categoryName);
         if (it == partsByCategory.end()) {
             const auto& fileNames = db::fileList::getAllPartsForCategory(categoryName);
-            std::set<std::shared_ptr<File>> result;
+            oset_t<std::shared_ptr<File>> result;
             for (const auto& fileName: fileNames) {
                 result.insert(getFile(fileName));
             }
@@ -276,7 +276,7 @@ namespace bricksim::ldr::file_repo {
         return getAllCategories().size() == partsByCategory.size();
     }
 
-    std::map<std::string, std::set<std::shared_ptr<File>>> FileRepo::getAllPartsGroupedByCategory() {
+    omap_t<std::string, oset_t<std::shared_ptr<File>>> FileRepo::getAllPartsGroupedByCategory() {
         if (!areAllPartsLoaded()) {
             for (const auto& ca: getAllCategories()) {
                 if (partsByCategory.find(ca) == partsByCategory.end()) {
@@ -288,7 +288,7 @@ namespace bricksim::ldr::file_repo {
         return partsByCategory;
     }
 
-    std::map<std::string, std::set<std::shared_ptr<File>>> FileRepo::getLoadedPartsGroupedByCategory() {
+    omap_t<std::string, oset_t<std::shared_ptr<File>>> FileRepo::getLoadedPartsGroupedByCategory() {
         return partsByCategory;
     }
 

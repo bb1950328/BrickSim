@@ -34,7 +34,7 @@ namespace bricksim::ldr {
         std::string title;               //usually the first line in the file
         std::string name;                //0 Name: xxxxx
         std::string author;              //0 Author: xxxxx
-        std::set<std::string> keywords;  //0 !KEYWORDS xxx, yyyy, zzzz
+        oset_t<std::string> keywords;    //0 !KEYWORDS xxx, yyyy, zzzz
         std::vector<std::string> history;//0 !HISTORY xxxx
         std::string license;             //0 !LICENSE xxxx
         std::string theme;               //0 !THEME
@@ -56,13 +56,12 @@ namespace bricksim::ldr {
         virtual ~File();
 
         std::vector<std::shared_ptr<FileElement>> elements;
-        std::set<std::shared_ptr<File>> mpdSubFiles;
+        uoset_t<std::shared_ptr<File>> mpdSubFiles;
         FileMetaInfo metaInfo;
 
         void printStructure(int indent = 0);
         [[nodiscard]] const std::string& getDescription() const;
         [[nodiscard]] const std::size_t& getHash() const;
-        static std::shared_ptr<File> parseFile(FileType fileType, const std::string& name, const std::string& content);
 
         void addTextLine(const std::string& line);
 

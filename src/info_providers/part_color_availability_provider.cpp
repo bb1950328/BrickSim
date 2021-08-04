@@ -6,8 +6,8 @@
 namespace bricksim::info_providers::part_color_availability {
 
     namespace {
-        std::map<std::string, ldr::ColorReference> colorsByName;
-        std::map<const std::string, std::set<ldr::ColorReference>> colorsAvailable;
+        uomap_t<std::string, ldr::ColorReference> colorsByName;
+        uomap_t<std::string, uoset_t<ldr::ColorReference>> colorsAvailable{};
 
         bool isDataAvailable = false;
 
@@ -25,7 +25,7 @@ namespace bricksim::info_providers::part_color_availability {
                         colorsByName[item.second->name] = item.second->asReference();
                     }
 
-                    std::set<std::string> colorsInCodesTxtButNotInLdrColors;
+                    uoset_t<std::string> colorsInCodesTxtButNotInLdrColors;
 
                     std::string line;
                     std::getline(codesFile, line);//skip header
@@ -51,7 +51,7 @@ namespace bricksim::info_providers::part_color_availability {
         }
     }
 
-    std::optional<std::set<ldr::ColorReference>> getAvailableColorsForPart(const std::shared_ptr<ldr::File>& part) {
+    std::optional<uoset_t<ldr::ColorReference>> getAvailableColorsForPart(const std::shared_ptr<ldr::File>& part) {
         ensureDataLoaded();
         std::string partCode = part->metaInfo.name;
         util::replaceAll(partCode, ".dat", "");

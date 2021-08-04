@@ -6,7 +6,7 @@
 #include <glm/gtx/transform.hpp>
 
 namespace bricksim::mesh {
-    std::map<mesh_key_t, std::shared_ptr<Mesh>> SceneMeshCollection::allMeshes;
+    uomap_t<mesh_key_t, std::shared_ptr<Mesh>> SceneMeshCollection::allMeshes;
 
     mesh_key_t SceneMeshCollection::getMeshKey(const std::shared_ptr<etree::MeshNode>& node, bool windingOrderInverse) {
         return std::make_pair(node->getMeshIdentifier(), windingOrderInverse);
@@ -251,7 +251,7 @@ namespace bricksim::mesh {
                 glm::vec4(x2, y2, z2, 1.0f)};
     }
 
-    const std::set<layer_t>& SceneMeshCollection::getLayersInUse() const {
+    const oset_t<layer_t>& SceneMeshCollection::getLayersInUse() const {
         return layersInUse;
     }
 
@@ -267,7 +267,7 @@ namespace bricksim::mesh {
         allMeshes.clear();
     }
 
-    const std::set<std::shared_ptr<Mesh>>& SceneMeshCollection::getUsedMeshes() const {
+    const uoset_t<std::shared_ptr<Mesh>>& SceneMeshCollection::getUsedMeshes() const {
         return usedMeshes;
     }
 }

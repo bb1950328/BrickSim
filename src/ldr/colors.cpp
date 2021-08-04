@@ -89,8 +89,8 @@ namespace bricksim::ldr {
 
     namespace color_repo {
         namespace {
-            std::map<Color::code_t, std::shared_ptr<Color>> colors;
-            std::map<std::string, ColorReference> pureColors;
+            uomap_t<Color::code_t, std::shared_ptr<Color>> colors;
+            uomap_t<std::string, ColorReference> pureColors;
             std::vector<Color::code_t> hueSortedCodes;
             std::shared_ptr<LdrInstanceDummyColor> instDummyColor;
 
@@ -134,8 +134,8 @@ namespace bricksim::ldr {
             }
         }
 
-        std::map<std::string, std::vector<ColorReference>> getAllColorsGroupedAndSortedByHue() {
-            std::map<std::string, std::vector<ColorReference>> result;
+        omap_t<std::string, std::vector<ColorReference>> getAllColorsGroupedAndSortedByHue() {
+            omap_t<std::string, std::vector<ColorReference>> result;
             for (const auto& colorPair: colors) {
                 if (colorPair.second->visibleInLists
                     && colorPair.first != Color::MAIN_COLOR_CODE
@@ -146,7 +146,7 @@ namespace bricksim::ldr {
             return result;
         }
 
-        std::map<int, std::shared_ptr<Color>>& getColors() {
+        uomap_t<int, std::shared_ptr<Color>>& getColors() {
             return colors;
         }
 

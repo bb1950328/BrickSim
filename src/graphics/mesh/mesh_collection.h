@@ -2,29 +2,42 @@
 
 #include "../../element_tree.h"
 #include "mesh.h"
+#include "../../helpers/util.h"
 #include <set>
 
 namespace bricksim::mesh {
     typedef std::pair<mesh_identifier_t, bool> mesh_key_t;
+}
+
+namespace std {
+    template<>
+    struct hash<bricksim::mesh::mesh_key_t> {
+        std::size_t operator()(bricksim::mesh::mesh_key_t value) const {
+            return bricksim::util::combinedHash(value.first, value.second);
+        }
+    };
+}
+
+namespace bricksim::mesh {
     /**
  * the purpose of this class is to manage the meshInstances of a Scene object
  */
     class SceneMeshCollection {
     private:
-        std::set<std::shared_ptr<Mesh>> usedMeshes, lastUsedMeshes;
-        std::set<layer_t> layersInUse;
+        uoset_t<std::shared_ptr<Mesh>> usedMeshes, lastUsedMeshes;
+        oset_t<layer_t> layersInUse;
         scene_id_t scene;
         std::shared_ptr<etree::Node> rootNode;
 
-        std::map<mesh_key_t, std::vector<MeshInstance>> newMeshInstances;
-        std::set<std::shared_ptr<etree::Node>> nodesWithChildrenAlreadyVisited;
+        uomap_t<mesh_key_t, std::vector<MeshInstance>> newMeshInstances;
+        uoset_t<std::shared_ptr<etree::Node>> nodesWithChildrenAlreadyVisited;
         std::vector<std::shared_ptr<etree::Node>> elementsSortedById;
 
         void updateMeshInstances();
         void readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4& parentAbsoluteTransformation, std::optional<ldr::ColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId);
         [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBoxInternal(const std::shared_ptr<const etree::MeshNode>& node) const;
 
-        static std::map<mesh_key_t, std::shared_ptr<Mesh>> allMeshes;
+        static uomap_t<mesh_key_t, std::shared_ptr<Mesh>> allMeshes;
 
     public:
         explicit SceneMeshCollection(scene_id_t scene);
@@ -35,7 +48,7 @@ namespace bricksim::mesh {
         void updateSelectionContainerBox();
 
         [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBox(const std::shared_ptr<const etree::MeshNode>& node) const;
-        [[nodiscard]] const std::set<layer_t>& getLayersInUse() const;
+        [[nodiscard]] const oset_t<layer_t>& getLayersInUse() const;
         [[nodiscard]] std::shared_ptr<etree::Node> getElementById(element_id_t id) const;
         [[nodiscard]] const std::shared_ptr<etree::Node>& getRootNode() const;
         void setRootNode(const std::shared_ptr<etree::Node>& newRootNode);
@@ -47,7 +60,7 @@ namespace bricksim::mesh {
 
         static mesh_key_t getMeshKey(const std::shared_ptr<etree::MeshNode>& node, bool windingOrderInverse);
         static std::shared_ptr<Mesh> getMesh(mesh_key_t key, const std::shared_ptr<etree::MeshNode>& node);
-        [[nodiscard]] const std::set<std::shared_ptr<Mesh>>& getUsedMeshes() const;
+        [[nodiscard]] const uoset_t<std::shared_ptr<Mesh>>& getUsedMeshes() const;
         static void deleteAllMeshes();
     };
 }

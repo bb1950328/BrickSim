@@ -41,7 +41,7 @@ namespace bricksim::transform_gizmo {
     }
 
     void TransformGizmo::update() {
-        std::set<std::shared_ptr<etree::Node>>& selectedNodes = controller::getSelectedNodes();
+        uoset_t<std::shared_ptr<etree::Node>>& selectedNodes = controller::getSelectedNodes();
         currentlySelectedNode = selectedNodes.size() == 1 ? *selectedNodes.begin() : nullptr;
 
         std::optional<glm::mat4> nowTransformation;

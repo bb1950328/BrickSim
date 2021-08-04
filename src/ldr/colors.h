@@ -91,10 +91,19 @@ namespace bricksim::ldr {
 
         void initialize();
         std::shared_ptr<const Color> getColor(Color::code_t colorCode);
-        std::map<std::string, std::vector<ColorReference>> getAllColorsGroupedAndSortedByHue();
-        std::map<int, std::shared_ptr<Color>>& getColors();
+        omap_t<std::string, std::vector<ColorReference>> getAllColorsGroupedAndSortedByHue();
+        uomap_t<int, std::shared_ptr<Color>>& getColors();
         ColorReference getInstanceDummyColor();
         ColorReference getPureColor(const std::string& htmlCode);
         ColorReference getPureColor(const color::RGB& color);
+    };
+}
+
+namespace std {
+    template<>
+    struct hash<bricksim::ldr::ColorReference> {
+        std::size_t operator()(bricksim::ldr::ColorReference value) const {
+            return hash<int>()(value.code);
+        }
     };
 }

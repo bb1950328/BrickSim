@@ -1,9 +1,6 @@
 #include "orientation_cube.h"
 #include "../constant_data/resources.h"
 #include "../controller.h"
-#include "scene.h"
-#include <fmt/format.h>
-#include <glm/ext/matrix_transform.hpp>
 #include <magic_enum.hpp>
 
 namespace bricksim::graphics::orientation_cube {

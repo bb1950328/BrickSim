@@ -1,6 +1,7 @@
 #include "files.h"
 #include "../helpers/util.h"
 #include "file_repo.h"
+#include <fast_float/fast_float.h>
 #include <iostream>
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -169,6 +170,12 @@ namespace bricksim::ldr {
         content = line;
     }
 
+    inline void parseNextFloat(const std::string& line, size_t& start, size_t& end, float& result) {
+        start = line.find_first_not_of(" \t", end);
+        end = line.find_first_of(" \t", start);
+        fast_float::from_chars(&line[start], &line[end], result);
+    }
+
     SubfileReference::SubfileReference(std::string& line, bool bfcInverted) :
         bfcInverted(bfcInverted) {
         char* rest = &line[0];
@@ -202,141 +209,88 @@ namespace bricksim::ldr {
     }
 
     Line::Line(std::string& line) {
-        char* rest = &line[0];
-        char* pch = strtok_r(rest, " \t", &rest);
-        color = atoi(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        x1 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        y1 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        z1 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        x2 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        y2 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        z2 = atof(pch);
+        size_t start = 0;
+        size_t end = line.find_first_of(" \t", start);
+        color = std::atoi(line.c_str());
+        parseNextFloat(line, start, end, x1);
+        parseNextFloat(line, start, end, y1);
+        parseNextFloat(line, start, end, z1);
+        parseNextFloat(line, start, end, x2);
+        parseNextFloat(line, start, end, y2);
+        parseNextFloat(line, start, end, z2);
     }
 
     Triangle::Triangle(std::string& line, WindingOrder order) {
-        char* rest = &line[0];
-        char* pch = strtok_r(rest, " \t", &rest);
-        color = atoi(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        x1 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        y1 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        z1 = atof(pch);
+        size_t start = 0;
+        size_t end = line.find_first_of(" \t", start);
+        color = std::atoi(line.c_str());
+        parseNextFloat(line, start, end, x1);
+        parseNextFloat(line, start, end, y1);
+        parseNextFloat(line, start, end, z1);
         if (order == CCW) {
-            pch = strtok_r(rest, " \t", &rest);
-            x2 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            y2 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            z2 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            x3 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            y3 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            z3 = atof(pch);
+            parseNextFloat(line, start, end, x2);
+            parseNextFloat(line, start, end, y2);
+            parseNextFloat(line, start, end, z2);
+            parseNextFloat(line, start, end, x3);
+            parseNextFloat(line, start, end, y3);
+            parseNextFloat(line, start, end, z3);
         } else {
-            pch = strtok_r(rest, " \t", &rest);
-            x3 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            y3 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            z3 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            x2 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            y2 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            z2 = atof(pch);
+            parseNextFloat(line, start, end, x3);
+            parseNextFloat(line, start, end, y3);
+            parseNextFloat(line, start, end, z3);
+            parseNextFloat(line, start, end, x2);
+            parseNextFloat(line, start, end, y2);
+            parseNextFloat(line, start, end, z2);
         }
     }
 
     Quadrilateral::Quadrilateral(std::string& line, WindingOrder order) {
-        char* rest = &line[0];
-        char* pch = strtok_r(rest, " \t", &rest);
-        color = atoi(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        x1 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        y1 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        z1 = atof(pch);
+        size_t start = 0;
+        size_t end = line.find_first_of(" \t", start);
+        color = std::atoi(line.c_str());
+        parseNextFloat(line, start, end, x1);
+        parseNextFloat(line, start, end, y1);
+        parseNextFloat(line, start, end, z1);
+
         if (order == CCW) {
-            pch = strtok_r(rest, " \t", &rest);
-            x2 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            y2 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            z2 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            x3 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            y3 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            z3 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            x4 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            y4 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            z4 = atof(pch);
+            parseNextFloat(line, start, end, x2);
+            parseNextFloat(line, start, end, y2);
+            parseNextFloat(line, start, end, z2);
+            parseNextFloat(line, start, end, x3);
+            parseNextFloat(line, start, end, y3);
+            parseNextFloat(line, start, end, z3);
+            parseNextFloat(line, start, end, x4);
+            parseNextFloat(line, start, end, y4);
+            parseNextFloat(line, start, end, z4);
         } else {
-            pch = strtok_r(rest, " \t", &rest);
-            x4 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            y4 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            z4 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            x3 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            y3 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            z3 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            x2 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            y2 = atof(pch);
-            pch = strtok_r(rest, " \t", &rest);
-            z2 = atof(pch);
+            parseNextFloat(line, start, end, x4);
+            parseNextFloat(line, start, end, y4);
+            parseNextFloat(line, start, end, z4);
+            parseNextFloat(line, start, end, x3);
+            parseNextFloat(line, start, end, y3);
+            parseNextFloat(line, start, end, z3);
+            parseNextFloat(line, start, end, x2);
+            parseNextFloat(line, start, end, y2);
+            parseNextFloat(line, start, end, z2);
         }
     }
 
     OptionalLine::OptionalLine(std::string& line) {
-        char* rest = &line[0];
-        char* pch = strtok_r(rest, " \t", &rest);
-        color = atoi(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        x1 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        y1 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        z1 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        x2 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        y2 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        z2 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        controlX1 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        controlY1 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        controlZ1 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        controlX2 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        controlY2 = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        controlZ2 = atof(pch);
+        size_t start = 0;
+        size_t end = line.find_first_of(" \t", start);
+        color = std::atoi(line.c_str());
+        parseNextFloat(line, start, end, x1);
+        parseNextFloat(line, start, end, y1);
+        parseNextFloat(line, start, end, z1);
+        parseNextFloat(line, start, end, x2);
+        parseNextFloat(line, start, end, y2);
+        parseNextFloat(line, start, end, z2);
+        parseNextFloat(line, start, end, controlX1);
+        parseNextFloat(line, start, end, controlY1);
+        parseNextFloat(line, start, end, controlZ1);
+        parseNextFloat(line, start, end, controlX2);
+        parseNextFloat(line, start, end, controlY2);
+        parseNextFloat(line, start, end, controlZ2);
     }
 
     int CommentOrMetaElement::getType() const {

@@ -44,3 +44,6 @@
 [submodule "src/lib/Compile-time-hash-functions"]
 	path = src/lib/Compile-time-hash-functions
 	url = https://github.com/bb1950328/Compile-time-hash-functions.git
+[submodule "src/lib/fast_float"]
+	path = src/lib/fast_float
+	url = git@github.com:fastfloat/fast_float.git

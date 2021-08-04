@@ -213,6 +213,10 @@ target_link_libraries(BrickSimLib PRIVATE magic_enum::magic_enum)
 add_subdirectory(src/lib/Compile-time-hash-functions)
 target_link_libraries(BrickSimLib PRIVATE compile_time_hash)
 
+#fast_float
+add_subdirectory(src/lib/fast_float)
+target_link_libraries(BrickSimLib PRIVATE fast_float)
+
 add_subdirectory(src)
 
 if (WIN32)

@@ -94,7 +94,7 @@ namespace bricksim::ldr {
         explicit SubfileReference(std::string& line, bool bfcInverted);
         bool bfcInverted;
         ColorReference color;
-        double x, y, z, a, b, c, d, e, f, g, h, i;
+        float x, y, z, a, b, c, d, e, f, g, h, i;
         std::string filename;
         [[nodiscard]] int getType() const override;
         [[nodiscard]] glm::mat4 getTransformationMatrix() const;
@@ -107,7 +107,7 @@ namespace bricksim::ldr {
     class Line : public FileElement {
     public:
         ColorReference color;
-        double x1, y1, z1, x2, y2, z2;
+        float x1, y1, z1, x2, y2, z2;
 
         explicit Line(std::string& line);
 
@@ -117,7 +117,7 @@ namespace bricksim::ldr {
     class Triangle : public FileElement {
     public:
         ColorReference color;
-        double x1, y1, z1, x2, y2, z2, x3, y3, z3;
+        float x1, y1, z1, x2, y2, z2, x3, y3, z3;
 
         explicit Triangle(std::string& line, WindingOrder order);
 
@@ -127,7 +127,7 @@ namespace bricksim::ldr {
     class Quadrilateral : public FileElement {
     public:
         ColorReference color;
-        double x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
+        float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
 
         explicit Quadrilateral(std::string& line, WindingOrder order);
 
@@ -138,7 +138,7 @@ namespace bricksim::ldr {
     public:
         ColorReference color;
 
-        double x1, y1, z1, x2, y2, z2, controlX1, controlY1, controlZ1, controlX2, controlY2, controlZ2;
+        float x1, y1, z1, x2, y2, z2, controlX1, controlY1, controlZ1, controlX2, controlY2, controlZ2;
 
         explicit OptionalLine(std::string& line);
 

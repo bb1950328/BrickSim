@@ -178,38 +178,26 @@ namespace bricksim::ldr {
 
     SubfileReference::SubfileReference(std::string& line, bool bfcInverted) :
         bfcInverted(bfcInverted) {
-        char* rest = &line[0];
-        char* pch = strtok_r(rest, " \t", &rest);
-        color = atoi(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        x = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        y = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        z = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        a = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        b = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        c = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        d = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        e = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        f = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        g = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        h = atof(pch);
-        pch = strtok_r(rest, " \t", &rest);
-        i = atof(pch);
-        filename = util::trim(std::string(rest));
+        size_t start = line.find_first_not_of(" \t");
+        size_t end = line.find_first_of(" \t", start);
+        color = std::atoi(line.c_str());
+        parseNextFloat(line, start, end, x);
+        parseNextFloat(line, start, end, y);
+        parseNextFloat(line, start, end, z);
+        parseNextFloat(line, start, end, a);
+        parseNextFloat(line, start, end, b);
+        parseNextFloat(line, start, end, c);
+        parseNextFloat(line, start, end, d);
+        parseNextFloat(line, start, end, e);
+        parseNextFloat(line, start, end, f);
+        parseNextFloat(line, start, end, g);
+        parseNextFloat(line, start, end, h);
+        parseNextFloat(line, start, end, i);
+        filename = util::trim(line.substr(end+1));
     }
 
     Line::Line(std::string& line) {
-        size_t start = 0;
+        size_t start = line.find_first_not_of(" \t");
         size_t end = line.find_first_of(" \t", start);
         color = std::atoi(line.c_str());
         parseNextFloat(line, start, end, x1);
@@ -221,7 +209,7 @@ namespace bricksim::ldr {
     }
 
     Triangle::Triangle(std::string& line, WindingOrder order) {
-        size_t start = 0;
+        size_t start = line.find_first_not_of(" \t");
         size_t end = line.find_first_of(" \t", start);
         color = std::atoi(line.c_str());
         parseNextFloat(line, start, end, x1);
@@ -245,7 +233,7 @@ namespace bricksim::ldr {
     }
 
     Quadrilateral::Quadrilateral(std::string& line, WindingOrder order) {
-        size_t start = 0;
+        size_t start = line.find_first_not_of(" \t");
         size_t end = line.find_first_of(" \t", start);
         color = std::atoi(line.c_str());
         parseNextFloat(line, start, end, x1);
@@ -276,7 +264,7 @@ namespace bricksim::ldr {
     }
 
     OptionalLine::OptionalLine(std::string& line) {
-        size_t start = 0;
+        size_t start = line.find_first_not_of(" \t");
         size_t end = line.find_first_of(" \t", start);
         color = std::atoi(line.c_str());
         parseNextFloat(line, start, end, x1);

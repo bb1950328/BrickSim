@@ -25,6 +25,7 @@ target_sources(BrickSimLib PRIVATE
         user_actions.h
         )
 
+add_subdirectory(benchmarks)
 add_subdirectory(constant_data)
 add_subdirectory(graphics)
 add_subdirectory(gui)

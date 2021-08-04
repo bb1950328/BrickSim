@@ -97,6 +97,9 @@ target_link_libraries(BrickSim PRIVATE BrickSimLib)
 add_executable(BrickSimTests src/test/catchMain.cpp)
 target_link_libraries(BrickSimTests PRIVATE BrickSimLib)
 
+add_executable(BrickSimBenchmarks src/benchmarks/benchMain.cpp)
+target_link_libraries(BrickSimBenchmarks PRIVATE BrickSimLib)
+
 # OpenGL
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
@@ -176,8 +179,9 @@ target_link_libraries(BrickSimLib PUBLIC spdlog::spdlog)
 
 #Catch2
 add_subdirectory(src/lib/Catch2)
-target_compile_definitions(BrickSimTests PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING)
 target_link_libraries(BrickSimTests PRIVATE Catch2::Catch2)
+target_compile_definitions(BrickSimBenchmarks PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING)
+target_link_libraries(BrickSimBenchmarks PRIVATE Catch2::Catch2)
 
 #GLM
 add_subdirectory(src/lib/glm)

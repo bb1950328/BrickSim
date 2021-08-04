@@ -10,7 +10,7 @@ namespace bricksim::ldr {
         return order == CW ? CCW : CW;
     }
 
-    std::shared_ptr<ldr::FileElement> ldr::FileElement::parseLine(const std::string& line, BfcState bfcState) {
+    std::shared_ptr<FileElement> FileElement::parseLine(const std::string& line, BfcState bfcState) {
         std::string lineContent = line.length() > 2 ? line.substr(2) : "";
         switch (line[0] - '0') {
             case 0: return std::make_shared<CommentOrMetaElement>(lineContent);

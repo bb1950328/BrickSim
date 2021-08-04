@@ -6,6 +6,7 @@
 #include "../texture.h"
 #include "mesh_line_data.h"
 #include "mesh_simple_classes.h"
+#include "mesh_textured_triangle_data.h"
 #include "mesh_triangle_data.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -30,7 +31,9 @@ namespace bricksim::mesh {
         [[nodiscard]] LineData& getLineData();
         [[nodiscard]] LineData& getOptionalLineData();
         [[nodiscard]] std::map<ldr::ColorReference, TriangleData>& getAllTriangleData();
-        [[nodiscard]] TriangleData& getTriangleData(const ldr::ColorReference color);
+        [[nodiscard]] TriangleData& getTriangleData(ldr::ColorReference color);
+        [[nodiscard]] std::map<texture_id_t, TexturedTriangleData>& getAllTexturedTriangleData();
+        [[nodiscard]] TexturedTriangleData& getTexturedTriangleData(std::shared_ptr<graphics::Texture>& texture);
 
         std::map<scene_id_t, std::map<layer_t, InstanceRange>> instanceSceneLayerRanges;
         std::optional<InstanceRange> getSceneInstanceRange(scene_id_t sceneId);
@@ -50,12 +53,10 @@ namespace bricksim::mesh {
 
         void addLdrFile(ldr::ColorReference mainColor, const std::shared_ptr<ldr::File>& file, const glm::mat4& transformation, bool bfcInverted);
         void addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, const glm::mat4& transformation, bool bfcInverted);
-        void addLdrLine(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::Line>& lineElement, const glm::mat4& transformation);
-        void addLdrTriangle(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::Triangle>& triangleElement, const glm::mat4& transformation, bool bfcInverted);
+        void addLdrLine(ldr::ColorReference mainColor, const std::shared_ptr<ldr::Line>& lineElement, const glm::mat4& transformation);
+        void addLdrTriangle(ldr::ColorReference mainColor, const std::shared_ptr<ldr::Triangle>& triangleElement, const glm::mat4& transformation, bool bfcInverted);
         void addLdrQuadrilateral(ldr::ColorReference mainColor, const std::shared_ptr<ldr::Quadrilateral>& quadrilateral, const glm::mat4& transformation, bool bfcInverted);
-        void addLdrOptionalLine(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::OptionalLine>& optionalLineElement, const glm::mat4& transformation);
-
-        void addTexturedTriangle(const std::shared_ptr<graphics::Texture>& texture, glm::vec3 pt1, glm::vec2 tc1, glm::vec3 pt2, glm::vec2 tc2, glm::vec3 pt3, glm::vec2 tc3);
+        void addLdrOptionalLine(ldr::ColorReference mainColor, const std::shared_ptr<ldr::OptionalLine>& optionalLineElement, const glm::mat4& transformation);
 
         void writeGraphicsData();
 
@@ -72,24 +73,18 @@ namespace bricksim::mesh {
         LineData lineData{GL_LINES};
         LineData optionalLineData{GL_LINES_ADJACENCY};
         std::map<ldr::ColorReference, TriangleData> triangleData;
+        std::map<texture_id_t, TexturedTriangleData> texturedTriangleData;
 
-        std::optional<OuterDimensions> outerDimensions = {};
 
-        std::map<texture_id_t, std::shared_ptr<graphics::Texture>> textures;
-        std::map<texture_id_t, std::vector<TexturedTriangleVertex>> textureVertices;
-        std::map<texture_id_t, std::tuple<unsigned int, unsigned int, unsigned int>> textureTriangleVaoVertexVboInstanceVbo;
-
-        bool already_initialized = false;
-
-        std::unique_ptr<TexturedTriangleInstance[], std::default_delete<TexturedTriangleInstance[]>> generateTexturedTriangleInstancesArray();
-
-        void initializeTexturedTriangleGraphics();
-
-        void rewriteInstanceBuffer();
+        bool alreadyInitialized = false;
 
         void addMinEnclosingBallLines();
         void calculateOuterDimensions();
+        std::optional<OuterDimensions> outerDimensions = {};
+
         void appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<MeshInstance>& newSceneInstances);
         std::vector<glm::mat4> getInstancesForLineData();
+        std::vector<TexturedTriangleInstance> getInstancesForTexturedTriangleData();
+        void rewriteInstanceBuffer();
     };
 }

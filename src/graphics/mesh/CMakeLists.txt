@@ -9,6 +9,8 @@ target_sources(BrickSimLib PRIVATE
         mesh_simple_classes.h
         mesh_line_data.cpp
         mesh_line_data.h
+        mesh_textured_triangle_data.cpp
+        mesh_textured_triangle_data.h
         mesh_triangle_data.cpp
         mesh_triangle_data.h
         )

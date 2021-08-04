@@ -160,7 +160,7 @@ namespace bricksim::mesh {
         vertices.push_back(vertex);
     }
 
-    void TriangleData::fillVerticesForOuterDimensions(std::unique_ptr<float*[]>& coords, size_t& coordCursor) {
+    void TriangleData::fillVerticesForOuterDimensions(std::unique_ptr<const float*[]>& coords, size_t& coordCursor) const {
         for (auto& item: vertices) {
             coords[coordCursor] = &item.position[0];
             ++coordCursor;

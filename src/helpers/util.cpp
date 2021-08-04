@@ -10,6 +10,7 @@
 #include <sstream>
 #include <stb_image.h>
 #include <stb_image_write.h>
+#include <magic_enum.hpp>
 
 #ifdef BRICKSIM_PLATFORM_WINDOWS
     #include <windows.h>
@@ -421,7 +422,9 @@ namespace bricksim::util {
         auto curl = curl_easy_init();
         if (!curl) {
             return {-1, ""};
-        };
+        }
+        char errorBuffer[CURL_ERROR_SIZE+1];
+        errorBuffer[0] = '\0';
 
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
@@ -430,6 +433,10 @@ namespace bricksim::util {
         curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
         curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_AUTOREFERER, true);
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10'000L);
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer);
 
         /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, [sizeLimit](void *ptr, size_t size, size_t nmemb, std::string *data) -> size_t {
             data->append((char *) ptr, size * nmemb);
@@ -454,8 +461,11 @@ namespace bricksim::util {
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
         curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
-        curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
+        const CURLcode result = curl_easy_perform(curl);
+
+        if (result != CURLE_OK) {
+            spdlog::error("cURL error on GET request to {}: {} | {}", url, magic_enum::enum_name(result), errorBuffer);
+        }
 
         char* effectiveUrl;
         long response_code;
@@ -464,9 +474,11 @@ namespace bricksim::util {
         curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &elapsed);
         curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &effectiveUrl);
 
-        if (useCache) {
+        if (useCache && 100 <= response_code && response_code < 400 && result==CURLE_OK && !response_string.empty()) {
             db::requestCache::put(url, response_string);
         }
+
+        curl_easy_cleanup(curl);
 
         return {response_code, response_string};
     }

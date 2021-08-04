@@ -6,6 +6,8 @@ namespace bricksim::mesh {
     class LineData {
     public:
         explicit LineData(unsigned int drawMode);
+        LineData(const LineData&) = delete;
+        LineData& operator=(const LineData&) = delete;
         void initBuffers(const std::vector<glm::mat4>& instances);
         void freeBuffers();
         void draw(const std::optional<InstanceRange>& sceneLayerInstanceRange);

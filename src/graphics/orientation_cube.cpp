@@ -2,7 +2,9 @@
 #include "../constant_data/resources.h"
 #include "../controller.h"
 #include "scene.h"
+#include <fmt/format.h>
 #include <glm/ext/matrix_transform.hpp>
+#include <magic_enum.hpp>
 
 namespace bricksim::graphics::orientation_cube {
     namespace {
@@ -89,7 +91,7 @@ namespace bricksim::graphics::orientation_cube {
 
     void OrientationCubeSideMeshNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
         auto texture = std::make_shared<Texture>(resources::orientation_cube_png.data(), resources::orientation_cube_png.size());
-
+        auto& data = mesh->getTexturedTriangleData(texture);
         /*
          0      1/6      1/3    1/2    2/3   5/6      1
          ********************************************** 1
@@ -105,80 +107,61 @@ namespace bricksim::graphics::orientation_cube {
          */
         switch (side) {
             case CubeSide::RIGHT:
-                mesh->addTexturedTriangle(texture,
-                                          {+1, +1, +1}, {1.0f / 6, 1}, /*rearRightBottom*/
-                                          {+1, -1, -1}, {0, 0},        /*frontRightTop*/
-                                          {+1, +1, -1}, {0, 1}         /*frontRightBottom*/
-                );                                                     // Right A
-                mesh->addTexturedTriangle(texture,
-                                          {+1, -1, -1}, {0, 0},        /*frontRightTop*/
-                                          {+1, +1, +1}, {1.0f / 6, 1}, /*rearRightBottom*/
-                                          {+1, -1, +1}, {1.0f / 6, 0}  /*rearRightTop*/
-                );                                                     // Right B
+                data.addVertex({{+1, +1, +1}, {1.0f / 6, 1}});//rearRightBottom
+                data.addVertex({{+1, -1, -1}, {0, 0}});       //frontRightTop
+                data.addVertex({{+1, +1, -1}, {0, 1}});       //frontRightBottom
+
+                data.addVertex({{+1, -1, -1}, {0, 0}});       //frontRightTop
+                data.addVertex({{+1, +1, +1}, {1.0f / 6, 1}});//rearRightBottom
+                data.addVertex({{+1, -1, +1}, {1.0f / 6, 0}});//rearRightTop
                 break;
             case CubeSide::BOTTOM:
-                mesh->addTexturedTriangle(texture,
-                                          {+1, -1, -1}, {1.0f / 3, 1},//frontRightTop
-                                          {-1, -1, +1}, {1.0f / 6, 0},//rearLeftTop
-                                          {-1, -1, -1}, {1.0f / 6, 1} //frontLeftTop
-                );                                                    //Top A
-                mesh->addTexturedTriangle(texture,
-                                          {-1, -1, +1}, {1.0f / 6, 0},//rearLeftTop
-                                          {+1, -1, -1}, {1.0f / 3, 1},//frontRightTop
-                                          {+1, -1, +1}, {1.0f / 3, 0} //rearRightTop
-                );                                                    //Top B
+                data.addVertex({{+1, -1, -1}, {1.0f / 3, 1}});//frontRightTop
+                data.addVertex({{-1, -1, +1}, {1.0f / 6, 0}});//rearLeftTop
+                data.addVertex({{-1, -1, -1}, {1.0f / 6, 1}});//frontLeftTop
+
+                data.addVertex({{-1, -1, +1}, {1.0f / 6, 0}});//rearLeftTop
+                data.addVertex({{+1, -1, -1}, {1.0f / 3, 1}});//frontRightTop
+                data.addVertex({{+1, -1, +1}, {1.0f / 3, 0}});//rearRightTop
                 break;
             case CubeSide::BACK:
-                mesh->addTexturedTriangle(texture,
-                                          {-1, +1, +1}, {1.0f / 2, 1},//rearLeftBottom
-                                          {+1, -1, +1}, {1.0f / 3, 0},//rearRightTop
-                                          {+1, +1, +1}, {1.0f / 3, 1} //rearRightBottom
-                );                                                    //Back A
-                mesh->addTexturedTriangle(texture,
-                                          {+1, -1, +1}, {1.0f / 3, 0},//rearRightTop
-                                          {-1, +1, +1}, {1.0f / 2, 1},//rearLeftBottom
-                                          {-1, -1, +1}, {1.0f / 2, 0} //rearLeftTop
-                );                                                    //Back B
+                data.addVertex({{-1, +1, +1}, {1.0f / 2, 1}});//rearLeftBottom
+                data.addVertex({{+1, -1, +1}, {1.0f / 3, 0}});//rearRightTop
+                data.addVertex({{+1, +1, +1}, {1.0f / 3, 1}});//rearRightBottom
 
+                data.addVertex({{+1, -1, +1}, {1.0f / 3, 0}});//rearRightTop
+                data.addVertex({{-1, +1, +1}, {1.0f / 2, 1}});//rearLeftBottom
+                data.addVertex({{-1, -1, +1}, {1.0f / 2, 0}});//rearLeftTop
                 break;
             case CubeSide::LEFT:
-                mesh->addTexturedTriangle(texture,
-                                          {-1, +1, -1}, {2.0f / 3, 1},//frontLeftBottom
-                                          {-1, -1, +1}, {1.0f / 2, 0},//rearLeftTop
-                                          {-1, +1, +1}, {1.0f / 2, 1} //rearLeftBottom
-                );                                                    //Left A
-                mesh->addTexturedTriangle(texture,
-                                          {-1, -1, +1}, {1.0f / 2, 0},//rearLeftTop
-                                          {-1, +1, -1}, {2.0f / 3, 1},//frontLeftBottom
-                                          {-1, -1, -1}, {2.0f / 3, 0} //frontLeftTop
-                );                                                    //Left B
+                data.addVertex({{-1, +1, -1}, {2.0f / 3, 1}});//frontLeftBottom
+                data.addVertex({{-1, -1, +1}, {1.0f / 2, 0}});//rearLeftTop
+                data.addVertex({{-1, +1, +1}, {1.0f / 2, 1}});//rearLeftBottom
 
+                data.addVertex({{-1, -1, +1}, {1.0f / 2, 0}});//rearLeftTop
+                data.addVertex({{-1, +1, -1}, {2.0f / 3, 1}});//frontLeftBottom
+                data.addVertex({{-1, -1, -1}, {2.0f / 3, 0}});//frontLeftTop
                 break;
             case CubeSide::TOP:
-                mesh->addTexturedTriangle(texture,
-                                          {+1, +1, +1}, {5.0f / 6, 1},//rearRightBottom
-                                          {-1, +1, -1}, {2.0f / 3, 0},//frontLeftBottom
-                                          {-1, +1, +1}, {2.0f / 3, 1} //rearLeftBottom
-                );                                                    //Bottom A
-                mesh->addTexturedTriangle(texture,
-                                          {-1, +1, -1}, {2.0f / 3, 0},//frontLeftBottom
-                                          {+1, +1, +1}, {5.0f / 6, 1},//rearRightBottom
-                                          {+1, +1, -1}, {5.0f / 6, 0} //frontRightBottom
-                );                                                    //Bottom B
+                data.addVertex({{+1, +1, +1}, {5.0f / 6, 1}});//rearRightBottom
+                data.addVertex({{-1, +1, -1}, {2.0f / 3, 0}});//frontLeftBottom
+                data.addVertex({{-1, +1, +1}, {2.0f / 3, 1}});//rearLeftBottom
+
+                data.addVertex({{-1, +1, -1}, {2.0f / 3, 0}});//frontLeftBottom
+                data.addVertex({{+1, +1, +1}, {5.0f / 6, 1}});//rearRightBottom
+                data.addVertex({{+1, +1, -1}, {5.0f / 6, 0}});//frontRightBottom
                 break;
             case CubeSide::FRONT:
-                mesh->addTexturedTriangle(texture,
-                                          {+1, +1, -1}, {1, 1},       //frontRightBottom
-                                          {-1, -1, -1}, {5.0f / 6, 0},//frontLeftTop
-                                          {-1, +1, -1}, {5.0f / 6, 1} //frontLeftBottom
-                );                                                    //Front A
-                mesh->addTexturedTriangle(texture,
-                                          {-1, -1, -1}, {5.0f / 6, 0},//frontLeftTop
-                                          {+1, +1, -1}, {1, 1},       //frontRightBottom
-                                          {+1, -1, -1}, {1, 0}        //frontRightTop
-                );                                                    //Front B
+                data.addVertex({{+1, +1, -1}, {1, 1}});       //frontRightBottom
+                data.addVertex({{-1, -1, -1}, {5.0f / 6, 0}});//frontLeftTop
+                data.addVertex({{-1, +1, -1}, {5.0f / 6, 1}});//frontLeftBottom
+
+                data.addVertex({{-1, -1, -1}, {5.0f / 6, 0}});//frontLeftTop
+                data.addVertex({{+1, +1, -1}, {1, 1}});       //frontRightBottom
+                data.addVertex({{+1, -1, -1}, {1, 0}});       //frontRightTop
         }
-        mesh->name = "Orientation Cube";
+        mesh->name = std::string("Orientation Cube Side ");
+        mesh->name.append(magic_enum::enum_name(side));
     }
 
     CubeSide OrientationCubeSideMeshNode::getSide() const {

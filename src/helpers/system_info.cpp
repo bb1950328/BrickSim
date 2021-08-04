@@ -10,6 +10,7 @@
 #include <vector>
 
 #include <cpuinfo.h>
+#include <curl/curl.h>
 #include <magic_enum.hpp>
 
 namespace bricksim::helpers::system_info {
@@ -22,6 +23,7 @@ namespace bricksim::helpers::system_info {
             vendor = glGetString(GL_VENDOR);
             renderer = glGetString(GL_RENDERER);
         });
+        curl_version_info_data *curlVersionData = curl_version_info(CURLVERSION_NOW);
 
         result.emplace_back("GPU Vendor:", std::string(reinterpret_cast<const char*>(vendor)));
         result.emplace_back("GPU Renderer:", std::string(reinterpret_cast<const char*>(renderer)));
@@ -32,6 +34,8 @@ namespace bricksim::helpers::system_info {
         result.emplace_back("Spdlog Version:", fmt::format("{}.{}.{}", SPDLOG_VER_MAJOR, SPDLOG_VER_MINOR, SPDLOG_VER_PATCH));
         result.emplace_back("STBI Version:", std::to_string(STBI_VERSION));
         result.emplace_back("GLFW Version:", fmt::format("{}.{}.{}", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR, GLFW_VERSION_REVISION));
+        result.emplace_back("cURL Version:", curlVersionData->version);
+        result.emplace_back("cURL Features:", fmt::format("{0:b}", curlVersionData->features));
 
         result.emplace_back("sizeof(void*):", fmt::format("{} Bytes or {} bits", sizeof(void*), sizeof(void*) * 8));
         result.emplace_back("sizeof(char):", fmt::format("{} Bytes or {} bits", sizeof(char), sizeof(char) * 8));

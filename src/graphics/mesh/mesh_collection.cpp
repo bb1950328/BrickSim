@@ -4,6 +4,8 @@
 #include "../../ldr/file_repo.h"
 #include "../../metrics.h"
 #include <glm/gtx/transform.hpp>
+#include <palanteer.h>
+#include <spdlog/spdlog.h>
 
 namespace bricksim::mesh {
     uomap_t<mesh_key_t, std::shared_ptr<Mesh>> SceneMeshCollection::allMeshes;
@@ -15,10 +17,12 @@ namespace bricksim::mesh {
     std::shared_ptr<Mesh> SceneMeshCollection::getMesh(mesh_key_t key, const std::shared_ptr<etree::MeshNode>& node) {
         auto it = allMeshes.find(key);
         if (it == allMeshes.end()) {
+            plScope("node->addToMesh");
             std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
             allMeshes[key] = mesh;
             mesh->name = node->getDescription();
             node->addToMesh(mesh, key.second);
+            mesh->writeGraphicsData();
             return mesh;
         }
         return it->second;
@@ -114,6 +118,7 @@ namespace bricksim::mesh {
     }
 
     void SceneMeshCollection::rereadElementTree() {
+        plFunction();
         elementsSortedById.clear();
         elementsSortedById.push_back(nullptr);
         layersInUse.clear();
@@ -132,6 +137,7 @@ namespace bricksim::mesh {
         auto after = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
         metrics::lastElementTreeRereadMs = duration / 1000.0f;
+        spdlog::debug("element tree reread in {}ms.", metrics::lastElementTreeRereadMs);
     }
 
     void SceneMeshCollection::updateMeshInstances() {

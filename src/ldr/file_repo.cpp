@@ -5,6 +5,7 @@
 #include "file_reader.h"
 #include "regular_file_repo.h"
 #include "zip_file_repo.h"
+#include <palanteer.h>
 #include <spdlog/spdlog.h>
 #include <thread>
 #include <zip.h>
@@ -99,6 +100,7 @@ namespace bricksim::ldr::file_repo {
         basePath(std::move(basePath)) {}
 
     std::shared_ptr<File> FileRepo::getFile(const std::string& name) {
+        plFunction();
         auto it = files.find(util::asLower(name));
         if (it != files.end()) {
             return it->second.second;

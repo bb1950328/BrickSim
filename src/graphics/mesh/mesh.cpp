@@ -9,6 +9,7 @@
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/normal.hpp>
+#include <palanteer.h>
 
 namespace bricksim::mesh {
 
@@ -160,6 +161,7 @@ namespace bricksim::mesh {
     }
 
     void Mesh::writeGraphicsData() {
+        plFunction();
         if (!alreadyInitialized) {
             if (!outerDimensions.has_value()) {
                 calculateOuterDimensions();

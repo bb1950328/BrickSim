@@ -39,6 +39,8 @@ namespace bricksim::mesh {
 
         static uomap_t<mesh_key_t, std::shared_ptr<Mesh>> allMeshes;
 
+
+
     public:
         explicit SceneMeshCollection(scene_id_t scene);
         SceneMeshCollection& operator=(SceneMeshCollection&) = delete;

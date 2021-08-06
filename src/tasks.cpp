@@ -1,5 +1,6 @@
 #include "tasks.h"
 #include "config.h"
+#include <palanteer.h>
 #include <spdlog/spdlog.h>
 
 namespace bricksim {
@@ -25,6 +26,10 @@ namespace bricksim {
         spdlog::info("starting task {}", name);
         thread = std::thread([this]() {
             spdlog::debug("thread of task {} started", name);
+#ifdef USE_PL
+            const std::string plName = "Tasks/"+name;
+            plDeclareThreadDyn(plName.c_str());
+#endif
 
             auto before = std::chrono::high_resolution_clock::now();
             function(&progress);

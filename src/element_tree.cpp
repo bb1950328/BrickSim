@@ -2,6 +2,7 @@
 #pragma ide diagnostic ignored "misc-no-recursion"
 #include "element_tree.h"
 #include "config.h"
+#include <palanteer.h>
 
 namespace bricksim::etree {
 
@@ -161,6 +162,7 @@ namespace bricksim::etree {
     }
 
     void LdrNode::createChildNodes() {
+        plFunction();
         if (!childNodesCreated) {
             for (const auto& element: ldrFile->elements) {
                 if (element->getType() == 1) {

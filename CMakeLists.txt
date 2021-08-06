@@ -221,6 +221,13 @@ target_link_libraries(BrickSimLib PRIVATE fast_float)
 add_subdirectory(src/lib/robin-hood-hashing)
 target_link_libraries(BrickSimLib PUBLIC robin_hood::robin_hood)
 
+#palanteer
+option(USE_PALANTEER "Build with Palanteer instrumentation library" OFF)
+if (USE_PALANTEER)
+    target_compile_definitions(BrickSimLib PRIVATE USE_PL=1)
+endif ()
+target_include_directories(BrickSimLib PRIVATE src/lib/palanteer/c++)
+
 add_subdirectory(src)
 
 if (WIN32)

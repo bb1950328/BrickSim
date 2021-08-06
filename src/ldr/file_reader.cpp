@@ -1,10 +1,12 @@
 #include "file_reader.h"
 #include "../helpers/util.h"
 #include <magic_enum.hpp>
+#include <palanteer.h>
 #include <spdlog/spdlog.h>
 
 namespace bricksim::ldr {
     uomap_t<std::string, std::shared_ptr<File>> readComplexFile(const std::string& name, const std::string& content, FileType mainFileType) {
+        plFunction();
         if (mainFileType != MODEL) {
             return {{name, readSimpleFile(name, content, mainFileType)}};
         }
@@ -56,6 +58,7 @@ namespace bricksim::ldr {
     }
 
     std::shared_ptr<File> readSimpleFile(const std::string& name, const std::string& content, FileType type) {
+        plFunction();
         auto file = std::make_shared<File>();
         file->metaInfo.type = type;
         size_t lineStart = 0;

@@ -4,11 +4,13 @@
 #include "../metrics.h"
 #include <glad/glad.h>
 #include <glm/ext/matrix_clip_space.hpp>
+#include <palanteer.h>
 #include <spdlog/spdlog.h>
 
 namespace bricksim::graphics {
 
     unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference color) {
+        plFunction();
         if (renderedRotationDegrees != rotationDegrees) {
             discardAllImages();
             renderedRotationDegrees = rotationDegrees;

@@ -18,6 +18,7 @@
 #include "stb_image_write.h"
 #include "user_actions.h"
 #include <glad/glad.h>
+#include <palanteer.h>
 #include <spdlog/spdlog.h>
 
 #ifdef BRICKSIM_USE_RENDERDOC
@@ -247,6 +248,8 @@ namespace bricksim::controller {
         }
 
         bool initialize() {
+            plInitAndStart("BrickSim");
+            plDeclareThread("Main Thread");
             logging::initialize();
 
             db::initialize();
@@ -333,6 +336,7 @@ namespace bricksim::controller {
             openGlInitialized = false;
             spdlog::info("GLFW terminated.");
             logging::cleanup();
+            plStopAndUninit();
         }
 
         void handleForegroundTasks() {
@@ -426,7 +430,7 @@ namespace bricksim::controller {
             } else {
                 gui::updateBlockingMessage(foregroundTasks.front().getName(), foregroundTasks.front().getProgress());
             }
-            addMainloopTimePoint("handle foreground .sks");
+            addMainloopTimePoint("handle foreground tasks");
 
             gui::endFrame();
             addMainloopTimePoint("gui::endFrame()");
@@ -443,7 +447,10 @@ namespace bricksim::controller {
             addMainloopTimePoint("add frame time");
             glFinish();
             addMainloopTimePoint("glFinish");
+
+            plBegin("glfwSwapBuffers");
             glfwSwapBuffers(window);
+            plEnd("glfwSwapBuffers");
             addMainloopTimePoint("glfwSwapBuffers");
             glfwPollEvents();
             addMainloopTimePoint("glfwPollEvents");
@@ -682,7 +689,9 @@ namespace bricksim::controller {
             throw std::invalid_argument("attempting to use OpenGL, but OpenGL isn't initialized");
         }
         static std::recursive_mutex openGlMutex;
+        plLockWait("OpenGL");
         std::lock_guard<std::recursive_mutex> lg(openGlMutex);
+        plLockScopeState("OpenGL", true);
         glfwMakeContextCurrent(window);
         functor();
         glfwMakeContextCurrent(nullptr);

@@ -50,3 +50,6 @@
 [submodule "src/lib/robin-hood-hashing"]
 	path = src/lib/robin-hood-hashing
 	url = git@github.com:martinus/robin-hood-hashing.git
+[submodule "src/lib/palenteer"]
+	path = src/lib/palanteer
+	url = git@github.com:dfeneyrou/palanteer.git

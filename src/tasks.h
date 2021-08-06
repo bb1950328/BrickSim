@@ -10,6 +10,10 @@ namespace bricksim {
     public:
         Task(std::string name, std::function<void(float*)> taskFunction, bool autostart = false);
         Task(std::string name, const std::function<void()>& taskFunctionNoProgress, bool autostart = false);
+        Task(const Task& other) = delete;
+        Task(Task&& other) noexcept;
+        Task& operator=(const Task& other) = delete;
+        Task& operator=(Task&& other) noexcept;
         [[nodiscard]] const std::string& getName() const;
         [[nodiscard]] float getProgress() const;
         void startThread();

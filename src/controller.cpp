@@ -3,6 +3,7 @@
 #include "controller.h"
 #include "config.h"
 #include "db.h"
+#include "graphics/opengl_native_or_replacement.h"
 #include "graphics/orientation_cube.h"
 #include "graphics/shaders.h"
 #include "gui/gui.h"
@@ -16,7 +17,6 @@
 #include "stb_image.h"
 #include "stb_image_write.h"
 #include "user_actions.h"
-#include "graphics/opengl_native_or_replacement.h"
 #include <glad/glad.h>
 #include <spdlog/spdlog.h>
 
@@ -50,8 +50,8 @@ namespace bricksim::controller {
         DraggingNodeType currentlyDraggingNodeType = DraggingNodeType::NONE;//todo change this to object oriented design
         transform_gizmo::RotationState transformGizmoRotationState = transform_gizmo::RotationState::WORLD;
 
-        uomap_t<unsigned int, Task*> backgroundTasks;//todo smart pointer
-        std::queue<Task*> foregroundTasks;
+        uomap_t<unsigned int, Task> backgroundTasks;//todo smart pointer
+        std::queue<Task> foregroundTasks;
 
         std::chrono::milliseconds idle_sleep(25);
 
@@ -217,9 +217,8 @@ namespace bricksim::controller {
             auto now = glfwGetTime();
             if (now - lastCheck > 0.5) {
                 for (auto iter = backgroundTasks.begin(); iter != backgroundTasks.end();) {
-                    if (iter->second->isDone()) {
-                        iter->second->joinThread();
-                        delete iter->second;
+                    if (iter->second.isDone()) {
+                        iter->second.joinThread();
                         iter = backgroundTasks.erase(iter);
                     } else {
                         ++iter;
@@ -311,10 +310,13 @@ namespace bricksim::controller {
 
         void cleanup() {
             ldr::file_repo::get().cleanup();
-            const auto& bgTasks = getBackgroundTasks();
+            while (!foregroundTasks.empty()) {
+                handleForegroundTasks();
+            }
+            auto& bgTasks = getBackgroundTasks();
             spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
-            for (auto& task: bgTasks) {
-                task.second->joinThread();
+            for (auto & bgTask : bgTasks) {
+                bgTask.second.joinThread();
             }
             spdlog::info("all background tasks finished, exiting now");
             gui::cleanup();
@@ -335,13 +337,12 @@ namespace bricksim::controller {
 
         void handleForegroundTasks() {
             while (!foregroundTasks.empty()) {
-                Task*& frontTask = foregroundTasks.front();
-                if (!frontTask->isStarted()) {
-                    frontTask->startThread();
+                Task& frontTask = foregroundTasks.front();
+                if (!frontTask.isStarted()) {
+                    frontTask.startThread();
                 }
-                if (frontTask->isDone()) {
-                    frontTask->joinThread();
-                    delete frontTask;
+                if (frontTask.isDone()) {
+                    frontTask.joinThread();
                     foregroundTasks.pop();
                 } else {
                     return;
@@ -423,9 +424,9 @@ namespace bricksim::controller {
             if (foregroundTasks.empty()) {
                 gui::closeBlockingMessage();
             } else {
-                gui::updateBlockingMessage(foregroundTasks.front()->getName(), foregroundTasks.front()->getProgress());
+                gui::updateBlockingMessage(foregroundTasks.front().getName(), foregroundTasks.front().getProgress());
             }
-            addMainloopTimePoint("handle foreground tasks");
+            addMainloopTimePoint("handle foreground .sks");
 
             gui::endFrame();
             addMainloopTimePoint("gui::endFrame()");
@@ -462,7 +463,7 @@ namespace bricksim::controller {
     }
 
     void openFile(const std::string& path) {
-        foregroundTasks.push(new Task(std::string("Open ") + path, [path]() {
+        foregroundTasks.push(Task(std::string("Open ") + path, [path]() {
             insertLdrElement(ldr::file_repo::get().getFile(path));
         }));
     }
@@ -650,20 +651,17 @@ namespace bricksim::controller {
         return thumbnailGenerator;
     }
 
-    uomap_t<unsigned int, Task*>& getBackgroundTasks() {
+    uomap_t<unsigned int, Task>& getBackgroundTasks() {
         checkForFinishedBackgroundTasks();
         return backgroundTasks;
     }
 
     void addBackgroundTask(std::string name, const std::function<void()>& function) {
         static unsigned int sId = 0;
-        unsigned int id = sId++;
-        auto* task = new Task(std::move(name), function);
-        backgroundTasks.emplace(id, task);
-        task->startThread();
+        backgroundTasks.emplace(sId++, Task(std::move(name), function)).first->second.startThread();
     }
 
-    std::queue<Task*>& getForegroundTasks() {
+    std::queue<Task>& getForegroundTasks() {
         return foregroundTasks;
     }
 
@@ -723,7 +721,7 @@ namespace bricksim::controller {
         return transformGizmo->ownsNode(node);
     }
 
-    void startNodeDrag(std::shared_ptr<etree::Node>& node, const glm::svec2 initialCursorPos) {
+    void startNodeDrag(std::shared_ptr<etree::Node>& node, const glm::svec2& initialCursorPos) {
         if (transformGizmo->ownsNode(node)) {
             transformGizmo->startDrag(node, initialCursorPos);
             currentlyDraggingNodeType = DraggingNodeType::TRANSFORM_GIZMO;

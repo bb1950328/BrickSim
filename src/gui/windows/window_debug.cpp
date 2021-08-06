@@ -150,7 +150,7 @@ namespace bricksim::gui::windows::debug {
                 if (!bgTasks.empty()) {
                     ImGui::Text("%zu background tasks:", bgTasks.size());
                     for (const auto& task: bgTasks) {
-                        ImGui::BulletText("%s", task.second->getName().c_str());
+                        ImGui::BulletText("%s", task.second.getName().c_str());
                     }
                 }
 

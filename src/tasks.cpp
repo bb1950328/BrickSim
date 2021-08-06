@@ -29,6 +29,7 @@ namespace bricksim {
             auto before = std::chrono::high_resolution_clock::now();
             function(&progress);
             auto after = std::chrono::high_resolution_clock::now();
+            spdlog::debug("thread of task {} ready for join", name);
 
             progress = 1;
             duration_us.store(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count());
@@ -56,5 +57,22 @@ namespace bricksim {
 
     float Task::getProgress() const {
         return progress;
+    }
+    Task::Task(Task&& other) noexcept :
+        name(std::move(other.name)),
+        function(std::move(other.function)),
+        thread(std::move(other.thread)),
+        is_done(other.is_done.load()),
+        duration_us(other.duration_us.load()),
+        progress(other.progress) {}
+
+    Task& Task::operator=(Task&& other) noexcept {
+        name = std::move(other.name);
+        function = std::move(other.function);
+        thread = std::move(other.thread);
+        is_done = other.is_done.load();
+        duration_us = other.duration_us.load();
+        progress = other.progress;
+        return *this;
     }
 }

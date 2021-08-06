@@ -28,6 +28,7 @@ namespace bricksim::controller {
         bool initialize();
         void cleanup();
         void loopPartsLibrarySetupPrompt();
+        void handleForegroundTasks();
     }
 
     int run();
@@ -56,7 +57,7 @@ namespace bricksim::controller {
     void nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed);
 
     bool isNodeDraggable(const std::shared_ptr<etree::Node>& node);
-    void startNodeDrag(std::shared_ptr<etree::Node>& node, const glm::svec2 initialCursorPos);
+    void startNodeDrag(std::shared_ptr<etree::Node>& node, const glm::svec2& initialCursorPos);
     void updateNodeDragDelta(glm::usvec2 delta);
     void endNodeDrag();
 
@@ -90,10 +91,10 @@ namespace bricksim::controller {
 
     void executeOpenGL(std::function<void()> const& functor);
 
-    uomap_t<unsigned int, Task*>& getBackgroundTasks();
+    uomap_t<unsigned int, Task>& getBackgroundTasks();
     void addBackgroundTask(std::string name, const std::function<void()>& function);
 
-    std::queue<Task*>& getForegroundTasks();
+    std::queue<Task>& getForegroundTasks();
 
     [[nodiscard]] bool doesUserWantToExit();
 

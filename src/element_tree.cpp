@@ -4,6 +4,8 @@
 #include "config.h"
 #include <palanteer.h>
 
+#undef RGB
+
 namespace bricksim::etree {
 
     const glm::mat4& Node::getRelativeTransformation() const {

@@ -46,10 +46,10 @@
 	url = https://github.com/bb1950328/Compile-time-hash-functions.git
 [submodule "src/lib/fast_float"]
 	path = src/lib/fast_float
-	url = git@github.com:fastfloat/fast_float.git
+	url = https://github.com/fastfloat/fast_float.git
 [submodule "src/lib/robin-hood-hashing"]
 	path = src/lib/robin-hood-hashing
-	url = git@github.com:martinus/robin-hood-hashing.git
+	url = https://github.com/martinus/robin-hood-hashing.git
 [submodule "src/lib/palenteer"]
 	path = src/lib/palanteer
-	url = git@github.com:dfeneyrou/palanteer.git
+	url = https://www.github.com/dfeneyrou/palanteer.git

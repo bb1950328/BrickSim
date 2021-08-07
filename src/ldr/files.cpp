@@ -227,6 +227,10 @@ namespace bricksim::ldr {
         return 0;
     }
 
+    std::string CommentOrMetaElement::getLdrLine() const {
+        return "0 " + content;
+    }
+
     int SubfileReference::getType() const {
         return 1;
     }
@@ -246,20 +250,37 @@ namespace bricksim::ldr {
                 0.0f, 0.0f, 0.0f, 1.0f};
     }
 
+    std::string SubfileReference::getLdrLine() const {
+        return fmt::format("1 {:d} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:s}", color.code, x, y, z, a, b, c, d, e, f, g, h, i, filename);
+    }
+
     int Line::getType() const {
         return 2;
+    }
+    std::string Line::getLdrLine() const {
+        return fmt::format("1 {:d} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f}", color.code, x1, y1, z1, x2, y2, z2);
     }
 
     int Triangle::getType() const {
         return 3;
     }
+    std::string Triangle::getLdrLine() const {
+        return fmt::format("1 {:d} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f}", color.code, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+    }
 
     int Quadrilateral::getType() const {
         return 4;
     }
+    std::string Quadrilateral::getLdrLine() const {
+        return fmt::format("1 {:d} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f}", color.code, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
+    }
 
     int OptionalLine::getType() const {
         return 5;
+    }
+
+    std::string OptionalLine::getLdrLine() const {
+        return fmt::format("1 {:d} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f}", color.code, x1, y1, z1, x2, y2, z2, controlX1, controlY1, controlZ1, controlX2, controlY2, controlZ2);
     }
 
     bool ldr::FileMetaInfo::addLine(const std::string& line) {
@@ -271,7 +292,7 @@ namespace bricksim::ldr {
         } else if (util::startsWith(line, "Author:")) {
             author = util::trim(line.substr(7));
         } else if (util::startsWith(line, "!CATEGORY")) {
-            category = util::trim(line.substr(9));
+            headerCategory = util::trim(line.substr(9));
         } else if (util::startsWith(line, "!KEYWORDS")) {
             size_t i = 9;
             while (true) {
@@ -289,6 +310,8 @@ namespace bricksim::ldr {
             license = line.substr(8);
         } else if (util::startsWith(line, "!THEME")) {
             theme = line.substr(6);
+        } else if (util::startsWith(line, "!LDRAW_ORG")) {
+            fileTypeLine = line.substr(10);//standard says "In general, parsers should consider this line to be case-insensitive and free-format."
         } else {
             return false;
         }
@@ -297,17 +320,35 @@ namespace bricksim::ldr {
 
     std::ostream& operator<<(std::ostream& os, const ldr::FileMetaInfo& info) {
         if (!info.title.empty()) {
-            os << "0 " << info.title << std::endl;
+            os << "0 " << info.title << LDR_NEWLINE;
         }
+
         if (!info.name.empty()) {
-            os << "0 Name: " << info.name << std::endl;
+            os << "0 Name: " << info.name << LDR_NEWLINE;
         }
+
         if (!info.author.empty()) {
-            os << "0 Author: " << info.author << std::endl;
+            os << "0 Author: " << info.author << LDR_NEWLINE;
         }
-        if (info.category.has_value() && !info.category->empty()) {
-            os << "0 !CATEGORY " << info.category.value() << std::endl;
+
+        os << "0 !LDRAW_ORG ";
+        if (info.fileTypeLine.empty()) {
+            os << getFileTypeStr(info.type);
+        } else {
+            os << info.fileTypeLine;
         }
+        os << LDR_NEWLINE;
+
+        if (info.license.empty()) {
+            os << "0 !LICENSE Not redistributable : see NonCAreadme.txt" << LDR_NEWLINE;
+        } else {
+            os << "0 !LICENSE " << info.license << LDR_NEWLINE;
+        }
+
+        if (info.headerCategory.has_value() && !info.headerCategory->empty()) {
+            os << "0 !CATEGORY " << info.headerCategory.value() << LDR_NEWLINE;
+        }
+
         if (!info.keywords.empty()) {
             os << "0 !KEYWORDS ";
             size_t lineWidth = 13;
@@ -318,7 +359,7 @@ namespace bricksim::ldr {
                 }
                 lineWidth += kw.size();
                 if (lineWidth > 80) {
-                    os << std::endl
+                    os << LDR_NEWLINE
                        << "0 !KEYWORDS ";
                     lineWidth = 13 + kw.size();
                     first = true;
@@ -329,31 +370,44 @@ namespace bricksim::ldr {
                 os << kw;
                 first = false;
             }
-            os << std::endl;
+            os << LDR_NEWLINE;
         }
+
         if (!info.history.empty()) {
             for (const auto& historyElement: info.history) {
-                os << "0 !HISTORY " << historyElement << std::endl;
+                os << "0 !HISTORY " << historyElement << LDR_NEWLINE;
             }
         }
-        if (!info.license.empty()) {
-            os << "0 !LICENSE " << info.license << std::endl;
-        }
+
         if (!info.theme.empty()) {
-            os << "0 !THEME " << info.theme << std::endl;
+            os << "0 !THEME " << info.theme << LDR_NEWLINE;
         }
+
         return os;
     }
 
     const std::string& ldr::FileMetaInfo::getCategory() {
-        if (category->empty()) {
+        if (headerCategory->empty()) {
             const auto firstSpace = title.find(' ');
             auto start = 0;
             while (title[start] == '_' || title[start] == '~' || title[start] == '=') {
                 start++;
             }
-            category = title.substr(start, firstSpace - start);
+            headerCategory = title.substr(start, firstSpace - start);
         }
-        return category.value();
+        return headerCategory.value();
+    }
+
+    namespace {
+        const char* getFileTypeStr(FileType type) {
+            switch (type) {
+                case MODEL: return "Model";
+                case MPD_SUBFILE: return "Submodel";
+                case PART: return "Part";
+                case SUBPART: return "Subpart";
+                case PRIMITIVE: return "Primitive";
+                default: return "File";
+            }
+        }
     }
 }

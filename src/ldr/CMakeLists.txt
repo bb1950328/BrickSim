@@ -5,6 +5,8 @@ target_sources(BrickSimLib PRIVATE
         file_reader.h
         file_repo.cpp
         file_repo.h
+        file_writer.cpp
+        file_writer.h
         files.cpp
         files.h
         regular_file_repo.cpp

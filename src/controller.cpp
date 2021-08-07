@@ -11,6 +11,7 @@
 #include "info_providers/bricklink_constants_provider.h"
 #include "keyboard_shortcut_manager.h"
 #include "ldr/file_repo.h"
+#include "ldr/file_writer.h"
 #include "logging/latest_log_messages_tank.h"
 #include "logging/logger.h"
 #include "metrics.h"
@@ -383,8 +384,8 @@ namespace bricksim::controller {
         //openFile("test_files/triangle_test.ldr");
         //openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
-        //openFile("car.ldr");
-        openFile("~/Downloads/datsville.ldr");
+        openFile("car.ldr");
+        //openFile("~/Downloads/datsville.ldr");
 
         while (!glfwWindowShouldClose(window) && !userWantsToExit) {
             copyMainloopTimePoints();
@@ -461,7 +462,10 @@ namespace bricksim::controller {
 
     void openFile(const std::string& path) {
         foregroundTasks.push(Task(std::string("Open ") + path, [path]() {
-            insertLdrElement(ldr::file_repo::get().getFile(path));
+            const std::shared_ptr<ldr::File>& file = ldr::file_repo::get().getFile(path);
+            //todo remove next line when testing finished
+            ldr::writeFile(file, "write_test.mpd");
+            insertLdrElement(file);
         }));
     }
 

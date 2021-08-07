@@ -90,7 +90,7 @@ namespace bricksim::transform_gizmo {
             nowTransformation = {};
         }
         if (nowTransformation != lastTransformation || (node->visible && nowPovState != lastState)) {
-            scene->elementTreeChanged();
+            node->incrementVersion();
             lastTransformation = nowTransformation;
             lastState = nowPovState;
         }
@@ -412,7 +412,7 @@ namespace bricksim::transform_gizmo {
         const glm::mat4 newGizmoTransf = startGizmoTransfDecomposed.translationAsMat4() * rotation * startGizmoTransfDecomposed.orientationAsMat4() * startGizmoTransfDecomposed.scaleAsMat4();
         gizmo.currentlySelectedNode->setRelativeTransformation(glm::transpose(newNodeTransf));
         gizmo.node->setRelativeTransformation(glm::transpose(newGizmoTransf));
-        gizmo.scene->elementTreeChanged();
+        gizmo.node->incrementVersion();
     }
 
     constexpr TransformType RotateOperation::getType() {

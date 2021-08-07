@@ -75,6 +75,18 @@ namespace bricksim::etree {
         return !parentSp ? shared_from_this() : parentSp->getRoot();
     }
 
+    uint64_t Node::getVersion() const {
+        return version;
+    }
+
+    void Node::incrementVersion() {
+        Node* node = this;
+        do {
+            ++node->version;
+            node = node->parent.lock().get();
+        } while (node!= nullptr);
+    }
+
     Node::~Node() = default;
 
     bool MeshNode::isColorUserEditable() const {

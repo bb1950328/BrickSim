@@ -29,7 +29,6 @@ namespace bricksim::controller {
     namespace {
         GLFWwindow* window;
         std::shared_ptr<etree::RootNode> elementTree;
-        bool elementTreeChanged = false;
         bool selectionChanged = false;
         std::shared_ptr<graphics::ThumbnailGenerator> thumbnailGenerator;
         std::shared_ptr<graphics::Scene> mainScene;
@@ -400,17 +399,8 @@ namespace bricksim::controller {
             const auto loopStart = glfwGetTime();
             auto before = std::chrono::high_resolution_clock::now();
 
-            if (elementTreeChanged || selectionChanged) {
-                //todo mainScene->meshCollection->updateSelectionContainerBox();
-                selectionChanged = false;
-                elementTreeChanged = true;
-                addMainloopTimePoint("meshCollection->updateSelectionContainerBox()");
-            }
-            if (elementTreeChanged) {
-                mainScene->elementTreeChanged();
-                elementTreeChanged = false;
-                addMainloopTimePoint("renderer->elementTreeChanged()");
-            }
+            //todo mainScene->meshCollection->updateSelectionContainerBoxIfNeeded();
+            addMainloopTimePoint("meshCollection->updateSelectionContainerBoxIfNeeded()");
 
             transformGizmo->update();
             addMainloopTimePoint("transformGizmo->update()");
@@ -592,26 +582,31 @@ namespace bricksim::controller {
                 currentlyEditingNode = currentlyEditingLdrNode;
                 currentlyEditingLdrNode->createChildNodes();
                 elementTree->addChild(currentlyEditingNode);
+                currentlyEditingLdrNode->incrementVersion();
                 break;
             case ldr::MPD_SUBFILE:
                 if (nullptr != currentlyEditingLdrNode) {
                     currentlyEditingLdrNode->addSubfileInstanceNode(ldrFile, {1});
+                    currentlyEditingLdrNode->incrementVersion();
                 }
                 break;
             case ldr::PART:
                 if (nullptr != currentlyEditingLdrNode) {
                     currentlyEditingLdrNode->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr::ColorReference{1}, currentlyEditingNode));
+                    currentlyEditingLdrNode->incrementVersion();
                 }
                 break;
-            default: return;
+            case ldr::SUBPART:
+            case ldr::PRIMITIVE:
+            default: break;
         }
-        elementTreeChanged = true;
     }
 
     void deleteElement(const std::shared_ptr<etree::Node>& nodeToDelete) {
-        nodeToDelete->parent.lock()->removeChild(nodeToDelete);
+        auto parent = nodeToDelete->parent.lock();
+        parent->removeChild(nodeToDelete);
+        parent->incrementVersion();
         selectedNodes.erase(nodeToDelete);
-        elementTreeChanged = true;
         selectionChanged = true;
     }
 
@@ -636,10 +631,6 @@ namespace bricksim::controller {
 
     void unhideAllElements() {
         unhideElementRecursively(elementTree);
-    }
-
-    void setElementTreeChanged(bool val) {
-        elementTreeChanged = val;
     }
 
     void setUserWantsToExit(bool val) {

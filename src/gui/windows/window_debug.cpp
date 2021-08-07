@@ -154,8 +154,11 @@ namespace bricksim::gui::windows::debug {
                     }
                 }
 
-                if (ImGui::Button(ICON_FA_SYNC " Reread element tree now")) {
-                    controller::setElementTreeChanged(true);
+                const std::shared_ptr<etree::Node>& rootNode = controller::getMainScene()->getRootNode();
+                ImGui::Text("Element tree root node version: %lu", rootNode->getVersion());
+                ImGui::SameLine();
+                if (ImGui::Button(ICON_FA_PLUS_SQUARE " Increment")) {
+                    rootNode->incrementVersion();
                 }
 
                 ImGui::EndTabItem();

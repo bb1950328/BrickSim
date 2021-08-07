@@ -59,7 +59,7 @@ namespace bricksim::gui_internal {
                 ImGui::PushStyleColor(ImGuiCol_Button, colorValue->value);
                 if (ImGui::Button(ldrNode->getDisplayColor().code == color.code ? ICON_FA_CHECK : "", buttonSize)) {
                     ldrNode->setColor(color);
-                    controller::setElementTreeChanged(true);
+                    ldrNode->incrementVersion();
                 }
                 ImGui::PopStyleColor(/*3*/ 1);
                 ImGui::PopID();

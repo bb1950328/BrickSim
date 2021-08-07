@@ -48,6 +48,9 @@ namespace bricksim::etree {
         bool isChildOf(const std::shared_ptr<Node>& possibleParent) const;
         void removeChild(const std::shared_ptr<Node>& childToDelete);
 
+        uint64_t getVersion() const;
+        void incrementVersion();
+
         std::shared_ptr<Node> getRoot();
 
         virtual ~Node();
@@ -57,6 +60,7 @@ namespace bricksim::etree {
         glm::mat4 relativeTransformation = glm::mat4(1.0f);
         mutable glm::mat4 absoluteTransformation;
         mutable bool absoluteTransformationValid = false;
+        uint64_t version = 0;
 
         void invalidateAbsoluteTransformation();
     };

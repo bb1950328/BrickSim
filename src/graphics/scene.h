@@ -57,17 +57,16 @@ namespace bricksim::graphics {
         glm::usvec2 imageSize;
         glm::mat4 projectionMatrix;
         glm::mat4 currentImageViewMatrix, currentSelectionImageViewMatrix;
-        bool imageUpToDate, selectionImageUpToDate, elementTreeRereadNeeded;
+        //bool imageUpToDate, selectionImageUpToDate, elementTreeRereadNeeded;
+        uint64_t imageEtreeVersion = 0, selectionImageEtreeVersion = 0;
         bool drawTriangles = true, drawLines = true;
         bool currentImageDrawTriangles = true, currentImageDrawLines = true;
-        void rereadElementTreeIfNeeded();
 
     public:
         explicit Scene(scene_id_t sceneId);//todo make constructor private and set scenes::create as a friend
         unsigned int getSelectionPixel(framebuffer_size_t x, framebuffer_size_t y);
         unsigned int getSelectionPixel(glm::usvec2 coords);
         void updateImage();
-        void elementTreeChanged();
         glm::usvec2 worldToScreenCoordinates(glm::vec3 worldCoords);
         Ray3 screenCoordinatesToWorldRay(glm::usvec2 screenCoords);
 

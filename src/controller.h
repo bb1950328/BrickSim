@@ -81,7 +81,6 @@ namespace bricksim::controller {
     transform_gizmo::RotationState getTransformGizmoRotationState();
     void toggleTransformGizmoRotationState();
 
-    void setElementTreeChanged(bool val);
     void setUserWantsToExit(bool val);
     uoset_t<std::shared_ptr<etree::Node>>& getSelectedNodes();
     std::shared_ptr<etree::RootNode> getElementTree();

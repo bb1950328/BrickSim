@@ -117,8 +117,11 @@ namespace bricksim::mesh {
         }
     }
 
-    void SceneMeshCollection::rereadElementTree() {
+    void SceneMeshCollection::rereadElementTreeIfNeeded() {
         plFunction();
+        if (lastElementTreeReadVersion == rootNode->getVersion()) {
+            return;
+        }
         elementsSortedById.clear();
         elementsSortedById.push_back(nullptr);
         layersInUse.clear();
@@ -138,6 +141,7 @@ namespace bricksim::mesh {
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
         metrics::lastElementTreeRereadMs = duration / 1000.0f;
         spdlog::debug("element tree reread in {}ms.", metrics::lastElementTreeRereadMs);
+        lastElementTreeReadVersion = rootNode->getVersion();
     }
 
     void SceneMeshCollection::updateMeshInstances() {
@@ -159,7 +163,7 @@ namespace bricksim::mesh {
         newMeshInstances.clear();
     }
 
-    void SceneMeshCollection::updateSelectionContainerBox() {
+    void SceneMeshCollection::updateSelectionContainerBoxIfNeeded() {
         static std::shared_ptr<Mesh> selectionBoxMesh = nullptr;
         if (selectionBoxMesh == nullptr) {
             selectionBoxMesh = std::make_shared<Mesh>();
@@ -266,7 +270,8 @@ namespace bricksim::mesh {
     }
 
     void SceneMeshCollection::setRootNode(const std::shared_ptr<etree::Node>& newRootNode) {
-        SceneMeshCollection::rootNode = newRootNode;
+        rootNode = newRootNode;
+        lastElementTreeReadVersion = rootNode->getVersion()-1;
     }
 
     void SceneMeshCollection::deleteAllMeshes() {

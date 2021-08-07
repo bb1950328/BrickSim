@@ -33,21 +33,21 @@ namespace bricksim::mesh {
         uoset_t<std::shared_ptr<etree::Node>> nodesWithChildrenAlreadyVisited;
         std::vector<std::shared_ptr<etree::Node>> elementsSortedById;
 
+        uint64_t lastElementTreeReadVersion = 0;
+
         void updateMeshInstances();
         void readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4& parentAbsoluteTransformation, std::optional<ldr::ColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId);
         [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBoxInternal(const std::shared_ptr<const etree::MeshNode>& node) const;
 
         static uomap_t<mesh_key_t, std::shared_ptr<Mesh>> allMeshes;
 
-
-
     public:
         explicit SceneMeshCollection(scene_id_t scene);
         SceneMeshCollection& operator=(SceneMeshCollection&) = delete;
         SceneMeshCollection(const SceneMeshCollection&) = delete;
 
-        void rereadElementTree();
-        void updateSelectionContainerBox();
+        void rereadElementTreeIfNeeded();
+        void updateSelectionContainerBoxIfNeeded();
 
         [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBox(const std::shared_ptr<const etree::MeshNode>& node) const;
         [[nodiscard]] const oset_t<layer_t>& getLayersInUse() const;

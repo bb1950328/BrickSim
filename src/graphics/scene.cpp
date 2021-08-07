@@ -106,28 +106,33 @@ namespace bricksim::graphics {
     }
 
     Scene::Scene(scene_id_t sceneId) :
-        image({64, 64}), meshCollection(sceneId), id(sceneId), imageUpToDate(false), elementTreeRereadNeeded(false) {
+        image({64, 64}), meshCollection(sceneId), id(sceneId) {
         setImageSize({10, 10});
     }
 
     unsigned int Scene::getSelectionPixel(framebuffer_size_t x, framebuffer_size_t y) {
+        bool needRender = false;
         if (!selection.has_value()) {
             selection.emplace(imageSize);
-            selectionImageUpToDate = false;
+            needRender = true;
         } else if (selection->getSize() != imageSize) {
             selection->setSize(imageSize);
-            selectionImageUpToDate = false;
+            needRender = true;
         }
 
         if (currentSelectionImageViewMatrix != camera->getViewMatrix()) {
-            selectionImageUpToDate = false;
+            needRender = true;
             currentSelectionImageViewMatrix = camera->getViewMatrix();
         }
+        if (selectionImageEtreeVersion < rootNode->getVersion()) {
+            selectionImageEtreeVersion = rootNode->getVersion();
+            needRender = true;
+        }
 
-        rereadElementTreeIfNeeded();
+        meshCollection.rereadElementTreeIfNeeded();
         GLubyte middlePixel[3];
 
-        if (selectionImageUpToDate) {
+        if (needRender) {
             controller::executeOpenGL([&]() {
                 glUseProgram(0);
                 glBindFramebuffer(GL_FRAMEBUFFER, selection->getFBO());
@@ -162,7 +167,6 @@ namespace bricksim::graphics {
                     meshCollection.drawTexturedTriangleGraphics(layer);
                 }
                 glUseProgram(0);
-                selectionImageUpToDate = true;
 
                 glReadPixels(x, (selection->getSize().y - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel);
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -176,15 +180,6 @@ namespace bricksim::graphics {
         return color::getIntFromColor(middlePixel[0], middlePixel[1], middlePixel[2]);
     }
 
-    void Scene::rereadElementTreeIfNeeded() {
-        if (elementTreeRereadNeeded) {
-            meshCollection.rereadElementTree();
-            elementTreeRereadNeeded = false;
-            imageUpToDate = false;
-            selectionImageUpToDate = false;
-        }
-    }
-
     const std::shared_ptr<etree::Node>& Scene::getRootNode() const {
         return rootNode;
     }
@@ -192,7 +187,6 @@ namespace bricksim::graphics {
     void Scene::setRootNode(const std::shared_ptr<etree::Node>& newRootNode) {
         rootNode = newRootNode;
         meshCollection.setRootNode(rootNode);
-        elementTreeChanged();
     }
 
     const std::shared_ptr<Camera>& Scene::getCamera() const {
@@ -201,7 +195,6 @@ namespace bricksim::graphics {
 
     void Scene::setCamera(const std::shared_ptr<Camera>& newCamera) {
         camera = newCamera;
-        imageUpToDate = false;
     }
 
     const glm::usvec2& Scene::getImageSize() const {
@@ -214,31 +207,37 @@ namespace bricksim::graphics {
     }
 
     void Scene::updateImage() {
+        bool needRender = false;
         if (currentImageViewMatrix != camera->getViewMatrix()) {
-            imageUpToDate = false;
             currentImageViewMatrix = camera->getViewMatrix();
+            needRender = true;
         }
 
-        rereadElementTreeIfNeeded();
+        meshCollection.rereadElementTreeIfNeeded();
 
         bool imageSizeChanged = imageSize != image.getSize();
         if (imageSizeChanged) {
             image.setSize(imageSize);
-            imageUpToDate = false;
+            needRender = true;
         }
 
         if (overlayCollection.hasChangedElements() || imageSizeChanged) {
             overlayCollection.updateVertices(imageSize);
-            imageUpToDate = false;
+            needRender = true;
         }
 
         if (currentImageDrawTriangles != drawTriangles || currentImageDrawLines != drawLines) {
             currentImageDrawTriangles = drawTriangles;
             currentImageDrawLines = drawLines;
-            imageUpToDate = false;
+            needRender = true;
         }
 
-        if (!imageUpToDate) {
+        if (imageEtreeVersion < rootNode->getVersion()) {
+            imageEtreeVersion = rootNode->getVersion();
+            needRender = true;
+        }
+
+        if (needRender) {
             auto before = std::chrono::high_resolution_clock::now();
             controller::executeOpenGL([this]() {
 #ifdef BRICKSIM_USE_RENDERDOC
@@ -316,15 +315,9 @@ namespace bricksim::graphics {
 #endif
             });
 
-            imageUpToDate = true;
-
             auto after = std::chrono::high_resolution_clock::now();
             metrics::lastSceneRenderTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0f;
         }
-    }
-
-    void Scene::elementTreeChanged() {
-        elementTreeRereadNeeded = true;
     }
 
     const CompleteFramebuffer& Scene::getImage() const {

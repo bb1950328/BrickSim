@@ -126,8 +126,8 @@ namespace bricksim::gui::windows::element_properties {
                         auto newTransformation = newTranslation * newRotation * newScale;
                         if (treeRelTransf != newTransformation) {
                             node->setRelativeTransformation(glm::transpose(newTransformation));
+                            node->incrementVersion();
                             spdlog::debug("user edited transformation in element properties");
-                            controller::setElementTreeChanged(true);
                         }
                     }
                 }
@@ -363,7 +363,7 @@ namespace bricksim::gui::windows::element_properties {
                 if (lastSelectedNode != node) {
                     lastLayer = node->layer;
                 } else if (lastLayer != node->layer) {
-                    controller::setElementTreeChanged(true);
+                    node->incrementVersion();
                     lastLayer = node->layer;
                 }
 

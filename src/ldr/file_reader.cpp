@@ -6,7 +6,7 @@
 
 namespace bricksim::ldr {
     uomap_t<std::string, std::shared_ptr<File>> readComplexFile(const std::string& name, const std::string& content, FileType mainFileType) {
-        plFunction();
+        //plFunction();
         if (mainFileType != MODEL) {
             return {{name, readSimpleFile(name, content, mainFileType)}};
         }

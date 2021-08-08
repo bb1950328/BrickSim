@@ -68,6 +68,7 @@ namespace bricksim::ldr::file_repo {
 
     private:
         uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>> files;
+        std::mutex filesMtx;
         omap_t<std::string, oset_t<std::shared_ptr<File>>> partsByCategory;
     };
 

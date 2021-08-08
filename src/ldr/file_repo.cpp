@@ -143,9 +143,15 @@ namespace bricksim::ldr::file_repo {
 
     std::shared_ptr<File> FileRepo::addFileWithContent(const std::string& name, ldr::FileType type, const std::string& content) {
         auto readResults = readComplexFile(name, content, type);
-        for (const auto& newFile: readResults) {
-            files.emplace(util::asLower(newFile.first), std::make_pair(newFile.second->metaInfo.type, newFile.second));
+        {
+            plLockWait("FileRepo::filesMtx");
+            std::lock_guard<std::mutex> lg(filesMtx);
+            plLockScopeState("FileRepo::filesMtx", true);
+            for (const auto& newFile: readResults) {
+                files.emplace(util::asLower(newFile.first), std::make_pair(newFile.second->metaInfo.type, newFile.second));
+            }
         }
+
         return readResults[name];
     }
 
@@ -194,13 +200,17 @@ namespace bricksim::ldr::file_repo {
 
             auto fileNames = listAllFileNames(progress);
             const auto numFiles = fileNames.size();
-            const auto numCores = std::thread::hardware_concurrency() * 8;// *8 was determined empirically
+            const auto numCores = std::thread::hardware_concurrency();// *8 was determined empirically
             const auto filesPerThread = numFiles / numCores;
             std::vector<std::thread> threads;
             for (int threadNum = 0; threadNum < numCores; ++threadNum) {
                 const auto iStart = threadNum * filesPerThread;                                    //inclusive
                 const auto iEnd = (threadNum == numCores - 1) ? numFiles : iStart + filesPerThread;//exclusive
-                threads.emplace_back([this, iStart, iEnd, &fileNames, progress]() {
+                threads.emplace_back([this, iStart, iEnd, &fileNames, progress, threadNum]() {
+#ifdef USE_PL
+                    std::string threadName = "FileList filler #" + std::to_string(threadNum);
+                    plDeclareThreadDyn(threadName.c_str());
+#endif
                     std::vector<db::fileList::Entry> entries;
                     for (auto fileName = fileNames.cbegin() + iStart; fileName < fileNames.cbegin() + iEnd; ++fileName) {
                         ldr::FileType type;

@@ -135,7 +135,7 @@ namespace bricksim::ldr {
         parseNextFloat(line, start, end, g);
         parseNextFloat(line, start, end, h);
         parseNextFloat(line, start, end, i);
-        filename = util::trim(line.substr(end+1));
+        filename = util::trim(line.substr(end + 1));
     }
 
     Line::Line(std::string& line) {
@@ -251,28 +251,28 @@ namespace bricksim::ldr {
     }
 
     std::string SubfileReference::getLdrLine() const {
-        return fmt::format("1 {:d} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:s}", color.code, x, y, z, a, b, c, d, e, f, g, h, i, filename);
+        return fmt::format("1 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:s}", color.code, x, y, z, a, b, c, d, e, f, g, h, i, filename);
     }
 
     int Line::getType() const {
         return 2;
     }
     std::string Line::getLdrLine() const {
-        return fmt::format("1 {:d} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f}", color.code, x1, y1, z1, x2, y2, z2);
+        return fmt::format("2 {:d} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1, y1, z1, x2, y2, z2);
     }
 
     int Triangle::getType() const {
         return 3;
     }
     std::string Triangle::getLdrLine() const {
-        return fmt::format("1 {:d} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f}", color.code, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+        return fmt::format("3 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1, y1, z1, x2, y2, z2, x3, y3, z3);
     }
 
     int Quadrilateral::getType() const {
         return 4;
     }
     std::string Quadrilateral::getLdrLine() const {
-        return fmt::format("1 {:d} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f}", color.code, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
+        return fmt::format("4 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
     }
 
     int OptionalLine::getType() const {
@@ -280,7 +280,7 @@ namespace bricksim::ldr {
     }
 
     std::string OptionalLine::getLdrLine() const {
-        return fmt::format("1 {:d} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f}", color.code, x1, y1, z1, x2, y2, z2, controlX1, controlY1, controlZ1, controlX2, controlY2, controlZ2);
+        return fmt::format("5 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1, y1, z1, x2, y2, z2, controlX1, controlY1, controlZ1, controlX2, controlY2, controlZ2);
     }
 
     bool ldr::FileMetaInfo::addLine(const std::string& line) {

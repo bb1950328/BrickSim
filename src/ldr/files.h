@@ -94,6 +94,7 @@ namespace bricksim::ldr {
     class SubfileReference : public FileElement {
     public:
         explicit SubfileReference(std::string& line, bool bfcInverted);
+        explicit SubfileReference(ColorReference color, const glm::mat4& transformation, bool bfcInverted);
         bool bfcInverted;
         ColorReference color;
         float x, y, z, a, b, c, d, e, f, g, h, i;
@@ -101,6 +102,7 @@ namespace bricksim::ldr {
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
         [[nodiscard]] glm::mat4 getTransformationMatrix() const;
+        void setTransformationMatrix(const glm::mat4& matrix);
         std::shared_ptr<File> getFile();
 
     private:

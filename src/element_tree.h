@@ -108,9 +108,16 @@ namespace bricksim::etree {
          * finds the subfileNode and creates a MpdSubfileInstanceNode as child of this
          */
         void addSubfileInstanceNode(const std::shared_ptr<ldr::File>& subFile, ldr::ColorReference instanceColor);
+        void writeChangesToLdrFile();
 
     private:
         bool childNodesCreated = false;
+        struct ChildNodeSaveInfo {
+            uint64_t lastSaveToLdrFileVersion = 0;
+            std::shared_ptr<ldr::FileElement> ldrElement;
+        };
+        uomap_t<std::shared_ptr<Node>, ChildNodeSaveInfo> subfileRefChildNodeSaveInfos;
+        uint64_t lastSaveToLdrFileVersion = 0;
     };
 
     class MpdSubfileNode;

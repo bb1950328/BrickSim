@@ -36,8 +36,8 @@ namespace bricksim::controller {
 
     void openFile(const std::string& path);
     void saveFile();
-    void saveFileAs(const std::string& path);
-    void saveCopyAs(const std::string& path);
+    void saveFileAs(const std::filesystem::path& path);
+    void saveCopyAs(const std::filesystem::path& path);
     void createNewFile();
 
     void undoLastAction();

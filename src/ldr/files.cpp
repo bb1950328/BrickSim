@@ -253,6 +253,24 @@ namespace bricksim::ldr {
     std::string SubfileReference::getLdrLine() const {
         return fmt::format("1 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:s}", color.code, x, y, z, a, b, c, d, e, f, g, h, i, filename);
     }
+    void SubfileReference::setTransformationMatrix(const glm::mat4& matrix) {
+        a = matrix[0][0];
+        b = matrix[1][0];
+        c = matrix[2][0];
+        x = matrix[3][0];
+        d = matrix[0][1];
+        e = matrix[1][1];
+        f = matrix[2][1];
+        y = matrix[3][1];
+        g = matrix[0][2];
+        h = matrix[1][2];
+        i = matrix[2][2];
+        z = matrix[3][2];
+    }
+
+    SubfileReference::SubfileReference(ColorReference color, const glm::mat4& transformation, bool bfcInverted) : color(color), bfcInverted(bfcInverted) {
+        setTransformationMatrix(transformation);
+    }
 
     int Line::getType() const {
         return 2;

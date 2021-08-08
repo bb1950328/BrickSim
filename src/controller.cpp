@@ -471,11 +471,11 @@ namespace bricksim::controller {
         //todo implement
     }
 
-    void saveFileAs(const std::string& path) {
+    void saveFileAs(const std::filesystem::path& path) {
         //todo implement
     }
 
-    void saveCopyAs(const std::string& path) {
+    void saveCopyAs(const std::filesystem::path& path) {
         //todo implement
     }
 

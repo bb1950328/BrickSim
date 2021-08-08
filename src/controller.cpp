@@ -463,10 +463,7 @@ namespace bricksim::controller {
 
     void openFile(const std::string& path) {
         foregroundTasks.push(Task(std::string("Open ") + path, [path]() {
-            const std::shared_ptr<ldr::File>& file = ldr::file_repo::get().getFile(path);
-            //todo remove next line when testing finished
-            ldr::writeFile(file, "write_test.mpd");
-            insertLdrElement(file);
+            insertLdrElement(ldr::file_repo::get().getFile(path));
         }));
     }
 

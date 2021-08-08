@@ -34,8 +34,6 @@ namespace bricksim::ldr::file_repo {
                 throw std::invalid_argument(std::string("can't open .io file! Error ") + std::to_string(errCode) + ": " + std::string(errMessageBuffer));
             }
 
-            //zip_set_default_password(zArchive, pw);
-
             struct zip_stat fileStat {};
             zip_stat(zArchive, "model.ldr", ZIP_FL_NOCASE, &fileStat);
             auto modelFile = zip_fopen_index_encrypted(zArchive, fileStat.index, ZIP_FL_NOCASE, pw);
@@ -200,7 +198,7 @@ namespace bricksim::ldr::file_repo {
 
             auto fileNames = listAllFileNames(progress);
             const auto numFiles = fileNames.size();
-            const auto numCores = std::thread::hardware_concurrency();// *8 was determined empirically
+            const auto numCores = std::thread::hardware_concurrency();
             const auto filesPerThread = numFiles / numCores;
             std::vector<std::thread> threads;
             for (int threadNum = 0; threadNum < numCores; ++threadNum) {

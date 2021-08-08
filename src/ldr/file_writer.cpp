@@ -21,6 +21,9 @@ namespace bricksim::ldr {
     }
     void writeFile(const std::shared_ptr<File>& file, const std::filesystem::path& path) {
         std::ofstream stream(path, std::ios::out | std::ios::binary);//not really a binary file, but we don't want the OS to mess with newlines and stuff
+
+        stream << "0 FILE " << path.filename() << LDR_NEWLINE;
+
         auto nameBackup = file->metaInfo.name;
         file->metaInfo.name = path.filename();
         stream << file->metaInfo;
@@ -36,7 +39,6 @@ namespace bricksim::ldr {
             stream << LDR_NEWLINE << LDR_NEWLINE;
 
             const auto& subfile = submodels[i].second;
-            spdlog::debug("writing submodel {}", subfile->metaInfo.title);
 
             stream << "0 FILE " << subfile->metaInfo.name << LDR_NEWLINE;
 

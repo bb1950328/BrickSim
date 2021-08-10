@@ -1,5 +1,6 @@
 #include "window_model_info.h"
 #include "../../controller.h"
+#include "../gui_internal.h"
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
@@ -26,12 +27,15 @@ namespace bricksim::gui::windows::model_info {
 
     void draw(bricksim::gui::windows::Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
-            uoset_t<std::shared_ptr<etree::Node>> nodes = controller::getSelectedNodes();
+            static std::weak_ptr<Editor> selectedEditor;
+            gui_internal::drawEditorSelectionCombo(selectedEditor, "Model");
+            auto selectedLocked = selectedEditor.lock();
+            uoset_t<std::shared_ptr<etree::Node>> nodes = selectedLocked->getSelectedNodes();
             if (!nodes.empty()) {
                 ImGui::Text("Statistics of the %zu selected elements:", nodes.size());
             } else {
                 ImGui::Text("Model Statistics:");
-                nodes = {controller::getMainScene()->getRootNode()};
+                nodes = {selectedLocked->getNode()};
             }
             spdlog::stopwatch sw;
             uint64_t sum = 0;

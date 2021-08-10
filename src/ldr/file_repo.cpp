@@ -307,5 +307,16 @@ namespace bricksim::ldr::file_repo {
         //partsByCategory.clear();
     }
 
+    bool FileRepo::hasFileCached(const std::string& name) {
+        return files.find(name) != files.end();
+    }
+
+    void FileRepo::changeFileName(const std::string& oldName, const std::string& newName) {
+        auto it = files.find(oldName);
+        it->second.second->metaInfo.name = newName;
+        files.emplace(newName, it->second);
+        files.erase(it);
+    }
+
     FileRepo::~FileRepo() = default;
 }

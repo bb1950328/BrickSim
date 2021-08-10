@@ -30,8 +30,9 @@ bricksim::Ray3 bricksim::transform_gizmo::TransformOperation::calculateAxisRay(i
 
 namespace bricksim::transform_gizmo {
 
-    TransformGizmo::TransformGizmo(std::shared_ptr<graphics::Scene> scene) :
-        scene(std::move(scene)),
+    TransformGizmo::TransformGizmo(Editor& editor) :
+        editor(editor),
+        scene(editor.getScene()),
         node(std::make_shared<TGNode>(this->scene->getRootNode())) {
         this->scene->getRootNode()->addChild(node);
         node->initElements();
@@ -41,7 +42,7 @@ namespace bricksim::transform_gizmo {
     }
 
     void TransformGizmo::update() {
-        uoset_t<std::shared_ptr<etree::Node>>& selectedNodes = controller::getSelectedNodes();
+        const auto& selectedNodes = editor.getSelectedNodes();
         currentlySelectedNode = selectedNodes.size() == 1 ? *selectedNodes.begin() : nullptr;
 
         std::optional<glm::mat4> nowTransformation;

@@ -49,14 +49,14 @@ namespace bricksim::keyboard_shortcut_manager {
 
         const std::vector<KeyboardShortcut> DEFAULT_SHORTCUTS = {
                 // NOLINT(cert-err58-cpp)
-                {user_actions::COPY.id, GLFW_KEY_C, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
-                {user_actions::CUT.id, GLFW_KEY_X, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
-                {user_actions::PASTE.id, GLFW_KEY_V, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
-                {user_actions::SAVE_FILE.id, GLFW_KEY_S, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
-                {user_actions::SAVE_FILE_AS.id, GLFW_KEY_S, (uint8_t)(GLFW_MOD_CONTROL | GLFW_MOD_SHIFT), (Event)Event::ON_PRESS},
-                {user_actions::SELECT_ALL.id, GLFW_KEY_A, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
-                {user_actions::SELECT_NOTHING.id, GLFW_KEY_A, (uint8_t)(GLFW_MOD_CONTROL | GLFW_MOD_SHIFT), (Event)Event::ON_PRESS},
-                {user_actions::UNDO.id, GLFW_KEY_Z, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
+                {user_actions::COPY, GLFW_KEY_C, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
+                {user_actions::CUT, GLFW_KEY_X, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
+                {user_actions::PASTE, GLFW_KEY_V, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
+                {user_actions::SAVE_FILE, GLFW_KEY_S, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
+                {user_actions::SAVE_FILE_AS, GLFW_KEY_S, (uint8_t)(GLFW_MOD_CONTROL | GLFW_MOD_SHIFT), (Event)Event::ON_PRESS},
+                {user_actions::SELECT_ALL, GLFW_KEY_A, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
+                {user_actions::SELECT_NOTHING, GLFW_KEY_A, (uint8_t)(GLFW_MOD_CONTROL | GLFW_MOD_SHIFT), (Event)Event::ON_PRESS},
+                {user_actions::UNDO, GLFW_KEY_Z, (uint8_t)GLFW_MOD_CONTROL, (Event)Event::ON_PRESS},
                 //todo add more
         };
 
@@ -67,7 +67,7 @@ namespace bricksim::keyboard_shortcut_manager {
 
         void saveDefaultToDb() {
             for (const auto& shortcut: DEFAULT_SHORTCUTS) {
-                db::key_shortcuts::saveShortcut({shortcut.actionId, shortcut.key, shortcut.modifiers, (uint8_t)shortcut.event});
+                db::key_shortcuts::saveShortcut({shortcut.action, shortcut.key, shortcut.modifiers, (uint8_t)shortcut.event});
             }
         }
     }
@@ -81,7 +81,7 @@ namespace bricksim::keyboard_shortcut_manager {
         } else {
             for (const auto& record: dbShortcuts) {
                 shortcuts.emplace_back(
-                        std::get<0>(record),
+                        static_cast<user_actions::Action>(std::get<0>(record)),
                         std::get<1>(record),
                         std::get<2>(record),
                         (Event)std::get<3>(record));
@@ -98,7 +98,7 @@ namespace bricksim::keyboard_shortcut_manager {
         modifiers &= ALL_MODIFIERS_MASK;
         auto event = static_cast<Event>(keyAction);
         if (shouldCatchNextShortcut) {
-            caughtShortcut = std::make_optional<KeyboardShortcut>(-1, key, modifiers, event);
+            caughtShortcut = std::make_optional<KeyboardShortcut>(user_actions::Action::DO_NOTHING, key, modifiers, event);
             spdlog::debug("caught key shortcut {}", caughtShortcut->getDisplayName());
             return;
         }
@@ -106,11 +106,11 @@ namespace bricksim::keyboard_shortcut_manager {
             for (auto& shortcut: shortcuts) {
                 if (shortcut.key == key && shortcut.event == event && (shortcut.modifiers & modifiers) == shortcut.modifiers) {
                     spdlog::debug("event {} matched shortcut, executing action", shortcut.getDisplayName());
-                    user_actions::executeAction(shortcut.actionId);
+                    user_actions::execute(shortcut.action);
                     return;
                 }
             }
-            spdlog::debug("event {} did not match any shortcut (key={}, modifiers={:b})", KeyboardShortcut(-1, key, modifiers, event).getDisplayName(), key, modifiers);
+            spdlog::debug("event {} did not match any shortcut (key={}, modifiers={:b})", KeyboardShortcut(user_actions::Action::DO_NOTHING, key, modifiers, event).getDisplayName(), key, modifiers);
         }
     }
 
@@ -121,7 +121,7 @@ namespace bricksim::keyboard_shortcut_manager {
     void replaceAllShortcuts(std::vector<KeyboardShortcut>& newShortcuts) {
         db::key_shortcuts::deleteAll();
         for (const auto& shortcut: newShortcuts) {
-            db::key_shortcuts::saveShortcut({shortcut.actionId, shortcut.key, shortcut.modifiers, (uint8_t)shortcut.event});
+            db::key_shortcuts::saveShortcut({shortcut.action, shortcut.key, shortcut.modifiers, (uint8_t)shortcut.event});
         }
         shortcuts = newShortcuts;
     }
@@ -138,16 +138,16 @@ namespace bricksim::keyboard_shortcut_manager {
         caughtShortcut = {};
     }
 
-    const std::string& getShortcutForAction(int actionId) {
+    const std::string& getShortcutForAction(user_actions::Action action) {
         static uomap_t<int, std::string> cache;
-        auto it = cache.find(actionId);
+        auto it = cache.find(action);
         if (it == cache.end()) {
             for (auto& shortcut: shortcuts) {
-                if (shortcut.actionId == actionId) {
-                    return cache[actionId] = shortcut.getDisplayName();
+                if (shortcut.action == action) {
+                    return cache[action] = shortcut.getDisplayName();
                 }
             }
-            return cache[actionId] = "";
+            return cache[action] = "";
         }
         return it->second;
     }
@@ -180,6 +180,8 @@ namespace bricksim::keyboard_shortcut_manager {
         return displayName;
     }
 
-    KeyboardShortcut::KeyboardShortcut(int actionId, int key, uint8_t modifiers, Event event) :
-        actionId(actionId), key(key), modifiers(modifiers), event(event) {}
+    KeyboardShortcut::KeyboardShortcut(user_actions::Action action, int key, uint8_t modifiers, Event event) :
+        action(action), key(key), modifiers(modifiers), event(event) {}
+    KeyboardShortcut::KeyboardShortcut() :
+        action(user_actions::Action::DO_NOTHING), key(0), modifiers(0), event(Event::ON_PRESS) {}
 }

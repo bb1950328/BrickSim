@@ -37,7 +37,10 @@ namespace bricksim::gui_internal {
             ImGui::SetTooltip("%s\n%s%s", part->metaInfo.title.c_str(), part->metaInfo.name.c_str(), availText.c_str());
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            controller::insertLdrElement(part);
+            auto& activeEditor = controller::getActiveEditor();
+            if (activeEditor != nullptr) {
+                activeEditor->insertLdrElement(part);
+            }
         }
         return visible;
     }
@@ -115,16 +118,38 @@ namespace bricksim::gui_internal {
     }
 
     const char* getShortcutText(const user_actions::Action& action) {
-        return keyboard_shortcut_manager::getShortcutForAction(action.id).c_str();
+        return keyboard_shortcut_manager::getShortcutForAction(action).c_str();
     }
 
     void actionMenuItem(const user_actions::Action& action) {
-        actionMenuItem(action, action.nameWithIcon);
+        actionMenuItem(action, user_actions::getName(action));
     }
 
     void actionMenuItem(const user_actions::Action& action, const char* alternativeDescription) {
-        if (ImGui::MenuItem(alternativeDescription, gui_internal::getShortcutText(action))) {
-            user_actions::executeAction(action.id);
+        if (ImGui::MenuItem(alternativeDescription, gui_internal::getShortcutText(action), false, user_actions::isEnabled(action))) {
+            user_actions::execute(action);
+        }
+    }
+
+    void drawEditorSelectionCombo(std::weak_ptr<Editor>& selectedEditor, const char* const caption) {
+        auto lockedSelected = selectedEditor.lock();
+        if (lockedSelected == nullptr) {
+            lockedSelected = *controller::getEditors().begin();
+            selectedEditor = lockedSelected;
+        }
+        if (ImGui::BeginCombo(caption, lockedSelected->getFilename().c_str())) {
+            for (const auto& editor: controller::getEditors()) {
+                const bool isSelected = lockedSelected == editor;
+                if (ImGui::Selectable(editor->getFilename().c_str(), isSelected)) {
+                    selectedEditor = editor;
+                    lockedSelected = editor;
+                }
+
+                if (isSelected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
         }
     }
 }

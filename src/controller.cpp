@@ -32,9 +32,9 @@ namespace bricksim::controller {
         std::shared_ptr<etree::RootNode> elementTree;
         bool selectionChanged = false;
         std::shared_ptr<graphics::ThumbnailGenerator> thumbnailGenerator;
-        std::shared_ptr<graphics::Scene> mainScene;
-        std::shared_ptr<graphics::CadCamera> camera;
-        std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;
+        std::list<std::shared_ptr<Editor>> editors;
+        std::shared_ptr<Editor> activeEditor = nullptr;
+
         unsigned int windowWidth;
         unsigned int windowHeight;
 
@@ -42,16 +42,9 @@ namespace bricksim::controller {
 
         bool userWantsToExit = false;
 
-        uoset_t<std::shared_ptr<etree::Node>> selectedNodes;
-        std::shared_ptr<etree::Node> currentlyEditingNode;
-        enum class DraggingNodeType {
-            NONE,
-            TRANSFORM_GIZMO,
-        };
-        DraggingNodeType currentlyDraggingNodeType = DraggingNodeType::NONE;//todo change this to object oriented design
         transform_gizmo::RotationState transformGizmoRotationState = transform_gizmo::RotationState::WORLD;
 
-        uomap_t<unsigned int, Task> backgroundTasks;//todo smart pointer
+        uomap_t<unsigned int, Task> backgroundTasks;
         std::queue<Task> foregroundTasks;
 
         std::chrono::milliseconds idle_sleep(25);
@@ -210,7 +203,8 @@ namespace bricksim::controller {
             if (ImGui::GetIO().WantCaptureMouse) {
                 return;
             }
-            camera->moveForwardBackward((float)yoffset);
+            //todo find out on which window the mouse is
+            //camera->moveForwardBackward((float)yoffset);
         }
 
         void checkForFinishedBackgroundTasks() {
@@ -264,10 +258,6 @@ namespace bricksim::controller {
             graphics::shaders::initialize();
 
             elementTree = std::make_shared<etree::RootNode>();
-            camera = std::make_shared<graphics::CadCamera>();
-            mainScene = graphics::scenes::create(graphics::scenes::MAIN_SCENE_ID);
-            mainScene->setCamera(camera);
-            mainScene->setRootNode(elementTree);
 
             gui::setWindow(window);
             gui::initialize();
@@ -283,9 +273,7 @@ namespace bricksim::controller {
                     {"initialize thumbnail generator", []() { thumbnailGenerator = std::make_shared<graphics::ThumbnailGenerator>(); }},
                     {"initialize BrickLink constants", info_providers::bricklink_constants::initialize},
                     {"initialize keyboard shortcuts", keyboard_shortcut_manager::initialize},
-                    {"initialize user actions", user_actions::initialize},
                     {"initialize orientation cube generator", graphics::orientation_cube::initialize},
-                    {"initialize transform gizmo", []() { transformGizmo = std::make_unique<transform_gizmo::TransformGizmo>(mainScene); }},
             };
             constexpr float progressStep = 1.0f / std::size(initSteps);
             for (int i = 0; i < std::size(initSteps); ++i) {
@@ -328,10 +316,8 @@ namespace bricksim::controller {
             graphics::scenes::deleteAll();
             graphics::shaders::cleanup();
             elementTree = nullptr;
-            transformGizmo = nullptr;
             thumbnailGenerator = nullptr;
-            mainScene = nullptr;
-            camera = nullptr;
+            editors.clear();
             glfwTerminate();
             openGlInitialized = false;
             spdlog::info("GLFW terminated.");
@@ -404,11 +390,15 @@ namespace bricksim::controller {
             //todo mainScene->meshCollection->updateSelectionContainerBoxIfNeeded();
             addMainloopTimePoint("meshCollection->updateSelectionContainerBoxIfNeeded()");
 
-            transformGizmo->update();
+            for (auto& item: editors) {
+                item->getTransformGizmo()->update();
+            }
             addMainloopTimePoint("transformGizmo->update()");
 
-            mainScene->updateImage();
-            //mainScene->getImage().saveImage("debugMainScene.jpg");
+            for (auto& item: editors) {
+                //todo only update image which is visible
+                item->getScene()->updateImage();
+            }
             addMainloopTimePoint("mainScene->updateImage()");
 
             gui::beginFrame();
@@ -457,30 +447,14 @@ namespace bricksim::controller {
         return glfwWindowShouldClose(window) || userWantsToExit;
     }
 
-    void set3dViewSize(unsigned int width, unsigned int height) {
-        mainScene->setImageSize({width, height});
-    }
-
     void openFile(const std::string& path) {
         foregroundTasks.push(Task(std::string("Open ") + path, [path]() {
-            insertLdrElement(ldr::file_repo::get().getFile(path));
+            editors.emplace_back(Editor::openFile(path));
         }));
     }
 
-    void saveFile() {
-        //todo implement
-    }
-
-    void saveFileAs(const std::filesystem::path& path) {
-        //todo implement
-    }
-
-    void saveCopyAs(const std::filesystem::path& path) {
-        //todo implement
-    }
-
     void createNewFile() {
-        //todo implement
+        editors.emplace_back(Editor::createNew());
     }
 
     void undoLastAction() {
@@ -503,147 +477,11 @@ namespace bricksim::controller {
         //todo implement
     }
 
-    void nodeSelectAddRemove(const std::shared_ptr<etree::Node>& node) {
-        auto iterator = selectedNodes.find(node);
-        node->selected = iterator == selectedNodes.end();
-        if (node->selected) {
-            selectedNodes.insert(node);
-        } else {
-            selectedNodes.erase(iterator);
-        }
-        selectionChanged = true;
-    }
-
-    void nodeSelectSet(const std::shared_ptr<etree::Node>& node) {
-        for (const auto& selectedNode: selectedNodes) {
-            selectedNode->selected = false;
-        }
-        selectedNodes.clear();
-        node->selected = true;
-        selectedNodes.insert(node);
-        selectionChanged = true;
-    }
-
-    void nodeSelectUntil(const std::shared_ptr<etree::Node>& node) {
-        auto rangeActive = false;
-        auto keepGoing = true;
-        const auto& parentChildren = node->parent.lock()->getChildren();
-        for (auto iterator = parentChildren.rbegin();
-             iterator != parentChildren.rend() && keepGoing;
-             iterator++) {
-            auto itNode = *iterator;
-            if (itNode == node || itNode->selected) {
-                if (rangeActive) {
-                    keepGoing = false;
-                } else {
-                    rangeActive = true;
-                }
-            }
-            if (rangeActive) {
-                itNode->selected = true;
-                selectedNodes.insert(itNode);
-            }
-        }
-        selectionChanged = true;
-    }
-
-    void nodeSelectAll() {
-        nodeSelectNone();
-        elementTree->selected = true;
-        selectedNodes.insert(elementTree);
-        selectionChanged = true;
-    }
-
-    void nodeSelectNone() {
-        for (const auto& node: selectedNodes) {
-            node->selected = false;
-        }
-        selectedNodes.clear();
-        selectionChanged = true;
-    }
-
-    void setStandard3dView(int i) {
-        camera->setStandardView(i);
-    }
-
-    //todo test these values
-    void rotateViewUp() { camera->mouseRotate(0, -1); }
-    void rotateViewDown() { camera->mouseRotate(0, +1); }
-    void rotateViewLeft() { camera->mouseRotate(-1, 0); }
-    void rotateViewRight() { camera->mouseRotate(+1, 0); }
-    void panViewUp() { camera->mousePan(0, -1); }
-    void panViewDown() { camera->mousePan(0, +1); }
-    void panViewLeft() { camera->mousePan(-1, 0); }
-    void panViewRight() { camera->mousePan(+1, 0); }
-
-    void insertLdrElement(const std::shared_ptr<ldr::File>& ldrFile) {
-        auto currentlyEditingLdrNode = std::dynamic_pointer_cast<etree::LdrNode>(currentlyEditingNode);
-        switch (ldrFile->metaInfo.type) {
-            case ldr::MODEL:
-                currentlyEditingLdrNode = std::make_shared<etree::MpdNode>(ldrFile, ldr::ColorReference{2}, elementTree);
-                currentlyEditingNode = currentlyEditingLdrNode;
-                currentlyEditingLdrNode->createChildNodes();
-                elementTree->addChild(currentlyEditingNode);
-                currentlyEditingLdrNode->incrementVersion();
-                break;
-            case ldr::MPD_SUBFILE:
-                if (nullptr != currentlyEditingLdrNode) {
-                    currentlyEditingLdrNode->addSubfileInstanceNode(ldrFile, {1});
-                    currentlyEditingLdrNode->incrementVersion();
-                }
-                break;
-            case ldr::PART:
-                if (nullptr != currentlyEditingLdrNode) {
-                    currentlyEditingLdrNode->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr::ColorReference{1}, currentlyEditingNode));
-                    currentlyEditingLdrNode->incrementVersion();
-                }
-                break;
-            case ldr::SUBPART:
-            case ldr::PRIMITIVE:
-            default: break;
-        }
-    }
-
-    void deleteElement(const std::shared_ptr<etree::Node>& nodeToDelete) {
-        auto parent = nodeToDelete->parent.lock();
-        parent->removeChild(nodeToDelete);
-        parent->incrementVersion();
-        selectedNodes.erase(nodeToDelete);
-        selectionChanged = true;
-    }
-
-    void deleteSelectedElements() {
-        for (const auto& node: selectedNodes) {
-            deleteElement(node);
-        }
-    }
-
-    void hideSelectedElements() {
-        for (const auto& node: selectedNodes) {
-            node->visible = false;
-        }
-    }
-
-    void unhideElementRecursively(const std::shared_ptr<etree::Node>& node) {
-        node->visible = false;
-        for (const auto& child: node->getChildren()) {
-            unhideElementRecursively(child);
-        }
-    }
-
-    void unhideAllElements() {
-        unhideElementRecursively(elementTree);
-    }
-
     void setUserWantsToExit(bool val) {
         userWantsToExit = val;
     }
 
-    uoset_t<std::shared_ptr<etree::Node>>& getSelectedNodes() {
-        return selectedNodes;
-    }
-
-    std::shared_ptr<etree::RootNode> getElementTree() {
+    std::shared_ptr<etree::RootNode>& getElementTree() {
         return elementTree;
     }
 
@@ -667,14 +505,6 @@ namespace bricksim::controller {
 
     std::tuple<unsigned short, float*, unsigned short> getLastFrameTimes() {
         return std::make_tuple(lastFrameTimesSize, lastFrameTimes, lastFrameTimesStartIdx);
-    }
-
-    std::shared_ptr<graphics::Scene> getMainScene() {
-        return mainScene;
-    }
-
-    std::shared_ptr<graphics::CadCamera> getMainSceneCamera() {
-        return std::dynamic_pointer_cast<graphics::CadCamera>(mainScene->getCamera());
     }
 
     void executeOpenGL(std::function<void()> const& functor) {
@@ -701,55 +531,26 @@ namespace bricksim::controller {
                         : transform_gizmo::RotationState::WORLD;
     }
 
-    void nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed) {
-        if (transformGizmo->ownsNode(clickedNode)) {
-            //todo transformGizmo->nodeClicked
-        } else {
-            if (ctrlPressed) {
-                nodeSelectAddRemove(clickedNode);
-            } else if (shiftPressed) {
-                nodeSelectUntil(clickedNode);
-            } else {
-                nodeSelectSet(clickedNode);
+    std::list<std::shared_ptr<Editor>>& getEditors() {
+        return editors;
+    }
+
+    std::shared_ptr<Editor>& getActiveEditor() {
+        return activeEditor;
+    }
+
+    void setActiveEditor(std::shared_ptr<Editor>& editor) {
+        activeEditor = editor;
+    }
+
+    std::optional<std::shared_ptr<Editor>> getEditorOfScene(scene_id_t sceneId) {
+        auto& scene = graphics::scenes::get(sceneId);
+        for (auto& item: editors) {
+            if (item->getScene() == scene) {
+                return item;
             }
         }
-    }
-
-    bool isNodeClickable(const std::shared_ptr<etree::Node>& node) {
-        return !transformGizmo->ownsNode(node);
-    }
-
-    bool isNodeDraggable(const std::shared_ptr<etree::Node>& node) {
-        return transformGizmo->ownsNode(node);
-    }
-
-    void startNodeDrag(std::shared_ptr<etree::Node>& node, const glm::svec2& initialCursorPos) {
-        if (transformGizmo->ownsNode(node)) {
-            transformGizmo->startDrag(node, initialCursorPos);
-            currentlyDraggingNodeType = DraggingNodeType::TRANSFORM_GIZMO;
-        }
-    }
-
-    void updateNodeDragDelta(glm::usvec2 delta) {
-        switch (currentlyDraggingNodeType) {
-            case DraggingNodeType::TRANSFORM_GIZMO:
-                transformGizmo->updateCurrentDragDelta(delta);
-                break;
-            case DraggingNodeType::NONE:
-            default:
-                break;
-        }
-    }
-
-    void endNodeDrag() {
-        switch (currentlyDraggingNodeType) {
-            case DraggingNodeType::TRANSFORM_GIZMO:
-                transformGizmo->endDrag();
-                break;
-            case DraggingNodeType::NONE:
-            default:
-                break;
-        }
+        return {};
     }
 
 #ifdef BRICKSIM_USE_RENDERDOC

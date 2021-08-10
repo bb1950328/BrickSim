@@ -176,6 +176,7 @@ target_link_libraries(BrickSimLib PUBLIC CURL::libcurl)
 add_subdirectory(src/lib/spdlog)
 target_include_directories(BrickSimLib PUBLIC spdlog::spdlog)
 target_link_libraries(BrickSimLib PUBLIC spdlog::spdlog)
+target_link_libraries(BrickSimLib PUBLIC fmt)
 
 #Catch2
 add_subdirectory(src/lib/Catch2)

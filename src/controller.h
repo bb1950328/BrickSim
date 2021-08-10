@@ -1,5 +1,6 @@
 #pragma once
 
+#include "editor.h"
 #include "element_tree.h"
 #include "graphics/thumbnail_generator.h"
 #include "ldr/files.h"
@@ -32,12 +33,8 @@ namespace bricksim::controller {
     }
 
     int run();
-    void set3dViewSize(unsigned int width, unsigned int height);
 
     void openFile(const std::string& path);
-    void saveFile();
-    void saveFileAs(const std::filesystem::path& path);
-    void saveCopyAs(const std::filesystem::path& path);
     void createNewFile();
 
     void undoLastAction();
@@ -47,46 +44,15 @@ namespace bricksim::controller {
     void copySelectedObject();
     void pasteObject();
 
-    void nodeSelectAddRemove(const std::shared_ptr<etree::Node>& node);
-    void nodeSelectUntil(const std::shared_ptr<etree::Node>& node);
-    void nodeSelectSet(const std::shared_ptr<etree::Node>& node);
-    void nodeSelectAll();
-    void nodeSelectNone();
-
-    bool isNodeClickable(const std::shared_ptr<etree::Node>& node);
-    void nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed);
-
-    bool isNodeDraggable(const std::shared_ptr<etree::Node>& node);
-    void startNodeDrag(std::shared_ptr<etree::Node>& node, const glm::svec2& initialCursorPos);
-    void updateNodeDragDelta(glm::usvec2 delta);
-    void endNodeDrag();
-
-    void setStandard3dView(int i);
-    void rotateViewUp();
-    void rotateViewDown();
-    void rotateViewLeft();
-    void rotateViewRight();
-    void panViewUp();
-    void panViewDown();
-    void panViewLeft();
-    void panViewRight();
-
-    void insertLdrElement(const std::shared_ptr<ldr::File>& ldrFile);
-    void deleteElement(const std::shared_ptr<etree::Node>& nodeToDelete);
-
-    void deleteSelectedElements();
-    void hideSelectedElements();
-    void unhideAllElements();
-
     transform_gizmo::RotationState getTransformGizmoRotationState();
     void toggleTransformGizmoRotationState();
 
     void setUserWantsToExit(bool val);
-    uoset_t<std::shared_ptr<etree::Node>>& getSelectedNodes();
-    std::shared_ptr<etree::RootNode> getElementTree();
+    std::shared_ptr<etree::RootNode>& getElementTree();
     std::shared_ptr<graphics::ThumbnailGenerator> getThumbnailGenerator();
-    std::shared_ptr<graphics::Scene> getMainScene();
-    std::shared_ptr<graphics::CadCamera> getMainSceneCamera();
+
+    std::list<std::shared_ptr<Editor>>& getEditors();
+    std::shared_ptr<Editor>& getActiveEditor();
 
     void executeOpenGL(std::function<void()> const& functor);
 
@@ -102,4 +68,6 @@ namespace bricksim::controller {
 #ifdef BRICKSIM_USE_RENDERDOC
     RENDERDOC_API_1_1_2* getRenderdocAPI();
 #endif
+    std::optional<std::shared_ptr<Editor>> getEditorOfScene(scene_id_t sceneId);
+    void setActiveEditor(std::shared_ptr<Editor>& editor);
 };

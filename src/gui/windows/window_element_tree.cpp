@@ -7,7 +7,7 @@
 
 namespace bricksim::gui::windows::element_tree {
     namespace {
-        void draw_element_tree_node(std::shared_ptr<etree::Node> node) {
+        void drawElementTreeNode(std::shared_ptr<etree::Node> node, const std::shared_ptr<Editor>& editor) {
             if (node->visibleInElementTree) {
                 ImGui::PushStyleColor(ImGuiCol_Text, getColorOfType(node->getType()));
 
@@ -25,14 +25,14 @@ namespace bricksim::gui::windows::element_tree {
                     if (ImGui::TreeNodeEx(node->displayName.c_str(), flags)) {
                         itemClicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
                         for (const auto& child: node->getChildren()) {
-                            draw_element_tree_node(child);
+                            drawElementTreeNode(child, editor);
                         }
                         ImGui::TreePop();
                     }
                 }
                 ImGui::PopStyleColor();
                 if (itemClicked) {
-                    controller::nodeClicked(node, ImGui::GetIO().KeyCtrl, ImGui::GetIO().KeyShift);
+                    editor->nodeClicked(node, ImGui::GetIO().KeyCtrl, ImGui::GetIO().KeyShift);
                 }
             }
         }
@@ -40,8 +40,8 @@ namespace bricksim::gui::windows::element_tree {
 
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
-            for (const auto& rootChild: controller::getElementTree()->getChildren()) {
-                draw_element_tree_node(rootChild);
+            for (auto& editor: controller::getEditors()) {
+                drawElementTreeNode(editor->getNode(), editor);
             }
         }
         ImGui::End();

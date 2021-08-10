@@ -18,10 +18,11 @@ namespace bricksim::gui::windows::element_properties {
     void draw(Data& data) {
         static std::shared_ptr<etree::Node> lastSelectedNode = nullptr;
         if (ImGui::Begin(data.name, &data.visible)) {
-            if (controller::getSelectedNodes().empty()) {
+            auto& activeEditor = controller::getActiveEditor();
+            if (activeEditor == nullptr || activeEditor->getSelectedNodes().empty()) {
                 ImGui::Text("Select an element to view its properties here");
-            } else if (controller::getSelectedNodes().size() == 1) {
-                auto node = *controller::getSelectedNodes().begin();
+            } else if (activeEditor->getSelectedNodes().size() == 1) {
+                auto node = *activeEditor->getSelectedNodes().begin();
 
                 static char displayNameBuf[255];
                 if (nullptr != lastSelectedNode) {
@@ -371,15 +372,18 @@ namespace bricksim::gui::windows::element_properties {
             } else {
             }
 
-            if (!controller::getSelectedNodes().empty()) {
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8, 0, 0, 1));
-                std::string deleteButtonLabel = controller::getSelectedNodes().size() > 1
-                                                        ? (std::string(ICON_FA_TRASH_ALT " Delete ") + std::to_string(controller::getSelectedNodes().size()) + " elements")
-                                                        : ICON_FA_TRASH_ALT " Delete Element";
-                const auto deleteClicked = ImGui::Button(deleteButtonLabel.c_str());
-                ImGui::PopStyleColor();
-                if (deleteClicked) {
-                    controller::deleteSelectedElements();
+            if (activeEditor != nullptr) {
+                auto& selectedNodes = activeEditor->getSelectedNodes();
+                if (!selectedNodes.empty()) {
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8, 0, 0, 1));
+                    std::string deleteButtonLabel = selectedNodes.size() > 1
+                                                            ? (std::string(ICON_FA_TRASH_ALT " Delete ") + std::to_string(selectedNodes.size()) + " elements")
+                                                            : ICON_FA_TRASH_ALT " Delete Element";
+                    const auto deleteClicked = ImGui::Button(deleteButtonLabel.c_str());
+                    ImGui::PopStyleColor();
+                    if (deleteClicked) {
+                        activeEditor->deleteSelectedElements();
+                    }
                 }
             }
         }

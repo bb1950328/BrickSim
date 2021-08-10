@@ -164,39 +164,44 @@ namespace bricksim::mesh {
     }
 
     void SceneMeshCollection::updateSelectionContainerBoxIfNeeded() {
+        //todo think about moving this to editor
         static std::shared_ptr<Mesh> selectionBoxMesh = nullptr;
-        if (selectionBoxMesh == nullptr) {
-            selectionBoxMesh = std::make_shared<Mesh>();
-            usedMeshes.insert(selectionBoxMesh);
-            selectionBoxMesh->addLdrFile(ldr::color_repo::getInstanceDummyColor(), ldr::file_repo::get().getFile("box0.dat"), glm::mat4(1.0f), false);
-        }
-        selectionBoxMesh->instances.clear();
-        if (!controller::getSelectedNodes().empty()) {
-            for (const auto& node: controller::getSelectedNodes()) {
-                if (node->getType() & etree::TYPE_MESH) {
-                    //todo draw selection as line if only one part is selected
-                    // fix the transformation (click the red 2x4 tile for example)
-                    auto boxDimensions = getBoundingBox(std::dynamic_pointer_cast<const etree::MeshNode>(node));
-                    auto p1 = boxDimensions.first;
-                    auto p2 = boxDimensions.second;
-                    auto center = (p1 + p2) / 2.0f;
-                    auto size = p1 - p2;
-                    //std::cout << "------------------------------" << std::endl;
-                    //std::cout << "name: " << node->displayName << std::endl;
-                    //std::cout << "p1: " << glm::to_string(p1) << std::endl;
-                    //std::cout << "p2: " << glm::to_string(p2) << std::endl;
-                    //std::cout << "center: " << glm::to_string(center) << std::endl;
-                    //std::cout << "size: " << glm::to_string(size) << std::endl;
-                    auto transformation = glm::mat4(1.0f);
-                    transformation = glm::translate(transformation, center);
-                    transformation = glm::scale(transformation, size / 2.0f);//the /2 is because box0.dat has 2ldu edge length
-                    transformation = glm::transpose(transformation);
-                    selectionBoxMesh->instances.push_back({{1}, transformation, 0, true, 0, scene});//todo update ranges
+        std::optional<std::shared_ptr<Editor>> editor = controller::getEditorOfScene(scene);
+        if (editor.has_value()) {
+            if (selectionBoxMesh == nullptr) {
+                selectionBoxMesh = std::make_shared<Mesh>();
+                usedMeshes.insert(selectionBoxMesh);
+                selectionBoxMesh->addLdrFile(ldr::color_repo::getInstanceDummyColor(), ldr::file_repo::get().getFile("box0.dat"), glm::mat4(1.0f), false);
+            }
+            selectionBoxMesh->instances.clear();
+            const auto& selectedNodes = editor.value()->getSelectedNodes();
+            if (!selectedNodes.empty()) {
+                for (const auto& node: selectedNodes) {
+                    if (node->getType() & etree::TYPE_MESH) {
+                        //todo draw selection as line if only one part is selected
+                        // fix the transformation (click the red 2x4 tile for example)
+                        auto boxDimensions = getBoundingBox(std::dynamic_pointer_cast<const etree::MeshNode>(node));
+                        auto p1 = boxDimensions.first;
+                        auto p2 = boxDimensions.second;
+                        auto center = (p1 + p2) / 2.0f;
+                        auto size = p1 - p2;
+                        //std::cout << "------------------------------" << std::endl;
+                        //std::cout << "name: " << node->displayName << std::endl;
+                        //std::cout << "p1: " << glm::to_string(p1) << std::endl;
+                        //std::cout << "p2: " << glm::to_string(p2) << std::endl;
+                        //std::cout << "center: " << glm::to_string(center) << std::endl;
+                        //std::cout << "size: " << glm::to_string(size) << std::endl;
+                        auto transformation = glm::mat4(1.0f);
+                        transformation = glm::translate(transformation, center);
+                        transformation = glm::scale(transformation, size / 2.0f);//the /2 is because box0.dat has 2ldu edge length
+                        transformation = glm::transpose(transformation);
+                        selectionBoxMesh->instances.push_back({{1}, transformation, 0, true, 0, scene});//todo update ranges
+                    }
                 }
             }
+            selectionBoxMesh->instancesHaveChanged = true;
+            selectionBoxMesh->writeGraphicsData();
         }
-        selectionBoxMesh->instancesHaveChanged = true;
-        selectionBoxMesh->writeGraphicsData();
     }
 
     std::pair<glm::vec3, glm::vec3> SceneMeshCollection::getBoundingBox(const std::shared_ptr<const etree::MeshNode>& node) const {

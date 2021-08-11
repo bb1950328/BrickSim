@@ -8,7 +8,7 @@
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "../gui.h"
 #include "window_view3d.h"
-#include <fmt/format.h>
+#include "spdlog/fmt/bundled/format.h"
 
 namespace bricksim::gui::windows::view3d {
     std::shared_ptr<etree::Node> getNodeUnderCursor(const std::shared_ptr<graphics::Scene>& mainScene, const glm::svec2& currentCursorPos) {

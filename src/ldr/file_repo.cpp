@@ -9,6 +9,7 @@
 #include <spdlog/spdlog.h>
 #include <thread>
 #include <zip.h>
+#include <mutex>
 
 namespace bricksim::ldr::file_repo {
     const char* PSEUDO_CATEGORY_SUBPART = "__SUBPART";

@@ -3,7 +3,7 @@
 #include "controller.h"
 #include "ldr/file_repo.h"
 #include "ldr/file_writer.h"
-#include <fmt/format.h>
+#include "spdlog/fmt/bundled/format.h"
 
 namespace bricksim {
     std::shared_ptr<Editor> Editor::createNew() {

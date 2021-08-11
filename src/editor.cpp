@@ -24,9 +24,11 @@ namespace bricksim {
     }
 
     void Editor::init(const std::shared_ptr<ldr::File>& ldrFile) {
-        auto& elementTree = controller::getElementTree();
-        rootNode = std::make_shared<etree::MpdNode>(ldrFile, 1, elementTree);
-        elementTree->addChild(rootNode);
+        rootNode = std::make_shared<etree::RootNode>();
+        documentNode = std::make_shared<etree::MpdNode>(ldrFile, 1, rootNode);
+        documentNode->createChildNodes();
+        rootNode->addChild(documentNode);
+        documentNode->incrementVersion();
 
         const auto& allScenes = graphics::scenes::getAll();
         sceneId = graphics::scenes::FIRST_MAIN_SCENE_ID;
@@ -54,11 +56,17 @@ namespace bricksim {
     Editor::~Editor() {
         graphics::scenes::remove(sceneId);
     }
+
     const std::optional<std::filesystem::path>& Editor::getFilePath() {
         return filePath;
     }
-    std::shared_ptr<etree::MpdNode>& Editor::getNode() {
+
+    std::shared_ptr<etree::RootNode>& Editor::getRootNode() {
         return rootNode;
+    }
+
+    std::shared_ptr<etree::MpdNode>& Editor::getDocumentNode() {
+        return documentNode;
     }
 
     bool Editor::isModified() const {
@@ -75,22 +83,22 @@ namespace bricksim {
         if (filePath->empty()) {
             throw std::invalid_argument("can't save when filePath is empty");
         }
-        if (lastSavedVersion != rootNode->getVersion()) {
-            rootNode->writeChangesToLdrFile();
-            ldr::writeFile(rootNode->ldrFile, filePath.value());
-            lastSavedVersion = rootNode->getVersion();
+        if (lastSavedVersion != documentNode->getVersion()) {
+            documentNode->writeChangesToLdrFile();
+            ldr::writeFile(documentNode->ldrFile, filePath.value());
+            lastSavedVersion = documentNode->getVersion();
         }
     }
 
     void Editor::saveAs(const std::filesystem::path& newPath) {
         filePath = newPath;
-        ldr::file_repo::get().changeFileName(rootNode->ldrFile->metaInfo.name, newPath.filename().string());
+        ldr::file_repo::get().changeFileName(documentNode->ldrFile, newPath.filename().string());
         save();
     }
 
     void Editor::saveCopyAs(const std::filesystem::path& copyPath) {
-        rootNode->writeChangesToLdrFile();
-        ldr::writeFile(rootNode->ldrFile, copyPath);
+        documentNode->writeChangesToLdrFile();
+        ldr::writeFile(documentNode->ldrFile, copyPath);
     }
 
     void Editor::nodeSelectAddRemove(const std::shared_ptr<etree::Node>& node) {
@@ -136,13 +144,13 @@ namespace bricksim {
 
     void Editor::nodeSelectAll() {
         nodeSelectNone();
-        rootNode->selected = true;
-        selectedNodes.insert(rootNode);
+        documentNode->selected = true;
+        selectedNodes.insert(documentNode);
     }
 
     void Editor::nodeSelectNone() {
         for (const auto& item: selectedNodes) {
-            rootNode->selected = false;
+            item->selected = false;
         }
         selectedNodes.clear();
     }
@@ -163,12 +171,12 @@ namespace bricksim {
     void Editor::insertLdrElement(const std::shared_ptr<ldr::File>& ldrFile) {
         switch (ldrFile->metaInfo.type) {
             case ldr::MPD_SUBFILE:
-                rootNode->addSubfileInstanceNode(ldrFile, {1});
-                rootNode->incrementVersion();
+                documentNode->addSubfileInstanceNode(ldrFile, {1});
+                documentNode->incrementVersion();
                 break;
             case ldr::PART:
-                rootNode->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr::ColorReference{1}, rootNode));
-                rootNode->incrementVersion();
+                documentNode->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr::ColorReference{1}, documentNode));
+                documentNode->incrementVersion();
                 break;
             case ldr::SUBPART:
             case ldr::PRIMITIVE:
@@ -264,6 +272,6 @@ namespace bricksim {
     }
 
     const std::string& Editor::getFilename() {
-        return rootNode->ldrFile->metaInfo.name;
+        return documentNode->ldrFile->metaInfo.name;
     }
 }

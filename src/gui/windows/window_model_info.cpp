@@ -35,7 +35,7 @@ namespace bricksim::gui::windows::model_info {
                 ImGui::Text("Statistics of the %zu selected elements:", nodes.size());
             } else {
                 ImGui::Text("Model Statistics:");
-                nodes = {selectedLocked->getNode()};
+                nodes = {selectedLocked->getDocumentNode()};
             }
             spdlog::stopwatch sw;
             uint64_t sum = 0;

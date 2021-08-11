@@ -50,7 +50,7 @@ namespace bricksim::ldr::file_repo {
         omap_t<std::string, oset_t<std::shared_ptr<File>>> getAllPartsGroupedByCategory();
         omap_t<std::string, oset_t<std::shared_ptr<File>>> getLoadedPartsGroupedByCategory();
 
-        void changeFileName(const std::string& oldName, const std::string& newName);
+        void changeFileName(std::shared_ptr<File>& file, const std::string& newName);
 
     protected:
         static std::string readFileFromFilesystem(const std::filesystem::path& path);

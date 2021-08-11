@@ -142,7 +142,7 @@ namespace bricksim::transform_gizmo {
         Editor& editor;
         std::shared_ptr<TGNode> node;
         std::optional<glm::mat4> lastTransformation;
-        PovState lastState;
+        PovState lastPovState;
         std::unique_ptr<TransformOperation> currentTransformationOperation = nullptr;
         glm::mat4 nodeRotation;
         glm::vec3 nodePosition;
@@ -150,7 +150,11 @@ namespace bricksim::transform_gizmo {
         std::shared_ptr<etree::Node> currentlySelectedNode;
 
     public:
-        TransformGizmo(Editor& editor);
+        explicit TransformGizmo(Editor& editor);
+        TransformGizmo(const TransformGizmo&) = delete;
+        TransformGizmo(TransformGizmo&&) = delete;
+        TransformGizmo& operator=(const TransformGizmo&) = delete;
+        TransformGizmo& operator=(TransformGizmo&&) = delete;
         void update();
         bool ownsNode(const std::shared_ptr<etree::Node>& node_);
         void startDrag(std::shared_ptr<etree::Node>& draggedNode, glm::svec2 initialCursorPos);

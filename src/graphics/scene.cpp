@@ -132,7 +132,7 @@ namespace bricksim::graphics {
         meshCollection.rereadElementTreeIfNeeded();
         GLubyte middlePixel[3];
 
-        if (needRender) {
+        if (!needRender) {
             controller::executeOpenGL([&]() {
                 glUseProgram(0);
                 glBindFramebuffer(GL_FRAMEBUFFER, selection->getFBO());

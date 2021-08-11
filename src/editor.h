@@ -20,12 +20,13 @@ namespace bricksim {
         virtual ~Editor();
 
         const std::optional<std::filesystem::path>& getFilePath();
-        std::shared_ptr<etree::MpdNode>& getNode();
+        std::shared_ptr<etree::RootNode>& getRootNode();
+        std::shared_ptr<etree::MpdNode>& getDocumentNode();
         [[nodiscard]] bool isModified() const;
         std::shared_ptr<graphics::Scene>& getScene();
         std::unique_ptr<transform_gizmo::TransformGizmo>& getTransformGizmo();
-        const std::shared_ptr<graphics::CadCamera>& getCamera() const;
-        const uoset_t<std::shared_ptr<etree::Node>>& getSelectedNodes() const;
+        [[nodiscard]] const std::shared_ptr<graphics::CadCamera>& getCamera() const;
+        [[nodiscard]] const uoset_t<std::shared_ptr<etree::Node>>& getSelectedNodes() const;
 
         const std::string& getFilename();
 
@@ -69,7 +70,8 @@ namespace bricksim {
         void init(const std::shared_ptr<ldr::File>& ldrFile);
 
         std::optional<std::filesystem::path> filePath;
-        std::shared_ptr<etree::MpdNode> rootNode;
+        std::shared_ptr<etree::RootNode> rootNode;
+        std::shared_ptr<etree::MpdNode> documentNode;
         scene_id_t sceneId{};
         std::shared_ptr<graphics::Scene> scene;
         std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;

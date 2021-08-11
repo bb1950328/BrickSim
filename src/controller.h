@@ -48,7 +48,6 @@ namespace bricksim::controller {
     void toggleTransformGizmoRotationState();
 
     void setUserWantsToExit(bool val);
-    std::shared_ptr<etree::RootNode>& getElementTree();
     std::shared_ptr<graphics::ThumbnailGenerator> getThumbnailGenerator();
 
     std::list<std::shared_ptr<Editor>>& getEditors();

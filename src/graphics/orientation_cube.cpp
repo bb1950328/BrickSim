@@ -2,6 +2,7 @@
 #include "../constant_data/resources.h"
 #include "../controller.h"
 #include <magic_enum.hpp>
+#include <spdlog/spdlog.h>
 
 namespace bricksim::graphics::orientation_cube {
     namespace {
@@ -39,6 +40,7 @@ namespace bricksim::graphics::orientation_cube {
         rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::LEFT));
         rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::TOP));
         rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::FRONT));
+        rootNode->incrementVersion();
 
         scene->setCamera(std::make_shared<OrientationCubeCamera>());
         scene->setImageSize({size, size});

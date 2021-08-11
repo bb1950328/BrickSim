@@ -29,7 +29,6 @@
 namespace bricksim::controller {
     namespace {
         GLFWwindow* window;
-        std::shared_ptr<etree::RootNode> elementTree;
         bool selectionChanged = false;
         std::shared_ptr<graphics::ThumbnailGenerator> thumbnailGenerator;
         std::list<std::shared_ptr<Editor>> editors;
@@ -257,8 +256,6 @@ namespace bricksim::controller {
 
             graphics::shaders::initialize();
 
-            elementTree = std::make_shared<etree::RootNode>();
-
             gui::setWindow(window);
             gui::initialize();
 
@@ -312,12 +309,17 @@ namespace bricksim::controller {
             spdlog::info("all background tasks finished, exiting now");
             gui::cleanup();
             graphics::orientation_cube::cleanup();
+            graphics::shaders::cleanup();
+            activeEditor = nullptr;
+            for (const auto &item : editors) {
+                if (!item.unique()) {
+                    spdlog::warn("somebody else still has a shared_ptr to editor \"{}\". use_count={}", item->getFilename(), item.use_count());
+                }
+            }
+            editors.clear();
             mesh::SceneMeshCollection::deleteAllMeshes();
             graphics::scenes::deleteAll();
-            graphics::shaders::cleanup();
-            elementTree = nullptr;
             thumbnailGenerator = nullptr;
-            editors.clear();
             glfwTerminate();
             openGlInitialized = false;
             spdlog::info("GLFW terminated.");
@@ -479,10 +481,6 @@ namespace bricksim::controller {
 
     void setUserWantsToExit(bool val) {
         userWantsToExit = val;
-    }
-
-    std::shared_ptr<etree::RootNode>& getElementTree() {
-        return elementTree;
     }
 
     std::shared_ptr<graphics::ThumbnailGenerator> getThumbnailGenerator() {

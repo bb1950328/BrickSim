@@ -177,11 +177,13 @@ namespace bricksim::gui::windows::debug {
                     }
                 }
 
-                const std::shared_ptr<etree::Node>& rootNode = controller::getElementTree();
-                ImGui::Text("Element tree root node version: %lu", rootNode->getVersion());
-                ImGui::SameLine();
-                if (ImGui::Button(ICON_FA_PLUS_SQUARE " Increment")) {
-                    rootNode->incrementVersion();
+                for (auto & editor: controller::getEditors()) {
+                    const auto& rootNode = editor->getRootNode();
+                    ImGui::Text("Element tree root node version: %lu", rootNode->getVersion());
+                    ImGui::SameLine();
+                    if (ImGui::Button(ICON_FA_PLUS_SQUARE " Increment")) {
+                        rootNode->incrementVersion();
+                    }
                 }
 
                 ImGui::EndTabItem();

@@ -143,12 +143,20 @@ namespace bricksim::gui::windows::view3d {
                     lastAnyMouseDown = currentlyAnyMouseDown;
                 }
                 scene->setImageSize({regionAvail.x, regionAvail.y});
-                const auto& image = config::get(config::DISPLAY_SELECTION_BUFFER)
-                                            ? scene->getSelectionImage().value()
-                                            : scene->getImage();
-                auto texture3dView = gui_internal::convertTextureId(image.getTexBO());
+                ImTextureID texture3dView;
+                glm::usvec2 imageSize;
+                if (config::get(config::DISPLAY_SELECTION_BUFFER)) {
+                    scene->getSelectionPixel({0, 0});//to update image
+                    const auto& image = scene->getSelectionImage().value();
+                    imageSize = image.getSize();
+                    texture3dView = gui_internal::convertTextureId(image.getTexBO());
+                } else {
+                    const auto& image = scene->getImage();
+                    texture3dView = gui_internal::convertTextureId(image.getTexBO());
+                    imageSize = image.getSize();
+                }
                 //ImGui::ImageButton(texture3dView, ImVec2(image.getSize().x, image.getSize().y), ImVec2(0, 1), ImVec2(1, 0), 0);
-                ImGui::Image(texture3dView, ImVec2(image.getSize().x, image.getSize().y), ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image(texture3dView, ImVec2(imageSize.x, imageSize.y), ImVec2(0, 1), ImVec2(1, 0));
                 //spdlog::error("main texture {}", image.getTexBO());
 
                 lastIsWindowFocused = currentIsWindowFocused;

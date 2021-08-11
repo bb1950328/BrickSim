@@ -45,8 +45,9 @@ namespace bricksim::transform_gizmo {
         const auto& selectedNodes = editor.getSelectedNodes();
         currentlySelectedNode = selectedNodes.size() == 1 ? *selectedNodes.begin() : nullptr;
 
-        std::optional<glm::mat4> nowTransformation;
-        PovState nowPovState;
+        std::optional<glm::mat4> nowTransformation = lastTransformation;
+        PovState nowPovState = lastPovState;
+        bool nodeTransformationChanged = false;
         if (currentlySelectedNode != nullptr) {
             const static float configScale = config::get(config::GUI_SCALE) * config::get(config::TRANSFORM_GIZMO_SIZE);
 
@@ -56,7 +57,8 @@ namespace bricksim::transform_gizmo {
             const glm::mat4 nodeAbsTransf = currentlySelectedNode->getAbsoluteTransformation();
             glm::vec3 cameraPosLdu = glm::vec4(scene->getCamera()->getCameraPos(), 1.0f) * constants::OPENGL_TO_LDU;
 
-            if (lastNodeAbsTransf != nodeAbsTransf || lastCameraPosLdu != cameraPosLdu) {
+            nodeTransformationChanged = lastNodeAbsTransf != nodeAbsTransf;
+            if (nodeTransformationChanged || lastCameraPosLdu != cameraPosLdu) {
                 lastNodeAbsTransf = nodeAbsTransf;
                 lastCameraPosLdu = cameraPosLdu;
 
@@ -90,10 +92,13 @@ namespace bricksim::transform_gizmo {
             node->visible = false;
             nowTransformation = {};
         }
-        if (nowTransformation != lastTransformation || (node->visible && nowPovState != lastState)) {
+        bool gizmoTransformationChanged = lastTransformation.has_value() && nowTransformation.has_value()
+                                             ? !util::matEpsilonEqual(lastTransformation.value(), nowTransformation.value(), .001f)
+                                             : lastTransformation.has_value() != nowTransformation.has_value();
+        if (nodeTransformationChanged || gizmoTransformationChanged || (node->visible && nowPovState != lastPovState)) {
             node->incrementVersion();
             lastTransformation = nowTransformation;
-            lastState = nowPovState;
+            lastPovState = nowPovState;
         }
     }
 

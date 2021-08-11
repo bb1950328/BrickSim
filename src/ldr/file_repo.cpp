@@ -311,8 +311,14 @@ namespace bricksim::ldr::file_repo {
         return files.find(name) != files.end();
     }
 
-    void FileRepo::changeFileName(const std::string& oldName, const std::string& newName) {
-        auto it = files.find(oldName);
+    void FileRepo::changeFileName(std::shared_ptr<File>& file, const std::string& newName) {
+        auto it = files.find(file->metaInfo.name);
+        if (it==files.end()) {
+            it = files.begin();
+            while (it != files.end() && it->second.second != file) {
+                ++it;
+            }
+        }
         it->second.second->metaInfo.name = newName;
         files.emplace(newName, it->second);
         files.erase(it);

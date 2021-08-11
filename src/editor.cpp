@@ -20,7 +20,7 @@ namespace bricksim {
 
     Editor::Editor(const std::filesystem::path& path) :
         filePath(path) {
-        init(ldr::file_repo::get().getFile(path));
+        init(ldr::file_repo::get().getFile(path.string()));
     }
 
     void Editor::init(const std::shared_ptr<ldr::File>& ldrFile) {

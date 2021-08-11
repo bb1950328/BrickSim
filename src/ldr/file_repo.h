@@ -5,6 +5,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <mutex>
 
 namespace bricksim::ldr::file_repo {
 

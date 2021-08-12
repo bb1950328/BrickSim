@@ -25,7 +25,7 @@ namespace bricksim::ldr {
         stream << "0 FILE " << path.filename() << LDR_NEWLINE;
 
         auto nameBackup = file->metaInfo.name;
-        file->metaInfo.name = path.filename();
+        file->metaInfo.name = path.filename().string();
         stream << file->metaInfo;
         file->metaInfo.name = nameBackup;
 

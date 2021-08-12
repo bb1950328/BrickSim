@@ -4,6 +4,7 @@
 #include "config.h"
 #include <magic_enum.hpp>
 #include <palanteer.h>
+#undef RGB
 #include <spdlog/spdlog.h>
 
 namespace bricksim::etree {

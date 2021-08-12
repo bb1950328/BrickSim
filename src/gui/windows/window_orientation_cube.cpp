@@ -6,6 +6,19 @@
 
 namespace bricksim::gui::windows::orientation_cube {
     using namespace graphics::orientation_cube;
+
+    int getStandardViewNum(CubeSide cubeSide) {
+        switch (cubeSide) {
+            case CubeSide::RIGHT: return 3;
+            case CubeSide::BOTTOM: return 5;
+            case CubeSide::BACK: return 4;
+            case CubeSide::LEFT: return 6;
+            case CubeSide::TOP: return 2;
+            case CubeSide::FRONT: return 1;
+            default: return 0;
+        }
+    }
+
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
             const ImVec2& cursorPos = ImGui::GetCursorScreenPos();
@@ -19,25 +32,9 @@ namespace bricksim::gui::windows::orientation_cube {
                                          (mousePos.y - cursorPos.y) * scale};
                 auto clickedSide = getSide(imgCoords);
                 if (clickedSide.has_value()) {
-                    switch (clickedSide.value()) {
-                        case CubeSide::RIGHT:
-                            controller::setStandard3dView(3);
-                            break;
-                        case CubeSide::BOTTOM:
-                            controller::setStandard3dView(5);
-                            break;
-                        case CubeSide::BACK:
-                            controller::setStandard3dView(4);
-                            break;
-                        case CubeSide::LEFT:
-                            controller::setStandard3dView(6);
-                            break;
-                        case CubeSide::TOP:
-                            controller::setStandard3dView(2);
-                            break;
-                        case CubeSide::FRONT:
-                            controller::setStandard3dView(1);
-                            break;
+                    auto& activeEditor = controller::getActiveEditor();
+                    if (activeEditor != nullptr) {
+                        activeEditor->setStandard3dView(getStandardViewNum(clickedSide.value()));
                     }
                 }
             }

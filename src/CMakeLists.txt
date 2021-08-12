@@ -6,6 +6,8 @@ target_sources(BrickSimLib PRIVATE
         custom_imconfig.h
         db.cpp
         db.h
+        editor.cpp
+        editor.h
         element_tree.cpp
         element_tree.h
         keyboard_shortcut_manager.cpp

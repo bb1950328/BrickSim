@@ -73,6 +73,15 @@ namespace bricksim::util {
         return res;
     }
 
+    template<glm::length_t L1, glm::length_t L2, typename T, glm::qualifier Q>
+    bool matEpsilonEqual(const glm::mat<L1, L2, T, Q>& mat1, const glm::mat<L1, L2, T, Q>& mat2, T epsilon) {
+        bool result = true;
+        for (glm::length_t i = 0; i < L1; ++i) {
+            result &= glm::all(glm::epsilonEqual(mat1[0], mat2[0], epsilon));
+        }
+        return result;
+    }
+
     struct DecomposedTransformation {
         glm::quat orientation;
         glm::vec3 skew;

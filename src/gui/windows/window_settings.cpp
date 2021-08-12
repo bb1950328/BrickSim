@@ -209,8 +209,8 @@ namespace bricksim::gui::windows::settings {
                     while (shortcut != allShortcuts.end()) {
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
-                        const auto action = user_actions::getAction(shortcut->actionId);
-                        if (ImGui::Button(action.nameWithIcon)) {
+                        const char* actionName = user_actions::getName(shortcut->action);
+                        if (ImGui::Button(actionName)) {
                             currentlyEditingShortcut = *shortcut;
                             shouldOpenSelectActionModal = true;
                         }
@@ -220,7 +220,7 @@ namespace bricksim::gui::windows::settings {
                             shouldOpenSelectKeyModal = true;
                         }
                         ImGui::TableNextColumn();
-                        std::string btnName = ICON_FA_TRASH_ALT + std::string("##") + shortcut->getDisplayName() + action.name;
+                        std::string btnName = ICON_FA_TRASH_ALT + std::string("##") + shortcut->getDisplayName() + actionName;
                         if (ImGui::Button(btnName.c_str())) {
                             allShortcuts.erase(shortcut);
                         } else {
@@ -230,7 +230,7 @@ namespace bricksim::gui::windows::settings {
                     ImGui::EndTable();
                 }
                 if (ImGui::Button(ICON_FA_PLUS " Add new")) {
-                    allShortcuts.emplace_back(0, 0, 0, keyboard_shortcut_manager::Event::ON_PRESS);
+                    allShortcuts.emplace_back(user_actions::DO_NOTHING, 0, 0, keyboard_shortcut_manager::Event::ON_PRESS);
                 }
                 ImGui::EndTabItem();
             }
@@ -240,16 +240,16 @@ namespace bricksim::gui::windows::settings {
             if (ImGui::BeginPopupModal("Select action", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
                 constexpr int searchBufSize = 32;
                 static char searchBuf[searchBufSize];
-                static int currentlySelectedActionId;
+                static user_actions::Action currentlySelectedAction = user_actions::DO_NOTHING;
                 if (shouldOpenSelectActionModal) {
-                    currentlySelectedActionId = currentlyEditingShortcut.value().get().actionId;
+                    currentlySelectedAction = currentlyEditingShortcut.value().get().action;
                 }
                 ImGui::InputTextWithHint(ICON_FA_SEARCH, "type to filter actions...", searchBuf, searchBufSize);
                 if (ImGui::BeginListBox("##actionListBox")) {
                     for (const auto& action: user_actions::findActionsByName(searchBuf)) {
-                        const bool is_selected = (action.id == currentlySelectedActionId);
-                        if (ImGui::Selectable(action.nameWithIcon, is_selected)) {
-                            currentlySelectedActionId = action.id;
+                        const bool is_selected = (action == currentlySelectedAction);
+                        if (ImGui::Selectable(user_actions::getName(action), is_selected)) {
+                            currentlySelectedAction = action;
                         }
 
                         if (is_selected) {
@@ -259,7 +259,7 @@ namespace bricksim::gui::windows::settings {
                     ImGui::EndListBox();
                 }
                 if (ImGui::Button(ICON_FA_CHECK " OK##actionChooser")) {
-                    currentlyEditingShortcut.value().get().actionId = currentlySelectedActionId;
+                    currentlyEditingShortcut.value().get().action = currentlySelectedAction;
                     currentlyEditingShortcut = {};
                     ImGui::CloseCurrentPopup();
                 }

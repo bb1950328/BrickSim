@@ -6,8 +6,9 @@
 #include <string>
 #include <vector>
 namespace bricksim::ldr {
-    class FileElement;
+    const char* const LDR_NEWLINE = "\r\n";
 
+    class FileElement;
     enum FileType {
         MODEL,
         MPD_SUBFILE,
@@ -31,22 +32,23 @@ namespace bricksim::ldr {
 
     class FileMetaInfo {
     public:
-        std::string title;               //usually the first line in the file
-        std::string name;                //0 Name: xxxxx
-        std::string author;              //0 Author: xxxxx
-        oset_t<std::string> keywords;    //0 !KEYWORDS xxx, yyyy, zzzz
-        std::vector<std::string> history;//0 !HISTORY xxxx
-        std::string license;             //0 !LICENSE xxxx
-        std::string theme;               //0 !THEME
+        std::string title;                         //usually the first line in the file
+        std::string name;                          //0 Name: xxxxx
+        std::string author;                        //0 Author: xxxxx
+        oset_t<std::string> keywords;              //0 !KEYWORDS xxx, yyyy, zzzz
+        std::vector<std::string> history;          //0 !HISTORY xxxx
+        std::string license;                       //0 !LICENSE xxxx
+        std::string theme;                         //0 !THEME
+        std::string fileTypeLine;                  //0 !LDRAW_ORG
+        std::optional<std::string> headerCategory; //0 !CATEGORY xxxx
         FileType type;
+
         friend std::ostream& operator<<(std::ostream& os, const FileMetaInfo& info);
 
         bool addLine(const std::string& line);
 
         [[nodiscard]] const std::string& getCategory();
-
     private:
-        std::optional<std::string> category;//0 !CATEGORY xxxx
         bool firstLine = true;
     };
 
@@ -74,6 +76,7 @@ namespace bricksim::ldr {
     public:
         static std::shared_ptr<FileElement> parseLine(const std::string& line, BfcState bfcState);
         [[nodiscard]] virtual int getType() const = 0;
+        [[nodiscard]] virtual std::string getLdrLine() const = 0;
         virtual ~FileElement();
 
         unsigned int step = 0;//0 is before the first "0 STEP" line
@@ -82,21 +85,24 @@ namespace bricksim::ldr {
     class CommentOrMetaElement : public FileElement {
     public:
         explicit CommentOrMetaElement(const std::string& line);
-
         std::string content;
 
         [[nodiscard]] int getType() const override;
+        [[nodiscard]] std::string getLdrLine() const override;
     };
 
     class SubfileReference : public FileElement {
     public:
         explicit SubfileReference(std::string& line, bool bfcInverted);
+        explicit SubfileReference(ColorReference color, const glm::mat4& transformation, bool bfcInverted);
         bool bfcInverted;
         ColorReference color;
         float x, y, z, a, b, c, d, e, f, g, h, i;
         std::string filename;
         [[nodiscard]] int getType() const override;
+        [[nodiscard]] std::string getLdrLine() const override;
         [[nodiscard]] glm::mat4 getTransformationMatrix() const;
+        void setTransformationMatrix(const glm::mat4& matrix);
         std::shared_ptr<File> getFile();
 
     private:
@@ -111,6 +117,7 @@ namespace bricksim::ldr {
         explicit Line(std::string& line);
 
         [[nodiscard]] int getType() const override;
+        [[nodiscard]] std::string getLdrLine() const override;
     };
 
     class Triangle : public FileElement {
@@ -121,6 +128,7 @@ namespace bricksim::ldr {
         explicit Triangle(std::string& line, WindingOrder order);
 
         [[nodiscard]] int getType() const override;
+        [[nodiscard]] std::string getLdrLine() const override;
     };
 
     class Quadrilateral : public FileElement {
@@ -131,6 +139,7 @@ namespace bricksim::ldr {
         explicit Quadrilateral(std::string& line, WindingOrder order);
 
         [[nodiscard]] int getType() const override;
+        [[nodiscard]] std::string getLdrLine() const override;
     };
 
     class OptionalLine : public FileElement {
@@ -142,5 +151,10 @@ namespace bricksim::ldr {
         explicit OptionalLine(std::string& line);
 
         [[nodiscard]] int getType() const override;
+        [[nodiscard]] std::string getLdrLine() const override;
     };
+
+    namespace {
+        const char* getFileTypeStr(FileType type);
+    }
 }

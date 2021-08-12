@@ -200,41 +200,59 @@ namespace bricksim::gui {
     }
 
     void showSaveFileAsDialog() {
-        char* fileNameChars = tinyfd_saveFileDialog(
-                "Save File As",
-                "",
-                NUM_LDR_FILTER_PATTERNS,
-                lFilterPatterns,
-                nullptr);
-        if (fileNameChars != nullptr) {
-            std::string fileName(fileNameChars);
-            controller::saveFileAs(fileName);
+        auto& activeEditor = controller::getActiveEditor();
+        if (activeEditor != nullptr) {
+            std::string title = fmt::format("Save \"{}\" as", activeEditor->getFilename());
+            char* fileNameChars = tinyfd_saveFileDialog(
+                    title.c_str(),
+                    "",
+                    NUM_LDR_FILTER_PATTERNS,
+                    lFilterPatterns,
+                    nullptr);
+            if (fileNameChars != nullptr) {
+                std::string fileName(fileNameChars);
+                activeEditor->saveAs(fileName);
+            }
+        } else {
+            spdlog::warn("gui::showSaveFileAsDialog() called, but there's no active editor");
         }
     }
 
     void showSaveCopyAsDialog() {
-        char* fileNameChars = tinyfd_saveFileDialog(
-                "Save Copy As",
-                "",
-                NUM_LDR_FILTER_PATTERNS,
-                lFilterPatterns,
-                nullptr);
-        if (fileNameChars != nullptr) {
-            std::string fileName(fileNameChars);
-            controller::saveCopyAs(fileName);
+        auto& activeEditor = controller::getActiveEditor();
+        if (activeEditor != nullptr) {
+            std::string title = fmt::format("Save copy of \"{}\"", activeEditor->getFilename());
+            char* fileNameChars = tinyfd_saveFileDialog(
+                    "Save Copy As",
+                    "",
+                    NUM_LDR_FILTER_PATTERNS,
+                    lFilterPatterns,
+                    nullptr);
+            if (fileNameChars != nullptr) {
+                std::string fileName(fileNameChars);
+                activeEditor->saveCopyAs(fileName);
+            }
+        } else {
+            spdlog::warn("gui::showSaveCopyAsDialog() called, but there's no active editor");
         }
     }
 
     void showScreenshotDialog() {
-        char* fileNameChars = tinyfd_saveFileDialog(
-                ICON_FA_CAMERA " Save Screenshot",
-                "",
-                NUM_IMAGE_FILTER_PATTERNS,
-                imageFilterPatterns,
-                nullptr);
-        if (fileNameChars != nullptr) {
-            std::string fileNameString(fileNameChars);
-            controller::getMainScene()->getImage().saveImage(fileNameString);
+        auto& activeEditor = controller::getActiveEditor();
+        if (activeEditor != nullptr) {
+            std::string title = fmt::format("Save Screenshot of \"{}\"", activeEditor->getFilename());
+            char* fileNameChars = tinyfd_saveFileDialog(
+                    title.c_str(),
+                    "",
+                    NUM_IMAGE_FILTER_PATTERNS,
+                    imageFilterPatterns,
+                    nullptr);
+            if (fileNameChars != nullptr) {
+                std::string fileNameString(fileNameChars);
+                activeEditor->getScene()->getImage().saveImage(fileNameString);
+            }
+        } else {
+            spdlog::warn("gui::showScreenshotDialog() called, but there's no active editor");
         }
     }
 
@@ -271,7 +289,6 @@ namespace bricksim::gui {
     }
 
     void drawMainWindows() {
-        const std::shared_ptr<graphics::Scene>& mainScene = controller::getMainScene();
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
                 gui_internal::actionMenuItem(user_actions::NEW_FILE);
@@ -296,6 +313,12 @@ namespace bricksim::gui {
                 gui_internal::actionMenuItem(user_actions::COPY);
                 gui_internal::actionMenuItem(user_actions::PASTE);
                 ImGui::EndMenu();
+            }
+            auto& editors = controller::getEditors();
+            bool singleDocument = editors.size() == 1;
+            bool open;
+            if (singleDocument) {
+                open = ImGui::BeginMenu("Document");
             }
             if (ImGui::BeginMenu("View")) {
                 ImGui::MenuItem(windows::getName(windows::Id::VIEW_3D), "", windows::isVisible(windows::Id::VIEW_3D));
@@ -322,7 +345,6 @@ namespace bricksim::gui {
             if (ImGui::BeginMenu("Selection")) {
                 gui_internal::actionMenuItem(user_actions::SELECT_ALL);
                 gui_internal::actionMenuItem(user_actions::SELECT_NOTHING);
-                ImGui::TextDisabled("%lu Elements currently selected", controller::getSelectedNodes().size());
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("3D")) {
@@ -333,8 +355,8 @@ namespace bricksim::gui {
                 gui_internal::actionMenuItem(user_actions::VIEW_3D_BOTTOM, "Bottom");
                 gui_internal::actionMenuItem(user_actions::VIEW_3D_LEFT, "Left");
                 ImGui::Separator();
-                ImGui::MenuItem("Show Surfaces", "", mainScene->isDrawTriangles());
-                ImGui::MenuItem("Show Lines", "", mainScene->isDrawLines());
+                //todo ImGui::MenuItem("Show Surfaces", "", mainScene->isDrawTriangles());
+                //todo ImGui::MenuItem("Show Lines", "", mainScene->isDrawLines());
                 gui_internal::actionMenuItem(user_actions::TAKE_SCREENSHOT);
                 ImGui::EndMenu();
             }
@@ -381,7 +403,7 @@ namespace bricksim::gui {
             }
             ImGui::InputText(ICON_FA_SEARCH, searchBuf, searchBufSize);
 
-            static int selectedActionId = -1;
+            static std::optional<user_actions::Action> selectedAction;
             if (ImGui::BeginListBox("##actionsByNameListBox")) {
                 auto& foundActions = user_actions::findActionsByName(searchBuf);
                 static uint8_t btnUpPressed = 0;//0=not pressed, 1=pressed, handle id, >=2=pressed, already handled
@@ -402,14 +424,14 @@ namespace bricksim::gui {
                 }
                 int moveDelta = 0;
                 if (btnUpPressed == 1) {
-                    if (foundActions.cbegin()->id == selectedActionId) {
-                        selectedActionId = foundActions.cend()->id;
+                    if (!selectedAction.has_value() || *foundActions.cbegin() == selectedAction.value()) {
+                        selectedAction = *foundActions.cend();
                     } else {
                         moveDelta = -1;
                     }
                 } else if (btnDownPressed == 1) {
-                    if (selectedActionId == -1 || foundActions.cend()->id == selectedActionId) {
-                        selectedActionId = foundActions.cbegin()->id;
+                    if (!selectedAction.has_value() || *foundActions.cend() == selectedAction.value()) {
+                        selectedAction = *foundActions.cbegin();
                     } else {
                         moveDelta = 1;
                     }
@@ -417,39 +439,39 @@ namespace bricksim::gui {
                 if (moveDelta != 0) {
                     auto it = foundActions.begin();
                     while (it != foundActions.end()) {
-                        if (it->id == selectedActionId) {
+                        if (*it == selectedAction.value()) {
                             if (moveDelta == -1) {
                                 --it;
                             } else {
                                 ++it;
                             }
-                            selectedActionId = it->id;
+                            selectedAction = *it;
                             break;
                         }
                         ++it;
                     }
                 }
-                if (!std::any_of(foundActions.cbegin(), foundActions.cend(), [](const auto& action) { return action.id == selectedActionId; })) {
-                    selectedActionId = foundActions.cbegin()->id;
+                if (!std::any_of(foundActions.cbegin(), foundActions.cend(), [](const auto& action) { return action == selectedAction.value(); })) {
+                    selectedAction = *foundActions.cbegin();
                 }
                 for (const auto& action: foundActions) {
-                    bool selected = action.id == selectedActionId;
+                    bool selected = action == selectedAction;
                     if (selected) {
                         ImGui::SetScrollHereY();
                     }
-                    ImGui::Selectable(action.nameWithIcon, selected);
+                    ImGui::Selectable(user_actions::getName(action), selected);
                 }
                 ImGui::EndListBox();
             }
             bool close = false;
             if (ImGui::Button(ICON_FA_CHECK " OK") || glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
-                user_actions::executeAction(selectedActionId);
+                user_actions::execute(selectedAction.value());
                 close = true;
             }
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_WINDOW_CLOSE " Cancel") || close || glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
                 searchBuf[0] = '\0';
-                selectedActionId = -1;
+                selectedAction = std::nullopt;
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();

@@ -2,7 +2,10 @@
 #pragma ide diagnostic ignored "misc-no-recursion"
 #include "element_tree.h"
 #include "config.h"
+#include <magic_enum.hpp>
 #include <palanteer.h>
+#undef RGB
+#include <spdlog/spdlog.h>
 
 #undef RGB
 
@@ -86,7 +89,7 @@ namespace bricksim::etree {
         do {
             ++node->version;
             node = node->parent.lock().get();
-        } while (node!= nullptr);
+        } while (node != nullptr);
     }
 
     Node::~Node() = default;
@@ -194,10 +197,37 @@ namespace bricksim::etree {
                     if (nullptr != newNode) {
                         children.push_back(newNode);
                         newNode->setRelativeTransformation(sfElement->getTransformationMatrix());
+                        subfileRefChildNodeSaveInfos.emplace(newNode, ChildNodeSaveInfo{newNode->getVersion(), element});
                     }
                 }
             }
             childNodesCreated = true;
+        }
+    }
+    void LdrNode::writeChangesToLdrFile() {
+        if (version != lastSaveToLdrFileVersion) {
+            for (const auto& item: children) {
+                if (item->getType() == TYPE_PART || item->getType() == TYPE_MPD_SUBFILE_INSTANCE) {
+                    auto saveInfos = subfileRefChildNodeSaveInfos.find(item);
+                    if (saveInfos != subfileRefChildNodeSaveInfos.end()) {
+                        if (item->getVersion() != saveInfos->second.lastSaveToLdrFileVersion) {
+                            std::shared_ptr<ldr::FileElement>& ldrElement = saveInfos->second.ldrElement;
+                            auto subfileRefElement = std::dynamic_pointer_cast<ldr::SubfileReference>(ldrElement);
+                            subfileRefElement->setTransformationMatrix(item->getRelativeTransformation());
+                        }
+                    } else {
+                        auto meshItem = std::dynamic_pointer_cast<MeshNode>(item);
+                        auto subfileRefElement = std::make_shared<ldr::SubfileReference>(meshItem->getElementColor(), item->getRelativeTransformation(), false);
+                        subfileRefElement->setTransformationMatrix(item->getRelativeTransformation());
+                        subfileRefElement->step = ldrFile->elements.back()->step;
+                        ldrFile->elements.push_back(subfileRefElement);
+                        subfileRefChildNodeSaveInfos.emplace(item, ChildNodeSaveInfo{item->getVersion(), subfileRefElement});
+                    }
+                } else if (item->getType() == TYPE_MPD_SUBFILE) {
+                    std::dynamic_pointer_cast<MpdSubfileNode>(item)->writeChangesToLdrFile();
+                }
+            }
+            lastSaveToLdrFileVersion = version;
         }
     }
 

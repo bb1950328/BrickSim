@@ -2,6 +2,7 @@
 #include "../constant_data/resources.h"
 #include "../controller.h"
 #include <magic_enum.hpp>
+#include <spdlog/spdlog.h>
 
 namespace bricksim::graphics::orientation_cube {
     namespace {
@@ -10,13 +11,16 @@ namespace bricksim::graphics::orientation_cube {
         float lastPitch = 1e9, lastYaw = 1e9;
 
         void updateCamera() {
-            const auto camera = controller::getMainSceneCamera();
-            auto pitch = glm::radians(camera->getPitch());
-            auto yaw = glm::radians(camera->getYaw());
-            if (pitch != lastPitch || yaw != lastYaw) {
-                std::dynamic_pointer_cast<OrientationCubeCamera>(scene->getCamera())->setPitchYaw(pitch, yaw);
-                lastPitch = pitch;
-                lastYaw = yaw;
+            const auto& activeEditor = controller::getActiveEditor();
+            if (activeEditor != nullptr) {
+                const auto camera = activeEditor->getCamera();
+                auto pitch = glm::radians(camera->getPitch());
+                auto yaw = glm::radians(camera->getYaw());
+                if (pitch != lastPitch || yaw != lastYaw) {
+                    std::dynamic_pointer_cast<OrientationCubeCamera>(scene->getCamera())->setPitchYaw(pitch, yaw);
+                    lastPitch = pitch;
+                    lastYaw = yaw;
+                }
             }
         }
     }
@@ -36,6 +40,7 @@ namespace bricksim::graphics::orientation_cube {
         rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::LEFT));
         rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::TOP));
         rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::FRONT));
+        rootNode->incrementVersion();
 
         scene->setCamera(std::make_shared<OrientationCubeCamera>());
         scene->setImageSize({size, size});

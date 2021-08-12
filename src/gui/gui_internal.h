@@ -9,16 +9,22 @@
 #include <memory>
 #include <vector>
 
+namespace bricksim {
+    class Editor;
+}
+
 namespace bricksim::gui_internal {
     /**
      * @return true if the thumbnail is visible, false if it's clipped
      */
-    bool drawPartThumbnail(const ImVec2& actualThumbSizeSquared, const std::shared_ptr<ldr::File>& part, const ldr::ColorReference color);
+    bool drawPartThumbnail(const ImVec2& actualThumbSizeSquared, const std::shared_ptr<ldr::File>& part, ldr::ColorReference color);
 
     color::RGB getWhiteOrBlackBetterContrast(const glm::vec3& col);
 
     void drawColorGroup(const std::shared_ptr<etree::MeshNode>& ldrNode, const ImVec2& buttonSize, int columnCount,
                         const std::pair<const std::string, std::vector<ldr::ColorReference>>& colorGroup);
+
+    void drawEditorSelectionCombo(std::weak_ptr<Editor>& selectedEditor, const char* caption = "Editor");
 
     void drawHyperlinkButton(const std::string& url);
 

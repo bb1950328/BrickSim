@@ -5,6 +5,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <mutex>
 
 namespace bricksim::ldr::file_repo {
 
@@ -30,6 +31,7 @@ namespace bricksim::ldr::file_repo {
         void initialize(float* progress);
 
         std::shared_ptr<File> getFile(const std::string& name);
+        bool hasFileCached(const std::string& name);
         std::shared_ptr<File> addFileWithContent(const std::string& name, FileType type, const std::string& content);
         std::filesystem::path& getBasePath();
         oset_t<std::string> getAllCategories();
@@ -48,6 +50,8 @@ namespace bricksim::ldr::file_repo {
         virtual ~FileRepo();
         omap_t<std::string, oset_t<std::shared_ptr<File>>> getAllPartsGroupedByCategory();
         omap_t<std::string, oset_t<std::shared_ptr<File>>> getLoadedPartsGroupedByCategory();
+
+        void changeFileName(std::shared_ptr<File>& file, const std::string& newName);
 
     protected:
         static std::string readFileFromFilesystem(const std::filesystem::path& path);
@@ -68,6 +72,7 @@ namespace bricksim::ldr::file_repo {
 
     private:
         uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>> files;
+        std::mutex filesMtx;
         omap_t<std::string, oset_t<std::shared_ptr<File>>> partsByCategory;
     };
 

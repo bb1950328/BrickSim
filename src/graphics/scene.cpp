@@ -132,7 +132,7 @@ namespace bricksim::graphics {
         meshCollection.rereadElementTreeIfNeeded();
         GLubyte middlePixel[3];
 
-        if (needRender) {
+        if (!needRender) {
             controller::executeOpenGL([&]() {
                 glUseProgram(0);
                 glBindFramebuffer(GL_FRAMEBUFFER, selection->getFBO());
@@ -379,7 +379,7 @@ namespace bricksim::graphics {
             return createdScenes[sceneId] = std::make_shared<Scene>(sceneId);
         }
 
-        std::shared_ptr<Scene> get(scene_id_t sceneId) {
+        std::shared_ptr<Scene>& get(scene_id_t sceneId) {
             auto it = createdScenes.find(sceneId);
             if (it == createdScenes.end()) {
                 throw std::invalid_argument("scene with this id not created yet");
@@ -393,6 +393,10 @@ namespace bricksim::graphics {
 
         uomap_t<scene_id_t, std::shared_ptr<Scene>>& getAll() {
             return createdScenes;
+        }
+
+        void remove(scene_id_t sceneId) {
+            createdScenes.erase(sceneId);
         }
     }
 }

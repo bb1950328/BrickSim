@@ -34,8 +34,6 @@ namespace bricksim::ldr::file_repo {
                 throw std::invalid_argument(std::string("can't open .io file! Error ") + std::to_string(errCode) + ": " + std::string(errMessageBuffer));
             }
 
-            //zip_set_default_password(zArchive, pw);
-
             struct zip_stat fileStat {};
             zip_stat(zArchive, "model.ldr", ZIP_FL_NOCASE, &fileStat);
             auto modelFile = zip_fopen_index_encrypted(zArchive, fileStat.index, ZIP_FL_NOCASE, pw);
@@ -143,9 +141,15 @@ namespace bricksim::ldr::file_repo {
 
     std::shared_ptr<File> FileRepo::addFileWithContent(const std::string& name, ldr::FileType type, const std::string& content) {
         auto readResults = readComplexFile(name, content, type);
-        for (const auto& newFile: readResults) {
-            files.emplace(util::asLower(newFile.first), std::make_pair(newFile.second->metaInfo.type, newFile.second));
+        {
+            plLockWait("FileRepo::filesMtx");
+            std::lock_guard<std::mutex> lg(filesMtx);
+            plLockScopeState("FileRepo::filesMtx", true);
+            for (const auto& newFile: readResults) {
+                files.emplace(util::asLower(newFile.first), std::make_pair(newFile.second->metaInfo.type, newFile.second));
+            }
         }
+
         return readResults[name];
     }
 
@@ -194,13 +198,17 @@ namespace bricksim::ldr::file_repo {
 
             auto fileNames = listAllFileNames(progress);
             const auto numFiles = fileNames.size();
-            const auto numCores = std::thread::hardware_concurrency() * 8;// *8 was determined empirically
+            const auto numCores = std::thread::hardware_concurrency();
             const auto filesPerThread = numFiles / numCores;
             std::vector<std::thread> threads;
             for (int threadNum = 0; threadNum < numCores; ++threadNum) {
                 const auto iStart = threadNum * filesPerThread;                                    //inclusive
                 const auto iEnd = (threadNum == numCores - 1) ? numFiles : iStart + filesPerThread;//exclusive
-                threads.emplace_back([this, iStart, iEnd, &fileNames, progress]() {
+                threads.emplace_back([this, iStart, iEnd, &fileNames, progress, threadNum]() {
+#ifdef USE_PL
+                    std::string threadName = "FileList filler #" + std::to_string(threadNum);
+                    plDeclareThreadDyn(threadName.c_str());
+#endif
                     std::vector<db::fileList::Entry> entries;
                     for (auto fileName = fileNames.cbegin() + iStart; fileName < fileNames.cbegin() + iEnd; ++fileName) {
                         ldr::FileType type;
@@ -297,6 +305,23 @@ namespace bricksim::ldr::file_repo {
     void FileRepo::cleanup() {
         //files.clear();
         //partsByCategory.clear();
+    }
+
+    bool FileRepo::hasFileCached(const std::string& name) {
+        return files.find(name) != files.end();
+    }
+
+    void FileRepo::changeFileName(std::shared_ptr<File>& file, const std::string& newName) {
+        auto it = files.find(file->metaInfo.name);
+        if (it==files.end()) {
+            it = files.begin();
+            while (it != files.end() && it->second.second != file) {
+                ++it;
+            }
+        }
+        it->second.second->metaInfo.name = newName;
+        files.emplace(newName, it->second);
+        files.erase(it);
     }
 
     FileRepo::~FileRepo() = default;

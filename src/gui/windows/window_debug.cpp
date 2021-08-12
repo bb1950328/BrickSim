@@ -21,17 +21,40 @@ namespace bricksim::gui::windows::debug {
 
         void drawCameraTab();
 
+        void drawMeshesTab();
+
         constexpr size_t MESHES_TAB_BUF_SIZE = 32;
 
-        void printSceneDescription(uomap_t<scene_id_t, std::shared_ptr<graphics::Scene>>& allScenes, scene_id_t sceneId, char* buf) {
-            snprintf(buf, MESHES_TAB_BUF_SIZE, "%d (%d*%d)", sceneId, allScenes[sceneId]->getImageSize().x, allScenes[sceneId]->getImageSize().y);
+        void printSceneDescription(scene_id_t sceneId, const std::shared_ptr<graphics::Scene>& scene, char* buf) {
+            snprintf(buf, MESHES_TAB_BUF_SIZE, "%d (%d*%d)", sceneId, scene->getImageSize().x, scene->getImageSize().y);
+        }
+
+        void drawSceneSelectionCombo(scene_id_t& selectedSceneId, uomap_t<scene_id_t, std::shared_ptr<graphics::Scene>>& allScenes) {
+            static char buf[MESHES_TAB_BUF_SIZE];
+            printSceneDescription(selectedSceneId, allScenes[selectedSceneId], buf);
+            if (ImGui::BeginCombo("Scene", buf)) {
+                for (const auto& scene: allScenes) {
+                    const bool isSelected = scene.first == selectedSceneId;
+                    printSceneDescription(scene.first, scene.second, buf);
+                    if (ImGui::Selectable(buf, isSelected)) {
+                        selectedSceneId = scene.first;
+                    }
+
+                    if (isSelected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+        }
+
+        void drawSceneSelectionCombo(scene_id_t& selectedSceneId) {
+            drawSceneSelectionCombo(selectedSceneId, graphics::scenes::getAll());
         }
 
         void drawColorLabel(const ldr::ColorReference& colorRef);
 
         void drawMeshesList(char* buf, const std::shared_ptr<graphics::Scene>& selectedScene, float meshListTableHeight);
-
-        void drawMeshesTab();
 
         void drawMeshesList(char* buf, const std::shared_ptr<graphics::Scene>& selectedScene, float meshListTableHeight) {
             const auto& meshes = selectedScene->getMeshCollection().getUsedMeshes();
@@ -154,11 +177,13 @@ namespace bricksim::gui::windows::debug {
                     }
                 }
 
-                const std::shared_ptr<etree::Node>& rootNode = controller::getMainScene()->getRootNode();
-                ImGui::Text("Element tree root node version: %lu", rootNode->getVersion());
-                ImGui::SameLine();
-                if (ImGui::Button(ICON_FA_PLUS_SQUARE " Increment")) {
-                    rootNode->incrementVersion();
+                for (auto & editor: controller::getEditors()) {
+                    const auto& rootNode = editor->getRootNode();
+                    ImGui::Text("Element tree root node version: %lu", rootNode->getVersion());
+                    ImGui::SameLine();
+                    if (ImGui::Button(ICON_FA_PLUS_SQUARE " Increment")) {
+                        rootNode->incrementVersion();
+                    }
                 }
 
                 ImGui::EndTabItem();
@@ -211,7 +236,11 @@ namespace bricksim::gui::windows::debug {
 
         void drawCameraTab() {
             if (ImGui::BeginTabItem(ICON_FA_CAMERA " Camera")) {
-                auto camera = controller::getMainSceneCamera();
+                auto& allScenes = graphics::scenes::getAll();
+                static scene_id_t selectedSceneId = allScenes.begin()->first;
+                drawSceneSelectionCombo(selectedSceneId, allScenes);
+
+                auto& camera = allScenes[selectedSceneId]->getCamera();
                 if (ImGui::BeginTable("##cameraTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                     ImGui::TableNextRow();
                     auto cameraPos = camera->getCameraPos();
@@ -237,17 +266,20 @@ namespace bricksim::gui::windows::debug {
                     const auto viewMatrixStr = sstream.str();
                     ImGui::Text("%s", viewMatrixStr.c_str());
 
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text("Distance");
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%f", camera->getDistance());
+                    auto cadCamera = std::dynamic_pointer_cast<graphics::CadCamera>(camera);
+                    if (cadCamera != nullptr) {
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::Text("Distance");
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%f", cadCamera->getDistance());
 
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text("Pitch, Yaw");
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%f, %f", camera->getPitch(), camera->getYaw());
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::Text("Pitch, Yaw");
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%f, %f", cadCamera->getPitch(), cadCamera->getYaw());
+                    }
 
                     ImGui::EndTable();
                 }
@@ -257,24 +289,10 @@ namespace bricksim::gui::windows::debug {
 
         void drawMeshesTab() {
             if (ImGui::BeginTabItem("Meshes")) {
-                auto allScenes = graphics::scenes::getAll();
-                static scene_id_t selectedSceneId = graphics::scenes::MAIN_SCENE_ID;
-                static char buf[MESHES_TAB_BUF_SIZE];
-                printSceneDescription(allScenes, selectedSceneId, buf);
-                if (ImGui::BeginCombo("Scene", buf)) {
-                    for (const auto& scene: allScenes) {
-                        const bool isSelected = scene.first == selectedSceneId;
-                        printSceneDescription(allScenes, scene.first, buf);
-                        if (ImGui::Selectable(buf, isSelected)) {
-                            selectedSceneId = scene.first;
-                        }
-
-                        if (isSelected) {
-                            ImGui::SetItemDefaultFocus();
-                        }
-                    }
-                    ImGui::EndCombo();
-                }
+                auto& allScenes = graphics::scenes::getAll();
+                static scene_id_t selectedSceneId = allScenes.cbegin()->first;
+                char buf[32];
+                drawSceneSelectionCombo(selectedSceneId, allScenes);
 
                 auto& selectedScene = allScenes[selectedSceneId];
                 float meshListTableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 3;
@@ -284,7 +302,6 @@ namespace bricksim::gui::windows::debug {
                 ImGui::EndTabItem();
             }
         }
-
     }
 
     void draw(Data& data) {

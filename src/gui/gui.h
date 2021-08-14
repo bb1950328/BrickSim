@@ -15,6 +15,12 @@ namespace bricksim::gui {
         void setupFont(float scaleFactor, ImGuiIO& io);
     }
 
+    struct UserQuestion {
+        std::string title;
+        std::string question;
+        std::vector<std::string> options;
+    };
+
     void drawMenuBar(bool* show);
 
     void setWindow(GLFWwindow* value);
@@ -51,6 +57,6 @@ namespace bricksim::gui {
     PartsLibrarySetupResponse drawPartsLibrarySetupScreen();
 
     void drawWaitMessage(const std::string& message, float progress);
-    void updateBlockingMessage(const std::string& message, float progress);
-    void closeBlockingMessage();
+    void updateBlockingWaitMessage(const std::string& message, float progress);
+    void closeBlockingWaitMessage();
 };

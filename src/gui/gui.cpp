@@ -685,7 +685,7 @@ namespace bricksim::gui {
         return lastScrollDeltaY;
     }
 
-    void updateBlockingMessage(const std::string& message, float progress) {
+    void updateBlockingWaitMessage(const std::string& message, float progress) {
         blockingMessageText = message;
         blockingMessageProgress = progress;
         if (!blockingMessageShowing) {
@@ -694,10 +694,8 @@ namespace bricksim::gui {
         }
     }
 
-    void closeBlockingMessage() {
-        if (blockingMessageShowing) {
-            blockingMessageShowing = false;
-        }
+    void closeBlockingWaitMessage() {
+        blockingMessageShowing = false;
     }
 
     bool areKeysCaptured() {

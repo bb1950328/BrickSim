@@ -410,9 +410,9 @@ namespace bricksim::controller {
 
             handleForegroundTasks();
             if (foregroundTasks.empty()) {
-                gui::closeBlockingMessage();
+                gui::closeBlockingWaitMessage();
             } else {
-                gui::updateBlockingMessage(foregroundTasks.front().getName(), foregroundTasks.front().getProgress());
+                gui::updateBlockingWaitMessage(foregroundTasks.front().getName(), foregroundTasks.front().getProgress());
             }
             addMainloopTimePoint("handle foreground tasks");
 

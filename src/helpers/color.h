@@ -27,6 +27,79 @@ namespace bricksim::color {
         [[nodiscard]] glm::vec3 asGlmVector() const;
         [[nodiscard]] std::string asHtmlCode() const;
 
+        template<typename T>
+        requires std::is_arithmetic_v<T>
+                RGB operator*(T factor) const {
+            return RGB(clampResult(static_cast<T>(red * factor)), clampResult(static_cast<T>(green * factor)), clampResult(static_cast<T>(blue * factor)));
+        }
+
+        template<typename T>
+        requires std::is_arithmetic_v<T>
+                RGB operator+(T value) const {
+            return RGB(clampResult(static_cast<T>(red + value)), clampResult(static_cast<T>(green + value)), clampResult(static_cast<T>(blue + value)));
+        }
+
+        template<typename T>
+        requires std::is_arithmetic_v<T>
+                RGB operator-(T value) const {
+            return RGB(clampResult(static_cast<T>(red - value)), clampResult(static_cast<T>(green - value)), clampResult(static_cast<T>(blue - value)));
+        }
+
+        template<typename T>
+        requires std::is_arithmetic_v<T>
+                RGB operator/(T value) const {
+            return RGB(clampResult(static_cast<T>(red / value)), clampResult(static_cast<T>(green) / value), clampResult(static_cast<T>(blue / value)));
+        }
+
+        template<typename T>
+        requires std::is_arithmetic_v<T>
+                RGB& operator*=(T value) {
+            red = clampResult(static_cast<T>(red * value));
+            green = clampResult(static_cast<T>(green * value));
+            blue = clampResult(static_cast<T>(blue * value));
+            return *this;
+        }
+        template<typename T>
+        requires std::is_arithmetic_v<T>
+                RGB& operator+=(T value) {
+            red = clampResult(static_cast<T>(red + value));
+            green = clampResult(static_cast<T>(green + value));
+            blue = clampResult(static_cast<T>(blue + value));
+            return *this;
+        }
+        template<typename T>
+        requires std::is_arithmetic_v<T>
+                RGB& operator/=(T value) {
+            red = clampResult(static_cast<T>(red / value));
+            green = clampResult(static_cast<T>(green / value));
+            blue = clampResult(static_cast<T>(blue / value));
+            return *this;
+        }
+        template<typename T>
+        requires std::is_arithmetic_v<T>
+                RGB& operator-=(T value) {
+            red = clampResult(static_cast<T>(red - value));
+            green = clampResult(static_cast<T>(green - value));
+            blue = clampResult(static_cast<T>(blue - value));
+            return *this;
+        }
+
+        RGB operator*(const RGB& other) const {
+            return {clampResult(this->red * other.red), clampResult(this->green * other.green), clampResult(this->blue * other.blue)};
+        }
+
+        RGB operator+(const RGB& other) const {
+            return {clampResult(this->red + other.red), clampResult(this->green + other.green), clampResult(this->blue + other.blue)};
+        }
+
+        RGB operator-(const RGB& other) const {
+            return {clampResult(this->red - other.red), clampResult(this->green - other.green), clampResult(this->blue - other.blue)};
+        }
+
+        RGB operator/(const RGB& other) const {
+            return {clampResult(this->red / other.red), clampResult(this->green / other.green), clampResult(this->blue / other.blue)};
+        }
+
         const static RGB BLACK;
         const static RGB WHITE;
         const static RGB RED;
@@ -43,6 +116,13 @@ namespace bricksim::color {
         const static RGB PURPLE;
         const static RGB TEAL;
         const static RGB NAVY;
+
+    private:
+        template<typename T>
+        requires std::is_arithmetic_v<T>
+        static color_component_t clampResult(T result) {
+            return std::clamp(result, static_cast<T>(0), static_cast<T>(255));
+        }
     };
 
     class HSV {

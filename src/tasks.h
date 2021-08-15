@@ -16,6 +16,7 @@ namespace bricksim {
         Task& operator=(Task&& other) noexcept;
         [[nodiscard]] const std::string& getName() const;
         [[nodiscard]] float getProgress() const;
+        [[nodiscard]] const float* const getProgressPtr() const;
         void startThread();
         void joinThread();
         [[nodiscard]] bool isStarted() const;

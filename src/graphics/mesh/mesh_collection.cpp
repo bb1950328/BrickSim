@@ -140,7 +140,6 @@ namespace bricksim::mesh {
         auto after = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
         metrics::lastElementTreeRereadMs = duration / 1000.0f;
-        spdlog::debug("element tree reread in {}ms.", metrics::lastElementTreeRereadMs);
         lastElementTreeReadVersion = rootNode->getVersion();
     }
 

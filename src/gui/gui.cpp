@@ -28,9 +28,6 @@ namespace bricksim::gui {
         GLFWwindow* window;
         double lastScrollDeltaY;
 
-        std::string blockingMessageText;
-        bool blockingMessageShowing = false;
-        float blockingMessageProgress = 0;
         bool openFindActionPopup = false;
 
         std::shared_ptr<graphics::Texture> logoTexture;
@@ -378,19 +375,6 @@ namespace bricksim::gui {
 
         lastScrollDeltaY = 0.0f;
 
-        if (ImGui::BeginPopupModal("Please wait##Modal", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Image(gui_internal::convertTextureId(logoTexture->getID()),
-                         ImVec2(logoTexture->getSize().x, logoTexture->getSize().y),
-                         ImVec2(0, 1), ImVec2(1, 0));
-            ImGui::Text("Please wait until this operation has finished.");
-            ImGui::Separator();
-            ImGui::Text("%s", blockingMessageText.c_str());
-            ImGui::ProgressBar(blockingMessageProgress);
-            if (!blockingMessageShowing) {
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
-        }
         if (openFindActionPopup) {
             ImGui::OpenPopup("Execute Action by Name");
             openFindActionPopup = false;
@@ -685,20 +669,10 @@ namespace bricksim::gui {
         return lastScrollDeltaY;
     }
 
-    void updateBlockingWaitMessage(const std::string& message, float progress) {
-        blockingMessageText = message;
-        blockingMessageProgress = progress;
-        if (!blockingMessageShowing) {
-            ImGui::OpenPopup("Please wait##Modal");
-            blockingMessageShowing = true;
-        }
-    }
-
-    void closeBlockingWaitMessage() {
-        blockingMessageShowing = false;
-    }
-
     bool areKeysCaptured() {
         return ImGui::GetIO().WantCaptureKeyboard;
+    }
+    const std::shared_ptr<graphics::Texture>& getLogoTexture() {
+        return logoTexture;
     }
 }

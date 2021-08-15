@@ -7,6 +7,7 @@
 #include "graphics/orientation_cube.h"
 #include "graphics/shaders.h"
 #include "gui/gui.h"
+#include "gui/modals.h"
 #include "helpers/util.h"
 #include "info_providers/bricklink_constants_provider.h"
 #include "keyboard_shortcut_manager.h"
@@ -45,6 +46,7 @@ namespace bricksim::controller {
 
         uomap_t<unsigned int, Task> backgroundTasks;
         std::queue<Task> foregroundTasks;
+        std::shared_ptr<gui::modals::Modal> foregroundTaskWaitModal = nullptr;
 
         std::chrono::milliseconds idle_sleep(25);
 
@@ -332,10 +334,14 @@ namespace bricksim::controller {
                 Task& frontTask = foregroundTasks.front();
                 if (!frontTask.isStarted()) {
                     frontTask.startThread();
+                    foregroundTaskWaitModal = std::make_shared<gui::modals::WaitModal>(frontTask.getName(), frontTask.getProgressPtr());
+                    gui::modals::addToQueue(foregroundTaskWaitModal);
                 }
                 if (frontTask.isDone()) {
                     frontTask.joinThread();
                     foregroundTasks.pop();
+                    foregroundTaskWaitModal->close();
+                    foregroundTaskWaitModal = nullptr;
                 } else {
                     return;
                 }
@@ -407,13 +413,10 @@ namespace bricksim::controller {
             addMainloopTimePoint("gui::beginFrame()");
             gui::drawMainWindows();
             addMainloopTimePoint("gui::drawMainWindows()");
+            gui::modals::handle();
+            addMainloopTimePoint("gui::modals::handle()");
 
             handleForegroundTasks();
-            if (foregroundTasks.empty()) {
-                gui::closeBlockingWaitMessage();
-            } else {
-                gui::updateBlockingWaitMessage(foregroundTasks.front().getName(), foregroundTasks.front().getProgress());
-            }
             addMainloopTimePoint("handle foreground tasks");
 
             gui::endFrame();

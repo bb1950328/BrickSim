@@ -63,6 +63,11 @@ namespace bricksim {
     float Task::getProgress() const {
         return progress;
     }
+
+    const float* const Task::getProgressPtr() const {
+        return &progress;
+    }
+
     Task::Task(Task&& other) noexcept :
         name(std::move(other.name)),
         function(std::move(other.function)),

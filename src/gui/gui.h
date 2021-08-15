@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../graphics/texture.h"
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <magic_enum.hpp>
@@ -56,7 +57,7 @@ namespace bricksim::gui {
 
     PartsLibrarySetupResponse drawPartsLibrarySetupScreen();
 
+    const std::shared_ptr<graphics::Texture>& getLogoTexture();
+
     void drawWaitMessage(const std::string& message, float progress);
-    void updateBlockingWaitMessage(const std::string& message, float progress);
-    void closeBlockingWaitMessage();
 };

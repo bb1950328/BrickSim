@@ -1,7 +1,10 @@
 #pragma once
 
+#include <imgui.h>
 #include <memory>
+#include <optional>
 #include <string>
+#include <vector>
 
 namespace bricksim::gui::modals {
     class Modal {
@@ -28,12 +31,14 @@ namespace bricksim::gui::modals {
         virtual bool drawContent() = 0;
 
         [[nodiscard]] State getState() const;
+        [[nodiscard]] const std::string& getMessage() const;
 
     protected:
         std::string title;
         std::string message;
         std::string getFullWindowTitle();
         State state;
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_Modal;
     };
 
     class ErrorModal : public Modal {
@@ -48,6 +53,22 @@ namespace bricksim::gui::modals {
         const float* const progress;
     public:
         WaitModal(std::string message, const float* progress);
+        bool drawContent() override;
+    };
+
+    struct Answer {
+        std::string text;
+        std::optional<color::RGB> buttonColor;
+    };
+
+    class ClosedEndedQuestionModal : public Modal {
+    protected:
+        std::vector<Answer> answers;
+        float totalButtonWidth;
+        std::optional<size_t> chosenAnswer = std::nullopt;
+    public:
+        ClosedEndedQuestionModal(std::string question, std::vector<Answer> answers);
+        ClosedEndedQuestionModal(std::string title, std::string question, std::vector<Answer> answers);
         bool drawContent() override;
     };
 

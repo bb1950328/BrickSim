@@ -18,7 +18,6 @@ namespace bricksim::gui::modals {
             current = waiting.front();
             waiting.pop();
             current->open();
-            spdlog::debug("one modal closed, open next");
         }
     }
 
@@ -35,8 +34,11 @@ namespace bricksim::gui::modals {
     }
 
     bool Modal::draw() {
-        bool showAgain = false;
-        if (state == State::SHOWING && ImGui::BeginPopupModal(getFullWindowTitle().c_str(), nullptr, ImGuiWindowFlags_Modal)) {
+        bool showAgain = state == State::SHOWING;
+        if (showAgain) {
+            while (!ImGui::BeginPopupModal(getFullWindowTitle().c_str(), nullptr, windowFlags)) {
+                ImGui::OpenPopup(getFullWindowTitle().c_str());
+            }
             showAgain = drawContent();
             ImGui::EndPopup();
         }
@@ -53,6 +55,9 @@ namespace bricksim::gui::modals {
     void Modal::close() {
         state = State::AFTER_SHOW;
     }
+    const std::string& Modal::getMessage() const {
+        return message;
+    }
 
     ErrorModal::ErrorModal(std::string errorMessage) :
         Modal(ICON_FA_EXCLAMATION_CIRCLE " Error", std::move(errorMessage)) {
@@ -63,7 +68,7 @@ namespace bricksim::gui::modals {
     }
 
     bool ErrorModal::drawContent() {
-        //todo draw a big error icon on the left side https://github.com/bb1950328/BrickSim/issues/50
+        //todo draw a big error icon on the left side #50
         ImGui::TextColored(color::RGB::RED, "%s", message.c_str());
         ImGui::PushItemWidth(-1);
         if (ImGui::Button("OK")) {
@@ -79,6 +84,7 @@ namespace bricksim::gui::modals {
     void handle() {
         if (current == nullptr && !waiting.empty()) {
             openNextModal();
+            spdlog::debug("no modal open, open first in queue");
         }
 
         while (current != nullptr && !current->draw()) {
@@ -87,6 +93,7 @@ namespace bricksim::gui::modals {
                 spdlog::debug("last modal closed");
             } else {
                 openNextModal();
+                spdlog::debug("one modal closed, open next");
             }
         }
     }
@@ -105,5 +112,49 @@ namespace bricksim::gui::modals {
         ImGui::Text("%s", message.c_str());
         ImGui::ProgressBar(*progress);
         return *progress < 1.0f;
+    }
+
+    bool ClosedEndedQuestionModal::drawContent() {
+        //todo draw big question mark #50
+        float questionWidth = ImGui::CalcTextSize(message.c_str()).x;
+        ImGui::Text("%s", message.c_str());
+        if (questionWidth < totalButtonWidth) {
+            ImGui::SameLine();
+            ImGui::Dummy({totalButtonWidth - questionWidth, 1.0f});
+        }
+        ImGui::Separator();
+        ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x - totalButtonWidth);
+        for (int i = 0; i < answers.size(); ++i) {
+            const auto& answ = answers[i];
+            if (answ.buttonColor.has_value()) {
+                ImGui::PushStyleColor(ImGuiCol_Button, answ.buttonColor.value());
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, answ.buttonColor.value() * 0.6 + color::RGB::WHITE * 0.4);
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, answ.buttonColor.value() * 0.4 + color::RGB::WHITE * 0.6);
+            }
+            if (ImGui::Button(answ.text.c_str())) {
+                chosenAnswer = i;
+            }
+            if (answ.buttonColor.has_value()) {
+                ImGui::PopStyleColor(3);
+            }
+            if (answers.size() - i > 1) {
+                ImGui::SameLine();
+            }
+        }
+        return !chosenAnswer.has_value();
+    }
+
+    ClosedEndedQuestionModal::ClosedEndedQuestionModal(std::string question, std::vector<Answer> answers) :
+        ClosedEndedQuestionModal(ICON_FA_QUESTION_CIRCLE " Question", std::move(question), std::move(answers)) {}
+
+    ClosedEndedQuestionModal::ClosedEndedQuestionModal(std::string title, std::string question, std::vector<Answer> answers) :
+        Modal(std::move(title), std::move(question)), answers(std::move(answers)) {
+        totalButtonWidth = std::accumulate(this->answers.begin(), this->answers.end(),
+                                           static_cast<float>(this->answers.size() + 1) * ImGui::GetStyle().ItemSpacing.x,
+                                           [](float total, const Answer& answer) {
+                                               return total + ImGui::CalcTextSize(answer.text.c_str()).x;
+                                           });
+
+        windowFlags |= ImGuiWindowFlags_AlwaysAutoResize;
     }
 }

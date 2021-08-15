@@ -208,17 +208,6 @@ namespace bricksim::gui::windows::debug {
 
                 constexpr auto performanceTableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable;
 
-                if (ImGui::BeginTable("Mainloop Time Points", 2, performanceTableFlags)) {
-                    for (const auto& timePointsUs: metrics::mainloopTimePointsUs) {
-                        ImGui::TableNextRow();
-                        ImGui::TableNextColumn();
-                        ImGui::Text("%s", timePointsUs.first);
-                        ImGui::TableNextColumn();
-                        ImGui::Text("%u µs", timePointsUs.second);
-                    }
-                    ImGui::EndTable();
-                }
-
                 if (ImGui::BeginTable(ICON_FA_WINDOW_RESTORE " Window drawing times", 2, performanceTableFlags)) {
                     for (const auto& item: metrics::lastWindowDrawingTimesUs) {
                         ImGui::TableNextRow();

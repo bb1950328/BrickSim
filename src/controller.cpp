@@ -53,8 +53,6 @@ namespace bricksim::controller {
         constexpr unsigned short lastFrameTimesSize = 256;
         float lastFrameTimes[lastFrameTimesSize] = {0};//in ms
         unsigned short lastFrameTimesStartIdx = 0;
-        std::chrono::time_point<std::chrono::high_resolution_clock> lastMainloopTimePoint;
-        std::vector<std::pair<const char*, unsigned int>> mainloopTimePointsUsTmp;
 
 #ifdef BRICKSIM_USE_RENDERDOC
         RENDERDOC_API_1_1_2* rdoc_api = nullptr;
@@ -245,6 +243,7 @@ namespace bricksim::controller {
         bool initialize() {
             plInitAndStart("BrickSim");
             plDeclareThread("Main Thread");
+            plFunction();
             logging::initialize();
 
             db::initialize();
@@ -299,6 +298,7 @@ namespace bricksim::controller {
         }
 
         void cleanup() {
+            plFunction();
             ldr::file_repo::get().cleanup();
             while (!foregroundTasks.empty()) {
                 handleForegroundTasks();
@@ -330,6 +330,7 @@ namespace bricksim::controller {
         }
 
         void handleForegroundTasks() {
+            plFunction();
             while (!foregroundTasks.empty()) {
                 Task& frontTask = foregroundTasks.front();
                 if (!frontTask.isStarted()) {
@@ -351,17 +352,6 @@ namespace bricksim::controller {
         void glfwErrorCallback(int code, const char* message) {
             spdlog::error("GLFW Error: {} {}", code, message);
         }
-
-        void copyMainloopTimePoints() {
-            metrics::mainloopTimePointsUs = mainloopTimePointsUsTmp;
-            mainloopTimePointsUsTmp.clear();
-        }
-
-        void addMainloopTimePoint(const char* name) {
-            const auto now = std::chrono::high_resolution_clock::now();
-            mainloopTimePointsUsTmp.emplace_back(name, std::chrono::duration_cast<std::chrono::microseconds>(now - lastMainloopTimePoint).count());
-            lastMainloopTimePoint = now;
-        }
     }
 
     int run() {
@@ -377,70 +367,68 @@ namespace bricksim::controller {
         //openFile("test_files/bricks_test.ldr");
         //openFile("test_files/triangle_test.ldr");
         //openFile("test_files/mpd_test.mpd");
-        openFile("~/Downloads/arocs.mpd");
+        //openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
         //openFile("car.ldr");
-        //openFile("~/Downloads/datsville.ldr");
+        openFile("~/Downloads/datsville.ldr");
 
         while (!glfwWindowShouldClose(window) && !userWantsToExit) {
-            copyMainloopTimePoints();
             if (foregroundTasks.empty() && backgroundTasks.empty() && thumbnailGenerator->renderQueueEmpty() && glfwGetWindowAttrib(window, GLFW_FOCUSED) == 0) {
+                plBegin("idle sleep");
                 std::this_thread::sleep_for(idle_sleep);
-                addMainloopTimePoint("idle sleep");
+                plEnd("idle sleep");
+
+                plBegin("glfwPollEvents");
                 glfwPollEvents();
-                addMainloopTimePoint("glfwPollEvents();");
+                plEnd("glfwPollEvents");
                 continue;
             }
 
             const auto loopStart = glfwGetTime();
             auto before = std::chrono::high_resolution_clock::now();
 
-            //todo mainScene->meshCollection->updateSelectionContainerBoxIfNeeded();
-            addMainloopTimePoint("meshCollection->updateSelectionContainerBoxIfNeeded()");
-
+            plBegin("update transform gizmos");
             for (auto& item: editors) {
                 item->getTransformGizmo()->update();
             }
-            addMainloopTimePoint("transformGizmo->update()");
+            plEnd("update transform gizmos");
 
+            plBegin("update editor images");
             for (auto& item: editors) {
                 //todo only update image which is visible
                 item->getScene()->updateImage();
             }
-            addMainloopTimePoint("mainScene->updateImage()");
+            plEnd("update editor images");
 
             gui::beginFrame();
-            addMainloopTimePoint("gui::beginFrame()");
             gui::drawMainWindows();
-            addMainloopTimePoint("gui::drawMainWindows()");
             gui::modals::handle();
-            addMainloopTimePoint("gui::modals::handle()");
 
             handleForegroundTasks();
-            addMainloopTimePoint("handle foreground tasks");
 
             gui::endFrame();
-            addMainloopTimePoint("gui::endFrame()");
 
             thumbnailGenerator->discardOldestImages(0);
             bool moreWork;
             do {
                 moreWork = thumbnailGenerator->workOnRenderQueue();
             } while (glfwGetTime() - loopStart < 1.0 / 60 && moreWork);
-            addMainloopTimePoint("work on thumbnails");
+
             auto after = std::chrono::high_resolution_clock::now();
             lastFrameTimes[lastFrameTimesStartIdx] = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0f;
             lastFrameTimesStartIdx = (lastFrameTimesStartIdx + 1) % lastFrameTimesSize;
-            addMainloopTimePoint("add frame time");
+
+            plBegin("glFinish");
             glFinish();
-            addMainloopTimePoint("glFinish");
+            plEnd("glFinish");
 
             plBegin("glfwSwapBuffers");
             glfwSwapBuffers(window);
             plEnd("glfwSwapBuffers");
-            addMainloopTimePoint("glfwSwapBuffers");
+
+            plBegin("glfwPollEvents");
             glfwPollEvents();
-            addMainloopTimePoint("glfwPollEvents");
+            plEnd("glfwPollEvents");
         }
         config::set(config::SCREEN_WIDTH, windowWidth);
         config::set(config::SCREEN_HEIGHT, windowHeight);

@@ -15,6 +15,7 @@
 #include <glad/glad.h>
 #include <imgui_internal.h>
 #include <memory>
+#include <palanteer.h>
 #include <spdlog/spdlog.h>
 #include <stb_image.h>
 #include <tinyfiledialogs.h>
@@ -286,6 +287,7 @@ namespace bricksim::gui {
     }
 
     void drawMainWindows() {
+        plFunction();
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
                 gui_internal::actionMenuItem(user_actions::NEW_FILE);
@@ -462,20 +464,8 @@ namespace bricksim::gui {
         }
     }
 
-    void endFrame() {
-        ImGui::Render();
-        {
-            if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-                ImGui::UpdatePlatformWindows();
-                ImGui::RenderPlatformWindowsDefault();
-            }
-            controller::executeOpenGL([]() {
-                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-            });
-        }
-    }
-
     void beginFrame() {
+        plFunction();
         controller::executeOpenGL([]() {
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
@@ -483,6 +473,20 @@ namespace bricksim::gui {
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
         });
+    }
+
+    void endFrame() {
+        plFunction();
+        ImGui::Render();
+        {
+            if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+                ImGui::UpdatePlatformWindows();
+                ImGui::RenderPlatformWindowsDefault();
+            }
+            controller::executeOpenGL([]() {
+              ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            });
+        }
     }
 
     void cleanup() {

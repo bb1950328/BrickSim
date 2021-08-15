@@ -4,6 +4,7 @@
 #include "gui_internal.h"
 
 #include <imgui.h>
+#include <palanteer.h>
 #include <queue>
 #include <spdlog/spdlog.h>
 #include <utility>
@@ -82,6 +83,7 @@ namespace bricksim::gui::modals {
     }
 
     void handle() {
+        plFunction();
         if (current == nullptr && !waiting.empty()) {
             openNextModal();
             spdlog::debug("no modal open, open first in queue");

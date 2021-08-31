@@ -113,15 +113,15 @@ namespace bricksim::ldr {
     }
 
     inline void parseNextFloat(const std::string& line, size_t& start, size_t& end, float& result) {
-        start = line.find_first_not_of(" \t", end);
-        end = line.find_first_of(" \t", start);
+        start = line.find_first_not_of(LDR_WHITESPACE, end);
+        end = line.find_first_of(LDR_WHITESPACE, start);
         fast_float::from_chars(&line[start], &line[end], result);
     }
 
-    SubfileReference::SubfileReference(std::string& line, bool bfcInverted) :
+    SubfileReference::SubfileReference(const std::string& line, bool bfcInverted) :
         bfcInverted(bfcInverted) {
-        size_t start = line.find_first_not_of(" \t");
-        size_t end = line.find_first_of(" \t", start);
+        size_t start = line.find_first_not_of(LDR_WHITESPACE);
+        size_t end = line.find_first_of(LDR_WHITESPACE, start);
         color = std::atoi(line.c_str());
         parseNextFloat(line, start, end, x);
         parseNextFloat(line, start, end, y);
@@ -138,9 +138,9 @@ namespace bricksim::ldr {
         filename = util::trim(line.substr(end + 1));
     }
 
-    Line::Line(std::string& line) {
-        size_t start = line.find_first_not_of(" \t");
-        size_t end = line.find_first_of(" \t", start);
+    Line::Line(const std::string& line) {
+        size_t start = line.find_first_not_of(LDR_WHITESPACE);
+        size_t end = line.find_first_of(LDR_WHITESPACE, start);
         color = std::atoi(line.c_str());
         parseNextFloat(line, start, end, x1);
         parseNextFloat(line, start, end, y1);
@@ -150,9 +150,9 @@ namespace bricksim::ldr {
         parseNextFloat(line, start, end, z2);
     }
 
-    Triangle::Triangle(std::string& line, WindingOrder order) {
-        size_t start = line.find_first_not_of(" \t");
-        size_t end = line.find_first_of(" \t", start);
+    Triangle::Triangle(const std::string& line, WindingOrder order) {
+        size_t start = line.find_first_not_of(LDR_WHITESPACE);
+        size_t end = line.find_first_of(LDR_WHITESPACE, start);
         color = std::atoi(line.c_str());
         parseNextFloat(line, start, end, x1);
         parseNextFloat(line, start, end, y1);
@@ -174,9 +174,9 @@ namespace bricksim::ldr {
         }
     }
 
-    Quadrilateral::Quadrilateral(std::string& line, WindingOrder order) {
-        size_t start = line.find_first_not_of(" \t");
-        size_t end = line.find_first_of(" \t", start);
+    Quadrilateral::Quadrilateral(const std::string& line, WindingOrder order) {
+        size_t start = line.find_first_not_of(LDR_WHITESPACE);
+        size_t end = line.find_first_of(LDR_WHITESPACE, start);
         color = std::atoi(line.c_str());
         parseNextFloat(line, start, end, x1);
         parseNextFloat(line, start, end, y1);
@@ -205,9 +205,9 @@ namespace bricksim::ldr {
         }
     }
 
-    OptionalLine::OptionalLine(std::string& line) {
-        size_t start = line.find_first_not_of(" \t");
-        size_t end = line.find_first_of(" \t", start);
+    OptionalLine::OptionalLine(const std::string& line) {
+        size_t start = line.find_first_not_of(LDR_WHITESPACE);
+        size_t end = line.find_first_of(LDR_WHITESPACE, start);
         color = std::atoi(line.c_str());
         parseNextFloat(line, start, end, x1);
         parseNextFloat(line, start, end, y1);
@@ -323,13 +323,13 @@ namespace bricksim::ldr {
                 i = next + 1;
             }
         } else if (util::startsWith(line, "!HISTORY")) {
-            history.push_back(util::trim(line.substr(8)));
+            history.push_back(line.substr(line.find_first_not_of(LDR_WHITESPACE, 8)));
         } else if (util::startsWith(line, "!LICENSE")) {
-            license = line.substr(8);
+            license = line.substr(line.find_first_not_of(LDR_WHITESPACE, 8));
         } else if (util::startsWith(line, "!THEME")) {
-            theme = line.substr(6);
+            theme = line.substr(line.find_first_not_of(LDR_WHITESPACE, 6));
         } else if (util::startsWith(line, "!LDRAW_ORG")) {
-            fileTypeLine = line.substr(10);//standard says "In general, parsers should consider this line to be case-insensitive and free-format."
+            fileTypeLine = line.substr(line.find_first_not_of(LDR_WHITESPACE, 10));//standard says "In general, parsers should consider this line to be case-insensitive and free-format."
         } else {
             return false;
         }

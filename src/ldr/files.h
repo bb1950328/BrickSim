@@ -7,6 +7,7 @@
 #include <vector>
 namespace bricksim::ldr {
     const char* const LDR_NEWLINE = "\r\n";
+    const char* const LDR_WHITESPACE = " \t";
 
     class FileElement;
     enum FileType {
@@ -93,7 +94,7 @@ namespace bricksim::ldr {
 
     class SubfileReference : public FileElement {
     public:
-        explicit SubfileReference(std::string& line, bool bfcInverted);
+        explicit SubfileReference(const std::string& line, bool bfcInverted);
         explicit SubfileReference(ColorReference color, const glm::mat4& transformation, bool bfcInverted);
         bool bfcInverted;
         ColorReference color;
@@ -114,7 +115,7 @@ namespace bricksim::ldr {
         ColorReference color;
         float x1, y1, z1, x2, y2, z2;
 
-        explicit Line(std::string& line);
+        explicit Line(const std::string& line);
 
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
@@ -125,7 +126,7 @@ namespace bricksim::ldr {
         ColorReference color;
         float x1, y1, z1, x2, y2, z2, x3, y3, z3;
 
-        explicit Triangle(std::string& line, WindingOrder order);
+        explicit Triangle(const std::string& line, WindingOrder order);
 
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
@@ -136,7 +137,7 @@ namespace bricksim::ldr {
         ColorReference color;
         float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
 
-        explicit Quadrilateral(std::string& line, WindingOrder order);
+        explicit Quadrilateral(const std::string& line, WindingOrder order);
 
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
@@ -148,7 +149,7 @@ namespace bricksim::ldr {
 
         float x1, y1, z1, x2, y2, z2, controlX1, controlY1, controlZ1, controlX2, controlY2, controlZ2;
 
-        explicit OptionalLine(std::string& line);
+        explicit OptionalLine(const std::string& line);
 
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;

@@ -61,12 +61,13 @@ namespace bricksim::ldr {
         plFunction();
         auto file = std::make_shared<File>();
         file->metaInfo.type = type;
+        file->metaInfo.name = name;
         size_t lineStart = 0;
         size_t lineEnd = 0;
         while (lineEnd < content.size()) {
             lineEnd = content.find_first_of("\r\n", lineStart);
             if (lineEnd == std::string::npos) {
-                break;
+                lineEnd = content.size();
             }
             ++lineEnd;
             if (content[lineEnd] == '\n') {

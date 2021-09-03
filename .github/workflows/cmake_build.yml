@@ -301,15 +301,6 @@ jobs:
           ccache -z # zero statistics
           cmake --build . --target BrickSim BrickSimTests --config Release  -j $(nproc --all)
           ccache -s # print statistics
-      - if: always()
-        run: |
-          cd cmake-build/release64
-          cat CMakeFiles/CMakeOutput.log
-          cat CMakeFiles/CMakeError.log
-
-      - name: Try to find binary
-        working-directory: ${{runner.workspace}}
-        run: find . -name "*.exe"
 
       - name: Upload BrickSimRawBinary
         uses: actions/upload-artifact@v2
@@ -383,10 +374,6 @@ jobs:
       - name: Delete license file
         shell: powershell
         run: Remove-Item -Path ${{ runner.workspace }}/license.xml
-
-      - name: try to find exe
-        shell: powershell
-        run: Get-ChildItem -Path ${{runner.workspace}} -Recurse | Where {$_.extension -like ".exe"}
 
       - name: Upload BrickSimInstaller
         uses: actions/upload-artifact@v2
@@ -593,9 +580,6 @@ jobs:
 
       - name: Delete license file
         run: rm ${{ runner.workspace }}/license.xml
-
-      - name: View output folder
-        run: ls -l -R ${{runner.workspace}}/installbuilder/output
 
       - name: Upload BrickSimInstaller
         uses: actions/upload-artifact@v2

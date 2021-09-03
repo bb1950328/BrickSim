@@ -200,7 +200,7 @@ jobs:
 
       - uses: actions/checkout@v2
         with:
-          submodules: recursive
+          submodules: false
           fetch-depth: 0
 
       - name: Download Artifacts
@@ -300,15 +300,6 @@ jobs:
           ccache -z # zero statistics
           cmake --build . --target BrickSim BrickSimTests --config Release  -j $(nproc --all)
           ccache -s # print statistics
-      - if: always()
-        run: |
-          cd cmake-build/release64
-          cat CMakeFiles/CMakeOutput.log
-          cat CMakeFiles/CMakeError.log
-
-      - name: Try to find binary
-        working-directory: ${{runner.workspace}}
-        run: find . -name "*.exe"
 
       - name: Upload BrickSimRawBinary
         uses: actions/upload-artifact@v2
@@ -349,7 +340,7 @@ jobs:
 
       - uses: actions/checkout@v2
         with:
-          submodules: recursive
+          submodules: false
           fetch-depth: 0
 
       - name: Download Artifacts
@@ -377,15 +368,11 @@ jobs:
           
           New-Item -ItemType directory -Path ${{runner.workspace}}\installbuilder\output
           Start-Process -FilePath "${{ runner.workspace }}\installbuilder\bin\builder-cli.exe" -Wait -NoNewWindow `
-            -ArgumentList "build ${{ runner.workspace }}/BrickSim/InstallBuilder.xml windows-x64 --setvars project.version=$VERSION installbuilder_output_directory=${{runner.workspace}}/installbuilder/output --license ${{ runner.workspace }}/license.xml"
+            -ArgumentList "build ${{ runner.workspace }}\BrickSim\InstallBuilder.xml windows-x64 --setvars project.version=$VERSION project.outputDirectory=${{runner.workspace}}\installbuilder\output --license ${{ runner.workspace }}\license.xml"
 
       - name: Delete license file
         shell: powershell
         run: Remove-Item -Path ${{ runner.workspace }}/license.xml
-
-      - name: try to find exe
-        shell: powershell
-        run: Get-ChildItem -Path ${{runner.workspace}} -Recurse | Where {$_.extension -like ".exe"}
 
       - name: Upload BrickSimInstaller
         uses: actions/upload-artifact@v2
@@ -566,7 +553,7 @@ jobs:
 
       - uses: actions/checkout@v2
         with:
-          submodules: recursive
+          submodules: false
           fetch-depth: 0
 
       - name: Download Artifacts
@@ -592,9 +579,6 @@ jobs:
 
       - name: Delete license file
         run: rm ${{ runner.workspace }}/license.xml
-
-      - name: View output folder
-        run: ls -l -R ${{runner.workspace}}/installbuilder/output
 
       - name: Upload BrickSimInstaller
         uses: actions/upload-artifact@v2

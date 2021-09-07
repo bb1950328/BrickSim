@@ -3,12 +3,13 @@
 #include "../../graphics/scene.h"
 #include "../../types.h"
 #include "../gui_internal.h"
+#include <imgui_internal.h>
 #include <memory>
 
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "../gui.h"
-#include "window_view3d.h"
 #include "spdlog/fmt/bundled/format.h"
+#include "window_view3d.h"
 
 namespace bricksim::gui::windows::view3d {
     std::shared_ptr<etree::Node> getNodeUnderCursor(const std::shared_ptr<graphics::Scene>& mainScene, const glm::svec2& currentCursorPos) {
@@ -21,10 +22,19 @@ namespace bricksim::gui::windows::view3d {
 
     void draw(Data& data) {
         const auto& activeEditor = controller::getActiveEditor();
+        ImGuiDockNode* lastDockNode = nullptr;
         for (auto& editor: controller::getEditors()) {
             const auto fileName = editor->getFilename();
             std::string windowTitle = fmt::format("{}{}{}###View3D{}", editor == activeEditor ? ICON_FA_EDIT " " : "", editor->isModified() ? "*" : "", fileName, fileName);
             bool open = true;
+            ImGuiWindow* imGuiWindow = ImGui::FindWindowByName(windowTitle.c_str());
+            if (imGuiWindow == nullptr) {
+                if (lastDockNode != nullptr) {
+                    ImGui::DockBuilderDockWindow(windowTitle.c_str(), lastDockNode->ID);
+                }
+            } else if (imGuiWindow->DockNode != nullptr) {
+                lastDockNode = imGuiWindow->DockNode;
+            }
             if (ImGui::Begin(windowTitle.c_str(), &open, ImGuiWindowFlags_NoScrollWithMouse)) {
                 ImGui::BeginChild("3DRender");
                 const ImVec2& regionAvail = ImGui::GetContentRegionAvail();

@@ -14,6 +14,8 @@ set(imgui_sources
         imgui/imstb_textedit.h
         imgui/imstb_truetype.h
         imgui/imgui_tables.cpp
+        imgui/misc/cpp/imgui_stdlib.h
+        imgui/misc/cpp/imgui_stdlib.cpp
         )
 set(other_libs
         glad.c

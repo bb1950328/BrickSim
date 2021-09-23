@@ -20,6 +20,7 @@
 #include "window_system_info.h"
 #include "window_view3d.h"
 #include "window_model_info.h"
+#include "window_editor_meta_info.h"
 #include "windows.h"
 
 namespace bricksim::gui::windows {
@@ -43,7 +44,8 @@ namespace bricksim::gui::windows {
                     {Id::ORIENTATION_CUBE, ICON_FA_CUBE " Orientation Cube", true, orientation_cube::draw},
                     {Id::LOG, ICON_FA_LIST " Log", false, log::draw},
                     {Id::GEAR_RATIO_CALCULATOR, "Gear Ratio Calculator", false, tools::gear_ratio_calculator::draw},
-                    {Id::MODEL_INFO, ICON_FA_INFO_CIRCLE" Model Info", false, model_info::draw}
+                    {Id::MODEL_INFO, ICON_FA_INFO_CIRCLE" Model Info", false, model_info::draw},
+                    {Id::EDITOR_META_INFO, ICON_FA_RECEIPT" Meta-Info", false, editor_meta_info::draw},
             }};
 
     void drawAll() {

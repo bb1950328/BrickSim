@@ -405,7 +405,7 @@ namespace bricksim::ldr {
     }
 
     const std::string& ldr::FileMetaInfo::getCategory() {
-        if (headerCategory->empty()) {
+        if (!headerCategory.has_value() || headerCategory->empty()) {
             const auto firstSpace = title.find(' ');
             auto start = 0;
             while (title[start] == '_' || title[start] == '~' || title[start] == '=') {

@@ -4,10 +4,12 @@
 #include "../ldr/colors.h"
 #include "../ldr/files.h"
 #include "../user_actions.h"
+#include "windows/windows.h"
 #include <glm/glm.hpp>
 #include <imgui.h>
 #include <memory>
 #include <vector>
+
 
 namespace bricksim {
     class Editor;
@@ -37,4 +39,5 @@ namespace bricksim::gui_internal {
 
     void actionMenuItem(const user_actions::Action& action);
     void actionMenuItem(const user_actions::Action& action, const char* alternativeDescription);
+    void windowMenuItem(const gui::windows::Id id);
 }

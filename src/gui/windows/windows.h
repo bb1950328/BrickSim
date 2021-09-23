@@ -18,6 +18,7 @@ namespace bricksim::gui::windows {
         LOG,
         GEAR_RATIO_CALCULATOR,
         MODEL_INFO,
+        EDITOR_META_INFO,
     };
     struct Data {
         const Id id;

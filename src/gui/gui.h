@@ -10,6 +10,10 @@ constexpr int NUM_LDR_FILTER_PATTERNS = 4;
 constexpr int NUM_IMAGE_FILTER_PATTERNS = 4;
 constexpr int NUM_ZIP_FILTER_PATTERNS = 1;
 
+namespace bricksim {
+    class Editor;
+}
+
 namespace bricksim::gui {
     namespace {
         void setupStyle();
@@ -41,9 +45,14 @@ namespace bricksim::gui {
 
     void showOpenFileDialog();
     void showSaveFileAsDialog();
+    void showSaveFileAsDialog(const std::shared_ptr<Editor>& editor);
     void showSaveCopyAsDialog();
+    void showSaveCopyAsDialog(const std::shared_ptr<Editor>& editor);
     void showScreenshotDialog();
+    void showScreenshotDialog(const std::shared_ptr<Editor>& editor);
     void showExecuteActionByNameDialog();
+
+    void drawDocumentMenu(const std::shared_ptr<Editor>& editor);
 
     void applyDefaultWindowLayout();
 

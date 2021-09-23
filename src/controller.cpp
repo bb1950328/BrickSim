@@ -367,10 +367,10 @@ namespace bricksim::controller {
         //openFile("test_files/bricks_test.ldr");
         //openFile("test_files/triangle_test.ldr");
         //openFile("test_files/mpd_test.mpd");
-        //openFile("~/Downloads/arocs.mpd");
+        openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
         //openFile("car.ldr");
-        openFile("~/Downloads/datsville.ldr");
+        //openFile("~/Downloads/datsville.ldr");
 
         while (!glfwWindowShouldClose(window) && !userWantsToExit) {
             if (foregroundTasks.empty() && backgroundTasks.empty() && thumbnailGenerator->renderQueueEmpty() && glfwGetWindowAttrib(window, GLFW_FOCUSED) == 0) {

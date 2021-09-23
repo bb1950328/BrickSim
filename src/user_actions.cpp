@@ -99,8 +99,8 @@ namespace bricksim::user_actions {
                 []() { controller::setUserWantsToExit(true); },                   //EXIT
                 gui::showOpenFileDialog,                                          //OPEN_FILE
                 []() { controller::getActiveEditor()->save(); },                  //SAVE_FILE
-                gui::showSaveFileAsDialog,                                        //SAVE_FILE_AS
-                gui::showSaveCopyAsDialog,                                        //SAVE_COPY_AS
+                []() { gui::showSaveFileAsDialog(); },                            //SAVE_FILE_AS
+                []() { gui::showSaveCopyAsDialog(); },                            //SAVE_COPY_AS
                 controller::createNewFile,                                        //NEW_FILE
                 controller::undoLastAction,                                       //UNDO
                 controller::redoLastAction,                                       //REDO
@@ -127,7 +127,7 @@ namespace bricksim::user_actions {
                 []() { controller::getActiveEditor()->hideSelectedElements(); },  //HIDE_SELECTED
                 []() { controller::getActiveEditor()->unhideAllElements(); },     //UNHIDE_EVERYTHING
                 gui::applyDefaultWindowLayout,                                    //APPLY_DEFAULT_WINDOW_LAYOUT
-                gui::showScreenshotDialog,                                        //TAKE_SCREENSHOT
+                []() { gui::showScreenshotDialog(); },                            //TAKE_SCREENSHOT
                 []() { gui::showExecuteActionByNameDialog(); },                   //EXECUTE_ACTION_BY_NAME
                 controller::toggleTransformGizmoRotationState,                    //TOGGLE_TRANSFORM_GIZMO_ROTATION
         };

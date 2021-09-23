@@ -200,57 +200,66 @@ namespace bricksim::gui {
     void showSaveFileAsDialog() {
         auto& activeEditor = controller::getActiveEditor();
         if (activeEditor != nullptr) {
-            std::string title = fmt::format("Save \"{}\" as", activeEditor->getFilename());
-            char* fileNameChars = tinyfd_saveFileDialog(
-                    title.c_str(),
-                    "",
-                    NUM_LDR_FILTER_PATTERNS,
-                    lFilterPatterns,
-                    nullptr);
-            if (fileNameChars != nullptr) {
-                std::string fileName(fileNameChars);
-                activeEditor->saveAs(fileName);
-            }
+            showSaveFileAsDialog(activeEditor);
         } else {
             spdlog::warn("gui::showSaveFileAsDialog() called, but there's no active editor");
+        }
+    }
+    void showSaveFileAsDialog(const std::shared_ptr<Editor>& editor) {
+        std::string title = fmt::v8::format("Save \"{}\" as", editor->getFilename());
+        char* fileNameChars = tinyfd_saveFileDialog(
+                title.c_str(),
+                "",
+                NUM_LDR_FILTER_PATTERNS,
+                lFilterPatterns,
+                nullptr);
+        if (fileNameChars != nullptr) {
+            std::string fileName(fileNameChars);
+            editor->saveAs(fileName);
         }
     }
 
     void showSaveCopyAsDialog() {
         auto& activeEditor = controller::getActiveEditor();
         if (activeEditor != nullptr) {
-            std::string title = fmt::format("Save copy of \"{}\"", activeEditor->getFilename());
-            char* fileNameChars = tinyfd_saveFileDialog(
-                    "Save Copy As",
-                    "",
-                    NUM_LDR_FILTER_PATTERNS,
-                    lFilterPatterns,
-                    nullptr);
-            if (fileNameChars != nullptr) {
-                std::string fileName(fileNameChars);
-                activeEditor->saveCopyAs(fileName);
-            }
+            showSaveCopyAsDialog(activeEditor);
         } else {
             spdlog::warn("gui::showSaveCopyAsDialog() called, but there's no active editor");
+        }
+    }
+    void showSaveCopyAsDialog(const std::shared_ptr<Editor>& editor) {
+        std::string title = fmt::v8::format("Save copy of \"{}\"", editor->getFilename());
+        char* fileNameChars = tinyfd_saveFileDialog(
+                "Save Copy As",
+                "",
+                NUM_LDR_FILTER_PATTERNS,
+                lFilterPatterns,
+                nullptr);
+        if (fileNameChars != nullptr) {
+            std::string fileName(fileNameChars);
+            editor->saveCopyAs(fileName);
         }
     }
 
     void showScreenshotDialog() {
         auto& activeEditor = controller::getActiveEditor();
         if (activeEditor != nullptr) {
-            std::string title = fmt::format("Save Screenshot of \"{}\"", activeEditor->getFilename());
-            char* fileNameChars = tinyfd_saveFileDialog(
-                    title.c_str(),
-                    "",
-                    NUM_IMAGE_FILTER_PATTERNS,
-                    imageFilterPatterns,
-                    nullptr);
-            if (fileNameChars != nullptr) {
-                std::string fileNameString(fileNameChars);
-                activeEditor->getScene()->getImage().saveImage(fileNameString);
-            }
+            showScreenshotDialog(activeEditor);
         } else {
             spdlog::warn("gui::showScreenshotDialog() called, but there's no active editor");
+        }
+    }
+    void showScreenshotDialog(const std::shared_ptr<Editor>& editor) {
+        std::string title = fmt::v8::format("Save Screenshot of \"{}\"", editor->getFilename());
+        char* fileNameChars = tinyfd_saveFileDialog(
+                title.c_str(),
+                "",
+                NUM_IMAGE_FILTER_PATTERNS,
+                imageFilterPatterns,
+                nullptr);
+        if (fileNameChars != nullptr) {
+            std::string fileNameString(fileNameChars);
+            editor->getScene()->getImage().saveImage(fileNameString);
         }
     }
 
@@ -286,6 +295,7 @@ namespace bricksim::gui {
         ImGui::DockBuilderDockWindow(windows::getName(windows::Id::VIEW_3D), level2leftTopRight);
     }
 
+
     void drawMainWindows() {
         plFunction();
         if (ImGui::BeginMainMenuBar()) {
@@ -314,27 +324,39 @@ namespace bricksim::gui {
                 ImGui::EndMenu();
             }
             auto& editors = controller::getEditors();
-            bool singleDocument = editors.size() == 1;
-            bool open;
-            if (singleDocument) {
-                open = ImGui::BeginMenu("Document");
+            if (editors.size() == 1) {
+                if(ImGui::BeginMenu("Document")) {
+                    drawDocumentMenu(*editors.begin());
+                    ImGui::EndMenu();
+                }
+            } else {
+                if (ImGui::BeginMenu("Documents")) {
+                    for (const auto & editor: editors) {
+                        if (ImGui::BeginMenu(editor->getFilename().c_str())) {
+                            drawDocumentMenu(editor);
+                            ImGui::EndMenu();
+                        }
+                    }
+                }
             }
+
             if (ImGui::BeginMenu("View")) {
-                ImGui::MenuItem(windows::getName(windows::Id::VIEW_3D), "", windows::isVisible(windows::Id::VIEW_3D));
-                ImGui::MenuItem(windows::getName(windows::Id::ORIENTATION_CUBE), "", windows::isVisible(windows::Id::ORIENTATION_CUBE));
+                gui_internal::windowMenuItem(windows::Id::VIEW_3D);
+                gui_internal::windowMenuItem(windows::Id::ORIENTATION_CUBE);
                 ImGui::Separator();
-                ImGui::MenuItem(windows::getName(windows::Id::ELEMENT_TREE), "", windows::isVisible(windows::Id::ELEMENT_TREE));
-                ImGui::MenuItem(windows::getName(windows::Id::ELEMENT_PROPERTIES), "", windows::isVisible(windows::Id::ELEMENT_PROPERTIES));
+                gui_internal::windowMenuItem(windows::Id::ELEMENT_TREE);
+                gui_internal::windowMenuItem(windows::Id::ELEMENT_PROPERTIES);
                 ImGui::Separator();
-                ImGui::MenuItem(windows::getName(windows::Id::PART_PALETTE), "", windows::isVisible(windows::Id::PART_PALETTE));
+                gui_internal::windowMenuItem(windows::Id::PART_PALETTE);
                 ImGui::Separator();
-                ImGui::MenuItem(windows::getName(windows::Id::MODEL_INFO), "", windows::isVisible(windows::Id::MODEL_INFO));
+                gui_internal::windowMenuItem(windows::Id::MODEL_INFO);
+                gui_internal::windowMenuItem(windows::Id::EDITOR_META_INFO);
                 ImGui::Separator();
-                ImGui::MenuItem(windows::getName(windows::Id::SETTINGS), "", windows::isVisible(windows::Id::SETTINGS));
+                gui_internal::windowMenuItem(windows::Id::SETTINGS);
                 ImGui::Separator();
-                ImGui::MenuItem(windows::getName(windows::Id::IMGUI_DEMO), "", windows::isVisible(windows::Id::IMGUI_DEMO));
-                ImGui::MenuItem(windows::getName(windows::Id::DEBUG), "", windows::isVisible(windows::Id::DEBUG));
-                ImGui::MenuItem(windows::getName(windows::Id::LOG), "", windows::isVisible(windows::Id::LOG));
+                gui_internal::windowMenuItem(windows::Id::IMGUI_DEMO);
+                gui_internal::windowMenuItem(windows::Id::DEBUG);
+                gui_internal::windowMenuItem(windows::Id::LOG);
                 ImGui::Separator();
                 if (ImGui::MenuItem("Apply default window layout")) {
                     applyDefaultWindowLayout();
@@ -461,6 +483,21 @@ namespace bricksim::gui {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
+        }
+    }
+
+    void drawDocumentMenu(const std::shared_ptr<Editor>& editor) {
+        if (ImGui::MenuItem(ICON_FA_SAVE" Save")) {
+            editor->save();
+        }
+        if (ImGui::MenuItem(ICON_FA_SAVE" Save as")) {
+            showSaveFileAsDialog(editor);
+        }
+        if (ImGui::MenuItem(ICON_FA_COPY" Save copy as")) {
+            showSaveCopyAsDialog(editor);
+        }
+        if (ImGui::MenuItem(ICON_FA_CAMERA" Save screenshot")) {
+            showScreenshotDialog(editor);
         }
     }
 

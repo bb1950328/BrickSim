@@ -5,6 +5,8 @@ target_sources(BrickSimLib PRIVATE
         window_about.h
         window_debug.cpp
         window_debug.h
+        window_editor_meta_info.cpp
+        window_editor_meta_info.h
         window_element_properties.cpp
         window_element_properties.h
         window_element_tree.cpp

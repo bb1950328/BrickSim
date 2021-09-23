@@ -131,6 +131,10 @@ namespace bricksim::gui_internal {
         }
     }
 
+    void windowMenuItem(const gui::windows::Id id) {
+        ImGui::MenuItem(gui::windows::getName(id), "", gui::windows::isVisible(id));
+    }
+
     void drawEditorSelectionCombo(std::weak_ptr<Editor>& selectedEditor, const char* const caption) {
         auto lockedSelected = selectedEditor.lock();
         if (lockedSelected == nullptr) {

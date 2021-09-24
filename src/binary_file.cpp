@@ -9,7 +9,7 @@ namespace bricksim {
     }
 
     BinaryFile::BinaryFile(const std::filesystem::path& path) :
-        name(path) {
+        name(path.string()) {
         FILE* f = fopen(path.string().c_str(), "rb");
         if (f) {
             fseek(f, 0, SEEK_END);

@@ -81,8 +81,7 @@ namespace bricksim::ldr {
                             size_t start = metaElement->content.find_first_not_of(LDR_WHITESPACE, META_COMMAND_TEXMAP_LEN);
                             if (metaElement->content.find("FALLBACK", start) == start) {
                                 texmapStateStack.top().fallbackSectionReached = true;
-                            }
-                            if (metaElement->content.find("END", start) == start) {
+                            } else if (metaElement->content.find("END", start) == start) {
                                 texmapStateStack.pop();
                             }
                         }

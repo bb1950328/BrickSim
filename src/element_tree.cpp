@@ -192,6 +192,7 @@ namespace bricksim::etree {
                 if (element->getType() == 0) {
                     const auto texmapStartCommand = dynamic_pointer_cast<ldr::TexmapStartCommand>(element);
                     if (texmapStartCommand != nullptr) {
+                        children.push_back(std::make_shared<TexmapNode>(texmapStartCommand, shared_from_this()));
                     }
                 } else if (element->getType() == 1) {
                     auto sfElement = std::dynamic_pointer_cast<ldr::SubfileReference>(element);
@@ -381,8 +382,17 @@ namespace bricksim::etree {
         p3(startCommand->x3, startCommand->y3, startCommand->z3),
         a(startCommand->a),
         b(startCommand->b),
-        textureFilename(startCommand->textureFilename),
-        textureFile(ldr::file_repo::get().getBinaryFile(textureFilename, ldr::file_repo::TEXMAP)) {
+        textureFilename(startCommand->textureFilename) {
+        auto flipVerticallyBackup = util::isStbiFlipVertically();
+        util::setStbiFlipVertically(false);//todo I'm not 100% sure if this is right
+        texture = graphics::Texture::getFromBinaryFileCached(ldr::file_repo::get().getBinaryFile(textureFilename, ldr::file_repo::TEXMAP));
+        util::setStbiFlipVertically(flipVerticallyBackup);
+        updateCalculatedValues();
+    }
+
+    void TexmapNode::updateCalculatedValues() {
+        displayName = fmt::format("Texmap {} {}", magic_enum::enum_name(projectionMethod), textureFilename);
+        //setRelativeTransformation(glm::translate(glm::mat4(1.0f), p1));
     }
 
     mesh_identifier_t TexmapNode::getMeshIdentifier() const {
@@ -396,7 +406,6 @@ namespace bricksim::etree {
     }
 
     void TexmapNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
-        auto texture = graphics::Texture::getFromBinaryFileCached(textureFile);
         auto& triangleData = mesh->getTexturedTriangleData(texture);
         if (projectionMethod == ldr::TexmapStartCommand::PLANAR) {
             mesh::TexturedTriangleVertex vp1{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}};
@@ -414,6 +423,10 @@ namespace bricksim::etree {
         } else if (projectionMethod == ldr::TexmapStartCommand::SPHERICAL) {
         } else {
         }
+    }
+
+    bool TexmapNode::isDisplayNameUserEditable() const {
+        return false;
     }
 }
 #pragma clang diagnostic pop

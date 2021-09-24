@@ -165,12 +165,15 @@ namespace bricksim::etree {
 
         void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
 
+        bool isDisplayNameUserEditable() const override;
+
     private:
         ldr::TexmapStartCommand::ProjectionMethod projectionMethod;
         glm::vec3 p1, p2, p3;
         std::string textureFilename;
-        std::shared_ptr<BinaryFile> textureFile;
+        std::shared_ptr<graphics::Texture> texture;
         float a, b;
+        void updateCalculatedValues();
     };
 
     std::shared_ptr<Node> getFirstSelectedNode(std::shared_ptr<Node> rootNode);

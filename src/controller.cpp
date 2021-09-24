@@ -367,7 +367,8 @@ namespace bricksim::controller {
         //openFile("test_files/bricks_test.ldr");
         //openFile("test_files/triangle_test.ldr");
         //openFile("test_files/mpd_test.mpd");
-        openFile("~/Downloads/arocs.mpd");
+        openFile("test_files/texmap_planar.ldr");
+        //openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
         //openFile("car.ldr");
         //openFile("~/Downloads/datsville.ldr");

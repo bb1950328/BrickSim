@@ -1,5 +1,6 @@
 #pragma once
 
+#include "binary_file.h"
 #include "constant_data/constants.h"
 #include "graphics/mesh/mesh.h"
 #include "helpers/color.h"
@@ -74,7 +75,7 @@ namespace bricksim::etree {
 
     class MeshNode : public Node {
     public:
-        MeshNode(ldr::ColorReference color, std::shared_ptr<Node> parent);
+        MeshNode(ldr::ColorReference color, const std::shared_ptr<Node>& parent);
 
         virtual mesh_identifier_t getMeshIdentifier() const = 0;
         virtual void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) = 0;
@@ -124,7 +125,7 @@ namespace bricksim::etree {
 
     class MpdSubfileInstanceNode : public MeshNode {
     public:
-        MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, std::shared_ptr<Node> parent);
+        MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, const std::shared_ptr<Node>& parent);
 
         std::shared_ptr<MpdSubfileNode> mpdSubfileNode;
         mesh_identifier_t getMeshIdentifier() const override;
@@ -154,6 +155,22 @@ namespace bricksim::etree {
         PartNode(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
+    };
+
+    class TexmapNode : public MeshNode {
+    public:
+        TexmapNode(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, const std::shared_ptr<Node>& parent);
+
+        mesh_identifier_t getMeshIdentifier() const override;
+
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
+
+    private:
+        ldr::TexmapStartCommand::ProjectionMethod projectionMethod;
+        glm::vec3 p1, p2, p3;
+        std::string textureFilename;
+        std::shared_ptr<BinaryFile> textureFile;
+        float a, b;
     };
 
     std::shared_ptr<Node> getFirstSelectedNode(std::shared_ptr<Node> rootNode);

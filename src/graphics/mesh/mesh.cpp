@@ -15,6 +15,9 @@ namespace bricksim::mesh {
 
     void Mesh::addLdrFile(ldr::ColorReference mainColor, const std::shared_ptr<ldr::File>& file, const glm::mat4& transformation, bool bfcInverted) {
         for (const auto& element: file->elements) {
+            if (element->hidden) {
+                continue;
+            }
             switch (element->getType()) {
                 case 0: break;
                 case 1:

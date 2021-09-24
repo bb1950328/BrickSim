@@ -31,11 +31,11 @@ namespace bricksim::ldr::file_repo {
         return files;
     }
 
-    std::string RegularFileRepo::getLibraryFileContent(ldr::FileType type, std::string name) {
+    std::string RegularFileRepo::getLibraryLdrFileContent(ldr::FileType type, const std::string& name) {
         return util::readFileToString(basePath / getPathRelativeToBase(type, name));
     }
 
-    std::string RegularFileRepo::getLibraryFileContent(std::string nameRelativeToRoot) {
+    std::string RegularFileRepo::getLibraryLdrFileContent(const std::string& nameRelativeToRoot) {
         return util::readFileToString(basePath / nameRelativeToRoot);
     }
 
@@ -46,5 +46,9 @@ namespace bricksim::ldr::file_repo {
         if (!isValidBasePath(basePath)) {
             throw std::invalid_argument("invalid basePath: " + basePath.string());
         }
+    }
+
+    std::shared_ptr<BinaryFile> RegularFileRepo::getLibraryBinaryFileContent(const std::string& nameRelativeToRoot) {
+        return std::make_shared<BinaryFile>(basePath / nameRelativeToRoot);
     }
 }

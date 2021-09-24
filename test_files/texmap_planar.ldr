@@ -1,0 +1,11 @@
+0 FILE texmap_planar.ldr
+0 just a plane with a texture
+0 Author: bb1950328
+0 Name: texmap_planar.ldr
+0 !LDRAW_ORG Model
+0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
+0 !THEME Technic
+
+1 4 0 0 0 1000 0 0 0 1000 0 0 0 1000 box.dat
+
+0 !TEXMAP START PLANAR -1000 -1000 1000    1000 -1000 1000   -1000 -1000 -1000   test_files/test_texture.png

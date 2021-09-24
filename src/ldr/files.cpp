@@ -3,6 +3,7 @@
 #include "file_repo.h"
 #include <fast_float/fast_float.h>
 #include <iostream>
+#include <magic_enum.hpp>
 #include <spdlog/spdlog.h>
 #include <sstream>
 
@@ -14,7 +15,13 @@ namespace bricksim::ldr {
     std::shared_ptr<FileElement> FileElement::parseLine(const std::string& line, BfcState bfcState) {
         std::string lineContent = line.length() > 2 ? line.substr(2) : "";
         switch (line[0] - '0') {
-            case 0: return std::make_shared<CommentOrMetaElement>(lineContent);
+            case 0: {
+                if (TexmapStartCommand::doesLineMatch(lineContent)) {
+                    return std::make_shared<TexmapStartCommand>(lineContent);
+                } else {
+                    return std::make_shared<CommentOrMetaElement>(lineContent);
+                }
+            };
             case 1: return std::make_shared<SubfileReference>(lineContent, bfcState.invertNext);
             case 2: return std::make_shared<Line>(lineContent);
             case 3: return std::make_shared<Triangle>(lineContent, bfcState.windingOrder);
@@ -32,7 +39,7 @@ namespace bricksim::ldr {
         auto trimmed = util::trim(line);
         unsigned int currentStep = elements.empty() ? 0 : elements.back()->step;
         if (!trimmed.empty()) {
-            auto element = ldr::FileElement::parseLine(trimmed, bfcState);
+            auto element = FileElement::parseLine(trimmed, bfcState);
             if (element != nullptr) {
                 bfcState.invertNext = false;
                 if (element->getType() == 0) {
@@ -66,6 +73,22 @@ namespace bricksim::ldr {
                         } else if (bfcCommand == "INVERTNEXT") {
                             bfcState.invertNext = true;
                         }
+                    } else if (metaElement->content.starts_with(META_COMMAND_TEXMAP)) {
+                        auto startCommand = std::dynamic_pointer_cast<TexmapStartCommand>(metaElement);
+                        if (startCommand != nullptr) {
+                            texmapStateStack.push({startCommand, false});
+                        } else if (!texmapStateStack.empty()) {
+                            size_t start = metaElement->content.find_first_not_of(LDR_WHITESPACE, META_COMMAND_TEXMAP_LEN);
+                            if (metaElement->content.find("FALLBACK", start) == start) {
+                                texmapStateStack.top().fallbackSectionReached = true;
+                            }
+                            if (metaElement->content.find("END", start) == start) {
+                                texmapStateStack.pop();
+                            }
+                        }
+                    } else if (!texmapStateStack.empty() && metaElement->content.starts_with("!:") && !texmapStateStack.top().fallbackSectionReached) {
+                        auto realCommand = metaElement->content.substr(metaElement->content.find_first_not_of(LDR_WHITESPACE, 2));
+                        element = FileElement::parseLine(realCommand, bfcState);
                     }
                 }
                 if (element != nullptr) {
@@ -426,6 +449,56 @@ namespace bricksim::ldr {
                 case PRIMITIVE: return "Primitive";
                 default: return "File";
             }
+        }
+    }
+
+    TexmapStartCommand::TexmapStartCommand(const std::string& line) :
+        CommentOrMetaElement(line) {
+        size_t start = line.find_first_not_of(LDR_WHITESPACE, META_COMMAND_TEXMAP_LEN);
+        size_t end = line.find_first_of(LDR_WHITESPACE, start + 1);
+        start = line.find_first_not_of(LDR_WHITESPACE, end);
+        end = line.find_first_of(LDR_WHITESPACE, start);
+        auto projectionMethodStrView = std::string_view(line).substr(start, end - start);
+        projectionMethod = magic_enum::enum_cast<ProjectionMethod>(projectionMethodStrView).value_or(ProjectionMethod::PLANAR);
+
+        parseNextFloat(line, start, end, x1);
+        parseNextFloat(line, start, end, y1);
+        parseNextFloat(line, start, end, z1);
+        parseNextFloat(line, start, end, x2);
+        parseNextFloat(line, start, end, y2);
+        parseNextFloat(line, start, end, z2);
+        parseNextFloat(line, start, end, x3);
+        parseNextFloat(line, start, end, y3);
+        parseNextFloat(line, start, end, z3);
+        if (projectionMethod != PLANAR) {
+            parseNextFloat(line, start, end, a);
+        } else {
+            a = 0;
+        }
+        if (projectionMethod == SPHERICAL) {
+            parseNextFloat(line, start, end, b);
+        } else {
+            b = 0;
+        }
+
+        size_t glossmapPos = line.find(" GLOSSMAP", end);//the space is necessary because the path could be something like /home/user/GLOSSMAPS/glossmap123.png
+        if (glossmapPos == std::string::npos) {
+            glossmapPos = line.find("\tGLOSSMAP", end);
+        }
+        if (glossmapPos != std::string::npos) {
+            textureFilename = util::trim(line.substr(end, glossmapPos - end));
+            glossmapFileName = util::trim(line.substr(glossmapPos + 10));
+        } else {
+            textureFilename = util::trim(line.substr(end));
+        }
+    }
+
+    bool TexmapStartCommand::doesLineMatch(const std::string& line) {
+        if (line.starts_with(META_COMMAND_TEXMAP)) {
+            size_t start = line.find_first_not_of(LDR_WHITESPACE, META_COMMAND_TEXMAP_LEN);
+            return line.find("START", start) == start;
+        } else {
+            return false;
         }
     }
 }

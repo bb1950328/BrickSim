@@ -114,7 +114,7 @@ namespace bricksim::ldr {
             static bool initialized = false;
             if (!initialized) {
                 std::stringstream inpStream;
-                std::string contentString = ldr::file_repo::get().getLibraryFileContent("LDConfig.ldr");
+                std::string contentString = ldr::file_repo::get().getLibraryLdrFileContent("LDConfig.ldr");
                 inpStream << contentString;
                 for (std::string line; getline(inpStream, line);) {
                     auto trimmed = util::trim(line);

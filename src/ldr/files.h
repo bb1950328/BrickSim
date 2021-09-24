@@ -5,11 +5,18 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <stack>
+
 namespace bricksim::ldr {
-    const char* const LDR_NEWLINE = "\r\n";
-    const char* const LDR_WHITESPACE = " \t";
+    constexpr const char* const LDR_NEWLINE = "\r\n";
+    constexpr const char* const LDR_WHITESPACE = " \t";
+
+    constexpr const char* const META_COMMAND_TEXMAP = "!TEXMAP";
+    constexpr size_t META_COMMAND_TEXMAP_LEN = std::char_traits<char>::length(META_COMMAND_TEXMAP);
 
     class FileElement;
+    class File;
+
     enum FileType {
         MODEL,
         MPD_SUBFILE,
@@ -53,26 +60,6 @@ namespace bricksim::ldr {
         bool firstLine = true;
     };
 
-    class File {
-    public:
-        File() = default;
-        virtual ~File();
-
-        std::vector<std::shared_ptr<FileElement>> elements;
-        uoset_t<std::shared_ptr<File>> mpdSubFiles;
-        FileMetaInfo metaInfo;
-
-        void printStructure(int indent = 0);
-        [[nodiscard]] const std::string& getDescription() const;
-        [[nodiscard]] const std::size_t& getHash() const;
-
-        void addTextLine(const std::string& line);
-
-    private:
-        mutable std::size_t hash = 0;
-        BfcState bfcState;
-    };
-
     class FileElement {
     public:
         static std::shared_ptr<FileElement> parseLine(const std::string& line, BfcState bfcState);
@@ -81,6 +68,7 @@ namespace bricksim::ldr {
         virtual ~FileElement();
 
         unsigned int step = 0;//0 is before the first "0 STEP" line
+        bool hidden = false;//hidden elements do not have to be rendered. for example, they are part of fallback sections or come after a meta-command that hides them.
     };
 
     class CommentOrMetaElement : public FileElement {
@@ -153,6 +141,49 @@ namespace bricksim::ldr {
 
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
+    };
+
+    class TexmapStartCommand : public CommentOrMetaElement  {
+    public:
+        enum ProjectionMethod {
+            PLANAR,
+            CYLINDRICAL,
+            SPHERICAL,
+        };
+        ProjectionMethod projectionMethod;
+        float x1, y1, z1, x2, y2, z2, x3, y3, z3, a, b;//a and b may be not used depending on projectionMethod
+        std::string textureFilename;
+        std::optional<std::string> glossmapFileName;
+
+        explicit TexmapStartCommand(const std::string& line);
+
+        static bool doesLineMatch(const std::string& line);
+    };
+
+    struct TexmapState {
+        std::weak_ptr<TexmapStartCommand> startCommand;
+        bool fallbackSectionReached;
+    };
+
+    class File {
+    public:
+        File() = default;
+        virtual ~File();
+
+        std::vector<std::shared_ptr<FileElement>> elements;
+        uoset_t<std::shared_ptr<File>> mpdSubFiles;
+        FileMetaInfo metaInfo;
+
+        void printStructure(int indent = 0);
+        [[nodiscard]] const std::string& getDescription() const;
+        [[nodiscard]] const std::size_t& getHash() const;
+
+        void addTextLine(const std::string& line);
+
+    private:
+        mutable std::size_t hash = 0;
+        BfcState bfcState;
+        std::stack<TexmapState> texmapStateStack;
     };
 
     namespace {

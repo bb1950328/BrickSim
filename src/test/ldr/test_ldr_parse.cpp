@@ -53,6 +53,54 @@ TEST_CASE("parse ldr::Triangle") {
     CHECK(tri.color == 123);
 }
 
+TEST_CASE("parse ldr::TexmapStartCommand 1") {
+    const std::string line = GENERATE(
+            "!TEXMAP START PLANAR 1 2 3 4 5 6 7 8 9 texture.png GLOSSMAP glossmap.png",
+            "!TEXMAP NEXT PLANAR 1.0 2.0 3.0 4 5 6 7 8 9 texture.png GLOSSMAP glossmap.png",
+            "!TEXMAP START PLANAR 1 2 3 4 5 6 7 8 9 texture.png GLOSSMAP glossmap.png",
+            "!TEXMAP\tSTART\tPLANAR\t1\t2\t3\t4\t5\t6\t7\t8\t9\ttexture.png\tGLOSSMAP\tglossmap.png",
+            "!TEXMAP\t START  \t\tPLANAR\t \t1  \t 2 \t3 \t   4\t   5\t  \t6\t 7\t 8\t 9\t  texture.png\t  \tGLOSSMAP  \t  glossmap.png\t ");
+    const auto command = TexmapStartCommand(line);
+    CHECK(command.projectionMethod == bricksim::ldr::TexmapStartCommand::PLANAR);
+    CHECK(command.x1 == Approx(1.f));
+    CHECK(command.y1 == Approx(2.f));
+    CHECK(command.z1 == Approx(3.f));
+    CHECK(command.x2 == Approx(4.f));
+    CHECK(command.y2 == Approx(5.f));
+    CHECK(command.z2 == Approx(6.f));
+    CHECK(command.x3 == Approx(7.f));
+    CHECK(command.y3 == Approx(8.f));
+    CHECK(command.z3 == Approx(9.f));
+    CHECK(command.a == Approx(0.f));
+    CHECK(command.b == Approx(0.f));
+    CHECK(command.textureFilename == "texture.png");
+    CHECK(command.glossmapFileName.value() == "glossmap.png");
+}
+
+TEST_CASE("parse ldr::TexmapStartCommand 2") {
+    auto cylindricalCommand = TexmapStartCommand("!TEXMAP START CYLINDRICAL 1 2 3 4 5 6 7 8 9 11 texture.png");
+    CHECK(cylindricalCommand.projectionMethod == TexmapStartCommand::CYLINDRICAL);
+    CHECK(cylindricalCommand.a == Approx(11.f));
+    CHECK(cylindricalCommand.b == Approx(0.f));
+
+    auto sphericalCommand = TexmapStartCommand("!TEXMAP START SPHERICAL 1 2 3 4 5 6 7 8 9 11 22 texture.png");
+    CHECK(sphericalCommand.projectionMethod == TexmapStartCommand::SPHERICAL);
+    CHECK(sphericalCommand.a == Approx(11.f));
+    CHECK(sphericalCommand.b == Approx(22.f));
+
+    auto textureWithSpacesCommand = TexmapStartCommand("!TEXMAP START PLANAR 1 2 3 4 5 6 7 8 9 tex ture.png");
+    CHECK(textureWithSpacesCommand.textureFilename == "tex ture.png");
+    CHECK(textureWithSpacesCommand.glossmapFileName.has_value() == false);
+
+    auto textureAndGlossmapWithSpacesCommand = TexmapStartCommand("!TEXMAP START PLANAR 1 2 3 4 5 6 7 8 9 tex ture.png GLOSSMAP gloss map.png");
+    CHECK(textureAndGlossmapWithSpacesCommand.textureFilename == "tex ture.png");
+    CHECK(textureAndGlossmapWithSpacesCommand.glossmapFileName.value() == "gloss map.png");
+
+    auto textureWithGlossmapInPathCommand = TexmapStartCommand("!TEXMAP START PLANAR 1 2 3 4 5 6 7 8 9 /home/user/GLOSSMAPS/texture.png");
+    CHECK(textureWithGlossmapInPathCommand.textureFilename == "/home/user/GLOSSMAPS/texture.png");
+    CHECK(textureWithGlossmapInPathCommand.glossmapFileName.has_value() == false);
+}
+
 TEST_CASE("ldr::readSimpleFile 1") {
     const std::string filename = GENERATE("filename.ldr", "filename.dat", "filename.mpd");
     const auto type = GENERATE(MODEL, MPD_SUBFILE, PART, SUBPART, PRIMITIVE);

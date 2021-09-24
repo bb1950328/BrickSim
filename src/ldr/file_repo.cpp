@@ -99,8 +99,8 @@ namespace bricksim::ldr::file_repo {
 
     std::shared_ptr<File> FileRepo::getFile(const std::string& name) {
         plFunction();
-        auto it = files.find(util::asLower(name));
-        if (it != files.end()) {
+        auto it = ldrFiles.find(util::asLower(name));
+        if (it != ldrFiles.end()) {
             return it->second.second;
         } else {
             if (db::fileList::getSize() == 0) {
@@ -122,35 +122,84 @@ namespace bricksim::ldr::file_repo {
                     } else {
                         type = PART;
                     }
-                    return addFileWithContent(entryOpt->name, type, getLibraryFileContent(type, entryOpt->name));
+                    return addLdrFileWithContent(entryOpt->name, type, getLibraryLdrFileContent(type, entryOpt->name));
                 }
             }
 
             //at this point the file must be outside of the parts library
             auto fullPath = util::extendHomeDirPath(name);
             if (fullPath.extension() == ".io") {
-                return addFileWithContent(name, MODEL, getContentOfIoFile(fullPath));
+                return addLdrFileWithContent(name, MODEL, getContentOfIoFile(fullPath));
             }
-            return addFileWithContent(name, MODEL, util::readFileToString(fullPath));
+            return addLdrFileWithContent(name, MODEL, util::readFileToString(fullPath));
         }
+    }
+
+    std::shared_ptr<BinaryFile> FileRepo::getBinaryFile(const std::string& name, const BinaryFileSearchPath searchPath) {
+        auto it = binaryFiles.find(name);
+        if (it != binaryFiles.end()) {
+            return it->second;
+        }
+        if (db::fileList::getSize() == 0) {
+            spdlog::warn("FileRepo not initialized, but getFile() called. calling initialize now. this shouldn't happen.");
+            float progress;
+            initialize(&progress);
+        }
+        auto filenameWithForwardSlash = util::replaceChar(name, '\\', '/');
+        std::string nameInLibrary;
+        const auto prePrefixes = searchPath == TEXMAP
+                                         ? std::vector<std::string>({"textures/", ""})
+                                         : std::vector<std::string>({""});
+        for (const auto& prePrefix: prePrefixes) {
+            for (const auto& prefix: PART_SEARCH_PREFIXES) {
+                auto fullName = prePrefix + prefix;
+                fullName += filenameWithForwardSlash;
+                auto entryOpt = db::fileList::findFile(fullName);
+                if (entryOpt.has_value()) {
+                    nameInLibrary = entryOpt->name;
+                    break;
+                }
+            }
+            if (!nameInLibrary.empty()) {
+                break;
+            }
+        }
+
+        if (!nameInLibrary.empty()) {
+            return addBinaryFileWithContent(nameInLibrary, getLibraryBinaryFileContent(nameInLibrary));
+        }
+
+        auto nameAsPath = std::filesystem::path(name);
+        if (std::filesystem::exists(nameAsPath)) {
+            return addBinaryFileWithContent(name, std::make_shared<BinaryFile>(nameAsPath));
+        }
+
+        return nullptr;
     }
 
     std::string FileRepo::readFileFromFilesystem(const std::filesystem::path& path) {
         return util::readFileToString(path);
     }
 
-    std::shared_ptr<File> FileRepo::addFileWithContent(const std::string& name, ldr::FileType type, const std::string& content) {
+    std::shared_ptr<File> FileRepo::addLdrFileWithContent(const std::string& name, ldr::FileType type, const std::string& content) {
         auto readResults = readComplexFile(name, content, type);
         {
-            plLockWait("FileRepo::filesMtx");
-            std::lock_guard<std::mutex> lg(filesMtx);
-            plLockScopeState("FileRepo::filesMtx", true);
+            plLockWait("FileRepo::ldrFilesMtx");
+            std::lock_guard<std::mutex> lg(ldrFilesMtx);
+            plLockScopeState("FileRepo::ldrFilesMtx", true);
             for (const auto& newFile: readResults) {
-                files.emplace(util::asLower(newFile.first), std::make_pair(newFile.second->metaInfo.type, newFile.second));
+                ldrFiles.emplace(util::asLower(newFile.first), std::make_pair(newFile.second->metaInfo.type, newFile.second));
             }
         }
 
         return readResults[name];
+    }
+
+    std::shared_ptr<BinaryFile> FileRepo::addBinaryFileWithContent(const std::string& name, const std::shared_ptr<BinaryFile>& file) {
+        plLockWait("FileRepo::binaryFilesMtx");
+        std::lock_guard<std::mutex> lg(binaryFilesMtx);
+        plLockScopeState("FileRepo::binaryFilesMtx", true);
+        return binaryFiles.emplace(name, file).first->second;
     }
 
     std::filesystem::path& FileRepo::getBasePath() {
@@ -214,7 +263,7 @@ namespace bricksim::ldr::file_repo {
                         ldr::FileType type;
                         std::string name;
                         std::tie(type, name) = getTypeAndNameFromPathRelativeToBase(*fileName);
-                        auto ldrFile = addFileWithContent(name, type, getLibraryFileContent(*fileName));
+                        auto ldrFile = addLdrFileWithContent(name, type, getLibraryLdrFileContent(*fileName));
 
                         std::string category;
                         if (type == ldr::FileType::PART) {
@@ -303,25 +352,25 @@ namespace bricksim::ldr::file_repo {
     }
 
     void FileRepo::cleanup() {
-        //files.clear();
+        //ldrFiles.clear();
         //partsByCategory.clear();
     }
 
     bool FileRepo::hasFileCached(const std::string& name) {
-        return files.find(name) != files.end();
+        return ldrFiles.find(name) != ldrFiles.end();
     }
 
     void FileRepo::changeFileName(std::shared_ptr<File>& file, const std::string& newName) {
-        auto it = files.find(file->metaInfo.name);
-        if (it==files.end()) {
-            it = files.begin();
-            while (it != files.end() && it->second.second != file) {
+        auto it = ldrFiles.find(file->metaInfo.name);
+        if (it == ldrFiles.end()) {
+            it = ldrFiles.begin();
+            while (it != ldrFiles.end() && it->second.second != file) {
                 ++it;
             }
         }
         it->second.second->metaInfo.name = newName;
-        files.emplace(newName, it->second);
-        files.erase(it);
+        ldrFiles.emplace(newName, it->second);
+        ldrFiles.erase(it);
     }
 
     FileRepo::~FileRepo() = default;

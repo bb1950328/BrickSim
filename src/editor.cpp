@@ -15,7 +15,7 @@ namespace bricksim {
 
     Editor::Editor() :
         filePath() {
-        init(ldr::file_repo::get().addFileWithContent(getNameForNewLdrFile(), ldr::MODEL, ""));
+        init(ldr::file_repo::get().addLdrFileWithContent(getNameForNewLdrFile(), ldr::MODEL, ""));
     }
 
     Editor::Editor(const std::filesystem::path& path) :

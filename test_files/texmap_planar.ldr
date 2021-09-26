@@ -6,9 +6,11 @@
 0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
 0 !THEME Technic
 
-1 4 0 0 0 1000 0 0 0 1000 0 0 0 1000 box.dat
+0 box size is (480, 100, 320)
+1 4 0 0 0 240 0 0 0 50 0 0 0 160 box0.dat
 
-0 !TEXMAP START PLANAR -1000 -1000 1000    1000 -1000 1000   -1000 -1000 -1000   test_files/test_texture.png
+0 !TEXMAP START PLANAR -240 40 160    240 40 160   -240 40 -160   66645ap01.png
+1 4 0 -50 0 240 100 -50 0 50 0 50 0 480 box.dat
 0 !TEXMAP FALLBACK
 1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat
 0 !TEXMAP END

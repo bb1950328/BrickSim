@@ -82,4 +82,7 @@ namespace bricksim::graphics {
             return texturesFromBinaryFiles.emplace(binaryFile->name, std::make_shared<Texture>(&binaryFile->data[0], binaryFile->data.size())).first->second;
         }
     }
+    void Texture::deleteCached() {
+        texturesFromBinaryFiles.clear();
+    }
 }

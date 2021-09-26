@@ -311,6 +311,7 @@ namespace bricksim::controller {
             spdlog::info("all background tasks finished, exiting now");
             gui::cleanup();
             graphics::orientation_cube::cleanup();
+            graphics::Texture::deleteCached();
             graphics::shaders::cleanup();
             activeEditor = nullptr;
             for (const auto &item : editors) {
@@ -367,7 +368,7 @@ namespace bricksim::controller {
         //openFile("test_files/bricks_test.ldr");
         //openFile("test_files/triangle_test.ldr");
         //openFile("test_files/mpd_test.mpd");
-        openFile("test_files/texmap_planar.ldr");
+        //openFile("test_files/texmap_planar.ldr");
         //openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
         //openFile("car.ldr");

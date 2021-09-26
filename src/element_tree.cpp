@@ -6,6 +6,7 @@
 #include <magic_enum.hpp>
 #include <palanteer.h>
 #undef RGB
+#include <glm/gtx/normal.hpp>
 #include <spdlog/spdlog.h>
 
 #undef RGB
@@ -385,44 +386,55 @@ namespace bricksim::etree {
         textureFilename(startCommand->textureFilename) {
         auto flipVerticallyBackup = util::isStbiFlipVertically();
         util::setStbiFlipVertically(false);//todo I'm not 100% sure if this is right
-        texture = graphics::Texture::getFromBinaryFileCached(ldr::file_repo::get().getBinaryFile(textureFilename, ldr::file_repo::TEXMAP));
+        const auto& textureFile = ldr::file_repo::get().getBinaryFile(textureFilename, ldr::file_repo::TEXMAP);
+        texture = graphics::Texture::getFromBinaryFileCached(textureFile);
         util::setStbiFlipVertically(flipVerticallyBackup);
         updateCalculatedValues();
     }
 
     void TexmapNode::updateCalculatedValues() {
         displayName = fmt::format("Texmap {} {}", magic_enum::enum_name(projectionMethod), textureFilename);
+        if (projectionMethod == ldr::TexmapStartCommand::PLANAR) {
+            /*const glm::vec3 scale{glm::length(p2 - p1), glm::length(p3 - p1), 1.f};
+            glm::mat4 transf = glm::scale(glm::mat4(1.f), scale);
+            //now the plane has the correct size
+
+            const glm::vec3 untransformedPlaneNormal{0.f, 0.f, 1.f};
+            const auto transformedPlaneNormal = glm::triangleNormal(p1, p2, p3);//todo find out which one is the correct winding order
+            const auto rotation = util::quaternionRotationFromOneVectorToAnother(untransformedPlaneNormal, transformedPlaneNormal);
+            transf = glm::toMat4(rotation) * transf;
+            //now the plane normal points to the right direction
+
+
+            //const auto p4 = p2 + p3 - p1;
+            const auto center = .5f * (p2 + p3);
+            transf = glm::translate(glm::mat4(1.f), center) * transf;
+            //now the center of the plane is also at the right place
+
+
+            const glm::vec3 intermediateP1 = glm::vec4(-.5f, -.5f, 0.f, 1.f) * transf;
+            const auto rotation2 = util::quaternionRotationFromOneVectorToAnother(intermediateP1-center, p1-center);
+            transf = glm::toMat4(rotation2) * transf;
+            //now the plane is also rotated around its normal correctly
+
+
+            setRelativeTransformation(glm::transpose(transf));*/
+        }
         //setRelativeTransformation(glm::translate(glm::mat4(1.0f), p1));
     }
 
     mesh_identifier_t TexmapNode::getMeshIdentifier() const {
-        if (projectionMethod == ldr::TexmapStartCommand::PLANAR) {
+        /*if (projectionMethod == ldr::TexmapStartCommand::PLANAR) {
             return util::combinedHash(projectionMethod, textureFilename);
         } else if (projectionMethod == ldr::TexmapStartCommand::SPHERICAL) {
             return util::combinedHash(projectionMethod, textureFilename, a, glm::length2(p3 - p1));
         } else {
             return util::combinedHash(projectionMethod, textureFilename, a, b, glm::length2(p2 - p1));
-        }
+        }*/
     }
 
     void TexmapNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
-        auto& triangleData = mesh->getTexturedTriangleData(texture);
-        if (projectionMethod == ldr::TexmapStartCommand::PLANAR) {
-            mesh::TexturedTriangleVertex vp1{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}};
-            mesh::TexturedTriangleVertex vp2{p2 - p1, {1.0f, 0.0f}};
-            mesh::TexturedTriangleVertex vp3{p3 - p1, {0.0f, 1.0f}};
-            mesh::TexturedTriangleVertex vp4{(p2 + p3) - 2.f * p1, {1.0f, 1.0f}};
 
-            for (const auto& vertex: {
-                         vp1, vp2, vp3,
-                         vp2, vp4, vp3,
-                         vp1, vp3, vp2,
-                         vp2, vp3, vp4}) {
-                triangleData.addVertex(vertex);
-            }
-        } else if (projectionMethod == ldr::TexmapStartCommand::SPHERICAL) {
-        } else {
-        }
     }
 
     bool TexmapNode::isDisplayNameUserEditable() const {

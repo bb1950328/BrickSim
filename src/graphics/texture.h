@@ -18,11 +18,13 @@ namespace bricksim::graphics {
 
     public:
         explicit Texture(const std::filesystem::path& image);
-        static std::shared_ptr<Texture> getFromBinaryFileCached(const std::shared_ptr<BinaryFile>& binaryFile);
         Texture(const unsigned char* fileData, unsigned int dataSize);
         Texture& operator=(const Texture&) = delete;
         Texture(const Texture&) = delete;
         ~Texture();
+
+        static std::shared_ptr<Texture> getFromBinaryFileCached(const std::shared_ptr<BinaryFile>& binaryFile);
+        static void deleteCached();
 
         void bind(uint8_t slot = 0) const;
         [[nodiscard]] texture_id_t getID() const;

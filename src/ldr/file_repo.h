@@ -25,7 +25,9 @@ namespace bricksim::ldr::file_repo {
     extern const char* PSEUDO_CATEGORY_PRIMITIVE;
     extern const char* PSEUDO_CATEGORY_MODEL;
     extern const char* PSEUDO_CATEGORY_HIDDEN_PART;
+    extern const char* PSEUDO_CATEGORY_BINARY_FILE;
     extern const char* const PSEUDO_CATEGORIES[];
+
     extern const char* const PART_SEARCH_PREFIXES[];
     constexpr int ESTIMATE_PART_LIBRARY_FILE_COUNT = 19057;//counted on 2020-12-09
 
@@ -87,6 +89,8 @@ namespace bricksim::ldr::file_repo {
         std::mutex binaryFilesMtx;
 
         omap_t<std::string, oset_t<std::shared_ptr<File>>> partsByCategory;
+        static bool isLdrFilename(const std::string& filename);
+        static bool isBinaryFilename(const std::string& filename);
     };
 
     FileRepo& get();

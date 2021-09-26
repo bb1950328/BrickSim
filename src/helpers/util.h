@@ -119,6 +119,9 @@ namespace bricksim::util {
 
     std::optional<glm::vec3> rayPlaneIntersection(const Ray3& ray, const Ray3& planeNormal);
 
+    glm::quat quaternionRotationFromOneVectorToAnother(const glm::vec3& v1, const glm::vec3& v2);
+    glm::vec3 getAnyPerpendicularVector(const glm::vec3& v);
+
     float getAngleBetweenThreePointsUnsigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
     float getAngleBetweenThreePointsSigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& planeNormal);
 

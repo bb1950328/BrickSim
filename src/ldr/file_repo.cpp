@@ -15,8 +15,11 @@ namespace bricksim::ldr::file_repo {
     const char* PSEUDO_CATEGORY_PRIMITIVE = "__PRIMITIVE";
     const char* PSEUDO_CATEGORY_MODEL = "__MODEL";
     const char* PSEUDO_CATEGORY_HIDDEN_PART = "__HIDDEN_PART";
-    const char* const PSEUDO_CATEGORIES[] = {PSEUDO_CATEGORY_SUBPART, PSEUDO_CATEGORY_PRIMITIVE, PSEUDO_CATEGORY_MODEL, PSEUDO_CATEGORY_HIDDEN_PART};
+    const char* PSEUDO_CATEGORY_BINARY_FILE = "__BINARY_FILE";
+    const char* const PSEUDO_CATEGORIES[] = {PSEUDO_CATEGORY_SUBPART, PSEUDO_CATEGORY_PRIMITIVE, PSEUDO_CATEGORY_MODEL, PSEUDO_CATEGORY_HIDDEN_PART, PSEUDO_CATEGORY_BINARY_FILE};
+
     const char* const PART_SEARCH_PREFIXES[] = {"parts/", "p/", "models/", ""};
+
     namespace {
         std::unique_ptr<FileRepo> currentRepo = nullptr;
 
@@ -152,7 +155,7 @@ namespace bricksim::ldr::file_repo {
                                          : std::vector<std::string>({""});
         for (const auto& prePrefix: prePrefixes) {
             for (const auto& prefix: PART_SEARCH_PREFIXES) {
-                auto fullName = prePrefix + prefix;
+                auto fullName = prefix + prePrefix;
                 fullName += filenameWithForwardSlash;
                 auto entryOpt = db::fileList::findFile(fullName);
                 if (entryOpt.has_value()) {
@@ -207,13 +210,21 @@ namespace bricksim::ldr::file_repo {
     }
 
     bool FileRepo::shouldFileBeSavedInList(const std::string& filename) {
-        return (util::endsWith(filename, ".dat")
-                || util::endsWith(filename, ".ldr")
-                || util::endsWith(filename, ".mpd"))
-               && (util::startsWith(filename, "parts/s/")
-                   || util::startsWith(filename, "parts/")
-                   || util::startsWith(filename, "p/")
-                   || util::startsWith(filename, "models/"));
+        return (isLdrFilename(filename) || isBinaryFilename(filename))
+               && (filename.starts_with("parts/")
+                   || filename.starts_with("p/")
+                   || filename.starts_with("models/"));
+    }
+
+    bool FileRepo::isLdrFilename(const std::string& filename) {
+        return filename.ends_with(".dat")
+               || filename.ends_with(".ldr")
+               || filename.ends_with(".mpd");
+    }
+
+    bool FileRepo::isBinaryFilename(const std::string& filename) {
+        return filename.ends_with(".png")
+               || filename.ends_with(".jpg");
     }
 
     std::string FileRepo::getPathRelativeToBase(ldr::FileType type, const std::string& name) {
@@ -260,27 +271,29 @@ namespace bricksim::ldr::file_repo {
 #endif
                     std::vector<db::fileList::Entry> entries;
                     for (auto fileName = fileNames.cbegin() + iStart; fileName < fileNames.cbegin() + iEnd; ++fileName) {
-                        ldr::FileType type;
-                        std::string name;
-                        std::tie(type, name) = getTypeAndNameFromPathRelativeToBase(*fileName);
-                        auto ldrFile = addLdrFileWithContent(name, type, getLibraryLdrFileContent(*fileName));
+                        auto [type, name] = getTypeAndNameFromPathRelativeToBase(*fileName);
+                        if (isBinaryFilename(name)) {
+                            entries.push_back({*fileName, name, PSEUDO_CATEGORY_BINARY_FILE});
+                        } else {
+                            auto ldrFile = addLdrFileWithContent(name, type, getLibraryLdrFileContent(*fileName));
 
-                        std::string category;
-                        if (type == ldr::FileType::PART) {
-                            char& firstChar = ldrFile->metaInfo.title[0];
-                            if ((firstChar == '~' && ldrFile->metaInfo.title[1] != '|') || firstChar == '=' || firstChar == '_') {
-                                category = PSEUDO_CATEGORY_HIDDEN_PART;
-                            } else {
-                                category = ldrFile->metaInfo.getCategory();
+                            std::string category;
+                            if (type == ldr::FileType::PART) {
+                                char& firstChar = ldrFile->metaInfo.title[0];
+                                if ((firstChar == '~' && ldrFile->metaInfo.title[1] != '|') || firstChar == '=' || firstChar == '_') {
+                                    category = PSEUDO_CATEGORY_HIDDEN_PART;
+                                } else {
+                                    category = ldrFile->metaInfo.getCategory();
+                                }
+                            } else if (type == ldr::FileType::SUBPART) {
+                                category = PSEUDO_CATEGORY_SUBPART;
+                            } else if (type == ldr::FileType::PRIMITIVE) {
+                                category = PSEUDO_CATEGORY_PRIMITIVE;
+                            } else if (type == ldr::FileType::MODEL) {
+                                category = PSEUDO_CATEGORY_MODEL;
                             }
-                        } else if (type == ldr::FileType::SUBPART) {
-                            category = PSEUDO_CATEGORY_SUBPART;
-                        } else if (type == ldr::FileType::PRIMITIVE) {
-                            category = PSEUDO_CATEGORY_PRIMITIVE;
-                        } else if (type == ldr::FileType::MODEL) {
-                            category = PSEUDO_CATEGORY_MODEL;
+                            entries.push_back({name, ldrFile->metaInfo.title, category});
                         }
-                        entries.push_back({name, ldrFile->metaInfo.title, category});
                         if (iStart == 0) {
                             *progress = 0.4f * entries.size() / iEnd + 0.5f;
                         }

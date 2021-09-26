@@ -655,6 +655,23 @@ namespace bricksim::util {
         return std::atan2(glm::dot(glm::cross(ab, cb), glm::normalize(planeNormal)), glm::dot(ab, cb));
     }
 
+    glm::quat quaternionRotationFromOneVectorToAnother(const glm::vec3& v1, const glm::vec3& v2) {
+        //https://stackoverflow.com/a/11741520/8733066 second solution
+        const auto v1n = glm::normalize(v1);
+        const auto v2n = glm::normalize(v2);
+        float k_cos_theta = glm::dot(v1n, v2n);
+        float k = glm::sqrt(glm::length2(v1n) * glm::length2(v2n));
+        if (k_cos_theta / k == -1) {
+            // 180° rotation around any vector
+            return {0, glm::normalize(getAnyPerpendicularVector(v1n))};
+        }
+        return glm::normalize(glm::quat(k_cos_theta + k, glm::cross(v1n, v2n)));
+    }
+
+    glm::vec3 getAnyPerpendicularVector(const glm::vec3& v) {
+        return {1.f, 1.f, (-v.x - v.y) / v.z};
+    }
+
     glm::mat4 DecomposedTransformation::orientationAsMat4() const {
         return glm::toMat4(orientation);
     }

@@ -171,7 +171,7 @@ namespace bricksim::etree {
         ldr::TexmapStartCommand::ProjectionMethod projectionMethod;
         glm::vec3 p1, p2, p3;
         std::string textureFilename;
-        std::shared_ptr<graphics::Texture> texture;
+        std::weak_ptr<graphics::Texture> texture;
         float a, b;
         void updateCalculatedValues();
     };

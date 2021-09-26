@@ -1,5 +1,6 @@
 #include "files.h"
 #include "../helpers/util.h"
+#include "../metrics.h"
 #include "file_repo.h"
 #include <fast_float/fast_float.h>
 #include <iostream>
@@ -33,7 +34,22 @@ namespace bricksim::ldr {
         }
     }
 
+#ifndef NDEBUG
+    FileElement::~FileElement() {
+        std::lock_guard<std::mutex>(metrics::ldrFileElementInstanceCountMtx);
+        --metrics::ldrFileElementInstanceCount;
+        //std::cout << metrics::ldrFileElementInstanceCount << std::endl;
+    }
+
+    FileElement::FileElement() {
+        std::lock_guard<std::mutex>(metrics::ldrFileElementInstanceCountMtx);
+        ++metrics::ldrFileElementInstanceCount;
+        //std::cout << metrics::ldrFileElementInstanceCount << std::endl;
+    }
+#else
     FileElement::~FileElement() = default;
+    FileElement::FileElement() = default;
+#endif
 
     void File::addTextLine(const std::string& line) {
         auto trimmed = util::trim(line);
@@ -76,18 +92,23 @@ namespace bricksim::ldr {
                     } else if (metaElement->content.starts_with(META_COMMAND_TEXMAP)) {
                         auto startCommand = std::dynamic_pointer_cast<TexmapStartCommand>(metaElement);
                         if (startCommand != nullptr) {
-                            texmapStateStack.push({startCommand, false});
-                        } else if (!texmapStateStack.empty()) {
+                            texmapState.startOrNext(startCommand);
+                        } else if (texmapState.isActive()) {
                             size_t start = metaElement->content.find_first_not_of(LDR_WHITESPACE, META_COMMAND_TEXMAP_LEN);
                             if (metaElement->content.find("FALLBACK", start) == start) {
-                                texmapStateStack.top().fallbackSectionReached = true;
+                                texmapState.fallback();
                             } else if (metaElement->content.find("END", start) == start) {
-                                texmapStateStack.pop();
+                                texmapState.end();
                             }
                         }
-                    } else if (!texmapStateStack.empty() && metaElement->content.starts_with("!:") && !texmapStateStack.top().fallbackSectionReached) {
-                        auto realCommand = metaElement->content.substr(metaElement->content.find_first_not_of(LDR_WHITESPACE, 2));
-                        element = FileElement::parseLine(realCommand, bfcState);
+                    } else if (texmapState.isActive()) {
+                        if (!texmapState.fallbackSectionReached) {
+                            if (metaElement->content.starts_with("!:")) {
+                                auto realCommand = metaElement->content.substr(metaElement->content.find_first_not_of(LDR_WHITESPACE, 2));
+                                element = FileElement::parseLine(realCommand, bfcState);
+                            }
+                            element->directTexmap = texmapState.startCommand;
+                        }
                     }
                 }
                 if (element != nullptr) {
@@ -499,5 +520,22 @@ namespace bricksim::ldr {
         } else {
             return false;
         }
+    }
+
+    void TexmapState::startOrNext(const std::shared_ptr<TexmapStartCommand>& command) {
+        this->startCommand = command;
+        fallbackSectionReached = false;
+    }
+
+    void TexmapState::fallback() {
+        fallbackSectionReached = true;
+    }
+
+    void TexmapState::end() {
+        startCommand.reset();
+    }
+
+    bool TexmapState::isActive() const {
+        return startCommand != nullptr;
     }
 }

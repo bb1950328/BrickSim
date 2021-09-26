@@ -16,6 +16,7 @@ namespace bricksim::ldr {
 
     class FileElement;
     class File;
+    class TexmapStartCommand;
 
     enum FileType {
         MODEL,
@@ -65,10 +66,18 @@ namespace bricksim::ldr {
         static std::shared_ptr<FileElement> parseLine(const std::string& line, BfcState bfcState);
         [[nodiscard]] virtual int getType() const = 0;
         [[nodiscard]] virtual std::string getLdrLine() const = 0;
+        FileElement();
         virtual ~FileElement();
 
         unsigned int step = 0;//0 is before the first "0 STEP" line
-        bool hidden = false;//hidden elements do not have to be rendered. for example, they are part of fallback sections or come after a meta-command that hides them.
+
+        ///hidden elements are not rendered. for example, they are part of fallback sections or come after a meta-command that hides them.
+        bool hidden = false;
+
+        ///this is only non-nullptr when !TEXMAP START appeared *in the same file* a few lines above and !TEXMAP FALLBACK|END didn't appear yet.
+        ///this line therefore counts to the <geometry1> or <geometry2> section
+        ///in all other cases this is nullptr
+        std::shared_ptr<TexmapStartCommand> directTexmap;
     };
 
     class CommentOrMetaElement : public FileElement {
@@ -161,8 +170,13 @@ namespace bricksim::ldr {
     };
 
     struct TexmapState {
-        std::weak_ptr<TexmapStartCommand> startCommand;
+        std::shared_ptr<TexmapStartCommand> startCommand;
         bool fallbackSectionReached;
+
+        void startOrNext(const std::shared_ptr<TexmapStartCommand>& command);
+        void fallback();
+        void end();
+        [[nodiscard]] bool isActive() const;
     };
 
     class File {
@@ -183,7 +197,7 @@ namespace bricksim::ldr {
     private:
         mutable std::size_t hash = 0;
         BfcState bfcState;
-        std::stack<TexmapState> texmapStateStack;
+        TexmapState texmapState;
     };
 
     namespace {

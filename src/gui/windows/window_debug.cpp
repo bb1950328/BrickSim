@@ -205,6 +205,9 @@ namespace bricksim::gui::windows::debug {
                 ImGui::Text("Memory saved by deleting vertex data from RAM: %s", util::formatBytesValue(metrics::memorySavedByDeletingVertexData).c_str());
                 ImGui::Text(ICON_FA_SYNC " Last element tree reread: %.2f ms", metrics::lastElementTreeRereadMs);
                 ImGui::Text(ICON_FA_HISTORY " Last thumbnail render time: %.2f ms", metrics::lastThumbnailRenderingTimeMs);
+#ifndef NDEBUG
+                ImGui::Text("ldr::FileElement instance count: %zu", metrics::ldrFileElementInstanceCount);
+#endif
 
                 constexpr auto performanceTableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable;
 

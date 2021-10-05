@@ -480,5 +480,73 @@ namespace bricksim {
         CHECK(util::combinedHash(123, 456, 789) != util::combinedHash(456, 789));
     }
 
+    TEST_CASE("util::getDistanceBetweenPointAndPlane") {
+        const glm::vec3 po(2, 3, 4);
+        const glm::vec3 pn(3, 2, 1);
+        //plane equation: 3x + 2y + z - 16 = 0, calculated with https://onlinemschool.com/math/assistance/cartesian_coordinate/plane/
+        const glm::vec3 point(6, 4, 2);
+
+        const float expectedDistance = 12.f / std::sqrt(14.f);//calculated with https://onlinemschool.com/math/assistance/cartesian_coordinate/p_plane/
+        const float actualDistance = util::getDistanceBetweenPointAndPlane(Ray3(po, pn), point);
+        CHECK(expectedDistance == Approx(actualDistance));
+    }
+
+    TEST_CASE("util::getDistanceBetweenPointAndPlane2") {
+        const glm::vec3 po(0, 0, 0);
+        const glm::vec3 pn(1, 1, 0);
+        const glm::vec3 point(3, 1, 0);
+
+        const float expectedDistance = 2.8284271247462f;
+        const float actualDistance = util::getDistanceBetweenPointAndPlane(Ray3(po, pn), point);
+        CHECK(expectedDistance == Approx(actualDistance));
+    }
+
+    TEST_CASE("util::getDistanceBetweenPointAndPlane3") {
+        const glm::vec3 po(1, 2, 1);
+        const glm::vec3 pn(1, -1, -1.5f);
+        const glm::vec3 point(9, -4, 4);
+
+        const float expectedDistance = 4.6081768756903f;
+        const float actualDistance = util::getDistanceBetweenPointAndPlane(Ray3(po, pn), point);
+        CHECK(expectedDistance == Approx(actualDistance));
+    }
+
+    TEST_CASE("util::is2dPolygonClockwise") {
+        CHECK(util::is2dPolygonClockwise({{0, 0}, {0, 1}, {1, 0}}));
+        CHECK_FALSE(util::is2dPolygonClockwise({{1, 1}, {0, 1}, {1, 0}}));
+    }
+
+    struct Plane3dTo2dConverterData {
+        glm::vec3 point3d;
+        glm::vec3 point3dOnPlane;
+        glm::vec2 point2d;
+    };
+
+    TEST_CASE("util::Plane3dTo2dConverter 1") {
+        //https://www.geogebra.org/calculator/npqaupp4
+        glm::vec3 a(1, 3, 2);
+        glm::vec3 b(2, 4, 1);
+        glm::vec3 c(5, 2, 4);
+
+        const auto data = GENERATE(
+                Plane3dTo2dConverterData{
+                        {3, 7, 3},
+                        {3.4354838709677, 4.3870967741935, 0.8225806451613},
+                        {2.8867513459481, 0.9532062476388}},
+                Plane3dTo2dConverterData{
+                        {6, 0, 1},
+                        {5.5483870967742, 2.7096774193548, 3.258064516129},
+                        {1.7320508075689, 4.3994134506406}},
+                Plane3dTo2dConverterData{
+                        {-4, 5, 6},
+                        {-3.4032258064516, 1.4193548387097, 3.0161290322581},
+                        {-4.0414518843274, -2.5663245128737}});
+
+        util::Plane3dTo2dConverter planeConverter(a, b, c);
+        CHECK(planeConverter.convert3dTo2d(data.point3d) == ApproxVec(data.point2d));
+        CHECK(planeConverter.convert3dTo2d(data.point3dOnPlane) == ApproxVec(data.point2d));
+        CHECK(planeConverter.convert2dTo3d(data.point2d) == ApproxVec(data.point3dOnPlane));
+    }
+
     //todo tests for util::getAngleBetweenThreePointsSigned
 }

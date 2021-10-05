@@ -11,6 +11,8 @@ target_sources(BrickSimLib PRIVATE
         scene.h
         shaders.cpp
         shaders.h
+        texmap_projection.cpp
+        texmap_projection.h
         texture.cpp
         texture.h
         thumbnail_generator.cpp

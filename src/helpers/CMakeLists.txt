@@ -9,6 +9,8 @@ target_sources(BrickSimLib PRIVATE
         parts_library_downloader.cpp
         parts_library_downloader.h
         platform_detection.h
+        polygon_clipping.cpp
+        polygon_clipping.h
         ray.cpp
         ray.h
         system_info.cpp

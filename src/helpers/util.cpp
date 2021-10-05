@@ -1,16 +1,18 @@
 #include "util.h"
 #include "../config.h"
+#include "glm/gtc/matrix_transform.hpp"
 #include "platform_detection.h"
 #include <array>
 #include <cstring>
 #include <curl/curl.h>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/norm.hpp>
+#include <glm/gtx/normal.hpp>
+#include <magic_enum.hpp>
 #include <spdlog/spdlog.h>
 #include <sstream>
 #include <stb_image.h>
 #include <stb_image_write.h>
-#include <magic_enum.hpp>
 
 #ifdef BRICKSIM_PLATFORM_WINDOWS
     #include <windows.h>
@@ -672,6 +674,95 @@ namespace bricksim::util {
         return {1.f, 1.f, (-v.x - v.y) / v.z};
     }
 
+    float getDistanceBetweenPointAndPlane(const Ray3& planeNormal, const glm::vec3& point) {
+        //basically a perpendicular projection on the normal line
+        return glm::dot(point - planeNormal.origin, glm::normalize(planeNormal.direction));
+    }
+
+    std::optional<glm::vec3> linePlaneIntersection(const glm::vec3& lineP0, const glm::vec3& lineP1, const Ray3& planeNormal) {
+        auto u = lineP1 - lineP0;
+        const auto dot = glm::dot(planeNormal.direction, u);
+        if (glm::abs(dot) > 1e-6f) {
+            const auto w = lineP0 - planeNormal.origin;
+            const auto fac = -glm::dot(planeNormal.direction, w) / dot;
+            u *= fac;
+            return lineP0 + u;
+        } else {
+            return {};
+        }
+    }
+
+    bool isPointInTriangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec3& point) {
+        const auto a = p1 - point;
+        const auto b = p2 - point;
+        const auto c = p3 - point;
+
+        const auto u = glm::cross(b, c);
+        const auto v = glm::cross(c, a);
+        const auto w = glm::cross(a, b);
+
+        return glm::dot(u, v) >= 0.f && glm::dot(u, w) >= 0.f;
+    }
+
+    bool sutherlandHogmanInside(const glm::vec2& p, const glm::vec2& p1, const glm::vec2& p2) {
+        return (p2.y - p1.y) * p.x + (p1.x - p2.x) * p.y + (p2.x * p1.y - p1.x * p2.y) < 0;
+    }
+
+    glm::vec2 sutherlandHogmanIntersection(const glm::vec2& cp1, const glm::vec2& cp2, const glm::vec2& s, const glm::vec2& e) {
+        const glm::vec2 dc = {cp1.x - cp2.x, cp1.y - cp2.y};
+        const glm::vec2 dp = {s.x - e.x, s.y - e.y};
+
+        const float n1 = cp1.x * cp2.y - cp1.y * cp2.x;
+        const float n2 = s.x * e.y - s.y * e.x;
+        const float n3 = 1.0f / (dc.x * dp.y - dc.y * dp.x);
+
+        return {(n1 * dp.x - n2 * dc.x) * n3, (n1 * dp.y - n2 * dc.y) * n3};
+    }
+
+    std::vector<glm::vec2> sutherlandHogmanPolygonClipping(const std::vector<glm::vec2>& subjectPolygon, const std::vector<glm::vec2>& clipPolygon) {
+        glm::vec2 cp1, cp2, s, e;
+        std::vector<glm::vec2> inputPolygon;
+        std::vector<glm::vec2> outputPolygon = subjectPolygon;
+        cp1 = clipPolygon[clipPolygon.size() - 1];
+        for (const auto& clipVertex: clipPolygon) {
+            cp2 = clipVertex;
+            inputPolygon = outputPolygon;
+            outputPolygon.clear();
+            s = inputPolygon[inputPolygon.size() - 1];
+
+            for (const auto& subjectVertex: inputPolygon) {
+                e = subjectVertex;
+                const bool sInside = sutherlandHogmanInside(s, cp1, cp2);
+                const bool eInside = sutherlandHogmanInside(e, cp1, cp2);
+                if (eInside) {
+                    if (!sInside) {
+                        outputPolygon.push_back(sutherlandHogmanIntersection(cp1, cp2, s, e));
+                    }
+                    outputPolygon.push_back(e);
+                } else if (sInside) {
+                    outputPolygon.push_back(sutherlandHogmanIntersection(cp1, cp2, s, e));
+                }
+                s = e;
+            }
+            cp1 = cp2;
+        }
+        return outputPolygon;
+    }
+
+    bool is2dPolygonClockwise(const std::vector<glm::vec2>& polygon) {
+        float signedArea = getSignedPolygonArea(polygon);
+        return signedArea < 0;
+    }
+
+    float getSignedPolygonArea(const std::vector<glm::vec2>& polygon) {
+        float signedArea = 0;
+        for (size_t i1 = 0, i2 = 1; i1 < polygon.size(); ++i1, i2 = (i1 + 1) % polygon.size()) {
+            signedArea += (polygon[i1].x * polygon[i2].y - polygon[i2].x * polygon[i1].y);
+        }
+        signedArea *= 0.5;
+        return signedArea;
+    }
+
     glm::mat4 DecomposedTransformation::orientationAsMat4() const {
         return glm::toMat4(orientation);
     }
@@ -682,5 +773,28 @@ namespace bricksim::util {
 
     glm::mat4 DecomposedTransformation::scaleAsMat4() const {
         return glm::scale(glm::mat4(1.0f), scale);
+    }
+
+    Plane3dTo2dConverter::Plane3dTo2dConverter(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c) :
+        origin(a), xDir(glm::normalize(b - a)) {
+        planeNormal = glm::triangleNormal(a, b, c);
+        yDir = glm::rotate(glm::mat4(1.f), static_cast<float>(M_PI_2), planeNormal) * glm::vec4(xDir, 0.f);
+    }
+
+    glm::vec2 Plane3dTo2dConverter::convert3dTo2d(const glm::vec3& pointOnPlane) {
+        const auto& r_P = pointOnPlane;
+        const auto& n = planeNormal;
+        const auto& r_O = origin;
+        const auto& e_1 = xDir;
+        const auto& e_2 = yDir;
+
+        const auto s = glm::dot(n, r_P - r_O);
+        const auto t_1 = glm::dot(e_1, r_P - r_O);
+        const auto t_2 = glm::dot(e_2, r_P - r_O);
+        return {t_1, t_2};
+    }
+
+    glm::vec3 Plane3dTo2dConverter::convert2dTo3d(const glm::vec2& coord) {
+        return origin + coord.x * xDir + coord.y * yDir;
     }
 }

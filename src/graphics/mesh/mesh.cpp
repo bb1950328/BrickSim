@@ -27,7 +27,7 @@ namespace bricksim::mesh {
                     addLdrLine(mainColor, std::dynamic_pointer_cast<ldr::Line>(element), transformation);
                     break;
                 case 3:
-                    addLdrTriangle(mainColor, std::dynamic_pointer_cast<ldr::Triangle>(element), transformation, bfcInverted);
+                    addLdrTriangle(mainColor, std::dynamic_pointer_cast<ldr::Triangle>(element), transformation, bfcInverted, std::shared_ptr<ldr::TexmapStartCommand>());
                     break;
                 case 4:
                     addLdrQuadrilateral(mainColor, std::dynamic_pointer_cast<ldr::Quadrilateral>(element), transformation, bfcInverted);
@@ -39,29 +39,33 @@ namespace bricksim::mesh {
         }
     }
 
-    void Mesh::addLdrTriangle(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::Triangle>& triangleElement, const glm::mat4& transformation, bool bfcInverted) {
+    void Mesh::addLdrTriangle(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::Triangle>& triangleElement, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmapOfParent) {
         const auto color = triangleElement->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : triangleElement->color;
-        auto& data = getTriangleData(color);
         auto p1 = glm::vec3(triangleElement->x1, triangleElement->y1, triangleElement->z1);
         auto p2 = glm::vec3(triangleElement->x2, triangleElement->y2, triangleElement->z2);
         auto p3 = glm::vec3(triangleElement->x3, triangleElement->y3, triangleElement->z3);
         auto normal = glm::triangleNormal(p1, p2, p3);
         auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f) * transformation);
-        TriangleVertex vertex1{glm::vec4(p1, 1.0f) * transformation, transformedNormal};
-        TriangleVertex vertex2{glm::vec4(p2, 1.0f) * transformation, transformedNormal};
-        TriangleVertex vertex3{glm::vec4(p3, 1.0f) * transformation, transformedNormal};
 
-        if (util::doesTransformationInverseWindingOrder(transformation) ^ bfcInverted) {
-            std::swap(vertex2, vertex3);
+        const auto& appliedTexmap = triangleElement->directTexmap != nullptr ? triangleElement->directTexmap : texmapOfParent;
+        if (appliedTexmap == nullptr) {
+            TriangleVertex vertex1{glm::vec4(p1, 1.0f) * transformation, transformedNormal};
+            TriangleVertex vertex2{glm::vec4(p2, 1.0f) * transformation, transformedNormal};
+            TriangleVertex vertex3{glm::vec4(p3, 1.0f) * transformation, transformedNormal};
+
+            if (util::doesTransformationInverseWindingOrder(transformation) ^ bfcInverted) {
+                std::swap(vertex2, vertex3);
+            }
+
+            auto& data = getTriangleData(color);
+            auto idx1 = data.getVertexCount();
+            data.addRawVertex(vertex1);
+            data.addRawVertex(vertex2);
+            data.addRawVertex(vertex3);
+            data.addRawIndex(idx1);
+            data.addRawIndex(idx1 + 1);
+            data.addRawIndex(idx1 + 2);
         }
-
-        auto idx1 = data.getVertexCount();
-        data.addRawVertex(vertex1);
-        data.addRawVertex(vertex2);
-        data.addRawVertex(vertex3);
-        data.addRawIndex(idx1);
-        data.addRawIndex(idx1 + 1);
-        data.addRawIndex(idx1 + 2);
 
         if (config::get(config::SHOW_NORMALS)) {
             auto lp1 = glm::vec4(util::triangleCentroid(p1, p2, p3), 1.0f) * transformation;

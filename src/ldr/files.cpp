@@ -1,4 +1,5 @@
 #include "files.h"
+#include "../config.h"
 #include "../helpers/util.h"
 #include "../metrics.h"
 #include "file_repo.h"
@@ -89,7 +90,7 @@ namespace bricksim::ldr {
                         } else if (bfcCommand == "INVERTNEXT") {
                             bfcState.invertNext = true;
                         }
-                    } else if (metaElement->content.starts_with(META_COMMAND_TEXMAP)) {
+                    } else if (metaElement->content.starts_with(META_COMMAND_TEXMAP) && config::get(config::ENABLE_TEXMAP_SUPPORT)) {
                         auto startCommand = std::dynamic_pointer_cast<TexmapStartCommand>(metaElement);
                         if (startCommand != nullptr) {
                             texmapState.startOrNext(startCommand);
@@ -101,14 +102,18 @@ namespace bricksim::ldr {
                                 texmapState.end();
                             }
                         }
-                    } else if (texmapState.isActive()) {
-                        if (!texmapState.fallbackSectionReached) {
-                            if (metaElement->content.starts_with("!:")) {
-                                auto realCommand = metaElement->content.substr(metaElement->content.find_first_not_of(LDR_WHITESPACE, 2));
-                                element = FileElement::parseLine(realCommand, bfcState);
-                            }
-                            element->directTexmap = texmapState.startCommand;
+                    } else if (texmapState.isActive() && !texmapState.fallbackSectionReached) {
+                        if (metaElement->content.starts_with("!:")) {
+                            auto realCommand = metaElement->content.substr(metaElement->content.find_first_not_of(LDR_WHITESPACE, 2));
+                            element = FileElement::parseLine(realCommand, bfcState);
                         }
+                        element->directTexmap = texmapState.startCommand;
+                    }
+                } else if (texmapState.isActive()) {
+                    if (texmapState.fallbackSectionReached) {
+                        element = nullptr;
+                    } else {
+                        element->directTexmap = texmapState.startCommand;
                     }
                 }
                 if (element != nullptr) {

@@ -79,7 +79,7 @@ namespace bricksim::util {
     // texture/image functions
     std::string translateBrickLinkColorNameToLDraw(std::string colorName);
     std::string translateLDrawColorNameToBricklink(std::string colorName);
-    bool writeImage(const char* path, unsigned char* pixels, unsigned int width, unsigned int height, int channels = 3);
+    bool writeImage(const char* path, unsigned char* pixels, int width, int height, int channels = 3);
 
     bool isStbiFlipVertically();
     void setStbiFlipVertically(bool value);

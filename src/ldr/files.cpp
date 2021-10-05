@@ -528,6 +528,36 @@ namespace bricksim::ldr {
         }
     }
 
+    std::string TexmapStartCommand::getLdrLine() const {
+        std::string abStr;
+        if (projectionMethod == PLANAR) {
+            abStr = "";
+        } else if (projectionMethod == CYLINDRICAL) {
+            abStr = fmt::format("{:g}", a);
+        } else {
+            abStr = fmt::format("{:g} {:g}", a, b);
+        }
+        std::string glossmapStr = glossmapFileName.has_value() ? fmt::format("GLOSSMAP {}", glossmapFileName.value()) : "";
+        return fmt::format("0 !TEXMAP START {} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {} {} {}", magic_enum::enum_name(projectionMethod), x1, y1, z1, x2, y2, z2, x3, y3, z3, abStr, textureFilename, glossmapStr);
+    }
+    TexmapStartCommand::TexmapStartCommand(const TexmapStartCommand& other) :
+        CommentOrMetaElement(other.content),
+        projectionMethod(other.projectionMethod),
+        textureFilename(other.textureFilename),
+        glossmapFileName(other.glossmapFileName),
+        x1(other.x1),
+        y1(other.y1),
+        z1(other.z1),
+        x2(other.x2),
+        y2(other.y2),
+        z2(other.z2),
+        x3(other.x3),
+        y3(other.y3),
+        z3(other.z3),
+        a(other.a),
+        b(other.b) {
+    }
+
     void TexmapState::startOrNext(const std::shared_ptr<TexmapStartCommand>& command) {
         this->startCommand = command;
         fallbackSectionReached = false;

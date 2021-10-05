@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <stack>
+#include "../helpers/util.h"
 
 namespace bricksim::ldr {
     constexpr const char* const LDR_NEWLINE = "\r\n";
@@ -165,8 +166,11 @@ namespace bricksim::ldr {
         std::optional<std::string> glossmapFileName;
 
         explicit TexmapStartCommand(const std::string& line);
+        TexmapStartCommand(const TexmapStartCommand& other);
 
         static bool doesLineMatch(const std::string& line);
+
+        [[nodiscard]] std::string getLdrLine() const override;
     };
 
     struct TexmapState {
@@ -203,4 +207,13 @@ namespace bricksim::ldr {
     namespace {
         const char* getFileTypeStr(FileType type);
     }
+}
+
+namespace robin_hood {
+    template <>
+    struct hash<bricksim::ldr::TexmapStartCommand> {
+        size_t operator()(bricksim::ldr::TexmapStartCommand const& value) const noexcept {
+            return hash<std::string>()(value.getLdrLine());//todo make this faster while still being correct
+        }
+    };
 }

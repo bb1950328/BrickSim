@@ -260,7 +260,7 @@ namespace bricksim::transform_gizmo {
         return constants::MESH_ID_TRANSFORM_GIZMO_2D_ARROW;
     }
 
-    void TG2DArrowNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
+    void TG2DArrowNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         // 1
         // | \
         // |  \

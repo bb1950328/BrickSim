@@ -100,7 +100,7 @@ namespace bricksim::etree {
         return true;
     }
 
-    void LdrNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
+    void LdrNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         auto dummyColor = ldr::color_repo::getInstanceDummyColor();
         for (const auto& element: ldrFile->elements) {
             if (element->hidden) {
@@ -111,17 +111,17 @@ namespace bricksim::etree {
                 case 1: {
                     auto sfElement = std::dynamic_pointer_cast<ldr::SubfileReference>(element);
                     if (childrenWithOwnNode.find(sfElement) == childrenWithOwnNode.end()) {
-                        mesh->addLdrSubfileReference(dummyColor, sfElement, glm::mat4(1.0f), windingInversed);
+                        mesh->addLdrSubfileReference(dummyColor, sfElement, glm::mat4(1.0f), windingInversed, texmap);
                     }
                 } break;
                 case 2:
                     mesh->addLdrLine(dummyColor, std::dynamic_pointer_cast<ldr::Line>(element), glm::mat4(1.0f));
                     break;
                 case 3:
-                    mesh->addLdrTriangle(dummyColor, std::dynamic_pointer_cast<ldr::Triangle>(element), glm::mat4(1.0f), windingInversed, std::shared_ptr<ldr::TexmapStartCommand>());
+                    mesh->addLdrTriangle(dummyColor, std::dynamic_pointer_cast<ldr::Triangle>(element), glm::mat4(1.0f), windingInversed, texmap);
                     break;
                 case 4:
-                    mesh->addLdrQuadrilateral(dummyColor, std::dynamic_pointer_cast<ldr::Quadrilateral>(element), glm::mat4(1.0f), windingInversed);
+                    mesh->addLdrQuadrilateral(dummyColor, std::dynamic_pointer_cast<ldr::Quadrilateral>(element), glm::mat4(1.0f), windingInversed, texmap);
                     break;
                 case 5:
                     mesh->addLdrOptionalLine(dummyColor, std::dynamic_pointer_cast<ldr::OptionalLine>(element), glm::mat4(1.0f));
@@ -260,8 +260,8 @@ namespace bricksim::etree {
         return mpdSubfileNode->getMeshIdentifier();
     }
 
-    void MpdSubfileInstanceNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
-        mpdSubfileNode->addToMesh(mesh, windingInversed);
+    void MpdSubfileInstanceNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
+        mpdSubfileNode->addToMesh(mesh, windingInversed, texmap);
     }
 
     std::string MpdSubfileInstanceNode::getDescription() {
@@ -433,7 +433,7 @@ namespace bricksim::etree {
         }*/
     }
 
-    void TexmapNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
+    void TexmapNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
 
     }
 

@@ -2,7 +2,7 @@
 #include "../helpers/earcut_hpp_with_glm.h"
 #include "../helpers/geometry.h"
 #include "../helpers/polygon_clipping.h"
-#include "../helpers/util.h"
+#include "../ldr/file_repo.h"
 #include <glm/gtx/normal.hpp>
 
 namespace bricksim::graphics::texmap_projection {
@@ -84,7 +84,7 @@ namespace bricksim::graphics::texmap_projection {
                         const auto distToP1 = geometry::getDistanceBetweenPointAndPlane(plane1Ray, coord3d);
                         const auto distToP2 = geometry::getDistanceBetweenPointAndPlane(plane2Ray, coord3d);
                         glm::vec2 uv = {distToP1 / texWidth, distToP2 / texHeight};
-                        res.texturedVertices.emplace_back(coord3d, uv);
+                        res.texturedVertices.emplace_back(coord3d, uv);//todo add plainColor here as blendColor
                     }
                 }
             }
@@ -119,5 +119,31 @@ namespace bricksim::graphics::texmap_projection {
         }
 
         return res;
+    }
+
+    std::shared_ptr<ldr::TexmapStartCommand> transformTexmapStartCommand(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, glm::mat4 transformation) {
+        auto result = std::make_shared<ldr::TexmapStartCommand>(*startCommand);
+        const auto tp1 = transformation*glm::vec4(result->x1, result->y1, result->z1, 1.f);
+        const auto tp2 = transformation*glm::vec4(result->x2, result->y2, result->z2, 1.f);
+        const auto tp3 = transformation*glm::vec4(result->x3, result->y3, result->z3, 1.f);
+        result->x1 = tp1.x;
+        result->y1 = tp1.y;
+        result->z1 = tp1.z;
+        result->x2 = tp2.x;
+        result->y2 = tp2.y;
+        result->z2 = tp2.z;
+        result->x3 = tp3.x;
+        result->y3 = tp3.y;
+        result->z3 = tp3.z;
+        return result;
+    }
+
+    std::shared_ptr<Texture> getTexture(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand) {
+        auto flipVerticallyBackup = util::isStbiFlipVertically();
+        util::setStbiFlipVertically(false);//todo I'm not 100% sure if this is right
+        const auto& textureFile = ldr::file_repo::get().getBinaryFile(startCommand->textureFilename, ldr::file_repo::TEXMAP);
+        auto texture = graphics::Texture::getFromBinaryFileCached(textureFile);
+        util::setStbiFlipVertically(flipVerticallyBackup);
+        return texture;
     }
 }

@@ -6,6 +6,7 @@
 #include "../../lib/Miniball.hpp"
 #include "../../metrics.h"
 #include "../opengl_native_or_replacement.h"
+#include "../texmap_projection.h"
 #include "mesh_line_data.h"
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -14,7 +15,7 @@
 
 namespace bricksim::mesh {
 
-    void Mesh::addLdrFile(ldr::ColorReference mainColor, const std::shared_ptr<ldr::File>& file, const glm::mat4& transformation, bool bfcInverted) {
+    void Mesh::addLdrFile(ldr::ColorReference mainColor, const std::shared_ptr<ldr::File>& file, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         for (const auto& element: file->elements) {
             if (element->hidden) {
                 continue;
@@ -22,16 +23,16 @@ namespace bricksim::mesh {
             switch (element->getType()) {
                 case 0: break;
                 case 1:
-                    addLdrSubfileReference(mainColor, std::dynamic_pointer_cast<ldr::SubfileReference>(element), transformation, bfcInverted);
+                    addLdrSubfileReference(mainColor, std::dynamic_pointer_cast<ldr::SubfileReference>(element), transformation, bfcInverted, texmap);
                     break;
                 case 2:
                     addLdrLine(mainColor, std::dynamic_pointer_cast<ldr::Line>(element), transformation);
                     break;
                 case 3:
-                    addLdrTriangle(mainColor, std::dynamic_pointer_cast<ldr::Triangle>(element), transformation, bfcInverted, std::shared_ptr<ldr::TexmapStartCommand>());
+                    addLdrTriangle(mainColor, std::dynamic_pointer_cast<ldr::Triangle>(element), transformation, bfcInverted, texmap);
                     break;
                 case 4:
-                    addLdrQuadrilateral(mainColor, std::dynamic_pointer_cast<ldr::Quadrilateral>(element), transformation, bfcInverted);
+                    addLdrQuadrilateral(mainColor, std::dynamic_pointer_cast<ldr::Quadrilateral>(element), transformation, bfcInverted, texmap);
                     break;
                 case 5:
                     addLdrOptionalLine(mainColor, std::dynamic_pointer_cast<ldr::OptionalLine>(element), transformation);
@@ -40,32 +41,44 @@ namespace bricksim::mesh {
         }
     }
 
+    void Mesh::addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
+        auto sub_transformation = sfElement->getTransformationMatrix();
+        const auto color = sfElement->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : sfElement->color;
+        addLdrFile(color, sfElement->getFile(), sub_transformation * transformation, sfElement->bfcInverted ^ bfcInverted, texmap);
+    }
+
+    bool isUvInsideImage(const glm::vec2& uv) {
+        return 0 <= uv.x && uv.x <= 1 && 0 <= uv.y && uv.y <= 1;
+    }
+
     void Mesh::addLdrTriangle(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::Triangle>& triangleElement, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmapOfParent) {
-        const auto color = triangleElement->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : triangleElement->color;
         auto p1 = glm::vec3(triangleElement->x1, triangleElement->y1, triangleElement->z1);
         auto p2 = glm::vec3(triangleElement->x2, triangleElement->y2, triangleElement->z2);
         auto p3 = glm::vec3(triangleElement->x3, triangleElement->y3, triangleElement->z3);
-        auto normal = glm::triangleNormal(p1, p2, p3);
-        auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f) * transformation);
+
+        const auto color = triangleElement->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : triangleElement->color;
+        const auto normal = glm::triangleNormal(p1, p2, p3);
+        const auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f) * transformation);
+
+        if (geometry::doesTransformationInverseWindingOrder(transformation) ^ bfcInverted) {
+            std::swap(p2, p3);
+        }
+
+        std::vector<glm::vec3> transformedPoints = {
+                glm::vec4(p1, 1.0f) * transformation,
+                glm::vec4(p2, 1.0f) * transformation,
+                glm::vec4(p3, 1.0f) * transformation,
+        };
 
         const auto& appliedTexmap = triangleElement->directTexmap != nullptr ? triangleElement->directTexmap : texmapOfParent;
         if (appliedTexmap == nullptr) {
-            TriangleVertex vertex1{glm::vec4(p1, 1.0f) * transformation, transformedNormal};
-            TriangleVertex vertex2{glm::vec4(p2, 1.0f) * transformation, transformedNormal};
-            TriangleVertex vertex3{glm::vec4(p3, 1.0f) * transformation, transformedNormal};
-
-            if (geometry::doesTransformationInverseWindingOrder(transformation) ^ bfcInverted) {
-                std::swap(vertex2, vertex3);
-            }
-
             auto& data = getTriangleData(color);
             auto idx1 = data.getVertexCount();
-            data.addRawVertex(vertex1);
-            data.addRawVertex(vertex2);
-            data.addRawVertex(vertex3);
-            data.addRawIndex(idx1);
-            data.addRawIndex(idx1 + 1);
-            data.addRawIndex(idx1 + 2);
+            for (const auto& tp: transformedPoints) {
+                data.addVertexWithIndex({tp, transformedNormal});
+            }
+        } else {
+            calculateAndAddTexmapVertices(color, appliedTexmap, transformedPoints);
         }
 
         if (config::get(config::SHOW_NORMALS)) {
@@ -78,47 +91,78 @@ namespace bricksim::mesh {
         }
     }
 
-    void Mesh::addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, const glm::mat4& transformation, bool bfcInverted) {
-        auto sub_transformation = sfElement->getTransformationMatrix();
-        const auto color = sfElement->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : sfElement->color;
-        addLdrFile(color, sfElement->getFile(), sub_transformation * transformation, sfElement->bfcInverted ^ bfcInverted);
+    void Mesh::calculateAndAddTexmapVertices(const ldr::ColorReference& color, const std::shared_ptr<ldr::TexmapStartCommand>& appliedTexmap, std::vector<glm::vec3>& transformedPoints) {
+        std::vector<glm::vec2> UVs;
+        UVs.reserve(transformedPoints.size());
+        bool allUVsInsideImage = true;
+        for (const auto& point: transformedPoints) {
+            auto uv = graphics::texmap_projection::getPlanarUVCoord(appliedTexmap, point);
+            allUVsInsideImage &= isUvInsideImage(uv);
+            UVs.push_back(uv);
+        }
+        auto texture = graphics::texmap_projection::getTexture(appliedTexmap);
+        auto& texturedData = getTexturedTriangleData(texture);
+        if (allUVsInsideImage) {
+            for (int i = 0; i < transformedPoints.size(); ++i) {
+                texturedData.addVertex({transformedPoints[i], UVs[i]});
+            }
+        } else {
+            auto [plainIndices, plainVertices, texturedVertices] = graphics::texmap_projection::splitPolygonBiggerThanTexturePlanar(appliedTexmap, transformedPoints);
+            auto& plainData = getTriangleData(color);
+            auto baseIndex = plainData.getVertexCount();
+            for (const auto& vtx: plainVertices) {
+                plainData.addRawVertex(vtx);
+            }
+            for (const auto& idx: plainIndices) {
+                plainData.addRawIndex(baseIndex + idx);
+            }
+            for (const auto& vtx: texturedVertices) {
+                texturedData.addVertex(vtx);
+            }
+        }
     }
 
-    void Mesh::addLdrQuadrilateral(ldr::ColorReference mainColor, const std::shared_ptr<ldr::Quadrilateral>& quadrilateral, const glm::mat4& transformation, bool bfcInverted) {
+    void Mesh::addLdrQuadrilateral(ldr::ColorReference mainColor, const std::shared_ptr<ldr::Quadrilateral>& quadrilateral, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmapOfParent) {
         auto p1 = glm::vec3(quadrilateral->x1, quadrilateral->y1, quadrilateral->z1);
         auto p2 = glm::vec3(quadrilateral->x2, quadrilateral->y2, quadrilateral->z2);
         auto p3 = glm::vec3(quadrilateral->x3, quadrilateral->y3, quadrilateral->z3);
         auto p4 = glm::vec3(quadrilateral->x4, quadrilateral->y4, quadrilateral->z4);
-        const auto color = quadrilateral->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : quadrilateral->color;
-        auto normal = glm::triangleNormal(p1, p2, p3);
-        auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f) * transformation);
 
-        TriangleVertex vertex1{glm::vec4(p1, 1.0f) * transformation, transformedNormal};
-        TriangleVertex vertex2{glm::vec4(p2, 1.0f) * transformation, transformedNormal};
-        TriangleVertex vertex3{glm::vec4(p3, 1.0f) * transformation, transformedNormal};
-        TriangleVertex vertex4{glm::vec4(p4, 1.0f) * transformation, transformedNormal};
+        const auto color = quadrilateral->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : quadrilateral->color;
+        const auto normal = glm::triangleNormal(p1, p2, p3);
+        const auto transformedNormal = glm::normalize(glm::vec4(normal, 0.0f) * transformation);
 
         if (geometry::doesTransformationInverseWindingOrder(transformation) ^ bfcInverted) {
-            std::swap(vertex2, vertex4);
+            std::swap(p2, p4);
         }
 
-        auto& data = getTriangleData(color);
+        std::vector<glm::vec3> transformedPoints = {
+                glm::vec4(p1, 1.0f) * transformation,
+                glm::vec4(p2, 1.0f) * transformation,
+                glm::vec4(p3, 1.0f) * transformation,
+                glm::vec4(p4, 1.0f) * transformation,
+        };
 
-        unsigned int idx = data.getVertexCount();
-        data.addRawVertex(vertex1);
-        data.addRawVertex(vertex2);
-        data.addRawVertex(vertex3);
-        data.addRawVertex(vertex4);
+        const auto& appliedTexmap = quadrilateral->directTexmap != nullptr ? quadrilateral->directTexmap : texmapOfParent;
+        if (appliedTexmap == nullptr) {
+            auto& data = getTriangleData(color);
+            auto idx1 = data.getVertexCount();
+            unsigned int idx = data.getVertexCount();
+            for (const auto& tp: transformedPoints) {
+                data.addRawVertex({tp, transformedNormal});
+            }
+            //triangle 1
+            data.addRawIndex(idx);
+            data.addRawIndex(idx + 1);
+            data.addRawIndex(idx + 2);
 
-        //triangle 1
-        data.addRawIndex(idx);
-        data.addRawIndex(idx + 1);
-        data.addRawIndex(idx + 2);
-
-        //triangle 2
-        data.addRawIndex(idx + 2);
-        data.addRawIndex(idx + 3);
-        data.addRawIndex(idx);
+            //triangle 2
+            data.addRawIndex(idx + 2);
+            data.addRawIndex(idx + 3);
+            data.addRawIndex(idx);
+        } else {
+            calculateAndAddTexmapVertices(color, appliedTexmap, transformedPoints);
+        }
 
         if (config::get(config::SHOW_NORMALS)) {
             auto lp1 = glm::vec4(geometry::quadrilateralCentroid(p1, p2, p3, p4), 1.0f) * transformation;

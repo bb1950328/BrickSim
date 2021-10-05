@@ -38,9 +38,9 @@ namespace bricksim::util {
         if (input[0] == '~' && (input[1] == '/' || input[1] == '\\')) {
             return std::filesystem::path(getenv(USER_ENV_VAR)) / std::filesystem::path(input.substr(2));
         } else if (input[0] == '~' && input.size() == 1) {
-            return std::filesystem::path(getenv(USER_ENV_VAR));
+            return {getenv(USER_ENV_VAR)};
         } else {
-            return std::filesystem::path(input);
+            return {input};
         }
     }
 
@@ -113,7 +113,7 @@ namespace bricksim::util {
         return result;
     }
 
-    bool writeImage(const char* path, unsigned char* pixels, unsigned int width, unsigned int height, int channels) {
+    bool writeImage(const char* path, unsigned char* pixels, int width, int height, int channels) {
         auto path_lower = stringutil::asLower(path);
         stbi_flip_vertically_on_write(true);
         if (stringutil::endsWith(path_lower, ".png")) {

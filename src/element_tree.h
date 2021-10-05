@@ -78,7 +78,7 @@ namespace bricksim::etree {
         MeshNode(ldr::ColorReference color, const std::shared_ptr<Node>& parent);
 
         virtual mesh_identifier_t getMeshIdentifier() const = 0;
-        virtual void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) = 0;
+        virtual void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) = 0;
         [[nodiscard]] virtual bool isColorUserEditable() const;
         [[nodiscard]] ldr::ColorReference getDisplayColor() const;
         void setColor(ldr::ColorReference newColor);
@@ -98,7 +98,7 @@ namespace bricksim::etree {
         void createChildNodes();
 
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
         std::string getDescription() override;
         std::shared_ptr<ldr::File> ldrFile;
         uoset_t<std::shared_ptr<ldr::SubfileReference>> childrenWithOwnNode;
@@ -129,7 +129,7 @@ namespace bricksim::etree {
 
         std::shared_ptr<MpdSubfileNode> mpdSubfileNode;
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
         std::string getDescription() override;
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };
@@ -163,7 +163,7 @@ namespace bricksim::etree {
 
         mesh_identifier_t getMeshIdentifier() const override;
 
-        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
 
         bool isDisplayNameUserEditable() const override;
 

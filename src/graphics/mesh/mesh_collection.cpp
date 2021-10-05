@@ -1,28 +1,26 @@
 #include "mesh_collection.h"
 #include "../../controller.h"
 #include "../../helpers/geometry.h"
-#include "../../helpers/util.h"
-#include "../../ldr/file_repo.h"
 #include "../../metrics.h"
-#include <glm/gtx/transform.hpp>
+#include "../texmap_projection.h"
 #include <palanteer.h>
 #include <spdlog/spdlog.h>
 
 namespace bricksim::mesh {
     uomap_t<mesh_key_t, std::shared_ptr<Mesh>> SceneMeshCollection::allMeshes;
 
-    mesh_key_t SceneMeshCollection::getMeshKey(const std::shared_ptr<etree::MeshNode>& node, bool windingOrderInverse) {
-        return std::make_pair(node->getMeshIdentifier(), windingOrderInverse);
+    mesh_key_t SceneMeshCollection::getMeshKey(const std::shared_ptr<etree::MeshNode>& node, bool windingOrderInverse, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
+        return {node->getMeshIdentifier(), windingOrderInverse, texmap == nullptr ? 0 : robin_hood::hash<ldr::TexmapStartCommand>()(*texmap)};
     }
 
-    std::shared_ptr<Mesh> SceneMeshCollection::getMesh(mesh_key_t key, const std::shared_ptr<etree::MeshNode>& node) {
+    std::shared_ptr<Mesh> SceneMeshCollection::getMesh(mesh_key_t key, const std::shared_ptr<etree::MeshNode>& node, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         auto it = allMeshes.find(key);
         if (it == allMeshes.end()) {
             plScope("node->addToMesh");
             std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
             allMeshes[key] = mesh;
             mesh->name = node->getDescription();
-            node->addToMesh(mesh, key.second);
+            node->addToMesh(mesh, key.windingInversed, texmap);
             mesh->writeGraphicsData();
             return mesh;
         }
@@ -63,9 +61,14 @@ namespace bricksim::mesh {
     SceneMeshCollection::SceneMeshCollection(scene_id_t scene) :
         scene(scene) {}
 
-    void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4& parentAbsoluteTransformation, std::optional<ldr::ColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId) {
+    void SceneMeshCollection::readElementTree(const std::shared_ptr<etree::Node>& node,
+                                              const glm::mat4& parentAbsoluteTransformation,
+                                              std::optional<ldr::ColorReference> parentColor,
+                                              std::optional<unsigned int> selectionTargetElementId,
+                                              const std::shared_ptr<ldr::TexmapStartCommand>& parentTexmap) {
         std::shared_ptr<etree::Node> nodeToParseChildren = node;
         glm::mat4 absoluteTransformation = parentAbsoluteTransformation * node->getRelativeTransformation();
+        const std::shared_ptr<ldr::TexmapStartCommand> texmap = parentTexmap != nullptr ? graphics::texmap_projection::transformTexmapStartCommand(parentTexmap, node->getRelativeTransformation()) : nullptr;
         if (node->visible) {
             if ((node->getType() & etree::TYPE_MESH) > 0) {
                 std::shared_ptr<etree::MeshNode> meshNode;
@@ -92,8 +95,8 @@ namespace bricksim::mesh {
                     parentColor = color;
                 }
 
-                auto meshKey = getMeshKey(meshNode, geometry::doesTransformationInverseWindingOrder(absoluteTransformation));
-                auto mesh = getMesh(meshKey, meshNode);
+                auto meshKey = getMeshKey(meshNode, geometry::doesTransformationInverseWindingOrder(absoluteTransformation), texmap);
+                auto mesh = getMesh(meshKey, meshNode, texmap);
                 unsigned int elementId;
                 if (selectionTargetElementId.has_value()) {
                     elementId = selectionTargetElementId.value();
@@ -111,7 +114,7 @@ namespace bricksim::mesh {
             }
             for (const auto& child: nodeToParseChildren->getChildren()) {
                 if (child->visible) {
-                    readElementTree(child, absoluteTransformation, parentColor, selectionTargetElementId);
+                    readElementTree(child, absoluteTransformation, parentColor, selectionTargetElementId, nullptr);
                 }
             }
             nodesWithChildrenAlreadyVisited.insert(nodeToParseChildren);
@@ -129,7 +132,7 @@ namespace bricksim::mesh {
         auto before = std::chrono::high_resolution_clock::now();
         lastUsedMeshes = usedMeshes;
         usedMeshes.clear();
-        readElementTree(rootNode, glm::mat4(1.0f), {}, std::nullopt);
+        readElementTree(rootNode, glm::mat4(1.0f), {}, std::nullopt, nullptr);
         updateMeshInstances();
         nodesWithChildrenAlreadyVisited.clear();
         for (const auto& mesh: usedMeshes) {
@@ -171,7 +174,7 @@ namespace bricksim::mesh {
             if (selectionBoxMesh == nullptr) {
                 selectionBoxMesh = std::make_shared<Mesh>();
                 usedMeshes.insert(selectionBoxMesh);
-                selectionBoxMesh->addLdrFile(ldr::color_repo::getInstanceDummyColor(), ldr::file_repo::get().getFile("box0.dat"), glm::mat4(1.0f), false);
+                selectionBoxMesh->addLdrFile(ldr::color_repo::getInstanceDummyColor(), ldr::file_repo::get().getFile("box0.dat"), glm::mat4(1.0f), false, nullptr);
             }
             selectionBoxMesh->instances.clear();
             const auto& selectedNodes = editor.value()->getSelectedNodes();
@@ -217,7 +220,7 @@ namespace bricksim::mesh {
         glm::mat4 absoluteTransformation;
         absoluteTransformation = node->getAbsoluteTransformation();
         bool windingInversed = geometry::doesTransformationInverseWindingOrder(absoluteTransformation);
-        auto it = allMeshes.find(std::make_pair(node->getMeshIdentifier(), windingInversed));
+        auto it = allMeshes.find({node->getMeshIdentifier(), windingInversed});
         float x1 = 0, x2 = 0, y1 = 0, y2 = 0, z1 = 0, z2 = 0;
         bool first = true;
         if (it != allMeshes.end()) {
@@ -276,7 +279,7 @@ namespace bricksim::mesh {
 
     void SceneMeshCollection::setRootNode(const std::shared_ptr<etree::Node>& newRootNode) {
         rootNode = newRootNode;
-        lastElementTreeReadVersion = rootNode->getVersion()-1;
+        lastElementTreeReadVersion = rootNode->getVersion() - 1;
     }
 
     void SceneMeshCollection::deleteAllMeshes() {
@@ -285,5 +288,11 @@ namespace bricksim::mesh {
 
     const uoset_t<std::shared_ptr<Mesh>>& SceneMeshCollection::getUsedMeshes() const {
         return usedMeshes;
+    }
+    bool mesh_key_t::operator==(const mesh_key_t& rhs) const {
+        return meshIdentifier == rhs.meshIdentifier && windingInversed == rhs.windingInversed && texmapHash == rhs.texmapHash;
+    }
+    bool mesh_key_t::operator!=(const mesh_key_t& rhs) const {
+        return !(rhs == *this);
     }
 }

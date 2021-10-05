@@ -1,6 +1,7 @@
 #include "mesh.h"
 #include "../../config.h"
 #include "../../controller.h"
+#include "../../helpers/geometry.h"
 #include "../../helpers/util.h"
 #include "../../lib/Miniball.hpp"
 #include "../../metrics.h"
@@ -53,7 +54,7 @@ namespace bricksim::mesh {
             TriangleVertex vertex2{glm::vec4(p2, 1.0f) * transformation, transformedNormal};
             TriangleVertex vertex3{glm::vec4(p3, 1.0f) * transformation, transformedNormal};
 
-            if (util::doesTransformationInverseWindingOrder(transformation) ^ bfcInverted) {
+            if (geometry::doesTransformationInverseWindingOrder(transformation) ^ bfcInverted) {
                 std::swap(vertex2, vertex3);
             }
 
@@ -68,7 +69,7 @@ namespace bricksim::mesh {
         }
 
         if (config::get(config::SHOW_NORMALS)) {
-            auto lp1 = glm::vec4(util::triangleCentroid(p1, p2, p3), 1.0f) * transformation;
+            auto lp1 = glm::vec4(geometry::triangleCentroid(p1, p2, p3), 1.0f) * transformation;
             auto lp2 = lp1 + (transformedNormal * 5.0f);
             LineVertex lv1{lp1, transformedNormal};
             LineVertex lv2{lp2, transformedNormal};
@@ -97,7 +98,7 @@ namespace bricksim::mesh {
         TriangleVertex vertex3{glm::vec4(p3, 1.0f) * transformation, transformedNormal};
         TriangleVertex vertex4{glm::vec4(p4, 1.0f) * transformation, transformedNormal};
 
-        if (util::doesTransformationInverseWindingOrder(transformation) ^ bfcInverted) {
+        if (geometry::doesTransformationInverseWindingOrder(transformation) ^ bfcInverted) {
             std::swap(vertex2, vertex4);
         }
 
@@ -120,7 +121,7 @@ namespace bricksim::mesh {
         data.addRawIndex(idx);
 
         if (config::get(config::SHOW_NORMALS)) {
-            auto lp1 = glm::vec4(util::quadrilateralCentroid(p1, p2, p3, p4), 1.0f) * transformation;
+            auto lp1 = glm::vec4(geometry::quadrilateralCentroid(p1, p2, p3, p4), 1.0f) * transformation;
             auto lp2 = lp1 + (transformedNormal * 5.0f);
             LineVertex lv1{lp1, transformedNormal};
             LineVertex lv2{lp2, transformedNormal};

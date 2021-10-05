@@ -1,4 +1,5 @@
 #include "../../graphics/texmap_projection.h"
+#include "../../helpers/geometry.h"
 #include "../../helpers/util.h"
 #include "../testing_tools.h"
 #include <catch2/catch.hpp>
@@ -29,7 +30,7 @@ TEST_CASE("texmap_projection::splitPolygonBiggerThanTexturePlanar 1") {
     glm::vec3 p3(3.5156379001008, -0.9796540449998, 6.2660564702739);
     auto [plainIndices, plainVertices, texturedVertices] = splitPolygonBiggerThanTexturePlanar(startCommand, {p1, p2, p3});
     REQUIRE(texturedVertices.size() == 9);
-    util::Plane3dTo2dConverter planeConverter(texturedVertices[0].position, texturedVertices[1].position, texturedVertices[2].position);
+    geometry::Plane3dTo2dConverter planeConverter(texturedVertices[0].position, texturedVertices[1].position, texturedVertices[2].position);
     const glm::vec3 tp1(1.6646536716619f, -2.2085746189214f, 3.2310590188774f);
     const glm::vec3 is1(0.8218596994811f, -1.2198783016188f, 4.5682011497095f);
     const glm::vec3 is2(-2.0160054983872f, -1.4729518684723f, 2.7795295641511f);
@@ -44,7 +45,7 @@ TEST_CASE("texmap_projection::splitPolygonBiggerThanTexturePlanar 1") {
                 texturedVertices[i + 2].position,
         });
     }
-    auto texturedPolygons = util::joinTrianglesToPolygon(texturedVertexCoords);
+    auto texturedPolygons = geometry::joinTrianglesToPolygon(texturedVertexCoords);
     REQUIRE(texturedPolygons.size() == 1);
     CHECK_VEC_VECTOR(consistentStartOfCircularList<3>({tp1, is1, is2, is3, is4}), consistentStartOfCircularList(texturedPolygons[0]));
     //todo check UV coordinates
@@ -57,7 +58,7 @@ TEST_CASE("texmap_projection::splitPolygonBiggerThanTexturePlanar 1") {
                 plainVertices[plainIndices[i + 2]].position,
         });
     }
-    auto plainPolygons = util::joinTrianglesToPolygon(plainVertexCoords);
+    auto plainPolygons = geometry::joinTrianglesToPolygon(plainVertexCoords);
     REQUIRE(plainPolygons.size() == 2);
     if (plainPolygons[0].size() < plainPolygons[1].size()) {
         std::swap(plainPolygons[0], plainPolygons[1]);

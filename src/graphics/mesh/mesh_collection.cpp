@@ -1,5 +1,6 @@
 #include "mesh_collection.h"
 #include "../../controller.h"
+#include "../../helpers/geometry.h"
 #include "../../helpers/util.h"
 #include "../../ldr/file_repo.h"
 #include "../../metrics.h"
@@ -91,7 +92,7 @@ namespace bricksim::mesh {
                     parentColor = color;
                 }
 
-                auto meshKey = getMeshKey(meshNode, util::doesTransformationInverseWindingOrder(absoluteTransformation));
+                auto meshKey = getMeshKey(meshNode, geometry::doesTransformationInverseWindingOrder(absoluteTransformation));
                 auto mesh = getMesh(meshKey, meshNode);
                 unsigned int elementId;
                 if (selectionTargetElementId.has_value()) {
@@ -215,7 +216,7 @@ namespace bricksim::mesh {
         // and rework this in general
         glm::mat4 absoluteTransformation;
         absoluteTransformation = node->getAbsoluteTransformation();
-        bool windingInversed = util::doesTransformationInverseWindingOrder(absoluteTransformation);
+        bool windingInversed = geometry::doesTransformationInverseWindingOrder(absoluteTransformation);
         auto it = allMeshes.find(std::make_pair(node->getMeshIdentifier(), windingInversed));
         float x1 = 0, x2 = 0, y1 = 0, y2 = 0, z1 = 0, z2 = 0;
         bool first = true;

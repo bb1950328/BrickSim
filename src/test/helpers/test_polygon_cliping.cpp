@@ -1,4 +1,5 @@
 #include "../../helpers/earcut_hpp_with_glm.h"
+#include "../../helpers/geometry.h"
 #include "../../helpers/polygon_clipping.h"
 #include "../../helpers/util.h"
 #include "../testing_tools.h"
@@ -37,27 +38,27 @@ namespace bricksim {
     //https://www.geogebra.org/calculator/udmwxbte
     const std::vector<glm::vec2> POLYGON7 = consistentStartOfCircularList<2>({{-1, -1}, {2, -3}, {5, -3}, {10, -2}, {11, -1}, {11, 0}, {10, 5}, {7, 8}, {6, 8}, {3, 7}, {1, 5}});
 
-    TEST_CASE("util::sutherlandHogmanPolygonClipping1") {
+    TEST_CASE("geometry::sutherlandHogmanPolygonClipping1") {
         const std::vector<glm::vec2> clipPolygon = reorderCircularList(POLYGON1, GENERATE(range(0, (int)POLYGON1.size())));
         const std::vector<glm::vec2> subjectPolygon = reorderCircularList(POLYGON2, GENERATE(range(0, (int)POLYGON2.size())));
-        auto clipped = util::sutherlandHogmanPolygonClipping(subjectPolygon, clipPolygon);
+        auto clipped = geometry::sutherlandHogmanPolygonClipping(subjectPolygon, clipPolygon);
         CHECK_VEC_VECTOR(INTERSECTION_1_2_CCW, consistentStartOfCircularList(clipped));
     }
 
-    TEST_CASE("util::sutherlandHogmanPolygonClipping2") {
+    TEST_CASE("geometry::sutherlandHogmanPolygonClipping2") {
         const std::vector<glm::vec2> clipPolygon = reorderCircularList(POLYGON3, GENERATE(range(0, (int)POLYGON3.size())));
         const std::vector<glm::vec2> subjectPolygon = reorderCircularList(POLYGON4, GENERATE(range(0, (int)POLYGON4.size())));
-        auto clipped = util::sutherlandHogmanPolygonClipping(subjectPolygon, clipPolygon);
+        auto clipped = geometry::sutherlandHogmanPolygonClipping(subjectPolygon, clipPolygon);
         CHECK_VEC_VECTOR(INTERSECTION_3_4, consistentStartOfCircularList(clipped));
     }
 
-    TEST_CASE("polyclip::utils::calculatePolygonArea") {
-        CHECK(POLYGON1_AREA == Approx(util::getSignedPolygonArea(POLYGON1)));
-        CHECK(POLYGON2_AREA == Approx(util::getSignedPolygonArea(POLYGON2)));
-        CHECK(POLYGON3_AREA == Approx(util::getSignedPolygonArea(POLYGON3)));
-        CHECK(POLYGON4_AREA == Approx(util::getSignedPolygonArea(POLYGON4)));
-        CHECK(POLYGON5_AREA == Approx(util::getSignedPolygonArea(POLYGON5)));
-        CHECK(POLYGON6_AREA == Approx(util::getSignedPolygonArea(POLYGON6)));
+    TEST_CASE("geometry::getSignedPolygonArea") {
+        CHECK(POLYGON1_AREA == Approx(geometry::getSignedPolygonArea(POLYGON1)));
+        CHECK(POLYGON2_AREA == Approx(geometry::getSignedPolygonArea(POLYGON2)));
+        CHECK(POLYGON3_AREA == Approx(geometry::getSignedPolygonArea(POLYGON3)));
+        CHECK(POLYGON4_AREA == Approx(geometry::getSignedPolygonArea(POLYGON4)));
+        CHECK(POLYGON5_AREA == Approx(geometry::getSignedPolygonArea(POLYGON5)));
+        CHECK(POLYGON6_AREA == Approx(geometry::getSignedPolygonArea(POLYGON6)));
     }
 
     TEST_CASE("polyclip1") {
@@ -155,7 +156,7 @@ namespace bricksim {
         }
     }
 
-    TEST_CASE("util::joinTrianglesToPolygon") {
+    TEST_CASE("geometry::joinTrianglesToPolygon") {
         auto polygon = GENERATE(POLYGON1, POLYGON2, POLYGON7);
 
         std::vector<std::vector<glm::vec2>> polyWrapper;
@@ -171,7 +172,7 @@ namespace bricksim {
             });
         }
 
-        const auto joined = util::joinTrianglesToPolygon(triangles);
+        const auto joined = geometry::joinTrianglesToPolygon(triangles);
         REQUIRE(joined.size() == 1);
         CHECK_VEC_VECTOR(polygon, consistentStartOfCircularList(joined[0]));
     }

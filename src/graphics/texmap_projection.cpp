@@ -1,5 +1,6 @@
 #include "texmap_projection.h"
 #include "../helpers/earcut_hpp_with_glm.h"
+#include "../helpers/geometry.h"
 #include "../helpers/polygon_clipping.h"
 #include "../helpers/util.h"
 #include <glm/gtx/normal.hpp>
@@ -12,8 +13,8 @@ namespace bricksim::graphics::texmap_projection {
         const glm::vec3 p3(startCommand->x3, startCommand->y3, startCommand->z3);
         const auto p1to2 = p2 - p1;
         const auto p1to3 = p3 - p1;
-        const auto distToP1 = util::getDistanceBetweenPointAndPlane(Ray3(p1, p1to2), point);
-        const auto distToP2 = util::getDistanceBetweenPointAndPlane(Ray3(p1, p1to3), point);
+        const auto distToP1 = geometry::getDistanceBetweenPointAndPlane(Ray3(p1, p1to2), point);
+        const auto distToP2 = geometry::getDistanceBetweenPointAndPlane(Ray3(p1, p1to3), point);
         return {distToP1 / glm::length(p1to2), distToP2 / glm::length(p1to3)};
     }
 
@@ -30,12 +31,12 @@ namespace bricksim::graphics::texmap_projection {
         const Ray3 triangleRay(p1, glm::triangleNormal(p1, p2, p3));
         const auto texturePlaneNormal = glm::triangleNormal(texP1, texP2, texP3);
 
-        util::Plane3dTo2dConverter planeConverter(p1, p2, p3);
+        geometry::Plane3dTo2dConverter planeConverter(p1, p2, p3);
 
         std::vector<glm::vec3> texEndPointsOnTrianglePlane;
         std::vector<glm::vec2> texEndPointsIn2D;
         for (size_t i = 0; const auto& texP: {texP1, texP3, texP4, texP2}) {
-            texEndPointsOnTrianglePlane.push_back(util::linePlaneIntersection(texP, texturePlaneNormal + texP, triangleRay).value());
+            texEndPointsOnTrianglePlane.push_back(geometry::linePlaneIntersection(texP, texturePlaneNormal + texP, triangleRay).value());
             texEndPointsIn2D.push_back(planeConverter.convert3dTo2d(texEndPointsOnTrianglePlane[i]));
             ++i;
         }
@@ -46,12 +47,12 @@ namespace bricksim::graphics::texmap_projection {
             ++i;
         }
 
-        if (!util::is2dPolygonClockwise(texEndPointsIn2D)) {
+        if (!geometry::is2dPolygonClockwise(texEndPointsIn2D)) {
             std::reverse(texEndPointsOnTrianglePlane.begin(), texEndPointsOnTrianglePlane.end());
             std::reverse(texEndPointsIn2D.begin(), texEndPointsIn2D.end());
         }
 
-        if (!util::is2dPolygonClockwise(trianglePointsIn2D)) {
+        if (!geometry::is2dPolygonClockwise(trianglePointsIn2D)) {
             std::reverse(trianglePointsIn2D.begin(), trianglePointsIn2D.end());
         }
 
@@ -80,8 +81,8 @@ namespace bricksim::graphics::texmap_projection {
                     res.texturedVertices.reserve(triangleIndices.size());
                     for (unsigned int triangleIndex: triangleIndices) {
                         const auto coord3d = planeConverter.convert2dTo3d(item[triangleIndex]);
-                        const auto distToP1 = util::getDistanceBetweenPointAndPlane(plane1Ray, coord3d);
-                        const auto distToP2 = util::getDistanceBetweenPointAndPlane(plane2Ray, coord3d);
+                        const auto distToP1 = geometry::getDistanceBetweenPointAndPlane(plane1Ray, coord3d);
+                        const auto distToP2 = geometry::getDistanceBetweenPointAndPlane(plane2Ray, coord3d);
                         glm::vec2 uv = {distToP1 / texWidth, distToP2 / texHeight};
                         res.texturedVertices.emplace_back(coord3d, uv);
                     }

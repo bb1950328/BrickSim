@@ -5,6 +5,8 @@ target_sources(BrickSimLib PRIVATE
         debug_nodes.h
         fraction.cpp
         fraction.h
+        geometry.cpp
+        geometry.h
         palanteer_implementation.cpp
         parts_library_downloader.cpp
         parts_library_downloader.h

@@ -17,11 +17,15 @@ namespace bricksim::graphics::texmap_projection {
         return {distToP1 / glm::length(p1to2), distToP2 / glm::length(p1to3)};
     }
 
-    std::pair<std::pair<std::vector<unsigned int>, std::vector<mesh::TriangleVertex>>, std::vector<mesh::TexturedTriangleVertex>> splitTriangleBiggerThanTexturePlanar(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3) {
+    PolygonSplittingResult splitPolygonBiggerThanTexturePlanar(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, const std::vector<glm::vec3>& points) {
         const glm::vec3 texP1(startCommand->x1, startCommand->y1, startCommand->z1);
         const glm::vec3 texP2(startCommand->x2, startCommand->y2, startCommand->z2);
         const glm::vec3 texP3(startCommand->x3, startCommand->y3, startCommand->z3);
         const glm::vec3 texP4 = texP2 + texP3 - texP1;
+
+        const auto& p1 = points[0];
+        const auto& p2 = points[1];
+        const auto& p3 = points[2];
 
         const Ray3 triangleRay(p1, glm::triangleNormal(p1, p2, p3));
         const auto texturePlaneNormal = glm::triangleNormal(texP1, texP2, texP3);
@@ -37,7 +41,7 @@ namespace bricksim::graphics::texmap_projection {
         }
 
         std::vector<glm::vec2> trianglePointsIn2D;
-        for (size_t i = 0; const auto& trianglePoint: {p1, p2, p3}) {
+        for (size_t i = 0; const auto& trianglePoint: points) {
             trianglePointsIn2D.push_back(planeConverter.convert3dTo2d(trianglePoint));
             ++i;
         }
@@ -51,7 +55,7 @@ namespace bricksim::graphics::texmap_projection {
             std::reverse(trianglePointsIn2D.begin(), trianglePointsIn2D.end());
         }
 
-        std::vector<mesh::TexturedTriangleVertex> texturedVertices;
+        PolygonSplittingResult res;
         {
             std::vector<std::vector<glm::vec2>> texturedPolygons;
             polyclip::Polygon triangleIn2dPolygon(trianglePointsIn2D);
@@ -73,21 +77,18 @@ namespace bricksim::graphics::texmap_projection {
                     std::vector<std::vector<glm::vec2>> poly;
                     poly.push_back(item);
                     const auto triangleIndices = mapbox::earcut(poly);
-                    texturedVertices.reserve(triangleIndices.size());
+                    res.texturedVertices.reserve(triangleIndices.size());
                     for (unsigned int triangleIndex: triangleIndices) {
                         const auto coord3d = planeConverter.convert2dTo3d(item[triangleIndex]);
                         const auto distToP1 = util::getDistanceBetweenPointAndPlane(plane1Ray, coord3d);
                         const auto distToP2 = util::getDistanceBetweenPointAndPlane(plane2Ray, coord3d);
                         glm::vec2 uv = {distToP1 / texWidth, distToP2 / texHeight};
-                        texturedVertices.emplace_back(coord3d, uv);
+                        res.texturedVertices.emplace_back(coord3d, uv);
                     }
                 }
             }
         }
 
-        const auto triangleNormal = triangleRay.direction;
-        std::vector<unsigned int> plainColorIndices;
-        std::vector<mesh::TriangleVertex> plainColorVertices;
         {
             std::vector<std::vector<glm::vec2>> plainColoredPolygons;
             polyclip::Polygon triangleIn2dPolygon(trianglePointsIn2D);
@@ -105,17 +106,17 @@ namespace bricksim::graphics::texmap_projection {
                 polyWrapper.push_back(poly);
                 const auto triangleIndices = mapbox::earcut(polyWrapper);
 
-                size_t baseIndex = plainColorVertices.size();
+                size_t baseIndex = res.plainColorVertices.size();
                 for (auto coord2d: poly) {
                     const glm::vec3 coord3d = planeConverter.convert2dTo3d(coord2d);
-                    plainColorVertices.push_back({coord3d, triangleNormal});
+                    res.plainColorVertices.push_back({coord3d, triangleRay.direction});
                 }
                 for (const auto& idx: triangleIndices) {
-                    plainColorIndices.push_back(baseIndex + idx);
+                    res.plainColorIndices.push_back(baseIndex + idx);
                 }
             }
         }
 
-        return std::make_pair(std::make_pair(plainColorIndices, plainColorVertices), texturedVertices);
+        return res;
     }
 }

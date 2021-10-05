@@ -20,15 +20,14 @@ TEST_CASE("texmapProjection simple triangle 2") {
     CHECK(glm::vec2(0.591128053722f, 0.3303650650423f) == ApproxVec(uvCoord));
 }
 
-TEST_CASE("texmap_projection::splitTriangleBiggerThanTexturePlanar 1") {
+TEST_CASE("texmap_projection::splitPolygonBiggerThanTexturePlanar 1") {
     //3D: https://www.geogebra.org/calculator/sj7b7498
     //2D: https://www.geogebra.org/calculator/rghp7pex
     auto startCommand = std::make_shared<ldr::TexmapStartCommand>("!TEXMAP START PLANAR\t1 3 2\t3 2 4\t-1.3912508712418, 3.2948843844814, 4.5386930634825\tx.png");
     glm::vec3 p1(-2.6221650023338, -1.5270076241372, 2.3974746723825);
     glm::vec3 p2(2, -3, 2);
     glm::vec3 p3(3.5156379001008, -0.9796540449998, 6.2660564702739);
-    auto [plainData, texturedVertices] = splitTriangleBiggerThanTexturePlanar(startCommand, p1, p2, p3);
-    auto [plainIndices, plainVertices] = plainData;
+    auto [plainIndices, plainVertices, texturedVertices] = splitPolygonBiggerThanTexturePlanar(startCommand, {p1, p2, p3});
     REQUIRE(texturedVertices.size() == 9);
     util::Plane3dTo2dConverter planeConverter(texturedVertices[0].position, texturedVertices[1].position, texturedVertices[2].position);
     const glm::vec3 tp1(1.6646536716619f, -2.2085746189214f, 3.2310590188774f);

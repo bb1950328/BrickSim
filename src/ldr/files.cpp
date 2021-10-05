@@ -1,5 +1,6 @@
 #include "files.h"
 #include "../config.h"
+#include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include "../metrics.h"
 #include "file_repo.h"
@@ -53,7 +54,7 @@ namespace bricksim::ldr {
 #endif
 
     void File::addTextLine(const std::string& line) {
-        auto trimmed = util::trim(line);
+        auto trimmed = stringutil::trim(line);
         unsigned int currentStep = elements.empty() ? 0 : elements.back()->step;
         if (!trimmed.empty()) {
             auto element = FileElement::parseLine(trimmed, bfcState);
@@ -65,14 +66,14 @@ namespace bricksim::ldr {
                         element = nullptr;
                     } else if (metaElement->content == "STEP") {
                         currentStep++;
-                    } else if (util::startsWith(metaElement->content, "BFC")) {
-                        std::string bfcCommand = util::trim(metaElement->content.substr(3));
-                        if (util::startsWith(bfcCommand, "CERTIFY")) {
-                            std::string order = util::trim(bfcCommand.substr(7));
+                    } else if (stringutil::startsWith(metaElement->content, "BFC")) {
+                        std::string bfcCommand = stringutil::trim(metaElement->content.substr(3));
+                        if (stringutil::startsWith(bfcCommand, "CERTIFY")) {
+                            std::string order = stringutil::trim(bfcCommand.substr(7));
                             bfcState.windingOrder = order == "CW" ? CW : CCW;
                             bfcState.active = true;
-                        } else if (util::startsWith(bfcCommand, "CLIP")) {
-                            std::string order = util::trim(bfcCommand.substr(4));
+                        } else if (stringutil::startsWith(bfcCommand, "CLIP")) {
+                            std::string order = stringutil::trim(bfcCommand.substr(4));
                             if (order == "CW") {
                                 bfcState.windingOrder = CW;
                             } else if (order == "CCW") {
@@ -183,7 +184,7 @@ namespace bricksim::ldr {
         parseNextFloat(line, start, end, g);
         parseNextFloat(line, start, end, h);
         parseNextFloat(line, start, end, i);
-        filename = util::trim(line.substr(end + 1));
+        filename = stringutil::trim(line.substr(end + 1));
     }
 
     Line::Line(const std::string& line) {
@@ -351,32 +352,32 @@ namespace bricksim::ldr {
 
     bool ldr::FileMetaInfo::addLine(const std::string& line) {
         if (firstLine) {
-            title = util::trim(line);
+            title = stringutil::trim(line);
             firstLine = false;
-        } else if (util::startsWith(line, "Name:")) {
-            name = util::trim(line.substr(5));
-        } else if (util::startsWith(line, "Author:")) {
-            author = util::trim(line.substr(7));
-        } else if (util::startsWith(line, "!CATEGORY")) {
-            headerCategory = util::trim(line.substr(9));
-        } else if (util::startsWith(line, "!KEYWORDS")) {
+        } else if (stringutil::startsWith(line, "Name:")) {
+            name = stringutil::trim(line.substr(5));
+        } else if (stringutil::startsWith(line, "Author:")) {
+            author = stringutil::trim(line.substr(7));
+        } else if (stringutil::startsWith(line, "!CATEGORY")) {
+            headerCategory = stringutil::trim(line.substr(9));
+        } else if (stringutil::startsWith(line, "!KEYWORDS")) {
             size_t i = 9;
             while (true) {
                 size_t next = line.find(',', i);
                 if (next == std::string::npos) {
-                    keywords.insert(util::trim(line.substr(i)));
+                    keywords.insert(stringutil::trim(line.substr(i)));
                     break;
                 }
-                keywords.insert(util::trim(line.substr(i, next - i)));
+                keywords.insert(stringutil::trim(line.substr(i, next - i)));
                 i = next + 1;
             }
-        } else if (util::startsWith(line, "!HISTORY")) {
+        } else if (stringutil::startsWith(line, "!HISTORY")) {
             history.push_back(line.substr(line.find_first_not_of(LDR_WHITESPACE, 8)));
-        } else if (util::startsWith(line, "!LICENSE")) {
+        } else if (stringutil::startsWith(line, "!LICENSE")) {
             license = line.substr(line.find_first_not_of(LDR_WHITESPACE, 8));
-        } else if (util::startsWith(line, "!THEME")) {
+        } else if (stringutil::startsWith(line, "!THEME")) {
             theme = line.substr(line.find_first_not_of(LDR_WHITESPACE, 6));
-        } else if (util::startsWith(line, "!LDRAW_ORG")) {
+        } else if (stringutil::startsWith(line, "!LDRAW_ORG")) {
             fileTypeLine = line.substr(line.find_first_not_of(LDR_WHITESPACE, 10));//standard says "In general, parsers should consider this line to be case-insensitive and free-format."
         } else {
             return false;
@@ -511,10 +512,10 @@ namespace bricksim::ldr {
             glossmapPos = line.find("\tGLOSSMAP", end);
         }
         if (glossmapPos != std::string::npos) {
-            textureFilename = util::trim(line.substr(end, glossmapPos - end));
-            glossmapFileName = util::trim(line.substr(glossmapPos + 10));
+            textureFilename = stringutil::trim(line.substr(end, glossmapPos - end));
+            glossmapFileName = stringutil::trim(line.substr(glossmapPos + 10));
         } else {
-            textureFilename = util::trim(line.substr(end));
+            textureFilename = stringutil::trim(line.substr(end));
         }
     }
 

@@ -10,6 +10,7 @@
 #include <memory>
 #include <sstream>
 
+#include "../../helpers/stringutil.h"
 #include "window_debug.h"
 #include "window_mesh_inspector.h"
 
@@ -83,7 +84,7 @@ namespace bricksim::gui::windows::debug {
                         sortedMeshes.reserve(meshes.size());
                     }
                     for (const auto& item: meshes) {
-                        if (noSearchQuery || util::containsIgnoreCase(item->name, searchQuery)) {
+                        if (noSearchQuery || stringutil::containsIgnoreCase(item->name, searchQuery)) {
                             sortedMeshes.push_back(item);
                         }
                     }
@@ -200,9 +201,9 @@ namespace bricksim::gui::windows::debug {
                 ImGui::Text(ICON_FA_CHART_LINE " Application render average %.3f ms/frame (%.1f FPS)", arrPtr[endIdx], 1000.0 / arrPtr[endIdx]);
                 ImGui::PlotLines("ms/frame", arrPtr, count, startIdx);
                 ImGui::Text(ICON_FA_STOPWATCH " Last 3D View render time: %.3f ms", metrics::lastSceneRenderTimeMs);
-                ImGui::Text(ICON_FA_MEMORY " Total graphics buffer size: %s", util::formatBytesValue(metrics::vramUsageBytes).c_str());
-                ImGui::Text(ICON_FA_IMAGES " Total thumbnail buffer size: %s", util::formatBytesValue(metrics::thumbnailBufferUsageBytes).c_str());
-                ImGui::Text("Memory saved by deleting vertex data from RAM: %s", util::formatBytesValue(metrics::memorySavedByDeletingVertexData).c_str());
+                ImGui::Text(ICON_FA_MEMORY " Total graphics buffer size: %s", stringutil::formatBytesValue(metrics::vramUsageBytes).c_str());
+                ImGui::Text(ICON_FA_IMAGES " Total thumbnail buffer size: %s", stringutil::formatBytesValue(metrics::thumbnailBufferUsageBytes).c_str());
+                ImGui::Text("Memory saved by deleting vertex data from RAM: %s", stringutil::formatBytesValue(metrics::memorySavedByDeletingVertexData).c_str());
                 ImGui::Text(ICON_FA_SYNC " Last element tree reread: %.2f ms", metrics::lastElementTreeRereadMs);
                 ImGui::Text(ICON_FA_HISTORY " Last thumbnail render time: %.2f ms", metrics::lastThumbnailRenderingTimeMs);
 #ifndef NDEBUG

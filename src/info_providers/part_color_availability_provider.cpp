@@ -1,4 +1,5 @@
 #include "part_color_availability_provider.h"
+#include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include <fstream>
 #include <spdlog/spdlog.h>
@@ -54,7 +55,7 @@ namespace bricksim::info_providers::part_color_availability {
     std::optional<uoset_t<ldr::ColorReference>> getAvailableColorsForPart(const std::shared_ptr<ldr::File>& part) {
         ensureDataLoaded();
         std::string partCode = part->metaInfo.name;
-        util::replaceAll(partCode, ".dat", "");
+        stringutil::replaceAll(partCode, ".dat", "");
         auto it = colorsAvailable.find(partCode);
         if (it == colorsAvailable.end()) {
             return {};

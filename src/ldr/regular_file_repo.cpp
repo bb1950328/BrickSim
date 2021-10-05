@@ -1,4 +1,5 @@
 #include "regular_file_repo.h"
+#include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include <spdlog/spdlog.h>
 
@@ -21,7 +22,7 @@ namespace bricksim::ldr::file_repo {
         std::vector<std::string> files;
         for (const auto& entry: std::filesystem::recursive_directory_iterator(basePath)) {
             auto path = util::withoutBasePath(entry.path(), basePath).string();
-            auto pathWithForwardSlash = util::replaceChar(path, '\\', '/');
+            auto pathWithForwardSlash = stringutil::replaceChar(path, '\\', '/');
 
             if (shouldFileBeSavedInList(pathWithForwardSlash)) {
                 files.push_back(pathWithForwardSlash);

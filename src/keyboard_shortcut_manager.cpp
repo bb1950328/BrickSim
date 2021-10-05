@@ -1,5 +1,6 @@
 #include "keyboard_shortcut_manager.h"
 #include "db.h"
+#include "helpers/stringutil.h"
 #include "helpers/util.h"
 #include "user_actions.h"
 #include <GLFW/glfw3.h>
@@ -176,7 +177,7 @@ namespace bricksim::keyboard_shortcut_manager {
         } else {
             displayName += '?';
         }
-        util::toUpperInPlace(displayName.data());
+        stringutil::toUpperInPlace(displayName.data());
         return displayName;
     }
 

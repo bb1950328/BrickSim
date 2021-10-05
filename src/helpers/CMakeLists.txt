@@ -15,6 +15,8 @@ target_sources(BrickSimLib PRIVATE
         polygon_clipping.h
         ray.cpp
         ray.h
+        stringutil.cpp
+        stringutil.h
         system_info.cpp
         system_info.h
         util.cpp

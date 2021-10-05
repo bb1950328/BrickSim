@@ -1,6 +1,7 @@
 #include "file_repo.h"
 #include "../config.h"
 #include "../db.h"
+#include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include "file_reader.h"
 #include "regular_file_repo.h"
@@ -65,7 +66,7 @@ namespace bricksim::ldr::file_repo {
             auto strPath = pathFromConfig.string();
             if (tryToInitializeWithLibraryPath(pathFromConfig)) {
                 found = true;
-            } else if (util::endsWith(strPath, ".zip")) {
+            } else if (stringutil::endsWith(strPath, ".zip")) {
                 auto zipEndingRemoved = strPath.substr(0, strPath.size() - 4);
                 if (tryToInitializeWithLibraryPath(zipEndingRemoved)) {
                     config::set(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(zipEndingRemoved));
@@ -102,7 +103,7 @@ namespace bricksim::ldr::file_repo {
 
     std::shared_ptr<File> FileRepo::getFile(const std::string& name) {
         plFunction();
-        auto it = ldrFiles.find(util::asLower(name));
+        auto it = ldrFiles.find(stringutil::asLower(name));
         if (it != ldrFiles.end()) {
             return it->second.second;
         } else {
@@ -111,7 +112,7 @@ namespace bricksim::ldr::file_repo {
                 float progress;
                 initialize(&progress);
             }
-            auto filenameWithForwardSlash = util::replaceChar(name, '\\', '/');
+            auto filenameWithForwardSlash = stringutil::replaceChar(name, '\\', '/');
             for (const auto& prefix: PART_SEARCH_PREFIXES) {
                 auto entryOpt = db::fileList::findFile(prefix + filenameWithForwardSlash);
                 if (entryOpt.has_value()) {
@@ -148,7 +149,7 @@ namespace bricksim::ldr::file_repo {
             float progress;
             initialize(&progress);
         }
-        auto filenameWithForwardSlash = util::replaceChar(name, '\\', '/');
+        auto filenameWithForwardSlash = stringutil::replaceChar(name, '\\', '/');
         std::string nameInLibrary;
         const auto prePrefixes = searchPath == TEXMAP
                                          ? std::vector<std::string>({"textures/", ""})
@@ -191,7 +192,7 @@ namespace bricksim::ldr::file_repo {
             std::lock_guard<std::mutex> lg(ldrFilesMtx);
             plLockScopeState("FileRepo::ldrFilesMtx", true);
             for (const auto& newFile: readResults) {
-                ldrFiles.emplace(util::asLower(newFile.first), std::make_pair(newFile.second->metaInfo.type, newFile.second));
+                ldrFiles.emplace(stringutil::asLower(newFile.first), std::make_pair(newFile.second->metaInfo.type, newFile.second));
             }
         }
 
@@ -239,13 +240,13 @@ namespace bricksim::ldr::file_repo {
     }
 
     std::pair<ldr::FileType, std::string> FileRepo::getTypeAndNameFromPathRelativeToBase(const std::string& pathRelativeToBase) {
-        if (util::startsWith(pathRelativeToBase, "parts/s/")) {
+        if (stringutil::startsWith(pathRelativeToBase, "parts/s/")) {
             return {ldr::FileType::SUBPART, pathRelativeToBase.substr(6)};//not 8 because "s/" should be kept
-        } else if (util::startsWith(pathRelativeToBase, "parts/")) {
+        } else if (stringutil::startsWith(pathRelativeToBase, "parts/")) {
             return {ldr::FileType::PART, pathRelativeToBase.substr(6)};
-        } else if (util::startsWith(pathRelativeToBase, "p/")) {
+        } else if (stringutil::startsWith(pathRelativeToBase, "p/")) {
             return {ldr::FileType::PRIMITIVE, pathRelativeToBase.substr(2)};
-        } else if (util::startsWith(pathRelativeToBase, "models/")) {
+        } else if (stringutil::startsWith(pathRelativeToBase, "models/")) {
             return {ldr::FileType::MODEL, pathRelativeToBase.substr(7)};
         }
         return {ldr::FileType::MODEL, pathRelativeToBase};

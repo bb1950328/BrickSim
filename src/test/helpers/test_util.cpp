@@ -1,74 +1,11 @@
 #include "../../helpers/platform_detection.h"
 #include "../../helpers/util.h"
-#include "../testing_tools.h"
 #include "catch2/catch.hpp"
-#include "glm/gtx/transform.hpp"
 #include <fstream>
 #include <glm/gtc/epsilon.hpp>
 #include <iostream>
 
 namespace bricksim {
-    TEST_CASE("util::startsWith") {
-        CHECK(util::startsWith("helloWorld", "hell"));
-        CHECK(util::startsWith("abc", "abc"));
-        CHECK(util::startsWith("a", "a"));
-        CHECK_FALSE(util::startsWith("abc", "bc"));
-        CHECK_FALSE(util::startsWith("abc", "abcd"));
-        CHECK_FALSE(util::startsWith("abc", "cba"));
-
-        CHECK(util::startsWith(std::string("qwertzuiop"), "qwer"));
-    }
-
-    TEST_CASE("util::endsWith") {
-        CHECK(util::endsWith("helloWorld", "World"));
-        CHECK(util::endsWith("abc", "abc"));
-        CHECK(util::endsWith("a", "a"));
-        CHECK_FALSE(util::endsWith("abc", "de"));
-        CHECK_FALSE(util::endsWith("abc", "ab"));
-        CHECK_FALSE(util::endsWith("abc", "aabc"));
-    }
-
-    TEST_CASE("util::asLower") {
-        std::string expected = "qwertzuiopasdfghjklyxcvbnm";
-        CHECK(expected == util::asLower("qwertzuiopasdfghjklyxcvbnm"));
-        CHECK(expected == util::asLower("qWeRtZuIoPaSdFgHjKlYxCvBnM"));
-        CHECK(expected == util::asLower("QWERTZUIOPASDFGHJKLYXCVBNM"));
-        CHECK(std::string("1234567890+*ç%&/()=") == util::asLower("1234567890+*ç%&/()="));
-    }
-
-    TEST_CASE("util::toLowerInPlace") {
-        std::string expected = "qwertzuiopasdfghjklyxcvbnm";
-        std::string actual = "qwertzuiopasdfghjklyxcvbnm";
-        util::toLowerInPlace(actual.data());
-        CHECK(expected == actual);
-        actual = "qWeRtZuIoPaSdFgHjKlYxCvBnM";
-        util::toLowerInPlace(actual.data());
-        CHECK(expected == actual);
-        actual = "QWERTZUIOPASDFGHJKLYXCVBNM";
-        util::toLowerInPlace(actual.data());
-        CHECK(expected == actual);
-    }
-
-    TEST_CASE("util::asUpper") {
-        std::string expected = "QWERTZUIOPASDFGHJKLYXCVBNM";
-        CHECK(expected == util::asUpper("qwertzuiopasdfghjklyxcvbnm"));
-        CHECK(expected == util::asUpper("qWeRtZuIoPaSdFgHjKlYxCvBnM"));
-        CHECK(expected == util::asUpper("QWERTZUIOPASDFGHJKLYXCVBNM"));
-        CHECK(std::string("1234567890+*ç%&/()=") == util::asUpper("1234567890+*ç%&/()="));
-    }
-
-    TEST_CASE("util::toUpperInPlace") {
-        std::string expected = "QWERTZUIOPASDFGHJKLYXCVBNM";
-        std::string actual = "QWERTZUIOPASDFGHJKLYXCVBNM";
-        util::toUpperInPlace(actual.data());
-        CHECK(expected == actual);
-        actual = "qWeRtZuIoPaSdFgHjKlYxCvBnM";
-        util::toUpperInPlace(actual.data());
-        CHECK(expected == actual);
-        actual = "qwertzuiopasdfghjklyxcvbnm";
-        util::toUpperInPlace(actual.data());
-        CHECK(expected == actual);
-    }
 
     TEST_CASE("util::extendHomeDir and util::replaceHomeDir") {
         CHECK(util::extendHomeDir("~/abc") != "~/abc");
@@ -78,77 +15,6 @@ namespace bricksim {
 
         const char* expected = detected_platform::windows ? "~\\abc" : "~/abc";
         CHECK(util::replaceHomeDir(util::extendHomeDir("~\\abc")) == expected);
-    }
-
-    TEST_CASE("util::trim") {
-        CHECK(util::trim("abc") == "abc");
-        CHECK(util::trim(" abc") == "abc");
-        CHECK(util::trim("\tabc") == "abc");
-        CHECK(util::trim("\nabc") == "abc");
-        CHECK(util::trim("\n abc") == "abc");
-        CHECK(util::trim("\n \tabc") == "abc");
-        CHECK(util::trim("a bc") == "a bc");
-        CHECK(util::trim(" a bc") == "a bc");
-        CHECK(util::trim(" a bc ") == "a bc");
-        CHECK(util::trim(" a b c ") == "a b c");
-        CHECK(util::trim(" a\tbc ") == "a\tbc");
-    }
-
-    TEST_CASE("util::replaceAll") {
-        std::string str = "aaXXcc";
-        SECTION("normal usage") {
-            util::replaceAll(str, "XX", "bb");
-            CHECK(str == "aabbcc");
-        };
-        SECTION("from not found") {
-            util::replaceAll(str, "YY", "bb");
-            CHECK(str == "aaXXcc");
-        };
-        SECTION("from at the beginning") {
-            util::replaceAll(str, "aa", "zz");
-            CHECK(str == "zzXXcc");
-        };
-        SECTION("from at the end") {
-            util::replaceAll(str, "cc", "ZZ");
-            CHECK(str == "aaXXZZ");
-        };
-        SECTION("from larger than to") {
-            util::replaceAll(str, "XX", "Z");
-            CHECK(str == "aaZcc");
-        };
-        SECTION("from smaller than to") {
-            util::replaceAll(str, "XX", "ZZZ");
-            CHECK(str == "aaZZZcc");
-        };
-        SECTION("multiple replacements") {
-            util::replaceAll(str, "a", "Y");
-            CHECK(str == "YYXXcc");
-        };
-        SECTION("multiple replacements, from smaller than to") {
-            util::replaceAll(str, "a", "YZ");
-            CHECK(str == "YZYZXXcc");
-        };
-        SECTION("str empty") {
-            str = "";
-            util::replaceAll(str, "a", "b");
-            CHECK(str == "");
-        };
-        SECTION("from empty") {
-            util::replaceAll(str, "", "a");
-            CHECK(str == "aaXXcc");
-        };
-        SECTION("to empty") {
-            util::replaceAll(str, "XX", "");
-            CHECK(str == "aacc");
-        }
-    }
-
-    TEST_CASE("util::replaceChar") {
-        CHECK(util::replaceChar("aBc", 'B', 'b') == "abc");
-        CHECK(util::replaceChar("abc", 'X', 'x') == "abc");
-        CHECK(util::replaceChar("abc", 'a', 'A') == "Abc");
-        CHECK(util::replaceChar("abcabc", 'a', 'A') == "AbcAbc");
-        CHECK(util::replaceChar("", 'a', 'A').empty());
     }
 
     TEST_CASE("util::biggestValue") {
@@ -172,26 +38,6 @@ namespace bricksim {
         CHECK(util::vectorSum(glm::vec2{1.0f, 2.0f}) == Approx(3.0f));
         CHECK(util::vectorSum(glm::vec3{1.0f, 2.0f, 3.0f}) == Approx(6.0f));
         CHECK(util::vectorSum(glm::vec4{1.0f, 2.0f, 3.0f, 4.0f}) == Approx(10.0f));
-    }
-
-    TEST_CASE("util::formatBytesValue") {
-        CHECK(util::formatBytesValue(1) == "1B");
-        CHECK(util::formatBytesValue(10) == "10B");
-        CHECK(util::formatBytesValue(100) == "100B");
-        CHECK(util::formatBytesValue(1023) == "1023B");
-        CHECK(util::formatBytesValue(1024) == "1.00KB");
-        CHECK(util::formatBytesValue(1025) == "1.00KB");
-        CHECK(util::formatBytesValue(10456) == "10.2KB");
-        CHECK(util::formatBytesValue(104567) == "102KB");
-        CHECK(util::formatBytesValue(1045678) == "1021KB");
-        CHECK(util::formatBytesValue(10456789) == "9.97MB");
-
-        CHECK(util::formatBytesValue(1ull << 10) == "1.00KB");
-        CHECK(util::formatBytesValue(1ull << 20) == "1.00MB");
-        CHECK(util::formatBytesValue(1ull << 30) == "1.00GB");
-        CHECK(util::formatBytesValue(1ull << 40) == "1.00TB");
-        CHECK(util::formatBytesValue(1ull << 50) == "1024TB");
-        CHECK(util::formatBytesValue(1ull << 51) == "2048TB");
     }
 
     template<auto val>
@@ -236,39 +82,6 @@ namespace bricksim {
         CHECK(util::minForEachComponent(glm::vec4{1, 2, 3, 4}, glm::vec4{5, 4, 3, 2}) == glm::vec4(1, 2, 3, 2));
     }
 
-//these are macros because when using lambdas the catch error output is less readable
-#define CHECK_EQUALS_ALPHANUM(a, b)    \
-    CHECK(util::equalsAlphanum(a, b)); \
-    CHECK(util::equalsAlphanum(b, a));
-#define CHECK_FALSE_EQUALS_ALPHANUM(a, b)    \
-    CHECK_FALSE(util::equalsAlphanum(a, b)); \
-    CHECK_FALSE(util::equalsAlphanum(b, a));
-
-    TEST_CASE("util::equalsAlphanum") {
-        CHECK_EQUALS_ALPHANUM("", "");
-        CHECK_EQUALS_ALPHANUM("", "");
-        CHECK_EQUALS_ALPHANUM("a", "a");
-        CHECK_EQUALS_ALPHANUM("abc", "abc");
-        CHECK_EQUALS_ALPHANUM("a$bc", "abc");
-        CHECK_EQUALS_ALPHANUM("a$$bc", "abc");
-        CHECK_EQUALS_ALPHANUM("a$b$c", "abc");
-        CHECK_EQUALS_ALPHANUM("$abc", "abc");
-        CHECK_EQUALS_ALPHANUM("abc$", "abc");
-
-        CHECK_EQUALS_ALPHANUM("abc$", "abc$");
-        CHECK_EQUALS_ALPHANUM("$abc$", "!abc$");
-        CHECK_EQUALS_ALPHANUM("$ab&c$", "!a*bc$");
-
-        CHECK_FALSE_EQUALS_ALPHANUM("abc", "cba");
-        CHECK_FALSE_EQUALS_ALPHANUM("a", "");
-        CHECK_FALSE_EQUALS_ALPHANUM("a", "b");
-        CHECK_FALSE_EQUALS_ALPHANUM("a", "bc");
-        CHECK_FALSE_EQUALS_ALPHANUM("ab", "bc");
-
-        CHECK_FALSE_EQUALS_ALPHANUM("*ab", "*bc");
-        CHECK_FALSE_EQUALS_ALPHANUM("*ab*", "*b&c");
-    }
-
     TEST_CASE("util::withoutBasePath") {
         std::filesystem::path abc("abc");
         std::filesystem::path def("def");
@@ -280,19 +93,6 @@ namespace bricksim {
         CHECK(util::withoutBasePath(abc, abc) == "");
         CHECK(util::withoutBasePath(abc, def) == abc);
         CHECK(util::withoutBasePath(abc / def, def) == abc / def);
-    }
-
-    TEST_CASE("util::containsIgnoreCase") {
-        CHECK(util::containsIgnoreCase("abcdefg", "cde"));
-        CHECK(util::containsIgnoreCase("abcdefg", "CdE"));
-        CHECK(util::containsIgnoreCase("aBcDeFg", "CdE"));
-        CHECK(util::containsIgnoreCase("aBcDeFg", "C"));
-        CHECK(util::containsIgnoreCase("aBcDeFg", "CD"));
-        CHECK(util::containsIgnoreCase("aBcDeFg", "ab"));
-        CHECK(util::containsIgnoreCase("aBcDeFg", "fg"));
-        CHECK(util::containsIgnoreCase("aBcDeFg", "aBcDeFg"));
-        CHECK_FALSE(util::containsIgnoreCase("aBcDeFg", "df"));
-        CHECK_FALSE(util::containsIgnoreCase("aBcDeFg", "aBcDeFgHiJ"));
     }
 
     TEST_CASE("util::combinedHash") {

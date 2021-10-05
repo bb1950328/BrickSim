@@ -12,6 +12,7 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
+#include "../../helpers/stringutil.h"
 #include "window_element_properties.h"
 
 namespace bricksim::gui::windows::element_properties {
@@ -194,7 +195,7 @@ namespace bricksim::gui::windows::element_properties {
                     if (ImGui::TreeNodeEx(ICON_FA_MONEY_BILL_WAVE " Price Guide")) {
                         auto partNode = std::dynamic_pointer_cast<etree::PartNode>(node);
                         auto partCode = partNode->ldrFile->metaInfo.name;
-                        util::replaceAll(partCode, ".dat", "");
+                        stringutil::replaceAll(partCode, ".dat", "");
                         const auto color = partNode->getDisplayColor().get();
                         const auto currencyCode = config::get(config::BRICKLINK_CURRENCY_CODE);
                         const auto colorBricklinkName = util::translateLDrawColorNameToBricklink(color->name);

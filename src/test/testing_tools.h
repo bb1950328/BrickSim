@@ -74,6 +74,13 @@ std::vector<glm::vec<L, float, glm::defaultp>> reorderCircularList(const std::ve
 
 template<glm::length_t L>
 std::vector<glm::vec<L, float, glm::defaultp>> consistentStartOfCircularList(const std::vector<glm::vec<L, float, glm::defaultp>>& input) {
-    const auto it = std::min_element(input.begin(), input.end(), [](const auto& a, const auto& b) { return glm::length2(a) > glm::length2(b); });
+    const auto it = std::min_element(input.begin(), input.end(), [](const auto& a, const auto& b) {
+        float sumA=1, sumB=1;
+        for (int i = 0; i < L; ++i) {
+            sumA *= a[i];
+            sumB *= b[i];
+        }
+        return sumA < sumB;
+    });
     return reorderCircularList(input, it);
 }

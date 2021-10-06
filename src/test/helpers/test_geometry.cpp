@@ -272,7 +272,7 @@ namespace bricksim {
                 {i1, POLYGON_TO_SPLIT[1], i2},
         };
 
-        auto reorderedPoints = reorderCircularList(POLYGON_TO_SPLIT, /*GENERATE(range(0, (int)POLYGON_TO_SPLIT.size()))*/1);
+        auto reorderedPoints = reorderCircularList(POLYGON_TO_SPLIT, GENERATE(range(0, (int)POLYGON_TO_SPLIT.size())));
         auto actualResult = geometry::splitPolygonByPlane(reorderedPoints, Ray3({2, 3, 1}, {1, 1, 2}));
         std::sort(actualResult.begin(), actualResult.end(), [](const auto& a, const auto& b) { return a.size() > b.size(); });
 

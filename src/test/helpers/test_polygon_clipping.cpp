@@ -116,7 +116,7 @@ namespace bricksim {
         std::vector<std::vector<glm::vec2>> results = polyclip::PolygonOperation::extractIntersectionResults(polygon1);
         REQUIRE(results.size() == 1);
 
-        CHECK_VEC_VECTOR(consistentStartOfCircularList(results[0]), INTERSECTION_1_2_CW);
+        CHECK_VEC_VECTOR(consistentStartOfCircularList(results[0]), INTERSECTION_1_2_CCW);
     }
 
     TEST_CASE("polyclip3") {

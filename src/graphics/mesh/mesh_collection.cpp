@@ -94,6 +94,9 @@ namespace bricksim::mesh {
                 if (meshNode->getDirectTexmap() != nullptr) {
                     texmap = meshNode->getDirectTexmap();
                 }
+                if (texmap != nullptr) {
+                    texmap = graphics::texmap_projection::transformTexmapStartCommand(texmap, glm::transpose(node->getRelativeTransformation()));
+                }
 
                 if (node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE) {
                     parentColor = color;

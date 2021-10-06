@@ -215,6 +215,7 @@ namespace bricksim::graphics::texmap_projection {
 
     std::shared_ptr<ldr::TexmapStartCommand> transformTexmapStartCommand(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, glm::mat4 transformation) {
         auto result = std::make_shared<ldr::TexmapStartCommand>(*startCommand);
+        transformation = glm::inverse(transformation);
         const auto tp1 = transformation*glm::vec4(result->x1, result->y1, result->z1, 1.f);
         const auto tp2 = transformation*glm::vec4(result->x2, result->y2, result->z2, 1.f);
         const auto tp3 = transformation*glm::vec4(result->x3, result->y3, result->z3, 1.f);

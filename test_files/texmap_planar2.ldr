@@ -1,7 +1,7 @@
-0 FILE texmap_planar.ldr
-0 just a plane with a texture
+0 FILE texmap_planar2.ldr
+0 just a plane with a texture 2
 0 Author: bb1950328
-0 Name: texmap_planar.ldr
+0 Name: texmap_planar2.ldr
 0 !LDRAW_ORG Model
 0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
 0 !THEME Technic
@@ -12,7 +12,7 @@
 0 !TEXMAP START PLANAR -24 40 16    24 40 16   -24 40 -16   test_files/uv_map_grid.png
 00 4 1 200 0 150     -300 0 250    -200 0 -250      -100 0 0
 00 1 16  0 0 0  50 0 0   0 1 0   0 0 20  rect.dat
-1     4  0 0 -25   1 0 0   0 1 0   0 0 1  3001.dat
+1     4  0 60 -25   1 0 0   0 1 0   0 0 1  3001.dat
 1     4  0 0 25   1 0 0   0 1 0   0 0 1  3001.dat
 0 !TEXMAP FALLBACK
 1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat

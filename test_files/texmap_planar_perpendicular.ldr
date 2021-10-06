@@ -10,7 +10,7 @@
 01 4 0 0 0 240 0 0 0 50 0 0 0 160 box4.dat
 
 0 !TEXMAP START PLANAR -240 40 160    240 40 160   -240 40 -160   test_files/uv_map_grid.png
-4  1  -300 -50 0  -200 40 0  300 40 0  300 -50 0
+4  1  -200 -50 0  -200 40 0  200 40 0  200 -50 0
 0 !TEXMAP FALLBACK
 1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat
 0 !TEXMAP END

@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 #include <sstream>
+#include <inttypes.h>
 
 #include "../../helpers/stringutil.h"
 #include "window_debug.h"
@@ -180,7 +181,7 @@ namespace bricksim::gui::windows::debug {
 
                 for (auto & editor: controller::getEditors()) {
                     const auto& rootNode = editor->getRootNode();
-                    ImGui::Text("Element tree root node version: %lu", rootNode->getVersion());
+                    ImGui::Text("Element tree root node version: %" PRIu64, rootNode->getVersion());
                     ImGui::SameLine();
                     if (ImGui::Button(ICON_FA_PLUS_SQUARE " Increment")) {
                         rootNode->incrementVersion();

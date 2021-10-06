@@ -38,14 +38,17 @@ namespace bricksim::ldr {
 
 #ifndef NDEBUG
     FileElement::~FileElement() {
-        std::lock_guard<std::mutex>(metrics::ldrFileElementInstanceCountMtx);
+        //todo use std::lock_guard without breaking build
+        metrics::ldrFileElementInstanceCountMtx.lock();
         --metrics::ldrFileElementInstanceCount;
+        metrics::ldrFileElementInstanceCountMtx.unlock();
         //std::cout << metrics::ldrFileElementInstanceCount << std::endl;
     }
 
     FileElement::FileElement() {
-        std::lock_guard<std::mutex>(metrics::ldrFileElementInstanceCountMtx);
+        metrics::ldrFileElementInstanceCountMtx.lock();
         ++metrics::ldrFileElementInstanceCount;
+        metrics::ldrFileElementInstanceCountMtx.unlock();
         //std::cout << metrics::ldrFileElementInstanceCount << std::endl;
     }
 #else

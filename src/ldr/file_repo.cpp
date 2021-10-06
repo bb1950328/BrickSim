@@ -387,5 +387,13 @@ namespace bricksim::ldr::file_repo {
         ldrFiles.erase(it);
     }
 
+    std::shared_ptr<File> FileRepo::reloadFile(const std::string& name) {
+        auto it = ldrFiles.find(name);
+        if (it != ldrFiles.end()) {
+            ldrFiles.erase(it);
+        }
+        return getFile(name);
+    }
+
     FileRepo::~FileRepo() = default;
 }

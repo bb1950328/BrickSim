@@ -10,7 +10,7 @@ namespace bricksim::metrics {
     float lastSceneRenderTimeMs;
     size_t memorySavedByDeletingVertexData = 0;
 #ifndef NDEBUG
-    std::mutex ldrFileElementInstanceCountMtx = {};
+    //std::mutex ldrFileElementInstanceCountMtx;
     size_t ldrFileElementInstanceCount = 0;
 #endif
 }

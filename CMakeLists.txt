@@ -222,6 +222,14 @@ target_link_libraries(BrickSimLib PRIVATE fast_float)
 add_subdirectory(src/lib/robin-hood-hashing)
 target_link_libraries(BrickSimLib PUBLIC robin_hood::robin_hood)
 
+#esfw
+set(CXX11 ON CACHE BOOL "Build efsw with C++11" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build efsw as a shared library" FORCE)
+set(EFSW_INSTALL OFF CACHE BOOL "Add efsw install targets" FORCE)
+add_subdirectory(src/lib/esfw)
+target_link_libraries(BrickSimLib PRIVATE efsw)
+#target_include_directories(BrickSimLib PRIVATE src/lib/esfw/include)
+
 #palanteer
 option(USE_PALANTEER "Build with Palanteer instrumentation library" OFF)
 if (USE_PALANTEER)

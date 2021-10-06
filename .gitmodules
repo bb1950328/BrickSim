@@ -56,3 +56,6 @@
 [submodule "src/lib/earcut.hpp"]
 	path = src/lib/earcut.hpp
 	url = https://github.com/mapbox/earcut.hpp.git
+[submodule "src/lib/sfsw"]
+	path = src/lib/esfw
+	url = https://github.com/SpartanJ/efsw.git

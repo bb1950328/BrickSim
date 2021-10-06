@@ -54,6 +54,8 @@ namespace bricksim::controller {
         float lastFrameTimes[lastFrameTimesSize] = {0};//in ms
         unsigned short lastFrameTimesStartIdx = 0;
 
+        std::shared_ptr<efsw::FileWatcher> fileWatcher;
+
 #ifdef BRICKSIM_USE_RENDERDOC
         RENDERDOC_API_1_1_2* rdoc_api = nullptr;
 #endif
@@ -294,6 +296,9 @@ namespace bricksim::controller {
                 }
                 currentStep.joinThread();
             }
+
+            fileWatcher = std::make_shared<efsw::FileWatcher>();
+            fileWatcher->watch();
             return true;
         }
 
@@ -368,15 +373,31 @@ namespace bricksim::controller {
         //openFile("test_files/bricks_test.ldr");
         //openFile("test_files/triangle_test.ldr");
         //openFile("test_files/mpd_test.mpd");
-        openFile("test_files/texmap_planar.ldr");
+        //openFile("test_files/texmap_planar.ldr");
+        openFile("test_files/texmap_planar3.ldr");
         //openFile("test_files/texmap_planar_perpendicular.ldr");
         //openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
         //openFile("car.ldr");
         //openFile("~/Downloads/datsville.ldr");
 
+        std::vector<uint64_t> lastEditorRootNodeVersions;
+
         while (!glfwWindowShouldClose(window) && !userWantsToExit) {
-            if (foregroundTasks.empty() && backgroundTasks.empty() && thumbnailGenerator->renderQueueEmpty() && glfwGetWindowAttrib(window, GLFW_FOCUSED) == 0) {
+            //todo refactor this into method
+            bool atLeastOneEditorChanged = editors.size() != lastEditorRootNodeVersions.size();
+            std::vector<uint64_t> currentEditorRootNodeVersions;
+            auto lastIt = lastEditorRootNodeVersions.begin();
+            for (const auto& ed : editors) {
+                const uint64_t version = ed->getRootNode()->getVersion();
+                if (lastIt != lastEditorRootNodeVersions.end()) {
+                    atLeastOneEditorChanged |= (*lastIt != version);
+                }
+                currentEditorRootNodeVersions.push_back(version);
+            }
+            lastEditorRootNodeVersions = currentEditorRootNodeVersions;
+
+            if (foregroundTasks.empty() && backgroundTasks.empty() && thumbnailGenerator->renderQueueEmpty() && glfwGetWindowAttrib(window, GLFW_FOCUSED) == 0 && !atLeastOneEditorChanged) {
                 plBegin("idle sleep");
                 std::this_thread::sleep_for(idle_sleep);
                 plEnd("idle sleep");
@@ -543,6 +564,9 @@ namespace bricksim::controller {
             }
         }
         return {};
+    }
+    std::shared_ptr<efsw::FileWatcher> getFileWatcher() {
+        return fileWatcher;
     }
 
 #ifdef BRICKSIM_USE_RENDERDOC

@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/stopwatch.h>
+#include <inttypes.h>
 
 namespace bricksim::gui::windows::model_info {
 
@@ -43,7 +44,7 @@ namespace bricksim::gui::windows::model_info {
                 sum += countParts(node);
             }
             spdlog::debug("counted parts in {}", sw);
-            ImGui::Text("Part count: %lu", sum);
+            ImGui::Text("Part count: %" PRIu64, sum);
         }
         ImGui::End();
     }

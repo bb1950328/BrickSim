@@ -1,5 +1,7 @@
 #include "geometry.h"
 #include <glm/gtx/normal.hpp>
+#include <array>
+#include <vector>
 
 namespace bricksim::geometry {
     float calculateDistanceOfPointToLine(const glm::vec2& line_start, const glm::vec2& line_end, const glm::vec2& point) {

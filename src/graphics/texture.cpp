@@ -85,4 +85,8 @@ namespace bricksim::graphics {
     void Texture::deleteCached() {
         texturesFromBinaryFiles.clear();
     }
+
+    void Texture::unbind() const {
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 }

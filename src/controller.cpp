@@ -369,6 +369,7 @@ namespace bricksim::controller {
         //openFile("test_files/triangle_test.ldr");
         //openFile("test_files/mpd_test.mpd");
         openFile("test_files/texmap_planar.ldr");
+        //openFile("test_files/texmap_planar_perpendicular.ldr");
         //openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
         //openFile("car.ldr");

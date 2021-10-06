@@ -76,6 +76,8 @@ namespace bricksim::util {
     };
     DecomposedTransformation decomposeTransformationToStruct(const glm::mat4& transformation);
 
+    bool isUvInsideImage(const glm::vec2& uv);
+
     // texture/image functions
     std::string translateBrickLinkColorNameToLDraw(std::string colorName);
     std::string translateLDrawColorNameToBricklink(std::string colorName);

@@ -31,6 +31,7 @@ namespace bricksim::geometry {
 
     std::optional<glm::vec3> rayPlaneIntersection(const Ray3& ray, const Ray3& planeNormal);
     std::optional<glm::vec3> linePlaneIntersection(const glm::vec3& lineP0, const glm::vec3& lineP1, const Ray3& planeNormal);
+    std::optional<glm::vec3> segmentPlaneIntersection(const glm::vec3& lineP0, const glm::vec3& lineP1, const Ray3& planeNormal);
 
     glm::quat quaternionRotationFromOneVectorToAnother(const glm::vec3& v1, const glm::vec3& v2);
     glm::vec3 getAnyPerpendicularVector(const glm::vec3& v);
@@ -128,4 +129,6 @@ namespace bricksim::geometry {
         }
         return result;
     }
+
+    std::vector<std::vector<glm::vec3>> splitPolygonByPlane(const std::vector<glm::vec3>& originalPoly, const Ray3& plane);
 }

@@ -68,7 +68,7 @@ namespace bricksim::mesh {
                                               const std::shared_ptr<ldr::TexmapStartCommand>& parentTexmap) {
         std::shared_ptr<etree::Node> nodeToParseChildren = node;
         glm::mat4 absoluteTransformation = parentAbsoluteTransformation * node->getRelativeTransformation();
-        const std::shared_ptr<ldr::TexmapStartCommand> texmap = parentTexmap != nullptr ? graphics::texmap_projection::transformTexmapStartCommand(parentTexmap, node->getRelativeTransformation()) : nullptr;
+        std::shared_ptr<ldr::TexmapStartCommand> texmap = parentTexmap != nullptr ? graphics::texmap_projection::transformTexmapStartCommand(parentTexmap, node->getRelativeTransformation()) : nullptr;
         if (node->visible) {
             if ((node->getType() & etree::TYPE_MESH) > 0) {
                 std::shared_ptr<etree::MeshNode> meshNode;
@@ -89,6 +89,10 @@ namespace bricksim::mesh {
                     color = parentColor.value();
                 } else {
                     color = nodeToGetColorFrom->getDisplayColor();
+                }
+
+                if (meshNode->getDirectTexmap() != nullptr) {
+                    texmap = meshNode->getDirectTexmap();
                 }
 
                 if (node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE) {
@@ -114,7 +118,7 @@ namespace bricksim::mesh {
             }
             for (const auto& child: nodeToParseChildren->getChildren()) {
                 if (child->visible) {
-                    readElementTree(child, absoluteTransformation, parentColor, selectionTargetElementId, nullptr);
+                    readElementTree(child, absoluteTransformation, parentColor, selectionTargetElementId, texmap);
                 }
             }
             nodesWithChildrenAlreadyVisited.insert(nodeToParseChildren);

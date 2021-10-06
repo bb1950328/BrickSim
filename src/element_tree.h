@@ -75,7 +75,7 @@ namespace bricksim::etree {
 
     class MeshNode : public Node {
     public:
-        MeshNode(ldr::ColorReference color, const std::shared_ptr<Node>& parent);
+        MeshNode(ldr::ColorReference color, const std::shared_ptr<Node>& parent, std::shared_ptr<ldr::TexmapStartCommand> directTexmap);
 
         virtual mesh_identifier_t getMeshIdentifier() const = 0;
         virtual void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) = 0;
@@ -83,14 +83,17 @@ namespace bricksim::etree {
         [[nodiscard]] ldr::ColorReference getDisplayColor() const;
         void setColor(ldr::ColorReference newColor);
         ldr::ColorReference getElementColor() const;
+        const std::shared_ptr<ldr::TexmapStartCommand>& getDirectTexmap() const;
+        const std::shared_ptr<ldr::TexmapStartCommand>& getAppliedTexmap() const;
 
     private:
         ldr::ColorReference color;
+        std::shared_ptr<ldr::TexmapStartCommand> directTexmap;
     };
 
     class LdrNode : public MeshNode {
     public:
-        LdrNode(NodeType nodeType, const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent);
+        LdrNode(NodeType nodeType, const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap);
         /**
          * This function is necessary because shared_from_this() doesn't work inside the constructor. so this function should be called immediately after creating
          * an object of type LdrNode. todo find a better solution for this
@@ -125,7 +128,7 @@ namespace bricksim::etree {
 
     class MpdSubfileInstanceNode : public MeshNode {
     public:
-        MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, const std::shared_ptr<Node>& parent);
+        MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap);
 
         std::shared_ptr<MpdSubfileNode> mpdSubfileNode;
         mesh_identifier_t getMeshIdentifier() const override;
@@ -152,7 +155,7 @@ namespace bricksim::etree {
 
     class PartNode : public LdrNode {
     public:
-        PartNode(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent);
+        PartNode(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };

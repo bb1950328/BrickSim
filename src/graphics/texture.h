@@ -27,6 +27,7 @@ namespace bricksim::graphics {
         static void deleteCached();
 
         void bind(uint8_t slot = 0) const;
+        void unbind() const;
         [[nodiscard]] texture_id_t getID() const;
         [[nodiscard]] glm::ivec2 getSize() const;
     };

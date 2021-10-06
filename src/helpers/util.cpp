@@ -252,6 +252,10 @@ namespace bricksim::util {
         return result;
     }
 
+    bool isUvInsideImage(const glm::vec2& uv) {
+        return 0 <= uv.x && uv.x <= 1 && 0 <= uv.y && uv.y <= 1;
+    }
+
     glm::mat4 DecomposedTransformation::orientationAsMat4() const {
         return glm::toMat4(orientation);
     }

@@ -8,6 +8,7 @@
 #undef RGB
 #include <glm/gtx/normal.hpp>
 #include <spdlog/spdlog.h>
+#include <utility>
 
 #undef RGB
 
@@ -153,8 +154,8 @@ namespace bricksim::etree {
         }
     }
 
-    LdrNode::LdrNode(NodeType nodeType, const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) :
-        MeshNode(ldrColor, parent), ldrFile(ldrFile) {
+    LdrNode::LdrNode(NodeType nodeType, const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap) :
+        MeshNode(ldrColor, parent, directTexmap), ldrFile(ldrFile) {
         type = nodeType;
         this->parent = parent;
         this->setColor(ldrColor);
@@ -179,7 +180,7 @@ namespace bricksim::etree {
 
     void LdrNode::addSubfileInstanceNode(const std::shared_ptr<ldr::File>& subFile, const ldr::ColorReference instanceColor) {
         auto subfileNode = findMpdNodeAndAddSubfileNode(subFile, {1}, shared_from_this());
-        auto instanceNode = std::make_shared<MpdSubfileInstanceNode>(subfileNode, instanceColor, shared_from_this());
+        auto instanceNode = std::make_shared<MpdSubfileInstanceNode>(subfileNode, instanceColor, shared_from_this(), nullptr);
         this->children.push_back(instanceNode);
     }
 
@@ -201,11 +202,11 @@ namespace bricksim::etree {
                     std::shared_ptr<Node> newNode = nullptr;
                     if (subFile->metaInfo.type == ldr::MPD_SUBFILE) {
                         auto subFileNode = findMpdNodeAndAddSubfileNode(subFile, sfElement->color, shared_from_this());
-                        newNode = std::make_shared<MpdSubfileInstanceNode>(subFileNode, sfElement->color, shared_from_this());
+                        newNode = std::make_shared<MpdSubfileInstanceNode>(subFileNode, sfElement->color, shared_from_this(), sfElement->directTexmap);
                         childrenWithOwnNode.insert(sfElement);
                     } else if (subFile->metaInfo.type == ldr::PART) {
                         childrenWithOwnNode.insert(sfElement);
-                        newNode = std::make_shared<PartNode>(subFile, sfElement->color, shared_from_this());
+                        newNode = std::make_shared<PartNode>(subFile, sfElement->color, shared_from_this(), sfElement->directTexmap);
                     }
                     if (nullptr != newNode) {
                         children.push_back(newNode);
@@ -272,8 +273,8 @@ namespace bricksim::etree {
         return false;
     }
 
-    MpdSubfileInstanceNode::MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, const std::shared_ptr<Node>& parent) :
-        mpdSubfileNode(mpdSubfileNode), MeshNode(color, parent) {
+    MpdSubfileInstanceNode::MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap) :
+        mpdSubfileNode(mpdSubfileNode), MeshNode(color, parent, directTexmap) {
         type = TYPE_MPD_SUBFILE_INSTANCE;
         this->displayName = mpdSubfileNode->displayName;
     }
@@ -291,7 +292,7 @@ namespace bricksim::etree {
     }
 
     MpdNode::MpdNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) :
-        LdrNode(TYPE_MULTI_PART_DOCUMENT, ldrFile, ldrColor, parent) {
+        LdrNode(TYPE_MULTI_PART_DOCUMENT, ldrFile, ldrColor, parent, nullptr) {
     }
 
     bool MpdSubfileNode::isDisplayNameUserEditable() const {
@@ -299,7 +300,7 @@ namespace bricksim::etree {
     }
 
     MpdSubfileNode::MpdSubfileNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference color, const std::shared_ptr<Node>& parent) :
-        LdrNode(TYPE_MPD_SUBFILE, ldrFile, color, parent) {
+        LdrNode(TYPE_MPD_SUBFILE, ldrFile, color, parent, nullptr) {
         visible = false;
     }
 
@@ -307,12 +308,12 @@ namespace bricksim::etree {
         return false;
     }
 
-    PartNode::PartNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) :
-        LdrNode(TYPE_PART, ldrFile, ldrColor, parent) {
+    PartNode::PartNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap) :
+        LdrNode(TYPE_PART, ldrFile, ldrColor, parent, directTexmap) {
     }
 
-    MeshNode::MeshNode(ldr::ColorReference color, const std::shared_ptr<Node>& parent) :
-        Node(parent), color(color) {
+    MeshNode::MeshNode(ldr::ColorReference color, const std::shared_ptr<Node>& parent, std::shared_ptr<ldr::TexmapStartCommand> directTexmap) :
+        Node(parent), color(color), directTexmap(std::move(directTexmap)) {
         type = TYPE_MESH;
     }
 
@@ -332,6 +333,22 @@ namespace bricksim::etree {
 
     ldr::ColorReference MeshNode::getElementColor() const {
         return color;
+    }
+
+    const std::shared_ptr<ldr::TexmapStartCommand>& MeshNode::getAppliedTexmap() const {
+        if (directTexmap != nullptr) {
+            return directTexmap;
+        }
+        auto parentAsMeshNode = std::dynamic_pointer_cast<MeshNode>(parent.lock());
+        if (parentAsMeshNode != nullptr) {
+            return parentAsMeshNode->getAppliedTexmap();
+        }
+
+        const static std::shared_ptr<ldr::TexmapStartCommand> null;
+        return null;
+    }
+    const std::shared_ptr<ldr::TexmapStartCommand>& MeshNode::getDirectTexmap() const {
+        return directTexmap;
     }
 
     const char* getDisplayNameOfType(const NodeType& type) {
@@ -376,7 +393,7 @@ namespace bricksim::etree {
     }
 
     TexmapNode::TexmapNode(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, const std::shared_ptr<Node>& parent) :
-        MeshNode(ldr::color_repo::INSTANCE_DUMMY_COLOR_CODE, parent),
+        MeshNode(ldr::color_repo::INSTANCE_DUMMY_COLOR_CODE, parent, nullptr),
         projectionMethod(startCommand->projectionMethod),
         p1(startCommand->x1, startCommand->y1, startCommand->z1),
         p2(startCommand->x2, startCommand->y2, startCommand->z2),
@@ -394,6 +411,7 @@ namespace bricksim::etree {
 
     void TexmapNode::updateCalculatedValues() {
         displayName = fmt::format("Texmap {} {}", magic_enum::enum_name(projectionMethod), textureFilename);
+        //todo modify directTexmap and increment version
         if (projectionMethod == ldr::TexmapStartCommand::PLANAR) {
             /*const glm::vec3 scale{glm::length(p2 - p1), glm::length(p3 - p1), 1.f};
             glm::mat4 transf = glm::scale(glm::mat4(1.f), scale);

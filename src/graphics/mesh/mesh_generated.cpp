@@ -66,7 +66,7 @@ namespace bricksim::mesh::generated {
     }
 
     GeneratedMeshNode::GeneratedMeshNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
-        MeshNode(color, parent) {}
+        MeshNode(color, parent, nullptr) {}
 
     bool GeneratedMeshNode::isDisplayNameUserEditable() const {
         return false;

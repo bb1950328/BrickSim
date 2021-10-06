@@ -175,7 +175,7 @@ namespace bricksim {
                 documentNode->incrementVersion();
                 break;
             case ldr::PART:
-                documentNode->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr::ColorReference{1}, documentNode));
+                documentNode->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr::ColorReference{1}, documentNode, nullptr));
                 documentNode->incrementVersion();
                 break;
             case ldr::SUBPART:

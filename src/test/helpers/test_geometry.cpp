@@ -1,10 +1,6 @@
 #include "../../helpers/geometry.h"
-#include "../../helpers/platform_detection.h"
-#include "../../helpers/util.h"
 #include "../testing_tools.h"
 #include "catch2/catch.hpp"
-#include "glm/gtx/transform.hpp"
-#include <fstream>
 #include <glm/gtc/epsilon.hpp>
 #include <iostream>
 
@@ -251,6 +247,39 @@ namespace bricksim {
         CHECK(planeConverter.convert3dTo2d(data.point3d) == ApproxVec(data.point2d));
         CHECK(planeConverter.convert3dTo2d(data.point3dOnPlane) == ApproxVec(data.point2d));
         CHECK(planeConverter.convert2dTo3d(data.point2d) == ApproxVec(data.point3dOnPlane));
+    }
+
+    const std::vector<glm::vec3> POLYGON_TO_SPLIT{
+            {2, 3, 5},
+            {-3, 3, 3},
+            {2, 3, 3},
+            {-4, 3, 1},
+            {-4, 3, -1},
+            {8, 3, -1},
+            {7, 3, 4},
+    };
+
+    TEST_CASE("geometry::splitPolygonByPlane 1") {
+        //https://www.geogebra.org/calculator/hagcybt6
+        glm::vec3 i1(-2.4444444444444, 3, 3.2222222222222);
+        glm::vec3 i2(-2, 3, 3);
+        glm::vec3 i3(-0.4, 3, 2.2);
+        glm::vec3 i4(6, 3, -1);
+
+        std::vector<std::vector<glm::vec3>> expectedResult{
+                {POLYGON_TO_SPLIT[0], i1, i2, POLYGON_TO_SPLIT[2], i3, i4, POLYGON_TO_SPLIT[5], POLYGON_TO_SPLIT[6]},
+                {i3, POLYGON_TO_SPLIT[3], POLYGON_TO_SPLIT[4], i4},
+                {i1, POLYGON_TO_SPLIT[1], i2},
+        };
+
+        auto reorderedPoints = reorderCircularList(POLYGON_TO_SPLIT, /*GENERATE(range(0, (int)POLYGON_TO_SPLIT.size()))*/1);
+        auto actualResult = geometry::splitPolygonByPlane(reorderedPoints, Ray3({2, 3, 1}, {1, 1, 2}));
+        std::sort(actualResult.begin(), actualResult.end(), [](const auto& a, const auto& b) { return a.size() > b.size(); });
+
+        REQUIRE(actualResult.size() == 3);
+        CHECK_VEC_VECTOR(consistentStartOfCircularList(expectedResult[0]), consistentStartOfCircularList(actualResult[0]));
+        CHECK_VEC_VECTOR(consistentStartOfCircularList(expectedResult[1]), consistentStartOfCircularList(actualResult[1]));
+        CHECK_VEC_VECTOR(consistentStartOfCircularList(expectedResult[2]), consistentStartOfCircularList(actualResult[2]));
     }
 
     //todo tests for geometry::getAngleBetweenThreePointsSigned

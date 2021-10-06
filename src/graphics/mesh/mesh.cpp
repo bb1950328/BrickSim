@@ -44,11 +44,7 @@ namespace bricksim::mesh {
     void Mesh::addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         auto sub_transformation = sfElement->getTransformationMatrix();
         const auto color = sfElement->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : sfElement->color;
-        addLdrFile(color, sfElement->getFile(), sub_transformation * transformation, sfElement->bfcInverted ^ bfcInverted, texmap);
-    }
-
-    bool isUvInsideImage(const glm::vec2& uv) {
-        return 0 <= uv.x && uv.x <= 1 && 0 <= uv.y && uv.y <= 1;
+        addLdrFile(color, sfElement->getFile(), sub_transformation * transformation, sfElement->bfcInverted ^ bfcInverted, sfElement->directTexmap != nullptr ? sfElement->directTexmap : texmap);
     }
 
     void Mesh::addLdrTriangle(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::Triangle>& triangleElement, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmapOfParent) {
@@ -92,19 +88,34 @@ namespace bricksim::mesh {
     }
 
     void Mesh::calculateAndAddTexmapVertices(const ldr::ColorReference& color, const std::shared_ptr<ldr::TexmapStartCommand>& appliedTexmap, std::vector<glm::vec3>& transformedPoints) {
+        const auto pointCount = transformedPoints.size();
         std::vector<glm::vec2> UVs;
-        UVs.reserve(transformedPoints.size());
+        UVs.reserve(pointCount);
         bool allUVsInsideImage = true;
         for (const auto& point: transformedPoints) {
             auto uv = graphics::texmap_projection::getPlanarUVCoord(appliedTexmap, point);
-            allUVsInsideImage &= isUvInsideImage(uv);
+            allUVsInsideImage &= util::isUvInsideImage(uv);
             UVs.push_back(uv);
         }
         auto texture = graphics::texmap_projection::getTexture(appliedTexmap);
         auto& texturedData = getTexturedTriangleData(texture);
         if (allUVsInsideImage) {
-            for (int i = 0; i < transformedPoints.size(); ++i) {
-                texturedData.addVertex({transformedPoints[i], UVs[i]});
+            if (pointCount ==3) {
+                for (int i = 0; i < pointCount; ++i) {
+                    texturedData.addVertex({transformedPoints[i], UVs[i]});
+                }
+            } else if (pointCount ==4) {
+                //triangle 1
+                texturedData.addVertex({transformedPoints[0], UVs[0]});
+                texturedData.addVertex({transformedPoints[1], UVs[1]});
+                texturedData.addVertex({transformedPoints[2], UVs[2]});
+                
+                //triangle 2
+                texturedData.addVertex({transformedPoints[2], UVs[2]});
+                texturedData.addVertex({transformedPoints[3], UVs[3]});
+                texturedData.addVertex({transformedPoints[0], UVs[0]});
+            } else {
+                //todo add earcut
             }
         } else {
             auto [plainIndices, plainVertices, texturedVertices] = graphics::texmap_projection::splitPolygonBiggerThanTexturePlanar(appliedTexmap, transformedPoints);

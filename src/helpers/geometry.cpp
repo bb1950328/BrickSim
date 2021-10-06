@@ -182,6 +182,21 @@ namespace bricksim::geometry {
         }
     }
 
+    std::optional<glm::vec3> segmentPlaneIntersection(const glm::vec3& lineP0, const glm::vec3& lineP1, const Ray3& planeNormal) {
+        auto u = lineP1 - lineP0;
+        const auto dot = glm::dot(planeNormal.direction, u);
+        if (glm::abs(dot) > 1e-6f) {
+            const auto w = lineP0 - planeNormal.origin;
+            const auto fac = -glm::dot(planeNormal.direction, w) / dot;
+            if (fac > 1 || fac < 0) {
+                return {};
+            }
+            return lineP0 + (u * fac);
+        } else {
+            return {};
+        }
+    }
+
     bool isPointInTriangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec3& point) {
         const auto a = p1 - point;
         const auto b = p2 - point;
@@ -290,5 +305,67 @@ namespace bricksim::geometry {
         glm::vec3 vec3 = transformation[2];
         glm::vec3 cross = glm::cross(vec1, vec2);
         return glm::dot(cross, vec3) < 0.0f;
+    }
+
+    std::vector<std::vector<glm::vec3>> splitPolygonByPlane(const std::vector<glm::vec3>& originalPoly, const Ray3& plane) {
+        std::vector<std::vector<glm::vec3>> polygonParts;
+        std::vector<std::tuple<size_t, glm::vec3, float>> intersections;
+        glm::vec3 firstIntersectionPoint;
+        for (size_t i1 = 0, i2 = 1; i1 < originalPoly.size(); ++i1, i2 = (i1 + 1) % originalPoly.size()) {
+            const auto& ep1 = originalPoly[i1];
+            const auto& ep2 = originalPoly[i2];
+            const auto isOpt = geometry::segmentPlaneIntersection(ep1, ep2, plane);
+            if (isOpt.has_value()) {
+                if (intersections.empty()) {
+                    firstIntersectionPoint = isOpt.value();
+                }
+                intersections.emplace_back(i1, isOpt.value(), glm::length2(firstIntersectionPoint - isOpt.value()));
+            }
+        }
+        assert(intersections.size() % 2 == 0);
+
+        if (intersections.empty()) {
+            polygonParts.push_back(originalPoly);
+        } else {
+            glm::vec3 endPoint = std::get<1>(*std::max_element(intersections.begin(), intersections.end(), [](const auto& a, const auto& b) { return std::get<2>(a) < std::get<2>(b); }));
+            for (auto& item: intersections) {
+                std::get<2>(item) = glm::length2(std::get<1>(item) - endPoint);
+            }
+            std::sort(intersections.begin(), intersections.end(), [](const auto& a, const auto& b) { return std::get<2>(a) < std::get<2>(b); });
+            std::vector<size_t> startPoints;
+            startPoints.push_back(0);
+            uoset_t<size_t> visitedPoints;
+            while (!startPoints.empty()) {
+                std::vector<glm::vec3> part;
+                size_t i = startPoints.back();
+                startPoints.pop_back();
+                if (visitedPoints.contains(i)) {
+                    continue;
+                }
+                size_t iBegin = i;
+                do {
+                    visitedPoints.insert(i);
+                    part.push_back(originalPoly[i]);
+                    auto it = std::find_if(intersections.begin(), intersections.end(), [&i](const auto& is) { return std::get<0>(is) == i; });
+                    if (it != intersections.end()) {
+                        part.push_back(std::get<1>(*it));
+                        if (std::distance(intersections.begin(), it) % 2 == 0) {
+                            ++it;
+                        } else {
+                            --it;
+                        }
+                        part.push_back(std::get<1>(*it));
+                        size_t possibleStartPoint = (i+1)%originalPoly.size();
+                        if (!visitedPoints.contains(possibleStartPoint)) {
+                            startPoints.push_back(possibleStartPoint);
+                        }
+                        i = std::get<0>(*it);
+                    }
+                    i = (i + 1) % originalPoly.size();
+                } while (i != iBegin);
+                polygonParts.push_back(part);
+            }
+        }
+        return polygonParts;
     }
 }

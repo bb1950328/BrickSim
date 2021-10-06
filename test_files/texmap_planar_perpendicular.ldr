@@ -1,0 +1,16 @@
+0 FILE texmap_planar_perpendicular.ldr
+0 just a plane with a texture
+0 Author: bb1950328
+0 Name: texmap_planar_perpendicular.ldr
+0 !LDRAW_ORG Model
+0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
+0 !THEME Technic
+
+0 box size is (480, 100, 320)
+01 4 0 0 0 240 0 0 0 50 0 0 0 160 box4.dat
+
+0 !TEXMAP START PLANAR -240 40 160    240 40 160   -240 40 -160   test_files/uv_map_grid.png
+4  1  -300 -50 0  -200 40 0  300 40 0  300 -50 0
+0 !TEXMAP FALLBACK
+1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+0 !TEXMAP END

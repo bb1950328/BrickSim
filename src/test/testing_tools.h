@@ -53,8 +53,8 @@ public:
 };
 
 template<glm::length_t L, typename T, glm::qualifier Q>
-std::vector<ApproxVec<2, float, glm::defaultp>> convertToApproxVector(const std::vector<glm::vec<L, T, Q>>& a) {
-    return std::vector<ApproxVec<2, float, glm::defaultp>>(a.begin(), a.end());
+std::vector<ApproxVec<L, float, glm::defaultp>> convertToApproxVector(const std::vector<glm::vec<L, T, Q>>& a) {
+    return std::vector<ApproxVec<L, float, glm::defaultp>>(a.begin(), a.end());
 }
 
 #define CHECK_VEC_VECTOR(a, b) CHECK(convertToApproxVector(a) == convertToApproxVector(b))

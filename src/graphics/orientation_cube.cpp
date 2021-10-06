@@ -89,7 +89,7 @@ namespace bricksim::graphics::orientation_cube {
     }
 
     OrientationCubeSideMeshNode::OrientationCubeSideMeshNode(const std::shared_ptr<etree::Node>& parent, CubeSide side) :
-        MeshNode(ldr::color_repo::getInstanceDummyColor(), parent), side(side) {}
+        MeshNode(ldr::color_repo::getInstanceDummyColor(), parent, nullptr), side(side) {}
 
     void OrientationCubeSideMeshNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         auto texture = std::make_shared<Texture>(resources::orientation_cube_png.data(), resources::orientation_cube_png.size());

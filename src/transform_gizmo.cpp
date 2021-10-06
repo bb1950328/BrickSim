@@ -323,7 +323,7 @@ namespace bricksim::transform_gizmo {
     }
 
     TG2DArrowNode::TG2DArrowNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
-        MeshNode(color, parent) {
+        MeshNode(color, parent, nullptr) {
         displayName = "transform gizmo 2D move arrow";
     }
 

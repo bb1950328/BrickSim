@@ -506,6 +506,24 @@ jobs:
           CCACHE_COMPRESSLEVEL: 6
           CCACHE_MAXSIZE: 500M
 
+      - name: Try to get info
+        if: always()
+        shell: bash
+        run: |
+          for f in /Users/runner/Library/Logs/DiagnosticReports/clang*
+          do
+              echo "**** File $f ****"
+              cat "$f"
+          done
+
+          for f in /var/folders/24/8k48jl6d249_n_qfxwsl6xvm0000gn/T/*
+          do
+              echo "**** File $f ****"
+              cat "$f"
+          done
+
+
+
       - name: Upload Binary
         uses: actions/upload-artifact@v2
         with:

@@ -294,7 +294,7 @@ namespace bricksim {
         if (filePath.has_value() && fullPath == filePath.value()) {
             spdlog::info(R"(editor file change detected: {} fullPath="{}" oldFilename="{}")", magic_enum::enum_name(action), fullPath.string(), oldFilename);
             rootNode->removeChild(documentNode);
-            documentNode = std::make_shared<etree::MpdNode>(ldr::file_repo::get().reloadFile(filePath.value()), 1, rootNode);
+            documentNode = std::make_shared<etree::MpdNode>(ldr::file_repo::get().reloadFile(filePath->string()), 1, rootNode);
             documentNode->createChildNodes();
             rootNode->addChild(documentNode);
             documentNode->incrementVersion();

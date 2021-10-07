@@ -433,7 +433,7 @@ jobs:
 
   buildMac:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip mac ci')"
-    runs-on: macos-latest
+    runs-on: macos-10.15
 
     name: MacOS Build
 
@@ -506,26 +506,6 @@ jobs:
           CCACHE_COMPRESSLEVEL: 6
           CCACHE_MAXSIZE: 500M
 
-      - name: Try to get info
-        if: always()
-        shell: bash {0}
-        run: |
-          for f in /Users/runner/Library/Logs/DiagnosticReports/clang*
-          do
-              echo "**** File $f ****"
-              ls -l "$f"
-              cat "$f"
-          done
-
-          for f in /var/folders/24/8k48jl6d249_n_qfxwsl6xvm0000gn/T/*
-          do
-              echo "**** File $f ****"
-              ls -l "$f"
-              cat "$f"
-          done
-
-
-
       - name: Upload Binary
         uses: actions/upload-artifact@v2
         with:
@@ -534,7 +514,7 @@ jobs:
 
   buildInstallerMac:
     needs: buildMac
-    runs-on: macos-latest
+    runs-on: macos-10.15
 
     name: Mac Installer Build
 

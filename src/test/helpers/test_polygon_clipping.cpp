@@ -1,10 +1,9 @@
 #include "../../helpers/earcut_hpp_with_glm.h"
 #include "../../helpers/geometry.h"
 #include "../../helpers/polygon_clipping.h"
-#include "../../helpers/util.h"
 #include "../testing_tools.h"
 #include "catch2/catch.hpp"
-#include <glm/gtx/range.hpp>
+#include <array>
 
 namespace bricksim {
 

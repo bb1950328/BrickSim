@@ -513,12 +513,14 @@ jobs:
           for f in /Users/runner/Library/Logs/DiagnosticReports/clang*
           do
               echo "**** File $f ****"
+              ls -l "$f"
               cat "$f"
           done
 
           for f in /var/folders/24/8k48jl6d249_n_qfxwsl6xvm0000gn/T/*
           do
               echo "**** File $f ****"
+              ls -l "$f"
               cat "$f"
           done
 

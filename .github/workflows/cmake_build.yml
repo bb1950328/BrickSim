@@ -508,7 +508,7 @@ jobs:
 
       - name: Try to get info
         if: always()
-        shell: bash
+        shell: bash {0}
         run: |
           for f in /Users/runner/Library/Logs/DiagnosticReports/clang*
           do

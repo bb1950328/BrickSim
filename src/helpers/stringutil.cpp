@@ -1,4 +1,5 @@
 #include "stringutil.h"
+#include <sstream>
 
 #ifdef __SSE2__
 

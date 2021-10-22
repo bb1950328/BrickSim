@@ -433,7 +433,7 @@ jobs:
 
   buildMac:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip mac ci')"
-    runs-on: macos-latest
+    runs-on: macos-10.15
 
     name: MacOS Build
 
@@ -514,7 +514,7 @@ jobs:
 
   buildInstallerMac:
     needs: buildMac
-    runs-on: macos-latest
+    runs-on: macos-10.15
 
     name: Mac Installer Build
 

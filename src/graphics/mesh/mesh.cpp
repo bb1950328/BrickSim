@@ -100,7 +100,7 @@ namespace bricksim::mesh {
         auto texture = graphics::texmap_projection::getTexture(appliedTexmap);
         auto& texturedData = getTexturedTriangleData(texture);
         if (allUVsInsideImage) {
-            if (pointCount ==3) {
+            if (pointCount == 3) {
                 for (int i = 0; i < pointCount; ++i) {
                     texturedData.addVertex({transformedPoints[i], UVs[i]});
                 }

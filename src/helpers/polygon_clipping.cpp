@@ -247,7 +247,8 @@ namespace bricksim::polyclip {
             }
             iter1 = nextCheck;
         }
-        assert(intersectionPointCount % 2 == 0 && "The intersection points should be even!");
+        //todo find out how to detect if one polygon touches the other one (one corner on an edge of the other poly)
+        // assert(intersectionPointCount % 2 == 0 && "The intersection points should be even!");
     }
 
     std::pair<bool, std::vector<std::vector<glm::vec2>>> PolygonOperation::mark(Polygon& clipPoly, Polygon& subPoly, MarkType markType) {

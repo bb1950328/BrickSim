@@ -275,20 +275,25 @@ namespace bricksim::controller {
                     {"initialize keyboard shortcuts", keyboard_shortcut_manager::initialize},
                     {"initialize orientation cube generator", graphics::orientation_cube::initialize},
             };
+
+            const auto drawWaitMessageInFrame = [](const std::string& message, float progress) {
+                gui::beginFrame();
+                gui::drawWaitMessage(message, progress);
+                gui::endFrame();
+
+                executeOpenGL([]() {
+                    glfwSwapBuffers(window);
+                    glfwPollEvents();
+                });
+            };
+
             constexpr float progressStep = 1.0f / std::size(initSteps);
             for (int i = 0; i < std::size(initSteps); ++i) {
                 auto& currentStep = initSteps[i];
                 currentStep.startThread();
                 while (!currentStep.isDone()) {
                     if (gui::isSetupDone()) {
-                        gui::beginFrame();
-                        gui::drawWaitMessage(currentStep.getName(), progressStep * (i + currentStep.getProgress()));
-                        gui::endFrame();
-
-                        executeOpenGL([]() {
-                            glfwSwapBuffers(window);
-                            glfwPollEvents();
-                        });
+                        drawWaitMessageInFrame(currentStep.getName(), progressStep * (i + currentStep.getProgress()));
                     } else {
                         std::chrono::milliseconds sleepTime(16);
                         std::this_thread::sleep_for(sleepTime);
@@ -296,6 +301,8 @@ namespace bricksim::controller {
                 }
                 currentStep.joinThread();
             }
+
+            drawWaitMessageInFrame("initialisation finished", 1.f);
 
             fileWatcher = std::make_shared<efsw::FileWatcher>();
             fileWatcher->watch();
@@ -442,17 +449,19 @@ namespace bricksim::controller {
             lastFrameTimes[lastFrameTimesStartIdx] = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0f;
             lastFrameTimesStartIdx = (lastFrameTimesStartIdx + 1) % lastFrameTimesSize;
 
-            plBegin("glFinish");
-            glFinish();
-            plEnd("glFinish");
+            executeOpenGL([]() {
+                plBegin("glFinish");
+                glFinish();
+                plEnd("glFinish");
 
-            plBegin("glfwSwapBuffers");
-            glfwSwapBuffers(window);
-            plEnd("glfwSwapBuffers");
+                plBegin("glfwSwapBuffers");
+                glfwSwapBuffers(window);
+                plEnd("glfwSwapBuffers");
 
-            plBegin("glfwPollEvents");
-            glfwPollEvents();
-            plEnd("glfwPollEvents");
+                plBegin("glfwPollEvents");
+                glfwPollEvents();
+                plEnd("glfwPollEvents");
+            });
         }
         config::set(config::SCREEN_WIDTH, windowWidth);
         config::set(config::SCREEN_HEIGHT, windowHeight);

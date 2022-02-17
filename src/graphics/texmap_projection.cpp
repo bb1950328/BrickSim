@@ -22,7 +22,7 @@ namespace bricksim::graphics::texmap_projection {
         const glm::vec3 texP1(startCommand->x1, startCommand->y1, startCommand->z1);
         const glm::vec3 texP2(startCommand->x2, startCommand->y2, startCommand->z2);
         const glm::vec3 texP3(startCommand->x3, startCommand->y3, startCommand->z3);
-        const glm::vec3 texP4 = texP2 + texP3 - texP1;
+        const glm::vec3 texP4 = texP2 + texP3 - texP1;//texP1 + 2.f * ((texP2 + texP3) / 2.f - texP1)
 
         const auto& p1 = points[0];
         const auto& p2 = points[1];
@@ -202,10 +202,10 @@ namespace bricksim::graphics::texmap_projection {
                     size_t baseIndex = res.plainColorVertices.size();
                     for (auto coord2d: poly) {
                         const glm::vec3 coord3d = planeConverter.convert2dTo3d(coord2d);
-                        res.plainColorVertices.push_back({coord3d, polygonPlaneRay.direction});
+                        //res.plainColorVertices.push_back({coord3d, polygonPlaneRay.direction});
                     }
                     for (const auto& idx: triangleIndices) {
-                        res.plainColorIndices.push_back(baseIndex + idx);
+                        //res.plainColorIndices.push_back(baseIndex + idx);
                     }
                 }
             }

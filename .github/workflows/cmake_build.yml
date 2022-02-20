@@ -271,11 +271,6 @@ jobs:
           restore-keys: |
             ccache-${{ runner.os }}-x86_64-
 
-      - name: Install packages
-        run: |
-          pacman -S git unzip mingw-w64-x86_64-toolchain mingw-w64-x86_64-gcc base-devel mingw-w64-x86_64-cmake libcurl-devel mingw-w64-x86_64-freeglut mingw-w64-x86_64-glm --noconfirm
-          ls /c/msys64/mingw64/bin/
-
       - name: Build
         env:
           CC: /C/msys64/mingw64/bin/gcc.exe
@@ -288,6 +283,8 @@ jobs:
           CCACHE_COMPRESSLEVEL: 6
           CCACHE_MAXSIZE: 500M
         run: |
+          pacman -S git unzip mingw-w64-x86_64-toolchain mingw-w64-x86_64-gcc base-devel mingw-w64-x86_64-cmake libcurl-devel mingw-w64-x86_64-freeglut mingw-w64-x86_64-glm --noconfirm
+          ls /c/msys64/mingw64/bin/
           mkdir -p cmake-build/release64
           cd cmake-build/release64
           cmake -G "MSYS Makefiles" ../.. -DCMAKE_PREFIX_PATH=/C/mingw64 -DCMAKE_MAKE_PROGRAM=/C/msys64/usr/bin/make.exe \

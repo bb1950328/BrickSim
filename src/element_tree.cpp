@@ -442,13 +442,13 @@ namespace bricksim::etree {
     }
 
     mesh_identifier_t TexmapNode::getMeshIdentifier() const {
-        /*if (projectionMethod == ldr::TexmapStartCommand::PLANAR) {
+        if (projectionMethod == ldr::TexmapStartCommand::PLANAR) {
             return util::combinedHash(projectionMethod, textureFilename);
         } else if (projectionMethod == ldr::TexmapStartCommand::SPHERICAL) {
             return util::combinedHash(projectionMethod, textureFilename, a, glm::length2(p3 - p1));
         } else {
             return util::combinedHash(projectionMethod, textureFilename, a, b, glm::length2(p2 - p1));
-        }*/
+        }
     }
 
     void TexmapNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {

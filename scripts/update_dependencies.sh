@@ -11,6 +11,10 @@ cd src/lib/Catch2 || exit 1
 git fetch --tags
 git checkout "$(get_latest_release catchorg/Catch2)"
 
+cd ../Compile-time-hash-functions || exit 1
+git checkout master
+git pull
+
 cd ../cpuinfo || exit 1
 git checkout master
 git pull
@@ -18,6 +22,18 @@ git pull
 cd ../curl || exit 1
 git fetch --tags
 git checkout "$(get_latest_release curl/curl)"
+
+cd ../earcut.hpp || exit 1
+git fetch --tags
+git checkout "$(get_latest_release mapbox/earcut.hpp)"
+
+cd ../esfw || exit 1
+git checkout master
+git pull
+
+cd ../fast_float || exit 1
+git fetch --tags
+git checkout "$(get_latest_release fastfloat/fast_float)"
 
 cd ../glfw || exit 1
 git checkout master
@@ -45,9 +61,17 @@ cd ../magic_enum || exit 1
 git checkout master
 git pull
 
+cd ../palanteer || exit 1
+git fetch --tags
+git checkout "$(get_latest_release dfeneyrou/palanteer)"
+
 cd ../rapidjson || exit 1
 git checkout master
 git pull
+
+cd ../robin-hood-hashing || exit 1
+git fetch --tags
+git checkout "$(get_latest_release martinus/robin-hood-hashing)"
 
 cd ../spdlog || exit 1
 git checkout v1.x

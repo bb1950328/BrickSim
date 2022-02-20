@@ -10,7 +10,13 @@ namespace bricksim::mesh {
     uomap_t<mesh_key_t, std::shared_ptr<Mesh>> SceneMeshCollection::allMeshes;
 
     mesh_key_t SceneMeshCollection::getMeshKey(const std::shared_ptr<etree::MeshNode>& node, bool windingOrderInverse, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
-        return {node->getMeshIdentifier(), windingOrderInverse, texmap == nullptr ? 0 : robin_hood::hash<ldr::TexmapStartCommand>()(*texmap)};
+        return {
+                node->getMeshIdentifier(),
+                windingOrderInverse,
+                texmap == nullptr
+                        ? 0
+                        : robin_hood::hash<ldr::TexmapStartCommand>()(*texmap),
+        };
     }
 
     std::shared_ptr<Mesh> SceneMeshCollection::getMesh(mesh_key_t key, const std::shared_ptr<etree::MeshNode>& node, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
@@ -102,6 +108,7 @@ namespace bricksim::mesh {
                     parentColor = color;
                 }
 
+                spdlog::debug("getting mesh key for {}", meshNode->getDescription());
                 auto meshKey = getMeshKey(meshNode, geometry::doesTransformationInverseWindingOrder(absoluteTransformation), texmap);
                 auto mesh = getMesh(meshKey, meshNode, texmap);
                 unsigned int elementId;

@@ -302,6 +302,10 @@ jobs:
           cmake --build . --target BrickSim BrickSimTests --config Release  -j $(nproc --all)
           ccache -s # print statistics
 
+      - if: failure()
+        name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Upload BrickSimRawBinary
         uses: actions/upload-artifact@v2
         with:

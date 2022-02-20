@@ -254,7 +254,7 @@ jobs:
           update: true
 
       - name: Install packages
-        run: pacman -S git unzip mingw-w64-x86_64-toolchain mingw-w64-x86_64-gcc base-devel mingw-w64-x86_64-cmake libcurl-devel mingw-w64-x86_64-freeglut mingw-w64-x86_64-glm
+        run: pacman -S git unzip mingw-w64-x86_64-toolchain mingw-w64-x86_64-gcc base-devel mingw-w64-x86_64-cmake libcurl-devel mingw-w64-x86_64-freeglut mingw-w64-x86_64-glm --noconfirm
 
       - name: Setup workspace
         run: ./setup_workspace.sh

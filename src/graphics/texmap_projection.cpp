@@ -202,10 +202,10 @@ namespace bricksim::graphics::texmap_projection {
                     size_t baseIndex = res.plainColorVertices.size();
                     for (auto coord2d: poly) {
                         const glm::vec3 coord3d = planeConverter.convert2dTo3d(coord2d);
-                        //res.plainColorVertices.push_back({coord3d, polygonPlaneRay.direction});
+                        res.plainColorVertices.push_back({coord3d, polygonPlaneRay.direction});
                     }
                     for (const auto& idx: triangleIndices) {
-                        //res.plainColorIndices.push_back(baseIndex + idx);
+                        res.plainColorIndices.push_back(baseIndex + idx);
                     }
                 }
             }

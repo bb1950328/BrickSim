@@ -191,23 +191,24 @@ namespace bricksim::graphics {
                 allShaders[TEXTURED_TRIANGLE_SELECTION] = std::make_unique<Shader>("resources/shaders/textured_triangle_selection_shader.vsh", "resources/shaders/simple_color_forwarding_shader.fsh");
             } else {
                 spdlog::info("loading shaders from embedded data");
-                allShaders[TRIANGLE] = std::make_unique<Shader>((const char*)resources::shaders::triangle_shader_vsh.begin(), (const char*)resources::shaders::triangle_shader_vsh.end(),
-                                                                (const char*)resources::shaders::triangle_shader_fsh.begin(), (const char*)resources::shaders::triangle_shader_fsh.end());
-                allShaders[TEXTURED_TRIANGLE] = std::make_unique<Shader>((const char*)resources::shaders::textured_triangle_shader_vsh.begin(), (const char*)resources::shaders::textured_triangle_shader_vsh.end(),
-                                                                         (const char*)resources::shaders::textured_triangle_shader_fsh.begin(), (const char*)resources::shaders::textured_triangle_shader_fsh.end());
-                allShaders[LINE] = std::make_unique<Shader>((const char*)resources::shaders::line_shader_vsh.begin(), (const char*)resources::shaders::line_shader_vsh.end(),
-                                                            (const char*)resources::shaders::line_shader_fsh.begin(), (const char*)resources::shaders::line_shader_fsh.end());
-                allShaders[OPTIONAL_LINE] = std::make_unique<Shader>((const char*)resources::shaders::optional_line_shader_vsh.begin(), (const char*)resources::shaders::optional_line_shader_vsh.end(),
-                                                                     (const char*)resources::shaders::line_shader_fsh.begin(), (const char*)resources::shaders::line_shader_fsh.end(),
-                                                                     (const char*)resources::shaders::optional_line_shader_gsh.begin(), (const char*)resources::shaders::optional_line_shader_gsh.end());
-                allShaders[OVERLAY] = std::make_unique<Shader>((const char*)resources::shaders::overlay_shader_vsh.begin(), (const char*)resources::shaders::overlay_shader_vsh.end(),
-                                                               (const char*)resources::shaders::simple_color_forwarding_shader_fsh.begin(), (const char*)resources::shaders::simple_color_forwarding_shader_fsh.end());
-                allShaders[TRIANGLE_SELECTION] = std::make_unique<Shader>((const char*)resources::shaders::triangle_selection_shader_vsh.begin(), (const char*)resources::shaders::triangle_selection_shader_vsh.end(),
-                                                                          (const char*)resources::shaders::simple_color_forwarding_shader_fsh.begin(), (const char*)resources::shaders::simple_color_forwarding_shader_fsh.end());
-                allShaders[TEXTURED_TRIANGLE_SELECTION] = std::make_unique<Shader>((const char*)resources::shaders::textured_triangle_selection_shader_vsh.begin(),
-                                                                                   (const char*)resources::shaders::textured_triangle_selection_shader_vsh.end(),
-                                                                                   (const char*)resources::shaders::simple_color_forwarding_shader_fsh.begin(),
-                                                                                   (const char*)resources::shaders::simple_color_forwarding_shader_fsh.end());
+
+                auto createShaderVF = [](const auto& vertexShader, const auto& fragmentShader) {
+                    return std::make_unique<Shader>((const char*)(& (*vertexShader.begin())), (const char*)(&(*vertexShader.end())),
+                                                    (const char*)(&(*fragmentShader.begin())), (const char*)(&(*fragmentShader.end())));
+                };
+                auto createShaderVFG = [](const auto& vertexShader, const auto& fragmentShader, const auto& geometryShader) {
+                    return std::make_unique<Shader>((const char*)(&(*vertexShader.begin())), (const char*)(&(*vertexShader.end())),
+                                                    (const char*)(&(*fragmentShader.begin())), (const char*)(&(*fragmentShader.end())),
+                                                    (const char*)(&(*geometryShader.begin())), (const char*)(&(*geometryShader.end())));
+                };
+                
+                allShaders[TRIANGLE] = createShaderVF(resources::shaders::triangle_shader_vsh, resources::shaders::triangle_shader_fsh);
+                allShaders[TEXTURED_TRIANGLE] = createShaderVF(resources::shaders::textured_triangle_shader_vsh, resources::shaders::textured_triangle_shader_fsh);
+                allShaders[LINE] = createShaderVF(resources::shaders::line_shader_vsh, resources::shaders::line_shader_fsh);
+                allShaders[OPTIONAL_LINE] = createShaderVFG(resources::shaders::optional_line_shader_vsh, resources::shaders::line_shader_fsh, resources::shaders::optional_line_shader_gsh);
+                allShaders[OVERLAY] = createShaderVF(resources::shaders::overlay_shader_vsh, resources::shaders::simple_color_forwarding_shader_fsh);
+                allShaders[TRIANGLE_SELECTION] = createShaderVF(resources::shaders::triangle_selection_shader_vsh, resources::shaders::simple_color_forwarding_shader_fsh);
+                allShaders[TEXTURED_TRIANGLE_SELECTION] = createShaderVF(resources::shaders::textured_triangle_selection_shader_vsh, resources::shaders::simple_color_forwarding_shader_fsh);
             }
             spdlog::debug("shader IDs: "
                           "TRIANGLE={} "

@@ -7,64 +7,72 @@ foreach (SDKPATH IN LISTS /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /A
     endif ()
 endforeach ()
 
-#bash executable
-if (EXISTS "C:\\msys64\\usr\\bin\\bash.exe")
-    set(BASH_EXECUTABLE "C:\\msys64\\usr\\bin\\bash.exe")
-else ()
-    set(BASH_EXECUTABLE "bash")
-endif ()
-message(STATUS "bash executable: ${BASH_EXECUTABLE}")
-
-execute_process(
-        COMMAND ${BASH_EXECUTABLE} "--version"
-        OUTPUT_VARIABLE BASH_VERSION_OUTPUT
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        RESULT_VARIABLE EXIT_CODE
-)
-if (EXIT_CODE AND NOT EXIT_CODE EQUAL 0)
-    message(WARNING "calling bash failed with exit code ${EXIT_CODE}")
+if (MSVC)
+    message(WARNING "getting git version info currently not implemented on MSVC")
     set(GIT_COMMIT_HASH "unknown")
     set(GIT_COMMIT_COUNT "0")
     set(TOTAL_HOURS "0.0")
     set(GIT_VERSION_TAG "v0.0.0")
 else()
-    if (NOT DEFINED GIT_COMMIT_HASH)
-        execute_process(
-                COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_commit_hash.sh"
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                OUTPUT_VARIABLE GIT_COMMIT_HASH
-                OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
+    #bash executable
+    if (EXISTS "C:\\msys64\\usr\\bin\\bash.exe")
+        set(BASH_EXECUTABLE "C:\\msys64\\usr\\bin\\bash.exe")
+    else ()
+        set(BASH_EXECUTABLE "bash")
     endif ()
+    message(STATUS "bash executable: ${BASH_EXECUTABLE}")
+
+    execute_process(
+            COMMAND ${BASH_EXECUTABLE} "--version"
+            OUTPUT_VARIABLE BASH_VERSION_OUTPUT
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            RESULT_VARIABLE EXIT_CODE
+    )
+    if (EXIT_CODE AND NOT EXIT_CODE EQUAL 0)
+        message(WARNING "calling bash failed with exit code ${EXIT_CODE}")
+        set(GIT_COMMIT_HASH "unknown")
+        set(GIT_COMMIT_COUNT "0")
+        set(TOTAL_HOURS "0.0")
+        set(GIT_VERSION_TAG "v0.0.0")
+    else()
+        if (NOT DEFINED GIT_COMMIT_HASH)
+            execute_process(
+                    COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_commit_hash.sh"
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    OUTPUT_VARIABLE GIT_COMMIT_HASH
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+        endif ()
 
 
-    if (NOT DEFINED GIT_COMMIT_COUNT)
-        execute_process(
-                COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_commit_count.sh"
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                OUTPUT_VARIABLE GIT_COMMIT_COUNT
-                OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-    endif ()
+        if (NOT DEFINED GIT_COMMIT_COUNT)
+            execute_process(
+                    COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_commit_count.sh"
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    OUTPUT_VARIABLE GIT_COMMIT_COUNT
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+        endif ()
 
-    if (NOT DEFINED TOTAL_HOURS)
-        execute_process(
-                COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_total_hours.sh"
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                OUTPUT_VARIABLE TOTAL_HOURS
-                OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-    endif ()
+        if (NOT DEFINED TOTAL_HOURS)
+            execute_process(
+                    COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_total_hours.sh"
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    OUTPUT_VARIABLE TOTAL_HOURS
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+        endif ()
 
-    if (NOT DEFINED GIT_VERSION_TAG)
-        execute_process(
-                COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_tag.sh"
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                OUTPUT_VARIABLE GIT_VERSION_TAG
-                OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
+        if (NOT DEFINED GIT_VERSION_TAG)
+            execute_process(
+                    COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_tag.sh"
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    OUTPUT_VARIABLE GIT_VERSION_TAG
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+        endif ()
     endif ()
-endif ()
+endif()
 
 message(STATUS "BrickSim git commit hash:       ${GIT_COMMIT_HASH}")
 message(STATUS "BrickSim git commit count:      ${GIT_COMMIT_COUNT}")
@@ -123,6 +131,7 @@ target_link_libraries(BrickSimLib PRIVATE glfw)
 target_link_libraries(BrickSimLib PRIVATE ${GLFW_LIBRARIES})
 target_compile_definitions(BrickSimLib PUBLIC GLFW_INCLUDE_NONE)
 
+
 # GLUT
 find_package(GLUT REQUIRED)
 target_include_directories(BrickSimLib PRIVATE ${GLUT_INCLUDE_DIRS})
@@ -144,7 +153,9 @@ set(ENABLE_LZMA OFF)
 set(ENABLE_ZSTD OFF)
 add_subdirectory(src/lib/libzip)
 target_link_libraries(BrickSimLib PUBLIC libzip::zip)
-target_compile_options(zip PRIVATE -Wno-nullability-completeness)
+if (NOT MSVC)
+    target_compile_options(zip PRIVATE -Wno-nullability-completeness)
+endif()
 
 # SqliteCpp
 set(SQLITECPP_USE_STACK_PROTECTION OFF)
@@ -261,6 +272,11 @@ option(BRICKSIM_USE_OPTIMIZED_VARIANTS "Use optimized variants of certain functi
 if (BRICKSIM_USE_OPTIMIZED_VARIANTS)
     target_compile_definitions(BrickSimLib PUBLIC BRICKSIM_USE_OPTIMIZED_VARIANTS)
 endif ()
+
+if(MSVC)
+    target_compile_definitions(BrickSimLib PUBLIC _USE_MATH_DEFINES)
+    target_compile_definitions(BrickSimLib PUBLIC /wd4068)# warning C4068: unknown pragma
+endif()
 
 target_include_directories(BrickSimLib PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>

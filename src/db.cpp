@@ -141,9 +141,9 @@ namespace bricksim::db {
             SQLite::Statement stmt(cacheDb.value(), "SELECT response FROM requestCache WHERE url=?;");
             stmt.bind(1, url);
             if (stmt.executeStep()) {
-                return std::make_optional<std::string>(stmt.getColumn(0));
+                return std::make_optional<std::string>(stmt.getColumn(0).getString());
             }
-            return {};
+            return std::nullopt;
         }
 
         void put(const std::string& url, const std::string& response) {
@@ -196,16 +196,16 @@ namespace bricksim::db {
             SQLite::Statement query(configDb.value(), "SELECT value FROM strings WHERE key=?");
             query.bind(1, key);
             if (query.executeStep()) {
-                return query.getColumn(0);
+                return std::make_optional<std::string>(query.getColumn(0).getString());
             }
-            return {};
+            return std::nullopt;
         }
 
         std::optional<int> getInt(const char* key) {
             SQLite::Statement query(configDb.value(), "SELECT value FROM ints WHERE key=?");
             query.bind(1, key);
             if (query.executeStep()) {
-                return query.getColumn(0);
+                return query.getColumn(0).getInt();
             }
             return {};
         }
@@ -296,10 +296,9 @@ namespace bricksim::db {
             SQLite::Statement stmt(cacheDb.value(), "SELECT name FROM files WHERE name=?;");
             stmt.bind(1, name);
             if (stmt.executeStep()) {
-                return stmt.getColumn(0);
-            } else {
-                return {};
+                return std::make_optional<std::string>(stmt.getColumn(0).getString());
             }
+            return std::nullopt;
         }
 
         std::optional<Entry> findFile(const std::string& name) {

@@ -327,7 +327,7 @@ namespace bricksim::controller {
             graphics::shaders::cleanup();
             activeEditor = nullptr;
             for (const auto &item : editors) {
-                if (!item.unique()) {
+                if (item.use_count() > 1) {
                     spdlog::warn("somebody else still has a shared_ptr to editor \"{}\". use_count={}", item->getFilename(), item.use_count());
                 }
             }

@@ -15,6 +15,12 @@
 
 #ifdef BRICKSIM_PLATFORM_WINDOWS
     #include <windows.h>
+    #ifdef min
+        #undef min
+    #endif
+    #ifdef max
+        #undef max
+    #endif
 #endif
 
 namespace bricksim::util {

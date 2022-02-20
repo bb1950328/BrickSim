@@ -8,6 +8,7 @@
 #include <queue>
 #include <spdlog/spdlog.h>
 #include <utility>
+#include <numeric>
 
 namespace bricksim::gui::modals {
 

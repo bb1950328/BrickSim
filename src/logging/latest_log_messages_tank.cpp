@@ -34,7 +34,7 @@ namespace bricksim::logging::latest_messages_tank {
     iterator::self_type iterator::operator++() {
         self_type i = *this;
         if (itA != endA && (itB == endB || itA->timestamp < itB->timestamp)) {
-            current = itA.base();
+            current = &(*itA);
             itA++;
         } else if (itB != endB) {
             current = &(*itB);

@@ -91,7 +91,7 @@ namespace bricksim::ldr::file_repo {
         const auto readBytes = zip_fread(file, &result[0], stat.size);
         if (readBytes != stat.size) {
             spdlog::warn("file {} in zip library has reported size of {} bytes, but only {} bytes read", nameRelativeToRoot, stat.size, readBytes);
-            result.resize(std::max(static_cast<typeof(readBytes)>(0), readBytes));
+            result.resize(std::max(static_cast<decltype(readBytes)>(0), readBytes));
         }
 
         zip_fclose(file);
@@ -138,7 +138,7 @@ namespace bricksim::ldr::file_repo {
         const auto readBytes = zip_fread(file, &result->data[0], stat.size);
         if (readBytes != stat.size) {
             spdlog::warn("file {} in zip library has reported size of {} bytes, but only {} bytes read", nameRelativeToRoot, stat.size, readBytes);
-            result->data.resize(std::max(static_cast<typeof(readBytes)>(0), readBytes));
+            result->data.resize(std::max(static_cast<decltype(readBytes)>(0), readBytes));
         }
 
         zip_fclose(file);

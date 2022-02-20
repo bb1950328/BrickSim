@@ -3,6 +3,7 @@
 #include "../helpers/geometry.h"
 #include "../helpers/util.h"
 #include <glad/glad.h>
+#include <cmath>
 
 namespace bricksim::overlay2d {
     namespace {

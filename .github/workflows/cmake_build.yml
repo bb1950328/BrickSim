@@ -5,7 +5,6 @@ on:
     branches:
       - master
       - stable
-      - "#59_texmap"
     paths-ignore:
       - "docs/**"
       - '**/*.md'
@@ -257,6 +256,7 @@ jobs:
             git
             unzip
             mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-gcc
             base-devel
             mingw-w64-x86_64-cmake
             libcurl-devel
@@ -285,6 +285,7 @@ jobs:
         env:
           CC: /C/msys64/mingw64/bin/gcc.exe
           CXX: /C/msys64/mingw64/bin/g++.exe
+          AR: /C/msys64/mingw64/bin/ar.exe
 
           CCACHE_BASEDIR: ${{runner.workspace}}
           CCACHE_DIR: ${{runner.workspace}}/.ccache

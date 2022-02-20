@@ -4,6 +4,7 @@
 #include "../controller.h"
 #include "../graphics/texture.h"
 #include "../helpers/parts_library_downloader.h"
+#include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include "../ldr/file_repo.h"
 #include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
@@ -572,7 +573,7 @@ namespace bricksim::gui {
                 }
                 ImGui::BulletText("Download");
                 ImGui::SameLine();
-                gui_internal::drawHyperlinkButton("http://www.ldraw.org/library/updates/complete.zip");
+                gui_internal::drawHyperlinkButton("https://www.ldraw.org/library/updates/complete.zip");
                 ImGui::SameLine();
                 ImGui::Text("and unzip it to the path above");
                 ImGui::SameLine();
@@ -643,7 +644,7 @@ namespace bricksim::gui {
 
                         float progressFraction = 1.0f * progress.first / progress.second;
                         std::string speedTxt = std::to_string(progressFraction) + "%"
-                                               + util::formatBytesValue(parts_library_downloader::getSpeedBytesPerSecond()) + "/s";
+                                               + stringutil::formatBytesValue(parts_library_downloader::getSpeedBytesPerSecond()) + "/s";
                         ImGui::ProgressBar(progressFraction, ImVec2(-FLT_MIN, 0), speedTxt.c_str());
                         if (ImGui::Button(ICON_FA_STOP_CIRCLE " Cancel and exit program")) {
                             parts_library_downloader::stopDownload();

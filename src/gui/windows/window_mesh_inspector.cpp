@@ -52,107 +52,108 @@ namespace bricksim::gui::windows::mesh_inspector {
                     ImGui::EndCombo();
                 }
 
-                bool copyVerticesToClipboard = ImGui::Button(ICON_FA_CLIPBOARD " Copy Vertices as CSV");
-                bool copyIndicesToClipboard = false;
-                if (currentMode == 0) {
-                    ImGui::SameLine();
-                    copyIndicesToClipboard = ImGui::Button(ICON_FA_CLIPBOARD
-                                                           " Copy Indices");
-                }
-                std::stringstream toClipboard;
-
-                if (copyVerticesToClipboard) {
-                    toClipboard << "pos.x;pos.y;pos.z;normal.x;normal.y;normal.z" << std::endl;
-                }
-
-                auto drawVertexRow = [&copyVerticesToClipboard, &toClipboard](unsigned int index, const mesh::TriangleVertex& vertex) {
-                    ImGui::TableNextRow();
-                    ImGui::PushItemWidth(-1.0f);
-
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%u", index);
-
-                    ImGui::TableNextColumn();
-                    ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::RED);
-                    ImGui::Text("%.2f", vertex.position.x);
-                    ImGui::PopStyleColor();
-                    ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::GREEN);
-                    ImGui::SameLine();
-                    ImGui::Text("%.2f", vertex.position.y);
-                    ImGui::PopStyleColor();
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4, 0.5, 1, 1));
-                    ImGui::SameLine();
-                    ImGui::Text("%.2f", vertex.position.z);
-                    ImGui::PopStyleColor();
-
-                    ImGui::TableNextColumn();
-                    ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::RED);
-                    ImGui::Text("%.2f", vertex.normal.x);
-                    ImGui::PopStyleColor();
-                    ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::GREEN);
-                    ImGui::SameLine();
-                    ImGui::Text("%.2f", vertex.normal.y);
-                    ImGui::PopStyleColor();
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4, 0.5, 1, 1));
-                    ImGui::SameLine();
-                    ImGui::Text("%.2f", vertex.normal.z);
-                    ImGui::PopStyleColor();
-
-                    ImGui::PopItemWidth();
-
-                    if (copyVerticesToClipboard) {
-                        toClipboard << vertex.position.x << ';' << vertex.position.y << ';' << vertex.position.z;
-                        toClipboard << ';' << vertex.normal.x << ';' << vertex.normal.y << ';' << vertex.normal.z << std::endl;
-                    }
-                };
-
-                float totalAvailableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 2;
-                float verticesTableHeight = currentMode == 0 ? totalAvailableHeight / 2 : totalAvailableHeight;
-                float indicesTableHeight = currentMode == 0 ? verticesTableHeight : 0.0f;
-
                 const auto& triangleData = mesh->getTriangleData(currentColor);
 
-                if (ImGui::BeginChild("##triangleVerticesTableWrapper", ImVec2(0.0f, verticesTableHeight))) {
-                    if (ImGui::BeginTable("##triangleVerticesTable", 3, ImGuiTableFlags_Borders)) {
-                        ImGui::TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 3);
-                        ImGui::TableSetupColumn("Position", ImGuiTableColumnFlags_WidthStretch, 0.5f);
-                        ImGui::TableSetupColumn("Normal", ImGuiTableColumnFlags_WidthStretch, 0.5f);
-                        ImGui::TableHeadersRow();
-
-                        /* todo
-                         * if (currentMode == 0) {
-                            for (int index = 0; index < triangleData.getVertexCount(); ++index) {
-                                drawVertexRow(index, triangleData.vertices[index]);
-                            }
-                        } else {
-                            for (const auto& index: triangleData.indices) {
-                                drawVertexRow(index, triangleData.vertices[index]);
-                            }
-                        }*/
-
-                        ImGui::EndTable();
+                if (triangleData.isDataAlreadyDeleted()) {
+                    ImGui::Text("Triangle data was already uploaded to GPU and deleted from CPU RAM.");
+                } else {
+                    bool copyVerticesToClipboard = ImGui::Button(ICON_FA_CLIPBOARD " Copy Vertices as CSV");
+                    bool copyIndicesToClipboard = false;
+                    if (currentMode == 0) {
+                        ImGui::SameLine();
+                        copyIndicesToClipboard = ImGui::Button(ICON_FA_CLIPBOARD
+                                                               " Copy Indices");
                     }
-                    ImGui::EndChild();
-                }
+                    std::stringstream toClipboard;
 
-                if (currentMode == 0 && ImGui::BeginChild("##triangleIndicesTableWrapper", ImVec2(0.0f, indicesTableHeight))) {
-                    if (ImGui::BeginTable("##triangleIndicesTable", 1, ImGuiTableFlags_Borders)) {
-                        /*for (const auto& index: indexList) {
-                            ImGui::TableNextRow();
-                            ImGui::TableNextColumn();
-                            ImGui::Text("%u", index);
-                            if (copyIndicesToClipboard) {
-                                toClipboard << index << std::endl;
-                            }
-                        }*/
-                        ImGui::EndTable();
+                    if (copyVerticesToClipboard) {
+                        toClipboard << "pos.x;pos.y;pos.z;normal.x;normal.y;normal.z" << std::endl;
                     }
-                    ImGui::EndChild();
-                }
+                    auto drawVertexRow = [&copyVerticesToClipboard, &toClipboard](unsigned int index, const mesh::TriangleVertex& vertex) {
+                        ImGui::TableNextRow();
+                        ImGui::PushItemWidth(-1.0f);
 
-                if (copyVerticesToClipboard | copyIndicesToClipboard) {
-                    std::string tmp = toClipboard.str();
-                    glfwSetClipboardString(getWindow(), tmp.c_str());
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%u", index);
+
+                        ImGui::TableNextColumn();
+                        ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::RED);
+                        ImGui::Text("%.2f", vertex.position.x);
+                        ImGui::PopStyleColor();
+                        ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::GREEN);
+                        ImGui::SameLine();
+                        ImGui::Text("%.2f", vertex.position.y);
+                        ImGui::PopStyleColor();
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4, 0.5, 1, 1));
+                        ImGui::SameLine();
+                        ImGui::Text("%.2f", vertex.position.z);
+                        ImGui::PopStyleColor();
+
+                        ImGui::TableNextColumn();
+                        ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::RED);
+                        ImGui::Text("%.2f", vertex.normal.x);
+                        ImGui::PopStyleColor();
+                        ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::GREEN);
+                        ImGui::SameLine();
+                        ImGui::Text("%.2f", vertex.normal.y);
+                        ImGui::PopStyleColor();
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4, 0.5, 1, 1));
+                        ImGui::SameLine();
+                        ImGui::Text("%.2f", vertex.normal.z);
+                        ImGui::PopStyleColor();
+
+                        ImGui::PopItemWidth();
+
+                        if (copyVerticesToClipboard) {
+                            toClipboard << vertex.position.x << ';' << vertex.position.y << ';' << vertex.position.z;
+                            toClipboard << ';' << vertex.normal.x << ';' << vertex.normal.y << ';' << vertex.normal.z << std::endl;
+                        }
+                    };
+
+                    float totalAvailableHeight = ImGui::GetContentRegionAvail().y - ImGui::GetFontSize() * 2;
+                    float verticesTableHeight = currentMode == 0 ? totalAvailableHeight / 2 : totalAvailableHeight;
+                    float indicesTableHeight = currentMode == 0 ? verticesTableHeight : 0.0f;
+                    if (ImGui::BeginChild("##triangleVerticesTableWrapper", ImVec2(0.0f, verticesTableHeight))) {
+                        if (ImGui::BeginTable("##triangleVerticesTable", 3, ImGuiTableFlags_Borders)) {
+                            ImGui::TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize() * 3);
+                            ImGui::TableSetupColumn("Position", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+                            ImGui::TableSetupColumn("Normal", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+                            ImGui::TableHeadersRow();
+
+                            if (currentMode == 0) {
+                                for (int index = 0; index < triangleData.getVertices().size(); ++index) {
+                                    drawVertexRow(index, triangleData.getVertices()[index]);
+                                }
+                            } else {
+                                for (const auto& index: triangleData.getIndices()) {
+                                    drawVertexRow(index, triangleData.getVertices()[index]);
+                                }
+                            }
+
+                            ImGui::EndTable();
+                        }
+                        ImGui::EndChild();
+                    }
+
+                    if (currentMode == 0 && ImGui::BeginChild("##triangleIndicesTableWrapper", ImVec2(0.0f, indicesTableHeight))) {
+                        if (ImGui::BeginTable("##triangleIndicesTable", 1, ImGuiTableFlags_Borders)) {
+                            for (const auto& index: triangleData.getIndices()) {
+                                ImGui::TableNextRow();
+                                ImGui::TableNextColumn();
+                                ImGui::Text("%u", index);
+                                if (copyIndicesToClipboard) {
+                                    toClipboard << index << std::endl;
+                                }
+                            }
+                            ImGui::EndTable();
+                        }
+                        ImGui::EndChild();
+                    }
+
+                    if (copyVerticesToClipboard | copyIndicesToClipboard) {
+                        std::string tmp = toClipboard.str();
+                        glfwSetClipboardString(getWindow(), tmp.c_str());
+                    }
                 }
 
                 ImGui::EndTabItem();

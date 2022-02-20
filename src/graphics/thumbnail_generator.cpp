@@ -22,7 +22,7 @@ namespace bricksim::graphics {
             auto before = std::chrono::high_resolution_clock::now();
             scene->setImageSize({size, size});
 
-            auto partNode = std::make_shared<etree::PartNode>(ldrFile, color, nullptr);
+            auto partNode = std::make_shared<etree::PartNode>(ldrFile, color, nullptr, nullptr);
             scene->setRootNode(partNode);
             camera->setRootNode(partNode);
 

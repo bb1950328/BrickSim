@@ -27,7 +27,7 @@ namespace bricksim::graphics::orientation_cube {
 
             OrientationCubeSideMeshNode(const std::shared_ptr<etree::Node>& parent, CubeSide side);
 
-            void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
+            void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
 
             CubeSide getSide() const;
         };

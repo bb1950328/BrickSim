@@ -34,7 +34,7 @@ namespace bricksim::gui::windows {
                     {Id::VIEW_3D, ICON_FA_CUBES " 3D View", true, view3d::draw},
                     {Id::ELEMENT_TREE, ICON_FA_LIST " Element Tree", true, element_tree::draw},
                     {Id::ELEMENT_PROPERTIES, ICON_FA_WRENCH " Element Properties", true, element_properties::draw},
-                    {Id::PART_PALETTE, ICON_FA_TH " Part Palette", true, part_palette::draw},
+                    {Id::PART_PALETTE, ICON_FA_TH " Part Palette", false/*todo true*/, part_palette::draw},
                     {Id::SETTINGS, ICON_FA_SLIDERS_H " Settings", false, settings::draw},
                     {Id::ABOUT, ICON_FA_INFO_CIRCLE " About", false, about::draw},
                     {Id::SYSTEM_INFO, ICON_FA_MICROCHIP " System Info", false, system_info::draw},

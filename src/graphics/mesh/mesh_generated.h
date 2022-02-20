@@ -23,7 +23,7 @@ namespace bricksim::mesh::generated {
         UVSphereNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent);
         std::string getDescription() override;
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
     };
 
     class ArrowNode : public GeneratedMeshNode {
@@ -34,7 +34,7 @@ namespace bricksim::mesh::generated {
         ArrowNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent);
         std::string getDescription() override;
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
     };
 
     class QuarterTorusNode : public GeneratedMeshNode {
@@ -46,7 +46,7 @@ namespace bricksim::mesh::generated {
         QuarterTorusNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent);
         std::string getDescription() override;
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
     };
 
     class CubeNode : public GeneratedMeshNode {
@@ -54,6 +54,6 @@ namespace bricksim::mesh::generated {
         CubeNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent);
         std::string getDescription() override;
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
     };
 }

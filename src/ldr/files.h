@@ -5,11 +5,20 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <stack>
+#include "../helpers/util.h"
+
 namespace bricksim::ldr {
-    const char* const LDR_NEWLINE = "\r\n";
-    const char* const LDR_WHITESPACE = " \t";
+    constexpr const char* const LDR_NEWLINE = "\r\n";
+    constexpr const char* const LDR_WHITESPACE = " \t";
+
+    constexpr const char* const META_COMMAND_TEXMAP = "!TEXMAP";
+    constexpr size_t META_COMMAND_TEXMAP_LEN = std::char_traits<char>::length(META_COMMAND_TEXMAP);
 
     class FileElement;
+    class File;
+    class TexmapStartCommand;
+
     enum FileType {
         MODEL,
         MPD_SUBFILE,
@@ -53,34 +62,23 @@ namespace bricksim::ldr {
         bool firstLine = true;
     };
 
-    class File {
-    public:
-        File() = default;
-        virtual ~File();
-
-        std::vector<std::shared_ptr<FileElement>> elements;
-        uoset_t<std::shared_ptr<File>> mpdSubFiles;
-        FileMetaInfo metaInfo;
-
-        void printStructure(int indent = 0);
-        [[nodiscard]] const std::string& getDescription() const;
-        [[nodiscard]] const std::size_t& getHash() const;
-
-        void addTextLine(const std::string& line);
-
-    private:
-        mutable std::size_t hash = 0;
-        BfcState bfcState;
-    };
-
     class FileElement {
     public:
         static std::shared_ptr<FileElement> parseLine(const std::string& line, BfcState bfcState);
         [[nodiscard]] virtual int getType() const = 0;
         [[nodiscard]] virtual std::string getLdrLine() const = 0;
+        FileElement();
         virtual ~FileElement();
 
         unsigned int step = 0;//0 is before the first "0 STEP" line
+
+        ///hidden elements are not rendered. for example, they are part of fallback sections or come after a meta-command that hides them.
+        bool hidden = false;
+
+        ///this is only non-nullptr when !TEXMAP START appeared *in the same file* a few lines above and !TEXMAP FALLBACK|END didn't appear yet.
+        ///this line therefore counts to the <geometry1> or <geometry2> section
+        ///in all other cases this is nullptr
+        std::shared_ptr<TexmapStartCommand> directTexmap;
     };
 
     class CommentOrMetaElement : public FileElement {
@@ -155,7 +153,67 @@ namespace bricksim::ldr {
         [[nodiscard]] std::string getLdrLine() const override;
     };
 
+    class TexmapStartCommand : public CommentOrMetaElement  {
+    public:
+        enum ProjectionMethod {
+            PLANAR,
+            CYLINDRICAL,
+            SPHERICAL,
+        };
+        ProjectionMethod projectionMethod;
+        float x1, y1, z1, x2, y2, z2, x3, y3, z3, a, b;//a and b may be not used depending on projectionMethod
+        std::string textureFilename;
+        std::optional<std::string> glossmapFileName;
+
+        explicit TexmapStartCommand(const std::string& line);
+        TexmapStartCommand(const TexmapStartCommand& other);
+
+        static bool doesLineMatch(const std::string& line);
+
+        [[nodiscard]] std::string getLdrLine() const override;
+    };
+
+    struct TexmapState {
+        std::shared_ptr<TexmapStartCommand> startCommand;
+        bool fallbackSectionReached;
+
+        void startOrNext(const std::shared_ptr<TexmapStartCommand>& command);
+        void fallback();
+        void end();
+        [[nodiscard]] bool isActive() const;
+    };
+
+    class File {
+    public:
+        File() = default;
+        virtual ~File();
+
+        std::vector<std::shared_ptr<FileElement>> elements;
+        uoset_t<std::shared_ptr<File>> mpdSubFiles;
+        FileMetaInfo metaInfo;
+
+        void printStructure(int indent = 0);
+        [[nodiscard]] const std::string& getDescription() const;
+        [[nodiscard]] const std::size_t& getHash() const;
+
+        void addTextLine(const std::string& line);
+
+    private:
+        mutable std::size_t hash = 0;
+        BfcState bfcState;
+        TexmapState texmapState;
+    };
+
     namespace {
         const char* getFileTypeStr(FileType type);
     }
+}
+
+namespace robin_hood {
+    template <>
+    struct hash<bricksim::ldr::TexmapStartCommand> {
+        size_t operator()(bricksim::ldr::TexmapStartCommand const& value) const noexcept {
+            return hash<std::string>()(value.getLdrLine());//todo make this faster while still being correct
+        }
+    };
 }

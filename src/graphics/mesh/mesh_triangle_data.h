@@ -19,6 +19,10 @@ namespace bricksim::mesh {
         [[nodiscard]] size_t getIndexCount() const;
         void fillVerticesForOuterDimensions(std::unique_ptr<const float*[]>& coords, size_t& coordCursor) const;
 
+        [[nodiscard]] bool isDataAlreadyDeleted() const;
+        [[nodiscard]] const std::vector<TriangleVertex>& getVertices() const;
+        [[nodiscard]] const std::vector<unsigned int>& getIndices() const;
+
     private:
         ldr::ColorReference color;
         std::vector<TriangleVertex> vertices;

@@ -4,9 +4,11 @@
 #include "graphics/scene.h"
 #include "ldr/file_repo.h"
 #include "transform_gizmo.h"
+#include <efsw/efsw.hpp>
+
 namespace bricksim {
 
-    class Editor {
+    class Editor : efsw::FileWatchListener {
     public:
         static std::shared_ptr<Editor> createNew();
         static std::shared_ptr<Editor> openFile(const std::filesystem::path& path);
@@ -17,7 +19,7 @@ namespace bricksim {
         Editor& operator=(const Editor& other) = delete;
         Editor(Editor&& other) noexcept = default;
         Editor& operator=(Editor&& other) = default;
-        virtual ~Editor();
+        ~Editor() override;
 
         const std::optional<std::filesystem::path>& getFilePath();
         std::shared_ptr<etree::RootNode>& getRootNode();
@@ -66,10 +68,14 @@ namespace bricksim {
         void unhideAllElements();
 
     private:
+        void handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename, efsw::Action action, std::string oldFilename) override;
+
+    private:
         static std::string getNameForNewLdrFile();
         void init(const std::shared_ptr<ldr::File>& ldrFile);
 
         std::optional<std::filesystem::path> filePath;
+        std::optional<efsw::WatchID> fileWatchId;
         std::shared_ptr<etree::RootNode> rootNode;
         std::shared_ptr<etree::MpdNode> documentNode;
         scene_id_t sceneId{};

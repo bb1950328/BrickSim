@@ -11,7 +11,7 @@ namespace bricksim::mesh::generated {
     UVSphereNode::UVSphereNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
         GeneratedMeshNode(color, parent) {}
 
-    void UVSphereNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
+    void UVSphereNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         const auto& color = ldr::color_repo::getInstanceDummyColor();
         auto& triangleData = mesh->getTriangleData(color);
         auto northPoleIndex = triangleData.addRawVertex(TriangleVertex{glm::vec4(RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f)});
@@ -66,7 +66,7 @@ namespace bricksim::mesh::generated {
     }
 
     GeneratedMeshNode::GeneratedMeshNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
-        MeshNode(color, parent) {}
+        MeshNode(color, parent, nullptr) {}
 
     bool GeneratedMeshNode::isDisplayNameUserEditable() const {
         return false;
@@ -91,7 +91,7 @@ namespace bricksim::mesh::generated {
         return constants::MESH_ID_ARROW;
     }
 
-    void ArrowNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
+    void ArrowNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         glm::vec3 backCenter(0.0f, 0.0f, 0.0f);
         glm::vec3 beforeTipCenter(0.75f, 0.0f, 0.0f);
         glm::vec3 tip(1.0f, 0.0f, 0.0f);
@@ -186,7 +186,7 @@ namespace bricksim::mesh::generated {
         return constants::MESH_ID_QUARTER_TORUS;
     }
 
-    void QuarterTorusNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
+    void QuarterTorusNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         const ldr::ColorReference& color = ldr::color_repo::getInstanceDummyColor();
         auto& triangleData = mesh->getTriangleData(color);
         auto firstIndex = triangleData.getVertexCount();
@@ -258,7 +258,7 @@ namespace bricksim::mesh::generated {
         return constants::MESH_ID_CUBE;
     }
 
-    void CubeNode::addToMesh(std::shared_ptr<Mesh> mesh, bool windingInversed) {
+    void CubeNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         const ldr::ColorReference& color = ldr::color_repo::getInstanceDummyColor();
         auto& triangleData = mesh->getTriangleData(color);
         if (triangleData.getVertexCount() > 0) {

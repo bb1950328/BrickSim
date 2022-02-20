@@ -53,3 +53,9 @@
 [submodule "src/lib/palenteer"]
 	path = src/lib/palanteer
 	url = https://www.github.com/dfeneyrou/palanteer.git
+[submodule "src/lib/earcut.hpp"]
+	path = src/lib/earcut.hpp
+	url = https://github.com/mapbox/earcut.hpp.git
+[submodule "src/lib/sfsw"]
+	path = src/lib/esfw
+	url = https://github.com/SpartanJ/efsw.git

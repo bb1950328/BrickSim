@@ -1,6 +1,7 @@
 #include "user_actions.h"
 #include "controller.h"
 #include "gui/gui.h"
+#include "helpers/stringutil.h"
 #include "helpers/util.h"
 #include "lib/IconFontCppHeaders/IconsFontAwesome5.h"
 
@@ -159,7 +160,7 @@ namespace bricksim::user_actions {
         if (lastName != name) {
             results.clear();
             for (size_t i = 0; i < actionsCount; ++i) {
-                if (util::containsIgnoreCase(names[i], name)) {
+                if (stringutil::containsIgnoreCase(names[i], name)) {
                     results.push_back(static_cast<Action>(i));
                 }
             }
@@ -173,7 +174,7 @@ namespace bricksim::user_actions {
 
     bool isInFilter(Action action, const std::string& filter) {
         //todo make this typo-robust
-        return util::containsIgnoreCase(names[action], filter);
+        return stringutil::containsIgnoreCase(names[action], filter);
     }
 
     const char* getName(const Action& action) {

@@ -1,4 +1,5 @@
 #include "regular_file_repo.h"
+#include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include <spdlog/spdlog.h>
 
@@ -21,7 +22,7 @@ namespace bricksim::ldr::file_repo {
         std::vector<std::string> files;
         for (const auto& entry: std::filesystem::recursive_directory_iterator(basePath)) {
             auto path = util::withoutBasePath(entry.path(), basePath).string();
-            auto pathWithForwardSlash = util::replaceChar(path, '\\', '/');
+            auto pathWithForwardSlash = stringutil::replaceChar(path, '\\', '/');
 
             if (shouldFileBeSavedInList(pathWithForwardSlash)) {
                 files.push_back(pathWithForwardSlash);
@@ -31,11 +32,11 @@ namespace bricksim::ldr::file_repo {
         return files;
     }
 
-    std::string RegularFileRepo::getLibraryFileContent(ldr::FileType type, std::string name) {
+    std::string RegularFileRepo::getLibraryLdrFileContent(ldr::FileType type, const std::string& name) {
         return util::readFileToString(basePath / getPathRelativeToBase(type, name));
     }
 
-    std::string RegularFileRepo::getLibraryFileContent(std::string nameRelativeToRoot) {
+    std::string RegularFileRepo::getLibraryLdrFileContent(const std::string& nameRelativeToRoot) {
         return util::readFileToString(basePath / nameRelativeToRoot);
     }
 
@@ -46,5 +47,9 @@ namespace bricksim::ldr::file_repo {
         if (!isValidBasePath(basePath)) {
             throw std::invalid_argument("invalid basePath: " + basePath.string());
         }
+    }
+
+    std::shared_ptr<BinaryFile> RegularFileRepo::getLibraryBinaryFileContent(const std::string& nameRelativeToRoot) {
+        return std::make_shared<BinaryFile>(basePath / nameRelativeToRoot);
     }
 }

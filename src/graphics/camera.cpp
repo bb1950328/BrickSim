@@ -130,7 +130,7 @@ namespace bricksim::graphics {
 
     void FitContentCamera::setRootNode(const std::shared_ptr<etree::MeshNode>& node) {
         //todo make this work for any node, not just simple parts
-        const auto& mesh = mesh::SceneMeshCollection::getMesh(mesh::SceneMeshCollection::getMeshKey(node, false), node);
+        const auto& mesh = mesh::SceneMeshCollection::getMesh(mesh::SceneMeshCollection::getMeshKey(node, false, nullptr), node, nullptr);
         const auto& outerDimensions = mesh->getOuterDimensions();
         auto meshRadius = outerDimensions->minEnclosingBallRadius * constants::LDU_TO_OPENGL_SCALE;
         target = glm::vec4(outerDimensions->minEnclosingBallCenter, 1.0f) * constants::LDU_TO_OPENGL;

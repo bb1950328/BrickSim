@@ -1,6 +1,7 @@
 #include "transform_gizmo.h"
 #include "config.h"
 #include "controller.h"
+#include "helpers/geometry.h"
 #include "helpers/util.h"
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -80,7 +81,7 @@ namespace bricksim::transform_gizmo {
                 int povState = 0;
                 for (int i = 0; i < 3; ++i) {
                     const glm::vec3 pt = absTransf * axisDirectionOffsetVectors[i];
-                    const float angle = util::getAngleBetweenThreePointsUnsigned(pt, absTransf[3], cameraPosLdu);
+                    const float angle = geometry::getAngleBetweenThreePointsUnsigned(pt, absTransf[3], cameraPosLdu);
                     povState = povState << 1 | (angle < glm::radians(90.f));
                 }
                 nowPovState = static_cast<PovState>(povState);
@@ -259,7 +260,7 @@ namespace bricksim::transform_gizmo {
         return constants::MESH_ID_TRANSFORM_GIZMO_2D_ARROW;
     }
 
-    void TG2DArrowNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
+    void TG2DArrowNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         // 1
         // | \
         // |  \
@@ -322,7 +323,7 @@ namespace bricksim::transform_gizmo {
     }
 
     TG2DArrowNode::TG2DArrowNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
-        MeshNode(color, parent) {
+        MeshNode(color, parent, nullptr) {
         displayName = "transform gizmo 2D move arrow";
     }
 
@@ -356,7 +357,7 @@ namespace bricksim::transform_gizmo {
     glm::vec3 Translate1dOperation::getClosestPointOnTransformRay(const glm::svec2& mouseCoords) {
         Ray3 currentMouseRay = gizmo.scene->screenCoordinatesToWorldRay(mouseCoords);
         currentMouseRay *= constants::OPENGL_TO_LDU;
-        return util::closestLineBetweenTwoRays(currentMouseRay, transformRay).pointOnB;
+        return geometry::closestLineBetweenTwoRays(currentMouseRay, transformRay).pointOnB;
     }
 
     void TransformOperation::cancel() {
@@ -377,14 +378,14 @@ namespace bricksim::transform_gizmo {
         planeNormal(calculateAxisRay(axis)) {
         Ray3 startMouseRay = gizmo.scene->screenCoordinatesToWorldRay(startMousePos);
         startMouseRay *= constants::OPENGL_TO_LDU;
-        startPointOnPlane = util::rayPlaneIntersection(startMouseRay, planeNormal).value();
+        startPointOnPlane = geometry::rayPlaneIntersection(startMouseRay, planeNormal).value();
         this->planeNormal = Ray3(startPointOnPlane, planeNormal.direction);
     }
 
     void Translate2dOperation::update(const glm::vec2& mouseDelta) {
         Ray3 currentMouseRay = gizmo.scene->screenCoordinatesToWorldRay(startMousePos + mouseDelta);
         currentMouseRay *= constants::OPENGL_TO_LDU;
-        const auto currentPointOnPlane = util::rayPlaneIntersection(currentMouseRay, planeNormal);
+        const auto currentPointOnPlane = geometry::rayPlaneIntersection(currentMouseRay, planeNormal);
         if (currentPointOnPlane) {
             const glm::vec3 delta = currentPointOnPlane.value() - startPointOnPlane;
             const auto translation = glm::translate(delta);
@@ -401,7 +402,7 @@ namespace bricksim::transform_gizmo {
         TransformOperation(gizmo, startMousePos), axis(calculateAxisRay(axis)) {
         Ray3 startMouseRay = gizmo.scene->screenCoordinatesToWorldRay(startMousePos);
         startMouseRay *= constants::OPENGL_TO_LDU;
-        startPointOnPlane = util::rayPlaneIntersection(startMouseRay, this->axis).value();
+        startPointOnPlane = geometry::rayPlaneIntersection(startMouseRay, this->axis).value();
 
         startNodeTransfDecomposed = util::decomposeTransformationToStruct(startNodeRelTransformation);
         startGizmoTransfDecomposed = util::decomposeTransformationToStruct(startGizmoRelTransformation);
@@ -410,8 +411,8 @@ namespace bricksim::transform_gizmo {
     void RotateOperation::update(const glm::vec2& mouseDelta) {
         Ray3 currentMouseRay = gizmo.scene->screenCoordinatesToWorldRay(startMousePos + mouseDelta);
         currentMouseRay *= constants::OPENGL_TO_LDU;
-        const auto currentPointOnPlane = util::rayPlaneIntersection(currentMouseRay, this->axis).value();
-        const float totalRotationAngle = util::getAngleBetweenThreePointsSigned(startPointOnPlane, axis.origin, currentPointOnPlane, axis.direction);
+        const auto currentPointOnPlane = geometry::rayPlaneIntersection(currentMouseRay, this->axis).value();
+        const float totalRotationAngle = geometry::getAngleBetweenThreePointsSigned(startPointOnPlane, axis.origin, currentPointOnPlane, axis.direction);
         const auto rotation = glm::rotate(totalRotationAngle, glm::normalize(axis.direction));
 
         const glm::mat4 newNodeTransf = startNodeTransfDecomposed.translationAsMat4() * rotation * startNodeTransfDecomposed.orientationAsMat4() * startNodeTransfDecomposed.scaleAsMat4();

@@ -1,5 +1,6 @@
 #include "price_guide_provider.h"
 #include "../db.h"
+#include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include "bricklink_constants_provider.h"
 #include <mutex>
@@ -20,7 +21,7 @@ namespace bricksim::info_providers::price_guide {
 
         std::optional<bricklink::Color> getColorByName(const std::string& name) {
             for (const auto& color: bricklink_constants::getColors()) {
-                if (util::equalsAlphanum(color.second.strColorName, name)) {
+                if (stringutil::equalsAlphanum(color.second.strColorName, name)) {
                     return {color.second};
                 }
             }

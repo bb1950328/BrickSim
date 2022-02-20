@@ -9,4 +9,8 @@ namespace bricksim::metrics {
     std::vector<std::pair<std::string, float>> lastWindowDrawingTimesUs = {};
     float lastSceneRenderTimeMs;
     size_t memorySavedByDeletingVertexData = 0;
+#ifndef NDEBUG
+    //std::mutex ldrFileElementInstanceCountMtx;
+    size_t ldrFileElementInstanceCount = 0;
+#endif
 }

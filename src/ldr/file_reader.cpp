@@ -1,4 +1,5 @@
 #include "file_reader.h"
+#include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include <magic_enum.hpp>
 #include <palanteer.h>
@@ -31,8 +32,8 @@ namespace bricksim::ldr {
             }
             std::string line = content.substr(lineStart, lineEnd - lineStart);
 
-            if (util::startsWith(line, "0 FILE")) {
-                const auto currentName = util::trim(line.substr(7));
+            if (stringutil::startsWith(line, "0 FILE")) {
+                const auto currentName = stringutil::trim(line.substr(7));
                 if (firstFile) {
                     firstFile = false;
                     files.emplace(currentName, currentFile.value());
@@ -46,7 +47,7 @@ namespace bricksim::ldr {
                         files.emplace(currentName, currentFile.value());
                     }
                 }
-            } else if (util::startsWith(line, "0 NOFILE") || util::startsWith(line, "0 !DATA")) {
+            } else if (stringutil::startsWith(line, "0 NOFILE") || stringutil::startsWith(line, "0 !DATA")) {
                 //todo save !DATA somewhere instead of ignoring it
                 currentFile = {};
             } else if (currentFile.has_value()) {

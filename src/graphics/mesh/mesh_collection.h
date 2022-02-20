@@ -6,14 +6,20 @@
 #include <set>
 
 namespace bricksim::mesh {
-    typedef std::pair<mesh_identifier_t, bool> mesh_key_t;
+    struct mesh_key_t {
+        mesh_identifier_t meshIdentifier;
+        bool windingInversed;
+        size_t texmapHash;
+        bool operator==(const mesh_key_t& rhs) const;
+        bool operator!=(const mesh_key_t& rhs) const;
+    };
 }
 
 namespace std {
     template<>
     struct hash<bricksim::mesh::mesh_key_t> {
         std::size_t operator()(bricksim::mesh::mesh_key_t value) const {
-            return bricksim::util::combinedHash(value.first, value.second);
+            return bricksim::util::combinedHash(value.meshIdentifier, value.windingInversed, value.texmapHash);
         }
     };
 }
@@ -36,7 +42,11 @@ namespace bricksim::mesh {
         uint64_t lastElementTreeReadVersion = 0;
 
         void updateMeshInstances();
-        void readElementTree(const std::shared_ptr<etree::Node>& node, const glm::mat4& parentAbsoluteTransformation, std::optional<ldr::ColorReference> parentColor, std::optional<unsigned int> selectionTargetElementId);
+        void readElementTree(const std::shared_ptr<etree::Node>& node,
+                             const glm::mat4& parentAbsoluteTransformation,
+                             std::optional<ldr::ColorReference> parentColor,
+                             std::optional<unsigned int> selectionTargetElementId,
+                             const std::shared_ptr<ldr::TexmapStartCommand>& parentTexmap);
         [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBoxInternal(const std::shared_ptr<const etree::MeshNode>& node) const;
 
         static uomap_t<mesh_key_t, std::shared_ptr<Mesh>> allMeshes;
@@ -60,8 +70,8 @@ namespace bricksim::mesh {
         void drawLineGraphics(layer_t layer) const;
         void drawOptionalLineGraphics(layer_t layer) const;
 
-        static mesh_key_t getMeshKey(const std::shared_ptr<etree::MeshNode>& node, bool windingOrderInverse);
-        static std::shared_ptr<Mesh> getMesh(mesh_key_t key, const std::shared_ptr<etree::MeshNode>& node);
+        static mesh_key_t getMeshKey(const std::shared_ptr<etree::MeshNode>& node, bool windingOrderInverse, const std::shared_ptr<ldr::TexmapStartCommand>& texmap);
+        static std::shared_ptr<Mesh> getMesh(mesh_key_t key, const std::shared_ptr<etree::MeshNode>& node, const std::shared_ptr<ldr::TexmapStartCommand>& texmap);
         [[nodiscard]] const uoset_t<std::shared_ptr<Mesh>>& getUsedMeshes() const;
         static void deleteAllMeshes();
     };

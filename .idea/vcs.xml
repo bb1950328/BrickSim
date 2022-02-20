@@ -24,6 +24,8 @@
     <mapping directory="$PROJECT_DIR$/src/lib/SQLiteCpp/googletest" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/cpuinfo" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/curl" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/earcut.hpp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/esfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/fast_float" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/glfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/glm" vcs="Git" />

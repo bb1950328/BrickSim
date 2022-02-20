@@ -3,6 +3,7 @@
 #include "../../controller.h"
 #include "../../metrics.h"
 #include "../opengl_native_or_replacement.h"
+#include "../shaders.h"
 
 namespace bricksim::mesh {
 

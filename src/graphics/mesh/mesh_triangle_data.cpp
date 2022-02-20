@@ -166,4 +166,13 @@ namespace bricksim::mesh {
             ++coordCursor;
         }
     }
+    const std::vector<TriangleVertex>& TriangleData::getVertices() const {
+        return vertices;
+    }
+    const std::vector<unsigned int>& TriangleData::getIndices() const {
+        return indices;
+    }
+    bool TriangleData::isDataAlreadyDeleted() const {
+        return dataAlreadyDeleted;
+    }
 }

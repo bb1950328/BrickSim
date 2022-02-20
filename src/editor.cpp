@@ -1,4 +1,6 @@
 #include "editor.h"
+#include <magic_enum.hpp>
+#include <spdlog/spdlog.h>
 
 #include "controller.h"
 #include "ldr/file_repo.h"
@@ -15,7 +17,7 @@ namespace bricksim {
 
     Editor::Editor() :
         filePath() {
-        init(ldr::file_repo::get().addFileWithContent(getNameForNewLdrFile(), ldr::MODEL, ""));
+        init(ldr::file_repo::get().addLdrFileWithContent(getNameForNewLdrFile(), ldr::MODEL, ""));
     }
 
     Editor::Editor(const std::filesystem::path& path) :
@@ -40,6 +42,15 @@ namespace bricksim {
         camera = std::make_shared<graphics::CadCamera>();
         scene->setCamera(camera);
         transformGizmo = std::make_unique<transform_gizmo::TransformGizmo>(*this);
+
+        if (filePath.has_value()) {
+            efsw::WatchID watchId = controller::getFileWatcher()->addWatch(filePath->parent_path().string(), this);
+            if (magic_enum::enum_contains<efsw::Error>(watchId)) {
+                spdlog::info("Cannot watch file \"{}\": {}", filePath->string(), magic_enum::enum_name(static_cast<efsw::Error>(watchId)));
+            } else {
+                fileWatchId = watchId;
+            }
+        }
     }
 
     std::string Editor::getNameForNewLdrFile() {
@@ -55,6 +66,9 @@ namespace bricksim {
 
     Editor::~Editor() {
         graphics::scenes::remove(sceneId);
+        if (fileWatchId.has_value()) {
+            controller::getFileWatcher()->removeWatch(fileWatchId.value());
+        }
     }
 
     const std::optional<std::filesystem::path>& Editor::getFilePath() {
@@ -175,7 +189,7 @@ namespace bricksim {
                 documentNode->incrementVersion();
                 break;
             case ldr::PART:
-                documentNode->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr::ColorReference{1}, documentNode));
+                documentNode->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr::ColorReference{1}, documentNode, nullptr));
                 documentNode->incrementVersion();
                 break;
             case ldr::SUBPART:
@@ -273,5 +287,17 @@ namespace bricksim {
 
     const std::string& Editor::getFilename() {
         return documentNode->ldrFile->metaInfo.name;
+    }
+    
+    void Editor::handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename, efsw::Action action, std::string oldFilename) {
+        auto fullPath = std::filesystem::path(dir) / filename;
+        if (filePath.has_value() && fullPath == filePath.value()) {
+            spdlog::info(R"(editor file change detected: {} fullPath="{}" oldFilename="{}")", magic_enum::enum_name(action), fullPath.string(), oldFilename);
+            rootNode->removeChild(documentNode);
+            documentNode = std::make_shared<etree::MpdNode>(ldr::file_repo::get().reloadFile(filePath->string()), 1, rootNode);
+            documentNode->createChildNodes();
+            rootNode->addChild(documentNode);
+            documentNode->incrementVersion();
+        }
     }
 }

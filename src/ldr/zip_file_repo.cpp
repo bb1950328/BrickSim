@@ -74,15 +74,36 @@ namespace bricksim::ldr::file_repo {
         zip_close(zipArchive);
     }
 
-    std::string ZipFileRepo::getLibraryFileContent(ldr::FileType type, std::string name) {
-        return getLibraryFileContent(getPathRelativeToBase(type, name));
+    std::string ZipFileRepo::getLibraryLdrFileContent(ldr::FileType type, const std::string& name) {
+        return getLibraryLdrFileContent(getPathRelativeToBase(type, name));
     }
 
-    std::string ZipFileRepo::getLibraryFileContent(std::string nameRelativeToRoot) {
+    std::string ZipFileRepo::getLibraryLdrFileContent(const std::string& nameRelativeToRoot) {
         std::lock_guard<std::mutex> lg(libzipLock);
-        struct zip_stat stat {};
-        std::string entryName = rootFolderName + nameRelativeToRoot;
+        auto [stat, file] = openFileByName(nameRelativeToRoot);
 
+        if (file == nullptr) {
+            return "";
+        }
+
+        std::string result;
+        result.resize(stat.size);
+        const auto readBytes = zip_fread(file, &result[0], stat.size);
+        if (readBytes != stat.size) {
+            spdlog::warn("file {} in zip library has reported size of {} bytes, but only {} bytes read", nameRelativeToRoot, stat.size, readBytes);
+            result.resize(std::max(static_cast<typeof(readBytes)>(0), readBytes));
+        }
+
+        zip_fclose(file);
+
+        return result;
+    }
+
+    std::pair<struct zip_stat, zip_file_t*> ZipFileRepo::openFileByName(const std::string& nameRelativeToRoot) {
+        struct zip_stat stat {};
+        zip_file_t* file;
+        std::string entryName = rootFolderName + nameRelativeToRoot;
+        file = zip_fopen_index(zipArchive, stat.index, 0);
         //try to find it with case sensitive first because it's faster
         auto found = zip_stat(zipArchive, entryName.c_str(), 0, &stat);
         if (found == -1) {
@@ -92,30 +113,36 @@ namespace bricksim::ldr::file_repo {
         if (found == -1) {
             spdlog::error("file {} not found in zip library", entryName);
         }
-        auto file = zip_fopen_index(zipArchive, stat.index, 0);
-
         if (file == nullptr) {
             spdlog::error("failed to open file {} in zip library: {}", entryName, zip_error_strerror(zip_get_error(zipArchive)));
-            return "";
         }
-
-        std::string result;
-        result.resize(stat.size);
-        const auto readBytes = zip_fread(file, &result[0], stat.size);
-        if (readBytes != stat.size) {
-            spdlog::warn("file {} in zip library has reported size of {} bytes, but only {} bytes read", entryName, stat.size, readBytes);
-            result.resize(std::max(static_cast<typeof(readBytes)>(0), readBytes));
-        }
-
-        zip_fclose(file);
-
-        return result;
+        return std::make_pair(stat, file);
     }
 
     std::string ZipFileRepo::getZipRootFolder(zip_t* archive) {
         struct zip_stat stat;// NOLINT(cppcoreguidelines-pro-type-member-init)
         zip_stat_index(archive, 0, 0, &stat);
         const auto endPtr = std::strchr(stat.name, '/');
-        return std::string(stat.name, (endPtr - stat.name + 1));
+        return {stat.name, static_cast<size_t>((endPtr - stat.name + 1))};
+    }
+
+    std::shared_ptr<BinaryFile> ZipFileRepo::getLibraryBinaryFileContent(const std::string& nameRelativeToRoot) {
+        std::lock_guard<std::mutex> lg(libzipLock);
+        auto [stat, file] = openFileByName(nameRelativeToRoot);
+        if (file == nullptr) {
+            return nullptr;
+        }
+
+        auto result = std::make_shared<BinaryFile>(nameRelativeToRoot);
+        result->data.resize(stat.size);
+        const auto readBytes = zip_fread(file, &result->data[0], stat.size);
+        if (readBytes != stat.size) {
+            spdlog::warn("file {} in zip library has reported size of {} bytes, but only {} bytes read", nameRelativeToRoot, stat.size, readBytes);
+            result->data.resize(std::max(static_cast<typeof(readBytes)>(0), readBytes));
+        }
+
+        zip_fclose(file);
+
+        return result;
     }
 }

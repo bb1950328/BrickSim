@@ -1,74 +1,11 @@
 #include "../../helpers/platform_detection.h"
 #include "../../helpers/util.h"
-#include "../testing_tools.h"
 #include "catch2/catch.hpp"
-#include "glm/gtx/transform.hpp"
 #include <fstream>
 #include <glm/gtc/epsilon.hpp>
 #include <iostream>
 
 namespace bricksim {
-    TEST_CASE("util::startsWith") {
-        CHECK(util::startsWith("helloWorld", "hell"));
-        CHECK(util::startsWith("abc", "abc"));
-        CHECK(util::startsWith("a", "a"));
-        CHECK_FALSE(util::startsWith("abc", "bc"));
-        CHECK_FALSE(util::startsWith("abc", "abcd"));
-        CHECK_FALSE(util::startsWith("abc", "cba"));
-
-        CHECK(util::startsWith(std::string("qwertzuiop"), "qwer"));
-    }
-
-    TEST_CASE("util::endsWith") {
-        CHECK(util::endsWith("helloWorld", "World"));
-        CHECK(util::endsWith("abc", "abc"));
-        CHECK(util::endsWith("a", "a"));
-        CHECK_FALSE(util::endsWith("abc", "de"));
-        CHECK_FALSE(util::endsWith("abc", "ab"));
-        CHECK_FALSE(util::endsWith("abc", "aabc"));
-    }
-
-    TEST_CASE("util::asLower") {
-        std::string expected = "qwertzuiopasdfghjklyxcvbnm";
-        CHECK(expected == util::asLower("qwertzuiopasdfghjklyxcvbnm"));
-        CHECK(expected == util::asLower("qWeRtZuIoPaSdFgHjKlYxCvBnM"));
-        CHECK(expected == util::asLower("QWERTZUIOPASDFGHJKLYXCVBNM"));
-        CHECK(std::string("1234567890+*ç%&/()=") == util::asLower("1234567890+*ç%&/()="));
-    }
-
-    TEST_CASE("util::toLowerInPlace") {
-        std::string expected = "qwertzuiopasdfghjklyxcvbnm";
-        std::string actual = "qwertzuiopasdfghjklyxcvbnm";
-        util::toLowerInPlace(actual.data());
-        CHECK(expected == actual);
-        actual = "qWeRtZuIoPaSdFgHjKlYxCvBnM";
-        util::toLowerInPlace(actual.data());
-        CHECK(expected == actual);
-        actual = "QWERTZUIOPASDFGHJKLYXCVBNM";
-        util::toLowerInPlace(actual.data());
-        CHECK(expected == actual);
-    }
-
-    TEST_CASE("util::asUpper") {
-        std::string expected = "QWERTZUIOPASDFGHJKLYXCVBNM";
-        CHECK(expected == util::asUpper("qwertzuiopasdfghjklyxcvbnm"));
-        CHECK(expected == util::asUpper("qWeRtZuIoPaSdFgHjKlYxCvBnM"));
-        CHECK(expected == util::asUpper("QWERTZUIOPASDFGHJKLYXCVBNM"));
-        CHECK(std::string("1234567890+*ç%&/()=") == util::asUpper("1234567890+*ç%&/()="));
-    }
-
-    TEST_CASE("util::toUpperInPlace") {
-        std::string expected = "QWERTZUIOPASDFGHJKLYXCVBNM";
-        std::string actual = "QWERTZUIOPASDFGHJKLYXCVBNM";
-        util::toUpperInPlace(actual.data());
-        CHECK(expected == actual);
-        actual = "qWeRtZuIoPaSdFgHjKlYxCvBnM";
-        util::toUpperInPlace(actual.data());
-        CHECK(expected == actual);
-        actual = "qwertzuiopasdfghjklyxcvbnm";
-        util::toUpperInPlace(actual.data());
-        CHECK(expected == actual);
-    }
 
     TEST_CASE("util::extendHomeDir and util::replaceHomeDir") {
         CHECK(util::extendHomeDir("~/abc") != "~/abc");
@@ -78,77 +15,6 @@ namespace bricksim {
 
         const char* expected = detected_platform::windows ? "~\\abc" : "~/abc";
         CHECK(util::replaceHomeDir(util::extendHomeDir("~\\abc")) == expected);
-    }
-
-    TEST_CASE("util::trim") {
-        CHECK(util::trim("abc") == "abc");
-        CHECK(util::trim(" abc") == "abc");
-        CHECK(util::trim("\tabc") == "abc");
-        CHECK(util::trim("\nabc") == "abc");
-        CHECK(util::trim("\n abc") == "abc");
-        CHECK(util::trim("\n \tabc") == "abc");
-        CHECK(util::trim("a bc") == "a bc");
-        CHECK(util::trim(" a bc") == "a bc");
-        CHECK(util::trim(" a bc ") == "a bc");
-        CHECK(util::trim(" a b c ") == "a b c");
-        CHECK(util::trim(" a\tbc ") == "a\tbc");
-    }
-
-    TEST_CASE("util::replaceAll") {
-        std::string str = "aaXXcc";
-        SECTION("normal usage") {
-            util::replaceAll(str, "XX", "bb");
-            CHECK(str == "aabbcc");
-        };
-        SECTION("from not found") {
-            util::replaceAll(str, "YY", "bb");
-            CHECK(str == "aaXXcc");
-        };
-        SECTION("from at the beginning") {
-            util::replaceAll(str, "aa", "zz");
-            CHECK(str == "zzXXcc");
-        };
-        SECTION("from at the end") {
-            util::replaceAll(str, "cc", "ZZ");
-            CHECK(str == "aaXXZZ");
-        };
-        SECTION("from larger than to") {
-            util::replaceAll(str, "XX", "Z");
-            CHECK(str == "aaZcc");
-        };
-        SECTION("from smaller than to") {
-            util::replaceAll(str, "XX", "ZZZ");
-            CHECK(str == "aaZZZcc");
-        };
-        SECTION("multiple replacements") {
-            util::replaceAll(str, "a", "Y");
-            CHECK(str == "YYXXcc");
-        };
-        SECTION("multiple replacements, from smaller than to") {
-            util::replaceAll(str, "a", "YZ");
-            CHECK(str == "YZYZXXcc");
-        };
-        SECTION("str empty") {
-            str = "";
-            util::replaceAll(str, "a", "b");
-            CHECK(str == "");
-        };
-        SECTION("from empty") {
-            util::replaceAll(str, "", "a");
-            CHECK(str == "aaXXcc");
-        };
-        SECTION("to empty") {
-            util::replaceAll(str, "XX", "");
-            CHECK(str == "aacc");
-        }
-    }
-
-    TEST_CASE("util::replaceChar") {
-        CHECK(util::replaceChar("aBc", 'B', 'b') == "abc");
-        CHECK(util::replaceChar("abc", 'X', 'x') == "abc");
-        CHECK(util::replaceChar("abc", 'a', 'A') == "Abc");
-        CHECK(util::replaceChar("abcabc", 'a', 'A') == "AbcAbc");
-        CHECK(util::replaceChar("", 'a', 'A').empty());
     }
 
     TEST_CASE("util::biggestValue") {
@@ -168,40 +34,10 @@ namespace bricksim {
         CHECK(util::biggestValue(glm::vec<2, unsigned long, glm::defaultp>(static_cast<unsigned long>(-1), 1)) == static_cast<unsigned long>(-1));
     }
 
-    TEST_CASE("util::doesTransformationInverseWindingOrder") {
-        CHECK_FALSE(util::doesTransformationInverseWindingOrder(glm::mat4(1.0f)));
-        CHECK_FALSE(util::doesTransformationInverseWindingOrder(glm::translate(glm::mat4(1.0f), {1, 2, 3})));
-        CHECK_FALSE(util::doesTransformationInverseWindingOrder(glm::rotate(glm::mat4(1.0f), 1.0f, {1, 2, 3})));
-        CHECK_FALSE(util::doesTransformationInverseWindingOrder(glm::scale(glm::mat4(1.0f), {1, 2, 3})));
-        CHECK(util::doesTransformationInverseWindingOrder(glm::scale(glm::mat4(1.0f), {-1, 2, 3})));
-        CHECK_FALSE(util::doesTransformationInverseWindingOrder(glm::scale(glm::mat4(1.0f), {-1, -2, 3})));
-        CHECK(util::doesTransformationInverseWindingOrder(glm::scale(glm::mat4(1.0f), {-1, -2, -3})));
-    }
-
     TEST_CASE("util::vectorSum") {
         CHECK(util::vectorSum(glm::vec2{1.0f, 2.0f}) == Approx(3.0f));
         CHECK(util::vectorSum(glm::vec3{1.0f, 2.0f, 3.0f}) == Approx(6.0f));
         CHECK(util::vectorSum(glm::vec4{1.0f, 2.0f, 3.0f, 4.0f}) == Approx(10.0f));
-    }
-
-    TEST_CASE("util::formatBytesValue") {
-        CHECK(util::formatBytesValue(1) == "1B");
-        CHECK(util::formatBytesValue(10) == "10B");
-        CHECK(util::formatBytesValue(100) == "100B");
-        CHECK(util::formatBytesValue(1023) == "1023B");
-        CHECK(util::formatBytesValue(1024) == "1.00KB");
-        CHECK(util::formatBytesValue(1025) == "1.00KB");
-        CHECK(util::formatBytesValue(10456) == "10.2KB");
-        CHECK(util::formatBytesValue(104567) == "102KB");
-        CHECK(util::formatBytesValue(1045678) == "1021KB");
-        CHECK(util::formatBytesValue(10456789) == "9.97MB");
-
-        CHECK(util::formatBytesValue(1ull << 10) == "1.00KB");
-        CHECK(util::formatBytesValue(1ull << 20) == "1.00MB");
-        CHECK(util::formatBytesValue(1ull << 30) == "1.00GB");
-        CHECK(util::formatBytesValue(1ull << 40) == "1.00TB");
-        CHECK(util::formatBytesValue(1ull << 50) == "1024TB");
-        CHECK(util::formatBytesValue(1ull << 51) == "2048TB");
     }
 
     template<auto val>
@@ -246,39 +82,6 @@ namespace bricksim {
         CHECK(util::minForEachComponent(glm::vec4{1, 2, 3, 4}, glm::vec4{5, 4, 3, 2}) == glm::vec4(1, 2, 3, 2));
     }
 
-//these are macros because when using lambdas the catch error output is less readable
-#define CHECK_EQUALS_ALPHANUM(a, b)    \
-    CHECK(util::equalsAlphanum(a, b)); \
-    CHECK(util::equalsAlphanum(b, a));
-#define CHECK_FALSE_EQUALS_ALPHANUM(a, b)    \
-    CHECK_FALSE(util::equalsAlphanum(a, b)); \
-    CHECK_FALSE(util::equalsAlphanum(b, a));
-
-    TEST_CASE("util::equalsAlphanum") {
-        CHECK_EQUALS_ALPHANUM("", "");
-        CHECK_EQUALS_ALPHANUM("", "");
-        CHECK_EQUALS_ALPHANUM("a", "a");
-        CHECK_EQUALS_ALPHANUM("abc", "abc");
-        CHECK_EQUALS_ALPHANUM("a$bc", "abc");
-        CHECK_EQUALS_ALPHANUM("a$$bc", "abc");
-        CHECK_EQUALS_ALPHANUM("a$b$c", "abc");
-        CHECK_EQUALS_ALPHANUM("$abc", "abc");
-        CHECK_EQUALS_ALPHANUM("abc$", "abc");
-
-        CHECK_EQUALS_ALPHANUM("abc$", "abc$");
-        CHECK_EQUALS_ALPHANUM("$abc$", "!abc$");
-        CHECK_EQUALS_ALPHANUM("$ab&c$", "!a*bc$");
-
-        CHECK_FALSE_EQUALS_ALPHANUM("abc", "cba");
-        CHECK_FALSE_EQUALS_ALPHANUM("a", "");
-        CHECK_FALSE_EQUALS_ALPHANUM("a", "b");
-        CHECK_FALSE_EQUALS_ALPHANUM("a", "bc");
-        CHECK_FALSE_EQUALS_ALPHANUM("ab", "bc");
-
-        CHECK_FALSE_EQUALS_ALPHANUM("*ab", "*bc");
-        CHECK_FALSE_EQUALS_ALPHANUM("*ab*", "*b&c");
-    }
-
     TEST_CASE("util::withoutBasePath") {
         std::filesystem::path abc("abc");
         std::filesystem::path def("def");
@@ -292,185 +95,6 @@ namespace bricksim {
         CHECK(util::withoutBasePath(abc / def, def) == abc / def);
     }
 
-    TEST_CASE("util::containsIgnoreCase") {
-        CHECK(util::containsIgnoreCase("abcdefg", "cde"));
-        CHECK(util::containsIgnoreCase("abcdefg", "CdE"));
-        CHECK(util::containsIgnoreCase("aBcDeFg", "CdE"));
-        CHECK(util::containsIgnoreCase("aBcDeFg", "C"));
-        CHECK(util::containsIgnoreCase("aBcDeFg", "CD"));
-        CHECK(util::containsIgnoreCase("aBcDeFg", "ab"));
-        CHECK(util::containsIgnoreCase("aBcDeFg", "fg"));
-        CHECK(util::containsIgnoreCase("aBcDeFg", "aBcDeFg"));
-        CHECK_FALSE(util::containsIgnoreCase("aBcDeFg", "df"));
-        CHECK_FALSE(util::containsIgnoreCase("aBcDeFg", "aBcDeFgHiJ"));
-    }
-
-    TEST_CASE("util::calculateDistanceOfPointToLine") {
-        CHECK(util::calculateDistanceOfPointToLine(glm::vec2(0.0f, 0.0f), {1.0f, 1.0f}, {0.0f, 1.0f}) == Approx(std::sqrt(2) / 2));
-        CHECK(util::calculateDistanceOfPointToLine(glm::vec2(0.0f, 0.0f), {1.0f, 0.0f}, {1.0f, 1.0f}) == Approx(1));
-        CHECK(util::calculateDistanceOfPointToLine(glm::vec2(0.0f, 0.0f), {0.0f, 1.0f}, {1.0f, 1.0f}) == Approx(1));
-    }
-
-    TEST_CASE("util::normalProjectionOnLine0") {
-        auto result = util::normalProjectionOnLineClamped({0, 0}, {2, 0}, {1, 1});
-        CHECK(result.distancePointToLine == Approx(1));
-        CHECK(result.lineLength == Approx(2));
-        CHECK(result.nearestPointOnLine == ApproxVec(glm::vec2(1, 0)));
-        CHECK(result.projection == ApproxVec(glm::vec2(1, 0)));
-        CHECK(result.projectionLength == Approx(1));
-    }
-
-    TEST_CASE("util::normalProjectionOnLine1") {
-        auto result = util::normalProjectionOnLineClamped({1, 1}, {3, 3}, {1, 3});
-        CHECK(result.distancePointToLine == Approx(sqrt(2)));
-        CHECK(result.lineLength == Approx(2 * sqrt(2)));
-        CHECK(result.nearestPointOnLine == ApproxVec(glm::vec2(2, 2)));
-        CHECK(result.projection == ApproxVec(glm::vec2(1, 1)));
-        CHECK(result.projectionLength == Approx(sqrt(2)));
-    }
-
-    TEST_CASE("util::normalProjectionOnLine2") {
-        auto result = util::normalProjectionOnLineClamped({10, 20}, {14, 22}, {11, 23});
-        CHECK(result.distancePointToLine == Approx(sqrt(2 * 2 + 1 * 1)));
-        CHECK(result.lineLength == Approx(sqrt(4 * 4 + 2 * 2)));
-        CHECK(result.nearestPointOnLine == ApproxVec(glm::vec2(12, 21)));
-        CHECK(result.projection == ApproxVec(glm::vec2(2, 1)));
-        CHECK(result.projectionLength == Approx(sqrt(2 * 2 + 1 * 1)));
-    }
-
-    void consistencyCheck(const Ray3& a, const Ray3& b, const util::ClosestLineBetweenTwoRaysResult& result) {
-        CHECK(glm::length(result.pointOnA - result.pointOnB) == result.distanceBetweenPoints);
-        CHECK(a.origin + glm::normalize(a.direction) * result.distanceToPointA == ApproxVec(result.pointOnA));
-        CHECK(b.origin + glm::normalize(b.direction) * result.distanceToPointB == ApproxVec(result.pointOnB));
-    }
-
-    TEST_CASE("util::closestLineBetweenTwoRays0") {
-        // https://keisan.casio.com/exec/system/1223531414
-        const Ray3 a = {
-                {-1, 2, 0},
-                {2, 3, 1},
-        };
-        const Ray3 b = {
-                {3, -4, 1},
-                {1, 2, 1},
-        };
-        auto result = util::closestLineBetweenTwoRays(a, b);
-        consistencyCheck(a, b, result);
-        CHECK(result.distanceBetweenPoints == Approx(6.3508529610859));
-        CHECK(result.pointOnA == ApproxVec(glm::vec3(5, 11, 3)));
-        CHECK(result.pointOnB == ApproxVec(glm::vec3(26 / 3.f, 22 / 3.f, 20 / 3.f)));
-    }
-
-    TEST_CASE("util::closestLineBetweenTwoRays1") {
-        //https://www.geogebra.org/calculator/ujvvt34f
-        const Ray3 a = {
-                {1, 2, 3},
-                {2, 3, 4},
-        };
-        const Ray3 b = {
-                {3, 2, 1},
-                {4, 3, 2},
-        };
-        auto result = util::closestLineBetweenTwoRays(a, b);
-        consistencyCheck(a, b, result);
-        CHECK(result.distanceBetweenPoints == Approx(0.0f));
-        CHECK(result.pointOnA == ApproxVec(glm::vec3(-1, -1, -1)));
-        CHECK(result.pointOnB == ApproxVec(glm::vec3(-1, -1, -1)));
-    }
-
-    TEST_CASE("util::closestLineBetweenTwoRays2") {
-        const Ray3 a = {
-                {1, 2, 3},
-                {2, 3, 4},
-        };
-        const Ray3 b = {
-                {3, 2, 1},
-                a.direction,
-        };
-        auto result = util::closestLineBetweenTwoRays(a, b);
-        consistencyCheck(a, b, result);
-        CHECK(result.distanceBetweenPoints == Approx(2.7291529568841f));
-        CHECK(result.pointOnA == ApproxVec(a.origin));
-        CHECK(result.pointOnB == ApproxVec(glm::vec3(3.27586198, 2.41379309, 1.5517242)));
-    }
-
-    TEST_CASE("util::closestLineBetweenTwoRays3") {
-        const Ray3 a = {
-                {9999, 9999, 50},
-                {2, 3, 0},
-        };
-        const Ray3 b = {
-                {9999, 9999, 150},
-                {3, 2, 0},
-        };
-        auto result = util::closestLineBetweenTwoRays(a, b);
-        consistencyCheck(a, b, result);
-        CHECK(result.distanceBetweenPoints == Approx(100));
-        CHECK(result.pointOnA == ApproxVec(glm::vec3(9999, 9999, 50)));
-        CHECK(result.pointOnB == ApproxVec(glm::vec3(9999, 9999, 150)));
-    }
-
-    TEST_CASE("util::rayPlaneIntersection1") {
-        //https://www.geogebra.org/calculator/gzzhkpdz
-        const Ray3 ray = {{1, 2, 3}, {4, 5, 6}};
-        const Ray3 plane = {{3, 2, 1}, {3, 4, 1}};
-        auto result = util::rayPlaneIntersection(ray, plane);
-        CHECK(result == ApproxVec(glm::vec3(1.421052631578947, 2.526315789473684, 3.631578947368421)));
-    }
-
-    TEST_CASE("util::rayPlaneIntersection2") {
-        //https://www.geogebra.org/calculator/ukzyhnuk
-        const Ray3 ray = {{1, 2, 3}, {4, -1, 2}};
-        const Ray3 plane = {{12, 2, -2}, {3, -4, 1}};
-        auto result = util::rayPlaneIntersection(ray, plane);
-        CHECK(result == ApproxVec(glm::vec3(7.222222222222221, 0.444444444444445, 6.111111111111111)));
-    }
-
-    TEST_CASE("util::rayPlaneIntersection3") {
-        //https://www.geogebra.org/m/vq6chbwb
-        const Ray3 ray = {{1, 0, 0}, {4, -1, -2}};
-        const Ray3 plane = {{12, 9, -2}, {3, 8, 1}};
-        auto result = util::rayPlaneIntersection(ray, plane);
-        CHECK(result == ApproxVec(glm::vec3(207.0, -51.5, -103.0)));
-    }
-
-    TEST_CASE("util::rayPlaneIntersection4") {
-        //https://www.geogebra.org/calculator/bdjqrttr
-        const Ray3 ray = {{1, 2, 3}, {-4, -1, 2}};
-        const Ray3 plane = {{12, 2, -2}, {3, -4, 1}};
-        auto result = util::rayPlaneIntersection(ray, plane);
-        CHECK(!result.has_value());
-    }
-
-    TEST_CASE("util::rayPlaneIntersection5") {
-        //ray is parallel to plane
-        const Ray3 ray = {{0, 0, 10}, {1, 0, 0}};
-        const Ray3 plane = {{0, 0, 0}, {0, 0, 1}};
-        auto result = util::rayPlaneIntersection(ray, plane);
-        CHECK(!result.has_value());
-    }
-
-    TEST_CASE("util::getAngleBetweenThreePointsUnsigned 1") {
-        //https://www.geogebra.org/calculator/enejk3cx
-        const float angle = util::getAngleBetweenThreePointsUnsigned({3, 5, 7}, {5, 2, 8}, {9, -2, 4});
-        CHECK(glm::degrees(angle) == Approx(128.112926500986674));
-    }
-
-    TEST_CASE("util::getAngleBetweenThreePointsUnsigned 2") {
-        const float angle = util::getAngleBetweenThreePointsUnsigned({1, 2, 3}, {3, 2, 1}, {1, 1, 1});
-        CHECK(glm::degrees(angle) == Approx(50.76848));
-    }
-
-    TEST_CASE("util::getAngleBetweenThreePointsUnsigned 3") {
-        const float angle = util::getAngleBetweenThreePointsUnsigned({1, 0, 0}, {0, 0, 0}, {0, 1, 0});
-        CHECK(glm::degrees(angle) == Approx(90.0));
-    }
-
-    TEST_CASE("util::getAngleBetweenThreePointsUnsigned 4") {
-        const float angle = util::getAngleBetweenThreePointsUnsigned({1, 0, 0}, {0, 0, 0}, {-5, 0, 0});
-        CHECK(glm::degrees(angle) == Approx(180.0));
-    }
-
     TEST_CASE("util::combinedHash") {
         CHECK(util::combinedHash(123, 456) != robin_hood::hash<int>()(123));
         CHECK(util::combinedHash(123, 456) != robin_hood::hash<int>()(456));
@@ -479,6 +103,4 @@ namespace bricksim {
         CHECK(util::combinedHash(123, 456, 789) != util::combinedHash(123, 456));
         CHECK(util::combinedHash(123, 456, 789) != util::combinedHash(456, 789));
     }
-
-    //todo tests for util::getAngleBetweenThreePointsSigned
 }

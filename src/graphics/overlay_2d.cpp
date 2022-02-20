@@ -1,5 +1,6 @@
 #include "overlay_2d.h"
 #include "../controller.h"
+#include "../helpers/geometry.h"
 #include "../helpers/util.h"
 #include <glad/glad.h>
 
@@ -279,7 +280,7 @@ namespace bricksim::overlay2d {
     }
 
     bool LineElement::isPointInside(coord_t point) {
-        return util::calculateDistanceOfPointToLine(start, end, point) <= width / 2;
+        return geometry::calculateDistanceOfPointToLine(start, end, point) <= width / 2;
     }
 
     unsigned int LineElement::getVertexCount() {
@@ -491,7 +492,7 @@ namespace bricksim::overlay2d {
         tipWidthFactor(tipWidthFactor), color(color) {}
 
     bool ArrowElement::isPointInside(coord_t point) {
-        const auto normalProjection = util::normalProjectionOnLineClamped(start, end, point);
+        const auto normalProjection = geometry::normalProjectionOnLineClamped(start, end, point);
         const auto projLengthFromEnd = normalProjection.projectionLength - normalProjection.lineLength;
         float tipWidth = calculateTipWidth();
         float tipLength = calculateTipLength();

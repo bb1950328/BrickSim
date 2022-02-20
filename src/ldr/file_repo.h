@@ -1,11 +1,12 @@
 #pragma once
 
+#include "../binary_file.h"
 #include "files.h"
 #include <filesystem>
 #include <map>
+#include <mutex>
 #include <set>
 #include <vector>
-#include <mutex>
 
 namespace bricksim::ldr::file_repo {
 
@@ -15,11 +16,18 @@ namespace bricksim::ldr::file_repo {
         ZIP,
     };
 
+    enum BinaryFileSearchPath {
+        DEFAULT,
+        TEXMAP,
+    };
+
     extern const char* PSEUDO_CATEGORY_SUBPART;
     extern const char* PSEUDO_CATEGORY_PRIMITIVE;
     extern const char* PSEUDO_CATEGORY_MODEL;
     extern const char* PSEUDO_CATEGORY_HIDDEN_PART;
+    extern const char* PSEUDO_CATEGORY_BINARY_FILE;
     extern const char* const PSEUDO_CATEGORIES[];
+
     extern const char* const PART_SEARCH_PREFIXES[];
     constexpr int ESTIMATE_PART_LIBRARY_FILE_COUNT = 19057;//counted on 2020-12-09
 
@@ -31,8 +39,11 @@ namespace bricksim::ldr::file_repo {
         void initialize(float* progress);
 
         std::shared_ptr<File> getFile(const std::string& name);
+        std::shared_ptr<BinaryFile> getBinaryFile(const std::string& name, BinaryFileSearchPath searchPath=DEFAULT);
         bool hasFileCached(const std::string& name);
-        std::shared_ptr<File> addFileWithContent(const std::string& name, FileType type, const std::string& content);
+        std::shared_ptr<File> reloadFile(const std::string& name);
+        std::shared_ptr<File> addLdrFileWithContent(const std::string& name, FileType type, const std::string& content);
+        std::shared_ptr<BinaryFile> addBinaryFileWithContent(const std::string& name, const std::shared_ptr<BinaryFile>& file);
         std::filesystem::path& getBasePath();
         oset_t<std::string> getAllCategories();
 
@@ -45,8 +56,9 @@ namespace bricksim::ldr::file_repo {
          * @return vector of file names relative to root of library
          */
         virtual std::vector<std::string> listAllFileNames(float* progress) = 0;
-        virtual std::string getLibraryFileContent(FileType type, std::string name) = 0;
-        virtual std::string getLibraryFileContent(std::string nameRelativeToRoot) = 0;
+        virtual std::string getLibraryLdrFileContent(FileType type, const std::string& name) = 0;
+        virtual std::string getLibraryLdrFileContent(const std::string& nameRelativeToRoot) = 0;
+        virtual std::shared_ptr<BinaryFile> getLibraryBinaryFileContent(const std::string& nameRelativeToRoot) = 0;
         virtual ~FileRepo();
         omap_t<std::string, oset_t<std::shared_ptr<File>>> getAllPartsGroupedByCategory();
         omap_t<std::string, oset_t<std::shared_ptr<File>>> getLoadedPartsGroupedByCategory();
@@ -71,9 +83,15 @@ namespace bricksim::ldr::file_repo {
         std::filesystem::path basePath;
 
     private:
-        uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>> files;
-        std::mutex filesMtx;
+        uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>> ldrFiles;
+        std::mutex ldrFilesMtx;
+
+        uomap_t<std::string, std::shared_ptr<BinaryFile>> binaryFiles;
+        std::mutex binaryFilesMtx;
+
         omap_t<std::string, oset_t<std::shared_ptr<File>>> partsByCategory;
+        static bool isLdrFilename(const std::string& filename);
+        static bool isBinaryFilename(const std::string& filename);
     };
 
     FileRepo& get();

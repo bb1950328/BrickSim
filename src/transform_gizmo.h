@@ -102,7 +102,7 @@ namespace bricksim::transform_gizmo {
     public:
         TG2DArrowNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent);
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
         bool isDisplayNameUserEditable() const override;
         std::string getDescription() override;
     };

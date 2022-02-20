@@ -1,5 +1,6 @@
 #pragma once
 
+#include "binary_file.h"
 #include "constant_data/constants.h"
 #include "graphics/mesh/mesh.h"
 #include "helpers/color.h"
@@ -74,22 +75,25 @@ namespace bricksim::etree {
 
     class MeshNode : public Node {
     public:
-        MeshNode(ldr::ColorReference color, std::shared_ptr<Node> parent);
+        MeshNode(ldr::ColorReference color, const std::shared_ptr<Node>& parent, std::shared_ptr<ldr::TexmapStartCommand> directTexmap);
 
         virtual mesh_identifier_t getMeshIdentifier() const = 0;
-        virtual void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) = 0;
+        virtual void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) = 0;
         [[nodiscard]] virtual bool isColorUserEditable() const;
         [[nodiscard]] ldr::ColorReference getDisplayColor() const;
         void setColor(ldr::ColorReference newColor);
         ldr::ColorReference getElementColor() const;
+        const std::shared_ptr<ldr::TexmapStartCommand>& getDirectTexmap() const;
+        const std::shared_ptr<ldr::TexmapStartCommand>& getAppliedTexmap() const;
 
     private:
         ldr::ColorReference color;
+        std::shared_ptr<ldr::TexmapStartCommand> directTexmap;
     };
 
     class LdrNode : public MeshNode {
     public:
-        LdrNode(NodeType nodeType, const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent);
+        LdrNode(NodeType nodeType, const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap);
         /**
          * This function is necessary because shared_from_this() doesn't work inside the constructor. so this function should be called immediately after creating
          * an object of type LdrNode. todo find a better solution for this
@@ -97,7 +101,7 @@ namespace bricksim::etree {
         void createChildNodes();
 
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
         std::string getDescription() override;
         std::shared_ptr<ldr::File> ldrFile;
         uoset_t<std::shared_ptr<ldr::SubfileReference>> childrenWithOwnNode;
@@ -124,11 +128,11 @@ namespace bricksim::etree {
 
     class MpdSubfileInstanceNode : public MeshNode {
     public:
-        MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, std::shared_ptr<Node> parent);
+        MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap);
 
         std::shared_ptr<MpdSubfileNode> mpdSubfileNode;
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
         std::string getDescription() override;
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };
@@ -151,9 +155,28 @@ namespace bricksim::etree {
 
     class PartNode : public LdrNode {
     public:
-        PartNode(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent);
+        PartNode(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
+    };
+
+    class TexmapNode : public MeshNode {
+    public:
+        TexmapNode(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, const std::shared_ptr<Node>& parent);
+
+        mesh_identifier_t getMeshIdentifier() const override;
+
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
+
+        bool isDisplayNameUserEditable() const override;
+
+    private:
+        ldr::TexmapStartCommand::ProjectionMethod projectionMethod;
+        glm::vec3 p1, p2, p3;
+        std::string textureFilename;
+        std::weak_ptr<graphics::Texture> texture;
+        float a, b;
+        void updateCalculatedValues();
     };
 
     std::shared_ptr<Node> getFirstSelectedNode(std::shared_ptr<Node> rootNode);

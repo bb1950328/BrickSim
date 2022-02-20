@@ -25,24 +25,6 @@ namespace bricksim::util {
     std::filesystem::path extendHomeDirPath(const std::string& input);
     std::filesystem::path withoutBasePath(const std::filesystem::path& path, const std::filesystem::path& basePath);
 
-    //string functions
-    std::string trim(const std::string& input);
-    void asLower(const char* input, char* output, size_t length);
-    std::string asLower(const std::string& string);
-    void asUpper(const char* input, char* output, size_t length);
-    std::string asUpper(const std::string& string);
-    void toLowerInPlace(char* string);
-    void toUpperInPlace(char* string);
-    bool endsWith(std::string const& fullString, std::string const& ending);
-    bool startsWith(std::string const& fullString, std::string const& start);
-    bool endsWith(const char* fullString, const char* ending);
-    bool startsWith(const char* fullString, const char* start);
-    void replaceAll(std::string& str, const std::string& from, const std::string& to);
-    std::string replaceChar(const std::string& str, char from, char to);
-    std::string formatBytesValue(uint64_t bytes);
-    bool containsIgnoreCase(const std::string& full, const std::string& sub);
-    bool equalsAlphanum(const std::string& a, const std::string& b);
-
     //os functions
     void openDefaultBrowser(const std::string& link);
 
@@ -94,38 +76,12 @@ namespace bricksim::util {
     };
     DecomposedTransformation decomposeTransformationToStruct(const glm::mat4& transformation);
 
-    //geometry functions
-    glm::vec3 triangleCentroid(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3);
-    glm::vec3 quadrilateralCentroid(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec3& p4);
-    bool doesTransformationInverseWindingOrder(const glm::mat4& transformation);
-    float calculateDistanceOfPointToLine(const glm::vec2& line_start, const glm::vec2& line_end, const glm::vec2& point);
-    float calculateDistanceOfPointToLine(const glm::usvec2& line_start, const glm::usvec2& line_end, const glm::usvec2& point);
-    struct NormalProjectionResult {
-        glm::vec2 nearestPointOnLine;
-        glm::vec2 projection;
-        float projectionLength;
-        float distancePointToLine;
-        float lineLength;
-    };
-    NormalProjectionResult normalProjectionOnLineClamped(const glm::vec2& lineStart, const glm::vec2& lineEnd, const glm::vec2& point);
-    struct ClosestLineBetweenTwoRaysResult {
-        glm::vec3 pointOnA;
-        glm::vec3 pointOnB;
-        float distanceToPointA;
-        float distanceToPointB;
-        float distanceBetweenPoints;
-    };
-    ClosestLineBetweenTwoRaysResult closestLineBetweenTwoRays(const Ray3& a, const Ray3& b);
-
-    std::optional<glm::vec3> rayPlaneIntersection(const Ray3& ray, const Ray3& planeNormal);
-
-    float getAngleBetweenThreePointsUnsigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
-    float getAngleBetweenThreePointsSigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& planeNormal);
+    bool isUvInsideImage(const glm::vec2& uv);
 
     // texture/image functions
     std::string translateBrickLinkColorNameToLDraw(std::string colorName);
     std::string translateLDrawColorNameToBricklink(std::string colorName);
-    bool writeImage(const char* path, unsigned char* pixels, unsigned int width, unsigned int height, int channels = 3);
+    bool writeImage(const char* path, unsigned char* pixels, int width, int height, int channels = 3);
 
     bool isStbiFlipVertically();
     void setStbiFlipVertically(bool value);

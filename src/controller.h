@@ -4,6 +4,7 @@
 #include "element_tree.h"
 #include "graphics/thumbnail_generator.h"
 #include "ldr/files.h"
+#include <efsw/efsw.hpp>
 #include "tasks.h"
 #include "transform_gizmo.h"
 #include "types.h"
@@ -69,4 +70,6 @@ namespace bricksim::controller {
 #endif
     std::optional<std::shared_ptr<Editor>> getEditorOfScene(scene_id_t sceneId);
     void setActiveEditor(std::shared_ptr<Editor>& editor);
+
+    std::shared_ptr<efsw::FileWatcher> getFileWatcher();
 };

@@ -5,12 +5,18 @@ target_sources(BrickSimLib PRIVATE
         debug_nodes.h
         fraction.cpp
         fraction.h
+        geometry.cpp
+        geometry.h
         palanteer_implementation.cpp
         parts_library_downloader.cpp
         parts_library_downloader.h
         platform_detection.h
+        polygon_clipping.cpp
+        polygon_clipping.h
         ray.cpp
         ray.h
+        stringutil.cpp
+        stringutil.h
         system_info.cpp
         system_info.h
         util.cpp

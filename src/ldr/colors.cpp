@@ -1,4 +1,5 @@
 #include "colors.h"
+#include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include "file_repo.h"
 #include <sstream>
@@ -114,10 +115,10 @@ namespace bricksim::ldr {
             static bool initialized = false;
             if (!initialized) {
                 std::stringstream inpStream;
-                std::string contentString = ldr::file_repo::get().getLibraryFileContent("LDConfig.ldr");
+                std::string contentString = ldr::file_repo::get().getLibraryLdrFileContent("LDConfig.ldr");
                 inpStream << contentString;
                 for (std::string line; getline(inpStream, line);) {
-                    auto trimmed = util::trim(line);
+                    auto trimmed = stringutil::trim(line);
                     if (!trimmed.empty() && trimmed.rfind("0 !COLOUR", 0) == 0) {
                         auto col = std::make_shared<Color>(line.substr(10));
                         colors[col->code] = col;

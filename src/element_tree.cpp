@@ -2,10 +2,13 @@
 #pragma ide diagnostic ignored "misc-no-recursion"
 #include "element_tree.h"
 #include "config.h"
+#include "ldr/file_repo.h"
 #include <magic_enum.hpp>
 #include <palanteer.h>
 #undef RGB
+#include <glm/gtx/normal.hpp>
 #include <spdlog/spdlog.h>
+#include <utility>
 
 #undef RGB
 
@@ -98,25 +101,28 @@ namespace bricksim::etree {
         return true;
     }
 
-    void LdrNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
+    void LdrNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         auto dummyColor = ldr::color_repo::getInstanceDummyColor();
         for (const auto& element: ldrFile->elements) {
+            if (element->hidden) {
+                continue;
+            }
             switch (element->getType()) {
                 case 0: break;
                 case 1: {
                     auto sfElement = std::dynamic_pointer_cast<ldr::SubfileReference>(element);
                     if (childrenWithOwnNode.find(sfElement) == childrenWithOwnNode.end()) {
-                        mesh->addLdrSubfileReference(dummyColor, sfElement, glm::mat4(1.0f), windingInversed);
+                        mesh->addLdrSubfileReference(dummyColor, sfElement, glm::mat4(1.0f), windingInversed, texmap);
                     }
                 } break;
                 case 2:
                     mesh->addLdrLine(dummyColor, std::dynamic_pointer_cast<ldr::Line>(element), glm::mat4(1.0f));
                     break;
                 case 3:
-                    mesh->addLdrTriangle(dummyColor, std::dynamic_pointer_cast<ldr::Triangle>(element), glm::mat4(1.0f), windingInversed);
+                    mesh->addLdrTriangle(dummyColor, std::dynamic_pointer_cast<ldr::Triangle>(element), glm::mat4(1.0f), windingInversed, texmap);
                     break;
                 case 4:
-                    mesh->addLdrQuadrilateral(dummyColor, std::dynamic_pointer_cast<ldr::Quadrilateral>(element), glm::mat4(1.0f), windingInversed);
+                    mesh->addLdrQuadrilateral(dummyColor, std::dynamic_pointer_cast<ldr::Quadrilateral>(element), glm::mat4(1.0f), windingInversed, texmap);
                     break;
                 case 5:
                     mesh->addLdrOptionalLine(dummyColor, std::dynamic_pointer_cast<ldr::OptionalLine>(element), glm::mat4(1.0f));
@@ -148,8 +154,8 @@ namespace bricksim::etree {
         }
     }
 
-    LdrNode::LdrNode(NodeType nodeType, const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) :
-        MeshNode(ldrColor, parent), ldrFile(ldrFile) {
+    LdrNode::LdrNode(NodeType nodeType, const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap) :
+        MeshNode(ldrColor, parent, directTexmap), ldrFile(ldrFile) {
         type = nodeType;
         this->parent = parent;
         this->setColor(ldrColor);
@@ -174,7 +180,7 @@ namespace bricksim::etree {
 
     void LdrNode::addSubfileInstanceNode(const std::shared_ptr<ldr::File>& subFile, const ldr::ColorReference instanceColor) {
         auto subfileNode = findMpdNodeAndAddSubfileNode(subFile, {1}, shared_from_this());
-        auto instanceNode = std::make_shared<MpdSubfileInstanceNode>(subfileNode, instanceColor, shared_from_this());
+        auto instanceNode = std::make_shared<MpdSubfileInstanceNode>(subfileNode, instanceColor, shared_from_this(), nullptr);
         this->children.push_back(instanceNode);
     }
 
@@ -182,17 +188,25 @@ namespace bricksim::etree {
         plFunction();
         if (!childNodesCreated) {
             for (const auto& element: ldrFile->elements) {
-                if (element->getType() == 1) {
+                if (element->hidden) {
+                    continue;
+                }
+                if (element->getType() == 0) {
+                    const auto texmapStartCommand = dynamic_pointer_cast<ldr::TexmapStartCommand>(element);
+                    if (texmapStartCommand != nullptr) {
+                        children.push_back(std::make_shared<TexmapNode>(texmapStartCommand, shared_from_this()));
+                    }
+                } else if (element->getType() == 1) {
                     auto sfElement = std::dynamic_pointer_cast<ldr::SubfileReference>(element);
                     auto subFile = sfElement->getFile();
                     std::shared_ptr<Node> newNode = nullptr;
                     if (subFile->metaInfo.type == ldr::MPD_SUBFILE) {
                         auto subFileNode = findMpdNodeAndAddSubfileNode(subFile, sfElement->color, shared_from_this());
-                        newNode = std::make_shared<MpdSubfileInstanceNode>(subFileNode, sfElement->color, shared_from_this());
+                        newNode = std::make_shared<MpdSubfileInstanceNode>(subFileNode, sfElement->color, shared_from_this(), sfElement->directTexmap);
                         childrenWithOwnNode.insert(sfElement);
                     } else if (subFile->metaInfo.type == ldr::PART) {
                         childrenWithOwnNode.insert(sfElement);
-                        newNode = std::make_shared<PartNode>(subFile, sfElement->color, shared_from_this());
+                        newNode = std::make_shared<PartNode>(subFile, sfElement->color, shared_from_this(), sfElement->directTexmap);
                     }
                     if (nullptr != newNode) {
                         children.push_back(newNode);
@@ -247,8 +261,8 @@ namespace bricksim::etree {
         return mpdSubfileNode->getMeshIdentifier();
     }
 
-    void MpdSubfileInstanceNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed) {
-        mpdSubfileNode->addToMesh(mesh, windingInversed);
+    void MpdSubfileInstanceNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
+        mpdSubfileNode->addToMesh(mesh, windingInversed, texmap);
     }
 
     std::string MpdSubfileInstanceNode::getDescription() {
@@ -259,8 +273,8 @@ namespace bricksim::etree {
         return false;
     }
 
-    MpdSubfileInstanceNode::MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, std::shared_ptr<Node> parent) :
-        mpdSubfileNode(mpdSubfileNode), MeshNode(color, std::move(parent)) {
+    MpdSubfileInstanceNode::MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap) :
+        mpdSubfileNode(mpdSubfileNode), MeshNode(color, parent, directTexmap) {
         type = TYPE_MPD_SUBFILE_INSTANCE;
         this->displayName = mpdSubfileNode->displayName;
     }
@@ -278,7 +292,7 @@ namespace bricksim::etree {
     }
 
     MpdNode::MpdNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) :
-        LdrNode(TYPE_MULTI_PART_DOCUMENT, ldrFile, ldrColor, parent) {
+        LdrNode(TYPE_MULTI_PART_DOCUMENT, ldrFile, ldrColor, parent, nullptr) {
     }
 
     bool MpdSubfileNode::isDisplayNameUserEditable() const {
@@ -286,7 +300,7 @@ namespace bricksim::etree {
     }
 
     MpdSubfileNode::MpdSubfileNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference color, const std::shared_ptr<Node>& parent) :
-        LdrNode(TYPE_MPD_SUBFILE, ldrFile, color, parent) {
+        LdrNode(TYPE_MPD_SUBFILE, ldrFile, color, parent, nullptr) {
         visible = false;
     }
 
@@ -294,12 +308,12 @@ namespace bricksim::etree {
         return false;
     }
 
-    PartNode::PartNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) :
-        LdrNode(TYPE_PART, ldrFile, ldrColor, parent) {
+    PartNode::PartNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap) :
+        LdrNode(TYPE_PART, ldrFile, ldrColor, parent, directTexmap) {
     }
 
-    MeshNode::MeshNode(ldr::ColorReference color, std::shared_ptr<Node> parent) :
-        Node(std::move(parent)), color(color) {
+    MeshNode::MeshNode(ldr::ColorReference color, const std::shared_ptr<Node>& parent, std::shared_ptr<ldr::TexmapStartCommand> directTexmap) :
+        Node(parent), color(color), directTexmap(std::move(directTexmap)) {
         type = TYPE_MESH;
     }
 
@@ -319,6 +333,22 @@ namespace bricksim::etree {
 
     ldr::ColorReference MeshNode::getElementColor() const {
         return color;
+    }
+
+    const std::shared_ptr<ldr::TexmapStartCommand>& MeshNode::getAppliedTexmap() const {
+        if (directTexmap != nullptr) {
+            return directTexmap;
+        }
+        auto parentAsMeshNode = std::dynamic_pointer_cast<MeshNode>(parent.lock());
+        if (parentAsMeshNode != nullptr) {
+            return parentAsMeshNode->getAppliedTexmap();
+        }
+
+        const static std::shared_ptr<ldr::TexmapStartCommand> null;
+        return null;
+    }
+    const std::shared_ptr<ldr::TexmapStartCommand>& MeshNode::getDirectTexmap() const {
+        return directTexmap;
     }
 
     const char* getDisplayNameOfType(const NodeType& type) {
@@ -345,7 +375,7 @@ namespace bricksim::etree {
             case TYPE_ROOT:
             case TYPE_MESH:
             case TYPE_LDRFILE:
-            default: return color::RGB(255, 255, 255);
+            default: return {255, 255, 255};
         }
     }
 
@@ -360,6 +390,73 @@ namespace bricksim::etree {
             }
         }
         return nullptr;
+    }
+
+    TexmapNode::TexmapNode(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, const std::shared_ptr<Node>& parent) :
+        MeshNode(ldr::color_repo::INSTANCE_DUMMY_COLOR_CODE, parent, nullptr),
+        projectionMethod(startCommand->projectionMethod),
+        p1(startCommand->x1, startCommand->y1, startCommand->z1),
+        p2(startCommand->x2, startCommand->y2, startCommand->z2),
+        p3(startCommand->x3, startCommand->y3, startCommand->z3),
+        a(startCommand->a),
+        b(startCommand->b),
+        textureFilename(startCommand->textureFilename) {
+        auto flipVerticallyBackup = util::isStbiFlipVertically();
+        util::setStbiFlipVertically(false);//todo I'm not 100% sure if this is right
+        const auto& textureFile = ldr::file_repo::get().getBinaryFile(textureFilename, ldr::file_repo::TEXMAP);
+        texture = graphics::Texture::getFromBinaryFileCached(textureFile);
+        util::setStbiFlipVertically(flipVerticallyBackup);
+        updateCalculatedValues();
+    }
+
+    void TexmapNode::updateCalculatedValues() {
+        displayName = fmt::format("Texmap {} {}", magic_enum::enum_name(projectionMethod), textureFilename);
+        //todo modify directTexmap and increment version
+        if (projectionMethod == ldr::TexmapStartCommand::PLANAR) {
+            /*const glm::vec3 scale{glm::length(p2 - p1), glm::length(p3 - p1), 1.f};
+            glm::mat4 transf = glm::scale(glm::mat4(1.f), scale);
+            //now the plane has the correct size
+
+            const glm::vec3 untransformedPlaneNormal{0.f, 0.f, 1.f};
+            const auto transformedPlaneNormal = glm::triangleNormal(p1, p2, p3);//todo find out which one is the correct winding order
+            const auto rotation = util::quaternionRotationFromOneVectorToAnother(untransformedPlaneNormal, transformedPlaneNormal);
+            transf = glm::toMat4(rotation) * transf;
+            //now the plane normal points to the right direction
+
+
+            //const auto p4 = p2 + p3 - p1;
+            const auto center = .5f * (p2 + p3);
+            transf = glm::translate(glm::mat4(1.f), center) * transf;
+            //now the center of the plane is also at the right place
+
+
+            const glm::vec3 intermediateP1 = glm::vec4(-.5f, -.5f, 0.f, 1.f) * transf;
+            const auto rotation2 = util::quaternionRotationFromOneVectorToAnother(intermediateP1-center, p1-center);
+            transf = glm::toMat4(rotation2) * transf;
+            //now the plane is also rotated around its normal correctly
+
+
+            setRelativeTransformation(glm::transpose(transf));*/
+        }
+        //setRelativeTransformation(glm::translate(glm::mat4(1.0f), p1));
+    }
+
+    mesh_identifier_t TexmapNode::getMeshIdentifier() const {
+        /*if (projectionMethod == ldr::TexmapStartCommand::PLANAR) {
+            return util::combinedHash(projectionMethod, textureFilename);
+        } else if (projectionMethod == ldr::TexmapStartCommand::SPHERICAL) {
+            return util::combinedHash(projectionMethod, textureFilename, a, glm::length2(p3 - p1));
+        } else {
+            return util::combinedHash(projectionMethod, textureFilename, a, b, glm::length2(p2 - p1));
+        }*/
+    }
+
+    void TexmapNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
+
+    }
+
+    bool TexmapNode::isDisplayNameUserEditable() const {
+        return false;
     }
 }
 #pragma clang diagnostic pop

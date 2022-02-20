@@ -4,6 +4,7 @@
 #include <list>
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/spdlog.h>
+#include <inttypes.h>
 
 namespace bricksim::logging::latest_messages_tank {
     struct LogMessage {
@@ -64,7 +65,7 @@ namespace bricksim::logging::latest_messages_tank {
 #endif
             std::strftime(timeBuf, timeBufSize, "%H:%M:%S", &tmpTm);
             const auto timeMs = std::chrono::time_point_cast<std::chrono::milliseconds>(msg.time).time_since_epoch().count();
-            snprintf(&timeBuf[8], 5, ".%03ld", timeMs % 1000);
+            snprintf(&timeBuf[8], 5, ".%03" PRIu64, timeMs % 1000);
             std::string message = msg.payload.data();
             //todo std::strcpy(message.get(), msg.payload.data());
             addMessage(LogMessage(

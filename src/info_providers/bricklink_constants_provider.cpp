@@ -1,4 +1,5 @@
 #include "bricklink_constants_provider.h"
+#include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include <rapidjson/document.h>
 #include <spdlog/spdlog.h>
@@ -39,7 +40,7 @@ namespace bricksim::info_providers::bricklink_constants {
 
         int startPos = 0;
 
-        if (util::startsWith(response.second, "var _blvarGlobalConstantsNew = {")) {//todo make a better solution with regex
+        if (stringutil::startsWith(response.second, "var _blvarGlobalConstantsNew = {")) {//todo make a better solution with regex
             startPos = 31;
         }
 

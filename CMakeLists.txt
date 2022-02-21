@@ -7,11 +7,18 @@ foreach (SDKPATH IN LISTS /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /A
     endif ()
 endforeach ()
 
-
-set(GIT_COMMIT_HASH "unknown")
-set(GIT_COMMIT_COUNT "0")
-set(TOTAL_HOURS "0.0")
-set(GIT_VERSION_TAG "v0.0.0")
+if (NOT DEFINED GIT_COMMIT_HASH)
+    set(GIT_COMMIT_HASH "unknown")
+endif()
+if (NOT DEFINED GIT_COMMIT_COUNT)
+    set(GIT_COMMIT_COUNT "0")
+endif()
+if (NOT DEFINED TOTAL_HOURS)
+    set(TOTAL_HOURS "0.0")
+endif()
+if (NOT DEFINED GIT_VERSION_TAG)
+    set(GIT_VERSION_TAG "v0.0.0")
+endif()
 
 if (MSVC)
     message(WARNING "getting git version info currently not implemented on MSVC")

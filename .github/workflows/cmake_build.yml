@@ -239,6 +239,9 @@ jobs:
 
     name: Windows Build (64 bit / x86_64)
 
+    env:
+      VCPKG_DEFAULT_TRIPLET: x64-windows
+
     steps:
       - uses: actions/checkout@v2
         with:
@@ -258,7 +261,7 @@ jobs:
              Move-Item -Path 'glad_tmp\include' -Destination 'src\lib\include'
              Remove-Item -Recurse -Force 'glad_tmp'
 
-      - name: Build
+      - name: Configure and Build
         shell: cmd
         working-directory: ${{runner.workspace}}\BrickSim
         run: |
@@ -271,7 +274,7 @@ jobs:
           #cmake -G "MSYS Makefiles" ../.. -DCMAKE_PREFIX_PATH=/C/mingw64 -DCMAKE_MAKE_PROGRAM=/C/msys64/usr/bin/make.exe \
           #  -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(../../scripts/get_git_commit_count.sh) \
           #  -DTOTAL_HOURS:STRING=$(../../scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(../../scripts/get_git_tag.sh)
-          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" -G "Ninja" ..\..
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -G "Ninja" ..\..
 
           cmake --build . --target BrickSim BrickSimTests --config Release  -j 2
 

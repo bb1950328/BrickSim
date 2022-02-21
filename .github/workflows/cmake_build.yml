@@ -247,7 +247,7 @@ jobs:
       - name: Install packages
         shell: cmd
         working-directory: ${{runner.workspace}}\BrickSim
-        run: vcpkg "@vcpkg_rc.txt"
+        run: vcpkg "@vcpkg_rf.txt"
       
       - name: Unzip files
         shell: powershell

@@ -260,6 +260,15 @@ jobs:
              Move-Item -Path 'glad_tmp\src\glad.c' -Destination 'src\lib\glad.c'
              Move-Item -Path 'glad_tmp\include' -Destination 'src\lib\include'
              Remove-Item -Recurse -Force 'glad_tmp'
+      
+      - name: Get git info
+        shell: bash
+        id: git_info
+        run: |
+          echo "::set-output name=commit_hash::$(./scripts/get_git_commit_hash.sh)""
+          echo "::set-output name=commit_count::$(./scripts/get_git_commit_count.sh)""
+          echo "::set-output name=total_hours::$(./scripts/get_git_total_hours.sh)""
+          echo "::set-output name=version_tag::$(./scripts/get_git_tag.sh)""
 
       - name: Configure and Build
         shell: cmd
@@ -271,10 +280,8 @@ jobs:
           cd cmake-build
           md release64
           cd release64
-          #cmake -G "MSYS Makefiles" ../.. -DCMAKE_PREFIX_PATH=/C/mingw64 -DCMAKE_MAKE_PROGRAM=/C/msys64/usr/bin/make.exe \
-          #  -DGIT_COMMIT_HASH:STRING=$(./scripts/get_git_commit_hash.sh) -DGIT_COMMIT_COUNT:STRING=$(../../scripts/get_git_commit_count.sh) \
-          #  -DTOTAL_HOURS:STRING=$(../../scripts/get_git_total_hours.sh) -DGIT_VERSION_TAG:STRING=$(../../scripts/get_git_tag.sh)
-          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -G "Ninja" ..\..
+
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DGIT_COMMIT_HASH:STRING=${{ steps.git_info.outputs.commit_hash }} -DGIT_COMMIT_COUNT:STRING=${{ steps.git_info.outputs.commit_count }} -DTOTAL_HOURS:STRING=${{ steps.git_info.outputs.total_hours }} -DGIT_VERSION_TAG:STRING=${{ steps.git_info.outputs.version_tag }} -G "Ninja" ..\..
 
           cmake --build . --target BrickSim BrickSimTests --config Release  -j 2
 

@@ -25,11 +25,12 @@ namespace bricksim::ldr {
             if (lineEnd == std::string::npos) {
                 hasMoreLines = false;
                 lineEnd = content.size();
+            } else {
+                ++lineEnd;
             }
-            ++lineEnd;
-            if (content[lineEnd] == '\n') {
+            /*if (content[lineEnd] == '\n') {
                 lineEnd++;
-            }
+            }*/
             std::string line = content.substr(lineStart, lineEnd - lineStart);
 
             if (stringutil::startsWith(line, "0 FILE")) {
@@ -69,11 +70,13 @@ namespace bricksim::ldr {
             lineEnd = content.find_first_of("\r\n", lineStart);
             if (lineEnd == std::string::npos) {
                 lineEnd = content.size();
+            } else {
+                ++lineEnd;
+                /* if (content[lineEnd - 1] == '\n') {
+                    lineEnd++;
+                }*/
             }
-            ++lineEnd;
-            if (content[lineEnd] == '\n') {
-                lineEnd++;
-            }
+            
             file->addTextLine(content.substr(lineStart, lineEnd - lineStart));
             lineStart = lineEnd;
         }

@@ -512,7 +512,8 @@ namespace bricksim::mesh {
             vertexCount += item.second.getVertexCount();
         }
         if (vertexCount > 0) {
-            auto coords = std::make_unique<const float*[]>(vertexCount);
+            auto coords = std::vector<const float*>();
+            coords.resize(vertexCount);
             size_t coordsCursor = 0;
 
             for (const auto& item: triangleData) {
@@ -522,11 +523,14 @@ namespace bricksim::mesh {
                 item.second.fillVerticesForOuterDimensions(coords, coordsCursor);
             }
 
-            Miniball::Miniball<Miniball::CoordAccessor<const float* const*, const float*>> mb(3, coords.get(), coords.get() + vertexCount);
+            Miniball::Miniball<Miniball::CoordAccessor<const float* const*, const float*>> mb(3, &coords[0], &coords[0] + vertexCount);
 
-            float minX, maxX = coords[0][0];
-            float minY, maxY = coords[0][1];
-            float minZ, maxZ = coords[0][2];
+            float minX = coords[0][0];
+            float minY = coords[0][1];
+            float minZ = coords[0][2];
+            float maxX = minX;
+            float maxY = minY;
+            float maxZ = minZ;
             for (coordsCursor = 1; coordsCursor < vertexCount; ++coordsCursor) {
                 float x = coords[coordsCursor][0];
                 float y = coords[coordsCursor][1];

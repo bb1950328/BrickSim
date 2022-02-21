@@ -231,6 +231,34 @@ namespace bricksim::util {
         return {response_code, response_string};
     }
 
+    size_t writeFunctionToFile(void* ptr, size_t size, size_t nmemb, FILE* stream) {
+        size_t written = fwrite(ptr, size, nmemb, stream);
+        return written;
+    }
+
+    std::pair<int, std::string> downloadFile(const std::string& url, const std::filesystem::path targetFile, int (*progressFunc)(void*, long, long, long, long)) {
+        CURL* curl = curl_easy_init();
+        if (curl) {
+            FILE* fp = fopen(targetFile.string().c_str(), "wb");
+            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunctionToFile);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+
+            if (progressFunc != nullptr) {
+                curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+                curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progressFunc);
+            } else {
+                curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+            }
+
+            CURLcode res = curl_easy_perform(curl);
+
+            curl_easy_cleanup(curl);
+            fclose(fp);
+        }
+        return {234, "TODO"};
+    }
+
     std::string readFileToString(const std::filesystem::path& path) {
         FILE* f = fopen(path.string().c_str(), "rb");
         if (f) {

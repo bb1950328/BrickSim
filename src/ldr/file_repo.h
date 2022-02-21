@@ -95,6 +95,7 @@ namespace bricksim::ldr::file_repo {
     };
 
     FileRepo& get();
+    bool isInitialized();
     bool tryToInitializeWithLibraryPath(const std::filesystem::path& path);
     bool checkLdrawLibraryLocation();
     LibraryType getLibraryType(const std::filesystem::path& path);

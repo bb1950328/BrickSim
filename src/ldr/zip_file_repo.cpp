@@ -1,5 +1,6 @@
 #include "zip_file_repo.h"
 #include <spdlog/spdlog.h>
+#include <zipint.h>
 
 namespace bricksim::ldr::file_repo {
     bool ZipFileRepo::isValidBasePath(const std::filesystem::path& basePath) {
@@ -90,7 +91,7 @@ namespace bricksim::ldr::file_repo {
         result.resize(stat.size);
         const auto readBytes = zip_fread(file, &result[0], stat.size);
         if (readBytes != stat.size) {
-            spdlog::warn("file {} in zip library has reported size of {} bytes, but only {} bytes read", nameRelativeToRoot, stat.size, readBytes);
+            spdlog::warn("file {} in zip library has reported size of {} bytes, but only {} bytes read. error={}", nameRelativeToRoot, stat.size, readBytes, zip_error_strerror(&file->error));
             result.resize(std::max(static_cast<decltype(readBytes)>(0), readBytes));
         }
 
@@ -101,9 +102,7 @@ namespace bricksim::ldr::file_repo {
 
     std::pair<struct zip_stat, zip_file_t*> ZipFileRepo::openFileByName(const std::string& nameRelativeToRoot) {
         struct zip_stat stat {};
-        zip_file_t* file;
         std::string entryName = rootFolderName + nameRelativeToRoot;
-        file = zip_fopen_index(zipArchive, stat.index, 0);
         //try to find it with case sensitive first because it's faster
         auto found = zip_stat(zipArchive, entryName.c_str(), 0, &stat);
         if (found == -1) {
@@ -113,6 +112,7 @@ namespace bricksim::ldr::file_repo {
         if (found == -1) {
             spdlog::error("file {} not found in zip library", entryName);
         }
+        zip_file_t* file = zip_fopen_index(zipArchive, stat.index, 0);
         if (file == nullptr) {
             spdlog::error("failed to open file {} in zip library: {}", entryName, zip_error_strerror(zip_get_error(zipArchive)));
         }

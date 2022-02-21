@@ -99,6 +99,14 @@ namespace bricksim::util {
      */
     std::pair<int, std::string> requestGET(const std::string& url, bool useCache = true, size_t sizeLimit = 0, int (*progressFunc)(void*, long, long, long, long) = nullptr);
 
+    /**
+     * @param url
+     * @param targetFile where the file should be saved
+     * @param progressFunc int(void* clientp, long downloadTotal, long downloadNow, long uploadTotal, long uploadNow) // if return value is != 0, transfer stops
+     * @return (responseCode, responseString)
+     */
+    std::pair<int, std::string> downloadFile(const std::string& url, const std::filesystem::path targetFile, int (*progressFunc)(void*, long, long, long, long) = nullptr);
+
     std::string readFileToString(const std::filesystem::path& path);
 
     template<class none = void>

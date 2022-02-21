@@ -165,8 +165,9 @@ namespace bricksim::ldr {
     }
 
     inline void parseNextFloat(const std::string& line, size_t& start, size_t& end, float& result) {
+        size_t endBackup = end, startBackup = start;
         start = line.find_first_not_of(LDR_WHITESPACE, end);
-        end = line.find_first_of(LDR_WHITESPACE, start);
+        end = std::min(line.size(), line.find_first_of(LDR_WHITESPACE, start));
         fast_float::from_chars(&line[start], &line[end], result);
     }
 

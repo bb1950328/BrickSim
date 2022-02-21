@@ -28,4 +28,6 @@ namespace bricksim::constants {
     extern const float totalWorkHours;
     extern const uint16_t gitCommitCount;
     extern const char* gitCommitHash;
+
+    extern const char* LDRAW_LIBRARY_DOWNLOAD_URL;
 }

@@ -7,12 +7,14 @@ foreach (SDKPATH IN LISTS /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /A
     endif ()
 endforeach ()
 
+
+set(GIT_COMMIT_HASH "unknown")
+set(GIT_COMMIT_COUNT "0")
+set(TOTAL_HOURS "0.0")
+set(GIT_VERSION_TAG "v0.0.0")
+
 if (MSVC)
     message(WARNING "getting git version info currently not implemented on MSVC")
-    set(GIT_COMMIT_HASH "unknown")
-    set(GIT_COMMIT_COUNT "0")
-    set(TOTAL_HOURS "0.0")
-    set(GIT_VERSION_TAG "v0.0.0")
 else()
     #bash executable
     if (EXISTS "C:\\msys64\\usr\\bin\\bash.exe")
@@ -275,7 +277,8 @@ endif ()
 
 if(MSVC)
     target_compile_definitions(BrickSimLib PUBLIC _USE_MATH_DEFINES)
-    target_compile_definitions(BrickSimLib PUBLIC /wd4068)# warning C4068: unknown pragma
+    target_compile_options(BrickSimLib PUBLIC /wd4068)# warning C4068: unknown pragma
+    set_property(TARGET BrickSim PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 endif()
 
 target_include_directories(BrickSimLib PUBLIC

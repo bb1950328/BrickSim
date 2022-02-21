@@ -4,6 +4,7 @@
 #include <chrono>
 #include <fstream>
 #include <spdlog/spdlog.h>
+#include "../constant_data/constants.h"
 
 namespace bricksim::parts_library_downloader {
     namespace {
@@ -21,21 +22,18 @@ namespace bricksim::parts_library_downloader {
     void downloadPartsLibrary() {
         status = IN_PROGRESS;
         spdlog::info("starting parts library download");
-        auto result = util::requestGET("https://www.ldraw.org/library/updates/complete.zip", false, 0, progressFunc);
+        auto filePath = util::extendHomeDir("~/ldraw.zip");
+        auto result = util::downloadFile(constants::LDRAW_LIBRARY_DOWNLOAD_URL, filePath, progressFunc);
         if (result.first < 200 || result.first >= 300) {
             spdlog::error("parts library download failed. Error code: {}", result.first);
             errorCode = result.first;
             status = FAILED;
             return;
         }
-        spdlog::info("parts library download finished, start writing to disk");
-        auto filePath = util::extendHomeDir("~/ldraw.zip");
-        std::ofstream out(filePath);
-        out << result.second;
-        out.close();
+        spdlog::info("parts library download finished");
+        
         config::set(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(filePath));
         status = FINISHED;
-        spdlog::info("parts library written to disk");
     }
 
     void reset() {

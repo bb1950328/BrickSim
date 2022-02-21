@@ -17,7 +17,7 @@ namespace bricksim::mesh {
             glGenBuffers(1, &vertexVBO);
             glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
             size_t vertex_size = sizeof(TriangleVertex);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * vertex_size, &(vertices[0]), GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * vertex_size, vertices.data(), GL_STATIC_DRAW);
             metrics::vramUsageBytes += vertices.size() * vertex_size;
 
             // position attribute
@@ -35,7 +35,7 @@ namespace bricksim::mesh {
             size_t instanceSize = sizeof(TriangleInstance);
             instanceCount = instances.size();
             lastInstanceBufferSize = instanceCount;
-            glBufferData(GL_ARRAY_BUFFER, instanceCount * instanceSize, &instancesArray[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, instanceCount * instanceSize, instancesArray.data(), GL_STATIC_DRAW);
 
             glEnableVertexAttribArray(2);
             glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, instanceSize, (void*)offsetof(TriangleInstance, diffuseColor));
@@ -60,7 +60,7 @@ namespace bricksim::mesh {
             //ebo
             glGenBuffers(1, &EBO);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &(indices[0]), GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), indices.data(), GL_STATIC_DRAW);
             metrics::vramUsageBytes += sizeof(unsigned int) * indices.size();
 
             if (config::get(config::DELETE_VERTEX_DATA_AFTER_UPLOADING)) {
@@ -104,7 +104,7 @@ namespace bricksim::mesh {
             auto instancesArray = generateInstancesArray(instances);
             size_t instance_size = sizeof(TriangleInstance);
             glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-            glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &instancesArray[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, instancesArray.data(), GL_STATIC_DRAW);
         });
     }
     TriangleData::TriangleData(const ldr::ColorReference& color) :
@@ -160,7 +160,7 @@ namespace bricksim::mesh {
         vertices.push_back(vertex);
     }
 
-    void TriangleData::fillVerticesForOuterDimensions(std::unique_ptr<const float*[]>& coords, size_t& coordCursor) const {
+    void TriangleData::fillVerticesForOuterDimensions(std::vector<const float*>& coords, size_t& coordCursor) const {
         for (auto& item: vertices) {
             coords[coordCursor] = &item.position[0];
             ++coordCursor;

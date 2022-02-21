@@ -1,1 +1,3 @@
-install freeglut zlib
+install
+freeglut
+zlib

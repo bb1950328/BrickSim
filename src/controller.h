@@ -29,7 +29,7 @@ namespace bricksim::controller {
         void glfwErrorCallback(int code, const char* message);
         bool initialize();
         void cleanup();
-        void loopPartsLibrarySetupPrompt();
+        bool loopPartsLibrarySetupPrompt();
         void handleForegroundTasks();
     }
 

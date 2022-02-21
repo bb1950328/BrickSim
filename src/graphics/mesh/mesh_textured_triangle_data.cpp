@@ -21,7 +21,7 @@ namespace bricksim::mesh {
                 glGenBuffers(1, &vertexVBO);
                 glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
                 constexpr auto vertexSize = sizeof(TexturedTriangleVertex);
-                glBufferData(GL_ARRAY_BUFFER, vertices.size() * vertexSize, &vertices[0], GL_STATIC_DRAW);
+                glBufferData(GL_ARRAY_BUFFER, vertices.size() * vertexSize, vertices.data(), GL_STATIC_DRAW);
                 metrics::vramUsageBytes += vertices.size() * vertexSize;
 
                 //position attribute
@@ -36,7 +36,7 @@ namespace bricksim::mesh {
                 glGenBuffers(1, &instanceVBO);
                 glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
                 size_t instanceSize = sizeof(TexturedTriangleInstance);
-                glBufferData(GL_ARRAY_BUFFER, instances.size() * instanceSize, &instances[0], GL_STATIC_DRAW);
+                glBufferData(GL_ARRAY_BUFFER, instances.size() * instanceSize, instances.data(), GL_STATIC_DRAW);
                 uploadedInstanceCount = instances.size();
 
                 glEnableVertexAttribArray(2);
@@ -73,7 +73,7 @@ namespace bricksim::mesh {
     void TexturedTriangleData::rewriteInstanceBuffer(const std::vector<TexturedTriangleInstance>& instances) {
         controller::executeOpenGL([&]() {
             glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-            glBufferData(GL_ARRAY_BUFFER, instances.size() * sizeof(TexturedTriangleInstance), &instances[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, instances.size() * sizeof(TexturedTriangleInstance), instances.data(), GL_STATIC_DRAW);
             uploadedInstanceCount = instances.size();
         });
     }
@@ -97,7 +97,7 @@ namespace bricksim::mesh {
     size_t TexturedTriangleData::getVertexCount() const {
         return verticesAlreadyDeleted ? uploadedVertexCount : vertices.size();
     }
-    void TexturedTriangleData::fillVerticesForOuterDimensions(std::unique_ptr<const float*[]>& coords, size_t& coordCursor) const {
+    void TexturedTriangleData::fillVerticesForOuterDimensions(std::vector<const float*>& coords, size_t& coordCursor) const {
         for (auto& item: vertices) {
             coords[coordCursor] = &item.position[0];
             ++coordCursor;

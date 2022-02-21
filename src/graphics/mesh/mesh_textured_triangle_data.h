@@ -13,7 +13,7 @@ namespace bricksim::mesh {
         void freeBuffers();
         void draw(const InstanceRange& sceneLayerInstanceRange);
         [[nodiscard]] size_t getVertexCount() const;
-        void fillVerticesForOuterDimensions(std::unique_ptr<const float*[]>& coords, size_t& coordCursor) const;
+        void fillVerticesForOuterDimensions(std::vector<const float*>& coords, size_t& coordCursor) const;
         void addVertex(const TexturedTriangleVertex& vertex);
     private:
         std::shared_ptr<graphics::Texture> texture;

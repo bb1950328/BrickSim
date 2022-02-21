@@ -224,7 +224,7 @@ namespace bricksim::controller {
             }
         }
 
-        void loopPartsLibrarySetupPrompt() {
+        bool loopPartsLibrarySetupPrompt() {
             auto status = gui::PartsLibrarySetupResponse::RUNNING;
             while (status == gui::PartsLibrarySetupResponse::RUNNING
                    && !glfwWindowShouldClose(window)) {
@@ -237,9 +237,9 @@ namespace bricksim::controller {
                 });
             }
             if (status == gui::PartsLibrarySetupResponse::REQUEST_EXIT || glfwWindowShouldClose(window)) {
-                cleanup();
-                throw std::invalid_argument("user requested exit in parts library setup screen");//todo make cleaner solution
+                return false;
             }
+            return true;
         }
 
         bool initialize() {
@@ -247,6 +247,8 @@ namespace bricksim::controller {
             plDeclareThread("Main Thread");
             plFunction();
             logging::initialize();
+
+            spdlog::info("current working directory is {}", std::filesystem::absolute(std::filesystem::current_path()).string());
 
             db::initialize();
 
@@ -263,7 +265,11 @@ namespace bricksim::controller {
             gui::initialize();
 
             while (!ldr::file_repo::checkLdrawLibraryLocation()) {
-                loopPartsLibrarySetupPrompt();
+                if (!loopPartsLibrarySetupPrompt()) {
+                    spdlog::info("user closed window while in parts library setup prompt, exiting application");
+                    cleanup();
+                    return false;
+                }
             }
 
             Task initSteps[]{
@@ -311,7 +317,9 @@ namespace bricksim::controller {
 
         void cleanup() {
             plFunction();
-            ldr::file_repo::get().cleanup();
+            if (ldr::file_repo::isInitialized()) {
+                ldr::file_repo::get().cleanup();
+            }
             while (!foregroundTasks.empty()) {
                 handleForegroundTasks();
             }
@@ -373,7 +381,6 @@ namespace bricksim::controller {
         if (initialize()) {
             spdlog::info("Initialisation finished in {}s", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startupTime).count() / 1000.0f);
         } else {
-            spdlog::critical("Initialisation failed, exiting now.");
             return 1;
         }
 

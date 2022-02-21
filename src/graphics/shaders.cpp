@@ -193,13 +193,13 @@ namespace bricksim::graphics {
                 spdlog::info("loading shaders from embedded data");
 
                 auto createShaderVF = [](const auto& vertexShader, const auto& fragmentShader) {
-                    return std::make_unique<Shader>((const char*)(& (*vertexShader.begin())), (const char*)(&(*vertexShader.end())),
-                                                    (const char*)(&(*fragmentShader.begin())), (const char*)(&(*fragmentShader.end())));
+                    return std::make_unique<Shader>((const char*)(& (*vertexShader.begin())), (const char*)(&(vertexShader.back())+1),
+                                                    (const char*)(&(*fragmentShader.begin())), (const char*)(&(fragmentShader.back())+1));
                 };
                 auto createShaderVFG = [](const auto& vertexShader, const auto& fragmentShader, const auto& geometryShader) {
-                    return std::make_unique<Shader>((const char*)(&(*vertexShader.begin())), (const char*)(&(*vertexShader.end())),
-                                                    (const char*)(&(*fragmentShader.begin())), (const char*)(&(*fragmentShader.end())),
-                                                    (const char*)(&(*geometryShader.begin())), (const char*)(&(*geometryShader.end())));
+                    return std::make_unique<Shader>((const char*)(&(*vertexShader.begin())), (const char*)(&(vertexShader.back())+1),
+                                                    (const char*)(&(*fragmentShader.begin())), (const char*)(&(fragmentShader.back())+1),
+                                                    (const char*)(&(*geometryShader.begin())), (const char*)(&(geometryShader.back())+1));
                 };
                 
                 allShaders[TRIANGLE] = createShaderVF(resources::shaders::triangle_shader_vsh, resources::shaders::triangle_shader_fsh);

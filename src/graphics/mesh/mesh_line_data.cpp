@@ -16,7 +16,7 @@ namespace bricksim::mesh {
             glGenBuffers(1, &vertexVBO);
             glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
             size_t vertex_size = sizeof(LineVertex);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * vertex_size, &(vertices[0]), GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * vertex_size, vertices.data(), GL_STATIC_DRAW);
             metrics::vramUsageBytes += vertices.size() * vertex_size;
 
             // position attribute
@@ -31,7 +31,7 @@ namespace bricksim::mesh {
             glGenBuffers(1, &instanceVBO);
             glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
             size_t instanceSize = sizeof(glm::mat4);
-            glBufferData(GL_ARRAY_BUFFER, instanceCount * instanceSize, &instances[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, instanceCount * instanceSize, instances.data(), GL_STATIC_DRAW);
 
             for (int j = 2; j < 6; ++j) {
                 glEnableVertexAttribArray(j);
@@ -42,7 +42,7 @@ namespace bricksim::mesh {
             //ebo
             glGenBuffers(1, &ebo);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &(indices)[0], GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), indices.data(), GL_STATIC_DRAW);
             metrics::vramUsageBytes += sizeof(unsigned int) * indices.size();
 
             if (config::get(config::DELETE_VERTEX_DATA_AFTER_UPLOADING)) {
@@ -92,7 +92,7 @@ namespace bricksim::mesh {
         controller::executeOpenGL([this, &instances]() {
             constexpr size_t instance_size = sizeof(glm::mat4);
             glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-            glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, &(instances[0]), GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, instances.size() * instance_size, instances.data(), GL_STATIC_DRAW);
         });
     }
 

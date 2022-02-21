@@ -52,6 +52,11 @@ namespace bricksim::ldr::file_repo {
             return result;
         }
     }
+
+    bool isInitialized() {
+        return currentRepo != nullptr;
+    }
+
     FileRepo& get() {
         if (currentRepo) {
             return *currentRepo;

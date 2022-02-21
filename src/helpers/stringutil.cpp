@@ -1,8 +1,8 @@
 #include "stringutil.h"
-#include <sstream>
-#include <iomanip>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <iomanip>
+#include <sstream>
 
 #ifdef __SSE2__
 
@@ -18,8 +18,8 @@
 
 namespace bricksim::stringutil {
     std::string trim(const std::string& input) {
-        auto wsbefore = std::find_if_not(input.begin(), input.end(), [](int c) { return std::isspace(c); });
-        auto wsafter = std::find_if_not(input.rbegin(), input.rend(), [](int c) { return std::isspace(c); }).base();
+        auto wsbefore = std::find_if_not(input.begin(), input.end(), [](int c) { return c > 0 && c <= 0xff && std::isspace(c); });
+        auto wsafter = std::find_if_not(input.rbegin(), input.rend(), [](int c) { return c > 0 && c <= 0xff && std::isspace(c); }).base();
         return (wsafter <= wsbefore ? std::string() : std::string(wsbefore, wsafter));
     }
 

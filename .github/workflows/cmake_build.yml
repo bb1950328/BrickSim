@@ -265,10 +265,10 @@ jobs:
         shell: bash
         id: git_info
         run: |
-          echo "::set-output name=commit_hash::$(./scripts/get_git_commit_hash.sh)""
-          echo "::set-output name=commit_count::$(./scripts/get_git_commit_count.sh)""
-          echo "::set-output name=total_hours::$(./scripts/get_git_total_hours.sh)""
-          echo "::set-output name=version_tag::$(./scripts/get_git_tag.sh)""
+          echo "::set-output name=commit_hash::$(./scripts/get_git_commit_hash.sh)"
+          echo "::set-output name=commit_count::$(./scripts/get_git_commit_count.sh)"
+          echo "::set-output name=total_hours::$(./scripts/get_git_total_hours.sh)"
+          echo "::set-output name=version_tag::$(./scripts/get_git_tag.sh)"
 
       - name: Configure and Build
         shell: cmd

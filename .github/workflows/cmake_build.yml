@@ -293,7 +293,9 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: BrickSimRawBinary_Windows64
-          path: ${{runner.workspace}}\BrickSim\cmake-build\release64\BrickSim.exe
+          path: |
+            ${{runner.workspace}}\BrickSim\cmake-build\release64\BrickSim.exe
+            ${{runner.workspace}}\BrickSim\cmake-build\release64\zlib1.dll
       - name: Upload BrickSimTests
         uses: actions/upload-artifact@v2
         with:

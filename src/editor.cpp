@@ -6,6 +6,7 @@
 #include "ldr/file_repo.h"
 #include "ldr/file_writer.h"
 #include "spdlog/fmt/bundled/format.h"
+#include "spdlog/fmt/ostr.h"
 
 namespace bricksim {
     std::shared_ptr<Editor> Editor::createNew() {
@@ -123,6 +124,7 @@ namespace bricksim {
         } else {
             selectedNodes.erase(iterator);
         }
+        updateSelectionVisualisation();
     }
 
     void Editor::nodeSelectSet(const std::shared_ptr<etree::Node>& node) {
@@ -132,6 +134,7 @@ namespace bricksim {
         selectedNodes.clear();
         node->selected = true;
         selectedNodes.insert(node);
+        updateSelectionVisualisation();
     }
 
     void Editor::nodeSelectUntil(const std::shared_ptr<etree::Node>& node) {
@@ -154,12 +157,14 @@ namespace bricksim {
                 selectedNodes.insert(itNode);
             }
         }
+        updateSelectionVisualisation();
     }
 
     void Editor::nodeSelectAll() {
         nodeSelectNone();
         documentNode->selected = true;
         selectedNodes.insert(documentNode);
+        updateSelectionVisualisation();
     }
 
     void Editor::nodeSelectNone() {
@@ -167,6 +172,7 @@ namespace bricksim {
             item->selected = false;
         }
         selectedNodes.clear();
+        updateSelectionVisualisation();
     }
 
     void Editor::setStandard3dView(int i) {
@@ -203,6 +209,7 @@ namespace bricksim {
         parent->removeChild(nodeToDelete);
         parent->incrementVersion();
         selectedNodes.erase(nodeToDelete);
+        updateSelectionVisualisation();
     }
 
     void Editor::deleteSelectedElements() {
@@ -299,5 +306,88 @@ namespace bricksim {
             rootNode->addChild(documentNode);
             documentNode->incrementVersion();
         }
+    }
+    void Editor::updateSelectionVisualisation() {
+        if (selectedNodes.empty()) {
+            if (selectionVisualisationNode != nullptr && selectionVisualisationNode->visible) {
+                selectionVisualisationNode->visible = false;
+                selectionVisualisationNode->incrementVersion();
+            }
+        } else {
+            if (selectionVisualisationNode == nullptr) {
+                selectionVisualisationNode = std::make_shared<SelectionVisualisationNode>(rootNode);
+                rootNode->addChild(selectionVisualisationNode);
+            }
+            mesh::AxisAlignedBoundingBox aabb;
+            for (const auto& node : selectedNodes) {
+                std::shared_ptr<etree::MeshNode> meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node);
+                if (meshNode != nullptr) {
+                    aabb.addAABB(scene->getMeshCollection().getAbsoluteAABB(meshNode));
+                }
+            }
+            if (aabb.isDefined()) {
+                selectionVisualisationNode->visible = true;
+                glm::mat4 transf(1.f);
+                transf = glm::translate(transf, aabb.getCenter());
+                transf = glm::scale(transf, aabb.getSize() / 2.f);
+                spdlog::debug("center={}, size={}", aabb.getCenter(), aabb.getSize());
+                selectionVisualisationNode->setRelativeTransformation(glm::transpose(transf));
+            } else {
+                selectionVisualisationNode->visible = false;
+            }
+            selectionVisualisationNode->incrementVersion();
+        }
+    }
+    SelectionVisualisationNode::SelectionVisualisationNode(const std::shared_ptr<Node>& parent) :
+        MeshNode(1, parent, nullptr) {
+        visibleInElementTree = false;
+    }
+    mesh_identifier_t SelectionVisualisationNode::getMeshIdentifier() const {
+        return constants::MESH_ID_SELECTION_VISUALISATION;
+    }
+    void SelectionVisualisationNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
+        auto& lineData = mesh->getLineData();
+        glm::vec3 color(0, 0, 1);
+        //square z=-1
+        lineData.addVertex({glm::vec3(-1, -1, -1), color});
+        lineData.addVertex({glm::vec3(+1, -1, -1), color});
+
+        lineData.addVertex({glm::vec3(-1, -1, -1), color});
+        lineData.addVertex({glm::vec3(-1, +1, -1), color});
+
+        lineData.addVertex({glm::vec3(+1, -1, -1), color});
+        lineData.addVertex({glm::vec3(+1, +1, -1), color});
+
+        lineData.addVertex({glm::vec3(-1, +1, -1), color});
+        lineData.addVertex({glm::vec3(+1, +1, -1), color});
+
+        //square z=1
+        lineData.addVertex({glm::vec3(-1, -1, +1), color});
+        lineData.addVertex({glm::vec3(+1, -1, +1), color});
+
+        lineData.addVertex({glm::vec3(-1, -1, +1), color});
+        lineData.addVertex({glm::vec3(-1, +1, +1), color});
+
+        lineData.addVertex({glm::vec3(+1, -1, +1), color});
+        lineData.addVertex({glm::vec3(+1, +1, +1), color});
+
+        lineData.addVertex({glm::vec3(-1, +1, +1), color});
+        lineData.addVertex({glm::vec3(+1, +1, +1), color});
+
+        //vertical
+        lineData.addVertex({glm::vec3(-1, -1, -1), color});
+        lineData.addVertex({glm::vec3(-1, -1, +1), color});
+
+        lineData.addVertex({glm::vec3(+1, -1, -1), color});
+        lineData.addVertex({glm::vec3(+1, -1, +1), color});
+
+        lineData.addVertex({glm::vec3(-1, +1, -1), color});
+        lineData.addVertex({glm::vec3(-1, +1, +1), color});
+
+        lineData.addVertex({glm::vec3(+1, +1, -1), color});
+        lineData.addVertex({glm::vec3(+1, +1, +1), color});
+    }
+    bool SelectionVisualisationNode::isDisplayNameUserEditable() const {
+        return false;
     }
 }

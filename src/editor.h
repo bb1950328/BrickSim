@@ -8,6 +8,14 @@
 
 namespace bricksim {
 
+    class SelectionVisualisationNode : public etree::MeshNode {
+    public:
+        SelectionVisualisationNode(const std::shared_ptr<Node>& parent);
+        virtual mesh_identifier_t getMeshIdentifier() const override;
+        virtual void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
+        [[nodiscard]] virtual bool isDisplayNameUserEditable() const override;
+    };
+
     class Editor : efsw::FileWatchListener {
     public:
         static std::shared_ptr<Editor> createNew();
@@ -69,8 +77,7 @@ namespace bricksim {
 
     private:
         void handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename, efsw::Action action, std::string oldFilename) override;
-
-    private:
+        void updateSelectionVisualisation();
         static std::string getNameForNewLdrFile();
         void init(const std::shared_ptr<ldr::File>& ldrFile);
 
@@ -83,6 +90,7 @@ namespace bricksim {
         std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;
         uint64_t lastSavedVersion = 0;
         uoset_t<std::shared_ptr<etree::Node>> selectedNodes;
+        std::shared_ptr<SelectionVisualisationNode> selectionVisualisationNode;
         std::shared_ptr<graphics::CadCamera> camera;
 
         enum class DraggingNodeType {

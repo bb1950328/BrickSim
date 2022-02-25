@@ -1,4 +1,6 @@
 #include "mesh_simple_classes.h"
+#include "../../helpers/util.h"
+#include "../../constant_data/constants.h"
 #include <cstring>
 
 namespace bricksim::mesh {
@@ -57,4 +59,47 @@ namespace bricksim::mesh {
                 break;
         }
     }
+
+    AxisAlignedBoundingBox::AxisAlignedBoundingBox() :
+        pMin(constants::pInf), pMax(constants::nInf) {
+    }
+
+    AxisAlignedBoundingBox::AxisAlignedBoundingBox(const glm::vec3& pMin, const glm::vec3& pMax) :
+        pMin(pMin), pMax(pMax) {
+    }
+
+    AxisAlignedBoundingBox AxisAlignedBoundingBox::transform(const glm::mat4& transformation) const {
+        return {glm::vec4(pMin, 1.0f) * transformation,
+                glm::vec4(pMax, 1.0f) * transformation};
+    }
+
+    bool AxisAlignedBoundingBox::isDefined() const {
+        return std::isfinite(pMin.x);
+    }
+
+    glm::vec3 AxisAlignedBoundingBox::getCenter() const {
+        return (pMin + pMax) / 2.f;
+    }
+
+    glm::vec3 AxisAlignedBoundingBox::getSize() const {
+        return pMax - pMin;
+    }
+
+    void AxisAlignedBoundingBox::addPoint(const glm::vec3& p) {
+        pMin = util::cwiseMin(pMin, p);
+        pMax = util::cwiseMax(pMax, p);
+    }
+
+    void AxisAlignedBoundingBox::addAABB(const AxisAlignedBoundingBox& other) {
+        pMin = util::cwiseMin(pMin, other.pMin);
+        pMax = util::cwiseMax(pMax, other.pMax);
+    }
+
+    glm::mat4 RotatedBoundingBox::getUnitBoxTransformation() const {
+        glm::mat4 transf = glm::toMat4(rotation);
+        transf = glm::scale(transf, size / 2.f);
+        transf = glm::translate(transf, center);
+        return transf;
+    }
+
 }

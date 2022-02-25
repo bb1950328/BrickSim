@@ -45,6 +45,19 @@ namespace bricksim::gui::windows::model_info {
             }
             spdlog::debug("counted parts in {}", sw);
             ImGui::Text("Part count: %" PRIu64, sum);
+            mesh::AxisAlignedBoundingBox modelDimensions;
+            for (const auto& node : nodes) {
+                const auto meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node);
+                if (meshNode != nullptr) {
+                    modelDimensions.addAABB(selectedLocked->getScene()->getMeshCollection().getAbsoluteAABB(meshNode));
+                }
+            }
+            if (modelDimensions.isDefined()) {
+                const auto size = modelDimensions.getSize();
+                ImGui::Text("Width (X): %.0f LDU", std::abs(size.x));
+                ImGui::Text("Height (Y): %.0f LDU", std::abs(size.y));
+                ImGui::Text("Length (Z): %.0f LDU", std::abs(size.z));
+            }
         }
         ImGui::End();
     }

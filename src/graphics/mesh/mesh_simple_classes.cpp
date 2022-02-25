@@ -1,5 +1,6 @@
 #include "mesh_simple_classes.h"
 #include "../../helpers/util.h"
+#include "../../helpers/geometry.h"
 #include "../../constant_data/constants.h"
 #include <cstring>
 
@@ -96,10 +97,35 @@ namespace bricksim::mesh {
     }
 
     glm::mat4 RotatedBoundingBox::getUnitBoxTransformation() const {
-        glm::mat4 transf = glm::toMat4(rotation);
+        glm::mat4 transf = glm::mat4(1.f);
+        transf = glm::toMat4(rotation) * transf;
+        transf = glm::translate(glm::mat4(1.f), origin + centerOffset) * transf;
         transf = glm::scale(transf, size / 2.f);
-        transf = glm::translate(transf, center);
         return transf;
     }
+    RotatedBoundingBox RotatedBoundingBox::transform(const glm::mat4& transformation) const {
+        RotatedBoundingBox result;
+        /*auto decomposed = util::decomposeTransformationToStruct(transformation);
+        result.rotation = rotation * decomposed.orientation;
+        result.size = size * decomposed.scale;
+        result.center = center + decomposed.translation;*/
+        const auto decomposedTransformation = util::decomposeTransformationToStruct(transformation);
+        glm::vec4 originalDirToCorner(1.f, 1.f, 1.f, 0.f);
+        const glm::vec4 thisDirToCorner = originalDirToCorner * glm::vec4(size, 0.f) * rotation;
+        const glm::vec4 resDirToCorner = thisDirToCorner * transformation;
+
+        const glm::vec4 thisCenter = glm::vec4(getCenter(), 1.f);
+        const glm::vec4 resCenter = transformation * thisCenter;
+        //result.center = glm::vec4(center, 1.f) * transformation;
+        result.origin = origin + decomposedTransformation.translation;
+        result.centerOffset = glm::vec3(resCenter) - result.origin;
+        result.rotation = rotation * decomposedTransformation.orientation;//geometry::quaternionRotationFromOneVectorToAnother(originalDirToCorner, resDirToCorner);
+        result.size = size * decomposedTransformation.scale;
+        return result;
+    }
+    glm::vec3 RotatedBoundingBox::getCenter() const {
+        return origin + centerOffset;
+    }
+    RotatedBoundingBox::RotatedBoundingBox() = default;
 
 }

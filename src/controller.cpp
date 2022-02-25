@@ -428,7 +428,7 @@ namespace bricksim::controller {
 
             plBegin("update transform gizmos");
             for (auto& item: editors) {
-                item->getTransformGizmo()->update();
+                item->update();
             }
             plEnd("update transform gizmos");
 

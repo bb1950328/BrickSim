@@ -78,15 +78,19 @@ namespace bricksim::mesh {
     };
 
     struct RotatedBoundingBox {
-        glm::vec3 center;
+        RotatedBoundingBox();
+        glm::vec3 centerOffset;
+        glm::vec3 origin;
         glm::vec3 size;
         glm::quat rotation;
 
-        RotatedBoundingBox(const AxisAlignedBoundingBox& aabb, glm::quat rotation) :
-            center(aabb.getCenter()), size(aabb.getSize()), rotation(rotation) {
+        RotatedBoundingBox(const AxisAlignedBoundingBox& aabb, glm::vec3 origin, glm::quat rotation) :
+            centerOffset(aabb.getCenter()-origin), origin(origin), size(aabb.getSize()), rotation(rotation) {
         }
 
         [[nodiscard]] glm::mat4 getUnitBoxTransformation() const;
+        [[nodiscard]] RotatedBoundingBox transform(const glm::mat4& transformation) const;
+        [[nodiscard]] glm::vec3 getCenter() const;
     };
 
     struct OuterDimensions {

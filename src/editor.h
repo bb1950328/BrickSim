@@ -36,7 +36,7 @@ namespace bricksim {
         std::shared_ptr<graphics::Scene>& getScene();
         std::unique_ptr<transform_gizmo::TransformGizmo>& getTransformGizmo();
         [[nodiscard]] const std::shared_ptr<graphics::CadCamera>& getCamera() const;
-        [[nodiscard]] const uoset_t<std::shared_ptr<etree::Node>>& getSelectedNodes() const;
+        [[nodiscard]] const uomap_t<std::shared_ptr<etree::Node>, uint64_t>& getSelectedNodes() const;
 
         const std::string& getFilename();
 
@@ -75,6 +75,8 @@ namespace bricksim {
         void hideSelectedElements();
         void unhideAllElements();
 
+        void update();
+
     private:
         void handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename, efsw::Action action, std::string oldFilename) override;
         void updateSelectionVisualisation();
@@ -89,7 +91,7 @@ namespace bricksim {
         std::shared_ptr<graphics::Scene> scene;
         std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;
         uint64_t lastSavedVersion = 0;
-        uoset_t<std::shared_ptr<etree::Node>> selectedNodes;
+        uomap_t<std::shared_ptr<etree::Node>, uint64_t> selectedNodes;//value is last version, use to check if selected node was modified in the meantime
         std::shared_ptr<SelectionVisualisationNode> selectionVisualisationNode;
         std::shared_ptr<graphics::CadCamera> camera;
 

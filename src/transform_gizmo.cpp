@@ -44,7 +44,7 @@ namespace bricksim::transform_gizmo {
 
     void TransformGizmo::update() {
         const auto& selectedNodes = editor.getSelectedNodes();
-        currentlySelectedNode = selectedNodes.size() == 1 ? *selectedNodes.begin() : nullptr;
+        currentlySelectedNode = selectedNodes.size() == 1 ? selectedNodes.begin()->first : nullptr;
 
         std::optional<glm::mat4> nowTransformation = lastTransformation;
         PovState nowPovState = lastPovState;
@@ -130,6 +130,7 @@ namespace bricksim::transform_gizmo {
 
     void TransformGizmo::updateCurrentDragDelta(glm::svec2 totalDragDelta) {
         currentTransformationOperation->update(totalDragDelta);
+        currentlySelectedNode->incrementVersion();
     }
 
     void TransformGizmo::endDrag() {

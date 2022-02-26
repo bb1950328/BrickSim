@@ -116,6 +116,7 @@ namespace bricksim::mesh {
         transf = glm::scale(transf, size / 2.f);
         return transf;
     }
+
     RotatedBoundingBox RotatedBoundingBox::transform(const glm::mat4& transformation) const {
         RotatedBoundingBox result;
         const auto decomposedTransformation = util::decomposeTransformationToStruct(transformation);
@@ -123,16 +124,21 @@ namespace bricksim::mesh {
         const glm::vec3 resCenter = transformation * glm::vec4(getCenter(), 1.f);
         result.origin = origin + decomposedTransformation.translation;
         result.centerOffset = resCenter - result.origin;
-        result.rotation = rotation * decomposedTransformation.orientation;//geometry::quaternionRotationFromOneVectorToAnother(originalDirToCorner, resDirToCorner);
+        result.rotation = rotation * decomposedTransformation.orientation;
         result.size = size * decomposedTransformation.scale;
         return result;
     }
+
     glm::vec3 RotatedBoundingBox::getCenter() const {
         return origin + centerOffset;
     }
+
     RotatedBoundingBox::RotatedBoundingBox(const AxisAlignedBoundingBox& aabb) :
         RotatedBoundingBox(aabb, glm::vec3(0.f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f)) {
     }
-    RotatedBoundingBox::RotatedBoundingBox() = default;
+
+    RotatedBoundingBox::RotatedBoundingBox() :
+        RotatedBoundingBox(AxisAlignedBoundingBox()) {
+    }
 
 }

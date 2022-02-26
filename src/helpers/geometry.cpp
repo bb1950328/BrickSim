@@ -374,7 +374,11 @@ namespace bricksim::geometry {
     }
 
     bool doesTransformationLeaveAxisParallels(const glm::mat4& transformation) {
-        const auto eulerAngles = glm::eulerAngles(glm::normalize(glm::quat_cast(transformation)));
+        return doesTransformationLeaveAxisParallels(glm::quat_cast(transformation));
+    }
+
+    bool doesTransformationLeaveAxisParallels(const glm::quat& quaternion) {
+        const auto eulerAngles = glm::eulerAngles(glm::normalize(quaternion));
         constexpr float epsilon = 0.0001;
         bool res = true;
         for (int i = 0; i < 3; ++i) {

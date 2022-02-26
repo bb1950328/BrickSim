@@ -390,9 +390,9 @@ namespace bricksim::controller {
         //openFile("test_files/texmap_planar.ldr");
         //openFile("test_files/texmap_planar3.ldr");
         //openFile("test_files/texmap_planar_perpendicular.ldr");
-        //openFile("~/Downloads/arocs.mpd");
+        openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
-        openFile("car.ldr");
+        //openFile("car.ldr");
         //openFile("~/Downloads/datsville.ldr");
         //openFile("~/Downloads/42131_Bulldozer.mpd");
 

@@ -59,6 +59,8 @@ namespace bricksim::mesh {
         unsigned int count;
     };
 
+    struct RotatedBoundingBox;
+
     struct AxisAlignedBoundingBox {
         glm::vec3 pMin;
         glm::vec3 pMax;
@@ -66,8 +68,9 @@ namespace bricksim::mesh {
         AxisAlignedBoundingBox();
         AxisAlignedBoundingBox(const glm::vec3& pMin, const glm::vec3& pMax);
 
-        void addPoint(const glm::vec3& p);
-        void addAABB(const AxisAlignedBoundingBox& other);
+        void includePoint(const glm::vec3& p);
+        void includeAABB(const AxisAlignedBoundingBox& other);
+        void includeBBox(const RotatedBoundingBox& bbox);
 
         [[nodiscard]] AxisAlignedBoundingBox transform(const glm::mat4& transformation) const;
 

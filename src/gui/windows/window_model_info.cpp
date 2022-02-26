@@ -49,7 +49,7 @@ namespace bricksim::gui::windows::model_info {
             for (const auto& node : nodes) {
                 const auto meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node.first);
                 if (meshNode != nullptr) {
-                    modelDimensions.addAABB(selectedLocked->getScene()->getMeshCollection().getAbsoluteAABB(meshNode));
+                    modelDimensions.includeAABB(selectedLocked->getScene()->getMeshCollection().getAbsoluteAABB(meshNode));
                 }
             }
             if (modelDimensions.isDefined()) {

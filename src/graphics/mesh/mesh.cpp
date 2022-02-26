@@ -528,7 +528,7 @@ namespace bricksim::mesh {
             AxisAlignedBoundingBox aabb;
             
             for (const float* c : coords) {
-                aabb.addPoint({c[0], c[1], c[2]});
+                aabb.includePoint({c[0], c[1], c[2]});
             }
 
             outerDimensions = OuterDimensions{

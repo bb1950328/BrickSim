@@ -70,8 +70,8 @@ namespace bricksim::mesh {
     }
 
     AxisAlignedBoundingBox AxisAlignedBoundingBox::transform(const glm::mat4& transformation) const {
-        const glm::vec3 p1 = glm::vec4(pMin, 1.0f) * transformation;
-        const glm::vec3 p2 = glm::vec4(pMax, 1.0f) * transformation;
+        const glm::vec3 p1 = transformation * glm::vec4(pMin, 1.0f);
+        const glm::vec3 p2 = transformation * glm::vec4(pMax, 1.0f);
         return {util::cwiseMin(p1, p2),
                 util::cwiseMax(p1, p2)};
     }
@@ -88,14 +88,25 @@ namespace bricksim::mesh {
         return pMax - pMin;
     }
 
-    void AxisAlignedBoundingBox::addPoint(const glm::vec3& p) {
+    void AxisAlignedBoundingBox::includePoint(const glm::vec3& p) {
         pMin = util::cwiseMin(pMin, p);
         pMax = util::cwiseMax(pMax, p);
     }
 
-    void AxisAlignedBoundingBox::addAABB(const AxisAlignedBoundingBox& other) {
+    void AxisAlignedBoundingBox::includeAABB(const AxisAlignedBoundingBox& other) {
         pMin = util::cwiseMin(pMin, other.pMin);
         pMax = util::cwiseMax(pMax, other.pMax);
+    }
+
+    void AxisAlignedBoundingBox::includeBBox(const RotatedBoundingBox& bbox) {
+        const auto center = glm::vec4(bbox.getCenter(), 1.f);
+        const auto transf = bbox.getUnitBoxTransformation();
+        for (const auto pn: {glm::vec3(1.f, -1.f, 1.f), glm::vec3(-1.f, 1.f, 1.f), glm::vec3(1.f, 1.f, 1.f), glm::vec3(-1.f, -1.f, 1.f)}) {
+            const auto ptr = transf * glm::vec4(pn, 1.f);
+            const auto oppositePtr = 2.f * center - ptr;
+            includePoint(ptr);
+            includePoint(oppositePtr);
+        }
     }
 
     glm::mat4 RotatedBoundingBox::getUnitBoxTransformation() const {

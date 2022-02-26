@@ -136,4 +136,9 @@ namespace bricksim::geometry {
      * @return true if @param transformation only has rotation in 90° steps
      */
     bool doesTransformationLeaveAxisParallels(const glm::mat4& transformation);
+
+    /**
+     * @return true if @param quaternion only has rotation in 90° steps
+     */
+    bool doesTransformationLeaveAxisParallels(const glm::quat& quaternion);
 }

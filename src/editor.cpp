@@ -338,7 +338,10 @@ namespace bricksim {
                 for (auto& node: selectedNodes) {
                     std::shared_ptr<etree::MeshNode> meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node.first);
                     if (meshNode != nullptr) {
-                        aabb.addAABB(scene->getMeshCollection().getAbsoluteAABB(meshNode));
+                        auto nodeBBox = scene->getMeshCollection().getAbsoluteRotatedBBox(meshNode);
+                        if (nodeBBox.has_value()) {
+                            aabb.includeBBox(nodeBBox.value());
+                        }
                     }
                     node.second = node.first->getVersion();
                 }

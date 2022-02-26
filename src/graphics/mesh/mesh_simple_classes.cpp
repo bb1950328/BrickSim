@@ -70,8 +70,10 @@ namespace bricksim::mesh {
     }
 
     AxisAlignedBoundingBox AxisAlignedBoundingBox::transform(const glm::mat4& transformation) const {
-        return {glm::vec4(pMin, 1.0f) * transformation,
-                glm::vec4(pMax, 1.0f) * transformation};
+        const glm::vec3 p1 = glm::vec4(pMin, 1.0f) * transformation;
+        const glm::vec3 p2 = glm::vec4(pMax, 1.0f) * transformation;
+        return {util::cwiseMin(p1, p2),
+                util::cwiseMax(p1, p2)};
     }
 
     bool AxisAlignedBoundingBox::isDefined() const {
@@ -105,26 +107,20 @@ namespace bricksim::mesh {
     }
     RotatedBoundingBox RotatedBoundingBox::transform(const glm::mat4& transformation) const {
         RotatedBoundingBox result;
-        /*auto decomposed = util::decomposeTransformationToStruct(transformation);
-        result.rotation = rotation * decomposed.orientation;
-        result.size = size * decomposed.scale;
-        result.center = center + decomposed.translation;*/
         const auto decomposedTransformation = util::decomposeTransformationToStruct(transformation);
-        glm::vec4 originalDirToCorner(1.f, 1.f, 1.f, 0.f);
-        const glm::vec4 thisDirToCorner = originalDirToCorner * glm::vec4(size, 0.f) * rotation;
-        const glm::vec4 resDirToCorner = thisDirToCorner * transformation;
 
-        const glm::vec4 thisCenter = glm::vec4(getCenter(), 1.f);
-        const glm::vec4 resCenter = transformation * thisCenter;
-        //result.center = glm::vec4(center, 1.f) * transformation;
+        const glm::vec3 resCenter = transformation * glm::vec4(getCenter(), 1.f);
         result.origin = origin + decomposedTransformation.translation;
-        result.centerOffset = glm::vec3(resCenter) - result.origin;
+        result.centerOffset = resCenter - result.origin;
         result.rotation = rotation * decomposedTransformation.orientation;//geometry::quaternionRotationFromOneVectorToAnother(originalDirToCorner, resDirToCorner);
         result.size = size * decomposedTransformation.scale;
         return result;
     }
     glm::vec3 RotatedBoundingBox::getCenter() const {
         return origin + centerOffset;
+    }
+    RotatedBoundingBox::RotatedBoundingBox(const AxisAlignedBoundingBox& aabb) :
+        RotatedBoundingBox(aabb, glm::vec3(0.f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f)) {
     }
     RotatedBoundingBox::RotatedBoundingBox() = default;
 

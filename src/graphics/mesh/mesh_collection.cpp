@@ -255,6 +255,19 @@ namespace bricksim::mesh {
         return aabb;
     }
 
+    std::optional<RotatedBoundingBox> SceneMeshCollection::getRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const {
+        const auto relativeAABB = getRelativeAABB(node);
+        if (relativeAABB.isDefined()) {
+            const auto nodeAbsTransf = glm::transpose(node->getAbsoluteTransformation());
+            if (geometry::doesTransformationLeaveAxisParallels(nodeAbsTransf)) {
+                return mesh::RotatedBoundingBox(relativeAABB.transform(nodeAbsTransf));
+            } else {
+                return mesh::RotatedBoundingBox(relativeAABB).transform(nodeAbsTransf);
+            }
+        }
+        return std::nullopt;
+    }
+
     const oset_t<layer_t>& SceneMeshCollection::getLayersInUse() const {
         return layersInUse;
     }

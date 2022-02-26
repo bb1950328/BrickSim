@@ -328,7 +328,6 @@ namespace bricksim {
                     const auto relativeAABB = scene->getMeshCollection().getRelativeAABB(meshNode);
                     if (relativeAABB.isDefined()) {
                         const auto rotatedBBox = mesh::RotatedBoundingBox(relativeAABB, glm::vec3(0.f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f)).transform(glm::transpose(meshNode->getAbsoluteTransformation()));
-                        spdlog::debug("single node center={} size={} rotation={}", rotatedBBox.getCenter(), rotatedBBox.size, rotatedBBox.rotation);
                         selectionVisualisationNode->visible = true;
                         selectionVisualisationNode->setRelativeTransformation(glm::transpose(rotatedBBox.getUnitBoxTransformation()));
                     }

@@ -74,12 +74,12 @@ namespace bricksim {
     }
 
     TEST_CASE("util::minForEachComponent") {
-        CHECK(util::minForEachComponent(glm::vec2{1, 1}, glm::vec2{2, 2}) == glm::vec2(1, 1));
-        CHECK(util::minForEachComponent(glm::vec2{1, 2}, glm::vec2{2, 1}) == glm::vec2(1, 1));
+        CHECK(util::cwiseMin(glm::vec2{1, 1}, glm::vec2{2, 2}) == glm::vec2(1, 1));
+        CHECK(util::cwiseMin(glm::vec2{1, 2}, glm::vec2{2, 1}) == glm::vec2(1, 1));
 
-        CHECK(util::minForEachComponent(glm::vec3{1, 2, 3}, glm::vec3{3, 2, 1}) == glm::vec3(1, 2, 1));
+        CHECK(util::cwiseMin(glm::vec3{1, 2, 3}, glm::vec3{3, 2, 1}) == glm::vec3(1, 2, 1));
 
-        CHECK(util::minForEachComponent(glm::vec4{1, 2, 3, 4}, glm::vec4{5, 4, 3, 2}) == glm::vec4(1, 2, 3, 2));
+        CHECK(util::cwiseMin(glm::vec4{1, 2, 3, 4}, glm::vec4{5, 4, 3, 2}) == glm::vec4(1, 2, 3, 2));
     }
 
     TEST_CASE("util::withoutBasePath") {

@@ -131,4 +131,14 @@ namespace bricksim::geometry {
     }
 
     std::vector<std::vector<glm::vec3>> splitPolygonByPlane(const std::vector<glm::vec3>& originalPoly, const Ray3& plane);
+
+    /**
+     * @return true if @param transformation only has rotation in 90° steps
+     */
+    bool doesTransformationLeaveAxisParallels(const glm::mat4& transformation);
+
+    /**
+     * @return true if @param quaternion only has rotation in 90° steps
+     */
+    bool doesTransformationLeaveAxisParallels(const glm::quat& quaternion);
 }

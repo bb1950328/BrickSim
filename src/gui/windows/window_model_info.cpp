@@ -31,20 +31,33 @@ namespace bricksim::gui::windows::model_info {
             static std::weak_ptr<Editor> selectedEditor;
             gui_internal::drawEditorSelectionCombo(selectedEditor, "Model");
             auto selectedLocked = selectedEditor.lock();
-            uoset_t<std::shared_ptr<etree::Node>> nodes = selectedLocked->getSelectedNodes();
-            if (!nodes.empty()) {
-                ImGui::Text("Statistics of the %zu selected elements:", nodes.size());
-            } else {
+            auto nodes = selectedLocked->getSelectedNodes();
+            if (nodes.empty()) {
                 ImGui::Text("Model Statistics:");
-                nodes = {selectedLocked->getDocumentNode()};
+                nodes.emplace(selectedLocked->getDocumentNode(), 0);
+            } else {
+                ImGui::Text("Statistics of the %zu selected elements:", nodes.size());
             }
             spdlog::stopwatch sw;
             uint64_t sum = 0;
             for (const auto& node: nodes) {
-                sum += countParts(node);
+                sum += countParts(node.first);
             }
             spdlog::debug("counted parts in {}", sw);
             ImGui::Text("Part count: %" PRIu64, sum);
+            mesh::AxisAlignedBoundingBox modelDimensions;
+            for (const auto& node : nodes) {
+                const auto meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node.first);
+                if (meshNode != nullptr) {
+                    modelDimensions.includeAABB(selectedLocked->getScene()->getMeshCollection().getAbsoluteAABB(meshNode));
+                }
+            }
+            if (modelDimensions.isDefined()) {
+                const auto size = modelDimensions.getSize();
+                ImGui::Text("Width (X): %.0f LDU", std::abs(size.x));
+                ImGui::Text("Height (Y): %.0f LDU", std::abs(size.y));
+                ImGui::Text("Length (Z): %.0f LDU", std::abs(size.z));
+            }
         }
         ImGui::End();
     }

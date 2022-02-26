@@ -525,43 +525,20 @@ namespace bricksim::mesh {
 
             Miniball::Miniball<Miniball::CoordAccessor<const float* const*, const float*>> mb(3, &coords[0], &coords[0] + vertexCount);
 
-            float minX = coords[0][0];
-            float minY = coords[0][1];
-            float minZ = coords[0][2];
-            float maxX = minX;
-            float maxY = minY;
-            float maxZ = minZ;
-            for (coordsCursor = 1; coordsCursor < vertexCount; ++coordsCursor) {
-                float x = coords[coordsCursor][0];
-                float y = coords[coordsCursor][1];
-                float z = coords[coordsCursor][2];
-                if (minX > x) {
-                    minX = x;
-                } else if (x > maxX) {
-                    maxX = x;
-                }
-                if (minY > y) {
-                    minY = y;
-                } else if (y > maxY) {
-                    maxY = y;
-                }
-                if (minZ > z) {
-                    minZ = z;
-                } else if (z > maxZ) {
-                    maxZ = z;
-                }
+            AxisAlignedBoundingBox aabb;
+            
+            for (const float* c : coords) {
+                aabb.includePoint({c[0], c[1], c[2]});
             }
 
             outerDimensions = OuterDimensions{
-                    .smallestBoxCorner1 = {minX, minY, minZ},
-                    .smallestBoxCorner2 = {maxX, maxY, maxZ},
+                    .aabb = aabb,
                     .minEnclosingBallCenter = {mb.center()[0], mb.center()[1], mb.center()[2]},
                     .minEnclosingBallRadius = std::sqrt(mb.squared_radius()),
             };
         } else {
             outerDimensions = OuterDimensions{
-                    .smallestBoxCorner1 = {0, 0, 0},
-                    .smallestBoxCorner2 = {0, 0, 0},
+                    .aabb = {{0, 0, 0}, {0, 0, 0}},
                     .minEnclosingBallCenter = {0, 0, 0},
                     .minEnclosingBallRadius = 0.f,
             };

@@ -10,6 +10,18 @@
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "cmakeToolchain": "${projectDir}/../vcpkg/scripts/buildsystems/vcpkg.cmake"
+    },
+    {
+      "name": "x64-RelWithDebInfo",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "cmakeToolchain": "${projectDir}/../vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": []
     }
   ]
 }

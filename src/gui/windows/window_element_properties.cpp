@@ -23,7 +23,7 @@ namespace bricksim::gui::windows::element_properties {
             if (activeEditor == nullptr || activeEditor->getSelectedNodes().empty()) {
                 ImGui::Text("Select an element to view its properties here");
             } else if (activeEditor->getSelectedNodes().size() == 1) {
-                auto node = *activeEditor->getSelectedNodes().begin();
+                auto& node = activeEditor->getSelectedNodes().begin()->first;
 
                 static char displayNameBuf[255];
                 if (nullptr != lastSelectedNode) {

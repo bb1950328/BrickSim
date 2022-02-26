@@ -8,6 +8,14 @@
 
 namespace bricksim {
 
+    class SelectionVisualisationNode : public etree::MeshNode {
+    public:
+        SelectionVisualisationNode(const std::shared_ptr<Node>& parent);
+        virtual mesh_identifier_t getMeshIdentifier() const override;
+        virtual void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
+        [[nodiscard]] virtual bool isDisplayNameUserEditable() const override;
+    };
+
     class Editor : efsw::FileWatchListener {
     public:
         static std::shared_ptr<Editor> createNew();
@@ -28,7 +36,7 @@ namespace bricksim {
         std::shared_ptr<graphics::Scene>& getScene();
         std::unique_ptr<transform_gizmo::TransformGizmo>& getTransformGizmo();
         [[nodiscard]] const std::shared_ptr<graphics::CadCamera>& getCamera() const;
-        [[nodiscard]] const uoset_t<std::shared_ptr<etree::Node>>& getSelectedNodes() const;
+        [[nodiscard]] const uomap_t<std::shared_ptr<etree::Node>, uint64_t>& getSelectedNodes() const;
 
         const std::string& getFilename();
 
@@ -67,10 +75,11 @@ namespace bricksim {
         void hideSelectedElements();
         void unhideAllElements();
 
-    private:
-        void handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename, efsw::Action action, std::string oldFilename) override;
+        void update();
 
     private:
+        void handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename, efsw::Action action, std::string oldFilename) override;
+        void updateSelectionVisualisation();
         static std::string getNameForNewLdrFile();
         void init(const std::shared_ptr<ldr::File>& ldrFile);
 
@@ -82,7 +91,8 @@ namespace bricksim {
         std::shared_ptr<graphics::Scene> scene;
         std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;
         uint64_t lastSavedVersion = 0;
-        uoset_t<std::shared_ptr<etree::Node>> selectedNodes;
+        uomap_t<std::shared_ptr<etree::Node>, uint64_t> selectedNodes;//value is last version, use to check if selected node was modified in the meantime
+        std::shared_ptr<SelectionVisualisationNode> selectionVisualisationNode;
         std::shared_ptr<graphics::CadCamera> camera;
 
         enum class DraggingNodeType {

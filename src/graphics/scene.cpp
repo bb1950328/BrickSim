@@ -4,6 +4,7 @@
 #include "../helpers/util.h"
 #include "../metrics.h"
 #include "shaders.h"
+#include <palanteer.h>
 #include <glad/glad.h>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <spdlog/spdlog.h>
@@ -207,7 +208,7 @@ namespace bricksim::graphics {
     }
 
     void Scene::updateImage() {
-        bool needRender = false;
+        bool needRender = true;
         if (currentImageViewMatrix != camera->getViewMatrix()) {
             currentImageViewMatrix = camera->getViewMatrix();
             needRender = true;
@@ -240,6 +241,7 @@ namespace bricksim::graphics {
         if (needRender) {
             auto before = std::chrono::high_resolution_clock::now();
             controller::executeOpenGL([this]() {
+                plScope("scene render");
 #ifdef BRICKSIM_USE_RENDERDOC
                 const auto* renderdocApi = controller::getRenderdocAPI();
                 if (renderdocApi) {
@@ -281,6 +283,7 @@ namespace bricksim::graphics {
                 for (const auto& layer: meshCollection.getLayersInUse()) {
                     glClear(GL_DEPTH_BUFFER_BIT);
                     if (drawTriangles) {
+                        plScope("draw triangles");
                         triangleShader.use();
                         meshCollection.drawTriangleGraphics(layer);
 
@@ -289,6 +292,7 @@ namespace bricksim::graphics {
                     }
 
                     if (drawLines) {
+                        plScope("draw lines");
                         lineShader.use();
                         lineShader.setMat4("projectionView", projectionView);
                         meshCollection.drawLineGraphics(layer);
@@ -300,6 +304,7 @@ namespace bricksim::graphics {
                 }
 
                 if (overlayCollection.hasElements()) {
+                    plScope("draw overlays");
                     glClear(GL_DEPTH_BUFFER_BIT);
                     shaders::get(shaders::OVERLAY).use();
                     overlayCollection.draw();

@@ -4,6 +4,7 @@
 #include "../helpers/util.h"
 #include <glad/glad.h>
 #include <cmath>
+#include <palanteer.h>
 
 namespace bricksim::overlay2d {
     namespace {
@@ -158,6 +159,7 @@ namespace bricksim::overlay2d {
     }
 
     void ElementCollection::updateVertices(coord_t viewportSize) {
+        plScope("overlay2d::ElementCollection::updateVertices");
         const bool viewportSizeChanged = lastWrittenViewportSize != viewportSize;
         const auto& elementsToUpdate = viewportSizeChanged ? elements : changedElements;
         unsigned int changedVerticesCount = 0;

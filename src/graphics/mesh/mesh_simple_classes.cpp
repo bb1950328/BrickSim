@@ -140,5 +140,4 @@ namespace bricksim::mesh {
     RotatedBoundingBox::RotatedBoundingBox() :
         RotatedBoundingBox(AxisAlignedBoundingBox()) {
     }
-
 }

@@ -33,7 +33,7 @@ namespace bricksim::ldr {
             }*/
             std::string line = content.substr(lineStart, lineEnd - lineStart);
 
-            if (stringutil::startsWith(line, "0 FILE")) {
+            if (line.starts_with("0 FILE")) {
                 const auto currentName = stringutil::trim(line.substr(7));
                 if (firstFile) {
                     firstFile = false;
@@ -48,7 +48,7 @@ namespace bricksim::ldr {
                         files.emplace(currentName, currentFile.value());
                     }
                 }
-            } else if (stringutil::startsWith(line, "0 NOFILE") || stringutil::startsWith(line, "0 !DATA")) {
+            } else if (line.starts_with("0 NOFILE") || line.starts_with("0 !DATA")) {
                 //todo save !DATA somewhere instead of ignoring it
                 currentFile = {};
             } else if (currentFile.has_value()) {
@@ -66,10 +66,11 @@ namespace bricksim::ldr {
         file->metaInfo.name = name;
         size_t lineStart = 0;
         size_t lineEnd = 0;
-        while (lineEnd < content.size()) {
-            lineEnd = content.find_first_of("\r\n", lineStart);
+        std::string_view contentSV = content;
+        while (lineEnd < contentSV.size()) {
+            lineEnd = contentSV.find_first_of("\r\n", lineStart);
             if (lineEnd == std::string::npos) {
-                lineEnd = content.size();
+                lineEnd = contentSV.size();
             } else {
                 ++lineEnd;
                 /* if (content[lineEnd - 1] == '\n') {
@@ -77,7 +78,7 @@ namespace bricksim::ldr {
                 }*/
             }
             
-            file->addTextLine(content.substr(lineStart, lineEnd - lineStart));
+            file->addTextLine(contentSV.substr(lineStart, lineEnd - lineStart));
             lineStart = lineEnd;
         }
         return file;

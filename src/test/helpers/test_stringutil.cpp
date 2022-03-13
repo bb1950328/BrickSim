@@ -3,26 +3,6 @@
 #include <glm/gtc/epsilon.hpp>
 
 namespace bricksim {
-    TEST_CASE("stringutil::startsWith") {
-        CHECK(stringutil::startsWith("helloWorld", "hell"));
-        CHECK(stringutil::startsWith("abc", "abc"));
-        CHECK(stringutil::startsWith("a", "a"));
-        CHECK_FALSE(stringutil::startsWith("abc", "bc"));
-        CHECK_FALSE(stringutil::startsWith("abc", "abcd"));
-        CHECK_FALSE(stringutil::startsWith("abc", "cba"));
-
-        CHECK(stringutil::startsWith(std::string("qwertzuiop"), "qwer"));
-    }
-
-    TEST_CASE("stringutil::endsWith") {
-        CHECK(stringutil::endsWith("helloWorld", "World"));
-        CHECK(stringutil::endsWith("abc", "abc"));
-        CHECK(stringutil::endsWith("a", "a"));
-        CHECK_FALSE(stringutil::endsWith("abc", "de"));
-        CHECK_FALSE(stringutil::endsWith("abc", "ab"));
-        CHECK_FALSE(stringutil::endsWith("abc", "aabc"));
-    }
-
     TEST_CASE("stringutil::asLower") {
         std::string expected = "qwertzuiopasdfghjklyxcvbnm";
         CHECK(expected == stringutil::asLower("qwertzuiopasdfghjklyxcvbnm"));
@@ -64,18 +44,35 @@ namespace bricksim {
         stringutil::toUpperInPlace(actual.data());
         CHECK(expected == actual);
     }
-    TEST_CASE("stringutil::trim") {
-        CHECK(stringutil::trim("abc") == "abc");
-        CHECK(stringutil::trim(" abc") == "abc");
-        CHECK(stringutil::trim("\tabc") == "abc");
-        CHECK(stringutil::trim("\nabc") == "abc");
-        CHECK(stringutil::trim("\n abc") == "abc");
-        CHECK(stringutil::trim("\n \tabc") == "abc");
-        CHECK(stringutil::trim("a bc") == "a bc");
-        CHECK(stringutil::trim(" a bc") == "a bc");
-        CHECK(stringutil::trim(" a bc ") == "a bc");
-        CHECK(stringutil::trim(" a b c ") == "a b c");
-        CHECK(stringutil::trim(" a\tbc ") == "a\tbc");
+
+    TEST_CASE("stringutil::trim(std::string)") {
+        using namespace std::string_literals;
+        CHECK(stringutil::trim("abc"s) == "abc");
+        CHECK(stringutil::trim(" abc"s) == "abc");
+        CHECK(stringutil::trim("\tabc"s) == "abc");
+        CHECK(stringutil::trim("\nabc"s) == "abc");
+        CHECK(stringutil::trim("\n abc"s) == "abc");
+        CHECK(stringutil::trim("\n \tabc"s) == "abc");
+        CHECK(stringutil::trim("a bc"s) == "a bc");
+        CHECK(stringutil::trim(" a bc"s) == "a bc");
+        CHECK(stringutil::trim(" a bc "s) == "a bc");
+        CHECK(stringutil::trim(" a b c "s) == "a b c");
+        CHECK(stringutil::trim(" a\tbc "s) == "a\tbc");
+    }
+
+    TEST_CASE("stringutil::trim(std::string_view)") {
+        using namespace std::string_view_literals;
+        CHECK(stringutil::trim("abc"sv) == "abc");
+        CHECK(stringutil::trim(" abc"sv) == "abc");
+        CHECK(stringutil::trim("\tabc"sv) == "abc");
+        CHECK(stringutil::trim("\nabc"sv) == "abc");
+        CHECK(stringutil::trim("\n abc"sv) == "abc");
+        CHECK(stringutil::trim("\n \tabc"sv) == "abc");
+        CHECK(stringutil::trim("a bc"sv) == "a bc");
+        CHECK(stringutil::trim(" a bc"sv) == "a bc");
+        CHECK(stringutil::trim(" a bc "sv) == "a bc");
+        CHECK(stringutil::trim(" a b c "sv) == "a b c");
+        CHECK(stringutil::trim(" a\tbc "sv) == "a\tbc");
     }
 
     TEST_CASE("stringutil::replaceAll") {

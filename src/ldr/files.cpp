@@ -9,14 +9,15 @@
 #include <magic_enum.hpp>
 #include <spdlog/spdlog.h>
 #include <sstream>
+#include <charconv>
 
 namespace bricksim::ldr {
     WindingOrder inverseWindingOrder(WindingOrder order) {
         return order == CW ? CCW : CW;
     }
 
-    std::shared_ptr<FileElement> FileElement::parseLine(const std::string& line, BfcState bfcState) {
-        std::string lineContent = line.length() > 2 ? line.substr(2) : "";
+    std::shared_ptr<FileElement> FileElement::parseLine(const std::string_view line, BfcState bfcState) {
+        std::string_view lineContent = line.length() > 2 ? line.substr(2) : "";
         switch (line[0] - '0') {
             case 0: {
                 if (TexmapStartCommand::doesLineMatch(lineContent)) {
@@ -56,7 +57,7 @@ namespace bricksim::ldr {
     FileElement::FileElement() = default;
 #endif
 
-    void File::addTextLine(const std::string& line) {
+    void File::addTextLine(const std::string_view line) {
         auto trimmed = stringutil::trim(line);
         unsigned int currentStep = elements.empty() ? 0 : elements.back()->step;
         if (!trimmed.empty()) {
@@ -69,13 +70,13 @@ namespace bricksim::ldr {
                         element = nullptr;
                     } else if (metaElement->content == "STEP") {
                         currentStep++;
-                    } else if (stringutil::startsWith(metaElement->content, "BFC")) {
+                    } else if (metaElement->content.starts_with("BFC")) {
                         std::string bfcCommand = stringutil::trim(metaElement->content.substr(3));
-                        if (stringutil::startsWith(bfcCommand, "CERTIFY")) {
+                        if (bfcCommand.starts_with("CERTIFY")) {
                             std::string order = stringutil::trim(bfcCommand.substr(7));
                             bfcState.windingOrder = order == "CW" ? CW : CCW;
                             bfcState.active = true;
-                        } else if (stringutil::startsWith(bfcCommand, "CLIP")) {
+                        } else if (bfcCommand.starts_with("CLIP")) {
                             std::string order = stringutil::trim(bfcCommand.substr(4));
                             if (order == "CW") {
                                 bfcState.windingOrder = CW;
@@ -160,22 +161,22 @@ namespace bricksim::ldr {
 
     File::~File() = default;
 
-    CommentOrMetaElement::CommentOrMetaElement(const std::string& line) {
+    CommentOrMetaElement::CommentOrMetaElement(const std::string_view line) {
         content = line;
     }
 
-    inline void parseNextFloat(const std::string& line, size_t& start, size_t& end, float& result) {
+    inline void parseNextFloat(const std::string_view line, size_t& start, size_t& end, float& result) {
         size_t endBackup = end, startBackup = start;
         start = line.find_first_not_of(LDR_WHITESPACE, end);
         end = std::min(line.size(), line.find_first_of(LDR_WHITESPACE, start));
         fast_float::from_chars(&line[start], &line[end], result);
     }
 
-    SubfileReference::SubfileReference(const std::string& line, bool bfcInverted) :
+    SubfileReference::SubfileReference(const std::string_view line, bool bfcInverted) :
         bfcInverted(bfcInverted) {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
-        color = std::atoi(line.c_str());
+        std::from_chars(&line[start], &line[end], color.code);
         parseNextFloat(line, start, end, x);
         parseNextFloat(line, start, end, y);
         parseNextFloat(line, start, end, z);
@@ -191,10 +192,10 @@ namespace bricksim::ldr {
         filename = stringutil::trim(line.substr(end + 1));
     }
 
-    Line::Line(const std::string& line) {
+    Line::Line(const std::string_view line) {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
-        color = std::atoi(line.c_str());
+        std::from_chars(&line[start], &line[end], color.code);
         parseNextFloat(line, start, end, x1);
         parseNextFloat(line, start, end, y1);
         parseNextFloat(line, start, end, z1);
@@ -203,10 +204,10 @@ namespace bricksim::ldr {
         parseNextFloat(line, start, end, z2);
     }
 
-    Triangle::Triangle(const std::string& line, WindingOrder order) {
+    Triangle::Triangle(const std::string_view line, WindingOrder order) {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
-        color = std::atoi(line.c_str());
+        std::from_chars(&line[start], &line[end], color.code);
         parseNextFloat(line, start, end, x1);
         parseNextFloat(line, start, end, y1);
         parseNextFloat(line, start, end, z1);
@@ -227,10 +228,10 @@ namespace bricksim::ldr {
         }
     }
 
-    Quadrilateral::Quadrilateral(const std::string& line, WindingOrder order) {
+    Quadrilateral::Quadrilateral(const std::string_view line, WindingOrder order) {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
-        color = std::atoi(line.c_str());
+        std::from_chars(&line[start], &line[end], color.code);
         parseNextFloat(line, start, end, x1);
         parseNextFloat(line, start, end, y1);
         parseNextFloat(line, start, end, z1);
@@ -258,10 +259,10 @@ namespace bricksim::ldr {
         }
     }
 
-    OptionalLine::OptionalLine(const std::string& line) {
+    OptionalLine::OptionalLine(const std::string_view line) {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
-        color = std::atoi(line.c_str());
+        std::from_chars(&line[start], &line[end], color.code);
         parseNextFloat(line, start, end, x1);
         parseNextFloat(line, start, end, y1);
         parseNextFloat(line, start, end, z1);
@@ -358,13 +359,13 @@ namespace bricksim::ldr {
         if (firstLine) {
             title = stringutil::trim(line);
             firstLine = false;
-        } else if (stringutil::startsWith(line, "Name:")) {
+        } else if (line.starts_with("Name:")) {
             name = stringutil::trim(line.substr(5));
-        } else if (stringutil::startsWith(line, "Author:")) {
+        } else if (line.starts_with("Author:")) {
             author = stringutil::trim(line.substr(7));
-        } else if (stringutil::startsWith(line, "!CATEGORY")) {
+        } else if (line.starts_with("!CATEGORY")) {
             headerCategory = stringutil::trim(line.substr(9));
-        } else if (stringutil::startsWith(line, "!KEYWORDS")) {
+        } else if (line.starts_with("!KEYWORDS")) {
             size_t i = 9;
             while (true) {
                 size_t next = line.find(',', i);
@@ -375,13 +376,13 @@ namespace bricksim::ldr {
                 keywords.insert(stringutil::trim(line.substr(i, next - i)));
                 i = next + 1;
             }
-        } else if (stringutil::startsWith(line, "!HISTORY")) {
+        } else if (line.starts_with("!HISTORY")) {
             history.push_back(line.substr(line.find_first_not_of(LDR_WHITESPACE, 8)));
-        } else if (stringutil::startsWith(line, "!LICENSE")) {
+        } else if (line.starts_with("!LICENSE")) {
             license = line.substr(line.find_first_not_of(LDR_WHITESPACE, 8));
-        } else if (stringutil::startsWith(line, "!THEME")) {
+        } else if (line.starts_with("!THEME")) {
             theme = line.substr(line.find_first_not_of(LDR_WHITESPACE, 6));
-        } else if (stringutil::startsWith(line, "!LDRAW_ORG")) {
+        } else if (line.starts_with("!LDRAW_ORG")) {
             fileTypeLine = line.substr(line.find_first_not_of(LDR_WHITESPACE, 10));//standard says "In general, parsers should consider this line to be case-insensitive and free-format."
         } else {
             return false;
@@ -482,7 +483,7 @@ namespace bricksim::ldr {
         }
     }
 
-    TexmapStartCommand::TexmapStartCommand(const std::string& line) :
+    TexmapStartCommand::TexmapStartCommand(const std::string_view line) :
         CommentOrMetaElement(line) {
         size_t start = line.find_first_not_of(LDR_WHITESPACE, META_COMMAND_TEXMAP_LEN);
         size_t end = line.find_first_of(LDR_WHITESPACE, start + 1);
@@ -523,7 +524,7 @@ namespace bricksim::ldr {
         }
     }
 
-    bool TexmapStartCommand::doesLineMatch(const std::string& line) {
+    bool TexmapStartCommand::doesLineMatch(const std::string_view line) {
         if (line.starts_with(META_COMMAND_TEXMAP)) {
             size_t start = line.find_first_not_of(LDR_WHITESPACE, META_COMMAND_TEXMAP_LEN);
             return line.find("START", start) == start;

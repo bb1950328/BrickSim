@@ -34,7 +34,7 @@ namespace bricksim::util {
 
     std::string replaceHomeDir(const std::string& input) {
         const std::string homeDir = getenv(USER_ENV_VAR);
-        if (stringutil::startsWith(input, homeDir)) {
+        if (input.starts_with(homeDir)) {
             return '~' + input.substr(homeDir.size());
         }
         return input;
@@ -122,14 +122,14 @@ namespace bricksim::util {
     bool writeImage(const char* path, unsigned char* pixels, int width, int height, int channels) {
         auto path_lower = stringutil::asLower(path);
         stbi_flip_vertically_on_write(true);
-        if (stringutil::endsWith(path_lower, ".png")) {
+        if (path_lower.ends_with(".png")) {
             return stbi_write_png(path, width, height, channels, pixels, width * channels) != 0;
-        } else if (stringutil::endsWith(path_lower, ".jpg") || stringutil::endsWith(path, ".jpeg")) {
+        } else if (path_lower.ends_with(".jpg") || path_lower.ends_with(".jpeg")) {
             const int quality = std::min(100, std::max(5, (int)config::get(config::JPG_SCREENSHOT_QUALITY)));
             return stbi_write_jpg(path, width, height, channels, pixels, quality) != 0;
-        } else if (stringutil::endsWith(path_lower, ".bmp")) {
+        } else if (path_lower.ends_with(".bmp")) {
             return stbi_write_bmp(path, width, height, channels, pixels) != 0;
-        } else if (stringutil::endsWith(path_lower, ".tga")) {
+        } else if (path_lower.ends_with(".tga")) {
             return stbi_write_tga(path, width, height, channels, pixels) != 0;
         } else {
             return false;

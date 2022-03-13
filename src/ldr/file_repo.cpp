@@ -71,7 +71,7 @@ namespace bricksim::ldr::file_repo {
             auto strPath = pathFromConfig.string();
             if (tryToInitializeWithLibraryPath(pathFromConfig)) {
                 found = true;
-            } else if (stringutil::endsWith(strPath, ".zip")) {
+            } else if (strPath.ends_with(".zip")) {
                 auto zipEndingRemoved = strPath.substr(0, strPath.size() - 4);
                 if (tryToInitializeWithLibraryPath(zipEndingRemoved)) {
                     config::set(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(zipEndingRemoved));
@@ -245,13 +245,13 @@ namespace bricksim::ldr::file_repo {
     }
 
     std::pair<ldr::FileType, std::string> FileRepo::getTypeAndNameFromPathRelativeToBase(const std::string& pathRelativeToBase) {
-        if (stringutil::startsWith(pathRelativeToBase, "parts/s/")) {
+        if (pathRelativeToBase.starts_with("parts/s/")) {
             return {ldr::FileType::SUBPART, pathRelativeToBase.substr(6)};//not 8 because "s/" should be kept
-        } else if (stringutil::startsWith(pathRelativeToBase, "parts/")) {
+        } else if (pathRelativeToBase.starts_with("parts/")) {
             return {ldr::FileType::PART, pathRelativeToBase.substr(6)};
-        } else if (stringutil::startsWith(pathRelativeToBase, "p/")) {
+        } else if (pathRelativeToBase.starts_with("p/")) {
             return {ldr::FileType::PRIMITIVE, pathRelativeToBase.substr(2)};
-        } else if (stringutil::startsWith(pathRelativeToBase, "models/")) {
+        } else if (pathRelativeToBase.starts_with("models/")) {
             return {ldr::FileType::MODEL, pathRelativeToBase.substr(7)};
         }
         return {ldr::FileType::MODEL, pathRelativeToBase};

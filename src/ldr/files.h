@@ -64,7 +64,7 @@ namespace bricksim::ldr {
 
     class FileElement {
     public:
-        static std::shared_ptr<FileElement> parseLine(const std::string& line, BfcState bfcState);
+        static std::shared_ptr<FileElement> parseLine(std::string_view line, BfcState bfcState);
         [[nodiscard]] virtual int getType() const = 0;
         [[nodiscard]] virtual std::string getLdrLine() const = 0;
         FileElement();
@@ -83,7 +83,7 @@ namespace bricksim::ldr {
 
     class CommentOrMetaElement : public FileElement {
     public:
-        explicit CommentOrMetaElement(const std::string& line);
+        explicit CommentOrMetaElement(std::string_view line);
         std::string content;
 
         [[nodiscard]] int getType() const override;
@@ -92,7 +92,7 @@ namespace bricksim::ldr {
 
     class SubfileReference : public FileElement {
     public:
-        explicit SubfileReference(const std::string& line, bool bfcInverted);
+        explicit SubfileReference(std::string_view line, bool bfcInverted);
         explicit SubfileReference(ColorReference color, const glm::mat4& transformation, bool bfcInverted);
         bool bfcInverted;
         ColorReference color;
@@ -113,7 +113,7 @@ namespace bricksim::ldr {
         ColorReference color;
         float x1, y1, z1, x2, y2, z2;
 
-        explicit Line(const std::string& line);
+        explicit Line(std::string_view line);
 
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
@@ -124,7 +124,7 @@ namespace bricksim::ldr {
         ColorReference color;
         float x1, y1, z1, x2, y2, z2, x3, y3, z3;
 
-        explicit Triangle(const std::string& line, WindingOrder order);
+        explicit Triangle(std::string_view line, WindingOrder order);
 
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
@@ -135,7 +135,7 @@ namespace bricksim::ldr {
         ColorReference color;
         float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
 
-        explicit Quadrilateral(const std::string& line, WindingOrder order);
+        explicit Quadrilateral(std::string_view line, WindingOrder order);
 
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
@@ -147,7 +147,7 @@ namespace bricksim::ldr {
 
         float x1, y1, z1, x2, y2, z2, controlX1, controlY1, controlZ1, controlX2, controlY2, controlZ2;
 
-        explicit OptionalLine(const std::string& line);
+        explicit OptionalLine(std::string_view line);
 
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
@@ -165,10 +165,10 @@ namespace bricksim::ldr {
         std::string textureFilename;
         std::optional<std::string> glossmapFileName;
 
-        explicit TexmapStartCommand(const std::string& line);
+        explicit TexmapStartCommand(std::string_view line);
         TexmapStartCommand(const TexmapStartCommand& other);
 
-        static bool doesLineMatch(const std::string& line);
+        static bool doesLineMatch(std::string_view line);
 
         [[nodiscard]] std::string getLdrLine() const override;
     };
@@ -196,7 +196,7 @@ namespace bricksim::ldr {
         [[nodiscard]] const std::string& getDescription() const;
         [[nodiscard]] const std::size_t& getHash() const;
 
-        void addTextLine(const std::string& line);
+        void addTextLine(std::string_view line);
 
     private:
         mutable std::size_t hash = 0;

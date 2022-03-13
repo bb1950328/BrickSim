@@ -23,6 +23,12 @@ namespace bricksim::stringutil {
         return (wsafter <= wsbefore ? std::string() : std::string(wsbefore, wsafter));
     }
 
+    std::string_view trim(const std::string_view input) {
+        auto wsbefore = std::find_if_not(input.begin(), input.end(), [](int c) { return c > 0 && c <= 0xff && std::isspace(c); });
+        auto wsafter = std::find_if_not(input.rbegin(), input.rend(), [](int c) { return c > 0 && c <= 0xff && std::isspace(c); }).base();
+        return (wsafter <= wsbefore ? std::string_view() : std::string_view(wsbefore, wsafter));
+    }
+
     void asLower(const char* input, char* output, size_t length) {
 #ifdef BRICKSIM_USE_OPTIMIZED_VARIANTS
     #ifdef __SSE2__
@@ -139,43 +145,6 @@ namespace bricksim::stringutil {
 
     void toUpperInPlace(char* string) {
         asUpper(string, string, std::strlen(string));
-    }
-
-    bool endsWithInternal(const char* fullString, size_t fullStringSize, const char* ending, size_t endingSize) {
-        if (endingSize > fullStringSize) {
-            return false;
-        }
-        return strncmp(fullString + fullStringSize - endingSize, ending, endingSize) == 0;
-    }
-
-    bool endsWith(std::string const& fullString, std::string const& ending) {
-        return endsWithInternal(fullString.c_str(), fullString.size(), ending.c_str(), ending.size());
-    }
-
-    bool endsWith(const char* fullString, const char* ending) {
-        return endsWithInternal(fullString, strlen(fullString), ending, strlen(ending));
-    }
-
-    bool startsWith(std::string const& fullString, std::string const& start) {
-        if (fullString.length() < start.length()) {
-            return false;
-        }
-        return startsWith(fullString.c_str(), start.c_str());
-    }
-
-    bool startsWith(const char* fullString, const char* start) {
-        do {
-            if (*start != *fullString) {
-                return false;
-            }
-            ++start;
-            ++fullString;
-        } while (*start && *fullString);
-        if (*start == 0) {
-            return true;
-        } else {
-            return *fullString != 0;
-        }
     }
 
     void replaceAll(std::string& str, const std::string& from, const std::string& to) {

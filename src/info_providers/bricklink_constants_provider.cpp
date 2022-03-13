@@ -40,7 +40,7 @@ namespace bricksim::info_providers::bricklink_constants {
 
         int startPos = 0;
 
-        if (stringutil::startsWith(response.second, "var _blvarGlobalConstantsNew = {")) {//todo make a better solution with regex
+        if (response.second.starts_with("var _blvarGlobalConstantsNew = {")) {//todo make a better solution with regex
             startPos = 31;
         }
 

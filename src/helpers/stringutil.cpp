@@ -24,9 +24,15 @@ namespace bricksim::stringutil {
     }
 
     std::string_view trim(const std::string_view input) {
-        auto wsbefore = std::find_if_not(input.begin(), input.end(), [](int c) { return c > 0 && c <= 0xff && std::isspace(c); });
-        auto wsafter = std::find_if_not(input.rbegin(), input.rend(), [](int c) { return c > 0 && c <= 0xff && std::isspace(c); }).base();
-        return (wsafter <= wsbefore ? std::string_view() : std::string_view(wsbefore, wsafter));
+        std::size_t wsbefore = 0, wsafter = input.size();
+        while (input[wsbefore] > 0 && input[wsbefore] <= 0xff && std::isspace(input[wsbefore])) {
+            ++wsbefore;
+        }
+        do {
+            --wsafter;
+        } while (input[wsafter] > 0 && input[wsafter] <= 0xff && std::isspace(input[wsafter]));
+
+        return (wsafter <= wsbefore ? std::string_view() : input.substr(wsbefore, wsafter - wsbefore + 1));
     }
 
     void asLower(const char* input, char* output, size_t length) {

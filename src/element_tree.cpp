@@ -395,11 +395,11 @@ namespace bricksim::etree {
     TexmapNode::TexmapNode(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, const std::shared_ptr<Node>& parent) :
         MeshNode(ldr::color_repo::INSTANCE_DUMMY_COLOR_CODE, parent, nullptr),
         projectionMethod(startCommand->projectionMethod),
-        p1(startCommand->x1, startCommand->y1, startCommand->z1),
-        p2(startCommand->x2, startCommand->y2, startCommand->z2),
-        p3(startCommand->x3, startCommand->y3, startCommand->z3),
-        a(startCommand->a),
-        b(startCommand->b),
+        p1(startCommand->x1(), startCommand->y1(), startCommand->z1()),
+        p2(startCommand->x2(), startCommand->y2(), startCommand->z2()),
+        p3(startCommand->x3(), startCommand->y3(), startCommand->z3()),
+        a(startCommand->a()),
+        b(startCommand->b()),
         textureFilename(startCommand->textureFilename) {
         auto flipVerticallyBackup = util::isStbiFlipVertically();
         util::setStbiFlipVertically(false);//todo I'm not 100% sure if this is right

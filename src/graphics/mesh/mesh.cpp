@@ -48,9 +48,9 @@ namespace bricksim::mesh {
     }
 
     void Mesh::addLdrTriangle(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::Triangle>& triangleElement, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmapOfParent) {
-        auto p1 = glm::vec3(triangleElement->x1, triangleElement->y1, triangleElement->z1);
-        auto p2 = glm::vec3(triangleElement->x2, triangleElement->y2, triangleElement->z2);
-        auto p3 = glm::vec3(triangleElement->x3, triangleElement->y3, triangleElement->z3);
+        auto p1 = glm::vec3(triangleElement->x1(), triangleElement->y1(), triangleElement->z1());
+        auto p2 = glm::vec3(triangleElement->x2(), triangleElement->y2(), triangleElement->z2());
+        auto p3 = glm::vec3(triangleElement->x3(), triangleElement->y3(), triangleElement->z3());
 
         const auto color = triangleElement->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : triangleElement->color;
         const auto normal = glm::triangleNormal(p1, p2, p3);
@@ -134,10 +134,10 @@ namespace bricksim::mesh {
     }
 
     void Mesh::addLdrQuadrilateral(ldr::ColorReference mainColor, const std::shared_ptr<ldr::Quadrilateral>& quadrilateral, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmapOfParent) {
-        auto p1 = glm::vec3(quadrilateral->x1, quadrilateral->y1, quadrilateral->z1);
-        auto p2 = glm::vec3(quadrilateral->x2, quadrilateral->y2, quadrilateral->z2);
-        auto p3 = glm::vec3(quadrilateral->x3, quadrilateral->y3, quadrilateral->z3);
-        auto p4 = glm::vec3(quadrilateral->x4, quadrilateral->y4, quadrilateral->z4);
+        auto p1 = glm::vec3(quadrilateral->x1(), quadrilateral->y1(), quadrilateral->z1());
+        auto p2 = glm::vec3(quadrilateral->x2(), quadrilateral->y2(), quadrilateral->z2());
+        auto p3 = glm::vec3(quadrilateral->x3(), quadrilateral->y3(), quadrilateral->z3());
+        auto p4 = glm::vec3(quadrilateral->x4(), quadrilateral->y4(), quadrilateral->z4());
 
         const auto color = quadrilateral->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : quadrilateral->color;
         const auto normal = glm::triangleNormal(p1, p2, p3);
@@ -196,8 +196,8 @@ namespace bricksim::mesh {
         } else {
             color = lineElementColor->edge.asGlmVector();
         }
-        LineVertex lv1{glm::vec4(lineElement->x1, lineElement->y1, lineElement->z1, 1.0f) * transformation, color};
-        LineVertex lv2{glm::vec4(lineElement->x2, lineElement->y2, lineElement->z2, 1.0f) * transformation, color};
+        LineVertex lv1{glm::vec4(lineElement->x1(), lineElement->y1(), lineElement->z1(), 1.0f) * transformation, color};
+        LineVertex lv2{glm::vec4(lineElement->x2(), lineElement->y2(), lineElement->z2(), 1.0f) * transformation, color};
         lineData.addVertex(lv1);
         lineData.addVertex(lv2);
     }
@@ -213,10 +213,10 @@ namespace bricksim::mesh {
         } else {
             color = elementColor->edge.asGlmVector();
         }
-        LineVertex cv1{glm::vec4(optionalLineElement->controlX1, optionalLineElement->controlY1, optionalLineElement->controlZ1, 1.0f) * transformation, color};
-        LineVertex lv1{glm::vec4(optionalLineElement->x1, optionalLineElement->y1, optionalLineElement->z1, 1.0f) * transformation, color};
-        LineVertex lv2{glm::vec4(optionalLineElement->x2, optionalLineElement->y2, optionalLineElement->z2, 1.0f) * transformation, color};
-        LineVertex cv2{glm::vec4(optionalLineElement->controlX2, optionalLineElement->controlY2, optionalLineElement->controlZ2, 1.0f) * transformation, color};
+        LineVertex cv1{glm::vec4(optionalLineElement->controlX1(), optionalLineElement->controlY1(), optionalLineElement->controlZ1(), 1.0f) * transformation, color};
+        LineVertex lv1{glm::vec4(optionalLineElement->x1(), optionalLineElement->y1(), optionalLineElement->z1(), 1.0f) * transformation, color};
+        LineVertex lv2{glm::vec4(optionalLineElement->x2(), optionalLineElement->y2(), optionalLineElement->z2(), 1.0f) * transformation, color};
+        LineVertex cv2{glm::vec4(optionalLineElement->controlX2(), optionalLineElement->controlY2(), optionalLineElement->controlZ2(), 1.0f) * transformation, color};
         optionalLineData.addVertex(cv1);
         optionalLineData.addVertex(lv1);
         optionalLineData.addVertex(lv2);

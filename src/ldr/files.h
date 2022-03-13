@@ -96,13 +96,39 @@ namespace bricksim::ldr {
         explicit SubfileReference(ColorReference color, const glm::mat4& transformation, bool bfcInverted);
         bool bfcInverted;
         ColorReference color;
-        float x, y, z, a, b, c, d, e, f, g, h, i;
+        std::array<float, 12> numbers;
         std::string filename;
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
         [[nodiscard]] glm::mat4 getTransformationMatrix() const;
         void setTransformationMatrix(const glm::mat4& matrix);
         std::shared_ptr<File> getFile();
+
+        inline float& x() { return numbers[0]; }
+        inline float& y() { return numbers[1]; }
+        inline float& z() { return numbers[2]; }
+        inline float& a() { return numbers[3]; }
+        inline float& b() { return numbers[4]; }
+        inline float& c() { return numbers[5]; }
+        inline float& d() { return numbers[6]; }
+        inline float& e() { return numbers[7]; }
+        inline float& f() { return numbers[8]; }
+        inline float& g() { return numbers[9]; }
+        inline float& h() { return numbers[10]; }
+        inline float& i() { return numbers[11]; }
+
+        [[nodiscard]] inline const float& x() const { return numbers[0]; }
+        [[nodiscard]] inline const float& y() const { return numbers[1]; }
+        [[nodiscard]] inline const float& z() const { return numbers[2]; }
+        [[nodiscard]] inline const float& a() const { return numbers[3]; }
+        [[nodiscard]] inline const float& b() const { return numbers[4]; }
+        [[nodiscard]] inline const float& c() const { return numbers[5]; }
+        [[nodiscard]] inline const float& d() const { return numbers[6]; }
+        [[nodiscard]] inline const float& e() const { return numbers[7]; }
+        [[nodiscard]] inline const float& f() const { return numbers[8]; }
+        [[nodiscard]] inline const float& g() const { return numbers[9]; }
+        [[nodiscard]] inline const float& h() const { return numbers[10]; }
+        [[nodiscard]] inline const float& i() const { return numbers[11]; }
 
     private:
         std::shared_ptr<File> file = nullptr;
@@ -111,49 +137,135 @@ namespace bricksim::ldr {
     class Line : public FileElement {
     public:
         ColorReference color;
-        float x1, y1, z1, x2, y2, z2;
+        std::array<float, 6> coords;
 
         explicit Line(std::string_view line);
 
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
+
+        inline float& x1() { return coords[0]; }
+        inline float& y1() { return coords[1]; }
+        inline float& z1() { return coords[2]; }
+        inline float& x2() { return coords[3]; }
+        inline float& y2() { return coords[4]; }
+        inline float& z2() { return coords[5]; }
+
+        [[nodiscard]] inline const float& x1() const { return coords[0]; }
+        [[nodiscard]] inline const float& y1() const { return coords[1]; }
+        [[nodiscard]] inline const float& z1() const { return coords[2]; }
+        [[nodiscard]] inline const float& x2() const { return coords[3]; }
+        [[nodiscard]] inline const float& y2() const { return coords[4]; }
+        [[nodiscard]] inline const float& z2() const { return coords[5]; }
     };
 
     class Triangle : public FileElement {
     public:
         ColorReference color;
-        float x1, y1, z1, x2, y2, z2, x3, y3, z3;
+        std::array<float, 9> coords;
 
         explicit Triangle(std::string_view line, WindingOrder order);
 
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
+
+        inline float& x1() { return coords[0]; }
+        inline float& y1() { return coords[1]; }
+        inline float& z1() { return coords[2]; }
+        inline float& x2() { return coords[3]; }
+        inline float& y2() { return coords[4]; }
+        inline float& z2() { return coords[5]; }
+        inline float& x3() { return coords[6]; }
+        inline float& y3() { return coords[7]; }
+        inline float& z3() { return coords[8]; }
+
+        [[nodiscard]] inline const float& x1() const { return coords[0]; }
+        [[nodiscard]] inline const float& y1() const { return coords[1]; }
+        [[nodiscard]] inline const float& z1() const { return coords[2]; }
+        [[nodiscard]] inline const float& x2() const { return coords[3]; }
+        [[nodiscard]] inline const float& y2() const { return coords[4]; }
+        [[nodiscard]] inline const float& z2() const { return coords[5]; }
+        [[nodiscard]] inline const float& x3() const { return coords[6]; }
+        [[nodiscard]] inline const float& y3() const { return coords[7]; }
+        [[nodiscard]] inline const float& z3() const { return coords[8]; }
     };
 
     class Quadrilateral : public FileElement {
     public:
         ColorReference color;
-        float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
+        std::array<float, 12> coords;
 
         explicit Quadrilateral(std::string_view line, WindingOrder order);
 
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
+
+        inline float& x1() { return coords[0]; }
+        inline float& y1() { return coords[1]; }
+        inline float& z1() { return coords[2]; }
+        inline float& x2() { return coords[3]; }
+        inline float& y2() { return coords[4]; }
+        inline float& z2() { return coords[5]; }
+        inline float& x3() { return coords[6]; }
+        inline float& y3() { return coords[7]; }
+        inline float& z3() { return coords[8]; }
+        inline float& x4() { return coords[9]; }
+        inline float& y4() { return coords[10]; }
+        inline float& z4() { return coords[11]; }
+
+        [[nodiscard]] inline const float& x1() const { return coords[0]; }
+        [[nodiscard]] inline const float& y1() const { return coords[1]; }
+        [[nodiscard]] inline const float& z1() const { return coords[2]; }
+        [[nodiscard]] inline const float& x2() const { return coords[3]; }
+        [[nodiscard]] inline const float& y2() const { return coords[4]; }
+        [[nodiscard]] inline const float& z2() const { return coords[5]; }
+        [[nodiscard]] inline const float& x3() const { return coords[6]; }
+        [[nodiscard]] inline const float& y3() const { return coords[7]; }
+        [[nodiscard]] inline const float& z3() const { return coords[8]; }
+        [[nodiscard]] inline const float& x4() const { return coords[9]; }
+        [[nodiscard]] inline const float& y4() const { return coords[10]; }
+        [[nodiscard]] inline const float& z4() const { return coords[11]; }
     };
 
     class OptionalLine : public FileElement {
     public:
         ColorReference color;
 
-        float x1, y1, z1, x2, y2, z2, controlX1, controlY1, controlZ1, controlX2, controlY2, controlZ2;
+        std::array<float, 12> coords;
 
         explicit OptionalLine(std::string_view line);
 
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
+
+        inline float& x1() { return coords[0]; }
+        inline float& y1() { return coords[1]; }
+        inline float& z1() { return coords[2]; }
+        inline float& x2() { return coords[3]; }
+        inline float& y2() { return coords[4]; }
+        inline float& z2() { return coords[5]; }
+        inline float& controlX1() { return coords[6]; }
+        inline float& controlY1() { return coords[7]; }
+        inline float& controlZ1() { return coords[8]; }
+        inline float& controlX2() { return coords[9]; }
+        inline float& controlY2() { return coords[10]; }
+        inline float& controlZ2() { return coords[11]; }
+
+        [[nodiscard]] inline const float& x1() const { return coords[0]; }
+        [[nodiscard]] inline const float& y1() const { return coords[1]; }
+        [[nodiscard]] inline const float& z1() const { return coords[2]; }
+        [[nodiscard]] inline const float& x2() const { return coords[3]; }
+        [[nodiscard]] inline const float& y2() const { return coords[4]; }
+        [[nodiscard]] inline const float& z2() const { return coords[5]; }
+        [[nodiscard]] inline const float& controlX1() const { return coords[6]; }
+        [[nodiscard]] inline const float& controlY1() const { return coords[7]; }
+        [[nodiscard]] inline const float& controlZ1() const { return coords[8]; }
+        [[nodiscard]] inline const float& controlX2() const { return coords[9]; }
+        [[nodiscard]] inline const float& controlY2() const { return coords[10]; }
+        [[nodiscard]] inline const float& controlZ2() const { return coords[11]; }
     };
 
-    class TexmapStartCommand : public CommentOrMetaElement  {
+    class TexmapStartCommand : public CommentOrMetaElement {
     public:
         enum ProjectionMethod {
             PLANAR,
@@ -161,7 +273,7 @@ namespace bricksim::ldr {
             SPHERICAL,
         };
         ProjectionMethod projectionMethod;
-        float x1, y1, z1, x2, y2, z2, x3, y3, z3, a, b;//a and b may be not used depending on projectionMethod
+        std::array<float, 11> coords;//x1, y1, z1, x2, y2, z2, x3, y3, z3, a, b;//a and b may be not used depending on projectionMethod
         std::string textureFilename;
         std::optional<std::string> glossmapFileName;
 
@@ -171,6 +283,30 @@ namespace bricksim::ldr {
         static bool doesLineMatch(std::string_view line);
 
         [[nodiscard]] std::string getLdrLine() const override;
+
+        inline float& x1() { return coords[0]; }
+        inline float& y1() { return coords[1]; }
+        inline float& z1() { return coords[2]; }
+        inline float& x2() { return coords[3]; }
+        inline float& y2() { return coords[4]; }
+        inline float& z2() { return coords[5]; }
+        inline float& x3() { return coords[6]; }
+        inline float& y3() { return coords[7]; }
+        inline float& z3() { return coords[8]; }
+        inline float& a() { return coords[9]; }
+        inline float& b() { return coords[10]; }
+
+        [[nodiscard]] inline const float& x1() const { return coords[0]; }
+        [[nodiscard]] inline const float& y1() const { return coords[1]; }
+        [[nodiscard]] inline const float& z1() const { return coords[2]; }
+        [[nodiscard]] inline const float& x2() const { return coords[3]; }
+        [[nodiscard]] inline const float& y2() const { return coords[4]; }
+        [[nodiscard]] inline const float& z2() const { return coords[5]; }
+        [[nodiscard]] inline const float& x3() const { return coords[6]; }
+        [[nodiscard]] inline const float& y3() const { return coords[7]; }
+        [[nodiscard]] inline const float& z3() const { return coords[8]; }
+        [[nodiscard]] inline const float& a() const { return coords[9]; }
+        [[nodiscard]] inline const float& b() const { return coords[10]; }
     };
 
     struct TexmapState {

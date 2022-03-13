@@ -172,23 +172,20 @@ namespace bricksim::ldr {
         fast_float::from_chars(&line[start], &line[end], result);
     }
 
+    inline void parseNextThreeFloats(const std::string_view line, size_t& start, size_t& end, float* result) {
+        for (int i = 0; i < 3; ++i) {
+            parseNextFloat(line, start, end, result[i]);
+        }
+    }
+
     SubfileReference::SubfileReference(const std::string_view line, bool bfcInverted) :
         bfcInverted(bfcInverted) {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
         std::from_chars(&line[start], &line[end], color.code);
-        parseNextFloat(line, start, end, x);
-        parseNextFloat(line, start, end, y);
-        parseNextFloat(line, start, end, z);
-        parseNextFloat(line, start, end, a);
-        parseNextFloat(line, start, end, b);
-        parseNextFloat(line, start, end, c);
-        parseNextFloat(line, start, end, d);
-        parseNextFloat(line, start, end, e);
-        parseNextFloat(line, start, end, f);
-        parseNextFloat(line, start, end, g);
-        parseNextFloat(line, start, end, h);
-        parseNextFloat(line, start, end, i);
+        for (int n = 0; n < std::size(numbers); ++n) {
+            parseNextFloat(line, start, end, numbers[n]);
+        }
         filename = stringutil::trim(line.substr(end + 1));
     }
 
@@ -196,35 +193,24 @@ namespace bricksim::ldr {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
         std::from_chars(&line[start], &line[end], color.code);
-        parseNextFloat(line, start, end, x1);
-        parseNextFloat(line, start, end, y1);
-        parseNextFloat(line, start, end, z1);
-        parseNextFloat(line, start, end, x2);
-        parseNextFloat(line, start, end, y2);
-        parseNextFloat(line, start, end, z2);
+        for (int n = 0; n < std::size(coords); ++n) {
+            parseNextFloat(line, start, end, coords[n]);
+        }
     }
 
     Triangle::Triangle(const std::string_view line, WindingOrder order) {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
         std::from_chars(&line[start], &line[end], color.code);
-        parseNextFloat(line, start, end, x1);
-        parseNextFloat(line, start, end, y1);
-        parseNextFloat(line, start, end, z1);
+
+        parseNextThreeFloats(line, start, end, &coords[0]);//p1
+
         if (order == CCW) {
-            parseNextFloat(line, start, end, x2);
-            parseNextFloat(line, start, end, y2);
-            parseNextFloat(line, start, end, z2);
-            parseNextFloat(line, start, end, x3);
-            parseNextFloat(line, start, end, y3);
-            parseNextFloat(line, start, end, z3);
+            parseNextThreeFloats(line, start, end, &coords[1 * 3]);//p2
+            parseNextThreeFloats(line, start, end, &coords[2 * 3]);//p3
         } else {
-            parseNextFloat(line, start, end, x3);
-            parseNextFloat(line, start, end, y3);
-            parseNextFloat(line, start, end, z3);
-            parseNextFloat(line, start, end, x2);
-            parseNextFloat(line, start, end, y2);
-            parseNextFloat(line, start, end, z2);
+            parseNextThreeFloats(line, start, end, &coords[2 * 3]);//p3
+            parseNextThreeFloats(line, start, end, &coords[1 * 3]);//p2
         }
     }
 
@@ -232,30 +218,17 @@ namespace bricksim::ldr {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
         std::from_chars(&line[start], &line[end], color.code);
-        parseNextFloat(line, start, end, x1);
-        parseNextFloat(line, start, end, y1);
-        parseNextFloat(line, start, end, z1);
+
+        parseNextThreeFloats(line, start, end, &coords[0]);//p1
 
         if (order == CCW) {
-            parseNextFloat(line, start, end, x2);
-            parseNextFloat(line, start, end, y2);
-            parseNextFloat(line, start, end, z2);
-            parseNextFloat(line, start, end, x3);
-            parseNextFloat(line, start, end, y3);
-            parseNextFloat(line, start, end, z3);
-            parseNextFloat(line, start, end, x4);
-            parseNextFloat(line, start, end, y4);
-            parseNextFloat(line, start, end, z4);
+            parseNextThreeFloats(line, start, end, &coords[1 * 3]);//p2
+            parseNextThreeFloats(line, start, end, &coords[2 * 3]);//p3
+            parseNextThreeFloats(line, start, end, &coords[3 * 3]);//p4
         } else {
-            parseNextFloat(line, start, end, x4);
-            parseNextFloat(line, start, end, y4);
-            parseNextFloat(line, start, end, z4);
-            parseNextFloat(line, start, end, x3);
-            parseNextFloat(line, start, end, y3);
-            parseNextFloat(line, start, end, z3);
-            parseNextFloat(line, start, end, x2);
-            parseNextFloat(line, start, end, y2);
-            parseNextFloat(line, start, end, z2);
+            parseNextThreeFloats(line, start, end, &coords[3 * 3]);//p4
+            parseNextThreeFloats(line, start, end, &coords[2 * 3]);//p3
+            parseNextThreeFloats(line, start, end, &coords[1 * 3]);//p2
         }
     }
 
@@ -263,18 +236,10 @@ namespace bricksim::ldr {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
         std::from_chars(&line[start], &line[end], color.code);
-        parseNextFloat(line, start, end, x1);
-        parseNextFloat(line, start, end, y1);
-        parseNextFloat(line, start, end, z1);
-        parseNextFloat(line, start, end, x2);
-        parseNextFloat(line, start, end, y2);
-        parseNextFloat(line, start, end, z2);
-        parseNextFloat(line, start, end, controlX1);
-        parseNextFloat(line, start, end, controlY1);
-        parseNextFloat(line, start, end, controlZ1);
-        parseNextFloat(line, start, end, controlX2);
-        parseNextFloat(line, start, end, controlY2);
-        parseNextFloat(line, start, end, controlZ2);
+
+        for (int i = 0; i < std::size(coords); ++i) {
+            parseNextFloat(line, start, end, coords[i]);
+        }
     }
 
     int CommentOrMetaElement::getType() const {
@@ -298,28 +263,28 @@ namespace bricksim::ldr {
 
     glm::mat4 SubfileReference::getTransformationMatrix() const {
         return {
-                a, b, c, x,
-                d, e, f, y,
-                g, h, i, z,
+                a(), b(), c(), x(),
+                d(), e(), f(), y(),
+                g(), h(), i(), z(),
                 0.0f, 0.0f, 0.0f, 1.0f};
     }
 
     std::string SubfileReference::getLdrLine() const {
-        return fmt::format("1 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:s}", color.code, x, y, z, a, b, c, d, e, f, g, h, i, filename);
+        return fmt::format("1 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:s}", color.code, x(), y(), z(), a(), b(), c(), d(), e(), f(), g(), h(), i(), filename);
     }
     void SubfileReference::setTransformationMatrix(const glm::mat4& matrix) {
-        a = matrix[0][0];
-        b = matrix[1][0];
-        c = matrix[2][0];
-        x = matrix[3][0];
-        d = matrix[0][1];
-        e = matrix[1][1];
-        f = matrix[2][1];
-        y = matrix[3][1];
-        g = matrix[0][2];
-        h = matrix[1][2];
-        i = matrix[2][2];
-        z = matrix[3][2];
+        a() = matrix[0][0];
+        b() = matrix[1][0];
+        c() = matrix[2][0];
+        x() = matrix[3][0];
+        d() = matrix[0][1];
+        e() = matrix[1][1];
+        f() = matrix[2][1];
+        y() = matrix[3][1];
+        g() = matrix[0][2];
+        h() = matrix[1][2];
+        i() = matrix[2][2];
+        z() = matrix[3][2];
     }
 
     SubfileReference::SubfileReference(ColorReference color, const glm::mat4& transformation, bool bfcInverted) : color(color), bfcInverted(bfcInverted) {
@@ -330,21 +295,21 @@ namespace bricksim::ldr {
         return 2;
     }
     std::string Line::getLdrLine() const {
-        return fmt::format("2 {:d} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1, y1, z1, x2, y2, z2);
+        return fmt::format("2 {:d} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1(), y1(), z1(), x2(), y2(), z2());
     }
 
     int Triangle::getType() const {
         return 3;
     }
     std::string Triangle::getLdrLine() const {
-        return fmt::format("3 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+        return fmt::format("3 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1(), y1(), z1(), x2(), y2(), z2(), x3(), y3(), z3());
     }
 
     int Quadrilateral::getType() const {
         return 4;
     }
     std::string Quadrilateral::getLdrLine() const {
-        return fmt::format("4 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
+        return fmt::format("4 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1(), y1(), z1(), x2(), y2(), z2(), x3(), y3(), z3(), x4(), y4(), z4());
     }
 
     int OptionalLine::getType() const {
@@ -352,7 +317,7 @@ namespace bricksim::ldr {
     }
 
     std::string OptionalLine::getLdrLine() const {
-        return fmt::format("5 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1, y1, z1, x2, y2, z2, controlX1, controlY1, controlZ1, controlX2, controlY2, controlZ2);
+        return fmt::format("5 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1(), y1(), z1(), x2(), y2(), z2(), controlX1(), controlY1(), controlZ1(), controlX2(), controlY2(), controlZ2());
     }
 
     bool ldr::FileMetaInfo::addLine(const std::string& line) {
@@ -492,24 +457,19 @@ namespace bricksim::ldr {
         auto projectionMethodStrView = std::string_view(line).substr(start, end - start);
         projectionMethod = magic_enum::enum_cast<ProjectionMethod>(projectionMethodStrView).value_or(ProjectionMethod::PLANAR);
 
-        parseNextFloat(line, start, end, x1);
-        parseNextFloat(line, start, end, y1);
-        parseNextFloat(line, start, end, z1);
-        parseNextFloat(line, start, end, x2);
-        parseNextFloat(line, start, end, y2);
-        parseNextFloat(line, start, end, z2);
-        parseNextFloat(line, start, end, x3);
-        parseNextFloat(line, start, end, y3);
-        parseNextFloat(line, start, end, z3);
+        parseNextThreeFloats(line, start, end, &coords[0]);//p1
+        parseNextThreeFloats(line, start, end, &coords[1 * 3]);//p2
+        parseNextThreeFloats(line, start, end, &coords[2 * 3]);//p3
+
         if (projectionMethod != PLANAR) {
-            parseNextFloat(line, start, end, a);
+            parseNextFloat(line, start, end, a());
         } else {
-            a = 0;
+            a() = 0;
         }
         if (projectionMethod == SPHERICAL) {
-            parseNextFloat(line, start, end, b);
+            parseNextFloat(line, start, end, b());
         } else {
-            b = 0;
+            b() = 0;
         }
 
         size_t glossmapPos = line.find(" GLOSSMAP", end);//the space is necessary because the path could be something like /home/user/GLOSSMAPS/glossmap123.png
@@ -538,29 +498,20 @@ namespace bricksim::ldr {
         if (projectionMethod == PLANAR) {
             abStr = "";
         } else if (projectionMethod == CYLINDRICAL) {
-            abStr = fmt::format("{:g}", a);
+            abStr = fmt::format("{:g}", a());
         } else {
-            abStr = fmt::format("{:g} {:g}", a, b);
+            abStr = fmt::format("{:g} {:g}", a(), b());
         }
         std::string glossmapStr = glossmapFileName.has_value() ? fmt::format("GLOSSMAP {}", glossmapFileName.value()) : "";
-        return fmt::format("0 !TEXMAP START {} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {} {} {}", magic_enum::enum_name(projectionMethod), x1, y1, z1, x2, y2, z2, x3, y3, z3, abStr, textureFilename, glossmapStr);
+        return fmt::format("0 !TEXMAP START {} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {} {} {}", magic_enum::enum_name(projectionMethod), x1(), y1(), z1(), x2(), y2(), z2(), x3(), y3(), z3(), abStr, textureFilename, glossmapStr);
     }
+
     TexmapStartCommand::TexmapStartCommand(const TexmapStartCommand& other) :
         CommentOrMetaElement(other.content),
         projectionMethod(other.projectionMethod),
         textureFilename(other.textureFilename),
         glossmapFileName(other.glossmapFileName),
-        x1(other.x1),
-        y1(other.y1),
-        z1(other.z1),
-        x2(other.x2),
-        y2(other.y2),
-        z2(other.z2),
-        x3(other.x3),
-        y3(other.y3),
-        z3(other.z3),
-        a(other.a),
-        b(other.b) {
+        coords(other.coords) {
     }
 
     void TexmapState::startOrNext(const std::shared_ptr<TexmapStartCommand>& command) {

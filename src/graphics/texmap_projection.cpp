@@ -8,9 +8,9 @@
 namespace bricksim::graphics::texmap_projection {
 
     glm::vec2 getPlanarUVCoord(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, glm::vec3 point) {
-        const glm::vec3 p1(startCommand->x1, startCommand->y1, startCommand->z1);
-        const glm::vec3 p2(startCommand->x2, startCommand->y2, startCommand->z2);
-        const glm::vec3 p3(startCommand->x3, startCommand->y3, startCommand->z3);
+        const glm::vec3 p1(startCommand->x1(), startCommand->y1(), startCommand->z1());
+        const glm::vec3 p2(startCommand->x2(), startCommand->y2(), startCommand->z2());
+        const glm::vec3 p3(startCommand->x3(), startCommand->y3(), startCommand->z3());
         const auto p1to2 = p2 - p1;
         const auto p1to3 = p3 - p1;
         const auto distToP1 = geometry::getDistanceBetweenPointAndPlane(Ray3(p1, p1to2), point);
@@ -19,9 +19,9 @@ namespace bricksim::graphics::texmap_projection {
     }
 
     PolygonSplittingResult splitPolygonBiggerThanTexturePlanar(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, const std::vector<glm::vec3>& points) {
-        const glm::vec3 texP1(startCommand->x1, startCommand->y1, startCommand->z1);
-        const glm::vec3 texP2(startCommand->x2, startCommand->y2, startCommand->z2);
-        const glm::vec3 texP3(startCommand->x3, startCommand->y3, startCommand->z3);
+        const glm::vec3 texP1(startCommand->x1(), startCommand->y1(), startCommand->z1());
+        const glm::vec3 texP2(startCommand->x2(), startCommand->y2(), startCommand->z2());
+        const glm::vec3 texP3(startCommand->x3(), startCommand->y3(), startCommand->z3());
         const glm::vec3 texP4 = texP2 + texP3 - texP1;//texP1 + 2.f * ((texP2 + texP3) / 2.f - texP1)
 
         const auto& p1 = points[0];
@@ -216,18 +216,18 @@ namespace bricksim::graphics::texmap_projection {
     std::shared_ptr<ldr::TexmapStartCommand> transformTexmapStartCommand(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, glm::mat4 transformation) {
         auto result = std::make_shared<ldr::TexmapStartCommand>(*startCommand);
         transformation = glm::inverse(transformation);
-        const auto tp1 = transformation*glm::vec4(result->x1, result->y1, result->z1, 1.f);
-        const auto tp2 = transformation*glm::vec4(result->x2, result->y2, result->z2, 1.f);
-        const auto tp3 = transformation*glm::vec4(result->x3, result->y3, result->z3, 1.f);
-        result->x1 = tp1.x;
-        result->y1 = tp1.y;
-        result->z1 = tp1.z;
-        result->x2 = tp2.x;
-        result->y2 = tp2.y;
-        result->z2 = tp2.z;
-        result->x3 = tp3.x;
-        result->y3 = tp3.y;
-        result->z3 = tp3.z;
+        const auto tp1 = transformation*glm::vec4(result->x1(), result->y1(), result->z1(), 1.f);
+        const auto tp2 = transformation*glm::vec4(result->x2(), result->y2(), result->z2(), 1.f);
+        const auto tp3 = transformation*glm::vec4(result->x3(), result->y3(), result->z3(), 1.f);
+        result->x1() = tp1.x;
+        result->y1() = tp1.y;
+        result->z1() = tp1.z;
+        result->x2() = tp2.x;
+        result->y2() = tp2.y;
+        result->z2() = tp2.z;
+        result->x3() = tp3.x;
+        result->y3() = tp3.y;
+        result->z3() = tp3.z;
         return result;
     }
 

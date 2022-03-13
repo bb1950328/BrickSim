@@ -377,8 +377,17 @@ namespace bricksim::gui {
                 gui_internal::actionMenuItem(user_actions::VIEW_3D_BOTTOM, "Bottom");
                 gui_internal::actionMenuItem(user_actions::VIEW_3D_LEFT, "Left");
                 ImGui::Separator();
-                //todo ImGui::MenuItem("Show Surfaces", "", mainScene->isDrawTriangles());
-                //todo ImGui::MenuItem("Show Lines", "", mainScene->isDrawLines());
+                const auto activeEditor = controller::getActiveEditor();
+                if (activeEditor == nullptr) {
+                    ImGui::BeginDisabled();
+                    ImGui::MenuItem("Show Surfaces", "");
+                    ImGui::MenuItem("Show Lines", "");
+                    ImGui::EndDisabled();
+                } else {
+                    const auto mainScene = activeEditor->getScene();
+                    ImGui::MenuItem("Show Surfaces", "", mainScene->isDrawTriangles());
+                    ImGui::MenuItem("Show Lines", "", mainScene->isDrawLines());
+                }
                 gui_internal::actionMenuItem(user_actions::TAKE_SCREENSHOT);
                 ImGui::EndMenu();
             }

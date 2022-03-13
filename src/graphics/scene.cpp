@@ -208,7 +208,7 @@ namespace bricksim::graphics {
     }
 
     void Scene::updateImage() {
-        bool needRender = true;
+        bool needRender;
         if (currentImageViewMatrix != camera->getViewMatrix()) {
             currentImageViewMatrix = camera->getViewMatrix();
             needRender = true;

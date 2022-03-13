@@ -2,6 +2,7 @@
 
 #include "../../ldr/colors.h"
 #include <glm/glm.hpp>
+#include <glm/ext/quaternion_float.hpp>
 
 namespace bricksim::mesh {
     struct TriangleVertex {
@@ -58,8 +59,46 @@ namespace bricksim::mesh {
         unsigned int count;
     };
 
+    struct RotatedBoundingBox;
+
+    struct AxisAlignedBoundingBox {
+        glm::vec3 pMin;
+        glm::vec3 pMax;
+
+        AxisAlignedBoundingBox();
+        AxisAlignedBoundingBox(const glm::vec3& pMin, const glm::vec3& pMax);
+
+        void includePoint(const glm::vec3& p);
+        void includeAABB(const AxisAlignedBoundingBox& other);
+        void includeBBox(const RotatedBoundingBox& bbox);
+
+        [[nodiscard]] AxisAlignedBoundingBox transform(const glm::mat4& transformation) const;
+
+        [[nodiscard]] bool isDefined() const;
+
+        [[nodiscard]] glm::vec3 getCenter() const;
+        [[nodiscard]] glm::vec3 getSize() const;
+    };
+
+    struct RotatedBoundingBox {
+        glm::vec3 centerOffset;
+        glm::vec3 origin;
+        glm::vec3 size;
+        glm::quat rotation;
+
+        RotatedBoundingBox();
+        explicit RotatedBoundingBox(const AxisAlignedBoundingBox& aabb);
+        RotatedBoundingBox(const AxisAlignedBoundingBox& aabb, glm::vec3 origin, glm::quat rotation) :
+            centerOffset(aabb.getCenter() - origin), origin(origin), size(aabb.getSize()), rotation(rotation) {
+        }
+
+        [[nodiscard]] glm::mat4 getUnitBoxTransformation() const;
+        [[nodiscard]] RotatedBoundingBox transform(const glm::mat4& transformation) const;
+        [[nodiscard]] glm::vec3 getCenter() const;
+    };
+
     struct OuterDimensions {
-        glm::vec3 smallestBoxCorner1, smallestBoxCorner2;
+        AxisAlignedBoundingBox aabb;
         glm::vec3 minEnclosingBallCenter;
         float minEnclosingBallRadius;
     };

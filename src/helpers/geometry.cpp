@@ -1,5 +1,7 @@
 #include "geometry.h"
+#include <cmath>
 #include <glm/gtx/normal.hpp>
+#include <glm/gtx/euler_angles.hpp>
 #include <array>
 #include <vector>
 
@@ -369,5 +371,21 @@ namespace bricksim::geometry {
             }
         }
         return polygonParts;
+    }
+
+    bool doesTransformationLeaveAxisParallels(const glm::mat4& transformation) {
+        return doesTransformationLeaveAxisParallels(glm::quat_cast(transformation));
+    }
+
+    bool doesTransformationLeaveAxisParallels(const glm::quat& quaternion) {
+        const auto eulerAngles = glm::eulerAngles(glm::normalize(quaternion));
+        constexpr float epsilon = 0.0001;
+        bool res = true;
+        for (int i = 0; i < 3; ++i) {
+            res &= (std::fabs(eulerAngles[i]) < epsilon
+                    || std::fabs(eulerAngles[i] - 1.f) < epsilon
+                    || std::fabs(eulerAngles[i] + 1.f) < epsilon);
+        }
+        return res;
     }
 }

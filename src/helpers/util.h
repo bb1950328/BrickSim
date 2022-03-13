@@ -47,10 +47,19 @@ namespace bricksim::util {
     }
 
     template<glm::length_t L, typename T, glm::qualifier Q>
-    glm::vec<L, T, Q> minForEachComponent(const glm::vec<L, T, Q>& a, const glm::vec<L, T, Q>& b) {
+    glm::vec<L, T, Q> cwiseMin(const glm::vec<L, T, Q>& a, const glm::vec<L, T, Q>& b) {
         glm::vec<L, T, Q> res;
         for (int i = 0; i < L; ++i) {
             res[i] = std::min(a[i], b[i]);
+        }
+        return res;
+    }
+
+    template<glm::length_t L, typename T, glm::qualifier Q>
+    glm::vec<L, T, Q> cwiseMax(const glm::vec<L, T, Q>& a, const glm::vec<L, T, Q>& b) {
+        glm::vec<L, T, Q> res;
+        for (int i = 0; i < L; ++i) {
+            res[i] = std::max(a[i], b[i]);
         }
         return res;
     }

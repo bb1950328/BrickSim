@@ -47,7 +47,6 @@ namespace bricksim::mesh {
                              std::optional<ldr::ColorReference> parentColor,
                              std::optional<unsigned int> selectionTargetElementId,
                              const std::shared_ptr<ldr::TexmapStartCommand>& parentTexmap);
-        [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBoxInternal(const std::shared_ptr<const etree::MeshNode>& node) const;
 
         static uomap_t<mesh_key_t, std::shared_ptr<Mesh>> allMeshes;
 
@@ -57,9 +56,12 @@ namespace bricksim::mesh {
         SceneMeshCollection(const SceneMeshCollection&) = delete;
 
         void rereadElementTreeIfNeeded();
-        void updateSelectionContainerBoxIfNeeded();
+        //void updateSelectionContainerBoxIfNeeded();
 
-        [[nodiscard]] std::pair<glm::vec3, glm::vec3> getBoundingBox(const std::shared_ptr<const etree::MeshNode>& node) const;
+        [[nodiscard]] AxisAlignedBoundingBox getAbsoluteAABB(const std::shared_ptr<const etree::MeshNode>& node) const;
+        [[nodiscard]] AxisAlignedBoundingBox getRelativeAABB(const std::shared_ptr<const etree::MeshNode>& node) const;
+        [[nodiscard]] std::optional<RotatedBoundingBox> getAbsoluteRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const;
+        [[nodiscard]] std::optional<RotatedBoundingBox> getRelativeRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const;
         [[nodiscard]] const oset_t<layer_t>& getLayersInUse() const;
         [[nodiscard]] std::shared_ptr<etree::Node> getElementById(element_id_t id) const;
         [[nodiscard]] const std::shared_ptr<etree::Node>& getRootNode() const;

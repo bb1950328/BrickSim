@@ -169,7 +169,7 @@ namespace bricksim::ldr {
         size_t endBackup = end, startBackup = start;
         start = line.find_first_not_of(LDR_WHITESPACE, end);
         end = std::min(line.size(), line.find_first_of(LDR_WHITESPACE, start));
-        fast_float::from_chars(&line[start], &line[end], result);
+        fast_float::from_chars(line.data() + start, line.data() + end, result);
     }
 
     inline void parseNextThreeFloats(const std::string_view line, size_t& start, size_t& end, float* result) {

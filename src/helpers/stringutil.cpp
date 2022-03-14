@@ -24,13 +24,16 @@ namespace bricksim::stringutil {
     }
 
     std::string_view trim(const std::string_view input) {
+        if (input.empty()) {
+            return input;
+        }
         std::size_t wsbefore = 0, wsafter = input.size();
-        while (input[wsbefore] > 0 && input[wsbefore] <= 0xff && std::isspace(input[wsbefore])) {
+        while (wsbefore < input.size() && input[wsbefore] > 0 && input[wsbefore] <= 0xff && std::isspace(input[wsbefore])) {
             ++wsbefore;
         }
         do {
             --wsafter;
-        } while (input[wsafter] > 0 && input[wsafter] <= 0xff && std::isspace(input[wsafter]));
+        } while (wsafter > 0 && input[wsafter] > 0 && input[wsafter] <= 0xff && std::isspace(input[wsafter]));
 
         return (wsafter <= wsbefore ? std::string_view() : input.substr(wsbefore, wsafter - wsbefore + 1));
     }

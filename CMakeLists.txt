@@ -230,10 +230,6 @@ target_link_libraries(BrickSimLib PRIVATE cpuinfo)
 add_subdirectory(src/lib/magic_enum)
 target_link_libraries(BrickSimLib PRIVATE magic_enum::magic_enum)
 
-#Compile-time-hash-functions
-add_subdirectory(src/lib/Compile-time-hash-functions)
-target_link_libraries(BrickSimLib PRIVATE compile_time_hash)
-
 #fast_float
 add_subdirectory(src/lib/fast_float)
 target_link_libraries(BrickSimLib PRIVATE fast_float)

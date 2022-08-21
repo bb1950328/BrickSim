@@ -187,12 +187,12 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ runner.workspace }}/installbuilder_installer.run
-          key: installbuilder-22.3.0-linux-x64-installer
+          key: installbuilder-22.8.0-linux-x64-installer
       - name: Download InstallBuilder installer on cache miss
         if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
         working-directory: ${{ runner.workspace }}
         #WARNING: if you change the version here, also change it in the cache key
-        run: wget https://installbuilder.com/installbuilder-enterprise-22.3.0-linux-x64-installer.run -O installbuilder_installer.run
+        run: wget https://installbuilder.com/installbuilder-enterprise-22.8.0-linux-x64-installer.run -O installbuilder_installer.run
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         run: |
@@ -314,14 +314,14 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ runner.workspace }}/installbuilder_installer.exe
-          key: installbuilder-enterprise-22.3.0-windows-x64-installer
+          key: installbuilder-enterprise-22.8.0-windows-x64-installer
 
       - name: Download InstallBuilder installer on cache miss
         if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
         working-directory: ${{ runner.workspace }}
         shell: powershell
         #WARNING: if you change the version here, also change it in the cache key
-        run: Invoke-WebRequest -Uri https://installbuilder.com/installbuilder-enterprise-22.3.0-windows-x64-installer.exe -OutFile installbuilder_installer.exe
+        run: Invoke-WebRequest -Uri https://installbuilder.com/installbuilder-enterprise-22.8.0-windows-x64-installer.exe -OutFile installbuilder_installer.exe
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         shell: powershell
@@ -521,7 +521,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ runner.workspace }}/installbuilder_installer.dmg
-          key: installbuilder-enterprise-22.3.0-osx-installer
+          key: installbuilder-enterprise-22.8.0-osx-installer
 
       - name: Download InstallBuilder installer on cache miss
         if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
@@ -529,14 +529,14 @@ jobs:
         #WARNING: if you change the version here, also change it in the cache key
         run: |
           brew install wget
-          wget -nv https://installbuilder.com/installbuilder-enterprise-22.3.0-osx-installer.dmg -O installbuilder_installer.dmg
+          wget -nv https://installbuilder.com/installbuilder-enterprise-22.8.0-osx-installer.dmg -O installbuilder_installer.dmg
 
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         run: |
           hdiutil attach -noverify installbuilder_installer.dmg
           ls -l -R "/Volumes/InstallBuilder Enterprise"
-          /Volumes/InstallBuilder\ Enterprise/installbuilder-enterprise-22.3.0-osx-installer.app/Contents/MacOS/installbuilder.sh \
+          /Volumes/InstallBuilder\ Enterprise/installbuilder-enterprise-22.8.0-osx-installer.app/Contents/MacOS/installbuilder.sh \
                   --mode unattended --prefix ${{ runner.workspace }}/installbuilder
           #sudo hdiutil detach "/Volumes/InstallBuilder Enterprise"
         #todo find out why the previous line causes error "hdiutil: couldn't unmount "disk2" - Resource busy"

@@ -25,7 +25,7 @@ namespace bricksim::ldr {
                 } else {
                     return std::make_shared<CommentOrMetaElement>(lineContent);
                 }
-            };
+            }
             case 1: return std::make_shared<SubfileReference>(lineContent, bfcState.invertNext);
             case 2: return std::make_shared<Line>(lineContent);
             case 3: return std::make_shared<Triangle>(lineContent, bfcState.windingOrder);

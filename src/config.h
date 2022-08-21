@@ -89,7 +89,7 @@ namespace bricksim::config {
         }
 
         bool operator!=(const Key& rhs) const {
-            return !(rhs == *this);
+            return !(rhs == *this); // NOLINT
         }
     };
 

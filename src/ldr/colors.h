@@ -96,7 +96,7 @@ namespace bricksim::ldr {
         ColorReference getInstanceDummyColor();
         ColorReference getPureColor(const std::string& htmlCode);
         ColorReference getPureColor(const color::RGB& color);
-    };
+    }
 }
 
 namespace std {

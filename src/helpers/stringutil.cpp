@@ -27,7 +27,8 @@ namespace bricksim::stringutil {
         if (input.empty()) {
             return input;
         }
-        std::size_t wsbefore = 0, wsafter = input.size();
+        std::size_t wsbefore = 0;
+        std::size_t wsafter = input.size();
         while (wsbefore < input.size() && input[wsbefore] > 0 && input[wsbefore] <= 0xff && std::isspace(input[wsbefore])) {
             ++wsbefore;
         }

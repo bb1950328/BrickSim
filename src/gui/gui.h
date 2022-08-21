@@ -69,4 +69,4 @@ namespace bricksim::gui {
     const std::shared_ptr<graphics::Texture>& getLogoTexture();
 
     void drawWaitMessage(const std::string& message, float progress);
-};
+}

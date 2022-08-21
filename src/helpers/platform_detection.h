@@ -14,7 +14,7 @@ namespace bricksim::detected_platform {
         BIT64
     };
 
-    constexpr Bits bits = sizeof(void*) == 4 ? BIT32 : BIT64;
+    constexpr Bits bits = sizeof(void*) == 4 ? BIT32 : BIT64;// NOLINT
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     constexpr Platform platform = WINDOWS;
@@ -43,7 +43,7 @@ namespace bricksim::detected_platform {
 #else
     constexpr Platform platform = OTHER;
 #endif
-    constexpr bool linux_ = platform == LINUX;
-    constexpr bool macOS = platform == MACOS;
-    constexpr bool windows = platform == WINDOWS;
+    constexpr bool linux_ = platform == LINUX;// NOLINT
+    constexpr bool macOS = platform == MACOS;// NOLINT
+    constexpr bool windows = platform == WINDOWS;// NOLINT
 }

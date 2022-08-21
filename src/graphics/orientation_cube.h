@@ -54,4 +54,4 @@ namespace bricksim::graphics::orientation_cube {
     std::optional<CubeSide> getSide(glm::usvec2 pos);
     short getSize();
     void cleanup();
-};
+}

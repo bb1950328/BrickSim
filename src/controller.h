@@ -72,4 +72,4 @@ namespace bricksim::controller {
     void setActiveEditor(std::shared_ptr<Editor>& editor);
 
     std::shared_ptr<efsw::FileWatcher> getFileWatcher();
-};
+}

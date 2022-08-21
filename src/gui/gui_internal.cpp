@@ -13,7 +13,7 @@ namespace bricksim::gui_internal {
             auto optTexId = controller::getThumbnailGenerator()->getThumbnailNonBlocking(part, color);
             if (optTexId.has_value()) {
                 auto texId = convertTextureId(optTexId.value());
-                ImGui::ImageButton(texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0), 0);
+                ImGui::ImageButton(part->metaInfo.name.c_str(), texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0));
                 realThumbnailAvailable = true;
             }
         } else {

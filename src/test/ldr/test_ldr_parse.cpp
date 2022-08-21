@@ -1,7 +1,7 @@
 #include "../../ldr/file_reader.h"
 #include "../../ldr/files.h"
 #include "../testing_tools.h"
-#include "catch2/catch.hpp"
+#include "catch2/generators/catch_generators_all.hpp"
 #include <glm/gtx/normal.hpp>
 
 using namespace bricksim::ldr;
@@ -10,18 +10,18 @@ TEST_CASE("parse ldr::SubfileReference") {
     const std::string line = GENERATE("123 1.5 2 3.3 4 5 6 7 8 9 1 2 3 file with spaces.ldr", "123\t 1.5  2\t\t3.3     4 5\t\t\t\t6 7 8 9 1 2 3\t file with spaces.ldr\t");
     const auto sf = SubfileReference(line, false);
     CHECK(sf.color == 123);
-    CHECK(sf.x() == Approx(1.5f));
-    CHECK(sf.y() == Approx(2.f));
-    CHECK(sf.z() == Approx(3.3f));
-    CHECK(sf.a() == Approx(4.f));
-    CHECK(sf.b() == Approx(5.f));
-    CHECK(sf.c() == Approx(6.f));
-    CHECK(sf.d() == Approx(7.f));
-    CHECK(sf.e() == Approx(8.f));
-    CHECK(sf.f() == Approx(9.f));
-    CHECK(sf.g() == Approx(1.f));
-    CHECK(sf.h() == Approx(2.f));
-    CHECK(sf.i() == Approx(3.f));
+    CHECK(sf.x() == Catch::Approx(1.5f));
+    CHECK(sf.y() == Catch::Approx(2.f));
+    CHECK(sf.z() == Catch::Approx(3.3f));
+    CHECK(sf.a() == Catch::Approx(4.f));
+    CHECK(sf.b() == Catch::Approx(5.f));
+    CHECK(sf.c() == Catch::Approx(6.f));
+    CHECK(sf.d() == Catch::Approx(7.f));
+    CHECK(sf.e() == Catch::Approx(8.f));
+    CHECK(sf.f() == Catch::Approx(9.f));
+    CHECK(sf.g() == Catch::Approx(1.f));
+    CHECK(sf.h() == Catch::Approx(2.f));
+    CHECK(sf.i() == Catch::Approx(3.f));
     CHECK(sf.bfcInverted == false);
     CHECK(sf.filename == "file with spaces.ldr");
 }
@@ -30,12 +30,12 @@ TEST_CASE("parse ldr::Line") {
     const std::string line = GENERATE("123 1.2 3.4 5.6 -9.8 -7.6 -5.4", "123\t \t1.20          3.4\t5.6 -9.8  -7.6 -5.4    ");
     const auto li = Line(line);
     CHECK(li.color == 123);
-    CHECK(li.x1() == Approx(1.2f));
-    CHECK(li.y1() == Approx(3.4f));
-    CHECK(li.z1() == Approx(5.6f));
-    CHECK(li.x2() == Approx(-9.8f));
-    CHECK(li.y2() == Approx(-7.6f));
-    CHECK(li.z2() == Approx(-5.4f));
+    CHECK(li.x1() == Catch::Approx(1.2f));
+    CHECK(li.y1() == Catch::Approx(3.4f));
+    CHECK(li.z1() == Catch::Approx(5.6f));
+    CHECK(li.x2() == Catch::Approx(-9.8f));
+    CHECK(li.y2() == Catch::Approx(-7.6f));
+    CHECK(li.z2() == Catch::Approx(-5.4f));
 }
 
 TEST_CASE("parse ldr::Triangle") {
@@ -62,17 +62,17 @@ TEST_CASE("parse ldr::TexmapStartCommand 1") {
             "!TEXMAP\t START  \t\tPLANAR\t \t1  \t 2 \t3 \t   4\t   5\t  \t6\t 7\t 8\t 9\t  texture.png\t  \tGLOSSMAP  \t  glossmap.png\t ");
     const auto command = TexmapStartCommand(line);
     CHECK(command.projectionMethod == bricksim::ldr::TexmapStartCommand::PLANAR);
-    CHECK(command.x1() == Approx(1.f));
-    CHECK(command.y1() == Approx(2.f));
-    CHECK(command.z1() == Approx(3.f));
-    CHECK(command.x2() == Approx(4.f));
-    CHECK(command.y2() == Approx(5.f));
-    CHECK(command.z2() == Approx(6.f));
-    CHECK(command.x3() == Approx(7.f));
-    CHECK(command.y3() == Approx(8.f));
-    CHECK(command.z3() == Approx(9.f));
-    CHECK(command.a() == Approx(0.f));
-    CHECK(command.b() == Approx(0.f));
+    CHECK(command.x1() == Catch::Approx(1.f));
+    CHECK(command.y1() == Catch::Approx(2.f));
+    CHECK(command.z1() == Catch::Approx(3.f));
+    CHECK(command.x2() == Catch::Approx(4.f));
+    CHECK(command.y2() == Catch::Approx(5.f));
+    CHECK(command.z2() == Catch::Approx(6.f));
+    CHECK(command.x3() == Catch::Approx(7.f));
+    CHECK(command.y3() == Catch::Approx(8.f));
+    CHECK(command.z3() == Catch::Approx(9.f));
+    CHECK(command.a() == Catch::Approx(0.f));
+    CHECK(command.b() == Catch::Approx(0.f));
     CHECK(command.textureFilename == "texture.png");
     CHECK(command.glossmapFileName.value() == "glossmap.png");
 }
@@ -80,13 +80,13 @@ TEST_CASE("parse ldr::TexmapStartCommand 1") {
 TEST_CASE("parse ldr::TexmapStartCommand 2") {
     auto cylindricalCommand = TexmapStartCommand("!TEXMAP START CYLINDRICAL 1 2 3 4 5 6 7 8 9 11 texture.png");
     CHECK(cylindricalCommand.projectionMethod == TexmapStartCommand::CYLINDRICAL);
-    CHECK(cylindricalCommand.a() == Approx(11.f));
-    CHECK(cylindricalCommand.b() == Approx(0.f));
+    CHECK(cylindricalCommand.a() == Catch::Approx(11.f));
+    CHECK(cylindricalCommand.b() == Catch::Approx(0.f));
 
     auto sphericalCommand = TexmapStartCommand("!TEXMAP START SPHERICAL 1 2 3 4 5 6 7 8 9 11 22 texture.png");
     CHECK(sphericalCommand.projectionMethod == TexmapStartCommand::SPHERICAL);
-    CHECK(sphericalCommand.a() == Approx(11.f));
-    CHECK(sphericalCommand.b() == Approx(22.f));
+    CHECK(sphericalCommand.a() == Catch::Approx(11.f));
+    CHECK(sphericalCommand.b() == Catch::Approx(22.f));
 
     auto textureWithSpacesCommand = TexmapStartCommand("!TEXMAP START PLANAR 1 2 3 4 5 6 7 8 9 tex ture.png");
     CHECK(textureWithSpacesCommand.textureFilename == "tex ture.png");

@@ -1,6 +1,8 @@
 #include "../../helpers/geometry.h"
 #include "../testing_tools.h"
-#include "catch2/catch.hpp"
+#include "catch2/catch_approx.hpp"
+#include "catch2/catch_test_macros.hpp"
+#include "catch2/generators/catch_generators_range.hpp"
 #include <glm/gtc/epsilon.hpp>
 #include <iostream>
 
@@ -16,36 +18,36 @@ namespace bricksim {
     }
 
     TEST_CASE("geometry::calculateDistanceOfPointToLine") {
-        CHECK(geometry::calculateDistanceOfPointToLine(glm::vec2(0.0f, 0.0f), {1.0f, 1.0f}, {0.0f, 1.0f}) == Approx(std::sqrt(2) / 2));
-        CHECK(geometry::calculateDistanceOfPointToLine(glm::vec2(0.0f, 0.0f), {1.0f, 0.0f}, {1.0f, 1.0f}) == Approx(1));
-        CHECK(geometry::calculateDistanceOfPointToLine(glm::vec2(0.0f, 0.0f), {0.0f, 1.0f}, {1.0f, 1.0f}) == Approx(1));
+        CHECK(geometry::calculateDistanceOfPointToLine(glm::vec2(0.0f, 0.0f), {1.0f, 1.0f}, {0.0f, 1.0f}) == Catch::Approx(std::sqrt(2) / 2));
+        CHECK(geometry::calculateDistanceOfPointToLine(glm::vec2(0.0f, 0.0f), {1.0f, 0.0f}, {1.0f, 1.0f}) == Catch::Approx(1));
+        CHECK(geometry::calculateDistanceOfPointToLine(glm::vec2(0.0f, 0.0f), {0.0f, 1.0f}, {1.0f, 1.0f}) == Catch::Approx(1));
     }
 
     TEST_CASE("geometry::normalProjectionOnLineClamped 0") {
         auto result = geometry::normalProjectionOnLineClamped({0, 0}, {2, 0}, {1, 1});
-        CHECK(result.distancePointToLine == Approx(1));
-        CHECK(result.lineLength == Approx(2));
+        CHECK(result.distancePointToLine == Catch::Approx(1));
+        CHECK(result.lineLength == Catch::Approx(2));
         CHECK(result.nearestPointOnLine == ApproxVec(glm::vec2(1, 0)));
         CHECK(result.projection == ApproxVec(glm::vec2(1, 0)));
-        CHECK(result.projectionLength == Approx(1));
+        CHECK(result.projectionLength == Catch::Approx(1));
     }
 
     TEST_CASE("geometry::normalProjectionOnLineClamped 1") {
         auto result = geometry::normalProjectionOnLineClamped({1, 1}, {3, 3}, {1, 3});
-        CHECK(result.distancePointToLine == Approx(sqrt(2)));
-        CHECK(result.lineLength == Approx(2 * sqrt(2)));
+        CHECK(result.distancePointToLine == Catch::Approx(sqrt(2)));
+        CHECK(result.lineLength == Catch::Approx(2 * sqrt(2)));
         CHECK(result.nearestPointOnLine == ApproxVec(glm::vec2(2, 2)));
         CHECK(result.projection == ApproxVec(glm::vec2(1, 1)));
-        CHECK(result.projectionLength == Approx(sqrt(2)));
+        CHECK(result.projectionLength == Catch::Approx(sqrt(2)));
     }
 
     TEST_CASE("geometry::normalProjectionOnLineClamped 2") {
         auto result = geometry::normalProjectionOnLineClamped({10, 20}, {14, 22}, {11, 23});
-        CHECK(result.distancePointToLine == Approx(sqrt(2 * 2 + 1 * 1)));
-        CHECK(result.lineLength == Approx(sqrt(4 * 4 + 2 * 2)));
+        CHECK(result.distancePointToLine == Catch::Approx(sqrt(2 * 2 + 1 * 1)));
+        CHECK(result.lineLength == Catch::Approx(sqrt(4 * 4 + 2 * 2)));
         CHECK(result.nearestPointOnLine == ApproxVec(glm::vec2(12, 21)));
         CHECK(result.projection == ApproxVec(glm::vec2(2, 1)));
-        CHECK(result.projectionLength == Approx(sqrt(2 * 2 + 1 * 1)));
+        CHECK(result.projectionLength == Catch::Approx(sqrt(2 * 2 + 1 * 1)));
     }
 
     void consistencyCheck(const Ray3& a, const Ray3& b, const geometry::ClosestLineBetweenTwoRaysResult& result) {
@@ -66,7 +68,7 @@ namespace bricksim {
         };
         auto result = geometry::closestLineBetweenTwoRays(a, b);
         consistencyCheck(a, b, result);
-        CHECK(result.distanceBetweenPoints == Approx(6.3508529610859));
+        CHECK(result.distanceBetweenPoints == Catch::Approx(6.3508529610859));
         CHECK(result.pointOnA == ApproxVec(glm::vec3(5, 11, 3)));
         CHECK(result.pointOnB == ApproxVec(glm::vec3(26 / 3.f, 22 / 3.f, 20 / 3.f)));
     }
@@ -83,7 +85,7 @@ namespace bricksim {
         };
         auto result = geometry::closestLineBetweenTwoRays(a, b);
         consistencyCheck(a, b, result);
-        CHECK(result.distanceBetweenPoints == Approx(0.0f));
+        CHECK(result.distanceBetweenPoints == Catch::Approx(0.0f));
         CHECK(result.pointOnA == ApproxVec(glm::vec3(-1, -1, -1)));
         CHECK(result.pointOnB == ApproxVec(glm::vec3(-1, -1, -1)));
     }
@@ -99,7 +101,7 @@ namespace bricksim {
         };
         auto result = geometry::closestLineBetweenTwoRays(a, b);
         consistencyCheck(a, b, result);
-        CHECK(result.distanceBetweenPoints == Approx(2.7291529568841f));
+        CHECK(result.distanceBetweenPoints == Catch::Approx(2.7291529568841f));
         CHECK(result.pointOnA == ApproxVec(a.origin));
         CHECK(result.pointOnB == ApproxVec(glm::vec3(3.27586198, 2.41379309, 1.5517242)));
     }
@@ -115,7 +117,7 @@ namespace bricksim {
         };
         auto result = geometry::closestLineBetweenTwoRays(a, b);
         consistencyCheck(a, b, result);
-        CHECK(result.distanceBetweenPoints == Approx(100));
+        CHECK(result.distanceBetweenPoints == Catch::Approx(100));
         CHECK(result.pointOnA == ApproxVec(glm::vec3(9999, 9999, 50)));
         CHECK(result.pointOnB == ApproxVec(glm::vec3(9999, 9999, 150)));
     }
@@ -163,22 +165,22 @@ namespace bricksim {
     TEST_CASE("geometry::getAngleBetweenThreePointsUnsigned 1") {
         //https://www.geogebra.org/calculator/enejk3cx
         const float angle = geometry::getAngleBetweenThreePointsUnsigned({3, 5, 7}, {5, 2, 8}, {9, -2, 4});
-        CHECK(glm::degrees(angle) == Approx(128.112926500986674));
+        CHECK(glm::degrees(angle) == Catch::Approx(128.112926500986674));
     }
 
     TEST_CASE("geometry::getAngleBetweenThreePointsUnsigned 2") {
         const float angle = geometry::getAngleBetweenThreePointsUnsigned({1, 2, 3}, {3, 2, 1}, {1, 1, 1});
-        CHECK(glm::degrees(angle) == Approx(50.76848));
+        CHECK(glm::degrees(angle) == Catch::Approx(50.76848));
     }
 
     TEST_CASE("geometry::getAngleBetweenThreePointsUnsigned 3") {
         const float angle = geometry::getAngleBetweenThreePointsUnsigned({1, 0, 0}, {0, 0, 0}, {0, 1, 0});
-        CHECK(glm::degrees(angle) == Approx(90.0));
+        CHECK(glm::degrees(angle) == Catch::Approx(90.0));
     }
 
     TEST_CASE("geometry::getAngleBetweenThreePointsUnsigned 4") {
         const float angle = geometry::getAngleBetweenThreePointsUnsigned({1, 0, 0}, {0, 0, 0}, {-5, 0, 0});
-        CHECK(glm::degrees(angle) == Approx(180.0));
+        CHECK(glm::degrees(angle) == Catch::Approx(180.0));
     }
 
     TEST_CASE("geometry::getDistanceBetweenPointAndPlane") {
@@ -189,7 +191,7 @@ namespace bricksim {
 
         const float expectedDistance = 12.f / std::sqrt(14.f);//calculated with https://onlinemschool.com/math/assistance/cartesian_coordinate/p_plane/
         const float actualDistance = geometry::getDistanceBetweenPointAndPlane(Ray3(po, pn), point);
-        CHECK(expectedDistance == Approx(actualDistance));
+        CHECK(expectedDistance == Catch::Approx(actualDistance));
     }
 
     TEST_CASE("geometry::getDistanceBetweenPointAndPlane2") {
@@ -199,7 +201,7 @@ namespace bricksim {
 
         const float expectedDistance = 2.8284271247462f;
         const float actualDistance = geometry::getDistanceBetweenPointAndPlane(Ray3(po, pn), point);
-        CHECK(expectedDistance == Approx(actualDistance));
+        CHECK(expectedDistance == Catch::Approx(actualDistance));
     }
 
     TEST_CASE("geometry::getDistanceBetweenPointAndPlane3") {
@@ -209,7 +211,7 @@ namespace bricksim {
 
         const float expectedDistance = 4.6081768756903f;
         const float actualDistance = geometry::getDistanceBetweenPointAndPlane(Ray3(po, pn), point);
-        CHECK(expectedDistance == Approx(actualDistance));
+        CHECK(expectedDistance == Catch::Approx(actualDistance));
     }
 
     TEST_CASE("geometry::is2dPolygonClockwise") {

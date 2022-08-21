@@ -1,7 +1,8 @@
 #pragma once
 
 #include <glm/gtx/io.hpp>
-#include <catch2/catch.hpp>
+#include "catch2/catch_test_macros.hpp"
+#include "catch2/catch_approx.hpp"
 
 constexpr auto FLOAT_EPSILON = std::numeric_limits<float>::epsilon() * 100;
 
@@ -11,14 +12,14 @@ class ApproxVec;
 template<glm::length_t L, typename T, glm::qualifier Q>
 class ApproxVec {
 private:
-    std::vector<Approx> approxes;
+    std::vector<Catch::Approx> approxes;
     glm::vec<L, T, Q> value;
 
 public:
     explicit ApproxVec(const glm::vec<L, T, Q>& value) :
         value(value) {
         for (int i = 0; i < L; ++i) {
-            approxes.push_back(Approx(value[i]));
+            approxes.push_back(Catch::Approx(value[i]));
         }
     }
 

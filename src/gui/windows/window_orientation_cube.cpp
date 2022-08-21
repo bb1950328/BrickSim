@@ -25,7 +25,8 @@ namespace bricksim::gui::windows::orientation_cube {
 
             const auto renderedSize = getSize();
             const auto displaySize = std::min(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
-            if (ImGui::ImageButton(gui_internal::convertTextureId(getImage()), ImVec2(displaySize, displaySize), ImVec2(0, 0), ImVec2(1, 1), 0)) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+            if (ImGui::ImageButton("orientationCubeImage", gui_internal::convertTextureId(getImage()), ImVec2(displaySize, displaySize), ImVec2(0, 0), ImVec2(1, 1))) {
                 const ImVec2& mousePos = ImGui::GetMousePos();
                 const auto scale = (float)renderedSize / displaySize;
                 glm::usvec2 imgCoords = {(mousePos.x - cursorPos.x) * scale,
@@ -38,6 +39,7 @@ namespace bricksim::gui::windows::orientation_cube {
                     }
                 }
             }
+            ImGui::PopStyleVar();
 
             /*if (config::get(config::DISPLAY_SELECTION_BUFFER)) {
                 ImGui::ImageButton(gui_internal::convertTextureId(getSelectionImage()), ImVec2(displaySize, displaySize), ImVec2(0, 0), ImVec2(1, 1), 0);

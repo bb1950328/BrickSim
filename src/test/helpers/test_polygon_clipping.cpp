@@ -2,7 +2,7 @@
 #include "../../helpers/geometry.h"
 #include "../../helpers/polygon_clipping.h"
 #include "../testing_tools.h"
-#include "catch2/catch.hpp"
+#include "catch2/generators/catch_generators_range.hpp"
 #include <array>
 
 namespace bricksim {
@@ -52,12 +52,12 @@ namespace bricksim {
     }
 
     TEST_CASE("geometry::getSignedPolygonArea") {
-        CHECK(POLYGON1_AREA == Approx(geometry::getSignedPolygonArea(POLYGON1)));
-        CHECK(POLYGON2_AREA == Approx(geometry::getSignedPolygonArea(POLYGON2)));
-        CHECK(POLYGON3_AREA == Approx(geometry::getSignedPolygonArea(POLYGON3)));
-        CHECK(POLYGON4_AREA == Approx(geometry::getSignedPolygonArea(POLYGON4)));
-        CHECK(POLYGON5_AREA == Approx(geometry::getSignedPolygonArea(POLYGON5)));
-        CHECK(POLYGON6_AREA == Approx(geometry::getSignedPolygonArea(POLYGON6)));
+        CHECK(POLYGON1_AREA == Catch::Approx(geometry::getSignedPolygonArea(POLYGON1)));
+        CHECK(POLYGON2_AREA == Catch::Approx(geometry::getSignedPolygonArea(POLYGON2)));
+        CHECK(POLYGON3_AREA == Catch::Approx(geometry::getSignedPolygonArea(POLYGON3)));
+        CHECK(POLYGON4_AREA == Catch::Approx(geometry::getSignedPolygonArea(POLYGON4)));
+        CHECK(POLYGON5_AREA == Catch::Approx(geometry::getSignedPolygonArea(POLYGON5)));
+        CHECK(POLYGON6_AREA == Catch::Approx(geometry::getSignedPolygonArea(POLYGON6)));
     }
 
     TEST_CASE("polyclip1") {

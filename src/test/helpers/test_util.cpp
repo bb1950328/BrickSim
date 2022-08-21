@@ -1,6 +1,8 @@
 #include "../../helpers/platform_detection.h"
 #include "../../helpers/util.h"
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
+#include "catch2/catch_template_test_macros.hpp"
+#include "catch2/catch_approx.hpp"
 #include <fstream>
 #include <glm/gtc/epsilon.hpp>
 #include <iostream>
@@ -35,9 +37,9 @@ namespace bricksim {
     }
 
     TEST_CASE("util::vectorSum") {
-        CHECK(util::vectorSum(glm::vec2{1.0f, 2.0f}) == Approx(3.0f));
-        CHECK(util::vectorSum(glm::vec3{1.0f, 2.0f, 3.0f}) == Approx(6.0f));
-        CHECK(util::vectorSum(glm::vec4{1.0f, 2.0f, 3.0f, 4.0f}) == Approx(10.0f));
+        CHECK(util::vectorSum(glm::vec2{1.0f, 2.0f}) == Catch::Approx(3.0f));
+        CHECK(util::vectorSum(glm::vec3{1.0f, 2.0f, 3.0f}) == Catch::Approx(6.0f));
+        CHECK(util::vectorSum(glm::vec4{1.0f, 2.0f, 3.0f, 4.0f}) == Catch::Approx(10.0f));
     }
 
     template<auto val>

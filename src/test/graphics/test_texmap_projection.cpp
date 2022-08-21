@@ -1,7 +1,6 @@
 #include "../../graphics/texmap_projection.h"
 #include "../../helpers/geometry.h"
 #include "../testing_tools.h"
-#include <catch2/catch.hpp>
 #include <array>
 
 using namespace bricksim;

@@ -18,7 +18,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/Catch2" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/src/lib/Compile-time-hash-functions" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/IconFontCppHeaders" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/SQLiteCpp" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/SQLiteCpp/googletest" vcs="Git" />

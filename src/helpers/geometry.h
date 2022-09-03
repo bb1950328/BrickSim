@@ -132,6 +132,24 @@ namespace bricksim::geometry {
 
     std::vector<std::vector<glm::vec3>> splitPolygonByPlane(const std::vector<glm::vec3>& originalPoly, const Ray3& plane);
 
+    /**       converts this:                 into this:
+     *     +-----------------+             +-----------------+
+     *     |                 |             |                 |
+     *     |    +------+     |             |    +------+     |
+     *     |    |      |     |             |    |      |     |
+     *     |    |      |     |             |    |      +-----+
+     *     |    |      |     |             |    |      +-----+
+     *     |    |      |     |             |    |      |     |
+     *     |    +------+     |             |    +------+     |
+     *     |                 |             |                 |
+     *     +-----------------+             +-----------------+
+     *
+     * @param outerPoly
+     * @param holePoly
+     * @return
+     */
+    std::vector<glm::vec2> convertPolygonWithHoleToC(const std::vector<glm::vec2>& outerPoly, const std::vector<glm::vec2>& holePoly);
+
     /**
      * @return true if @param transformation only has rotation in 90° steps
      */

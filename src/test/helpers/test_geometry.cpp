@@ -284,5 +284,35 @@ namespace bricksim {
         CHECK_VEC_VECTOR(consistentStartOfCircularList(expectedResult[2]), consistentStartOfCircularList(actualResult[2]));
     }
 
+    TEST_CASE("geometry::splitPolygonByPlane") {
+        std::vector<glm::vec2> outer = {
+            glm::vec2(0, 0),
+            glm::vec2(5, -1),
+            glm::vec2(6, 4),
+            glm::vec2(1, 5)
+        };
+        std::vector<glm::vec2> hole = {
+            glm::vec2(1, 3),
+            glm::vec2(4, 4),
+            glm::vec2(5, 1),
+            glm::vec2(2, 0)
+        };
+        std::vector<glm::vec2> expectedResult = {
+                outer[0],
+                outer[1],
+                hole[2],
+                hole[3],
+                hole[0],
+                hole[1],
+                hole[2],
+                outer[1],
+                outer[2],
+                outer[3]
+        };
+        const auto actualResult = geometry::convertPolygonWithHoleToC(outer, hole);
+
+        CHECK_VEC_VECTOR(expectedResult, actualResult);
+    }
+
     //todo tests for geometry::getAngleBetweenThreePointsSigned
 }

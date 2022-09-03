@@ -274,7 +274,7 @@ namespace bricksim::controller {
 
             Task initSteps[]{
                     {"load color definitions", ldr::color_repo::initialize},
-                    {"initialize file list", [](float* progress) { ldr::file_repo::get().initialize(progress); }},
+                    {"initialize file list", [](float* progress) { ldr::file_repo::get().initialize(progress); spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().c_str()); }},
                     {"initialize price guide provider", info_providers::price_guide::initialize},
                     {"initialize thumbnail generator", []() { thumbnailGenerator = std::make_shared<graphics::ThumbnailGenerator>(); }},
                     {"initialize BrickLink constants", info_providers::bricklink_constants::initialize},
@@ -387,10 +387,10 @@ namespace bricksim::controller {
         //openFile("test_files/bricks_test.ldr");
         //openFile("test_files/triangle_test.ldr");
         //openFile("test_files/mpd_test.mpd");
-        //openFile("test_files/texmap_planar.ldr");
+        openFile("test_files/texmap_planar.ldr");
         //openFile("test_files/texmap_planar3.ldr");
         //openFile("test_files/texmap_planar_perpendicular.ldr");
-        openFile("~/Downloads/arocs.mpd");
+        //openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
         //openFile("car.ldr");
         //openFile("~/Downloads/datsville.ldr");

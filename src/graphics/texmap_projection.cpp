@@ -46,11 +46,11 @@ namespace bricksim::graphics::texmap_projection {
             std::vector<std::vector<glm::vec3>> splittedPolygons;
             splittedPolygons.push_back(points);
             for (const auto& pl: planes) {
-                std::vector<std::vector<glm::vec3>> copy(splittedPolygons.begin(),  splittedPolygons.end());
+                std::vector<std::vector<glm::vec3>> copy(splittedPolygons.begin(), splittedPolygons.end());
                 splittedPolygons.clear();
-                for (const auto &polyToSplit : copy) {
+                for (const auto& polyToSplit: copy) {
                     auto splitted = geometry::splitPolygonByPlane(polyToSplit, pl);
-                    splittedPolygons.insert(splittedPolygons.end(), splitted.begin(),  splitted.end());
+                    splittedPolygons.insert(splittedPolygons.end(), splitted.begin(), splitted.end());
                 }
             }
 
@@ -124,7 +124,7 @@ namespace bricksim::graphics::texmap_projection {
             // get uv coords for all triangles normally
             // iterate over the triangles
             //   if all uv coords are inside the image, add textured triangle vertex
-            //   else add plain colored vertex
+            //   else add plain colored vertex}
         } else {
             std::vector<glm::vec3> texEndPointsOnTrianglePlane;
             std::vector<glm::vec2> texEndPointsIn2D;
@@ -192,7 +192,12 @@ namespace bricksim::graphics::texmap_projection {
                 if (normalIntersection) {
                     plainColoredPolygons = polyclip::PolygonOperation::extractDifferentiateResults(triangleIn2dPolygon);
                 } else {
-                    plainColoredPolygons = possibleResult;
+                    if (possibleResult.size() == 2) {
+                        //`texEndPointsIn2D` is fully inside `trianglePointsIn2D`
+                        plainColoredPolygons.push_back(geometry::convertPolygonWithHoleToC(trianglePointsIn2D, texEndPointsIn2D));
+                    } else {
+                        plainColoredPolygons.push_back(possibleResult[0]);
+                    }
                 }
                 for (const auto& poly: plainColoredPolygons) {
                     std::vector<std::vector<glm::vec2>> polyWrapper;
@@ -208,17 +213,29 @@ namespace bricksim::graphics::texmap_projection {
                         res.plainColorIndices.push_back(baseIndex + idx);
                     }
                 }
+
+                /*for (int i = 0; i < res.plainColorIndices.size(); i += 3) {
+                    const auto xp0 = res.plainColorVertices[res.plainColorIndices[i]].position;
+                    const auto xp1 = res.plainColorVertices[res.plainColorIndices[i + 1]].position;
+                    const auto xp2 = res.plainColorVertices[res.plainColorIndices[i + 2]].position;
+                    std::vector<float> dists = {glm::length(xp0 - xp1), glm::length(xp1 - xp2), glm::length(xp0 - xp2)};
+                    std::sort(dists.begin(), dists.end());
+                    if (std::fabs(32 - dists[0]) < 0.01 && std::fabs(48 - dists[1]) < 0.01) {
+                        std::cout << dists[0] << ";" << dists[1] << ";" << dists[2] << std::endl;
+                    }
+                }*/
             }
         }
+
         return res;
     }
 
     std::shared_ptr<ldr::TexmapStartCommand> transformTexmapStartCommand(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, glm::mat4 transformation) {
         auto result = std::make_shared<ldr::TexmapStartCommand>(*startCommand);
         transformation = glm::inverse(transformation);
-        const auto tp1 = transformation*glm::vec4(result->x1(), result->y1(), result->z1(), 1.f);
-        const auto tp2 = transformation*glm::vec4(result->x2(), result->y2(), result->z2(), 1.f);
-        const auto tp3 = transformation*glm::vec4(result->x3(), result->y3(), result->z3(), 1.f);
+        const auto tp1 = transformation * glm::vec4(result->x1(), result->y1(), result->z1(), 1.f);
+        const auto tp2 = transformation * glm::vec4(result->x2(), result->y2(), result->z2(), 1.f);
+        const auto tp3 = transformation * glm::vec4(result->x3(), result->y3(), result->z3(), 1.f);
         result->x1() = tp1.x;
         result->y1() = tp1.y;
         result->z1() = tp1.z;

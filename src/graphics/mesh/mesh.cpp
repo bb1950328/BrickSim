@@ -104,7 +104,7 @@ namespace bricksim::mesh {
                 for (int i = 0; i < pointCount; ++i) {
                     texturedData.addVertex({transformedPoints[i], UVs[i]});
                 }
-            } else if (pointCount ==4) {
+            } else if (pointCount == 4) {
                 //triangle 1
                 texturedData.addVertex({transformedPoints[0], UVs[0]});
                 texturedData.addVertex({transformedPoints[1], UVs[1]});
@@ -119,6 +119,7 @@ namespace bricksim::mesh {
             }
         } else {
             auto [plainIndices, plainVertices, texturedVertices] = graphics::texmap_projection::splitPolygonBiggerThanTexturePlanar(appliedTexmap, transformedPoints);
+
             auto& plainData = getTriangleData(color);
             auto baseIndex = plainData.getVertexCount();
             for (const auto& vtx: plainVertices) {
@@ -127,6 +128,7 @@ namespace bricksim::mesh {
             for (const auto& idx: plainIndices) {
                 plainData.addRawIndex(baseIndex + idx);
             }
+
             for (const auto& vtx: texturedVertices) {
                 texturedData.addVertex(vtx);
             }

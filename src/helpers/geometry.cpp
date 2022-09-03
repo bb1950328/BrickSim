@@ -1,8 +1,8 @@
 #include "geometry.h"
-#include <cmath>
-#include <glm/gtx/normal.hpp>
-#include <glm/gtx/euler_angles.hpp>
 #include <array>
+#include <cmath>
+#include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/normal.hpp>
 #include <vector>
 
 namespace bricksim::geometry {
@@ -359,7 +359,7 @@ namespace bricksim::geometry {
                             --it;
                         }
                         part.push_back(std::get<1>(*it));
-                        size_t possibleStartPoint = (i+1)%originalPoly.size();
+                        size_t possibleStartPoint = (i + 1) % originalPoly.size();
                         if (!visitedPoints.contains(possibleStartPoint)) {
                             startPoints.push_back(possibleStartPoint);
                         }
@@ -387,5 +387,26 @@ namespace bricksim::geometry {
                     || std::fabs(eulerAngles[i] + 1.f) < epsilon);
         }
         return res;
+    }
+    std::vector<glm::vec2> convertPolygonWithHoleToC(const std::vector<glm::vec2>& outerPoly, const std::vector<glm::vec2>& holePoly) {
+        size_t maxXinHoleIndex = 0;
+        for (int i = 1; i < holePoly.size(); ++i) {
+            if (holePoly[maxXinHoleIndex].x < holePoly[i].x) {
+                maxXinHoleIndex = i;
+            }
+        }
+        const auto maxXinHole = holePoly[maxXinHoleIndex].x;
+        size_t nextLargerXinOuter = 0;
+        for (int i = 1; i < outerPoly.size(); ++i) {
+            if (outerPoly[nextLargerXinOuter].x < maxXinHole || (outerPoly[nextLargerXinOuter].x > outerPoly[i].x && outerPoly[i].x >= maxXinHole)) {
+                nextLargerXinOuter = i;
+            }
+        }
+        std::vector<glm::vec2> result;
+        result.insert(result.end(), outerPoly.begin(), outerPoly.begin() + nextLargerXinOuter + 1);
+        result.insert(result.end(), holePoly.begin() + maxXinHoleIndex, holePoly.end());
+        result.insert(result.end(), holePoly.begin(), holePoly.begin() + maxXinHoleIndex + 1);
+        result.insert(result.end(), outerPoly.begin() + nextLargerXinOuter, outerPoly.end());
+        return result;
     }
 }

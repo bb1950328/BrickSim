@@ -10,9 +10,14 @@ namespace bricksim::parts_library_downloader {
     namespace {
         int progressFunc(void* clientp, long downloadTotal, long downloadNow, long uploadTotal, long uploadNow) {
             const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-            const auto msDiff = now - lastProgressCalledMs;
-            const auto bytesDiff = downloadNow - downNow;
-            bytesPerSecond = (int)(0.001 * bytesDiff / msDiff);
+            const auto msDiff = now - lastSpeedCalcTimestampMs;
+            if (msDiff > 1000) {
+                const auto bytesDiff = downloadNow - lastSpeedCalcBytes;
+                lastSpeedCalcTimestampMs = now;
+                lastSpeedCalcBytes = downloadNow;
+                bytesPerSecond = (int)(bytesDiff / (0.001 * msDiff));
+                spdlog::debug("{} {} {}", bytesDiff, msDiff, bytesPerSecond);
+            }
             downNow = downloadNow;
             downTotal = downloadTotal;
             return shouldStop ? 1 : 0;

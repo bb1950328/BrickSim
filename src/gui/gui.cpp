@@ -651,9 +651,9 @@ namespace bricksim::gui {
                         auto progress = parts_library_downloader::getProgress();
                         ImGui::Text(ICON_FA_DOWNLOAD " Downloading ldraw parts library...");
 
-                        float progressFraction = 1.0f * progress.first / progress.second;
-                        std::string speedTxt = std::to_string(progressFraction) + "%"
-                                               + stringutil::formatBytesValue(parts_library_downloader::getSpeedBytesPerSecond()) + "/s";
+                        const float progressFraction = 1.0f * progress.first / progress.second;
+                        const auto bytesPerSecondTxt = stringutil::formatBytesValue(parts_library_downloader::getSpeedBytesPerSecond());
+                        const auto speedTxt = fmt::format("{:.1f}% {}/s", progressFraction * 100, bytesPerSecondTxt);
                         ImGui::ProgressBar(progressFraction, ImVec2(-FLT_MIN, 0), speedTxt.c_str());
                         if (ImGui::Button(ICON_FA_STOP_CIRCLE " Cancel and exit program")) {
                             parts_library_downloader::stopDownload();

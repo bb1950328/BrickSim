@@ -19,8 +19,8 @@ namespace bricksim::gui::windows::settings {
         };
         float guiScale;
         int initialWindowSize[2];
-        std::string ldrawDirString;
-        const char* ldrawDir;
+        char ldrawDir[1024];
+        char shadowLibraryPath[1024];
         std::string guiStyleString;
         int guiStyle;
         std::string fontString;
@@ -50,14 +50,14 @@ namespace bricksim::gui::windows::settings {
 
         std::vector<keyboard_shortcut_manager::KeyboardShortcut> allShortcuts;
 
-        constexpr long BYTES_PER_GB = 1073741824;
+        constexpr long BYTES_PER_GB = 1 << 30;
 
         void load() {
             guiScale = (float)(config::get(config::GUI_SCALE));
             initialWindowSize[0] = config::get(config::SCREEN_WIDTH);
             initialWindowSize[1] = config::get(config::SCREEN_HEIGHT);
-            ldrawDirString = config::get(config::LDRAW_PARTS_LIBRARY);
-            ldrawDir = ldrawDirString.c_str();
+            std::strncpy(ldrawDir, config::get(config::LDRAW_PARTS_LIBRARY).c_str(), sizeof(ldrawDir));
+            std::strncpy(shadowLibraryPath, config::get(config::SHADOW_LIBRARY_PATH).c_str(), sizeof(shadowLibraryPath));
             guiStyleString = config::get(config::GUI_STYLE);
             int i = 0;
             for (const auto& value: GUI_STYLE_VALUES) {
@@ -122,6 +122,7 @@ namespace bricksim::gui::windows::settings {
             config::set(config::SCREEN_WIDTH, initialWindowSize[0]);
             config::set(config::SCREEN_HEIGHT, initialWindowSize[1]);
             config::set(config::LDRAW_PARTS_LIBRARY, ldrawDir);
+            config::set(config::SHADOW_LIBRARY_PATH, shadowLibraryPath);
             config::set(config::GUI_STYLE, GUI_STYLE_VALUES[guiStyle]);
             config::set(config::FONT, font == 0 ? "Roboto" : "RobotoMono");
             config::set(config::MSAA_SAMPLES, (int)std::pow(2, msaaElem));
@@ -153,7 +154,8 @@ namespace bricksim::gui::windows::settings {
             if (ImGui::BeginTabItem("General")) {
                 ImGui::SliderFloat(ICON_FA_EXPAND_ARROWS_ALT " UI Scale", &guiScale, 0.25, 8, "%.2f");
                 ImGui::InputInt2(ICON_FA_WINDOW_MAXIMIZE " Initial Window Size", initialWindowSize);
-                ImGui::InputText("Ldraw path", const_cast<char*>(ldrawDir), 256);
+                ImGui::InputText("LDraw path", ldrawDir, sizeof(ldrawDir));
+                ImGui::InputText("Shadow library path", shadowLibraryPath, sizeof(shadowLibraryPath));
                 ImGui::Combo("GUI Theme", &guiStyle, "BrickSim Default\0ImGui Light\0ImGui Classic\0ImGui Dark\0");
                 ImGui::Combo(ICON_FA_FONT " Font", &font, "Roboto\0Roboto Mono\0");
                 ImGui::ColorEdit3(ICON_FA_FILL " Background Color", &backgroundColor.x);

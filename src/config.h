@@ -74,9 +74,10 @@ namespace bricksim::config {
     }
 
     template<typename T>
-    requires(
-            std::is_same<T, std::string>::value
-            || std::is_convertible_v<T, int> || std::is_convertible_v<T, double> || std::is_convertible_v<T, color::RGB>) class Key {
+        requires(
+                std::is_same<T, std::string>::value
+                || std::is_convertible_v<T, int> || std::is_convertible_v<T, double> || std::is_convertible_v<T, color::RGB>)
+    class Key {
     public:
         const char* const name;
         const T defaultValue;
@@ -89,7 +90,7 @@ namespace bricksim::config {
         }
 
         bool operator!=(const Key& rhs) const {
-            return !(rhs == *this); // NOLINT
+            return !(rhs == *this);// NOLINT
         }
     };
 
@@ -115,7 +116,7 @@ namespace bricksim::config {
     [[nodiscard]] bool get<bool>(const Key<bool>& key);
 
     template<typename T, typename V>
-    requires std::is_convertible_v<V, T>
+        requires std::is_convertible_v<V, T>
     void set(const Key<T>& key, const V& value);
 
     template<typename V>
@@ -149,6 +150,7 @@ namespace bricksim::config {
     void resetAllToDefault();
 
     const Key<std::string> LDRAW_PARTS_LIBRARY("ldrawPartsLibrary", "~/ldraw");
+    const Key<std::string> SHADOW_LIBRARY_PATH("shadowLibraryPath", "~/LDCadShadowLibrary");
     const Key<int> SCREEN_WIDTH("screenWidth", 1280);
     const Key<int> SCREEN_HEIGHT("screenHeight", 720);
     const Key<int> INSTANCED_MIN_COMPLEXITY("instancedMinComplexity", 6000);

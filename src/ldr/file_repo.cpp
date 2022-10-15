@@ -5,6 +5,7 @@
 #include "../helpers/util.h"
 #include "file_reader.h"
 #include "regular_file_repo.h"
+#include "shadow_file_repo.h"
 #include "zip_file_repo.h"
 #include <palanteer.h>
 #include <spdlog/spdlog.h>
@@ -131,11 +132,13 @@ namespace bricksim::ldr::file_repo {
                     } else {
                         type = PART;
                     }
-                    return addLdrFileWithContent(entryOpt->name, type, getLibraryLdrFileContent(type, entryOpt->name));
+                    const auto shadowContent = getShadowFileRepo().getContent(this->getPathRelativeToBase(type, entryOpt->name));
+                    const auto realFileContent = getLibraryLdrFileContent(type, entryOpt->name);
+                    return addLdrFileWithContent(entryOpt->name, type, realFileContent, shadowContent);
                 }
             }
 
-            //at this point the file must be outside of the parts library
+            //at this point the file must be outside the parts library
             auto fullPath = util::extendHomeDirPath(name);
             if (fullPath.extension() == ".io") {
                 return addLdrFileWithContent(name, MODEL, getContentOfIoFile(fullPath));
@@ -190,8 +193,8 @@ namespace bricksim::ldr::file_repo {
         return util::readFileToString(path);
     }
 
-    std::shared_ptr<File> FileRepo::addLdrFileWithContent(const std::string& name, ldr::FileType type, const std::string& content) {
-        auto readResults = readComplexFile(name, content, type);
+    std::shared_ptr<File> FileRepo::addLdrFileWithContent(const std::string& name, FileType type, const std::string& content, const std::optional<std::string> shadowContent) {
+        auto readResults = readComplexFile(name, type, content, shadowContent);
         {
             plLockWait("FileRepo::ldrFilesMtx");
             std::lock_guard<std::mutex> lg(ldrFilesMtx);
@@ -398,6 +401,9 @@ namespace bricksim::ldr::file_repo {
             ldrFiles.erase(it);
         }
         return getFile(name);
+    }
+    std::shared_ptr<File> FileRepo::addLdrFileWithContent(const std::string& name, FileType type, const std::string& content) {
+        return addLdrFileWithContent(name, type, content, {});
     }
 
     FileRepo::~FileRepo() = default;

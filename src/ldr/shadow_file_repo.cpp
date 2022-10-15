@@ -43,11 +43,11 @@ namespace bricksim::ldr::file_repo {
     ZipShadowFileRepo::ZipShadowFileRepo(const std::filesystem::path& basePath) :
         ShadowFileRepo(basePath) {
         int err;
-        archive = zip_open(basePath.c_str(), ZIP_RDONLY, &err);
+        archive = zip_open(basePath.string().c_str(), ZIP_RDONLY, &err);
     }
     bool ZipShadowFileRepo::isValidZip(const std::filesystem::path& candidatePath) {
         int err;
-        return zip_open(candidatePath.c_str(), ZIP_RDONLY, &err) != nullptr;
+        return zip_open(candidatePath.string().c_str(), ZIP_RDONLY, &err) != nullptr;
     }
     std::optional<std::string> ZipShadowFileRepo::getContent(std::string pathRelativeToBase) {
         std::lock_guard<std::mutex> lg(libzipLock);

@@ -22,7 +22,6 @@
 #include <glad/glad.h>
 #include <palanteer.h>
 #include <spdlog/spdlog.h>
-#include <spdlog/fmt/xchar.h>
 
 #ifdef BRICKSIM_USE_RENDERDOC
     #include <link.h>
@@ -393,8 +392,8 @@ namespace bricksim::controller {
         //openFile("test_files/texmap_planar_perpendicular.ldr");
         //openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
-        openFile("car.ldr");
-        //openFile("~/Downloads/datsville.ldr");
+        //openFile("car.ldr");
+        openFile("~/Downloads/datsville.ldr");
         //openFile("~/Downloads/42131_Bulldozer.mpd");
 
         std::vector<uint64_t> lastEditorRootNodeVersions;

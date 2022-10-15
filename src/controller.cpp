@@ -22,6 +22,7 @@
 #include <glad/glad.h>
 #include <palanteer.h>
 #include <spdlog/spdlog.h>
+#include <spdlog/fmt/xchar.h>
 
 #ifdef BRICKSIM_USE_RENDERDOC
     #include <link.h>
@@ -274,7 +275,7 @@ namespace bricksim::controller {
 
             Task initSteps[]{
                     {"load color definitions", ldr::color_repo::initialize},
-                    {"initialize file list", [](float* progress) { ldr::file_repo::get().initialize(progress); spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().c_str()); }},
+                    {"initialize file list", [](float* progress) { ldr::file_repo::get().initialize(progress); spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().string()); }},
                     {"initialize price guide provider", info_providers::price_guide::initialize},
                     {"initialize thumbnail generator", []() { thumbnailGenerator = std::make_shared<graphics::ThumbnailGenerator>(); }},
                     {"initialize BrickLink constants", info_providers::bricklink_constants::initialize},

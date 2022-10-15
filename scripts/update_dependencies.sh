@@ -11,10 +11,6 @@ cd src/lib/Catch2 || exit 1
 git fetch --tags
 git checkout "$(get_latest_release catchorg/Catch2)"
 
-cd ../Compile-time-hash-functions || exit 1
-git checkout master
-git pull
-
 cd ../cpuinfo || exit 1
 git checkout master
 git pull

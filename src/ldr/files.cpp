@@ -4,12 +4,12 @@
 #include "../helpers/util.h"
 #include "../metrics.h"
 #include "file_repo.h"
+#include <charconv>
 #include <fast_float/fast_float.h>
 #include <iostream>
 #include <magic_enum.hpp>
 #include <spdlog/spdlog.h>
 #include <sstream>
-#include <charconv>
 
 namespace bricksim::ldr {
     WindingOrder inverseWindingOrder(WindingOrder order) {
@@ -158,7 +158,31 @@ namespace bricksim::ldr {
         }
         return hash;
     }
+    void File::addShadowContent(const std::string& shadowContent) {
+        static const char ldcadMetaStart[] = "0 !LDCAD";
+        size_t lineStart = 0;
+        size_t lineEnd = 0;
+        std::string_view view = shadowContent;
+        while (lineEnd < view.size()) {
+            lineStart = view.find(ldcadMetaStart, lineStart);
+            if (lineStart == std::string::npos) {
+                break;
+            }
+            lineEnd = view.find_first_of("\r\n", lineStart);
+            if (lineEnd == std::string::npos) {
+                lineEnd = view.size();
+            } else {
+                ++lineEnd;
+            }
 
+            const auto subcommandStart = lineStart + sizeof(ldcadMetaStart);
+            const auto length = lineEnd - subcommandStart;
+            const std::string line(stringutil::trim(view.substr(subcommandStart, length)));
+            ldcadMetaLines.push_back(line);
+            spdlog::debug(line);
+            lineStart = lineEnd;
+        }
+    }
     File::~File() = default;
 
     CommentOrMetaElement::CommentOrMetaElement(const std::string_view line) {
@@ -287,7 +311,8 @@ namespace bricksim::ldr {
         z() = matrix[3][2];
     }
 
-    SubfileReference::SubfileReference(ColorReference color, const glm::mat4& transformation, bool bfcInverted) : color(color), bfcInverted(bfcInverted) {
+    SubfileReference::SubfileReference(ColorReference color, const glm::mat4& transformation, bool bfcInverted) :
+        color(color), bfcInverted(bfcInverted) {
         setTransformationMatrix(transformation);
     }
 
@@ -457,7 +482,7 @@ namespace bricksim::ldr {
         auto projectionMethodStrView = std::string_view(line).substr(start, end - start);
         projectionMethod = magic_enum::enum_cast<ProjectionMethod>(projectionMethodStrView).value_or(ProjectionMethod::PLANAR);
 
-        parseNextThreeFloats(line, start, end, &coords[0]);//p1
+        parseNextThreeFloats(line, start, end, &coords[0]);    //p1
         parseNextThreeFloats(line, start, end, &coords[1 * 3]);//p2
         parseNextThreeFloats(line, start, end, &coords[2 * 3]);//p3
 

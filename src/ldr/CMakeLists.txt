@@ -11,6 +11,8 @@ target_sources(BrickSimLib PRIVATE
         files.h
         regular_file_repo.cpp
         regular_file_repo.h
+        shadow_file_repo.cpp
+        shadow_file_repo.h
         zip_file_repo.cpp
         zip_file_repo.h
         )

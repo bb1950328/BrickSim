@@ -328,12 +328,14 @@ namespace bricksim::ldr {
         std::vector<std::shared_ptr<FileElement>> elements;
         uoset_t<std::shared_ptr<File>> mpdSubFiles;
         FileMetaInfo metaInfo;
+        std::vector<std::string> ldcadMetaLines;
 
         void printStructure(int indent = 0);
         [[nodiscard]] const std::string& getDescription() const;
         [[nodiscard]] const std::size_t& getHash() const;
 
         void addTextLine(std::string_view line);
+        void addShadowContent(const std::string& shadowContent);
 
     private:
         mutable std::size_t hash = 0;

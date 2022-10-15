@@ -43,6 +43,7 @@ namespace bricksim::ldr::file_repo {
         bool hasFileCached(const std::string& name);
         std::shared_ptr<File> reloadFile(const std::string& name);
         std::shared_ptr<File> addLdrFileWithContent(const std::string& name, FileType type, const std::string& content);
+        std::shared_ptr<File> addLdrFileWithContent(const std::string& name, FileType type, const std::string& content, const std::optional<std::string> shadowContent);
         std::shared_ptr<BinaryFile> addBinaryFileWithContent(const std::string& name, const std::shared_ptr<BinaryFile>& file);
         std::filesystem::path& getBasePath();
         oset_t<std::string> getAllCategories();

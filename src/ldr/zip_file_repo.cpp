@@ -103,10 +103,10 @@ namespace bricksim::ldr::file_repo {
     std::pair<struct zip_stat, zip_file_t*> ZipFileRepo::openFileByName(const std::string& nameRelativeToRoot) {
         struct zip_stat stat {};
         std::string entryName = rootFolderName + nameRelativeToRoot;
-        //try to find it with case sensitive first because it's faster
+        //try to find it with case-sensitive first because it's faster
         auto found = zip_stat(zipArchive, entryName.c_str(), 0, &stat);
         if (found == -1) {
-            //if not found with exact case, try again with case insensitive
+            //if not found with exact case, try again with case-insensitive
             found = zip_stat(zipArchive, entryName.c_str(), ZIP_FL_NOCASE, &stat);
         }
         if (found == -1) {

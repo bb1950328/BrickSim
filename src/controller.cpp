@@ -13,6 +13,7 @@
 #include "keyboard_shortcut_manager.h"
 #include "ldr/file_repo.h"
 #include "ldr/file_writer.h"
+#include "ldr/shadow_file_repo.h"
 #include "logging/latest_log_messages_tank.h"
 #include "logging/logger.h"
 #include "metrics.h"
@@ -274,6 +275,7 @@ namespace bricksim::controller {
 
             Task initSteps[]{
                     {"load color definitions", ldr::color_repo::initialize},
+                    {"initialize shadow file repo", ldr::file_repo::initializeShadowFileRepo},
                     {"initialize file list", [](float* progress) { ldr::file_repo::get().initialize(progress); spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().string()); }},
                     {"initialize price guide provider", info_providers::price_guide::initialize},
                     {"initialize thumbnail generator", []() { thumbnailGenerator = std::make_shared<graphics::ThumbnailGenerator>(); }},
@@ -392,8 +394,8 @@ namespace bricksim::controller {
         //openFile("test_files/texmap_planar_perpendicular.ldr");
         //openFile("~/Downloads/arocs.mpd");
         //openFile("3001.dat");
-        //openFile("car.ldr");
-        openFile("~/Downloads/datsville.ldr");
+        openFile("car.ldr");
+        //openFile("~/Downloads/datsville.ldr");
         //openFile("~/Downloads/42131_Bulldozer.mpd");
 
         std::vector<uint64_t> lastEditorRootNodeVersions;

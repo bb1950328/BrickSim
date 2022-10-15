@@ -2,6 +2,12 @@
 #include "files.h"
 
 namespace bricksim::ldr {
-    uomap_t<std::string, std::shared_ptr<File>> readComplexFile(const std::string& name, const std::string& content, FileType mainFileType);
-    std::shared_ptr<File> readSimpleFile(const std::string& name, const std::string& content, FileType type);
+    uomap_t<std::string, std::shared_ptr<File>> readComplexFile(const std::string& name,
+                                                                FileType mainFileType,
+                                                                const std::string& content,
+                                                                const std::optional<std::string>& shadowContent);
+    std::shared_ptr<File> readSimpleFile(const std::string& name,
+                                         FileType type,
+                                         const std::string& content,
+                                         const std::optional<std::string>& shadowContent);
 }

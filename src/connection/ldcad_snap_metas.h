@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../types.h"
 #include "glm/mat3x3.hpp"
 #include "glm/vec3.hpp"
 #include <optional>
@@ -10,6 +11,7 @@ namespace bricksim::connection::ldcad_snap_meta {
     //documentation: http://www.melkert.net/LDCad/tech/meta#:~:text=20%20and%2020.-,Part%20snapping%20metas,-Part%20snapping%20metas
 
     struct ClearCommand {
+        ClearCommand(const uomap_t<std::string_view, std::string_view>& parameters);
         std::optional<std::string> id;
     };
     struct Grid {
@@ -22,6 +24,7 @@ namespace bricksim::connection::ldcad_snap_meta {
         Grid(std::string_view command);
     };
     struct InclCommand {
+        InclCommand(const uomap_t<std::string_view, std::string_view>& parameters);
         std::optional<std::string> id;
         std::optional<glm::vec3> pos;
         std::optional<glm::mat3> ori;
@@ -63,6 +66,7 @@ namespace bricksim::connection::ldcad_snap_meta {
         B,
     };
     struct CylCommand {
+        CylCommand(const uomap_t<std::string_view, std::string_view>& parameters);
         std::optional<std::string> id;
         std::optional<std::string> group;
         std::optional<glm::vec3> pos;
@@ -78,6 +82,7 @@ namespace bricksim::connection::ldcad_snap_meta {
     };
 
     struct ClpCommand {
+        ClpCommand(const uomap_t<std::string_view, std::string_view>& parameters);
         std::optional<std::string> id;
         std::optional<glm::vec3> pos;
         std::optional<glm::mat3> ori;
@@ -90,6 +95,7 @@ namespace bricksim::connection::ldcad_snap_meta {
     };
 
     struct FgrCommand {
+        FgrCommand(const uomap_t<std::string_view, std::string_view>& parameters);
         std::optional<std::string> id;
         std::optional<std::string> group;
         std::optional<glm::vec3> pos;
@@ -121,6 +127,7 @@ namespace bricksim::connection::ldcad_snap_meta {
     };
 
     struct GenCommand {
+        GenCommand(const uomap_t<std::string_view, std::string_view>& parameters);
         std::optional<std::string> id;
         std::optional<std::string> group;
         std::optional<glm::vec3> pos;
@@ -131,12 +138,15 @@ namespace bricksim::connection::ldcad_snap_meta {
         MirrorType mirror;
     };
 
+    typedef std::variant<std::monostate, ClearCommand, InclCommand, CylCommand, ClpCommand, FgrCommand, GenCommand> command_variant_t;
     class MetaLine {
     public:
-        const std::variant<ClearCommand, InclCommand, CylCommand, ClpCommand, FgrCommand, GenCommand> data;
+        command_variant_t data;
+        explicit MetaLine(const command_variant_t& data);
     };
 
     class Reader {
+    public:
         static MetaLine readLine(std::string_view line);
     };
 }

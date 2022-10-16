@@ -38,18 +38,51 @@ namespace bricksim::connection::ldcad_snap_meta {
     MetaLine Reader::readLine(std::string_view line) {
         uomap_t<std::string_view, std::string_view> parameters;
 
-        std::size_t end=0;
+        std::size_t end = 0;
         while (true) {
             const auto start = line.find('[', end);
-            if (start==std::string_view::npos) {
-                break ;
+            if (start == std::string_view::npos) {
+                break;
             }
             const auto middle = line.find('=', start);
             end = line.find(']', start);
-            //todo add substrings to map
+            const std::string_view key = stringutil::trim(line.substr(start + 1, middle - start - 1));
+            const std::string_view value = stringutil::trim(line.substr(middle + 1, end - middle - 1));
+            parameters.insert({key, value});
         }
         if (line.starts_with("SNAP_CLEAR")) {
-            //return {ClearCommand()}
+            return MetaLine(command_variant_t(ClearCommand(parameters)));
+        } else if (line.starts_with("SNAP_INCL")) {
+            return MetaLine(command_variant_t(InclCommand(parameters)));
+        } else if (line.starts_with("SNAP_CYL")) {
+            return MetaLine(command_variant_t(CylCommand(parameters)));
+        } else if (line.starts_with("SNAP_CLP")) {
+            return MetaLine(command_variant_t(ClpCommand(parameters)));
+        } else if (line.starts_with("SNAP_FGR")) {
+            return MetaLine(command_variant_t(FgrCommand(parameters)));
+        } else if (line.starts_with("SNAP_GEN")) {
+            return MetaLine(command_variant_t(GenCommand(parameters)));
+        } else {
+            return MetaLine({});
         }
+    }
+    ClearCommand::ClearCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
+        const auto it = parameters.find("id");
+        if (it != parameters.end()) {
+            id = std::string(it->second);
+        }
+    }
+    MetaLine::MetaLine(const command_variant_t& data) :
+        data(data) {
+    }
+    InclCommand::InclCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
+    }
+    CylCommand::CylCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
+    }
+    ClpCommand::ClpCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
+    }
+    FgrCommand::FgrCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
+    }
+    GenCommand::GenCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
     }
 }

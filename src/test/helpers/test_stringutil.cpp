@@ -196,4 +196,9 @@ namespace bricksim {
         CHECK_FALSE(stringutil::containsIgnoreCase("aBcDeFg", "df"));
         CHECK_FALSE(stringutil::containsIgnoreCase("aBcDeFg", "aBcDeFgHiJ"));
     }
+    TEST_CASE("stringutil::splitByChar") {
+        CHECK(stringutil::splitByChar("hello", ' ') == std::vector<std::string_view>({"hello"}));
+        CHECK(stringutil::splitByChar("hello world", ' ') == std::vector<std::string_view>({"hello", "world"}));
+        CHECK(stringutil::splitByChar("hello world xyz", ' ') == std::vector<std::string_view>({"hello", "world", "xyz"}));
+    }
 }

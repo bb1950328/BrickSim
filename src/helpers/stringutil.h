@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 namespace bricksim::stringutil {
     std::string trim(const std::string& input);
@@ -15,4 +16,5 @@ namespace bricksim::stringutil {
     std::string formatBytesValue(uint64_t bytes);
     bool containsIgnoreCase(const std::string& full, const std::string& sub);
     bool equalsAlphanum(const std::string& a, const std::string& b);
+    std::vector<std::string_view> splitByChar(std::string_view command, char delimiter);
 }

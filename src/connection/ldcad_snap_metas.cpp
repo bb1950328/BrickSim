@@ -1,10 +1,25 @@
 #include "ldcad_snap_metas.h"
 #include "../helpers/stringutil.h"
+#include "../helpers/util.h"
 #include "../types.h"
+#include "fast_float/fast_float.h"
+#include "glm/gtc/type_ptr.hpp"
 #include <charconv>
+#include <magic_enum.hpp>
 #include <vector>
 
 namespace bricksim::connection::ldcad_snap_meta {
+    namespace {
+        template<std::size_t N>
+        std::array<float, N> parseStringViewsToFloat(const std::vector<std::string_view>& strings) {
+            assert(strings.size() >= N);
+            std::array<float, N> result;
+            for (int i = 0; i < N; ++i) {
+                fast_float::from_chars(strings[i].begin(), strings[i].end(), result[i]);
+            }
+            return result;
+        }
+    }
     Grid::Grid(std::string_view command) {
         std::vector<std::string_view> words = stringutil::splitByChar(command, ' ');
 
@@ -82,6 +97,42 @@ namespace bricksim::connection::ldcad_snap_meta {
     ClpCommand::ClpCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
     }
     FgrCommand::FgrCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
+        auto it = parameters.find("id");
+        if (it != parameters.end()) {
+            id = std::string(it->second);
+        }
+
+        it = parameters.find("group");
+        if (it != parameters.end()) {
+            group = std::string(it->second);
+        }
+
+        it = parameters.find("pos");
+        if (it != parameters.end()) {
+            const auto floats = parseStringViewsToFloat<3>(stringutil::splitByChar(it->second, ' '));
+            pos = glm::make_vec3(floats.begin());
+        }
+
+        it = parameters.find("ori");
+        if (it != parameters.end()) {
+            const auto floats = parseStringViewsToFloat<3*3>(stringutil::splitByChar(it->second, ' '));
+            ori = glm::make_mat3(floats.begin());
+        }
+
+        it = parameters.find("genderOfs");
+        if (it != parameters.end()) {
+            genderOfs = it->second == "F"
+                                ? Gender::F
+                                : Gender::M;
+        } else {
+            genderOfs = Gender::M;
+        }
+
+        //TODO seq
+        //TODO radius
+        //TODO center
+        //TODO scale
+        //TODO mirror
     }
     GenCommand::GenCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
     }

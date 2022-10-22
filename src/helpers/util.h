@@ -127,4 +127,9 @@ namespace bricksim::util {
     std::size_t combinedHash(const T1& value1, const Ts&... values) {
         return combinedHash(values...) * 31 + robin_hood::hash<T1>()(value1);
     }
+
+    constexpr auto& getOrDefault(const auto& map, const auto& key, const auto& defaultValue) {
+        const auto it = map.find(key);
+        return it == map.cend() ? defaultValue : it->second;
+    }
 }

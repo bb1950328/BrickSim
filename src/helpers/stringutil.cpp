@@ -231,16 +231,16 @@ namespace bricksim::stringutil {
                != full.end();
     }
 
-    std::vector<std::string_view> splitByChar(std::string_view command, char delimiter) {
+    std::vector<std::string_view> splitByChar(std::string_view string, char delimiter) {
         std::size_t start = 0;
         std::size_t end = 0;
         std::vector<std::string_view> words;
-        while (start < command.size()) {
-            end = command.find(delimiter, start);
+        while (start < string.size()) {
+            end = string.find(delimiter, start);
             if (end == std::string_view::npos) {
-                end = command.size();
+                end = string.size();
             }
-            words.push_back(command.substr(start, end-start));
+            words.push_back(string.substr(start, end-start));
             start = end + 1;
         }
         return words;

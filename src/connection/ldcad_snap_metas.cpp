@@ -178,10 +178,10 @@ namespace bricksim::connection::ldcad_snap_meta {
         std::from_chars(words[i].begin(), words[i].end(), countZ);
         ++i;
 
-        std::from_chars(words[i].begin(), words[i].end(), spacingX);
+        fast_float::from_chars(words[i].begin(), words[i].end(), spacingX);
         ++i;
 
-        std::from_chars(words[i].begin(), words[i].end(), spacingZ);
+        fast_float::from_chars(words[i].begin(), words[i].end(), spacingZ);
         ++i;
     }
 
@@ -227,7 +227,7 @@ namespace bricksim::connection::ldcad_snap_meta {
         pos(extractOptionalVec3Parameter(parameters, "pos")),
         ori(extractOptionalMat3Parameter(parameters, "ori")),
         scale(extractOptionalVec3Parameter(parameters, "scale")),
-        ref(extractOptionalStringParameter(parameters, "mirror").value()),
+        ref(extractOptionalStringParameter(parameters, "ref").value()),
         grid(extractOptionalGridParameter(parameters, "grid")) {
     }
     CylCommand::CylCommand(const uomap_t<std::string_view, std::string_view>& parameters) :

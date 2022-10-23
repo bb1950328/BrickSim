@@ -127,6 +127,7 @@ namespace bricksim::connection::ldcad_snap_meta {
         float radius;
     };
 
+    typedef std::variant<BoundingPnt, BoundingBox, BoundingCube, BoundingCyl, BoundingSph> bounding_variant_t;
     struct GenCommand {
         explicit GenCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
@@ -134,7 +135,7 @@ namespace bricksim::connection::ldcad_snap_meta {
         std::optional<glm::vec3> pos;
         std::optional<glm::mat3> ori;
         Gender gender;
-        std::variant<BoundingPnt, BoundingBox, BoundingCube, BoundingCyl, BoundingSph> bounding;
+        bounding_variant_t bounding;
         ScaleType scale;
         MirrorType mirror;
     };

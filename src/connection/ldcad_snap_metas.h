@@ -10,8 +10,9 @@
 namespace bricksim::connection::ldcad_snap_meta {
     //documentation: http://www.melkert.net/LDCad/tech/meta#:~:text=20%20and%2020.-,Part%20snapping%20metas,-Part%20snapping%20metas
 
+    typedef uomap_t<std::string_view, std::string_view> parsed_param_container;
     struct ClearCommand {
-        ClearCommand(const uomap_t<std::string_view, std::string_view>& parameters);
+        explicit ClearCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
     };
     struct Grid {
@@ -21,10 +22,10 @@ namespace bricksim::connection::ldcad_snap_meta {
         uint32_t countZ;
         float spacingX;
         float spacingZ;
-        Grid(std::string_view command);
+        explicit Grid(std::string_view command);
     };
     struct InclCommand {
-        InclCommand(const uomap_t<std::string_view, std::string_view>& parameters);
+        explicit InclCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
         std::optional<glm::vec3> pos;
         std::optional<glm::mat3> ori;
@@ -66,7 +67,7 @@ namespace bricksim::connection::ldcad_snap_meta {
         B,
     };
     struct CylCommand {
-        CylCommand(const uomap_t<std::string_view, std::string_view>& parameters);
+        explicit CylCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
         std::optional<std::string> group;
         std::optional<glm::vec3> pos;
@@ -82,7 +83,7 @@ namespace bricksim::connection::ldcad_snap_meta {
     };
 
     struct ClpCommand {
-        ClpCommand(const uomap_t<std::string_view, std::string_view>& parameters);
+        explicit ClpCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
         std::optional<glm::vec3> pos;
         std::optional<glm::mat3> ori;
@@ -95,7 +96,7 @@ namespace bricksim::connection::ldcad_snap_meta {
     };
 
     struct FgrCommand {
-        FgrCommand(const uomap_t<std::string_view, std::string_view>& parameters);
+        explicit FgrCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
         std::optional<std::string> group;
         std::optional<glm::vec3> pos;
@@ -127,7 +128,7 @@ namespace bricksim::connection::ldcad_snap_meta {
     };
 
     struct GenCommand {
-        GenCommand(const uomap_t<std::string_view, std::string_view>& parameters);
+        explicit GenCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
         std::optional<std::string> group;
         std::optional<glm::vec3> pos;
@@ -142,7 +143,7 @@ namespace bricksim::connection::ldcad_snap_meta {
     class MetaLine {
     public:
         command_variant_t data;
-        explicit MetaLine(const command_variant_t& data);
+        explicit MetaLine(command_variant_t  data);
     };
 
     class Reader {

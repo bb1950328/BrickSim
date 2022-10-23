@@ -15,6 +15,8 @@ namespace bricksim::stringutil {
     std::string replaceChar(const std::string& str, char from, char to);
     std::string formatBytesValue(uint64_t bytes);
     bool containsIgnoreCase(const std::string& full, const std::string& sub);
+    bool charEqualsIgnoreCase(char a, char b);
+    bool stringEqualsIgnoreCase(std::string_view a, std::string_view b);
     bool equalsAlphanum(const std::string& a, const std::string& b);
     std::vector<std::string_view> splitByChar(std::string_view string, char delimiter);
 }

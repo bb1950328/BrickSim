@@ -62,6 +62,8 @@ namespace bricksim {
 
     TEST_CASE("stringutil::trim(std::string_view)") {
         using namespace std::string_view_literals;
+        CHECK(stringutil::trim(""sv).empty());
+        CHECK(stringutil::trim("a"sv) == "a");
         CHECK(stringutil::trim("abc"sv) == "abc");
         CHECK(stringutil::trim(" abc"sv) == "abc");
         CHECK(stringutil::trim("\tabc"sv) == "abc");

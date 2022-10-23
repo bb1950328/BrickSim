@@ -36,7 +36,7 @@ namespace bricksim::stringutil {
             --wsafter;
         } while (wsafter > 0 && input[wsafter] > 0 && input[wsafter] <= 0xff && std::isspace(input[wsafter]));
 
-        return (wsafter <= wsbefore ? std::string_view() : input.substr(wsbefore, wsafter - wsbefore + 1));
+        return (wsafter < wsbefore ? std::string_view() : input.substr(wsbefore, wsafter - wsbefore + 1));
     }
 
     void asLower(const char* input, char* output, size_t length) {
@@ -240,9 +240,19 @@ namespace bricksim::stringutil {
             if (end == std::string_view::npos) {
                 end = string.size();
             }
-            words.push_back(string.substr(start, end-start));
+            words.push_back(string.substr(start, end - start));
             start = end + 1;
         }
         return words;
+    }
+    bool charEqualsIgnoreCase(char a, char b) {
+        return std::tolower(a) == std::tolower(b);
+    }
+    bool stringEqualsIgnoreCase(std::string_view a, std::string_view b) {
+        return std::equal(a.begin(), a.end(),
+                          b.begin(), b.end(),
+                          [](char a, char b) {
+                              return tolower(a) == tolower(b);
+                          });
     }
 }

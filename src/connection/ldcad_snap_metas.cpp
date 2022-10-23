@@ -65,6 +65,95 @@ namespace bricksim::connection::ldcad_snap_meta {
             }
             return result;
         }
+
+        std::optional<glm::vec3> extractOptionalVec3Parameter(const parsed_param_container& parameters, const char* const paramName) {
+            const auto it = parameters.find(paramName);
+            if (it != parameters.end()) {
+                const auto floats = parseStringViewsToFloatArray<3>(stringutil::splitByChar(it->second, ' '));
+                return glm::make_vec3(floats.begin());
+            } else {
+                return {};
+            }
+        }
+
+        std::optional<glm::mat3> extractOptionalMat3Parameter(const parsed_param_container& parameters, const char* const paramName) {
+            const auto it = parameters.find(paramName);
+            if (it != parameters.end()) {
+                const auto floats = parseStringViewsToFloatArray<3 * 3>(stringutil::splitByChar(it->second, ' '));
+                return glm::make_mat3(floats.begin());
+            } else {
+                return {};
+            }
+        }
+
+        std::vector<float> extractFloatVectorParameter(const parsed_param_container& parameters, const char* const paramName) {
+            const auto it = parameters.find(paramName);
+            if (it != parameters.end()) {
+                return parseStringViewsToFloatVector(stringutil::splitByChar(it->second, ' '));
+            } else {
+                return {};
+            }
+        }
+
+        std::optional<Grid> extractOptionalGridParameter(const parsed_param_container& parameters, const char* const paramName) {
+            const auto it = parameters.find(paramName);
+            if (it != parameters.end()) {
+                return {Grid(it->second)};
+            } else {
+                return {};
+            }
+        }
+
+        std::vector<CylShapeBlock> extractCylShapeBlockParameter(const parsed_param_container& parameters, const char* const paramName) {
+            const auto it = parameters.find(paramName);
+            if (it != parameters.end()) {
+                const auto words = stringutil::splitByChar(it->second, ' ');
+                std::vector<CylShapeBlock> result;
+                for (int i = 0; i < words.size(); i += 3) {
+                    const auto variant = magic_enum::enum_cast<CylShapeVariant>(words[i]).value();
+                    float radius, length;
+                    fast_float::from_chars(words[i + 1].begin(), words[i + 1].end(), radius);
+                    fast_float::from_chars(words[i + 2].begin(), words[i + 2].end(), length);
+                    result.push_back({variant, radius, length});
+                }
+                return result;
+            } else {
+                return {};
+            }
+        }
+
+        bounding_variant_t extractBoundingParameter(const parsed_param_container& parameters, const char* const paramName) {
+            const auto it = parameters.find(paramName);
+            if (it != parameters.end()) {
+                const auto words = stringutil::splitByChar(it->second, ' ');
+                if (words[0] == "pnt") {
+                    return BoundingPnt();
+                } else if (words[0] == "box") {
+                    BoundingBox box;
+                    fast_float::from_chars(words[1].begin(), words[1].end(), box.x);
+                    fast_float::from_chars(words[2].begin(), words[2].end(), box.x);
+                    fast_float::from_chars(words[3].begin(), words[3].end(), box.x);
+                    return box;
+                } else if (words[0] == "cube") {
+                    BoundingCube cube;
+                    fast_float::from_chars(words[1].begin(), words[1].end(), cube.size);
+                    return cube;
+                } else if (words[0] == "cyl") {
+                    BoundingCyl cyl;
+                    fast_float::from_chars(words[1].begin(), words[1].end(), cyl.radius);
+                    fast_float::from_chars(words[2].begin(), words[2].end(), cyl.length);
+                    return cyl;
+                } else if (words[0] == "sph") {
+                    BoundingSph sph;
+                    fast_float::from_chars(words[1].begin(), words[1].end(), sph.radius);
+                    return sph;
+                } else {
+                    throw std::invalid_argument(std::string(words[0]));
+                }
+            } else {
+                throw std::invalid_argument("");
+            }
+        }
     }
     Grid::Grid(std::string_view command) {
         std::vector<std::string_view> words = stringutil::splitByChar(command, ' ');
@@ -127,20 +216,44 @@ namespace bricksim::connection::ldcad_snap_meta {
             return MetaLine({});
         }
     }
-    ClearCommand::ClearCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
-        const auto it = parameters.find("id");
-        if (it != parameters.end()) {
-            id = std::string(it->second);
-        }
+    ClearCommand::ClearCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
+        id(extractOptionalStringParameter(parameters, "id")) {
     }
     MetaLine::MetaLine(command_variant_t data) :
         data(std::move(data)) {
     }
-    InclCommand::InclCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
+    InclCommand::InclCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
+        id(extractOptionalStringParameter(parameters, "id")),
+        pos(extractOptionalVec3Parameter(parameters, "pos")),
+        ori(extractOptionalMat3Parameter(parameters, "ori")),
+        scale(extractOptionalVec3Parameter(parameters, "scale")),
+        ref(extractOptionalStringParameter(parameters, "mirror").value()),
+        grid(extractOptionalGridParameter(parameters, "grid")) {
     }
-    CylCommand::CylCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
+    CylCommand::CylCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
+        id(extractOptionalStringParameter(parameters, "id")),
+        group(extractOptionalStringParameter(parameters, "group")),
+        pos(extractOptionalVec3Parameter(parameters, "pos")),
+        ori(extractOptionalMat3Parameter(parameters, "ori")),
+        scale(extractEnumParameter(parameters, "scale", ScaleType::NONE)),
+        mirror(extractEnumParameter(parameters, "mirror", MirrorType::NONE)),
+        gender(extractEnumParameter(parameters, "gender", Gender::M)),
+        secs(extractCylShapeBlockParameter(parameters, "secs")),
+        caps(extractEnumParameter(parameters, "caps", CylCaps::ONE)),
+        grid(extractOptionalGridParameter(parameters, "grid")),
+        center(extractBoolParameter(parameters, "center", false)),
+        slide(extractBoolParameter(parameters, "slide", false)) {
     }
-    ClpCommand::ClpCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
+    ClpCommand::ClpCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
+        id(extractOptionalStringParameter(parameters, "id")),
+        pos(extractOptionalVec3Parameter(parameters, "pos")),
+        ori(extractOptionalMat3Parameter(parameters, "ori")),
+        radius(extractFloatParameter(parameters, "radius", 4.f)),
+        length(extractFloatParameter(parameters, "length", 8.f)),
+        center(extractBoolParameter(parameters, "center", false)),
+        slide(extractBoolParameter(parameters, "slide", false)),
+        scale(extractEnumParameter(parameters, "scale", ScaleType::NONE)),
+        mirror(extractEnumParameter(parameters, "mirror", MirrorType::NONE)) {
     }
     FgrCommand::FgrCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
         id(extractOptionalStringParameter(parameters, "id")),
@@ -149,25 +262,19 @@ namespace bricksim::connection::ldcad_snap_meta {
         radius(extractFloatParameter(parameters, "radius", 0.f)),
         center(extractBoolParameter(parameters, "center", false)),
         scale(extractEnumParameter(parameters, "scale", ScaleType::NONE)),
-        mirror(extractEnumParameter(parameters, "mirror", MirrorType ::NONE))
-    {
-        auto it = parameters.find("pos");
-        if (it != parameters.end()) {
-            const auto floats = parseStringViewsToFloatArray<3>(stringutil::splitByChar(it->second, ' '));
-            pos = glm::make_vec3(floats.begin());
-        }
-
-        it = parameters.find("ori");
-        if (it != parameters.end()) {
-            const auto floats = parseStringViewsToFloatArray<3 * 3>(stringutil::splitByChar(it->second, ' '));
-            ori = glm::make_mat3(floats.begin());
-        }
-
-        it = parameters.find("seq");
-        if (it != parameters.end()) {
-            seq = parseStringViewsToFloatVector(stringutil::splitByChar(it->second, ' '));
-        }
+        mirror(extractEnumParameter(parameters, "mirror", MirrorType ::NONE)),
+        pos(extractOptionalVec3Parameter(parameters, "pos")),
+        ori(extractOptionalMat3Parameter(parameters, "ori")),
+        seq(extractFloatVectorParameter(parameters, "seq")) {
     }
-    GenCommand::GenCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
+    GenCommand::GenCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
+        id(extractOptionalStringParameter(parameters, "id")),
+        group(extractOptionalStringParameter(parameters, "group")),
+        pos(extractOptionalVec3Parameter(parameters, "pos")),
+        ori(extractOptionalMat3Parameter(parameters, "ori")),
+        bounding(extractBoundingParameter(parameters, "bounding")),
+        gender(extractEnumParameter(parameters, "gender", Gender::M)),
+        scale(extractEnumParameter(parameters, "scale", ScaleType::NONE)),
+        mirror(extractEnumParameter(parameters, "mirror", MirrorType::NONE)) {
     }
 }

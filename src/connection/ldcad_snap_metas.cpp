@@ -6,16 +6,62 @@
 #include "glm/gtc/type_ptr.hpp"
 #include <charconv>
 #include <magic_enum.hpp>
+#include <utility>
 #include <vector>
 
 namespace bricksim::connection::ldcad_snap_meta {
     namespace {
         template<std::size_t N>
-        std::array<float, N> parseStringViewsToFloat(const std::vector<std::string_view>& strings) {
+        std::array<float, N> parseStringViewsToFloatArray(const std::vector<std::string_view>& strings) {
             assert(strings.size() >= N);
-            std::array<float, N> result;
+            std::array<float, N> result{};
             for (int i = 0; i < N; ++i) {
                 fast_float::from_chars(strings[i].begin(), strings[i].end(), result[i]);
+            }
+            return result;
+        }
+
+        std::vector<float> parseStringViewsToFloatVector(const std::vector<std::string_view>& strings) {
+            std::vector<float> result(strings.size());
+            for (int i = 0; i < strings.size(); ++i) {
+                fast_float::from_chars(strings[i].begin(), strings[i].end(), result[i]);
+            }
+            return result;
+        }
+
+        template<typename E>
+        E extractEnumParameter(const parsed_param_container& parameters, const char* const paramName, E defaultValue) {
+            const auto it = parameters.find(paramName);
+            if (it != parameters.end()) {
+                return magic_enum::enum_cast<E>(it->second, stringutil::charEqualsIgnoreCase).value_or(defaultValue);
+            } else {
+                return defaultValue;
+            }
+        }
+
+        std::optional<std::string> extractOptionalStringParameter(const parsed_param_container& parameters, const char* const paramName) {
+            const auto it = parameters.find(paramName);
+            if (it != parameters.end()) {
+                return {std::string(it->second)};
+            } else {
+                return {};
+            }
+        }
+
+        bool extractBoolParameter(const parsed_param_container& parameters, const char* const paramName, bool defaultValue) {
+            const auto it = parameters.find(paramName);
+            if (it != parameters.end()) {
+                return stringutil::stringEqualsIgnoreCase(it->second, "true");
+            } else {
+                return false;
+            }
+        }
+
+        float extractFloatParameter(const parsed_param_container& parameters, const char* const paramName, float defaultValue) {
+            float result = defaultValue;
+            const auto it = parameters.find(paramName);
+            if (it != parameters.end()) {
+                fast_float::from_chars(it->second.begin(), it->second.end(), result);
             }
             return result;
         }
@@ -87,8 +133,8 @@ namespace bricksim::connection::ldcad_snap_meta {
             id = std::string(it->second);
         }
     }
-    MetaLine::MetaLine(const command_variant_t& data) :
-        data(data) {
+    MetaLine::MetaLine(command_variant_t data) :
+        data(std::move(data)) {
     }
     InclCommand::InclCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
     }
@@ -96,43 +142,31 @@ namespace bricksim::connection::ldcad_snap_meta {
     }
     ClpCommand::ClpCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
     }
-    FgrCommand::FgrCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
-        auto it = parameters.find("id");
+    FgrCommand::FgrCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
+        id(extractOptionalStringParameter(parameters, "id")),
+        group(extractOptionalStringParameter(parameters, "group")),
+        genderOfs(extractEnumParameter(parameters, "genderOfs", Gender::M)),
+        radius(extractFloatParameter(parameters, "radius", 0.f)),
+        center(extractBoolParameter(parameters, "center", false)),
+        scale(extractEnumParameter(parameters, "scale", ScaleType::NONE)),
+        mirror(extractEnumParameter(parameters, "mirror", MirrorType ::NONE))
+    {
+        auto it = parameters.find("pos");
         if (it != parameters.end()) {
-            id = std::string(it->second);
-        }
-
-        it = parameters.find("group");
-        if (it != parameters.end()) {
-            group = std::string(it->second);
-        }
-
-        it = parameters.find("pos");
-        if (it != parameters.end()) {
-            const auto floats = parseStringViewsToFloat<3>(stringutil::splitByChar(it->second, ' '));
+            const auto floats = parseStringViewsToFloatArray<3>(stringutil::splitByChar(it->second, ' '));
             pos = glm::make_vec3(floats.begin());
         }
 
         it = parameters.find("ori");
         if (it != parameters.end()) {
-            const auto floats = parseStringViewsToFloat<3*3>(stringutil::splitByChar(it->second, ' '));
+            const auto floats = parseStringViewsToFloatArray<3 * 3>(stringutil::splitByChar(it->second, ' '));
             ori = glm::make_mat3(floats.begin());
         }
 
-        it = parameters.find("genderOfs");
+        it = parameters.find("seq");
         if (it != parameters.end()) {
-            genderOfs = it->second == "F"
-                                ? Gender::F
-                                : Gender::M;
-        } else {
-            genderOfs = Gender::M;
+            seq = parseStringViewsToFloatVector(stringutil::splitByChar(it->second, ' '));
         }
-
-        //TODO seq
-        //TODO radius
-        //TODO center
-        //TODO scale
-        //TODO mirror
     }
     GenCommand::GenCommand(const uomap_t<std::string_view, std::string_view>& parameters) {
     }

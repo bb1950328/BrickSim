@@ -22,6 +22,7 @@ git checkout "$(get_latest_release curl/curl)"
 cd ../earcut.hpp || exit 1
 git fetch --tags
 git checkout "$(get_latest_release mapbox/earcut.hpp)"
+git submodule update --recursive
 
 cd ../esfw || exit 1
 git checkout master
@@ -75,6 +76,7 @@ git pull
 
 cd ../SQLiteCpp || exit 1
 git checkout master
+git submodule update --recursive
 git pull
 
 cd ../stb || exit 1

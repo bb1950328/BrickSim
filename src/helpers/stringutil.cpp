@@ -240,7 +240,9 @@ namespace bricksim::stringutil {
             if (end == std::string_view::npos) {
                 end = string.size();
             }
-            words.push_back(string.substr(start, end - start));
+            if (start < end) {
+                words.push_back(string.substr(start, end - start));
+            }
             start = end + 1;
         }
         return words;

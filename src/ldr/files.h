@@ -1,13 +1,14 @@
 #pragma once
 
+#include "../connection/ldcad_snap_meta.h"
+#include "../helpers/util.h"
 #include "colors.h"
+#include <array>
 #include <memory>
 #include <set>
+#include <stack>
 #include <string>
 #include <vector>
-#include <stack>
-#include <array>
-#include "../helpers/util.h"
 
 namespace bricksim::ldr {
     constexpr const char* const LDR_NEWLINE = "\r\n";
@@ -328,7 +329,7 @@ namespace bricksim::ldr {
         std::vector<std::shared_ptr<FileElement>> elements;
         uoset_t<std::shared_ptr<File>> mpdSubFiles;
         FileMetaInfo metaInfo;
-        std::vector<std::string> ldcadMetaLines;
+        std::vector<connection::ldcad_snap_meta::MetaLine> ldcadSnapMetas;
 
         void printStructure(int indent = 0);
         [[nodiscard]] const std::string& getDescription() const;

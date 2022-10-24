@@ -202,5 +202,6 @@ namespace bricksim {
         CHECK(stringutil::splitByChar("hello", ' ') == std::vector<std::string_view>({"hello"}));
         CHECK(stringutil::splitByChar("hello world", ' ') == std::vector<std::string_view>({"hello", "world"}));
         CHECK(stringutil::splitByChar("hello world xyz", ' ') == std::vector<std::string_view>({"hello", "world", "xyz"}));
+        CHECK(stringutil::splitByChar("hello    world", ' ') == std::vector<std::string_view>({"hello", "world"}));
     }
 }

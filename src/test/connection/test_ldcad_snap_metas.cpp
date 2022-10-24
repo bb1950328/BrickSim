@@ -1,4 +1,4 @@
-#include "../../connection/ldcad_snap_metas.h"
+#include "../../connection/ldcad_snap_meta.h"
 #include "../testing_tools.h"
 
 using namespace bricksim::connection::ldcad_snap_meta;

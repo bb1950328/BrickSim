@@ -52,7 +52,7 @@ TEST_CASE("Reader::readLine 5") {
     CHECK(command->pos.value() == ApproxVec(glm::vec3(0, 24, 0)));
     CHECK_FALSE(command->ori.has_value());
     CHECK(command->scale == ScaleType::NONE);
-    CHECK(command->mirror == MirrorType::NONE);
+    CHECK(command->mirror == MirrorType::COR);
     CHECK(command->gender == Gender::F);
     CHECK(command->secs == std::vector<CylShapeBlock>{CylShapeBlock{CylShapeVariant::R, 6, 20}});
     CHECK(command->caps == CylCaps::ONE);
@@ -71,7 +71,7 @@ TEST_CASE("Reader::readLine 6") {
     REQUIRE(command->ori.has_value());
     CHECK(command->ori.value() == ApproxMat(glm::mat3(-1, 0, 0, 0, 0.6, -0.8, 0, -0.8, -0.6)));
     CHECK(command->scale == ScaleType::NONE);
-    CHECK(command->mirror == MirrorType::NONE);
+    CHECK(command->mirror == MirrorType::COR);
     CHECK(command->gender == Gender::M);
     CHECK(command->secs == std::vector<CylShapeBlock>{CylShapeBlock{CylShapeVariant::R, 4, 6}});
     CHECK(command->caps == CylCaps::TWO);

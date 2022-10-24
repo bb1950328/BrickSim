@@ -11,12 +11,16 @@
 
 namespace bricksim::connection::ldcad_snap_meta {
     namespace {
+        fast_float::from_chars_result parseFloat(std::string_view sv, float& value) {
+            return fast_float::from_chars(&sv.front(), &sv.back() + 1, value);
+        }
+
         template<std::size_t N>
         std::array<float, N> parseStringViewsToFloatArray(const std::vector<std::string_view>& strings) {
             assert(strings.size() >= N);
             std::array<float, N> result{};
             for (int i = 0; i < N; ++i) {
-                fast_float::from_chars(strings[i].begin(), strings[i].end(), result[i]);
+                parseFloat(strings[i], result[i]);
             }
             return result;
         }
@@ -24,7 +28,7 @@ namespace bricksim::connection::ldcad_snap_meta {
         std::vector<float> parseStringViewsToFloatVector(const std::vector<std::string_view>& strings) {
             std::vector<float> result(strings.size());
             for (int i = 0; i < strings.size(); ++i) {
-                fast_float::from_chars(strings[i].begin(), strings[i].end(), result[i]);
+                parseFloat(strings[i], result[i]);
             }
             return result;
         }
@@ -70,7 +74,7 @@ namespace bricksim::connection::ldcad_snap_meta {
             const auto it = parameters.find(paramName);
             if (it != parameters.end()) {
                 const auto floats = parseStringViewsToFloatArray<3>(stringutil::splitByChar(it->second, ' '));
-                return glm::make_vec3(floats.begin());
+                return glm::make_vec3(floats.data());
             } else {
                 return {};
             }
@@ -80,7 +84,7 @@ namespace bricksim::connection::ldcad_snap_meta {
             const auto it = parameters.find(paramName);
             if (it != parameters.end()) {
                 const auto floats = parseStringViewsToFloatArray<3 * 3>(stringutil::splitByChar(it->second, ' '));
-                return glm::make_mat3(floats.begin());
+                return glm::make_mat3(floats.data());
             } else {
                 return {};
             }
@@ -110,11 +114,11 @@ namespace bricksim::connection::ldcad_snap_meta {
                 const auto words = stringutil::splitByChar(it->second, ' ');
                 std::vector<CylShapeBlock> result;
                 for (int i = 0; i < words.size(); i += 3) {
-                    const auto variant = magic_enum::enum_cast<CylShapeVariant>(words[i]).value();
-                    float radius, length;
-                    fast_float::from_chars(words[i + 1].begin(), words[i + 1].end(), radius);
-                    fast_float::from_chars(words[i + 2].begin(), words[i + 2].end(), length);
-                    result.push_back({variant, radius, length});
+                    CylShapeBlock block{};
+                    block.variant = magic_enum::enum_cast<CylShapeVariant>(words[i]).value();
+                    parseFloat(words[i + 1], block.radius);
+                    parseFloat(words[i + 2], block.length);
+                    result.push_back(block);
                 }
                 return result;
             } else {
@@ -129,23 +133,23 @@ namespace bricksim::connection::ldcad_snap_meta {
                 if (words[0] == "pnt") {
                     return BoundingPnt();
                 } else if (words[0] == "box") {
-                    BoundingBox box;
-                    fast_float::from_chars(words[1].begin(), words[1].end(), box.x);
-                    fast_float::from_chars(words[2].begin(), words[2].end(), box.x);
-                    fast_float::from_chars(words[3].begin(), words[3].end(), box.x);
+                    BoundingBox box{};
+                    parseFloat(words[1], box.x);
+                    parseFloat(words[2], box.y);
+                    parseFloat(words[3], box.z);
                     return box;
                 } else if (words[0] == "cube") {
-                    BoundingCube cube;
-                    fast_float::from_chars(words[1].begin(), words[1].end(), cube.size);
+                    BoundingCube cube{};
+                    parseFloat(words[1], cube.size);
                     return cube;
                 } else if (words[0] == "cyl") {
-                    BoundingCyl cyl;
-                    fast_float::from_chars(words[1].begin(), words[1].end(), cyl.radius);
-                    fast_float::from_chars(words[2].begin(), words[2].end(), cyl.length);
+                    BoundingCyl cyl{};
+                    parseFloat(words[1], cyl.radius);
+                    parseFloat(words[2], cyl.length);
                     return cyl;
                 } else if (words[0] == "sph") {
-                    BoundingSph sph;
-                    fast_float::from_chars(words[1].begin(), words[1].end(), sph.radius);
+                    BoundingSph sph{};
+                    parseFloat(words[1], sph.radius);
                     return sph;
                 } else {
                     throw std::invalid_argument(std::string(words[0]));
@@ -178,11 +182,22 @@ namespace bricksim::connection::ldcad_snap_meta {
         std::from_chars(words[i].begin(), words[i].end(), countZ);
         ++i;
 
-        fast_float::from_chars(words[i].begin(), words[i].end(), spacingX);
+        parseFloat(words[i], spacingX);
         ++i;
 
-        fast_float::from_chars(words[i].begin(), words[i].end(), spacingZ);
+        parseFloat(words[i], spacingZ);
         ++i;
+    }
+    bool Grid::operator==(const Grid& rhs) const {
+        return centerX == rhs.centerX
+               && centerZ == rhs.centerZ
+               && countX == rhs.countX
+               && countZ == rhs.countZ
+               && spacingX == rhs.spacingX
+               && spacingZ == rhs.spacingZ;
+    }
+    bool Grid::operator!=(const Grid& rhs) const {
+        return !(rhs == *this);
     }
 
     MetaLine Reader::readLine(std::string_view line) {
@@ -219,8 +234,20 @@ namespace bricksim::connection::ldcad_snap_meta {
     ClearCommand::ClearCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
         id(extractOptionalStringParameter(parameters, "id")) {
     }
+    bool ClearCommand::operator==(const ClearCommand& rhs) const {
+        return id == rhs.id;
+    }
+    bool ClearCommand::operator!=(const ClearCommand& rhs) const {
+        return !(rhs == *this);
+    }
     MetaLine::MetaLine(command_variant_t data) :
         data(std::move(data)) {
+    }
+    bool MetaLine::operator==(const MetaLine& rhs) const {
+        return data == rhs.data;
+    }
+    bool MetaLine::operator!=(const MetaLine& rhs) const {
+        return !(rhs == *this);
     }
     InclCommand::InclCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
         id(extractOptionalStringParameter(parameters, "id")),
@@ -229,6 +256,17 @@ namespace bricksim::connection::ldcad_snap_meta {
         scale(extractOptionalVec3Parameter(parameters, "scale")),
         ref(extractOptionalStringParameter(parameters, "ref").value()),
         grid(extractOptionalGridParameter(parameters, "grid")) {
+    }
+    bool InclCommand::operator==(const InclCommand& rhs) const {
+        return id == rhs.id
+               && pos == rhs.pos
+               && ori == rhs.ori
+               && scale == rhs.scale
+               && ref == rhs.ref
+               && grid == rhs.grid;
+    }
+    bool InclCommand::operator!=(const InclCommand& rhs) const {
+        return !(rhs == *this);
     }
     CylCommand::CylCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
         id(extractOptionalStringParameter(parameters, "id")),
@@ -244,6 +282,23 @@ namespace bricksim::connection::ldcad_snap_meta {
         center(extractBoolParameter(parameters, "center", false)),
         slide(extractBoolParameter(parameters, "slide", false)) {
     }
+    bool CylCommand::operator==(const CylCommand& rhs) const {
+        return id == rhs.id
+               && group == rhs.group
+               && pos == rhs.pos
+               && ori == rhs.ori
+               && scale == rhs.scale
+               && mirror == rhs.mirror
+               && gender == rhs.gender
+               && secs == rhs.secs
+               && caps == rhs.caps
+               && grid == rhs.grid
+               && center == rhs.center
+               && slide == rhs.slide;
+    }
+    bool CylCommand::operator!=(const CylCommand& rhs) const {
+        return !(rhs == *this);
+    }
     ClpCommand::ClpCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
         id(extractOptionalStringParameter(parameters, "id")),
         pos(extractOptionalVec3Parameter(parameters, "pos")),
@@ -254,6 +309,20 @@ namespace bricksim::connection::ldcad_snap_meta {
         slide(extractBoolParameter(parameters, "slide", false)),
         scale(extractEnumParameter(parameters, "scale", ScaleType::NONE)),
         mirror(extractEnumParameter(parameters, "mirror", MirrorType::NONE)) {
+    }
+    bool ClpCommand::operator==(const ClpCommand& rhs) const {
+        return id == rhs.id
+               && pos == rhs.pos
+               && ori == rhs.ori
+               && radius == rhs.radius
+               && length == rhs.length
+               && center == rhs.center
+               && slide == rhs.slide
+               && scale == rhs.scale
+               && mirror == rhs.mirror;
+    }
+    bool ClpCommand::operator!=(const ClpCommand& rhs) const {
+        return !(rhs == *this);
     }
     FgrCommand::FgrCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
         id(extractOptionalStringParameter(parameters, "id")),
@@ -267,6 +336,21 @@ namespace bricksim::connection::ldcad_snap_meta {
         ori(extractOptionalMat3Parameter(parameters, "ori")),
         seq(extractFloatVectorParameter(parameters, "seq")) {
     }
+    bool FgrCommand::operator==(const FgrCommand& rhs) const {
+        return id == rhs.id
+               && group == rhs.group
+               && pos == rhs.pos
+               && ori == rhs.ori
+               && genderOfs == rhs.genderOfs
+               && seq == rhs.seq
+               && radius == rhs.radius
+               && center == rhs.center
+               && scale == rhs.scale
+               && mirror == rhs.mirror;
+    }
+    bool FgrCommand::operator!=(const FgrCommand& rhs) const {
+        return !(rhs == *this);
+    }
     GenCommand::GenCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
         id(extractOptionalStringParameter(parameters, "id")),
         group(extractOptionalStringParameter(parameters, "group")),
@@ -276,5 +360,59 @@ namespace bricksim::connection::ldcad_snap_meta {
         gender(extractEnumParameter(parameters, "gender", Gender::M)),
         scale(extractEnumParameter(parameters, "scale", ScaleType::NONE)),
         mirror(extractEnumParameter(parameters, "mirror", MirrorType::NONE)) {
+    }
+    bool GenCommand::operator==(const GenCommand& rhs) const {
+        return id == rhs.id
+               && group == rhs.group
+               && pos == rhs.pos
+               && ori == rhs.ori
+               && gender == rhs.gender
+               && bounding == rhs.bounding
+               && scale == rhs.scale
+               && mirror == rhs.mirror;
+    }
+    bool GenCommand::operator!=(const GenCommand& rhs) const {
+        return !(rhs == *this);
+    }
+    bool CylShapeBlock::operator==(const CylShapeBlock& rhs) const {
+        return variant == rhs.variant
+               && radius == rhs.radius
+               && length == rhs.length;
+    }
+    bool CylShapeBlock::operator!=(const CylShapeBlock& rhs) const {
+        return !(rhs == *this);
+    }
+    bool BoundingPnt::operator==(const BoundingPnt& rhs) const {
+        return true;
+    }
+    bool BoundingPnt::operator!=(const BoundingPnt& rhs) const {
+        return !(rhs == *this);
+    }
+    bool BoundingBox::operator==(const BoundingBox& rhs) const {
+        return x == rhs.x
+               && y == rhs.y
+               && z == rhs.z;
+    }
+    bool BoundingBox::operator!=(const BoundingBox& rhs) const {
+        return !(rhs == *this);
+    }
+    bool BoundingCube::operator==(const BoundingCube& rhs) const {
+        return size == rhs.size;
+    }
+    bool BoundingCube::operator!=(const BoundingCube& rhs) const {
+        return !(rhs == *this);
+    }
+    bool BoundingCyl::operator==(const BoundingCyl& rhs) const {
+        return radius == rhs.radius
+               && length == rhs.length;
+    }
+    bool BoundingCyl::operator!=(const BoundingCyl& rhs) const {
+        return !(rhs == *this);
+    }
+    bool BoundingSph::operator==(const BoundingSph& rhs) const {
+        return radius == rhs.radius;
+    }
+    bool BoundingSph::operator!=(const BoundingSph& rhs) const {
+        return !(rhs == *this);
     }
 }

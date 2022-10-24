@@ -3,13 +3,6 @@
 
 using namespace bricksim::connection::ldcad_snap_meta;
 
-/*
-
-
-SNAP_CYL [gender=F] [caps=one] [secs=R 6 20] [slide=true] [pos=0 24 0]
-SNAP_CYL [gender=M] [caps=one] [secs=R 4 6] [pos=0 -22.72 -5.04] [ori=-1 0 0 0 0.6 -0.8 0 -0.8 -0.6]
-*/
-
 TEST_CASE("Reader::readLine 0") {
     const auto metaLine = Reader::readLine("something else");
     CHECK(std::holds_alternative<std::monostate>(metaLine.data));
@@ -45,10 +38,49 @@ TEST_CASE("Reader::readLine 4") {
     const auto metaLine = Reader::readLine("SNAP_INCL [ref=wpin.dat]");
     REQUIRE(std::holds_alternative<InclCommand>(metaLine.data));
     const auto& command = std::get<InclCommand>(metaLine.data);
-    CHECK(command.ref=="wpin.dat");
+    CHECK(command.ref == "wpin.dat");
     CHECK_FALSE(command.id.has_value());
     CHECK_FALSE(command.pos.has_value());
     CHECK_FALSE(command.ori.has_value());
     CHECK_FALSE(command.scale.has_value());
     CHECK_FALSE(command.grid.has_value());
+}
+
+TEST_CASE("Reader::readLine 5") {
+    const auto metaLine = Reader::readLine("SNAP_CYL [gender=F] [caps=one] [secs=R 6 20] [slide=true] [pos=0 24 0]");
+    REQUIRE(std::holds_alternative<CylCommand>(metaLine.data));
+    const auto& command = std::get<CylCommand>(metaLine.data);
+    CHECK_FALSE(command.id.has_value());
+    CHECK_FALSE(command.group.has_value());
+    REQUIRE(command.pos.has_value());
+    CHECK(command.pos.value() == ApproxVec(glm::vec3(0, 24, 0)));
+    CHECK_FALSE(command.ori.has_value());
+    CHECK(command.scale == ScaleType::NONE);
+    CHECK(command.mirror == MirrorType::NONE);
+    CHECK(command.gender == Gender::F);
+    CHECK(command.secs == std::vector<CylShapeBlock>{CylShapeBlock{CylShapeVariant::R, 6, 20}});
+    CHECK(command.caps == CylCaps::ONE);
+    CHECK_FALSE(command.grid.has_value());
+    CHECK_FALSE(command.center);
+    CHECK(command.slide);
+}
+
+TEST_CASE("Reader::readLine 6") {
+    const auto metaLine = Reader::readLine("SNAP_CYL [gender=M] [caps=two] [secs=R 4 6] [pos=0 -22.72 -5.04] [ori=-1 0 0 0 0.6 -0.8 0 -0.8 -0.6]");
+    REQUIRE(std::holds_alternative<CylCommand>(metaLine.data));
+    const auto& command = std::get<CylCommand>(metaLine.data);
+    CHECK_FALSE(command.id.has_value());
+    CHECK_FALSE(command.group.has_value());
+    REQUIRE(command.pos.has_value());
+    CHECK(command.pos.value() == ApproxVec(glm::vec3(0, -22.72, -5.04)));
+    REQUIRE(command.ori.has_value());
+    CHECK(command.ori.value() == ApproxMat(glm::mat3(-1, 0, 0, 0, 0.6, -0.8, 0, -0.8, -0.6)));
+    CHECK(command.scale == ScaleType::NONE);
+    CHECK(command.mirror == MirrorType::NONE);
+    CHECK(command.gender == Gender::M);
+    CHECK(command.secs == std::vector<CylShapeBlock>{CylShapeBlock{CylShapeVariant::R, 4, 6}});
+    CHECK(command.caps == CylCaps::TWO);
+    CHECK_FALSE(command.grid.has_value());
+    CHECK_FALSE(command.center);
+    CHECK_FALSE(command.slide);
 }

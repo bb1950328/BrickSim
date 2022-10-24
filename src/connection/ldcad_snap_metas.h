@@ -14,6 +14,9 @@ namespace bricksim::connection::ldcad_snap_meta {
     struct ClearCommand {
         explicit ClearCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
+
+        bool operator==(const ClearCommand& rhs) const;
+        bool operator!=(const ClearCommand& rhs) const;
     };
     struct Grid {
         bool centerX;
@@ -23,6 +26,9 @@ namespace bricksim::connection::ldcad_snap_meta {
         float spacingX;
         float spacingZ;
         explicit Grid(std::string_view command);
+
+        bool operator==(const Grid& rhs) const;
+        bool operator!=(const Grid& rhs) const;
     };
     struct InclCommand {
         explicit InclCommand(const parsed_param_container& parameters);
@@ -32,6 +38,9 @@ namespace bricksim::connection::ldcad_snap_meta {
         std::optional<glm::vec3> scale;
         std::string ref;
         std::optional<Grid> grid;
+
+        bool operator==(const InclCommand& rhs) const;
+        bool operator!=(const InclCommand& rhs) const;
     };
     enum class ScaleType {
         NONE,
@@ -58,6 +67,8 @@ namespace bricksim::connection::ldcad_snap_meta {
         CylShapeVariant variant;
         float radius;
         float length;
+        bool operator==(const CylShapeBlock& rhs) const;
+        bool operator!=(const CylShapeBlock& rhs) const;
     };
     enum class CylCaps {
         NONE,
@@ -80,6 +91,9 @@ namespace bricksim::connection::ldcad_snap_meta {
         std::optional<Grid> grid;
         bool center;
         bool slide;
+
+        bool operator==(const CylCommand& rhs) const;
+        bool operator!=(const CylCommand& rhs) const;
     };
 
     struct ClpCommand {
@@ -93,6 +107,9 @@ namespace bricksim::connection::ldcad_snap_meta {
         bool slide;
         ScaleType scale;
         MirrorType mirror;
+
+        bool operator==(const ClpCommand& rhs) const;
+        bool operator!=(const ClpCommand& rhs) const;
     };
 
     struct FgrCommand {
@@ -107,24 +124,41 @@ namespace bricksim::connection::ldcad_snap_meta {
         bool center;
         ScaleType scale;
         MirrorType mirror;
+
+        bool operator==(const FgrCommand& rhs) const;
+        bool operator!=(const FgrCommand& rhs) const;
     };
 
     struct BoundingPnt {
+        bool operator==(const BoundingPnt& rhs) const;
+        bool operator!=(const BoundingPnt& rhs) const;
     };
     struct BoundingBox {
         float x;
         float y;
         float z;
+
+        bool operator==(const BoundingBox& rhs) const;
+        bool operator!=(const BoundingBox& rhs) const;
     };
     struct BoundingCube {
         float size;
+
+        bool operator==(const BoundingCube& rhs) const;
+        bool operator!=(const BoundingCube& rhs) const;
     };
     struct BoundingCyl {
         float radius;
         float length;
+
+        bool operator==(const BoundingCyl& rhs) const;
+        bool operator!=(const BoundingCyl& rhs) const;
     };
     struct BoundingSph {
         float radius;
+
+        bool operator==(const BoundingSph& rhs) const;
+        bool operator!=(const BoundingSph& rhs) const;
     };
 
     typedef std::variant<BoundingPnt, BoundingBox, BoundingCube, BoundingCyl, BoundingSph> bounding_variant_t;
@@ -138,13 +172,19 @@ namespace bricksim::connection::ldcad_snap_meta {
         bounding_variant_t bounding;
         ScaleType scale;
         MirrorType mirror;
+
+        bool operator==(const GenCommand& rhs) const;
+        bool operator!=(const GenCommand& rhs) const;
     };
 
     typedef std::variant<std::monostate, ClearCommand, InclCommand, CylCommand, ClpCommand, FgrCommand, GenCommand> command_variant_t;
     class MetaLine {
     public:
         command_variant_t data;
-        explicit MetaLine(command_variant_t  data);
+        explicit MetaLine(command_variant_t data);
+
+        bool operator==(const MetaLine& rhs) const;
+        bool operator!=(const MetaLine& rhs) const;
     };
 
     class Reader {

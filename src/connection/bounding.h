@@ -1,7 +1,7 @@
 #pragma once
 
 #include <variant>
-namespace bricksim::connection::ldcad_snap_meta {
+namespace bricksim::connection {
     struct BoundingPnt {
         bool operator==(const BoundingPnt& rhs) const;
         bool operator!=(const BoundingPnt& rhs) const;

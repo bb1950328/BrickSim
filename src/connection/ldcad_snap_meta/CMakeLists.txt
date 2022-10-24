@@ -1,8 +1,6 @@
 target_sources(BrickSimLib PRIVATE
         base.cpp
         base.h
-        bounding.cpp
-        bounding.h
         clear_command.cpp
         clear_command.h
         clp_command.cpp

@@ -2,7 +2,7 @@
 
 #include "../../helpers/stringutil.h"
 #include "../../types.h"
-#include "bounding.h"
+#include "../bounding.h"
 #include "glm/mat3x3.hpp"
 #include "glm/vec3.hpp"
 #include <charconv>

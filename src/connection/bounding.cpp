@@ -1,6 +1,6 @@
 #include "bounding.h"
 
-namespace bricksim::connection::ldcad_snap_meta {
+namespace bricksim::connection {
     bool BoundingPnt::operator==(const BoundingPnt& rhs) const {
         return true;
     }

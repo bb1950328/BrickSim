@@ -1,5 +1,6 @@
 #pragma once
 #include "base.h"
+#include "../bounding.h"
 
 namespace bricksim::connection::ldcad_snap_meta {
     class GenCommand : public MetaCommand {

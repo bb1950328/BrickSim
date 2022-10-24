@@ -80,6 +80,8 @@ callgrind.out.*
 /InstallBuilder.xml.backup
 /renderdoc
 
+/test_files/omr/
+
 .cache
 
 /CppCaptures

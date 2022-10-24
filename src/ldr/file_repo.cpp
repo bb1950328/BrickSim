@@ -405,6 +405,9 @@ namespace bricksim::ldr::file_repo {
     std::shared_ptr<File> FileRepo::addLdrFileWithContent(const std::string& name, FileType type, const std::string& content) {
         return addLdrFileWithContent(name, type, content, {});
     }
+    const uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>>& FileRepo::getAllFilesInMemory() {
+        return ldrFiles;
+    }
 
     FileRepo::~FileRepo() = default;
 }

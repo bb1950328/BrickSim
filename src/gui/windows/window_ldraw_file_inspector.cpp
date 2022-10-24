@@ -1,25 +1,37 @@
-#include "window_snap_inspector.h"
+#include "window_ldraw_file_inspector.h"
 #include "../../ldr/file_repo.h"
+#include "../../ldr/file_writer.h"
 #include "imgui.h"
-#include "spdlog/spdlog.h"
+#include "spdlog/fmt/bundled/format.h"
 
-namespace bricksim::gui::windows::snap_inspector {
+namespace bricksim::gui::windows::ldraw_file_inspector {
     namespace {
         std::shared_ptr<ldr::File> currentFile = nullptr;
+        std::string content;
+
+        void currentFileChanged() {
+            if (currentFile != nullptr) {
+                std::stringstream sstr;
+                ldr::writeFile(currentFile, sstr, currentFile->metaInfo.name);
+                content = sstr.str();
+            } else {
+                content = "";
+            }
+        }
 
         int partNameInputCallback(ImGuiInputTextCallbackData* data) {
             auto& fileRepo = ldr::file_repo::get();
             if (fileRepo.hasFileCached(data->Buf)) {
-                currentFile = fileRepo.getFile(data->Buf);
+                setCurrentFile(fileRepo.getFile(data->Buf));
             } else {
                 const auto extendedName = std::string(data->Buf) + ".dat";
                 if (fileRepo.hasFileCached(extendedName)) {
                     const auto lengthBefore = data->BufTextLen;
                     data->InsertChars(lengthBefore, ".dat");
                     data->CursorPos = lengthBefore;
-                    currentFile = fileRepo.getFile(extendedName);
+                    setCurrentFile(fileRepo.getFile(extendedName));
                 } else {
-                    currentFile = nullptr;
+                    setCurrentFile(nullptr);
                 }
             }
             return 0;
@@ -50,14 +62,50 @@ namespace bricksim::gui::windows::snap_inspector {
             }
         }
     }
+
+    void setCurrentFile(const std::shared_ptr<ldr::File>& newFile) {
+        if (currentFile != newFile) {
+            currentFile = newFile;
+            currentFileChanged();
+        }
+    }
+
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
             char partName[256] = {0};
             ImGui::InputText("Part Name", partName, sizeof(partName), ImGuiInputTextFlags_CallbackAlways, partNameInputCallback);
+
+            if (ImGui::BeginListBox("All Files")) {
+                for (const auto& item: ldr::file_repo::get().getAllFilesInMemory()) {
+                    const auto text = fmt::format("{}: {}", item.first, item.second.second->metaInfo.title);
+                    if (ImGui::Selectable(text.c_str(), item.second.second == currentFile)) {
+                        setCurrentFile(item.second.second);
+                    }
+                }
+                ImGui::EndListBox();
+            }
+
             if (currentFile != nullptr) {
-                ImGui::Text("Snap Meta Info for %s", currentFile->metaInfo.title.c_str());
-                static std::weak_ptr<connection::ldcad_snap_meta::MetaCommand> currentlySelected;
-                showSnapLineNodes(currentFile, currentlySelected);
+                ImGui::Separator();
+
+                ImGui::Text("Inspecting %s: %s", currentFile->metaInfo.name.c_str(), currentFile->metaInfo.title.c_str());
+
+                if (ImGui::BeginTabBar("##fileInspectorTabBar", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
+                    if (ImGui::BeginTabItem("Snap Info")) {
+                        static std::weak_ptr<connection::ldcad_snap_meta::MetaCommand> currentlySelected;
+                        showSnapLineNodes(currentFile, currentlySelected);
+                        ImGui::EndTabItem();
+                    }
+                    if (ImGui::BeginTabItem("Raw Content")) {
+                        if (ImGui::BeginChild("Content", ImVec2(0, 0), true, ImGuiWindowFlags_None)) {
+                            ImGui::TextUnformatted(content.c_str());
+                            ImGui::EndChild();
+                        }
+                        ImGui::EndTabItem();
+                    }
+                    ImGui::EndTabBar();
+                }
+
             } else {
                 ImGui::Text("No file named \"%s\" in memory.", partName);
             }

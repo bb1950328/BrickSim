@@ -1,4 +1,4 @@
-#include "ldcad_snap_metas.h"
+#include "ldcad_snap_meta.h"
 #include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include "../types.h"
@@ -12,7 +12,26 @@
 namespace bricksim::connection::ldcad_snap_meta {
     namespace {
         fast_float::from_chars_result parseFloat(std::string_view sv, float& value) {
-            return fast_float::from_chars(&sv.front(), &sv.back() + 1, value);
+            const char* begin = &sv.front();
+            const char* end = &sv.back() + 1;
+            return fast_float::from_chars(begin, end, value);
+        }
+
+        template<typename T>
+        concept anyIntType = std::is_same_v<int8_t, T>
+                             || std::is_same_v<int16_t, T>
+                             || std::is_same_v<int32_t, T>
+                             || std::is_same_v<int64_t, T>
+                             || std::is_same_v<uint8_t, T>
+                             || std::is_same_v<uint16_t, T>
+                             || std::is_same_v<uint32_t, T>
+                             || std::is_same_v<uint64_t, T>;
+
+        template<anyIntType T>
+        std::from_chars_result parseInt(std::string_view sv, T& value) {
+            const char* begin = &sv.front();
+            const char* end = &sv.back() + 1;
+            return std::from_chars(begin, end, value);
         }
 
         template<std::size_t N>
@@ -65,7 +84,7 @@ namespace bricksim::connection::ldcad_snap_meta {
             float result = defaultValue;
             const auto it = parameters.find(paramName);
             if (it != parameters.end()) {
-                fast_float::from_chars(it->second.begin(), it->second.end(), result);
+                parseFloat(it->second, result);
             }
             return result;
         }
@@ -170,7 +189,7 @@ namespace bricksim::connection::ldcad_snap_meta {
             centerX = false;
         }
 
-        std::from_chars(words[i].begin(), words[i].end(), countX);
+        parseInt(words[i], countX);
         ++i;
         if (words[i] == "C") {
             centerZ = true;
@@ -179,7 +198,7 @@ namespace bricksim::connection::ldcad_snap_meta {
             centerZ = false;
         }
 
-        std::from_chars(words[i].begin(), words[i].end(), countZ);
+        parseInt(words[i], countZ);
         ++i;
 
         parseFloat(words[i], spacingX);

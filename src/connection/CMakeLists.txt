@@ -1,4 +1,4 @@
 target_sources(BrickSimLib PRIVATE
-        ldcad_snap_metas.cpp
-        ldcad_snap_metas.h
+        ldcad_snap_meta.cpp
+        ldcad_snap_meta.h
         )

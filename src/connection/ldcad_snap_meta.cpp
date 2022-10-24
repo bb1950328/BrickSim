@@ -219,7 +219,7 @@ namespace bricksim::connection::ldcad_snap_meta {
         return !(rhs == *this);
     }
 
-    MetaLine Reader::readLine(std::string_view line) {
+    std::shared_ptr<MetaLine> Reader::readLine(std::string_view line) {
         uomap_t<std::string_view, std::string_view> parameters;
 
         std::size_t end = 0;
@@ -234,20 +234,20 @@ namespace bricksim::connection::ldcad_snap_meta {
             const std::string_view value = stringutil::trim(line.substr(middle + 1, end - middle - 1));
             parameters.insert({key, value});
         }
-        if (line.starts_with("SNAP_CLEAR")) {
-            return MetaLine(command_variant_t(ClearCommand(parameters)));
-        } else if (line.starts_with("SNAP_INCL")) {
-            return MetaLine(command_variant_t(InclCommand(parameters)));
-        } else if (line.starts_with("SNAP_CYL")) {
-            return MetaLine(command_variant_t(CylCommand(parameters)));
-        } else if (line.starts_with("SNAP_CLP")) {
-            return MetaLine(command_variant_t(ClpCommand(parameters)));
-        } else if (line.starts_with("SNAP_FGR")) {
-            return MetaLine(command_variant_t(FgrCommand(parameters)));
-        } else if (line.starts_with("SNAP_GEN")) {
-            return MetaLine(command_variant_t(GenCommand(parameters)));
+        if (line.starts_with(ClearCommand::NAME)) {
+            return std::make_shared<MetaLine>(command_variant_t(ClearCommand(parameters)));
+        } else if (line.starts_with(InclCommand::NAME)) {
+            return std::make_shared<MetaLine>(command_variant_t(InclCommand(parameters)));
+        } else if (line.starts_with(CylCommand::NAME)) {
+            return std::make_shared<MetaLine>(command_variant_t(CylCommand(parameters)));
+        } else if (line.starts_with(ClpCommand::NAME)) {
+            return std::make_shared<MetaLine>(command_variant_t(ClpCommand(parameters)));
+        } else if (line.starts_with(FgrCommand::NAME)) {
+            return std::make_shared<MetaLine>(command_variant_t(FgrCommand(parameters)));
+        } else if (line.starts_with(GenCommand::NAME)) {
+            return std::make_shared<MetaLine>(command_variant_t(GenCommand(parameters)));
         } else {
-            return MetaLine({});
+            return std::make_shared<MetaLine>(command_variant_t{});
         }
     }
     ClearCommand::ClearCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
@@ -267,6 +267,23 @@ namespace bricksim::connection::ldcad_snap_meta {
     }
     bool MetaLine::operator!=(const MetaLine& rhs) const {
         return !(rhs == *this);
+    }
+    const char* MetaLine::subcommandName() const {
+        if (std::holds_alternative<ClearCommand>(data)) {
+            return ClearCommand::NAME;
+        } else if (std::holds_alternative<InclCommand>(data)) {
+            return InclCommand::NAME;
+        } else if (std::holds_alternative<CylCommand>(data)) {
+            return CylCommand::NAME;
+        } else if (std::holds_alternative<ClpCommand>(data)) {
+            return ClpCommand::NAME;
+        } else if (std::holds_alternative<FgrCommand>(data)) {
+            return FgrCommand::NAME;
+        } else if (std::holds_alternative<GenCommand>(data)) {
+            return GenCommand::NAME;
+        } else {
+            throw std::invalid_argument("");
+        }
     }
     InclCommand::InclCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
         id(extractOptionalStringParameter(parameters, "id")),

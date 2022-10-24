@@ -24,6 +24,31 @@ namespace bricksim::gui::windows::snap_inspector {
             }
             return 0;
         }
+
+        void showSnapLineNodes(const std::shared_ptr<ldr::File>& file, std::weak_ptr<connection::ldcad_snap_meta::MetaLine>& currentlySelected) {
+            for (const auto& item: file->ldcadSnapMetas) {
+                auto flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+                if (currentlySelected.lock() == item) {
+                    flags |= ImGuiTreeNodeFlags_Selected;
+                }
+                ImGui::TreeNodeEx(reinterpret_cast<const void*>(item.get()), flags, "%s", item->subcommandName());
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+                    currentlySelected = item;
+                }
+            }
+            for (const auto& item: file->elements) {
+                if (item->getType() == 1) {
+                    const auto subfileRef = std::dynamic_pointer_cast<ldr::SubfileReference>(item);
+                    const auto subfile = subfileRef->getFile();
+                    if (!subfile->ldcadSnapMetas.empty()) {
+                        if (ImGui::TreeNode(subfileRef.get(), "%s", subfileRef->filename.c_str())) {
+                            showSnapLineNodes(subfile, currentlySelected);
+                            ImGui::TreePop();
+                        }
+                    }
+                }
+            }
+        }
     }
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
@@ -31,6 +56,8 @@ namespace bricksim::gui::windows::snap_inspector {
             ImGui::InputText("Part Name", partName, sizeof(partName), ImGuiInputTextFlags_CallbackAlways, partNameInputCallback);
             if (currentFile != nullptr) {
                 ImGui::Text("Snap Meta Info for %s", currentFile->metaInfo.title.c_str());
+                static std::weak_ptr<connection::ldcad_snap_meta::MetaLine> currentlySelected;
+                showSnapLineNodes(currentFile, currentlySelected);
             } else {
                 ImGui::Text("No file named \"%s\" in memory.", partName);
             }

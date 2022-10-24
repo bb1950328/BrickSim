@@ -329,7 +329,7 @@ namespace bricksim::ldr {
         std::vector<std::shared_ptr<FileElement>> elements;
         uoset_t<std::shared_ptr<File>> mpdSubFiles;
         FileMetaInfo metaInfo;
-        std::vector<connection::ldcad_snap_meta::MetaLine> ldcadSnapMetas;
+        std::vector<std::shared_ptr<connection::ldcad_snap_meta::MetaLine>> ldcadSnapMetas;
 
         void printStructure(int indent = 0);
         [[nodiscard]] const std::string& getDescription() const;

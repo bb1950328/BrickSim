@@ -11,14 +11,31 @@ namespace bricksim::connection::ldcad_snap_meta {
     //documentation: http://www.melkert.net/LDCad/tech/meta#:~:text=20%20and%2020.-,Part%20snapping%20metas,-Part%20snapping%20metas
 
     typedef uomap_t<std::string_view, std::string_view> parsed_param_container;
-    struct ClearCommand {
+    typedef uomap_t<std::string, std::string> written_param_container;
+
+    class MetaCommand {
+    public:
+        [[nodiscard]] std::string to_string() const;
+
+    protected:
+        [[nodiscard]] virtual written_param_container getParameters() const = 0;
+        [[nodiscard]] virtual const char* getName() const = 0;
+    };
+
+    class ClearCommand : public MetaCommand {
+    public:
         constexpr const static char* const NAME = "SNAP_CLEAR";
         explicit ClearCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
 
         bool operator==(const ClearCommand& rhs) const;
         bool operator!=(const ClearCommand& rhs) const;
+
+    protected:
+        [[nodiscard]] written_param_container getParameters() const override;
+        [[nodiscard]] const char* getName() const override;
     };
+
     struct Grid {
         bool centerX;
         bool centerZ;
@@ -31,7 +48,9 @@ namespace bricksim::connection::ldcad_snap_meta {
         bool operator==(const Grid& rhs) const;
         bool operator!=(const Grid& rhs) const;
     };
-    struct InclCommand {
+
+    class InclCommand : public MetaCommand {
+    public:
         constexpr const static char* const NAME = "SNAP_INCL";
         explicit InclCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
@@ -43,6 +62,10 @@ namespace bricksim::connection::ldcad_snap_meta {
 
         bool operator==(const InclCommand& rhs) const;
         bool operator!=(const InclCommand& rhs) const;
+
+    protected:
+        [[nodiscard]] written_param_container getParameters() const override;
+        [[nodiscard]] const char* getName() const override;
     };
     enum class ScaleType {
         NONE,
@@ -79,7 +102,8 @@ namespace bricksim::connection::ldcad_snap_meta {
         A,
         B,
     };
-    struct CylCommand {
+    class CylCommand : public MetaCommand {
+    public:
         constexpr const static char* const NAME = "SNAP_CYL";
         explicit CylCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
@@ -97,9 +121,14 @@ namespace bricksim::connection::ldcad_snap_meta {
 
         bool operator==(const CylCommand& rhs) const;
         bool operator!=(const CylCommand& rhs) const;
+
+    protected:
+        [[nodiscard]] written_param_container getParameters() const override;
+        [[nodiscard]] const char* getName() const override;
     };
 
-    struct ClpCommand {
+    class ClpCommand : public MetaCommand {
+    public:
         constexpr const static char* const NAME = "SNAP_CLP";
         explicit ClpCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
@@ -114,9 +143,14 @@ namespace bricksim::connection::ldcad_snap_meta {
 
         bool operator==(const ClpCommand& rhs) const;
         bool operator!=(const ClpCommand& rhs) const;
+
+    protected:
+        [[nodiscard]] written_param_container getParameters() const override;
+        [[nodiscard]] const char* getName() const override;
     };
 
-    struct FgrCommand {
+    class FgrCommand : public MetaCommand {
+    public:
         constexpr const static char* const NAME = "SNAP_FGR";
         explicit FgrCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
@@ -132,6 +166,10 @@ namespace bricksim::connection::ldcad_snap_meta {
 
         bool operator==(const FgrCommand& rhs) const;
         bool operator!=(const FgrCommand& rhs) const;
+
+    protected:
+        [[nodiscard]] written_param_container getParameters() const override;
+        [[nodiscard]] const char* getName() const override;
     };
 
     struct BoundingPnt {
@@ -167,7 +205,8 @@ namespace bricksim::connection::ldcad_snap_meta {
     };
 
     typedef std::variant<BoundingPnt, BoundingBox, BoundingCube, BoundingCyl, BoundingSph> bounding_variant_t;
-    struct GenCommand {
+    class GenCommand : public MetaCommand {
+    public:
         constexpr const static char* const NAME = "SNAP_GEN";
         explicit GenCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
@@ -181,22 +220,14 @@ namespace bricksim::connection::ldcad_snap_meta {
 
         bool operator==(const GenCommand& rhs) const;
         bool operator!=(const GenCommand& rhs) const;
-    };
 
-    typedef std::variant<std::monostate, ClearCommand, InclCommand, CylCommand, ClpCommand, FgrCommand, GenCommand> command_variant_t;
-    class MetaLine {
-    public:
-        command_variant_t data;
-        explicit MetaLine(command_variant_t data);
-
-        [[nodiscard]] const char* subcommandName() const;
-
-        bool operator==(const MetaLine& rhs) const;
-        bool operator!=(const MetaLine& rhs) const;
+    protected:
+        [[nodiscard]] written_param_container getParameters() const override;
+        [[nodiscard]] const char* getName() const override;
     };
 
     class Reader {
     public:
-        static std::shared_ptr<MetaLine> readLine(std::string_view line);
+        static std::shared_ptr<MetaCommand> readLine(std::string_view line);
     };
 }

@@ -6,6 +6,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include <charconv>
 #include <magic_enum.hpp>
+#include <spdlog/fmt/fmt.h>
 #include <utility>
 #include <vector>
 
@@ -177,7 +178,127 @@ namespace bricksim::connection::ldcad_snap_meta {
                 throw std::invalid_argument("");
             }
         }
+
+        void writeOptionalStringParameter(written_param_container& parameters, const char* const paramName, const std::optional<std::string>& value) {
+            if (value.has_value()) {
+                parameters.insert({paramName, value.value()});
+            }
+        }
+
+        void writeOptionalVec3Parameter(written_param_container& parameters, const char* const paramName, const std::optional<glm::vec3>& value) {
+            if (value.has_value()) {
+                const auto& vec = *value;
+                parameters.insert({paramName, fmt::format("{:g} {:g} {:g}", vec.x, vec.y, vec.z)});
+            }
+        }
+
+        void writeOptionalMat3Parameter(written_param_container& parameters, const char* const paramName, const std::optional<glm::mat3>& value) {
+            if (value.has_value()) {
+                const auto& m = *value;
+                parameters.insert({paramName, fmt::format("{:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}",
+                                                          m[0][0], m[0][1], m[0][2],
+                                                          m[1][0], m[1][1], m[1][2],
+                                                          m[2][0], m[2][1], m[2][2])});
+            }
+        }
+        void writeStringParameter(written_param_container& parameters, const char* const paramName, const std::string& value) {
+            parameters.insert({paramName, value});
+        }
+        void writeOptionalGridParameter(written_param_container& parameters, const char* const paramName, const std::optional<Grid>& value) {
+            if (value.has_value()) {
+                const auto& grid = *value;
+                std::string result;
+                if (grid.centerX) {
+                    result.push_back('C');
+                    result.push_back(' ');
+                }
+                result.append(fmt::format("{} ", grid.countX));
+
+                if (grid.centerZ) {
+                    result.push_back('C');
+                    result.push_back(' ');
+                }
+                result.append(fmt::format("{} {:g} {:g}", grid.countZ, grid.spacingX, grid.spacingZ));
+
+                parameters.insert({paramName, result});
+            }
+        }
+        void writeCylShapeBlockParameter(written_param_container& parameters, const char* const paramName, const std::vector<CylShapeBlock>& value) {
+            if (!value.empty()) {
+                std::string result;
+                for (const auto& item: value) {
+                    result.append(fmt::format("{:s} {:g} {:g}  ", magic_enum::enum_name(item.variant), item.radius, item.length));
+                }
+                if (!result.empty()) {
+                    result.pop_back();
+                    result.pop_back();
+                }
+                parameters.insert({paramName, result});
+            }
+        }
+
+        template<typename E>
+        void writeEnumParameter(written_param_container& parameters, const char* const paramName, E value) {
+            parameters.insert({paramName, magic_enum::enum_name(value)});
+        }
+
+        template<typename E>
+        void writeEnumParameter(written_param_container& parameters, const char* const paramName, E value, E defaultValue) {
+            if (value != defaultValue) {
+                writeEnumParameter(parameters, paramName, value);
+            }
+        }
+
+        void writeBoolParameter(written_param_container& parameters, const char* const paramName, bool value) {
+            parameters.insert({paramName, value ? "true" : "false"});
+        }
+        void writeBoolParameter(written_param_container& parameters, const char* const paramName, bool value, bool defaultValue) {
+            if (value != defaultValue) {
+                writeBoolParameter(parameters, paramName, value);
+            }
+        }
+        void writeFloatParameter(written_param_container& parameters, const char* const paramName, float value) {
+            parameters.insert({paramName, fmt::format("{:g}", value)});
+        }
+        void writeFloatParameter(written_param_container& parameters, const char* const paramName, float value, float defaultValue) {
+            if (std::fabs(value - defaultValue) > .0001f) {
+                parameters.insert({paramName, fmt::format("{:g}", value)});
+            }
+        }
+        void writeFloatVectorParameter(written_param_container& parameters, const char* const paramName, const std::vector<float>& value) {
+            std::string result;
+            for (const auto& item: value) {
+                result.append(fmt::format("{:g} ", item));
+            }
+            if (!result.empty()) {
+                result.pop_back();
+            }
+            parameters.insert({paramName, result});
+        }
+        std::string boundingToString(const bounding_variant_t& bounding) {
+            if (std::holds_alternative<BoundingPnt>(bounding)) {
+                return "pnt";
+            } else if (std::holds_alternative<BoundingBox>(bounding)) {
+                const auto& box = std::get<BoundingBox>(bounding);
+                return fmt::format("box {:g} {:g} {:g}", box.x, box.y, box.z);
+            } else if (std::holds_alternative<BoundingCube>(bounding)) {
+                const auto& cube = std::get<BoundingCube>(bounding);
+                return fmt::format("cube {:g}", cube.size);
+            } else if (std::holds_alternative<BoundingCyl>(bounding)) {
+                const auto& cyl = std::get<BoundingCyl>(bounding);
+                return fmt::format("cyl {:g} {:g}", cyl.radius, cyl.length);
+            } else if (std::holds_alternative<BoundingSph>(bounding)) {
+                const auto& sph = std::get<BoundingSph>(bounding);
+                return fmt::format("sph {:g}", sph.radius);
+            } else {
+                throw std::invalid_argument("");
+            }
+        }
+        void writeBoundingParameter(written_param_container& parameters, const char* const paramName, const bounding_variant_t& value) {
+            parameters.insert({paramName, boundingToString(value)});
+        }
     }
+
     Grid::Grid(std::string_view command) {
         std::vector<std::string_view> words = stringutil::splitByChar(command, ' ');
 
@@ -219,7 +340,7 @@ namespace bricksim::connection::ldcad_snap_meta {
         return !(rhs == *this);
     }
 
-    std::shared_ptr<MetaLine> Reader::readLine(std::string_view line) {
+    std::shared_ptr<MetaCommand> Reader::readLine(std::string_view line) {
         uomap_t<std::string_view, std::string_view> parameters;
 
         std::size_t end = 0;
@@ -235,19 +356,19 @@ namespace bricksim::connection::ldcad_snap_meta {
             parameters.insert({key, value});
         }
         if (line.starts_with(ClearCommand::NAME)) {
-            return std::make_shared<MetaLine>(command_variant_t(ClearCommand(parameters)));
+            return std::make_shared<ClearCommand>(parameters);
         } else if (line.starts_with(InclCommand::NAME)) {
-            return std::make_shared<MetaLine>(command_variant_t(InclCommand(parameters)));
+            return std::make_shared<InclCommand>(parameters);
         } else if (line.starts_with(CylCommand::NAME)) {
-            return std::make_shared<MetaLine>(command_variant_t(CylCommand(parameters)));
+            return std::make_shared<CylCommand>(parameters);
         } else if (line.starts_with(ClpCommand::NAME)) {
-            return std::make_shared<MetaLine>(command_variant_t(ClpCommand(parameters)));
+            return std::make_shared<ClpCommand>(parameters);
         } else if (line.starts_with(FgrCommand::NAME)) {
-            return std::make_shared<MetaLine>(command_variant_t(FgrCommand(parameters)));
+            return std::make_shared<FgrCommand>(parameters);
         } else if (line.starts_with(GenCommand::NAME)) {
-            return std::make_shared<MetaLine>(command_variant_t(GenCommand(parameters)));
+            return std::make_shared<GenCommand>(parameters);
         } else {
-            return std::make_shared<MetaLine>(command_variant_t{});
+            return nullptr;
         }
     }
     ClearCommand::ClearCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
@@ -259,32 +380,15 @@ namespace bricksim::connection::ldcad_snap_meta {
     bool ClearCommand::operator!=(const ClearCommand& rhs) const {
         return !(rhs == *this);
     }
-    MetaLine::MetaLine(command_variant_t data) :
-        data(std::move(data)) {
+    written_param_container ClearCommand::getParameters() const {
+        written_param_container result;
+        writeOptionalStringParameter(result, "id", id);
+        return result;
     }
-    bool MetaLine::operator==(const MetaLine& rhs) const {
-        return data == rhs.data;
+    const char* ClearCommand::getName() const {
+        return NAME;
     }
-    bool MetaLine::operator!=(const MetaLine& rhs) const {
-        return !(rhs == *this);
-    }
-    const char* MetaLine::subcommandName() const {
-        if (std::holds_alternative<ClearCommand>(data)) {
-            return ClearCommand::NAME;
-        } else if (std::holds_alternative<InclCommand>(data)) {
-            return InclCommand::NAME;
-        } else if (std::holds_alternative<CylCommand>(data)) {
-            return CylCommand::NAME;
-        } else if (std::holds_alternative<ClpCommand>(data)) {
-            return ClpCommand::NAME;
-        } else if (std::holds_alternative<FgrCommand>(data)) {
-            return FgrCommand::NAME;
-        } else if (std::holds_alternative<GenCommand>(data)) {
-            return GenCommand::NAME;
-        } else {
-            throw std::invalid_argument("");
-        }
-    }
+
     InclCommand::InclCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
         id(extractOptionalStringParameter(parameters, "id")),
         pos(extractOptionalVec3Parameter(parameters, "pos")),
@@ -304,13 +408,26 @@ namespace bricksim::connection::ldcad_snap_meta {
     bool InclCommand::operator!=(const InclCommand& rhs) const {
         return !(rhs == *this);
     }
+    written_param_container InclCommand::getParameters() const {
+        written_param_container result;
+        writeOptionalStringParameter(result, "id", id);
+        writeOptionalVec3Parameter(result, "pos", pos);
+        writeOptionalMat3Parameter(result, "ori", ori);
+        writeOptionalVec3Parameter(result, "scale", scale);
+        writeStringParameter(result, "ref", ref);
+        writeOptionalGridParameter(result, "grid", grid);
+        return result;
+    }
+    const char* InclCommand::getName() const {
+        return NAME;
+    }
     CylCommand::CylCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
         id(extractOptionalStringParameter(parameters, "id")),
         group(extractOptionalStringParameter(parameters, "group")),
         pos(extractOptionalVec3Parameter(parameters, "pos")),
         ori(extractOptionalMat3Parameter(parameters, "ori")),
         scale(extractEnumParameter(parameters, "scale", ScaleType::NONE)),
-        mirror(extractEnumParameter(parameters, "mirror", MirrorType::NONE)),
+        mirror(extractEnumParameter(parameters, "mirror", MirrorType::COR)),
         gender(extractEnumParameter(parameters, "gender", Gender::M)),
         secs(extractCylShapeBlockParameter(parameters, "secs")),
         caps(extractEnumParameter(parameters, "caps", CylCaps::ONE)),
@@ -334,6 +451,25 @@ namespace bricksim::connection::ldcad_snap_meta {
     }
     bool CylCommand::operator!=(const CylCommand& rhs) const {
         return !(rhs == *this);
+    }
+    written_param_container CylCommand::getParameters() const {
+        written_param_container result;
+        writeOptionalStringParameter(result, "id", id);
+        writeOptionalStringParameter(result, "group", group);
+        writeOptionalVec3Parameter(result, "pos", pos);
+        writeOptionalMat3Parameter(result, "ori", ori);
+        writeEnumParameter(result, "scale", scale, ScaleType::NONE);
+        writeEnumParameter(result, "mirror", mirror, MirrorType::COR);
+        writeEnumParameter(result, "gender", gender, Gender::M);
+        writeCylShapeBlockParameter(result, "secs", secs);
+        writeEnumParameter(result, "caps", caps, CylCaps::ONE);
+        writeOptionalGridParameter(result, "grid", grid);
+        writeBoolParameter(result, "center", center, false);
+        writeBoolParameter(result, "slide", slide, false);
+        return result;
+    }
+    const char* CylCommand::getName() const {
+        return NAME;
     }
     ClpCommand::ClpCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
         id(extractOptionalStringParameter(parameters, "id")),
@@ -359,6 +495,22 @@ namespace bricksim::connection::ldcad_snap_meta {
     }
     bool ClpCommand::operator!=(const ClpCommand& rhs) const {
         return !(rhs == *this);
+    }
+    written_param_container ClpCommand::getParameters() const {
+        written_param_container result;
+        writeOptionalStringParameter(result, "id", id);
+        writeOptionalVec3Parameter(result, "pos", pos);
+        writeOptionalMat3Parameter(result, "ori", ori);
+        writeFloatParameter(result, "radius", radius, 4.f);
+        writeFloatParameter(result, "length", length, 8.f);
+        writeBoolParameter(result, "center", center);
+        writeBoolParameter(result, "slide", slide);
+        writeEnumParameter(result, "scale", scale, ScaleType::NONE);
+        writeEnumParameter(result, "mirror", mirror, MirrorType::NONE);
+        return result;
+    }
+    const char* ClpCommand::getName() const {
+        return NAME;
     }
     FgrCommand::FgrCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
         id(extractOptionalStringParameter(parameters, "id")),
@@ -387,6 +539,23 @@ namespace bricksim::connection::ldcad_snap_meta {
     bool FgrCommand::operator!=(const FgrCommand& rhs) const {
         return !(rhs == *this);
     }
+    written_param_container FgrCommand::getParameters() const {
+        written_param_container result;
+        writeOptionalStringParameter(result, "id", id);
+        writeOptionalStringParameter(result, "group", group);
+        writeOptionalVec3Parameter(result, "pos", pos);
+        writeOptionalMat3Parameter(result, "ori", ori);
+        writeEnumParameter(result, "genderOfs", genderOfs, Gender::M);
+        writeFloatVectorParameter(result, "seq", seq);
+        writeFloatParameter(result, "radius", radius);
+        writeBoolParameter(result, "center", center);
+        writeEnumParameter(result, "scale", scale, ScaleType::NONE);
+        writeEnumParameter(result, "mirror", mirror, MirrorType::NONE);
+        return result;
+    }
+    const char* FgrCommand::getName() const {
+        return NAME;
+    }
     GenCommand::GenCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
         id(extractOptionalStringParameter(parameters, "id")),
         group(extractOptionalStringParameter(parameters, "group")),
@@ -409,6 +578,21 @@ namespace bricksim::connection::ldcad_snap_meta {
     }
     bool GenCommand::operator!=(const GenCommand& rhs) const {
         return !(rhs == *this);
+    }
+    written_param_container GenCommand::getParameters() const {
+        written_param_container result;
+        writeOptionalStringParameter(result, "id", id);
+        writeOptionalStringParameter(result, "group", group);
+        writeOptionalVec3Parameter(result, "pos", pos);
+        writeOptionalMat3Parameter(result, "ori", ori);
+        writeEnumParameter(result, "gender", gender, Gender::M);
+        writeBoundingParameter(result, "bounding", bounding);
+        writeEnumParameter(result, "scale", scale, ScaleType::NONE);
+        writeEnumParameter(result, "mirror", mirror, MirrorType::NONE);
+        return result;
+    }
+    const char* GenCommand::getName() const {
+        return NAME;
     }
     bool CylShapeBlock::operator==(const CylShapeBlock& rhs) const {
         return variant == rhs.variant
@@ -450,5 +634,18 @@ namespace bricksim::connection::ldcad_snap_meta {
     }
     bool BoundingSph::operator!=(const BoundingSph& rhs) const {
         return !(rhs == *this);
+    }
+    std::string MetaCommand::to_string() const {
+        std::string result(getName());
+        const auto& parameters = getParameters();
+        for (const auto& item: parameters) {
+            result.push_back(' ');
+            result.push_back('[');
+            result.append(item.first);
+            result.push_back('=');
+            result.append(item.second);
+            result.push_back(']');
+        }
+        return result;
     }
 }

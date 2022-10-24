@@ -178,8 +178,7 @@ namespace bricksim::ldr {
             const auto subcommandStart = lineStart + sizeof(ldcadMetaStart);
             const auto length = lineEnd - subcommandStart;
             const std::string line(stringutil::trim(view.substr(subcommandStart, length)));
-            ldcadMetaLines.push_back(line);
-            spdlog::debug(line);
+            ldcadSnapMetas.push_back(connection::ldcad_snap_meta::Reader::readLine(line));
             lineStart = lineEnd;
         }
     }

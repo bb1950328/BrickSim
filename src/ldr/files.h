@@ -339,9 +339,11 @@ namespace bricksim::ldr {
         void addShadowContent(const std::string& shadowContent);
 
     private:
+        constexpr static const char LDCAD_META_START[] = "!LDCAD";
         mutable std::size_t hash = 0;
         BfcState bfcState;
         TexmapState texmapState;
+        void parseLdcadMeta(const std::string_view& metaContent);
     };
 
     namespace {

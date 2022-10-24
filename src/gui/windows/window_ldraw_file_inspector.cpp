@@ -1,8 +1,10 @@
 #include "window_ldraw_file_inspector.h"
+#include "../../element_tree.h"
 #include "../../ldr/file_repo.h"
 #include "../../ldr/file_writer.h"
 #include "imgui.h"
 #include "spdlog/fmt/bundled/format.h"
+#include <sstream>
 
 namespace bricksim::gui::windows::ldraw_file_inspector {
     namespace {
@@ -91,17 +93,91 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                 ImGui::Text("Inspecting %s: %s", currentFile->metaInfo.name.c_str(), currentFile->metaInfo.title.c_str());
 
                 if (ImGui::BeginTabBar("##fileInspectorTabBar", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
-                    if (ImGui::BeginTabItem("Snap Info")) {
-                        static std::weak_ptr<connection::ldcad_snap_meta::MetaCommand> currentlySelected;
-                        showSnapLineNodes(currentFile, currentlySelected);
-                        ImGui::EndTabItem();
-                    }
                     if (ImGui::BeginTabItem("Raw Content")) {
                         if (ImGui::BeginChild("Content", ImVec2(0, 0), true, ImGuiWindowFlags_None)) {
                             ImGui::TextUnformatted(content.c_str());
                             ImGui::EndChild();
                         }
                         ImGui::EndTabItem();
+                    }
+                    if (ImGui::BeginTabItem("Snap Info")) {
+                        static std::weak_ptr<connection::ldcad_snap_meta::MetaCommand> currentlySelected;
+                        showSnapLineNodes(currentFile, currentlySelected);
+                        ImGui::EndTabItem();
+                    }
+                    if (ImGui::BeginTabItem("Meta Info")) {
+                        const auto& metaInfo = currentFile->metaInfo;
+
+                        if (ImGui::BeginTable("##metaInfoTable", 2)) {
+                            constexpr auto rowStart = [](const char* const name) {
+                                ImGui::TableNextColumn();
+                                ImGui::Text("%s", name);
+                                ImGui::TableNextColumn();
+                            };
+
+                            ImGui::TableSetupColumn("Attribute", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFontSize()*6);
+                            ImGui::TableSetupColumn("Value");
+                            ImGui::TableHeadersRow();
+
+                            rowStart("Title");
+                            ImGui::Text("%s", metaInfo.title.c_str());
+
+                            rowStart("Name");
+                            ImGui::Text("%s", metaInfo.name.c_str());
+
+                            rowStart("Author");
+                            ImGui::Text("%s", metaInfo.author.c_str());
+
+                            rowStart("Keywords");
+                            for (const auto& item: metaInfo.keywords) {
+                                ImGui::BulletText("%s", item.c_str());
+                            }
+
+                            rowStart("History");
+                            for (const auto& item: metaInfo.history) {
+                                ImGui::BulletText("%s", item.c_str());
+                            }
+
+                            rowStart("License");
+                            ImGui::Text("%s", metaInfo.license.c_str());
+
+                            rowStart("Theme");
+                            ImGui::Text("%s", metaInfo.theme.c_str());
+
+                            rowStart("Category");
+                            ImGui::Text("%s", metaInfo.headerCategory.value_or("").c_str());
+
+                            rowStart("File Type");
+                            ImGui::Text("%s", std::string(magic_enum::enum_name(metaInfo.type)).c_str());
+
+                            ImGui::EndTable();
+                        }
+
+                        ImGui::EndTabItem();
+
+                        /*
+
+                        ImGui::Separator();
+
+                        static bool explicitCategory;
+                        if (selectedEditorLocked != lastSelectedEditor.lock()) {
+                            explicitCategory = metaInfo.headerCategory.has_value();
+                        }
+                        if (ImGui::Checkbox("Explicit Category", &explicitCategory)) {
+                            if (explicitCategory && !metaInfo.headerCategory.has_value()) {
+                                metaInfo.headerCategory = metaInfo.getCategory();
+                            } else if (!explicitCategory && metaInfo.headerCategory.has_value()) {
+                                metaInfo.headerCategory = std::nullopt;
+                            }
+                        }
+                        if (explicitCategory) {
+                            ImGui::InputText("Category", &metaInfo.headerCategory.value());
+                        } else {
+                            ImGui::BeginDisabled();
+                            static char zeroChar = 0;
+                            ImGui::InputText("Category", &zeroChar, 1);
+                            ImGui::EndDisabled();
+                        }*/
                     }
                     ImGui::EndTabBar();
                 }

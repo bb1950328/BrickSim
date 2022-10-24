@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../connection/ldcad_snap_meta.h"
+#include "../connection/ldcad_snap_meta/base.h"
 #include "../helpers/util.h"
 #include "colors.h"
 #include <array>

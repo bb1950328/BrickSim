@@ -22,7 +22,7 @@ namespace bricksim::ldr {
 
     void writeFile(const std::shared_ptr<File>& file, const std::filesystem::path& path) {
         std::ofstream stream(path, std::ios::out | std::ios::binary);//not really a binary file, but we don't want the OS to mess with newlines and stuff
-        writeFile(file, stream, path.filename());
+        writeFile(file, stream, path.filename().string());
     }
 
     void writeFile(const std::shared_ptr<File>& file, std::ostream& stream, const std::string& filename) {

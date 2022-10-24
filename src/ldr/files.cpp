@@ -113,6 +113,8 @@ namespace bricksim::ldr {
                             element = FileElement::parseLine(realCommand, bfcState);
                         }
                         element->directTexmap = texmapState.startCommand;
+                    } else if (metaElement->content.starts_with(LDCAD_META_START)) {
+                        parseLdcadMeta(metaElement->content.substr(sizeof(LDCAD_META_START)));
                     }
                 } else if (texmapState.isActive()) {
                     if (texmapState.fallbackSectionReached) {
@@ -159,12 +161,11 @@ namespace bricksim::ldr {
         return hash;
     }
     void File::addShadowContent(const std::string& shadowContent) {
-        static const char ldcadMetaStart[] = "0 !LDCAD";
         size_t lineStart = 0;
         size_t lineEnd = 0;
         std::string_view view = shadowContent;
         while (lineEnd < view.size()) {
-            lineStart = view.find(ldcadMetaStart, lineStart);
+            lineStart = view.find(LDCAD_META_START, lineStart);
             if (lineStart == std::string::npos) {
                 break;
             }
@@ -175,16 +176,18 @@ namespace bricksim::ldr {
                 ++lineEnd;
             }
 
-            const auto subcommandStart = lineStart + sizeof(ldcadMetaStart);
-            const auto length = lineEnd - subcommandStart;
-            const std::string line(stringutil::trim(view.substr(subcommandStart, length)));
-            const auto metaCommand = connection::ldcad_snap_meta::Reader::readLine(line);
-            if (metaCommand != nullptr) {
-                ldcadSnapMetas.push_back(metaCommand);
-            } else {
-                spdlog::warn("read unknown/invalid ldcad snap meta in {}: {}", metaInfo.name, line);
-            }
+            parseLdcadMeta(stringutil::trim(view.substr(lineStart, lineEnd - lineStart)));
+
             lineStart = lineEnd;
+        }
+    }
+    void File::parseLdcadMeta(const std::string_view& metaContent) {
+        const std::string line(stringutil::trim(metaContent.substr(sizeof(LDCAD_META_START))));
+        const auto metaCommand = connection::ldcad_snap_meta::Reader::readLine(line);
+        if (metaCommand != nullptr) {
+            ldcadSnapMetas.push_back(metaCommand);
+        } else {
+            spdlog::warn("read unknown/invalid ldcad snap meta in {}: {}", metaInfo.name, line);
         }
     }
     File::~File() = default;

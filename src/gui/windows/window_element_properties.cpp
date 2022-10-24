@@ -40,6 +40,19 @@ namespace bricksim::gui::windows::element_properties {
                     ImGui::PopTextWrapPos();
                     ImGui::EndTooltip();
                 }
+
+                if ((node->getType() & etree::TYPE_LDRFILE) > 0) {
+                    const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
+                    if (ldrNode->ldrFile->metaInfo.type == ldr::PART) {
+                        const auto fileName = ldrNode->ldrFile->metaInfo.name;
+                        const auto lastDot = fileName.rfind('.');
+                        auto partCode = lastDot != std::string::npos
+                                                      ? fileName.substr(0, lastDot)
+                                                      : fileName;
+                        ImGui::InputText("Part Code", partCode.data(), partCode.size(), ImGuiInputTextFlags_ReadOnly);
+                    }
+                }
+
                 //ImGui::PushStyleColor(ImGuiCol_Text, getColorOfType(node->getType()));//todo make this affect only text but not label
                 static char typeBuffer[255];
                 strcpy(typeBuffer, getDisplayNameOfType(node->getType()));

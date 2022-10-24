@@ -23,6 +23,8 @@ target_sources(BrickSimLib PRIVATE
         window_part_palette.h
         window_settings.cpp
         window_settings.h
+        window_snap_inspector.cpp
+        window_snap_inspector.h
         window_system_info.cpp
         window_system_info.h
 

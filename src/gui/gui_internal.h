@@ -39,5 +39,5 @@ namespace bricksim::gui_internal {
 
     void actionMenuItem(const user_actions::Action& action);
     void actionMenuItem(const user_actions::Action& action, const char* alternativeDescription);
-    void windowMenuItem(const gui::windows::Id id);
+    void windowMenuItem(gui::windows::Id id);
 }

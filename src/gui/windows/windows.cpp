@@ -10,17 +10,18 @@
 #include "tools/window_gear_ratio_calculator.h"
 #include "window_about.h"
 #include "window_debug.h"
+#include "window_editor_meta_info.h"
 #include "window_element_properties.h"
 #include "window_element_tree.h"
 #include "window_log.h"
 #include "window_mesh_inspector.h"
+#include "window_model_info.h"
 #include "window_orientation_cube.h"
 #include "window_part_palette.h"
 #include "window_settings.h"
+#include "window_snap_inspector.h"
 #include "window_system_info.h"
 #include "window_view3d.h"
-#include "window_model_info.h"
-#include "window_editor_meta_info.h"
 #include "windows.h"
 
 namespace bricksim::gui::windows {
@@ -46,6 +47,7 @@ namespace bricksim::gui::windows {
                     {Id::GEAR_RATIO_CALCULATOR, "Gear Ratio Calculator", false, tools::gear_ratio_calculator::draw},
                     {Id::MODEL_INFO, ICON_FA_INFO_CIRCLE" Model Info", false, model_info::draw},
                     {Id::EDITOR_META_INFO, ICON_FA_RECEIPT" Meta-Info", false, editor_meta_info::draw},
+                    {Id::SNAP_INSPECTOR, ICON_FA_HANDSHAKE" Snap Inspector", false, snap_inspector::draw},
             }};
 
     void drawAll() {

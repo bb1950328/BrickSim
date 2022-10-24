@@ -349,6 +349,7 @@ namespace bricksim::gui {
                 gui_internal::windowMenuItem(windows::Id::ELEMENT_PROPERTIES);
                 ImGui::Separator();
                 gui_internal::windowMenuItem(windows::Id::PART_PALETTE);
+                gui_internal::windowMenuItem(windows::Id::SNAP_INSPECTOR);
                 ImGui::Separator();
                 gui_internal::windowMenuItem(windows::Id::MODEL_INFO);
                 gui_internal::windowMenuItem(windows::Id::EDITOR_META_INFO);

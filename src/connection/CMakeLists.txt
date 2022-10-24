@@ -1,4 +1,1 @@
-target_sources(BrickSimLib PRIVATE
-        ldcad_snap_meta.cpp
-        ldcad_snap_meta.h
-        )
+add_subdirectory(ldcad_snap_meta)

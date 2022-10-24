@@ -178,7 +178,12 @@ namespace bricksim::ldr {
             const auto subcommandStart = lineStart + sizeof(ldcadMetaStart);
             const auto length = lineEnd - subcommandStart;
             const std::string line(stringutil::trim(view.substr(subcommandStart, length)));
-            ldcadSnapMetas.push_back(connection::ldcad_snap_meta::Reader::readLine(line));
+            const auto metaCommand = connection::ldcad_snap_meta::Reader::readLine(line);
+            if (metaCommand != nullptr) {
+                ldcadSnapMetas.push_back(metaCommand);
+            } else {
+                spdlog::warn("read unknown/invalid ldcad snap meta in {}: {}", metaInfo.name, line);
+            }
             lineStart = lineEnd;
         }
     }

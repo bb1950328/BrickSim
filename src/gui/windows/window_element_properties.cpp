@@ -14,6 +14,7 @@
 
 #include "../../helpers/stringutil.h"
 #include "window_element_properties.h"
+#include "window_ldraw_file_inspector.h"
 
 namespace bricksim::gui::windows::element_properties {
     void draw(Data& data) {
@@ -24,6 +25,7 @@ namespace bricksim::gui::windows::element_properties {
                 ImGui::Text("Select an element to view its properties here");
             } else if (activeEditor->getSelectedNodes().size() == 1) {
                 auto& node = activeEditor->getSelectedNodes().begin()->first;
+                const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
 
                 static char displayNameBuf[255];
                 if (nullptr != lastSelectedNode) {
@@ -41,14 +43,13 @@ namespace bricksim::gui::windows::element_properties {
                     ImGui::EndTooltip();
                 }
 
-                if ((node->getType() & etree::TYPE_LDRFILE) > 0) {
-                    const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
+                if (ldrNode != nullptr) {
                     if (ldrNode->ldrFile->metaInfo.type == ldr::PART) {
                         const auto fileName = ldrNode->ldrFile->metaInfo.name;
                         const auto lastDot = fileName.rfind('.');
                         auto partCode = lastDot != std::string::npos
-                                                      ? fileName.substr(0, lastDot)
-                                                      : fileName;
+                                                ? fileName.substr(0, lastDot)
+                                                : fileName;
                         ImGui::InputText("Part Code", partCode.data(), partCode.size(), ImGuiInputTextFlags_ReadOnly);
                     }
                 }
@@ -170,7 +171,7 @@ namespace bricksim::gui::windows::element_properties {
 
                             std::optional<uoset_t<ldr::ColorReference>> availableColors = std::nullopt;
                             if (meshNode->getType() == etree::TYPE_PART) {
-                                availableColors = info_providers::part_color_availability::getAvailableColorsForPart(std::dynamic_pointer_cast<etree::LdrNode>(meshNode)->ldrFile);
+                                availableColors = info_providers::part_color_availability::getAvailableColorsForPart(ldrNode->ldrFile);
                             }
                             bool showAllColors;
                             if (availableColors.has_value() && !availableColors.value().empty()) {
@@ -380,6 +381,13 @@ namespace bricksim::gui::windows::element_properties {
                 } else if (lastLayer != node->layer) {
                     node->incrementVersion();
                     lastLayer = node->layer;
+                }
+
+                if (ldrNode != nullptr) {
+                    if (ImGui::Button(ICON_FA_EYE " Inspect LDraw File")) {
+                        ldraw_file_inspector::setCurrentFile(ldrNode->ldrFile);
+                        *gui::windows::isVisible(Id::LDRAW_FILE_INSPECTOR) = true;
+                    }
                 }
 
                 lastSelectedNode = node;

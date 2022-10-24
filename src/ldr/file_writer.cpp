@@ -5,12 +5,12 @@
 
 namespace bricksim::ldr {
     namespace {
-        void writeElements(const std::shared_ptr<File>& file, std::ofstream& stream, std::vector<std::pair<std::string, std::shared_ptr<File>>>& submodels, uoset_t<std::string>& foundSubmodelNames) {
-            for (const auto &element : file->elements) {
+        void writeElements(const std::shared_ptr<File>& file, std::ostream& stream, std::vector<std::pair<std::string, std::shared_ptr<File>>>& submodels, uoset_t<std::string>& foundSubmodelNames) {
+            for (const auto& element: file->elements) {
                 auto sfElement = std::dynamic_pointer_cast<SubfileReference>(element);
                 if (sfElement != nullptr) {
                     const auto& subfile = sfElement->getFile();
-                    if (subfile->metaInfo.type==MPD_SUBFILE && foundSubmodelNames.find(sfElement->filename)== foundSubmodelNames.end()) {
+                    if (subfile->metaInfo.type == MPD_SUBFILE && foundSubmodelNames.find(sfElement->filename) == foundSubmodelNames.end()) {
                         submodels.emplace_back(sfElement->filename, subfile);
                         foundSubmodelNames.insert(sfElement->filename);
                     }
@@ -19,13 +19,17 @@ namespace bricksim::ldr {
             }
         }
     }
+
     void writeFile(const std::shared_ptr<File>& file, const std::filesystem::path& path) {
         std::ofstream stream(path, std::ios::out | std::ios::binary);//not really a binary file, but we don't want the OS to mess with newlines and stuff
+        writeFile(file, stream, path.filename());
+    }
 
-        stream << "0 FILE " << path.filename() << LDR_NEWLINE;
+    void writeFile(const std::shared_ptr<File>& file, std::ostream& stream, const std::string& filename) {
+        stream << "0 FILE " << filename << LDR_NEWLINE;
 
         auto nameBackup = file->metaInfo.name;
-        file->metaInfo.name = path.filename().string();
+        file->metaInfo.name = filename;
         stream << file->metaInfo;
         file->metaInfo.name = nameBackup;
 
@@ -34,7 +38,7 @@ namespace bricksim::ldr {
         uoset_t<std::string> foundSubmodelNames;
         std::vector<std::pair<std::string, std::shared_ptr<File>>> submodels;
         writeElements(file, stream, submodels, foundSubmodelNames);
-        
+
         for (size_t i = 0; i < submodels.size(); ++i) {
             stream << LDR_NEWLINE << LDR_NEWLINE;
 

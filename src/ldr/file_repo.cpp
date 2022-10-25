@@ -193,7 +193,7 @@ namespace bricksim::ldr::file_repo {
         return util::readFileToString(path);
     }
 
-    std::shared_ptr<File> FileRepo::addLdrFileWithContent(const std::string& name, FileType type, const std::string& content, const std::optional<std::string> shadowContent) {
+    std::shared_ptr<File> FileRepo::addLdrFileWithContent(const std::string& name, FileType type, const std::string& content, const std::optional<std::string>& shadowContent) {
         auto readResults = readComplexFile(name, type, content, shadowContent);
         {
             plLockWait("FileRepo::ldrFilesMtx");

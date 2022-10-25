@@ -1,6 +1,6 @@
 target_sources(BrickSimLib PRIVATE
-        accumulator.cpp
-        accumulator.h
+        connector_data_provider.cpp
+        connector_data_provider.h
         bounding.cpp
         bounding.h
         data.cpp

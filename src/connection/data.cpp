@@ -39,4 +39,13 @@ namespace bricksim::connection {
         connectorA(connectorA),
         connectorB(connectorB),
         degreesOfFreedom(std::move(degreesOfFreedom)) {}
+
+    CylindricalConnector::CylindricalConnector(std::string  group, const glm::mat4& location, Gender gender, std::vector<CylindricalShapePart>  parts, bool openStart, bool openEnd, bool slide) :
+        Connector(std::move(group), location),
+        gender(gender), parts(std::move(parts)), openStart(openStart), openEnd(openEnd), slide(slide) {}
+
+    Connector::Connector(std::string  group, const glm::mat4& location) :
+        group(std::move(group)), location(location) {}
+    ClipConnector::ClipConnector(const std::string& group, const glm::mat4& location, float radius, float width, bool slide) :
+            Connector(group, location), radius(radius), width(width), slide(slide) {}
 }

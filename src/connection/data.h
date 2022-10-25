@@ -17,6 +17,8 @@ namespace bricksim::connection {
     public:
         std::string group;
         glm::mat4 location;
+
+        Connector(std::string  group, const glm::mat4& location);
     };
 
     enum class CylindricalShapeType {
@@ -38,6 +40,8 @@ namespace bricksim::connection {
         std::vector<CylindricalShapePart> parts;
         bool openStart, openEnd;
         bool slide;
+
+        CylindricalConnector(std::string group, const glm::mat4& location, Gender gender, std::vector<CylindricalShapePart> parts, bool openStart, bool openEnd, bool slide);
     };
 
     class ClipConnector : public Connector {
@@ -45,6 +49,8 @@ namespace bricksim::connection {
         float radius;
         float width;
         bool slide;
+
+        ClipConnector(const std::string& group, const glm::mat4& location, float radius, float width, bool slide);
     };
 
     class FingerConnector : public Connector {

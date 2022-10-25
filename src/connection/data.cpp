@@ -21,7 +21,7 @@ namespace bricksim::connection {
                 return it2->second;
             }
         }
-        constexpr static std::vector<ConnectionGraph::edge_t> empty;
+        const static std::vector<ConnectionGraph::edge_t> empty;
         return empty;
     }
     void ConnectionGraph::removeConnection(const ConnectionGraph::node_t& a, const ConnectionGraph::node_t& b, const ConnectionGraph::edge_t& edge) {

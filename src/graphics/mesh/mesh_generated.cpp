@@ -8,14 +8,17 @@ namespace bricksim::mesh::generated {
         return constants::MESH_ID_UV_SPHERE;
     }
 
-    UVSphereNode::UVSphereNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
-        GeneratedMeshNode(color, parent) {}
+    UVSphereNode::UVSphereNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) :
+            GeneratedMeshNode(color, parent) {}
 
-    void UVSphereNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
-        const auto& color = ldr::color_repo::getInstanceDummyColor();
-        auto& triangleData = mesh->getTriangleData(color);
-        auto northPoleIndex = triangleData.addRawVertex(TriangleVertex{glm::vec4(RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f)});
-        auto southPoleIndex = triangleData.addRawVertex(TriangleVertex{glm::vec4(-RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f)});
+    void UVSphereNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
+                                 const std::shared_ptr<ldr::TexmapStartCommand> &texmap) {
+        const auto &color = ldr::color_repo::getInstanceDummyColor();
+        auto &triangleData = mesh->getTriangleData(color);
+        auto northPoleIndex = triangleData.addRawVertex(
+                TriangleVertex{glm::vec4(RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f)});
+        auto southPoleIndex = triangleData.addRawVertex(
+                TriangleVertex{glm::vec4(-RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f)});
         auto firstMainIndex = triangleData.getVertexCount();
 
         float latDeltaRadians = M_PI / DIVISIONS;
@@ -65,8 +68,8 @@ namespace bricksim::mesh::generated {
         return "UV Sphere";
     }
 
-    GeneratedMeshNode::GeneratedMeshNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
-        MeshNode(color, parent, nullptr) {}
+    GeneratedMeshNode::GeneratedMeshNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) :
+            MeshNode(color, parent, nullptr) {}
 
     bool GeneratedMeshNode::isDisplayNameUserEditable() const {
         return false;
@@ -80,8 +83,8 @@ namespace bricksim::mesh::generated {
         return false;
     }
 
-    ArrowNode::ArrowNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
-        GeneratedMeshNode(color, parent) {}
+    ArrowNode::ArrowNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) :
+            GeneratedMeshNode(color, parent) {}
 
     std::string ArrowNode::getDescription() {
         return "Arrow";
@@ -91,7 +94,8 @@ namespace bricksim::mesh::generated {
         return constants::MESH_ID_ARROW;
     }
 
-    void ArrowNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
+    void ArrowNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
+                              const std::shared_ptr<ldr::TexmapStartCommand> &texmap) {
         glm::vec3 backCenter(0.0f, 0.0f, 0.0f);
         glm::vec3 beforeTipCenter(0.75f, 0.0f, 0.0f);
         glm::vec3 tip(1.0f, 0.0f, 0.0f);
@@ -135,14 +139,15 @@ namespace bricksim::mesh::generated {
 
         auto color = ldr::color_repo::getInstanceDummyColor();
 
-        auto& triangleData = mesh->getTriangleData(color);
+        auto &triangleData = mesh->getTriangleData(color);
 
         unsigned int firstIndex = triangleData.getVertexCount();
 
         for (uint16_t i = 0; i < NUM_CORNERS; ++i) {
-            auto rotationMatrix = glm::rotate((float)(2 * M_PI * i / NUM_CORNERS), glm::vec3(1.0f, 0.0f, 0.0f));
-            for (const auto& vertex: baseVertices) {
-                triangleData.addRawVertex({glm::vec4(vertex.position, 1.f) * rotationMatrix, glm::vec4(vertex.normal, 0.0f) * rotationMatrix});
+            auto rotationMatrix = glm::rotate((float) (2 * M_PI * i / NUM_CORNERS), glm::vec3(1.0f, 0.0f, 0.0f));
+            for (const auto &vertex: baseVertices) {
+                triangleData.addRawVertex({glm::vec4(vertex.position, 1.f) * rotationMatrix,
+                                           glm::vec4(vertex.normal, 0.0f) * rotationMatrix});
             }
         }
 
@@ -175,8 +180,8 @@ namespace bricksim::mesh::generated {
         }
     }
 
-    QuarterTorusNode::QuarterTorusNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
-        GeneratedMeshNode(color, parent) {}
+    QuarterTorusNode::QuarterTorusNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) :
+            GeneratedMeshNode(color, parent) {}
 
     std::string QuarterTorusNode::getDescription() {
         return "Quarter Torus";
@@ -186,9 +191,10 @@ namespace bricksim::mesh::generated {
         return constants::MESH_ID_QUARTER_TORUS;
     }
 
-    void QuarterTorusNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
-        const ldr::ColorReference& color = ldr::color_repo::getInstanceDummyColor();
-        auto& triangleData = mesh->getTriangleData(color);
+    void QuarterTorusNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
+                                     const std::shared_ptr<ldr::TexmapStartCommand> &texmap) {
+        const ldr::ColorReference &color = ldr::color_repo::getInstanceDummyColor();
+        auto &triangleData = mesh->getTriangleData(color);
         auto firstIndex = triangleData.getVertexCount();
 
         std::vector<TriangleVertex> baseVertices;
@@ -206,7 +212,8 @@ namespace bricksim::mesh::generated {
             float angle = i * angleRatio * angleStep;
             auto rotation = glm::rotate(angle, glm::vec3(-1.0f, 0.0f, 0.0f));
             for (int j = 0; j < DIVISIONS; ++j) {
-                triangleData.addRawVertex(TriangleVertex{glm::vec4(baseVertices[j].position, 1.f) * rotation, glm::vec4(baseVertices[j].normal, 0.0f) * rotation});
+                triangleData.addRawVertex(TriangleVertex{glm::vec4(baseVertices[j].position, 1.f) * rotation,
+                                                         glm::vec4(baseVertices[j].normal, 0.0f) * rotation});
             }
         }
 
@@ -226,7 +233,8 @@ namespace bricksim::mesh::generated {
         if (WITH_ENDS) {
             auto capAFirstIndex = triangleData.getVertexCount();
             for (int j = 0; j < DIVISIONS; ++j) {
-                triangleData.addRawVertex(TriangleVertex{glm::vec4(baseVertices[j].position, 1.f), glm::vec3(0.0f, 0.0f, 1.0f)});
+                triangleData.addRawVertex(
+                        TriangleVertex{glm::vec4(baseVertices[j].position, 1.f), glm::vec3(0.0f, 0.0f, 1.0f)});
                 if (j > 1) {
                     triangleData.addRawIndex(capAFirstIndex);
                     triangleData.addRawIndex(capAFirstIndex + j - 1);
@@ -237,7 +245,8 @@ namespace bricksim::mesh::generated {
             auto capBFirstIndex = triangleData.getVertexCount();
             auto endRotation = glm::rotate(0.5f * float(M_PI), glm::vec3(1.0f, 0.0f, 0.0f));
             for (int j = 0; j < DIVISIONS; ++j) {
-                triangleData.addRawVertex(TriangleVertex{glm::vec4(baseVertices[j].position, 1.f) * endRotation, glm::vec4(0.0f, 0.0f, -1.0f, 0.0f) * endRotation});
+                triangleData.addRawVertex(TriangleVertex{glm::vec4(baseVertices[j].position, 1.f) * endRotation,
+                                                         glm::vec4(0.0f, 0.0f, -1.0f, 0.0f) * endRotation});
                 if (j > 1) {
                     triangleData.addRawIndex(capBFirstIndex);
                     triangleData.addRawIndex(capBFirstIndex + j - 1);
@@ -247,8 +256,8 @@ namespace bricksim::mesh::generated {
         }
     }
 
-    CubeNode::CubeNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent) :
-        GeneratedMeshNode(color, parent) {}
+    CubeNode::CubeNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent) :
+            GeneratedMeshNode(color, parent) {}
 
     std::string CubeNode::getDescription() {
         return "Cube";
@@ -258,9 +267,10 @@ namespace bricksim::mesh::generated {
         return constants::MESH_ID_CUBE;
     }
 
-    void CubeNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
-        const ldr::ColorReference& color = ldr::color_repo::getInstanceDummyColor();
-        auto& triangleData = mesh->getTriangleData(color);
+    void CubeNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
+                             const std::shared_ptr<ldr::TexmapStartCommand> &texmap) {
+        const ldr::ColorReference &color = ldr::color_repo::getInstanceDummyColor();
+        auto &triangleData = mesh->getTriangleData(color);
         if (triangleData.getVertexCount() > 0) {
             spdlog::warn("CubeNode::addToMesh verticesList not empty, existing vertices are removed");
         }
@@ -325,14 +335,89 @@ namespace bricksim::mesh::generated {
         triangleData.addRawVertex({pos[6], normalZneg});
 
         for (const auto idx: {
-                     0 + 0, 0 + 1, 0 + 2, 0 + 2, 0 + 3, 0 + 0,      //X+
-                     4 + 0, 4 + 1, 4 + 2, 4 + 2, 4 + 3, 4 + 0,      //X-
-                     8 + 0, 8 + 1, 8 + 2, 8 + 2, 8 + 3, 8 + 0,      //Y+
-                     12 + 0, 12 + 1, 12 + 2, 12 + 2, 12 + 3, 12 + 0,//Y-
-                     16 + 0, 16 + 1, 16 + 2, 16 + 2, 16 + 3, 16 + 0,//Z+
-                     20 + 0, 20 + 1, 20 + 2, 20 + 2, 20 + 3, 20 + 0,//Z-
-             }) {
+                0 + 0, 0 + 1, 0 + 2, 0 + 2, 0 + 3, 0 + 0,      //X+
+                4 + 0, 4 + 1, 4 + 2, 4 + 2, 4 + 3, 4 + 0,      //X-
+                8 + 0, 8 + 1, 8 + 2, 8 + 2, 8 + 3, 8 + 0,      //Y+
+                12 + 0, 12 + 1, 12 + 2, 12 + 2, 12 + 3, 12 + 0,//Y-
+                16 + 0, 16 + 1, 16 + 2, 16 + 2, 16 + 3, 16 + 0,//Z+
+                20 + 0, 20 + 1, 20 + 2, 20 + 2, 20 + 3, 20 + 0,//Z-
+        }) {
             triangleData.addRawIndex(idx);
+        }
+    }
+
+    CylinderNode::CylinderNode(const ldr::ColorReference &triangleColor, const std::shared_ptr<Node> &parent)
+            : GeneratedMeshNode(triangleColor, parent) {
+
+    }
+
+    std::string CylinderNode::getDescription() {
+        return "Cylinder";
+    }
+
+    mesh_identifier_t CylinderNode::getMeshIdentifier() const {
+        return constants::MESH_ID_CYLINDER;
+    }
+
+    void CylinderNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh,
+                                 bool windingInversed,
+                                 const std::shared_ptr<ldr::TexmapStartCommand> &texmap) {
+        const ldr::ColorReference &color = ldr::color_repo::getInstanceDummyColor();
+
+        if (windingInversed) {
+            spdlog::warn("CylinderNode::addToMesh with windingInversed currently not supported");
+        }
+
+        auto &triangleData = mesh->getTriangleData(color);
+        if (triangleData.getVertexCount() > 0) {
+            spdlog::warn("CylinderNode::addToMesh triangle verticesList not empty, existing vertices are removed");
+        }
+
+        constexpr auto OFFSET_TOP_CIRCLE = 0;
+        constexpr auto OFFSET_TOP_LATERAL = 1;
+        constexpr auto OFFSET_BOTTOM_LATERAL = 2;
+        constexpr auto OFFSET_BOTTOM_CIRCLE = 3;
+        constexpr auto ROW_LENGTH = 4;
+
+        for (int i = 0; i < NUM_CORNERS; ++i) {
+            const auto angle = 2 * M_PI * i / NUM_CORNERS;
+            const auto x = std::cos(angle);
+            const auto y = std::sin(angle);
+            triangleData.addRawVertex({{x * .5f, y * .5f, .5f},
+                                       {0,       0,       1}});//0 Top circle (z=0.5, normal=[0,0,1])
+            triangleData.addRawVertex({{x * .5f, y * .5f, .5},
+                                       {x,       y,       0}});//1 Top lateral (z=0.5, normal=[?,?,0])
+            triangleData.addRawVertex({{x * .5f, y * .5f, -.5},
+                                       {x,       y,       0}});//2 Bottom lateral (z=-0.5, normal=[?,?,0])
+            triangleData.addRawVertex({{x * .5f, y * .5f, -.5f},
+                                       {0,       0,       1}});//3 Bottom circle (z=-0.5, normal=[0,0,-1])
+        }
+        for (int i = 2; i < NUM_CORNERS; ++i) {
+            //top circle
+            triangleData.addRawIndex(OFFSET_TOP_CIRCLE + 0);
+            triangleData.addRawIndex(OFFSET_TOP_CIRCLE + (i - 1) * ROW_LENGTH);
+            triangleData.addRawIndex(OFFSET_TOP_CIRCLE + i * ROW_LENGTH);
+
+            //bottom circle
+            triangleData.addRawIndex(OFFSET_BOTTOM_CIRCLE + 0);
+            triangleData.addRawIndex(OFFSET_BOTTOM_CIRCLE + i * ROW_LENGTH);
+            triangleData.addRawIndex(OFFSET_BOTTOM_CIRCLE + (i - 1) * ROW_LENGTH);
+        }
+        for (int i1 = 0; i1 < NUM_CORNERS; ++i1) {
+            const auto i2 = (i1 + 1) % NUM_CORNERS;
+            //        i1     i2
+            //Top     A-------B
+            //        | \     |
+            //        |   \   |
+            //        |     \ |
+            //Bottom  C-------D
+            triangleData.addRawIndex(OFFSET_BOTTOM_LATERAL + ROW_LENGTH * i1);//A
+            triangleData.addRawIndex(OFFSET_TOP_LATERAL + ROW_LENGTH * i1);//C
+            triangleData.addRawIndex(OFFSET_BOTTOM_LATERAL + ROW_LENGTH * i2);//B
+
+            triangleData.addRawIndex(OFFSET_BOTTOM_LATERAL + ROW_LENGTH * i2);//B
+            triangleData.addRawIndex(OFFSET_TOP_LATERAL + ROW_LENGTH * i1);//C
+            triangleData.addRawIndex(OFFSET_TOP_LATERAL + ROW_LENGTH * i2);//D
         }
     }
 }

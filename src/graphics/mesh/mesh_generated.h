@@ -8,11 +8,20 @@
 
 namespace bricksim::mesh::generated {
 
+    enum class TriangleLineMode {
+        TRIANGLES_AND_LINES,
+        ONLY_TRIANGLES,
+        ONLY_LINES,
+    };
+
     class GeneratedMeshNode : public etree::MeshNode {
     public:
-        GeneratedMeshNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent);
+        GeneratedMeshNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent);
+
         bool isDisplayNameUserEditable() const override;
+
         bool isTransformationUserEditable() const override;
+
         bool isColorUserEditable() const override;
     };
 
@@ -46,14 +55,40 @@ namespace bricksim::mesh::generated {
         QuarterTorusNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent);
         std::string getDescription() override;
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
+
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
+                       const std::shared_ptr<ldr::TexmapStartCommand> &texmap) override;
     };
 
     class CubeNode : public GeneratedMeshNode {
     public:
-        CubeNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent);
+        CubeNode(const ldr::ColorReference &color, const std::shared_ptr<Node> &parent);
+
         std::string getDescription() override;
+
         mesh_identifier_t getMeshIdentifier() const override;
-        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
+
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
+                       const std::shared_ptr<ldr::TexmapStartCommand> &texmap) override;
+    };
+
+    /**
+     * A cylinder with length 1 and radius 1
+     * Coordinate origin is in center and start/end circles are in Z direction
+     */
+    class CylinderNode : public GeneratedMeshNode {
+    protected:
+
+    public:
+        static constexpr uint16_t NUM_CORNERS = 12;
+
+        CylinderNode(const ldr::ColorReference &triangleColor, const std::shared_ptr<Node> &parent);
+
+        std::string getDescription() override;
+
+        mesh_identifier_t getMeshIdentifier() const override;
+
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
+                       const std::shared_ptr<ldr::TexmapStartCommand> &texmap) override;
     };
 }

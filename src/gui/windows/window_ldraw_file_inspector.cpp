@@ -9,6 +9,7 @@
 #include "../gui_internal.h"
 #include "spdlog/spdlog.h"
 #include "../gui.h"
+#include "glm/gtx/string_cast.hpp"
 #include <sstream>
 
 namespace bricksim::gui::windows::ldraw_file_inspector {
@@ -71,39 +72,85 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
         }
 
         void showBrickSimSnapConnectorTree() {
-            const auto connectors = connection::getConnectorsOfPart(currentFile->metaInfo.name);
-            for (const auto &item: connectors) {
-                const auto clipConn = std::dynamic_pointer_cast<connection::ClipConnector>(item);
-                const auto cylConn = std::dynamic_pointer_cast<connection::CylindricalConnector>(item);
-                const auto fgrConn = std::dynamic_pointer_cast<connection::FingerConnector>(item);
-                const auto genConn = std::dynamic_pointer_cast<connection::GenericConnector>(item);
-                const char *name;
-                if (clipConn != nullptr) {
-                    name = "Clip";
-                } else if (cylConn != nullptr) {
-                    name = "Cylinder";
-                } else if (fgrConn != nullptr) {
-                    name = "Finger";
-                } else if (genConn != nullptr) {
-                    name = "Generic";
-                }
-                if (ImGui::TreeNode(item.get(), "%s", name)) {
+            if (ImGui::BeginChild("##snapConnectorTree")) {
+                const auto &connectors = connection::getConnectorsOfPart(currentFile->metaInfo.name);
+                char *nodeId = 0;
+                for (const auto &item: connectors) {
+                    const auto clipConn = std::dynamic_pointer_cast<connection::ClipConnector>(item);
+                    const auto cylConn = std::dynamic_pointer_cast<connection::CylindricalConnector>(item);
+                    const auto fgrConn = std::dynamic_pointer_cast<connection::FingerConnector>(item);
+                    const auto genConn = std::dynamic_pointer_cast<connection::GenericConnector>(item);
+                    const char *name;
                     if (clipConn != nullptr) {
-                        ImGui::BulletText("AA");
-                        ImGui::BulletText("AA2");
+                        name = "Clip";
                     } else if (cylConn != nullptr) {
-                        ImGui::BulletText("BB");
-                        ImGui::BulletText("BB2");
+                        name = "Cylinder";
                     } else if (fgrConn != nullptr) {
-                        ImGui::BulletText("CC");
-                        ImGui::BulletText("CC3");
+                        name = "Finger";
                     } else if (genConn != nullptr) {
-                        ImGui::BulletText("DD");
-                        ImGui::BulletText("DD4");
+                        name = "Generic";
                     }
-                    ImGui::TreePop();
+                    if (ImGui::TreeNode((void *) (nodeId++), "%s", name)) {
+                        ImGui::BulletText("location=%s", glm::to_string(item->location).c_str());
+                        if (clipConn != nullptr) {
+                            ImGui::BulletText("radius=%f", clipConn->radius);
+                            ImGui::BulletText("width=%f", clipConn->width);
+                            ImGui::BulletText("slide=%s", std::to_string(clipConn->slide).c_str());
+                        } else if (cylConn != nullptr) {
+                            ImGui::BulletText("gender=%s", magic_enum::enum_name(cylConn->gender).data());
+                            if (ImGui::TreeNode("Parts")) {
+                                for (const auto &part: cylConn->parts) {
+                                    ImGui::BulletText("type=%s flexibleRadius=%s radius=%f length=%f",
+                                                      magic_enum::enum_name(part.type).data(),
+                                                      std::to_string(part.flexibleRadius).c_str(),
+                                                      part.radius,
+                                                      part.length);
+                                }
+                                ImGui::TreePop();
+                            }
+                            ImGui::BulletText("openStart=%s", std::to_string(cylConn->openStart).c_str());
+                            ImGui::BulletText("openEnd=%s", std::to_string(cylConn->openEnd).c_str());
+                            ImGui::BulletText("slide=%s", std::to_string(cylConn->slide).c_str());
+                        } else if (fgrConn != nullptr) {
+                            ImGui::BulletText("gender=%s", magic_enum::enum_name(fgrConn->firstFingerGender).data());
+                            ImGui::BulletText("radius=%f", fgrConn->radius);
+                            if (ImGui::TreeNode("Finger Widths")) {
+                                for (const auto &width: fgrConn->fingerWidths) {
+                                    ImGui::BulletText("%f", width);
+                                }
+                                ImGui::TreePop();
+                            }
+                        } else if (genConn != nullptr) {
+                            ImGui::BulletText("gender=%s", magic_enum::enum_name(genConn->gender).data());
+                            if (std::holds_alternative<connection::BoundingPnt>(genConn->bounding)) {
+                                const auto &bounding = std::get<connection::BoundingPnt>(genConn->bounding);
+                                ImGui::BulletText("bounding=point");
+                            } else if (std::holds_alternative<connection::BoundingBox>(genConn->bounding)) {
+                                const auto &bounding = std::get<connection::BoundingBox>(genConn->bounding);
+                                ImGui::BulletText("bounding=box");
+                                ImGui::BulletText("x=%f", bounding.x);
+                                ImGui::BulletText("y=%f", bounding.y);
+                                ImGui::BulletText("z=%f", bounding.z);
+                            } else if (std::holds_alternative<connection::BoundingCube>(genConn->bounding)) {
+                                const auto &bounding = std::get<connection::BoundingCube>(genConn->bounding);
+                                ImGui::BulletText("bounding=cube");
+                                ImGui::BulletText("size=%f", bounding.size);
+                            } else if (std::holds_alternative<connection::BoundingCyl>(genConn->bounding)) {
+                                const auto &bounding = std::get<connection::BoundingCyl>(genConn->bounding);
+                                ImGui::BulletText("bounding=cyl");
+                                ImGui::BulletText("radius=%f", bounding.radius);
+                                ImGui::BulletText("length=%f", bounding.length);
+                            } else if (std::holds_alternative<connection::BoundingSph>(genConn->bounding)) {
+                                const auto &bounding = std::get<connection::BoundingSph>(genConn->bounding);
+                                ImGui::BulletText("bounding=sph");
+                                ImGui::BulletText("radius=%f", bounding.radius);
+                            }
+                        }
+                        ImGui::TreePop();
+                    }
                 }
             }
+            ImGui::EndChild();
         }
 
         void showBrickSimConnectionVisualization() {
@@ -135,17 +182,12 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                 dragging = false;
             }
 
-            spdlog::debug("lastLeft={}, nowLeft={}, nowFocus={}, dragging={}, lastPos={};{}, nowPos={};{}, delta={};{}",
-                          lastLeftDown, nowLeftDown, nowFocussedAndHovered, dragging,
-                          lastRelCursorPos.x, lastRelCursorPos.y,
-                          nowRelCursorPos.x, nowRelCursorPos.y,
-                          cursorDelta.x, cursorDelta.y);
             if (dragging && (cursorDelta.x != 0 || cursorDelta.y != 0)) {
                 camera->mouseRotate(cursorDelta);
             }
 
             const auto lastScrollDeltaY = getLastScrollDeltaY();
-            if (std::abs(lastScrollDeltaY) > 0.01) {
+            if (std::abs(lastScrollDeltaY) > 0.01 && nowFocussedAndHovered) {
                 camera->moveForwardBackward((float) lastScrollDeltaY);
             }
 
@@ -156,7 +198,9 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
             ImGui::ImageButton("connectionVisualization",
                                gui_internal::convertTextureId(visualizationImg),
-                               imgButtonSize);
+                               imgButtonSize,
+                               {0, 1},
+                               {1, 0});
             //todo handle mouse drag (update camera)
             ImGui::PopStyleVar();
         }
@@ -210,7 +254,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                 ImGui::EndTable();
             }
 
-            ImGui::EndTabItem();
+
 
             /*
 
@@ -247,18 +291,47 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
     void draw(Data &data) {
         if (ImGui::Begin(data.name, &data.visible)) {
+            static std::array<bool, magic_enum::enum_count<ldr::FileType>()> showTypes;
+
+            if (static bool first = true; first) {
+                first = false;
+                std::ranges::fill(showTypes, true);
+            }
             char partName[256] = {0};
             ImGui::InputText("Part Name", partName, sizeof(partName), ImGuiInputTextFlags_CallbackAlways,
                              partNameInputCallback);
 
-            if (ImGui::BeginListBox("All Files")) {
-                for (const auto &item: ldr::file_repo::get().getAllFilesInMemory()) {
-                    const auto text = fmt::format("{}: {}", item.first, item.second.second->metaInfo.title);
-                    if (ImGui::Selectable(text.c_str(), item.second.second == currentFile)) {
-                        setCurrentFile(item.second.second);
-                    }
+            if (ImGui::BeginTable("##File selector", 2, ImGuiTableFlags_None)) {
+                //ImGui::TableNextRow();
+                ImGui::TableSetupColumn("##filters", ImGuiTableColumnFlags_NoReorder
+                                                     | ImGuiTableColumnFlags_NoResize
+                                                     | ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("##listbox", ImGuiTableColumnFlags_NoReorder
+                                                     | ImGuiTableColumnFlags_NoResize);
+                ImGui::TableNextColumn();
+                for (int i = 0; i < magic_enum::enum_count<ldr::FileType>(); ++i) {
+                    const auto type = static_cast<const ldr::FileType>(i);
+                    const auto typeName = magic_enum::enum_name<ldr::FileType>(type);
+                    ImGui::Checkbox(typeName.data(), &showTypes[i]);
                 }
-                ImGui::EndListBox();
+
+                ImGui::TableNextColumn();
+
+                ImGui::PushItemWidth(-1.f);
+                if (ImGui::BeginListBox("##All Files")) {
+                    for (const auto &item: ldr::file_repo::get().getAllFilesInMemory()) {
+                        if (showTypes[item.second.second->metaInfo.type]) {
+                            const auto text = fmt::format("{}: {}", item.first, item.second.second->metaInfo.title);
+                            if (ImGui::Selectable(text.c_str(), item.second.second == currentFile)) {
+                                setCurrentFile(item.second.second);
+                            }
+                        }
+                    }
+                    ImGui::EndListBox();
+                }
+                ImGui::PopItemWidth();
+
+                ImGui::EndTable();
             }
 
             if (currentFile != nullptr) {
@@ -271,8 +344,8 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                     if (ImGui::BeginTabItem("Raw Content")) {
                         if (ImGui::BeginChild("Content", ImVec2(0, 0), true, ImGuiWindowFlags_None)) {
                             ImGui::TextUnformatted(content.c_str());
-                            ImGui::EndChild();
                         }
+                        ImGui::EndChild();
                         ImGui::EndTabItem();
                     }
                     if (ImGui::BeginTabItem("Meta Snap Info")) {
@@ -282,17 +355,17 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                     }
                     if (ImGui::BeginTabItem("BrickSim Snap Info")) {
                         showBrickSimConnectionVisualization();
-
+                        ImGui::SameLine();
                         showBrickSimSnapConnectorTree();
 
                         ImGui::EndTabItem();
                     }
                     if (ImGui::BeginTabItem("Meta Info")) {
                         showMetaInfo();
+                        ImGui::EndTabItem();
                     }
                     ImGui::EndTabBar();
                 }
-
             } else {
                 ImGui::Text("No file named \"%s\" in memory.", partName);
             }

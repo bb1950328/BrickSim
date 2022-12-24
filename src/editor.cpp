@@ -124,7 +124,7 @@ namespace bricksim {
         } else {
             selectedNodes.erase(iterator);
         }
-        updateSelectionVisualisation();
+        updateSelectionVisualization();
     }
 
     void Editor::nodeSelectSet(const std::shared_ptr<etree::Node>& node) {
@@ -134,7 +134,7 @@ namespace bricksim {
         selectedNodes.clear();
         node->selected = true;
         selectedNodes.emplace(node, node->getVersion());
-        updateSelectionVisualisation();
+        updateSelectionVisualization();
     }
 
     void Editor::nodeSelectUntil(const std::shared_ptr<etree::Node>& node) {
@@ -157,14 +157,14 @@ namespace bricksim {
                 selectedNodes.emplace(itNode, itNode->getVersion());
             }
         }
-        updateSelectionVisualisation();
+        updateSelectionVisualization();
     }
 
     void Editor::nodeSelectAll() {
         nodeSelectNone();
         documentNode->selected = true;
         selectedNodes.emplace(documentNode, documentNode->getVersion());
-        updateSelectionVisualisation();
+        updateSelectionVisualization();
     }
 
     void Editor::nodeSelectNone() {
@@ -172,7 +172,7 @@ namespace bricksim {
             item.first->selected = false;
         }
         selectedNodes.clear();
-        updateSelectionVisualisation();
+        updateSelectionVisualization();
     }
 
     void Editor::setStandard3dView(int i) {
@@ -209,7 +209,7 @@ namespace bricksim {
         parent->removeChild(nodeToDelete);
         parent->incrementVersion();
         selectedNodes.erase(nodeToDelete);
-        updateSelectionVisualisation();
+        updateSelectionVisualization();
     }
 
     void Editor::deleteSelectedElements() {
@@ -217,7 +217,7 @@ namespace bricksim {
             deleteElement(item.first);
         }
         selectedNodes.clear();
-        updateSelectionVisualisation();
+        updateSelectionVisualization();
     }
 
     void Editor::hideSelectedElements() {
@@ -301,35 +301,41 @@ namespace bricksim {
     void Editor::handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename, efsw::Action action, std::string oldFilename) {
         auto fullPath = std::filesystem::path(dir) / filename;
         if (filePath.has_value() && fullPath == filePath.value()) {
-            spdlog::info(R"(editor file change detected: {} fullPath="{}" oldFilename="{}")", magic_enum::enum_name(action), fullPath.string(), oldFilename);
+            spdlog::info(R"(editor file change detected: {} fullPath="{}" oldFilename="{}")",
+                         magic_enum::enum_name(action), fullPath.string(), oldFilename);
             rootNode->removeChild(documentNode);
-            documentNode = std::make_shared<etree::MpdNode>(ldr::file_repo::get().reloadFile(filePath->string()), 1, rootNode);
+            documentNode = std::make_shared<etree::MpdNode>(ldr::file_repo::get().reloadFile(filePath->string()), 1,
+                                                            rootNode);
             documentNode->createChildNodes();
             rootNode->addChild(documentNode);
             documentNode->incrementVersion();
         }
     }
-    void Editor::updateSelectionVisualisation() {
+
+    void Editor::updateSelectionVisualization() {
         if (selectedNodes.empty()) {
-            if (selectionVisualisationNode != nullptr && selectionVisualisationNode->visible) {
-                selectionVisualisationNode->visible = false;
-                selectionVisualisationNode->incrementVersion();
+            if (selectionVisualizationNode != nullptr && selectionVisualizationNode->visible) {
+                selectionVisualizationNode->visible = false;
+                selectionVisualizationNode->incrementVersion();
             }
         } else {
-            if (selectionVisualisationNode == nullptr) {
-                selectionVisualisationNode = std::make_shared<SelectionVisualisationNode>(rootNode);
-                rootNode->addChild(selectionVisualisationNode);
+            if (selectionVisualizationNode == nullptr) {
+                selectionVisualizationNode = std::make_shared<SelectionVisualizationNode>(rootNode);
+                rootNode->addChild(selectionVisualizationNode);
             }
-            selectionVisualisationNode->visible = false;
+            selectionVisualizationNode->visible = false;
 
             if (selectedNodes.size() == 1) {
                 const auto meshNode = std::dynamic_pointer_cast<etree::MeshNode>(selectedNodes.begin()->first);
                 if (meshNode != nullptr) {
                     const auto relativeAABB = scene->getMeshCollection().getRelativeAABB(meshNode);
                     if (relativeAABB.isDefined()) {
-                        const auto rotatedBBox = mesh::RotatedBoundingBox(relativeAABB, glm::vec3(0.f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f)).transform(glm::transpose(meshNode->getAbsoluteTransformation()));
-                        selectionVisualisationNode->visible = true;
-                        selectionVisualisationNode->setRelativeTransformation(glm::transpose(rotatedBBox.getUnitBoxTransformation()));
+                        const auto rotatedBBox = mesh::RotatedBoundingBox(relativeAABB, glm::vec3(0.f, 0.f, 0.f),
+                                                                          glm::quat(1.f, 0.f, 0.f, 0.f)).transform(
+                                glm::transpose(meshNode->getAbsoluteTransformation()));
+                        selectionVisualizationNode->visible = true;
+                        selectionVisualizationNode->setRelativeTransformation(
+                                glm::transpose(rotatedBBox.getUnitBoxTransformation()));
                     }
                 }
                 selectedNodes.begin()->second = selectedNodes.begin()->first->getVersion();
@@ -346,16 +352,16 @@ namespace bricksim {
                     node.second = node.first->getVersion();
                 }
                 if (aabb.isDefined()) {
-                    selectionVisualisationNode->visible = true;
+                    selectionVisualizationNode->visible = true;
                     glm::mat4 transf(1.f);
                     transf = glm::translate(transf, aabb.getCenter());
                     transf = glm::scale(transf, aabb.getSize() / 2.f);
                     spdlog::debug("center={}, size={}", aabb.getCenter(), aabb.getSize());
-                    selectionVisualisationNode->setRelativeTransformation(glm::transpose(transf));
+                    selectionVisualizationNode->setRelativeTransformation(glm::transpose(transf));
                 } else {
                 }
             }
-            selectionVisualisationNode->incrementVersion();
+            selectionVisualizationNode->incrementVersion();
         }
     }
 
@@ -363,21 +369,24 @@ namespace bricksim {
         transformGizmo->update();
         for (const auto& item: selectedNodes) {
             if (item.first->getVersion() != item.second) {
-                updateSelectionVisualisation();
+                updateSelectionVisualization();
                 break;
             }
         }
     }
 
-    SelectionVisualisationNode::SelectionVisualisationNode(const std::shared_ptr<Node>& parent) :
-        MeshNode(1, parent, nullptr) {
+    SelectionVisualizationNode::SelectionVisualizationNode(const std::shared_ptr<Node> &parent) :
+            MeshNode(1, parent, nullptr) {
         visibleInElementTree = false;
     }
-    mesh_identifier_t SelectionVisualisationNode::getMeshIdentifier() const {
-        return constants::MESH_ID_SELECTION_VISUALISATION;
+
+    mesh_identifier_t SelectionVisualizationNode::getMeshIdentifier() const {
+        return constants::MESH_ID_SELECTION_VISUALIZATION;
     }
-    void SelectionVisualisationNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
-        auto& lineData = mesh->getLineData();
+
+    void SelectionVisualizationNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
+                                               const std::shared_ptr<ldr::TexmapStartCommand> &texmap) {
+        auto &lineData = mesh->getLineData();
         glm::vec3 color(0, 0, 1);
         //square z=-1
         lineData.addVertex({glm::vec3(-1, -1, -1), color});
@@ -418,7 +427,8 @@ namespace bricksim {
         lineData.addVertex({glm::vec3(+1, +1, -1), color});
         lineData.addVertex({glm::vec3(+1, +1, +1), color});
     }
-    bool SelectionVisualisationNode::isDisplayNameUserEditable() const {
+
+    bool SelectionVisualizationNode::isDisplayNameUserEditable() const {
         return false;
     }
 }

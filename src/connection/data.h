@@ -18,7 +18,9 @@ namespace bricksim::connection {
         std::string group;
         glm::mat4 location;
 
-        Connector(std::string  group, const glm::mat4& location);
+        Connector(std::string group, const glm::mat4 &location);
+
+        virtual ~Connector() {}
     };
 
     enum class CylindricalShapeType {

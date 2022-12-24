@@ -188,6 +188,7 @@ namespace bricksim::graphics {
     void Scene::setRootNode(const std::shared_ptr<etree::Node>& newRootNode) {
         rootNode = newRootNode;
         meshCollection.setRootNode(rootNode);
+        imageEtreeVersion = 0;
     }
 
     const std::shared_ptr<Camera>& Scene::getCamera() const {

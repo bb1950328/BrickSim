@@ -207,8 +207,8 @@ namespace bricksim::gui {
         }
     }
     void showSaveFileAsDialog(const std::shared_ptr<Editor>& editor) {
-        std::string title = fmt::v8::format("Save \"{}\" as", editor->getFilename());
-        char* fileNameChars = tinyfd_saveFileDialog(
+        std::string title = fmt::format("Save \"{}\" as", editor->getFilename());
+        char *fileNameChars = tinyfd_saveFileDialog(
                 title.c_str(),
                 "",
                 NUM_LDR_FILTER_PATTERNS,
@@ -229,8 +229,8 @@ namespace bricksim::gui {
         }
     }
     void showSaveCopyAsDialog(const std::shared_ptr<Editor>& editor) {
-        std::string title = fmt::v8::format("Save copy of \"{}\"", editor->getFilename());
-        char* fileNameChars = tinyfd_saveFileDialog(
+        std::string title = fmt::format("Save copy of \"{}\"", editor->getFilename());
+        char *fileNameChars = tinyfd_saveFileDialog(
                 "Save Copy As",
                 "",
                 NUM_LDR_FILTER_PATTERNS,
@@ -251,8 +251,8 @@ namespace bricksim::gui {
         }
     }
     void showScreenshotDialog(const std::shared_ptr<Editor>& editor) {
-        std::string title = fmt::v8::format("Save Screenshot of \"{}\"", editor->getFilename());
-        char* fileNameChars = tinyfd_saveFileDialog(
+        std::string title = fmt::format("Save Screenshot of \"{}\"", editor->getFilename());
+        char *fileNameChars = tinyfd_saveFileDialog(
                 title.c_str(),
                 "",
                 NUM_IMAGE_FILTER_PATTERNS,

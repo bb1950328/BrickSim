@@ -39,6 +39,7 @@ namespace bricksim::graphics {
         constexpr scene_id_t THUMBNAIL_SCENE_ID = 10;
         constexpr scene_id_t ORIENTATION_CUBE_SCENE_ID = 20;
         constexpr scene_id_t FIRST_MAIN_SCENE_ID = 30;
+        constexpr scene_id_t CONNECTION_VISUALIZATION_SCENE_ID = 40;
         std::shared_ptr<Scene> create(scene_id_t sceneId);
         std::shared_ptr<Scene>& get(scene_id_t sceneId);
         void remove(scene_id_t sceneId);

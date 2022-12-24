@@ -19,7 +19,7 @@ namespace bricksim::constants {
     constexpr mesh_identifier_t MESH_ID_QUARTER_TORUS = 11;
     constexpr mesh_identifier_t MESH_ID_TRANSFORM_GIZMO_2D_ARROW = 12;
     constexpr mesh_identifier_t MESH_ID_CUBE = 13;
-    constexpr mesh_identifier_t MESH_ID_SELECTION_VISUALISATION = 14;
+    constexpr mesh_identifier_t MESH_ID_SELECTION_VISUALIZATION = 14;
 
     extern const uint16_t versionMajor;
     extern const uint16_t versionMinor;

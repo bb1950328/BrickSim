@@ -20,6 +20,7 @@
 #include "stb_image.h"
 #include "stb_image_write.h"
 #include "user_actions.h"
+#include "graphics/connection_visualization.h"
 #include <glad/glad.h>
 #include <palanteer.h>
 #include <spdlog/spdlog.h>
@@ -333,6 +334,7 @@ namespace bricksim::controller {
             spdlog::info("all background tasks finished, exiting now");
             gui::cleanup();
             graphics::orientation_cube::cleanup();
+            graphics::connection_visualization::cleanupIfNeeded();
             graphics::Texture::deleteCached();
             graphics::shaders::cleanup();
             activeEditor = nullptr;
@@ -393,9 +395,9 @@ namespace bricksim::controller {
         //openFile("test_files/texmap_planar3.ldr");
         //openFile("test_files/texmap_planar_perpendicular.ldr");
         //openFile("test_files/omr/arocs.mpd");
-        openFile("test_files/omr/chiron.mpd");
+        //openFile("test_files/omr/chiron.mpd");
         //openFile("3001.dat");
-        //openFile("car.ldr");
+        openFile("car.ldr");
         //openFile("~/Downloads/datsville.ldr");
         //openFile("~/Downloads/42131_Bulldozer.mpd");
 

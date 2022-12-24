@@ -8,11 +8,15 @@
 
 namespace bricksim {
 
-    class SelectionVisualisationNode : public etree::MeshNode {
+    class SelectionVisualizationNode : public etree::MeshNode {
     public:
-        SelectionVisualisationNode(const std::shared_ptr<Node>& parent);
+        SelectionVisualizationNode(const std::shared_ptr<Node> &parent);
+
         virtual mesh_identifier_t getMeshIdentifier() const override;
-        virtual void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
+
+        virtual void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
+                               const std::shared_ptr<ldr::TexmapStartCommand> &texmap) override;
+
         [[nodiscard]] virtual bool isDisplayNameUserEditable() const override;
     };
 
@@ -78,8 +82,11 @@ namespace bricksim {
         void update();
 
     private:
-        void handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename, efsw::Action action, std::string oldFilename) override;
-        void updateSelectionVisualisation();
+        void handleFileAction(efsw::WatchID watchid, const std::string &dir, const std::string &filename,
+                              efsw::Action action, std::string oldFilename) override;
+
+        void updateSelectionVisualization();
+
         static std::string getNameForNewLdrFile();
         void init(const std::shared_ptr<ldr::File>& ldrFile);
 
@@ -92,7 +99,7 @@ namespace bricksim {
         std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;
         uint64_t lastSavedVersion = 0;
         uomap_t<std::shared_ptr<etree::Node>, uint64_t> selectedNodes;//value is last version, use to check if selected node was modified in the meantime
-        std::shared_ptr<SelectionVisualisationNode> selectionVisualisationNode;
+        std::shared_ptr<SelectionVisualizationNode> selectionVisualizationNode;
         std::shared_ptr<graphics::CadCamera> camera;
 
         enum class DraggingNodeType {

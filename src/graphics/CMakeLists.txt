@@ -1,6 +1,8 @@
 target_sources(BrickSimLib PRIVATE
         camera.cpp
         camera.h
+        connection_visualization.cpp
+        connection_visualization.h
         opengl_native_or_replacement.cpp
         opengl_native_or_replacement.h
         orientation_cube.cpp

@@ -21,7 +21,8 @@ namespace bricksim::connection {
 
         Connector(std::string group, const glm::vec3& start);
 
-        virtual ~Connector() {}
+        virtual std::shared_ptr<Connector> clone();
+        virtual ~Connector(){};
     };
 
     enum class CylindricalShapeType {
@@ -57,6 +58,7 @@ namespace bricksim::connection {
                              bool slide);
 
         float getTotalLength() const;
+        std::shared_ptr<Connector> clone() override;
     };
 
     class ClipConnector : public Connector {
@@ -72,6 +74,7 @@ namespace bricksim::connection {
                       float radius,
                       float width,
                       bool slide);
+        std::shared_ptr<Connector> clone() override;
     };
 
     class FingerConnector : public Connector {
@@ -80,12 +83,14 @@ namespace bricksim::connection {
         Gender firstFingerGender;
         float radius;
         std::vector<float> fingerWidths;
+        std::shared_ptr<Connector> clone() override;
     };
 
     class GenericConnector : public Connector {
     public:
         Gender gender;
         bounding_variant_t bounding;
+        std::shared_ptr<Connector> clone() override;
     };
 
     class DegreesOfFreedom {

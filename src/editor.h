@@ -107,5 +107,6 @@ namespace bricksim {
             TRANSFORM_GIZMO,
         };
         DraggingNodeType currentlyDraggingNodeType = DraggingNodeType::NONE;//todo change this to object oriented design
+        void addConnectorDataVisualization(const std::shared_ptr<etree::Node>& node) const;
     };
 }

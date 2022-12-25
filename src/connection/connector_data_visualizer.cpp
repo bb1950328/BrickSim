@@ -17,11 +17,16 @@ namespace bricksim::connection::visualization {
         xyzLineNode->setRelativeTransformation(glm::transpose(glm::scale(glm::mat4(1.f), glm::vec3(100.f))));
         root->addChild(xyzLineNode);
 
+        addVisualization(partName, root);
+
+        return root;
+    }
+    void addVisualization(const std::string& partName, const std::shared_ptr<etree::Node>& root) {
         for (const auto& conn: getConnectorsOfPart(partName)) {
-            const auto cylConn = std::dynamic_pointer_cast<connection::CylindricalConnector>(conn);
-            const auto clipConn = std::dynamic_pointer_cast<connection::ClipConnector>(conn);
-            const auto fgrConn = std::dynamic_pointer_cast<connection::FingerConnector>(conn);
-            const auto genConn = std::dynamic_pointer_cast<connection::GenericConnector>(conn);
+            const auto cylConn = std::dynamic_pointer_cast<CylindricalConnector>(conn);
+            const auto clipConn = std::dynamic_pointer_cast<ClipConnector>(conn);
+            const auto fgrConn = std::dynamic_pointer_cast<FingerConnector>(conn);
+            const auto genConn = std::dynamic_pointer_cast<GenericConnector>(conn);
             if (cylConn != nullptr) {
                 const glm::vec3 direction = cylConn->direction;
                 const auto directionAsQuat = geometry::quaternionRotationFromOneVectorToAnother({0.f, 0.f, 1.f}, direction);
@@ -59,6 +64,5 @@ namespace bricksim::connection::visualization {
         }
 
         root->incrementVersion();
-        return root;
     }
 }

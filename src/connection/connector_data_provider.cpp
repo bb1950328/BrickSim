@@ -159,7 +159,10 @@ namespace bricksim::connection {
                             break;
                     }
 
-                    //TODO center and mirror
+                    //TODO mirror
+                    if (cylCommand->center) {
+                        result->start += result->direction * (result->getTotalLength() * -.5f);
+                    }
 
                     if (cylCommand->grid.has_value()) {
                         std::vector<std::shared_ptr<Connector>> base{result};

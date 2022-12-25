@@ -10,22 +10,23 @@ namespace bricksim::ldr::file_repo {
     public:
         const std::filesystem::path basePath;
         explicit ShadowFileRepo(const std::filesystem::path& basePath);
-        virtual std::optional<std::string> getContent(std::string pathRelativeToBase) = 0;
+        virtual std::optional<std::string> getContent(const std::string& pathRelativeToBase) = 0;
         virtual ~ShadowFileRepo();
     };
 
     class RegularShadowFileRepo : public ShadowFileRepo {
     public:
         explicit RegularShadowFileRepo(const std::filesystem::path& basePath);
-        std::optional<std::string> getContent(std::string pathRelativeToBase) override;
+        std::optional<std::string> getContent(const std::string& pathRelativeToBase) override;
     };
 
     class ZipShadowFileRepo : public ShadowFileRepo {
     public:
         static bool isValidZip(const std::filesystem::path& candidatePath);
         explicit ZipShadowFileRepo(const std::filesystem::path& basePath);
-        std::optional<std::string> getContent(std::string pathRelativeToBase) override;
-    protected:
+        std::optional<std::string> getContent(const std::string& pathRelativeToBase) override;
+
+    private:
         zip_t* archive;
         std::mutex libzipLock;
     };
@@ -33,7 +34,7 @@ namespace bricksim::ldr::file_repo {
     class EmptyShadowFileRepo : public ShadowFileRepo {
     public:
         explicit EmptyShadowFileRepo();
-        std::optional<std::string> getContent(std::string pathRelativeToBase) override;
+        std::optional<std::string> getContent(const std::string& pathRelativeToBase) override;
     };
 
     ShadowFileRepo& getShadowFileRepo();

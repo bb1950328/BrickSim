@@ -103,12 +103,13 @@ namespace bricksim::mesh::generated {
 
     class LineSunNode : public GeneratedMeshNode {
     private:
-        SimpleLineColor lineColor;
+        const SimpleLineColor lineColor;
+        const bool inverted;
 
     public:
         static constexpr uint16_t NUM_CORNERS = 12;
 
-        LineSunNode(const std::shared_ptr<Node>& parent, SimpleLineColor color);
+        LineSunNode(const std::shared_ptr<Node>& parent, SimpleLineColor color, bool inverted);
 
         std::string getDescription() override;
 

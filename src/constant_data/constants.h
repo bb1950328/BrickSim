@@ -22,17 +22,17 @@ namespace bricksim::constants {
     constexpr mesh_identifier_t MESH_ID_SELECTION_VISUALIZATION = 14;
     constexpr mesh_identifier_t MESH_ID_CYLINDER = 15;
     constexpr mesh_identifier_t MESH_ID_LINE_SUN_FIRST = 16;
-    constexpr mesh_identifier_t MESH_ID_LINE_SUN_LAST = 26;
-    constexpr mesh_identifier_t MESH_ID_XYZ_LINES = 27;
+    constexpr mesh_identifier_t MESH_ID_LINE_SUN_LAST = 36;
+    constexpr mesh_identifier_t MESH_ID_XYZ_LINES = 37;
 
     extern const uint16_t versionMajor;
     extern const uint16_t versionMinor;
     extern const uint16_t versionPatch;
-    extern const char *versionString;
+    extern const char* versionString;
 
     extern const float totalWorkHours;
     extern const uint16_t gitCommitCount;
-    extern const char *gitCommitHash;
+    extern const char* gitCommitHash;
 
     extern const char* LDRAW_LIBRARY_DOWNLOAD_URL;
 

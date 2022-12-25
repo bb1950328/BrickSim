@@ -39,7 +39,7 @@ namespace bricksim::ldr::file_repo {
         void initialize(float* progress);
 
         std::shared_ptr<File> getFile(const std::string& name);
-        std::shared_ptr<BinaryFile> getBinaryFile(const std::string& name, BinaryFileSearchPath searchPath=DEFAULT);
+        std::shared_ptr<BinaryFile> getBinaryFile(const std::string& name, BinaryFileSearchPath searchPath = DEFAULT);
         bool hasFileCached(const std::string& name);
         const uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>>& getAllFilesInMemory();
         std::shared_ptr<File> reloadFile(const std::string& name);
@@ -48,6 +48,13 @@ namespace bricksim::ldr::file_repo {
         std::shared_ptr<BinaryFile> addBinaryFileWithContent(const std::string& name, const std::shared_ptr<BinaryFile>& file);
         std::filesystem::path& getBasePath();
         oset_t<std::string> getAllCategories();
+
+        /**
+         * @param type
+         * @param name how it's referenced in line type 1. subparts for example are s\abc.dat
+         * @return a path relative to the root of the LDraw parts library. example: parts/3001.dat
+         */
+        static std::string getPathRelativeToBase(FileType type, const std::string& name);
 
         oset_t<std::shared_ptr<File>> getAllFilesOfCategory(const std::string& categoryName);
         bool areAllPartsLoaded();
@@ -70,12 +77,6 @@ namespace bricksim::ldr::file_repo {
     protected:
         static std::string readFileFromFilesystem(const std::filesystem::path& path);
         static bool shouldFileBeSavedInList(const std::string& filename);
-        /**
-         * @param type
-         * @param name how it's referenced in line type 1. subparts for example are s\abc.dat
-         * @return a path relative to the root of the LDraw parts library. example: parts/3001.dat
-         */
-        static std::string getPathRelativeToBase(FileType type, const std::string& name);
         /**
          * this is the reverse function of ldr::FileRepo::getPathRelativeToBase
          * @param pathRelativeToBase

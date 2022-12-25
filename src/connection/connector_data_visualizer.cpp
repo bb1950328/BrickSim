@@ -46,8 +46,7 @@ namespace bricksim::connection::visualization {
                         transf = glm::toMat4(directionAsQuat) * transf;
                         transf = glm::translate(transf, currentCenter * directionAsQuat);
                         transf = glm::scale(transf, glm::vec3(part.radius * 2, part.radius * 2, 1.f));
-                        const auto c1 = std::make_shared<mesh::generated::LineSunNode>(root,
-                                                                                       mesh::generated::SimpleLineColor::RED);
+                        const auto c1 = std::make_shared<mesh::generated::LineSunNode>(root, mesh::generated::SimpleLineColor::RED, cylConn->gender == Gender::F);
                         c1->setRelativeTransformation(glm::transpose(transf));
                         root->addChild(c1);
                     }

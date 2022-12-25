@@ -1,27 +1,36 @@
 #include "window_ldraw_file_inspector.h"
+#include "../../connection/connector_data_provider.h"
 #include "../../element_tree.h"
+#include "../../graphics/connection_visualization.h"
 #include "../../ldr/file_repo.h"
 #include "../../ldr/file_writer.h"
+#include "../../ldr/shadow_file_repo.h"
+#include "../gui.h"
+#include "../gui_internal.h"
+#include "glm/gtx/string_cast.hpp"
 #include "imgui.h"
 #include "spdlog/fmt/bundled/format.h"
-#include "../../connection/connector_data_provider.h"
-#include "../../graphics/connection_visualization.h"
-#include "../gui_internal.h"
 #include "spdlog/spdlog.h"
-#include "../gui.h"
-#include "glm/gtx/string_cast.hpp"
+#include <ranges>
 #include <sstream>
 
 namespace bricksim::gui::windows::ldraw_file_inspector {
     namespace {
         std::shared_ptr<ldr::File> currentFile = nullptr;
         std::string content;
+        std::string shadowContent;
 
         void currentFileChanged() {
             if (currentFile != nullptr) {
                 std::stringstream sstr;
                 ldr::writeFile(currentFile, sstr, currentFile->metaInfo.name);
                 content = sstr.str();
+                try {
+                    const auto relPath = bricksim::ldr::file_repo::FileRepo::getPathRelativeToBase(currentFile->metaInfo.type, currentFile->metaInfo.name);
+                    shadowContent = ldr::file_repo::getShadowFileRepo().getContent(relPath).value_or("");
+                } catch (std::invalid_argument) {
+                    shadowContent = "";
+                }
             } else {
                 content = "";
             }
@@ -80,17 +89,17 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                     const auto cylConn = std::dynamic_pointer_cast<connection::CylindricalConnector>(item);
                     const auto fgrConn = std::dynamic_pointer_cast<connection::FingerConnector>(item);
                     const auto genConn = std::dynamic_pointer_cast<connection::GenericConnector>(item);
-                    const char *name;
+                    std::string name;
                     if (clipConn != nullptr) {
                         name = "Clip";
                     } else if (cylConn != nullptr) {
-                        name = "Cylinder";
+                        name = fmt::format("Cylinder {:g} {:g} {:g} {}", cylConn->start.x, cylConn->start.y, cylConn->start.z, magic_enum::enum_name(cylConn->gender));
                     } else if (fgrConn != nullptr) {
                         name = "Finger";
                     } else if (genConn != nullptr) {
                         name = "Generic";
                     }
-                    if (ImGui::TreeNode((void *) (nodeId++), "%s", name)) {
+                    if (ImGui::TreeNode((void*)(nodeId++), "%s", name.c_str())) {
                         ImGui::BulletText("start=%s", glm::to_string(item->start).c_str());
                         if (clipConn != nullptr) {
                             ImGui::BulletText("direction=%s", glm::to_string(clipConn->direction).c_str());
@@ -346,6 +355,13 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                     if (ImGui::BeginTabItem("Raw Content")) {
                         if (ImGui::BeginChild("Content", ImVec2(0, 0), true, ImGuiWindowFlags_None)) {
                             ImGui::TextUnformatted(content.c_str());
+                        }
+                        ImGui::EndChild();
+                        ImGui::EndTabItem();
+                    }
+                    if (ImGui::BeginTabItem("Shadow Content")) {
+                        if (ImGui::BeginChild("shadowContent", ImVec2(0, 0), true, ImGuiWindowFlags_None)) {
+                            ImGui::TextUnformatted(shadowContent.c_str());
                         }
                         ImGui::EndChild();
                         ImGui::EndTabItem();

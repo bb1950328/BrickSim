@@ -1,4 +1,5 @@
 #include "connector_data_provider.h"
+#include "../helpers/geometry.h"
 #include "../ldr/file_repo.h"
 #include "ldcad_snap_meta/clear_command.h"
 #include "ldcad_snap_meta/clp_command.h"
@@ -8,7 +9,7 @@ namespace bricksim::connection {
     namespace {
         uomap_t<std::string, std::vector<std::shared_ptr<Connector>>> cache;
 
-        void multiplyConnectorByGrid(std::vector<std::shared_ptr<Connector>>& connectors, std::vector<std::shared_ptr<Connector>>& base, const ldcad_snap_meta::Grid& grid);
+        void multiplyConnectorByGrid(std::vector<std::shared_ptr<Connector>>& connectors, const std::vector<std::shared_ptr<Connector>>& base, const ldcad_snap_meta::Grid& grid);
 
         template<typename T>
         [[nodiscard]] glm::mat4 combinePosOri(const std::shared_ptr<T>& command) {
@@ -31,11 +32,12 @@ namespace bricksim::connection {
             return transf;
         }
 
-        void
-        createConnectors(std::vector<std::shared_ptr<Connector>> &connectors, const std::shared_ptr<ldr::File> &file,
-                         glm::mat4 const &transformation, uoset_t<std::string> clearIDs) {
+        void createConnectors(std::vector<std::shared_ptr<Connector>>& connectors,
+                              const std::shared_ptr<ldr::File>& file,
+                              glm::mat4 const& transformation,
+                              uoset_t<std::string> clearIDs) {
             bool clearAll = false;
-            for (const auto &command: file->ldcadSnapMetas) {
+            for (const auto& command: file->ldcadSnapMetas) {
                 const auto clearCommand = std::dynamic_pointer_cast<ldcad_snap_meta::ClearCommand>(command);
                 if (clearCommand != nullptr) {
                     if (clearCommand->id.has_value()) {
@@ -65,12 +67,23 @@ namespace bricksim::connection {
                 const auto cylCommand = std::dynamic_pointer_cast<ldcad_snap_meta::CylCommand>(command);
                 if (cylCommand != nullptr && (!cylCommand->id.has_value() || !clearIDs.contains(*cylCommand->id))) {
                     //TODO check cylCommand->scale
+                    const auto cylTransf = combinePosOri(cylCommand) * transformation;
+
+                    if (geometry::doesTransformationInverseWindingOrder(cylTransf)) {
+                        if (cylCommand->mirror == ldcad_snap_meta::MirrorType::NONE) {
+                            continue;
+                        } else {
+                            //todo handle COR
+                        }
+                    }
+
                     auto result = std::make_shared<CylindricalConnector>(
                             cylCommand->group.value_or(""),
-                            combinePosOri(cylCommand) * transformation,
+                            cylTransf[3],
+                            cylTransf * glm::vec4(0.f, -1.f, 0.f, 0.f),
                             cylCommand->gender == ldcad_snap_meta::Gender::M
-                            ? Gender::M
-                            : Gender::F,
+                                    ? Gender::M
+                                    : Gender::F,
                             std::vector<CylindricalShapePart>(),
                             false,
                             false,
@@ -102,8 +115,8 @@ namespace bricksim::connection {
                         }
                     }
                     for (int i = 0; i < cylCommand->secs.size(); ++i) {
-                        const auto &sec = cylCommand->secs[i];
-                        auto &part = result->parts[i];
+                        const auto& sec = cylCommand->secs[i];
+                        auto& part = result->parts[i];
                         switch (sec.variant) {
                             case ldcad_snap_meta::CylShapeVariant::L_:
                                 part.type = result->parts[i + 1].type;
@@ -154,10 +167,12 @@ namespace bricksim::connection {
 
                 const auto clpCommand = std::dynamic_pointer_cast<ldcad_snap_meta::ClpCommand>(command);
                 if (clpCommand != nullptr && (!clpCommand->id.has_value() || !clearIDs.contains(*clpCommand->id))) {
+                    const auto clpTransf = combinePosOri(clpCommand) * transformation;
                     connectors.push_back(
                             std::make_shared<ClipConnector>(
                                     "",
-                                    combinePosOri(clpCommand) * transformation,
+                                    clpTransf * glm::vec4(0.f, 0.f, 0.f, 1.f),
+                                    clpTransf * glm::vec4(0.f, -1.f, 0.f, 0.f),
                                     clpCommand->radius,
                                     clpCommand->length,
                                     clpCommand->slide));
@@ -168,13 +183,16 @@ namespace bricksim::connection {
                 for (const auto& item: file->elements) {
                     if (item->getType() == 1) {
                         const auto sfReference = std::dynamic_pointer_cast<ldr::SubfileReference>(item);
-                        createConnectors(connectors, sfReference->getFile(), sfReference->getTransformationMatrix() * transformation, clearIDs);
+                        const auto sfReferenceTransformation = glm::transpose(sfReference->getTransformationMatrix());
+                        createConnectors(connectors, sfReference->getFile(), sfReferenceTransformation * transformation, clearIDs);
                     }
                 }
             }
         }
 
-        void multiplyConnectorByGrid(std::vector<std::shared_ptr<Connector>>& connectors, std::vector<std::shared_ptr<Connector>>& base, const ldcad_snap_meta::Grid& grid) {
+        void multiplyConnectorByGrid(std::vector<std::shared_ptr<Connector>>& connectors,
+                                     const std::vector<std::shared_ptr<Connector>>& base,
+                                     const ldcad_snap_meta::Grid& grid) {
             float xStart = grid.centerX ? (grid.countX / -2.f) * grid.spacingX : 0;
             float zStart = grid.centerZ ? (grid.countZ / -2.f) * grid.spacingZ : 0;
             for (int ix = 0; ix < grid.countX; ++ix) {
@@ -182,7 +200,7 @@ namespace bricksim::connection {
                     float dx = xStart + ix * grid.spacingX;
                     float dz = zStart + iz * grid.spacingZ;
                     for (auto cn: base) {
-                        cn->location = glm::translate(cn->location, {dx, 0, dz});
+                        cn->start += glm::vec3(dx, 0, dz);
                         connectors.push_back(cn);
                     }
                 }
@@ -191,8 +209,7 @@ namespace bricksim::connection {
 
     }
     const std::vector<std::shared_ptr<Connector>>& getConnectorsOfPart(const std::string& name) {
-        const auto it = cache.find(name);
-        if (it != cache.end()) {
+        if (const auto it = cache.find(name); it != cache.end()) {
             return it->second;
         }
         auto& result = cache.insert({name, std::vector<std::shared_ptr<Connector>>()}).first->second;

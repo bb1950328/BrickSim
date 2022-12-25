@@ -1,4 +1,5 @@
 #pragma once
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -16,9 +17,9 @@ namespace bricksim::connection {
     class Connector {
     public:
         std::string group;
-        glm::mat4 location;
+        glm::vec3 start;
 
-        Connector(std::string group, const glm::mat4 &location);
+        Connector(std::string group, const glm::vec3& start);
 
         virtual ~Connector() {}
     };
@@ -28,6 +29,7 @@ namespace bricksim::connection {
         AXLE,
         SQUARE,
     };
+
     class CylindricalShapePart {
     public:
         CylindricalShapeType type;
@@ -38,29 +40,43 @@ namespace bricksim::connection {
 
     class CylindricalConnector : public Connector {
     public:
+        glm::vec3 direction;
         Gender gender;
         std::vector<CylindricalShapePart> parts;
         bool openStart;
         bool openEnd;
         bool slide;
 
-        CylindricalConnector(std::string group, const glm::mat4 &location, Gender gender,
-                             std::vector<CylindricalShapePart> parts, bool openStart, bool openEnd, bool slide);
+        CylindricalConnector(std::string group,
+                             const glm::vec3& start,
+                             const glm::vec3& direction,
+                             Gender gender,
+                             std::vector<CylindricalShapePart> parts,
+                             bool openStart,
+                             bool openEnd,
+                             bool slide);
 
-        float getTotalLength();
+        float getTotalLength() const;
     };
 
     class ClipConnector : public Connector {
     public:
+        glm::vec3 direction;
         float radius;
         float width;
         bool slide;
 
-        ClipConnector(const std::string& group, const glm::mat4& location, float radius, float width, bool slide);
+        ClipConnector(const std::string& group,
+                      const glm::vec3& start,
+                      const glm::vec3& direction,
+                      float radius,
+                      float width,
+                      bool slide);
     };
 
     class FingerConnector : public Connector {
     public:
+        glm::vec3 direction;
         Gender firstFingerGender;
         float radius;
         std::vector<float> fingerWidths;
@@ -83,6 +99,7 @@ namespace bricksim::connection {
         std::size_t connectorA;
         std::size_t connectorB;
         DegreesOfFreedom degreesOfFreedom;
+
         Connection(size_t connectorA, size_t connectorB, DegreesOfFreedom degreesOfFreedom);
     };
 
@@ -93,8 +110,11 @@ namespace bricksim::connection {
         uomap_t<node_t, uomap_t<node_t, std::vector<edge_t>>> adjacencyLists;
 
         void addConnection(const node_t& a, const node_t& b, const edge_t& edge);
+
         void removeConnection(const node_t& a, const node_t& b, const edge_t& edge);
+
         void removeAllConnections(const node_t& a, const node_t& b);
+
         const std::vector<edge_t>& getConnections(const node_t& a, const node_t& b);
 
     private:

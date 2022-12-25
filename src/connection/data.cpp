@@ -64,9 +64,16 @@ namespace bricksim::connection {
         }
         return result;
     }
+    std::shared_ptr<Connector> CylindricalConnector::clone() {
+        return std::make_shared<CylindricalConnector>(*this);
+    }
 
     Connector::Connector(std::string group, const glm::vec3& start) :
         group(std::move(group)), start(start) {}
+
+    std::shared_ptr<Connector> Connector::clone() {
+        return std::make_shared<Connector>(*this);
+    }
 
     ClipConnector::ClipConnector(const std::string& group,
                                  const glm::vec3& start,
@@ -76,4 +83,13 @@ namespace bricksim::connection {
                                  bool slide) :
         Connector(group, start),
         direction(direction), radius(radius), width(width), slide(slide) {}
+    std::shared_ptr<Connector> ClipConnector::clone() {
+        return std::make_shared<ClipConnector>(*this);
+    }
+    std::shared_ptr<Connector> FingerConnector::clone() {
+        return std::make_shared<FingerConnector>(*this);
+    }
+    std::shared_ptr<Connector> GenericConnector::clone() {
+        return std::make_shared<GenericConnector>(*this);
+    }
 }

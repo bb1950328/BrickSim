@@ -193,15 +193,16 @@ namespace bricksim::connection {
         void multiplyConnectorByGrid(std::vector<std::shared_ptr<Connector>>& connectors,
                                      const std::vector<std::shared_ptr<Connector>>& base,
                                      const ldcad_snap_meta::Grid& grid) {
-            float xStart = grid.centerX ? (grid.countX / -2.f) * grid.spacingX : 0;
-            float zStart = grid.centerZ ? (grid.countZ / -2.f) * grid.spacingZ : 0;
+            float xStart = grid.centerX ? ((grid.countX - 1) / -2.f) * grid.spacingX : 0;
+            float zStart = grid.centerZ ? ((grid.countZ - 1) / -2.f) * grid.spacingZ : 0;
             for (int ix = 0; ix < grid.countX; ++ix) {
                 for (int iz = 0; iz < grid.countZ; ++iz) {
                     float dx = xStart + ix * grid.spacingX;
                     float dz = zStart + iz * grid.spacingZ;
                     for (auto cn: base) {
-                        cn->start += glm::vec3(dx, 0, dz);
-                        connectors.push_back(cn);
+                        auto clone = cn->clone();
+                        clone->start += glm::vec3(dx, 0, dz);
+                        connectors.push_back(clone);
                     }
                 }
             }

@@ -16,6 +16,7 @@ namespace bricksim::graphics::connection_visualization {
             return;
         }
         camera = std::make_shared<CadCamera>();
+        camera->setDistance(1.f);
         scene = scenes::create(scenes::CONNECTION_VISUALIZATION_SCENE_ID);
         scene->setCamera(camera);
         scene->setImageSize(IMAGE_SIZE);

@@ -50,7 +50,7 @@ namespace bricksim::connection::ldcad_snap_meta::parse {
         const auto it = parameters.find(paramName);
         if (it != parameters.end()) {
             const auto floats = stringViewsToFloatArray<3 * 3>(stringutil::splitByChar(it->second, ' '));
-            return glm::make_mat3(floats.data());
+            return glm::transpose(glm::make_mat3(floats.data()));
         } else {
             return {};
         }

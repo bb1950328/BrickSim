@@ -85,7 +85,7 @@ namespace bricksim::connection {
                     auto result = std::make_shared<CylindricalConnector>(
                             cylCommand->group.value_or(""),
                             cylTransf[3],
-                            cylTransf * glm::vec4(0.f, -1.f, 0.f, 0.f),
+                            cylTransf * glm::vec4(0.f, -1.f, 0.f, 0.f) /*cylCommand->ori.value_or(glm::mat3(1.f))*glm::vec3(0.f, -1.f, 0.f)*/,
                             cylCommand->gender == ldcad_snap_meta::Gender::M
                                     ? Gender::M
                                     : Gender::F,

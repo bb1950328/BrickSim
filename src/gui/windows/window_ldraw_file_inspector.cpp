@@ -212,7 +212,6 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                                imgButtonSize,
                                {0, 1},
                                {1, 0});
-            //todo handle mouse drag (update camera)
             ImGui::PopStyleVar();
         }
 

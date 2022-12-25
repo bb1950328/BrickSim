@@ -47,7 +47,7 @@ namespace bricksim::graphics {
 
     void CadCamera::moveForwardBackward(float delta) {
         distance *= 1 - (delta * mouseZoomSensitivity / 10);
-        distance = std::max(1.1f, distance);
+        distance = std::max(.1f, distance);
         updateVectors();
     }
 

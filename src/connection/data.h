@@ -40,10 +40,14 @@ namespace bricksim::connection {
     public:
         Gender gender;
         std::vector<CylindricalShapePart> parts;
-        bool openStart, openEnd;
+        bool openStart;
+        bool openEnd;
         bool slide;
 
-        CylindricalConnector(std::string group, const glm::mat4& location, Gender gender, std::vector<CylindricalShapePart> parts, bool openStart, bool openEnd, bool slide);
+        CylindricalConnector(std::string group, const glm::mat4 &location, Gender gender,
+                             std::vector<CylindricalShapePart> parts, bool openStart, bool openEnd, bool slide);
+
+        float getTotalLength();
     };
 
     class ClipConnector : public Connector {

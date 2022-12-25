@@ -1,8 +1,31 @@
 #include "mesh_generated.h"
+#include "magic_enum.hpp"
 #include <glm/gtx/transform.hpp>
 #include <spdlog/spdlog.h>
 
 namespace bricksim::mesh::generated {
+    namespace {
+        color::RGB getRGBFromSimpleLineColor(SimpleLineColor color) {
+            switch (color) {
+                case SimpleLineColor::RED:
+                    return {0xff, 0, 0};
+                case SimpleLineColor::GREEN:
+                    return {0, 0xff, 0};
+                case SimpleLineColor::BLUE:
+                    return {0, 0, 0xff};
+                case SimpleLineColor::CYAN:
+                    return {0, 0xff, 0xff};
+                case SimpleLineColor::MAGENTA:
+                    return {0xff, 0, 0xff};
+                case SimpleLineColor::YELLOW:
+                    return {0xff, 0xff, 0};
+                case SimpleLineColor::WHITE:
+                    return {0xff, 0xff, 0xff};
+                case SimpleLineColor::BLACK:
+                    return {0, 0, 0};
+            }
+        }
+    }
 
     mesh_identifier_t UVSphereNode::getMeshIdentifier() const {
         return constants::MESH_ID_UV_SPHERE;
@@ -412,12 +435,44 @@ namespace bricksim::mesh::generated {
             //        |     \ |
             //Bottom  C-------D
             triangleData.addRawIndex(OFFSET_BOTTOM_LATERAL + ROW_LENGTH * i1);//A
-            triangleData.addRawIndex(OFFSET_TOP_LATERAL + ROW_LENGTH * i1);//C
             triangleData.addRawIndex(OFFSET_BOTTOM_LATERAL + ROW_LENGTH * i2);//B
+            triangleData.addRawIndex(OFFSET_TOP_LATERAL + ROW_LENGTH * i1);//C
 
             triangleData.addRawIndex(OFFSET_BOTTOM_LATERAL + ROW_LENGTH * i2);//B
-            triangleData.addRawIndex(OFFSET_TOP_LATERAL + ROW_LENGTH * i1);//C
             triangleData.addRawIndex(OFFSET_TOP_LATERAL + ROW_LENGTH * i2);//D
+            triangleData.addRawIndex(OFFSET_TOP_LATERAL + ROW_LENGTH * i1);//C
         }
+    }
+
+    LineSunNode::LineSunNode(const std::shared_ptr<Node> &parent, SimpleLineColor color)
+            : GeneratedMeshNode(ldr::color_repo::getInstanceDummyColor(), parent), lineColor(color) {
+
+    }
+
+    std::string LineSunNode::getDescription() {
+        return fmt::format("LineSun {}", magic_enum::enum_name(lineColor));
+    }
+
+    mesh_identifier_t LineSunNode::getMeshIdentifier() const {
+        static_assert(constants::MESH_ID_LINE_SUN_LAST - constants::MESH_ID_LINE_SUN_FIRST >
+                      magic_enum::enum_count<SimpleLineColor>());
+        return constants::MESH_ID_LINE_SUN_FIRST + magic_enum::enum_index(lineColor).value();
+    }
+
+    void LineSunNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh,
+                                bool windingInversed,
+                                const std::shared_ptr<ldr::TexmapStartCommand> &texmap) {
+        auto &lineData = mesh->getLineData();
+        const auto color = getRGBFromSimpleLineColor(lineColor).asGlmVector();
+        for (int i1 = 0; i1 < NUM_CORNERS; ++i1) {
+            const int i2 = (i1 + 1) % NUM_CORNERS;
+            const auto a1 = M_PI * 2 * i1 / NUM_CORNERS;
+            const auto a2 = M_PI * 2 * i2 / NUM_CORNERS;
+            lineData.addVertex({{std::cos(a1) * .5f, std::sin(a1) * .5f, 0}, color});
+            lineData.addVertex({{std::cos(a2) * .5f, std::sin(a2) * .5f, 0}, color});
+            lineData.addVertex({{std::cos(a1) * .5f, std::sin(a1) * .5f, 0}, color});
+            lineData.addVertex({{std::cos(a1) * .6f, std::sin(a1) * .6f, 0}, color});
+        }
+
     }
 }

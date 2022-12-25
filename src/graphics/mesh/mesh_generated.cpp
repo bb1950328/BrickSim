@@ -443,17 +443,17 @@ namespace bricksim::mesh::generated {
         }
     }
 
-    LineSunNode::LineSunNode(const std::shared_ptr<Node>& parent, SimpleLineColor color) :
-        GeneratedMeshNode(ldr::color_repo::getInstanceDummyColor(), parent), lineColor(color) {
+    LineSunNode::LineSunNode(const std::shared_ptr<Node>& parent, SimpleLineColor color, bool inverted) :
+        GeneratedMeshNode(ldr::color_repo::getInstanceDummyColor(), parent), lineColor(color), inverted(inverted) {
     }
 
     std::string LineSunNode::getDescription() {
-        return fmt::format("LineSun {}", magic_enum::enum_name(lineColor));
+        return fmt::format("{}LineSun {}", inverted ? "Inverted" : "", magic_enum::enum_name(lineColor));
     }
 
     mesh_identifier_t LineSunNode::getMeshIdentifier() const {
-        static_assert(constants::MESH_ID_LINE_SUN_LAST - constants::MESH_ID_LINE_SUN_FIRST > magic_enum::enum_count<SimpleLineColor>());
-        return constants::MESH_ID_LINE_SUN_FIRST + magic_enum::enum_index(lineColor).value();
+        static_assert(constants::MESH_ID_LINE_SUN_LAST - constants::MESH_ID_LINE_SUN_FIRST > magic_enum::enum_count<SimpleLineColor>() * 2);
+        return constants::MESH_ID_LINE_SUN_FIRST + magic_enum::enum_index(lineColor).value() * 2 + inverted;
     }
 
     void LineSunNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh,
@@ -461,14 +461,17 @@ namespace bricksim::mesh::generated {
                                 const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         auto& lineData = mesh->getLineData();
         const auto color = getRGBFromSimpleLineColor(lineColor).asGlmVector();
+        constexpr auto rCircle = .5f;
+        const auto rRay = inverted ? .4f : .6f;
         for (int i1 = 0; i1 < NUM_CORNERS; ++i1) {
             const int i2 = (i1 + 1) % NUM_CORNERS;
             const auto a1 = M_PI * 2 * i1 / NUM_CORNERS;
             const auto a2 = M_PI * 2 * i2 / NUM_CORNERS;
-            lineData.addVertex({{std::cos(a1) * .5f, std::sin(a1) * .5f, 0}, color});
-            lineData.addVertex({{std::cos(a2) * .5f, std::sin(a2) * .5f, 0}, color});
-            lineData.addVertex({{std::cos(a1) * .5f, std::sin(a1) * .5f, 0}, color});
-            lineData.addVertex({{std::cos(a1) * .6f, std::sin(a1) * .6f, 0}, color});
+            lineData.addVertex({{std::cos(a1) * rCircle, std::sin(a1) * rCircle, 0}, color});
+            lineData.addVertex({{std::cos(a2) * rCircle, std::sin(a2) * rCircle, 0}, color});
+
+            lineData.addVertex({{std::cos(a1) * rCircle, std::sin(a1) * rCircle, 0}, color});
+            lineData.addVertex({{std::cos(a1) * rRay, std::sin(a1) * rRay, 0}, color});
         }
     }
     XYZLineNode::XYZLineNode(const std::shared_ptr<Node>& parent) :

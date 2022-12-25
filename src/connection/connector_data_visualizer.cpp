@@ -14,7 +14,7 @@ namespace bricksim::connection::visualization {
         root->addChild(partNode);
 
         const auto xyzLineNode = std::make_shared<mesh::generated::XYZLineNode>(root);
-        xyzLineNode->setRelativeTransformation(glm::transpose(glm::scale(glm::mat4(1.f), glm::vec3(10.f))));
+        xyzLineNode->setRelativeTransformation(glm::transpose(glm::scale(glm::mat4(1.f), glm::vec3(100.f))));
         root->addChild(xyzLineNode);
 
         for (const auto& conn: getConnectorsOfPart(partName)) {

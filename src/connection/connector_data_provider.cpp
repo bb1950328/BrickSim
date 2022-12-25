@@ -5,6 +5,7 @@
 #include "ldcad_snap_meta/clp_command.h"
 #include "ldcad_snap_meta/cyl_command.h"
 #include "ldcad_snap_meta/incl_command.h"
+#include "spdlog/spdlog.h"
 namespace bricksim::connection {
     namespace {
         uomap_t<std::string, std::vector<std::shared_ptr<Connector>>> cache;
@@ -15,10 +16,14 @@ namespace bricksim::connection {
         [[nodiscard]] glm::mat4 combinePosOri(const std::shared_ptr<T>& command) {
             glm::mat4 transf(1.f);
             if (command->pos.has_value()) {
-                transf = glm::translate(transf, *command->pos);
+                transf[3] = glm::vec4(*command->pos, 1.f);
             }
             if (command->ori.has_value()) {
-                transf = glm::mat4(*command->ori) * transf;
+                for (int x = 0; x < 3; ++x) {
+                    for (int y = 0; y < 3; ++y) {
+                        transf[x][y] = (*command->ori)[x][y];
+                    }
+                }
             }
             return transf;
         }
@@ -193,8 +198,8 @@ namespace bricksim::connection {
         void multiplyConnectorByGrid(std::vector<std::shared_ptr<Connector>>& connectors,
                                      const std::vector<std::shared_ptr<Connector>>& base,
                                      const ldcad_snap_meta::Grid& grid) {
-            float xStart = grid.centerX ? ((grid.countX - 1) / -2.f) * grid.spacingX : 0;
-            float zStart = grid.centerZ ? ((grid.countZ - 1) / -2.f) * grid.spacingZ : 0;
+            float xStart = grid.centerX ? (static_cast<float>(grid.countX - 1) / -2.f) * grid.spacingX : 0;
+            float zStart = grid.centerZ ? (static_cast<float>(grid.countZ - 1) / -2.f) * grid.spacingZ : 0;
             for (int ix = 0; ix < grid.countX; ++ix) {
                 for (int iz = 0; iz < grid.countZ; ++iz) {
                     float dx = xStart + ix * grid.spacingX;

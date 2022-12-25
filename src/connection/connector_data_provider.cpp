@@ -31,9 +31,11 @@ namespace bricksim::connection {
             return transf;
         }
 
-        void createConnectors(std::vector<std::shared_ptr<Connector>>& connectors, const std::shared_ptr<ldr::File>& file, glm::mat4 transformation, uoset_t<std::string> clearIDs) {
+        void
+        createConnectors(std::vector<std::shared_ptr<Connector>> &connectors, const std::shared_ptr<ldr::File> &file,
+                         glm::mat4 const &transformation, uoset_t<std::string> clearIDs) {
             bool clearAll = false;
-            for (const auto& command: file->ldcadSnapMetas) {
+            for (const auto &command: file->ldcadSnapMetas) {
                 const auto clearCommand = std::dynamic_pointer_cast<ldcad_snap_meta::ClearCommand>(command);
                 if (clearCommand != nullptr) {
                     if (clearCommand->id.has_value()) {
@@ -67,12 +69,13 @@ namespace bricksim::connection {
                             cylCommand->group.value_or(""),
                             combinePosOri(cylCommand) * transformation,
                             cylCommand->gender == ldcad_snap_meta::Gender::M
-                                    ? Gender::M
-                                    : Gender::F,
-                            std::vector<CylindricalShapePart>(cylCommand->secs.size()),
+                            ? Gender::M
+                            : Gender::F,
+                            std::vector<CylindricalShapePart>(),
                             false,
                             false,
                             cylCommand->slide);
+                    result->parts.reserve(cylCommand->secs.size());
                     for (const auto& sec: cylCommand->secs) {
                         result->parts.push_back({
                                 CylindricalShapeType::ROUND,
@@ -94,6 +97,14 @@ namespace bricksim::connection {
                             case ldcad_snap_meta::CylShapeVariant::S:
                                 part.type = CylindricalShapeType::SQUARE;
                                 break;
+                            default:
+                                break;
+                        }
+                    }
+                    for (int i = 0; i < cylCommand->secs.size(); ++i) {
+                        const auto &sec = cylCommand->secs[i];
+                        auto &part = result->parts[i];
+                        switch (sec.variant) {
                             case ldcad_snap_meta::CylShapeVariant::L_:
                                 part.type = result->parts[i + 1].type;
                                 part.flexibleRadius = true;
@@ -101,6 +112,8 @@ namespace bricksim::connection {
                             case ldcad_snap_meta::CylShapeVariant::_L:
                                 part.type = result->parts[i - 1].type;
                                 part.flexibleRadius = true;
+                                break;
+                            default:
                                 break;
                         }
                     }

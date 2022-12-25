@@ -77,12 +77,37 @@ namespace bricksim::mesh::generated {
      * Coordinate origin is in center and start/end circles are in Z direction
      */
     class CylinderNode : public GeneratedMeshNode {
-    protected:
-
     public:
         static constexpr uint16_t NUM_CORNERS = 12;
 
         CylinderNode(const ldr::ColorReference &triangleColor, const std::shared_ptr<Node> &parent);
+
+        std::string getDescription() override;
+
+        mesh_identifier_t getMeshIdentifier() const override;
+
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
+                       const std::shared_ptr<ldr::TexmapStartCommand> &texmap) override;
+    };
+
+    enum class SimpleLineColor {
+        RED,
+        GREEN,
+        BLUE,
+        CYAN,
+        MAGENTA,
+        YELLOW,
+        WHITE,
+        BLACK,
+    };
+
+    class LineSunNode : public GeneratedMeshNode {
+    protected:
+        SimpleLineColor lineColor;
+    public:
+        static constexpr uint16_t NUM_CORNERS = 12;
+
+        LineSunNode(const std::shared_ptr<Node> &parent, SimpleLineColor color);
 
         std::string getDescription() override;
 

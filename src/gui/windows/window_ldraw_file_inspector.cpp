@@ -302,7 +302,6 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                              partNameInputCallback);
 
             if (ImGui::BeginTable("##File selector", 2, ImGuiTableFlags_None)) {
-                //ImGui::TableNextRow();
                 ImGui::TableSetupColumn("##filters", ImGuiTableColumnFlags_NoReorder
                                                      | ImGuiTableColumnFlags_NoResize
                                                      | ImGuiTableColumnFlags_WidthFixed);

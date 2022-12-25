@@ -37,28 +37,43 @@ namespace bricksim::connection {
     }
 
     Connection::Connection(size_t connectorA, size_t connectorB, DegreesOfFreedom degreesOfFreedom) :
-            connectorA(connectorA),
-            connectorB(connectorB),
-            degreesOfFreedom(std::move(degreesOfFreedom)) {}
+        connectorA(connectorA),
+        connectorB(connectorB),
+        degreesOfFreedom(std::move(degreesOfFreedom)) {}
 
-    CylindricalConnector::CylindricalConnector(std::string group, const glm::mat4 &location, Gender gender,
-                                               std::vector<CylindricalShapePart> parts, bool openStart, bool openEnd,
+    CylindricalConnector::CylindricalConnector(std::string group,
+                                               const glm::vec3& start,
+                                               const glm::vec3& direction,
+                                               Gender gender,
+                                               std::vector<CylindricalShapePart> parts,
+                                               bool openStart,
+                                               bool openEnd,
                                                bool slide) :
-            Connector(std::move(group), location),
-            gender(gender), parts(std::move(parts)), openStart(openStart), openEnd(openEnd), slide(slide) {}
+        Connector(std::move(group), start),
+        direction(direction),
+        gender(gender),
+        parts(std::move(parts)),
+        openStart(openStart),
+        openEnd(openEnd),
+        slide(slide) {}
 
-    float CylindricalConnector::getTotalLength() {
+    float CylindricalConnector::getTotalLength() const {
         float result = 0;
-        for (const auto &item: parts) {
+        for (const auto& item: parts) {
             result += item.length;
         }
         return result;
     }
 
-    Connector::Connector(std::string group, const glm::mat4 &location) :
-            group(std::move(group)), location(location) {}
+    Connector::Connector(std::string group, const glm::vec3& start) :
+        group(std::move(group)), start(start) {}
 
-    ClipConnector::ClipConnector(const std::string &group, const glm::mat4 &location, float radius, float width,
+    ClipConnector::ClipConnector(const std::string& group,
+                                 const glm::vec3& start,
+                                 const glm::vec3& direction,
+                                 float radius,
+                                 float width,
                                  bool slide) :
-            Connector(group, location), radius(radius), width(width), slide(slide) {}
+        Connector(group, start),
+        direction(direction), radius(radius), width(width), slide(slide) {}
 }

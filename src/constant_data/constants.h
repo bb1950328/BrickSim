@@ -23,6 +23,7 @@ namespace bricksim::constants {
     constexpr mesh_identifier_t MESH_ID_CYLINDER = 15;
     constexpr mesh_identifier_t MESH_ID_LINE_SUN_FIRST = 16;
     constexpr mesh_identifier_t MESH_ID_LINE_SUN_LAST = 26;
+    constexpr mesh_identifier_t MESH_ID_XYZ_LINES = 27;
 
     extern const uint16_t versionMajor;
     extern const uint16_t versionMinor;

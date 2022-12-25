@@ -11,7 +11,6 @@
 #include "imgui.h"
 #include "spdlog/fmt/bundled/format.h"
 #include "spdlog/spdlog.h"
-#include <ranges>
 #include <sstream>
 
 namespace bricksim::gui::windows::ldraw_file_inspector {
@@ -307,7 +306,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
             if (static bool first = true; first) {
                 first = false;
-                std::ranges::fill(showTypes, true);
+                std::fill(showTypes.begin(), showTypes.end(), true);
             }
             char partName[256] = {0};
             ImGui::InputText("Part Name", partName, sizeof(partName), ImGuiInputTextFlags_CallbackAlways,

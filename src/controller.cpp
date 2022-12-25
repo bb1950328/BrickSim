@@ -396,11 +396,11 @@ namespace bricksim::controller {
         //openFile("test_files/texmap_planar_perpendicular.ldr");
         //openFile("test_files/omr/arocs.mpd");
         //openFile("test_files/omr/chiron.mpd");
-        openFile("test_files/connection_info_problem_parts.ldr");
+        //openFile("test_files/connection_info_problem_parts.ldr");
         //openFile("3001.dat");
         //openFile("car.ldr");
         //openFile("3626b.dat");
-        //openFile("~/Downloads/datsville.ldr");
+        openFile("~/Downloads/datsville.ldr");
         //openFile("~/Downloads/42131_Bulldozer.mpd");
 
         std::vector<uint64_t> lastEditorRootNodeVersions;

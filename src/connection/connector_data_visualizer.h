@@ -3,5 +3,6 @@
 #include "../element_tree.h"
 
 namespace bricksim::connection::visualization {
-    std::shared_ptr<etree::Node> generateVisualization(const std::string &partName);
+    void addVisualization(const std::string& partName, const std::shared_ptr<etree::Node>& root);
+    std::shared_ptr<etree::Node> generateVisualization(const std::string& partName);
 }

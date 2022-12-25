@@ -184,4 +184,5 @@ namespace bricksim::config {
     const Key<bool> USE_EULER_ANGLES("useEulerAngles", false);
     const Key<bool> DELETE_VERTEX_DATA_AFTER_UPLOADING("deleteVertexDataAfterUploading", true);
     const Key<bool> ENABLE_TEXMAP_SUPPORT("enableTexmapSupport", true);
+    const Key<bool> DISPLAY_CONNECTOR_DATA_IN_3D_VIEW("displayConnectorDataIn3DView", false);
 }

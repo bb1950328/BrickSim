@@ -2,6 +2,8 @@
 #include <magic_enum.hpp>
 #include <spdlog/spdlog.h>
 
+#include "config.h"
+#include "connection/connector_data_visualizer.h"
 #include "controller.h"
 #include "ldr/file_repo.h"
 #include "ldr/file_writer.h"
@@ -51,6 +53,19 @@ namespace bricksim {
             } else {
                 fileWatchId = watchId;
             }
+        }
+
+        if (config::get(config::DISPLAY_CONNECTOR_DATA_IN_3D_VIEW)) {
+            addConnectorDataVisualization(rootNode);
+        }
+    }
+    void Editor::addConnectorDataVisualization(const std::shared_ptr<etree::Node>& node) const {
+        for (const auto& child: node->getChildren()) {
+            if (child->type == etree::TYPE_PART) {
+                const auto& fileName = std::dynamic_pointer_cast<etree::PartNode>(child)->ldrFile->metaInfo.name;
+                connection::visualization::addVisualization(fileName, child);
+            }
+            addConnectorDataVisualization(child);
         }
     }
 
@@ -179,14 +194,30 @@ namespace bricksim {
         camera->setStandardView(i);
     }
 
-    void Editor::rotateViewUp() { camera->mouseRotate(0, -1); }
-    void Editor::rotateViewDown() { camera->mouseRotate(0, +1); }
-    void Editor::rotateViewLeft() { camera->mouseRotate(-1, 0); }
-    void Editor::rotateViewRight() { camera->mouseRotate(+1, 0); }
-    void Editor::panViewUp() { camera->mousePan(0, -1); }
-    void Editor::panViewDown() { camera->mousePan(0, +1); }
-    void Editor::panViewLeft() { camera->mousePan(-1, 0); }
-    void Editor::panViewRight() { camera->mousePan(+1, 0); }
+    void Editor::rotateViewUp() {
+        camera->mouseRotate(0, -1);
+    }
+    void Editor::rotateViewDown() {
+        camera->mouseRotate(0, +1);
+    }
+    void Editor::rotateViewLeft() {
+        camera->mouseRotate(-1, 0);
+    }
+    void Editor::rotateViewRight() {
+        camera->mouseRotate(+1, 0);
+    }
+    void Editor::panViewUp() {
+        camera->mousePan(0, -1);
+    }
+    void Editor::panViewDown() {
+        camera->mousePan(0, +1);
+    }
+    void Editor::panViewLeft() {
+        camera->mousePan(-1, 0);
+    }
+    void Editor::panViewRight() {
+        camera->mousePan(+1, 0);
+    }
 
     void Editor::insertLdrElement(const std::shared_ptr<ldr::File>& ldrFile) {
         switch (ldrFile->metaInfo.type) {
@@ -297,7 +328,7 @@ namespace bricksim {
     const std::string& Editor::getFilename() {
         return documentNode->ldrFile->metaInfo.name;
     }
-    
+
     void Editor::handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename, efsw::Action action, std::string oldFilename) {
         auto fullPath = std::filesystem::path(dir) / filename;
         if (filePath.has_value() && fullPath == filePath.value()) {
@@ -331,8 +362,9 @@ namespace bricksim {
                     const auto relativeAABB = scene->getMeshCollection().getRelativeAABB(meshNode);
                     if (relativeAABB.isDefined()) {
                         const auto rotatedBBox = mesh::RotatedBoundingBox(relativeAABB, glm::vec3(0.f, 0.f, 0.f),
-                                                                          glm::quat(1.f, 0.f, 0.f, 0.f)).transform(
-                                glm::transpose(meshNode->getAbsoluteTransformation()));
+                                                                          glm::quat(1.f, 0.f, 0.f, 0.f))
+                                                         .transform(
+                                                                 glm::transpose(meshNode->getAbsoluteTransformation()));
                         selectionVisualizationNode->visible = true;
                         selectionVisualizationNode->setRelativeTransformation(
                                 glm::transpose(rotatedBBox.getUnitBoxTransformation()));
@@ -375,8 +407,8 @@ namespace bricksim {
         }
     }
 
-    SelectionVisualizationNode::SelectionVisualizationNode(const std::shared_ptr<Node> &parent) :
-            MeshNode(1, parent, nullptr) {
+    SelectionVisualizationNode::SelectionVisualizationNode(const std::shared_ptr<Node>& parent) :
+        MeshNode(1, parent, nullptr) {
         visibleInElementTree = false;
     }
 
@@ -385,8 +417,8 @@ namespace bricksim {
     }
 
     void SelectionVisualizationNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
-                                               const std::shared_ptr<ldr::TexmapStartCommand> &texmap) {
-        auto &lineData = mesh->getLineData();
+                                               const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
+        auto& lineData = mesh->getLineData();
         glm::vec3 color(0, 0, 1);
         //square z=-1
         lineData.addVertex({glm::vec3(-1, -1, -1), color});

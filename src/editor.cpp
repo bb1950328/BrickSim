@@ -3,7 +3,7 @@
 #include <spdlog/spdlog.h>
 
 #include "config.h"
-#include "connection/connector_data_visualizer.h"
+#include "connection/visualization/connector_data_visualizer.h"
 #include "controller.h"
 #include "ldr/file_repo.h"
 #include "ldr/file_writer.h"

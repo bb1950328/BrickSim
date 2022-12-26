@@ -1,6 +1,6 @@
 #include "connection_visualization.h"
+#include "../connection/visualization/connector_data_visualizer.h"
 #include "scene.h"
-#include "../connection/connector_data_visualizer.h"
 
 namespace bricksim::graphics::connection_visualization {
     namespace {

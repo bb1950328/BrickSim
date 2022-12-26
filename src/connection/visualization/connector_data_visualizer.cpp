@@ -1,11 +1,11 @@
 #include "connector_data_visualizer.h"
-#include "../graphics/mesh/mesh_generated.h"
-#include "../helpers/geometry.h"
-#include "../ldr/file_repo.h"
-#include "connector_data_provider.h"
+#include "../../graphics/mesh/mesh_generated.h"
+#include "../../helpers/geometry.h"
+#include "../../ldr/file_repo.h"
+#include "../connector_data_provider.h"
+#include "meshes.h"
 
 namespace bricksim::connection::visualization {
-
     std::shared_ptr<etree::Node> generateVisualization(const std::string& partName) {
         const auto root = std::make_shared<etree::RootNode>();
 
@@ -39,7 +39,7 @@ namespace bricksim::connection::visualization {
                     transf = glm::toMat4(directionAsQuat) * transf;
                     transf = glm::translate(transf, center * directionAsQuat);
                     transf = glm::scale(transf, {1.f, 1.f, totalLength});
-                    const auto centerCylinder = std::make_shared<mesh::generated::CylinderNode>(2, root);
+                    const auto centerCylinder = std::make_shared<mesh::generated::CylinderNode>(4, root);
                     centerCylinder->setRelativeTransformation(glm::transpose(transf));
                     root->addChild(centerCylinder);
                 }
@@ -51,7 +51,7 @@ namespace bricksim::connection::visualization {
                         transf = glm::toMat4(directionAsQuat) * transf;
                         transf = glm::translate(transf, currentCenter * directionAsQuat);
                         transf = glm::scale(transf, glm::vec3(part.radius * 2, part.radius * 2, 1.f));
-                        const auto c1 = std::make_shared<mesh::generated::LineSunNode>(root, mesh::generated::SimpleLineColor::RED, cylConn->gender == Gender::F);
+                        const auto c1 = std::make_shared<LineSunNode>(root, SimpleLineColor::RED, cylConn->gender == Gender::F, part.type);
                         c1->setRelativeTransformation(glm::transpose(transf));
                         root->addChild(c1);
                     }

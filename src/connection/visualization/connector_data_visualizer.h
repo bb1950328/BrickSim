@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../element_tree.h"
+#include "../../element_tree.h"
 
 namespace bricksim::connection::visualization {
     void addVisualization(const std::string& partName, const std::shared_ptr<etree::Node>& root);

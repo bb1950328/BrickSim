@@ -33,7 +33,7 @@ TEST_CASE("Reader::readLine 3") {
     CHECK(command->radius == Catch::Approx(4));
     REQUIRE(command->pos.has_value());
     CHECK(command->pos.value() == ApproxVec(glm::vec3(0, -4, 6)));
-    CHECK(command->ori.value() == ApproxMat(glm::mat3(0, -1, 0, 1, 0, 0, 0, 0, 1)));
+    CHECK(command->ori.value() == ApproxMat(glm::mat3(0, 1, 0, -1, 0, 0, 0, 0, 1)));
 }
 
 TEST_CASE("Reader::readLine 4") {

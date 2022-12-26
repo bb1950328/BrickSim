@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Statistic">
+    <option name="excludedDirectories">
+      <list>
+        <option value="$PROJECT_DIR$/src/lib" />
+        <option value="$PROJECT_DIR$/docs" />
+        <option value="$PROJECT_DIR$/CppCaptures" />
+        <option value="$PROJECT_DIR$/cmake-build" />
+      </list>
+    </option>
+  </component>
+</project>

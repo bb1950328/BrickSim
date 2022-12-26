@@ -399,8 +399,8 @@ namespace bricksim::controller {
         //openFile("test_files/connection_info_problem_parts.ldr");
         //openFile("3001.dat");
         //openFile("car.ldr");
-        //openFile("3626b.dat");
-        openFile("~/Downloads/datsville.ldr");
+        openFile("10197.dat");
+        //openFile("~/Downloads/datsville.ldr");
         //openFile("~/Downloads/42131_Bulldozer.mpd");
 
         std::vector<uint64_t> lastEditorRootNodeVersions;
@@ -410,7 +410,7 @@ namespace bricksim::controller {
             bool atLeastOneEditorChanged = editors.size() != lastEditorRootNodeVersions.size();
             std::vector<uint64_t> currentEditorRootNodeVersions;
             auto lastIt = lastEditorRootNodeVersions.begin();
-            for (const auto& ed : editors) {
+            for (const auto& ed: editors) {
                 const uint64_t version = ed->getRootNode()->getVersion();
                 if (lastIt != lastEditorRootNodeVersions.end()) {
                     atLeastOneEditorChanged |= (*lastIt != version);

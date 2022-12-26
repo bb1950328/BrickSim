@@ -11,7 +11,7 @@ namespace bricksim::constants {
     constexpr layer_t TRANSFORM_GIZMO_LAYER = 32;
     constexpr layer_t DEBUG_NODES_LAYER = 40;
 
-    extern const char *const SEGMENT_PART_NAMES;
+    extern const char* const SEGMENT_PART_NAMES;
 
     constexpr mesh_identifier_t MESH_ID_ORIENTATION_CUBE_FIRST = 1;//6 sides
     constexpr mesh_identifier_t MESH_ID_ARROW = 7;
@@ -21,9 +21,8 @@ namespace bricksim::constants {
     constexpr mesh_identifier_t MESH_ID_CUBE = 13;
     constexpr mesh_identifier_t MESH_ID_SELECTION_VISUALIZATION = 14;
     constexpr mesh_identifier_t MESH_ID_CYLINDER = 15;
-    constexpr mesh_identifier_t MESH_ID_LINE_SUN_FIRST = 16;
-    constexpr mesh_identifier_t MESH_ID_LINE_SUN_LAST = 36;
-    constexpr mesh_identifier_t MESH_ID_XYZ_LINES = 37;
+    constexpr mesh_identifier_t MESH_ID_LINE_SUN = 16;
+    constexpr mesh_identifier_t MESH_ID_XYZ_LINES = 17;
 
     extern const uint16_t versionMajor;
     extern const uint16_t versionMinor;

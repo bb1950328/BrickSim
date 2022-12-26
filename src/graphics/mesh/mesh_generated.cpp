@@ -4,28 +4,6 @@
 #include <spdlog/spdlog.h>
 
 namespace bricksim::mesh::generated {
-    namespace {
-        color::RGB getRGBFromSimpleLineColor(SimpleLineColor color) {
-            switch (color) {
-                case SimpleLineColor::RED:
-                    return {0xff, 0, 0};
-                case SimpleLineColor::GREEN:
-                    return {0, 0xff, 0};
-                case SimpleLineColor::BLUE:
-                    return {0, 0, 0xff};
-                case SimpleLineColor::CYAN:
-                    return {0, 0xff, 0xff};
-                case SimpleLineColor::MAGENTA:
-                    return {0xff, 0, 0xff};
-                case SimpleLineColor::YELLOW:
-                    return {0xff, 0xff, 0};
-                case SimpleLineColor::WHITE:
-                    return {0xff, 0xff, 0xff};
-                case SimpleLineColor::BLACK:
-                    return {0, 0, 0};
-            }
-        }
-    }
 
     mesh_identifier_t UVSphereNode::getMeshIdentifier() const {
         return constants::MESH_ID_UV_SPHERE;
@@ -440,38 +418,6 @@ namespace bricksim::mesh::generated {
             triangleData.addRawIndex(OFFSET_BOTTOM_LATERAL + ROW_LENGTH * i2);//B
             triangleData.addRawIndex(OFFSET_TOP_LATERAL + ROW_LENGTH * i2);   //D
             triangleData.addRawIndex(OFFSET_TOP_LATERAL + ROW_LENGTH * i1);   //C
-        }
-    }
-
-    LineSunNode::LineSunNode(const std::shared_ptr<Node>& parent, SimpleLineColor color, bool inverted) :
-        GeneratedMeshNode(ldr::color_repo::getInstanceDummyColor(), parent), lineColor(color), inverted(inverted) {
-    }
-
-    std::string LineSunNode::getDescription() {
-        return fmt::format("{}LineSun {}", inverted ? "Inverted" : "", magic_enum::enum_name(lineColor));
-    }
-
-    mesh_identifier_t LineSunNode::getMeshIdentifier() const {
-        static_assert(constants::MESH_ID_LINE_SUN_LAST - constants::MESH_ID_LINE_SUN_FIRST > magic_enum::enum_count<SimpleLineColor>() * 2);
-        return constants::MESH_ID_LINE_SUN_FIRST + magic_enum::enum_index(lineColor).value() * 2 + inverted;
-    }
-
-    void LineSunNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh,
-                                bool windingInversed,
-                                const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
-        auto& lineData = mesh->getLineData();
-        const auto color = getRGBFromSimpleLineColor(lineColor).asGlmVector();
-        constexpr auto rCircle = .5f;
-        const auto rRay = inverted ? .4f : .6f;
-        for (int i1 = 0; i1 < NUM_CORNERS; ++i1) {
-            const int i2 = (i1 + 1) % NUM_CORNERS;
-            const auto a1 = M_PI * 2 * i1 / NUM_CORNERS;
-            const auto a2 = M_PI * 2 * i2 / NUM_CORNERS;
-            lineData.addVertex({{std::cos(a1) * rCircle, std::sin(a1) * rCircle, 0}, color});
-            lineData.addVertex({{std::cos(a2) * rCircle, std::sin(a2) * rCircle, 0}, color});
-
-            lineData.addVertex({{std::cos(a1) * rCircle, std::sin(a1) * rCircle, 0}, color});
-            lineData.addVertex({{std::cos(a1) * rRay, std::sin(a1) * rRay, 0}, color});
         }
     }
     XYZLineNode::XYZLineNode(const std::shared_ptr<Node>& parent) :

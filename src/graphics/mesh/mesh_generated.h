@@ -90,34 +90,7 @@ namespace bricksim::mesh::generated {
                        const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
     };
 
-    enum class SimpleLineColor {
-        RED,
-        GREEN,
-        BLUE,
-        CYAN,
-        MAGENTA,
-        YELLOW,
-        WHITE,
-        BLACK,
-    };
 
-    class LineSunNode : public GeneratedMeshNode {
-    private:
-        const SimpleLineColor lineColor;
-        const bool inverted;
-
-    public:
-        static constexpr uint16_t NUM_CORNERS = 12;
-
-        LineSunNode(const std::shared_ptr<Node>& parent, SimpleLineColor color, bool inverted);
-
-        std::string getDescription() override;
-
-        mesh_identifier_t getMeshIdentifier() const override;
-
-        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
-                       const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
-    };
 
     class XYZLineNode : public GeneratedMeshNode {
     public:

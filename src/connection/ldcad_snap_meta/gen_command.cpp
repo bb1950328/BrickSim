@@ -3,7 +3,7 @@
 #include "write.h"
 
 namespace bricksim::connection::ldcad_snap_meta {
-    GenCommand::GenCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
+    GenCommand::GenCommand(const parsed_param_container& parameters) :
         id(parse::optionalStringParameter(parameters, "id")),
         group(parse::optionalStringParameter(parameters, "group")),
         pos(parse::optionalVec3Parameter(parameters, "pos")),
@@ -23,9 +23,7 @@ namespace bricksim::connection::ldcad_snap_meta {
                && scale == rhs.scale
                && mirror == rhs.mirror;
     }
-    bool GenCommand::operator!=(const GenCommand& rhs) const {
-        return !(rhs == *this);
-    }
+
     written_param_container GenCommand::getParameters() const {
         written_param_container result;
         write::optionalStringParameter(result, "id", id);

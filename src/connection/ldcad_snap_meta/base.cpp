@@ -9,10 +9,11 @@
 #include "gen_command.h"
 #include "glm/gtc/type_ptr.hpp"
 #include "incl_command.h"
+#include "parse.h"
 #include "spdlog/fmt/fmt.h"
+#include "spdlog/spdlog.h"
 #include <utility>
 #include <vector>
-#include "parse.h"
 
 namespace bricksim::connection::ldcad_snap_meta {
 
@@ -53,12 +54,9 @@ namespace bricksim::connection::ldcad_snap_meta {
                && spacingX == rhs.spacingX
                && spacingZ == rhs.spacingZ;
     }
-    bool Grid::operator!=(const Grid& rhs) const {
-        return !(rhs == *this);
-    }
 
     std::shared_ptr<MetaCommand> Reader::readLine(std::string_view line) {
-        uomap_t<std::string_view, std::string_view> parameters;
+        parsed_param_container parameters;
 
         std::size_t end = 0;
         while (true) {
@@ -70,7 +68,7 @@ namespace bricksim::connection::ldcad_snap_meta {
             end = line.find(']', start);
             const std::string_view key = stringutil::trim(line.substr(start + 1, middle - start - 1));
             const std::string_view value = stringutil::trim(line.substr(middle + 1, end - middle - 1));
-            parameters.insert({key, value});
+            parameters.insert({stringutil::asLower(key), value});
         }
         if (line.starts_with(ClearCommand::NAME)) {
             return std::make_shared<ClearCommand>(parameters);
@@ -94,9 +92,6 @@ namespace bricksim::connection::ldcad_snap_meta {
                && radius == rhs.radius
                && length == rhs.length;
     }
-    bool CylShapeBlock::operator!=(const CylShapeBlock& rhs) const {
-        return !(rhs == *this);
-    }
 
     std::string MetaCommand::to_string() const {
         std::string result(getName());
@@ -110,5 +105,7 @@ namespace bricksim::connection::ldcad_snap_meta {
             result.push_back(']');
         }
         return result;
+    }
+    MetaCommand::~MetaCommand() {
     }
 }

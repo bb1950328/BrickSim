@@ -119,13 +119,13 @@ namespace bricksim::util {
         return result;
     }
 
-    bool writeImage(const char* path, unsigned char* pixels, int width, int height, int channels) {
-        auto path_lower = stringutil::asLower(path);
+    bool writeImage(const char* path, const unsigned char* pixels, int width, int height, int channels) {
+        auto path_lower = stringutil::asLower(std::string_view(path));
         stbi_flip_vertically_on_write(true);
         if (path_lower.ends_with(".png")) {
             return stbi_write_png(path, width, height, channels, pixels, width * channels) != 0;
         } else if (path_lower.ends_with(".jpg") || path_lower.ends_with(".jpeg")) {
-            const int quality = std::min(100, std::max(5, (int)config::get(config::JPG_SCREENSHOT_QUALITY)));
+            const int quality = std::min(100, std::max(5, config::get(config::JPG_SCREENSHOT_QUALITY)));
             return stbi_write_jpg(path, width, height, channels, pixels, quality) != 0;
         } else if (path_lower.ends_with(".bmp")) {
             return stbi_write_bmp(path, width, height, channels, pixels) != 0;

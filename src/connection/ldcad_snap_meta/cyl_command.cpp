@@ -3,7 +3,7 @@
 #include "write.h"
 
 namespace bricksim::connection::ldcad_snap_meta {
-    CylCommand::CylCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
+    CylCommand::CylCommand(const parsed_param_container& parameters) :
         id(parse::optionalStringParameter(parameters, "id")),
         group(parse::optionalStringParameter(parameters, "group")),
         pos(parse::optionalVec3Parameter(parameters, "pos")),
@@ -31,9 +31,7 @@ namespace bricksim::connection::ldcad_snap_meta {
                && center == rhs.center
                && slide == rhs.slide;
     }
-    bool CylCommand::operator!=(const CylCommand& rhs) const {
-        return !(rhs == *this);
-    }
+
     written_param_container CylCommand::getParameters() const {
         written_param_container result;
         write::optionalStringParameter(result, "id", id);

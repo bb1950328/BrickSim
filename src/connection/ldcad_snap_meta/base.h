@@ -14,8 +14,8 @@
 namespace bricksim::connection::ldcad_snap_meta {
     //documentation: http://www.melkert.net/LDCad/tech/meta#:~:text=20%20and%2020.-,Part%20snapping%20metas,-Part%20snapping%20metas
 
-    typedef uomap_t<std::string_view, std::string_view> parsed_param_container;
-    typedef uomap_t<std::string, std::string> written_param_container;
+    using parsed_param_container = uomap_t<std::string, std::string_view>;
+    using written_param_container = uomap_t<std::string, std::string>;
 
     struct Grid {
         bool centerX;
@@ -27,7 +27,6 @@ namespace bricksim::connection::ldcad_snap_meta {
         explicit Grid(std::string_view command);
 
         bool operator==(const Grid& rhs) const;
-        bool operator!=(const Grid& rhs) const;
     };
 
     enum class ScaleType {
@@ -56,7 +55,6 @@ namespace bricksim::connection::ldcad_snap_meta {
         float radius;
         float length;
         bool operator==(const CylShapeBlock& rhs) const;
-        bool operator!=(const CylShapeBlock& rhs) const;
     };
     enum class CylCaps {
         NONE,
@@ -69,6 +67,7 @@ namespace bricksim::connection::ldcad_snap_meta {
     class MetaCommand {
     public:
         [[nodiscard]] std::string to_string() const;
+        virtual ~MetaCommand();
 
     protected:
         [[nodiscard]] virtual written_param_container getParameters() const = 0;

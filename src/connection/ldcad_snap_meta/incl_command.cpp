@@ -3,7 +3,7 @@
 #include "write.h"
 
 namespace bricksim::connection::ldcad_snap_meta {
-    InclCommand::InclCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
+    InclCommand::InclCommand(const parsed_param_container& parameters) :
         id(parse::optionalStringParameter(parameters, "id")),
         pos(parse::optionalVec3Parameter(parameters, "pos")),
         ori(parse::optionalMat3Parameter(parameters, "ori")),
@@ -19,9 +19,7 @@ namespace bricksim::connection::ldcad_snap_meta {
                && ref == rhs.ref
                && grid == rhs.grid;
     }
-    bool InclCommand::operator!=(const InclCommand& rhs) const {
-        return !(rhs == *this);
-    }
+
     written_param_container InclCommand::getParameters() const {
         written_param_container result;
         write::optionalStringParameter(result, "id", id);

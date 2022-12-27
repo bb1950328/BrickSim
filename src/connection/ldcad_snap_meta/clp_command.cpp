@@ -3,7 +3,7 @@
 #include "write.h"
 
 namespace bricksim::connection::ldcad_snap_meta {
-    ClpCommand::ClpCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
+    ClpCommand::ClpCommand(const parsed_param_container& parameters) :
         id(parse::optionalStringParameter(parameters, "id")),
         pos(parse::optionalVec3Parameter(parameters, "pos")),
         ori(parse::optionalMat3Parameter(parameters, "ori")),
@@ -24,9 +24,6 @@ namespace bricksim::connection::ldcad_snap_meta {
                && slide == rhs.slide
                && scale == rhs.scale
                && mirror == rhs.mirror;
-    }
-    bool ClpCommand::operator!=(const ClpCommand& rhs) const {
-        return !(rhs == *this);
     }
     written_param_container ClpCommand::getParameters() const {
         written_param_container result;

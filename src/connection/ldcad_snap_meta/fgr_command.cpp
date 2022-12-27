@@ -3,7 +3,7 @@
 #include "write.h"
 
 namespace bricksim::connection::ldcad_snap_meta {
-    FgrCommand::FgrCommand(const uomap_t<std::string_view, std::string_view>& parameters) :
+    FgrCommand::FgrCommand(const parsed_param_container& parameters) :
         id(parse::optionalStringParameter(parameters, "id")),
         group(parse::optionalStringParameter(parameters, "group")),
         genderOfs(parse::enumParameter(parameters, "genderOfs", Gender::M)),
@@ -27,9 +27,7 @@ namespace bricksim::connection::ldcad_snap_meta {
                && scale == rhs.scale
                && mirror == rhs.mirror;
     }
-    bool FgrCommand::operator!=(const FgrCommand& rhs) const {
-        return !(rhs == *this);
-    }
+
     written_param_container FgrCommand::getParameters() const {
         written_param_container result;
         write::optionalStringParameter(result, "id", id);

@@ -93,6 +93,12 @@ namespace bricksim::stringutil {
         asLower(string.c_str(), result.data(), string.length());
         return result;
     }
+    std::string asLower(std::string_view string) {
+        std::string result;
+        result.resize(string.length());
+        asLower(string.data(), result.data(), string.length());
+        return result;
+    }
 
     void asUpper(const char* input, char* output, size_t length) {
 #ifdef BRICKSIM_USE_OPTIMIZED_VARIANTS
@@ -146,6 +152,13 @@ namespace bricksim::stringutil {
         std::string result;
         result.resize(string.length());
         asUpper(string.c_str(), result.data(), string.length());
+        return result;
+    }
+
+    std::string asUpper(std::string_view string) {
+        std::string result;
+        result.resize(string.length());
+        asUpper(string.data(), result.data(), string.length());
         return result;
     }
 

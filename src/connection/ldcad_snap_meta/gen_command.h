@@ -17,7 +17,6 @@ namespace bricksim::connection::ldcad_snap_meta {
         MirrorType mirror;
 
         bool operator==(const GenCommand& rhs) const;
-        bool operator!=(const GenCommand& rhs) const;
 
     protected:
         [[nodiscard]] written_param_container getParameters() const override;

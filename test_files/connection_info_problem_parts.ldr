@@ -1,12 +1,10 @@
-0 FILE translated_rotated_stud.ldr
-0 a stud that is translated and rotated
-0 Name: translated_rotated_stud.ldr
+0 FILE connection_info_problem_parts.ldr
+0 Name: connection_info_problem_parts.ldr
 0 Author: bb1950328
 0 !LDRAW_ORG Model
 0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
 0 !THEME Technic
 
-1 2 0 0 0 1 0 0 0 1 0 0 0 1 3940.dat
 1 2 0 0 40 1 0 0 0 1 0 0 0 1 4598.dat
 1 2 0 0 100 1 0 0 0 1 0 0 0 1 30156.dat
 1 2 0 0 140 1 0 0 0 1 0 0 0 1 4519.dat

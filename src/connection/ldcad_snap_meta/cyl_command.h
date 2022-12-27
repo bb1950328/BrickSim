@@ -20,7 +20,6 @@ namespace bricksim::connection::ldcad_snap_meta {
         bool slide;
 
         bool operator==(const CylCommand& rhs) const;
-        bool operator!=(const CylCommand& rhs) const;
 
     protected:
         [[nodiscard]] written_param_container getParameters() const override;

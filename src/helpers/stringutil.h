@@ -7,8 +7,10 @@ namespace bricksim::stringutil {
     std::string_view trim(std::string_view input);
     void asLower(const char* input, char* output, size_t length);
     std::string asLower(const std::string& string);
+    std::string asLower(std::string_view string);
     void asUpper(const char* input, char* output, size_t length);
     std::string asUpper(const std::string& string);
+    std::string asUpper(std::string_view string);
     void toLowerInPlace(char* string);
     void toUpperInPlace(char* string);
     void replaceAll(std::string& str, const std::string& from, const std::string& to);

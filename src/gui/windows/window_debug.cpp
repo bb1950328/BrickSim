@@ -6,6 +6,7 @@
 #include <glm/gtx/io.hpp>
 #include <map>
 #include <memory>
+#include <sstream>
 
 #include "window_debug.h"
 #include "window_mesh_inspector.h"

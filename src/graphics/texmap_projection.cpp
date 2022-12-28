@@ -70,8 +70,8 @@ namespace bricksim::graphics::texmap_projection {
                 const auto triangleIndices = mapbox::earcut(polyWrapper);
 
                 for (int i = 0; i < triangleIndices.size(); i += 3) {
-                    glm::vec2 UVs[3];
-                    glm::vec3 coords3d[3];
+                    std::array<glm::vec2, 3> UVs{};
+                    std::array<glm::vec3, 3> coords3d{};
                     bool allUVsInImage = true;
                     for (int j = 0; j < 3; ++j) {
                         coords3d[j] = poly3d[triangleIndices[i + j]];
@@ -85,9 +85,9 @@ namespace bricksim::graphics::texmap_projection {
                             res.texturedVertices.emplace_back(coords3d[j], UVs[j]);
                         }
                     } else {
-                        for (auto& c: coords3d) {
-                            res.plainColorIndices.push_back(res.plainColorVertices.size());
-                            res.plainColorVertices.push_back(mesh::TriangleVertex{c, polygonPlaneRay.direction});
+                        for (const auto& c: coords3d) {
+                            res.plainColorIndices.push_back(static_cast<unsigned int>(res.plainColorVertices.size()));
+                            res.plainColorVertices.emplace_back(c, polygonPlaneRay.direction);
                         }
                     }
                 }
@@ -207,10 +207,10 @@ namespace bricksim::graphics::texmap_projection {
                     size_t baseIndex = res.plainColorVertices.size();
                     for (auto coord2d: poly) {
                         const glm::vec3 coord3d = planeConverter.convert2dTo3d(coord2d);
-                        res.plainColorVertices.push_back({coord3d, polygonPlaneRay.direction});
+                        res.plainColorVertices.emplace_back(coord3d, polygonPlaneRay.direction);
                     }
                     for (const auto& idx: triangleIndices) {
-                        res.plainColorIndices.push_back(baseIndex + idx);
+                        res.plainColorIndices.push_back(static_cast<unsigned int>((baseIndex + idx)));
                     }
                 }
 

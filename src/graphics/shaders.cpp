@@ -179,16 +179,15 @@ namespace bricksim::graphics {
         }
 
         void initialize() {
-            using enum shader_id_t;
             if (is_directory(std::filesystem::path("./resources/shaders"))) {
                 spdlog::info("loading shaders from source files");
-                allShaders[TRIANGLE] = std::make_unique<Shader>("resources/shaders/triangle_shader.vsh", "resources/shaders/triangle_shader.fsh");
-                allShaders[TEXTURED_TRIANGLE] = std::make_unique<Shader>("resources/shaders/textured_triangle_shader.vsh", "resources/shaders/textured_triangle_shader.fsh");
-                allShaders[LINE] = std::make_unique<Shader>("resources/shaders/line_shader.vsh", "resources/shaders/line_shader.fsh");
-                allShaders[OPTIONAL_LINE] = std::make_unique<Shader>("resources/shaders/optional_line_shader.vsh", "resources/shaders/line_shader.fsh", "resources/shaders/optional_line_shader.gsh");
-                allShaders[OVERLAY] = std::make_unique<Shader>("resources/shaders/overlay_shader.vsh", "resources/shaders/simple_color_forwarding_shader.fsh");
-                allShaders[TRIANGLE_SELECTION] = std::make_unique<Shader>("resources/shaders/triangle_selection_shader.vsh", "resources/shaders/simple_color_forwarding_shader.fsh");
-                allShaders[TEXTURED_TRIANGLE_SELECTION] = std::make_unique<Shader>("resources/shaders/textured_triangle_selection_shader.vsh", "resources/shaders/simple_color_forwarding_shader.fsh");
+                allShaders[shader_id_t::TRIANGLE] = std::make_unique<Shader>("resources/shaders/triangle_shader.vsh", "resources/shaders/triangle_shader.fsh");
+                allShaders[shader_id_t::TEXTURED_TRIANGLE] = std::make_unique<Shader>("resources/shaders/textured_triangle_shader.vsh", "resources/shaders/textured_triangle_shader.fsh");
+                allShaders[shader_id_t::LINE] = std::make_unique<Shader>("resources/shaders/line_shader.vsh", "resources/shaders/line_shader.fsh");
+                allShaders[shader_id_t::OPTIONAL_LINE] = std::make_unique<Shader>("resources/shaders/optional_line_shader.vsh", "resources/shaders/line_shader.fsh", "resources/shaders/optional_line_shader.gsh");
+                allShaders[shader_id_t::OVERLAY] = std::make_unique<Shader>("resources/shaders/overlay_shader.vsh", "resources/shaders/simple_color_forwarding_shader.fsh");
+                allShaders[shader_id_t::TRIANGLE_SELECTION] = std::make_unique<Shader>("resources/shaders/triangle_selection_shader.vsh", "resources/shaders/simple_color_forwarding_shader.fsh");
+                allShaders[shader_id_t::TEXTURED_TRIANGLE_SELECTION] = std::make_unique<Shader>("resources/shaders/textured_triangle_selection_shader.vsh", "resources/shaders/simple_color_forwarding_shader.fsh");
             } else {
                 spdlog::info("loading shaders from embedded data");
 
@@ -201,14 +200,14 @@ namespace bricksim::graphics {
                                                     std::string_view(reinterpret_cast<const char*>(fragmentShader.data()), fragmentShader.size()),
                                                     std::string_view(reinterpret_cast<const char*>(geometryShader.data()), geometryShader.size()));
                 };
-                
-                allShaders[TRIANGLE] = createShaderVF(resources::shaders::triangle_shader_vsh, resources::shaders::triangle_shader_fsh);
-                allShaders[TEXTURED_TRIANGLE] = createShaderVF(resources::shaders::textured_triangle_shader_vsh, resources::shaders::textured_triangle_shader_fsh);
-                allShaders[LINE] = createShaderVF(resources::shaders::line_shader_vsh, resources::shaders::line_shader_fsh);
-                allShaders[OPTIONAL_LINE] = createShaderVFG(resources::shaders::optional_line_shader_vsh, resources::shaders::line_shader_fsh, resources::shaders::optional_line_shader_gsh);
-                allShaders[OVERLAY] = createShaderVF(resources::shaders::overlay_shader_vsh, resources::shaders::simple_color_forwarding_shader_fsh);
-                allShaders[TRIANGLE_SELECTION] = createShaderVF(resources::shaders::triangle_selection_shader_vsh, resources::shaders::simple_color_forwarding_shader_fsh);
-                allShaders[TEXTURED_TRIANGLE_SELECTION] = createShaderVF(resources::shaders::textured_triangle_selection_shader_vsh, resources::shaders::simple_color_forwarding_shader_fsh);
+
+                allShaders[shader_id_t::TRIANGLE] = createShaderVF(resources::shaders::triangle_shader_vsh, resources::shaders::triangle_shader_fsh);
+                allShaders[shader_id_t::TEXTURED_TRIANGLE] = createShaderVF(resources::shaders::textured_triangle_shader_vsh, resources::shaders::textured_triangle_shader_fsh);
+                allShaders[shader_id_t::LINE] = createShaderVF(resources::shaders::line_shader_vsh, resources::shaders::line_shader_fsh);
+                allShaders[shader_id_t::OPTIONAL_LINE] = createShaderVFG(resources::shaders::optional_line_shader_vsh, resources::shaders::line_shader_fsh, resources::shaders::optional_line_shader_gsh);
+                allShaders[shader_id_t::OVERLAY] = createShaderVF(resources::shaders::overlay_shader_vsh, resources::shaders::simple_color_forwarding_shader_fsh);
+                allShaders[shader_id_t::TRIANGLE_SELECTION] = createShaderVF(resources::shaders::triangle_selection_shader_vsh, resources::shaders::simple_color_forwarding_shader_fsh);
+                allShaders[shader_id_t::TEXTURED_TRIANGLE_SELECTION] = createShaderVF(resources::shaders::textured_triangle_selection_shader_vsh, resources::shaders::simple_color_forwarding_shader_fsh);
             }
             spdlog::debug("shader IDs: "
                           "TRIANGLE={} "
@@ -218,13 +217,13 @@ namespace bricksim::graphics {
                           "OVERLAY={} "
                           "TRIANGLE_SELECTION={} "
                           "TEXTURED_TRIANGLE_SELECTION={}",
-                          allShaders[TRIANGLE]->id,
-                          allShaders[TEXTURED_TRIANGLE]->id,
-                          allShaders[LINE]->id,
-                          allShaders[OPTIONAL_LINE]->id,
-                          allShaders[OVERLAY]->id,
-                          allShaders[TRIANGLE_SELECTION]->id,
-                          allShaders[TEXTURED_TRIANGLE_SELECTION]->id);
+                          allShaders[shader_id_t::TRIANGLE]->id,
+                          allShaders[shader_id_t::TEXTURED_TRIANGLE]->id,
+                          allShaders[shader_id_t::LINE]->id,
+                          allShaders[shader_id_t::OPTIONAL_LINE]->id,
+                          allShaders[shader_id_t::OVERLAY]->id,
+                          allShaders[shader_id_t::TRIANGLE_SELECTION]->id,
+                          allShaders[shader_id_t::TEXTURED_TRIANGLE_SELECTION]->id);
         }
 
         void cleanup() {

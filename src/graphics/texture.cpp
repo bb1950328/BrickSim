@@ -34,7 +34,7 @@ namespace bricksim::graphics {
 
     unsigned int Texture::copyTextureToVram(int imgWidth, int imgHeight, int nrChannels, const unsigned char* data) {
         unsigned int textureId;
-        controller::executeOpenGL([&]() {
+        controller::executeOpenGL([&textureId, &nrChannels, &imgWidth, &imgHeight, &data]() {
             glGenTextures(1, &textureId);
             glBindTexture(GL_TEXTURE_2D, textureId);
 

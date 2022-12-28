@@ -30,7 +30,7 @@ namespace bricksim::transform_gizmo {
         XPOS_YPOS_ZPOS = 0b111,
     };
 
-    enum TransformType {
+    enum class TransformType {
         TRANSLATE_1D,
         TRANSLATE_2D,
         TRANSLATE_3D,
@@ -98,7 +98,6 @@ namespace bricksim::transform_gizmo {
     };
 
     class TG2DArrowNode : public etree::MeshNode {
-    private:
     public:
         TG2DArrowNode(const ldr::ColorReference& color, const std::shared_ptr<Node>& parent);
         mesh_identifier_t getMeshIdentifier() const override;

@@ -7,22 +7,21 @@ namespace bricksim::connection::visualization {
     namespace {
         color::RGB getRGBFromSimpleLineColor(SimpleLineColor color) {
             switch (color) {
-                using enum bricksim::connection::visualization::SimpleLineColor;
-                case RED:
+                case SimpleLineColor::RED:
                     return {0xff, 0, 0};
-                case GREEN:
+                case SimpleLineColor::GREEN:
                     return {0, 0xff, 0};
-                case BLUE:
+                case SimpleLineColor::BLUE:
                     return {0, 0, 0xff};
-                case CYAN:
+                case SimpleLineColor::CYAN:
                     return {0, 0xff, 0xff};
-                case MAGENTA:
+                case SimpleLineColor::MAGENTA:
                     return {0xff, 0, 0xff};
-                case YELLOW:
+                case SimpleLineColor::YELLOW:
                     return {0xff, 0xff, 0};
-                case WHITE:
+                case SimpleLineColor::WHITE:
                     return {0xff, 0xff, 0xff};
-                case BLACK:
+                case SimpleLineColor::BLACK:
                     return {0, 0, 0};
             }
         }

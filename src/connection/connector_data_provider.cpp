@@ -106,16 +106,14 @@ namespace bricksim::connection {
                         const auto& sec = cylCommand->secs[i];
                         auto& part = result->parts[i];
                         switch (sec.variant) {
-                            using enum ldcad_snap_meta::CylShapeVariant;
-                            using enum CylindricalShapeType;
-                            case R:
-                                part.type = ROUND;
+                            case ldcad_snap_meta::CylShapeVariant::R:
+                                part.type = CylindricalShapeType::ROUND;
                                 break;
-                            case A:
-                                part.type = AXLE;
+                            case ldcad_snap_meta::CylShapeVariant::A:
+                                part.type = CylindricalShapeType::AXLE;
                                 break;
-                            case S:
-                                part.type = SQUARE;
+                            case ldcad_snap_meta::CylShapeVariant::S:
+                                part.type = CylindricalShapeType::SQUARE;
                                 break;
                             default:
                                 break;
@@ -139,24 +137,23 @@ namespace bricksim::connection {
                     }
 
                     switch (cylCommand->caps) {
-                        using enum ldcad_snap_meta::CylCaps;
-                        case NONE:
+                        case ldcad_snap_meta::CylCaps::NONE:
                             result->openStart = true;
                             result->openEnd = true;
                             break;
-                        case ONE:
+                        case ldcad_snap_meta::CylCaps::ONE:
                             result->openStart = result->gender == Gender::F;
                             result->openEnd = result->gender == Gender::M;
                             break;
-                        case TWO:
+                        case ldcad_snap_meta::CylCaps::TWO:
                             result->openStart = false;
                             result->openEnd = false;
                             break;
-                        case A:
+                        case ldcad_snap_meta::CylCaps::A:
                             result->openStart = false;
                             result->openEnd = true;
                             break;
-                        case B:
+                        case ldcad_snap_meta::CylCaps::B:
                             result->openStart = true;
                             result->openEnd = false;
                             break;

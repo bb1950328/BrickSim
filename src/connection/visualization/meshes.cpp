@@ -1,6 +1,7 @@
 #include "meshes.h"
 #include "magic_enum.hpp"
 #include "spdlog/fmt/fmt.h"
+#include <cmath>
 
 namespace bricksim::connection::visualization {
     namespace {

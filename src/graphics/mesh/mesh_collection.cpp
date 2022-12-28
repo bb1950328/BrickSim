@@ -259,6 +259,5 @@ namespace bricksim::mesh {
     const uoset_t<std::shared_ptr<Mesh>>& SceneMeshCollection::getUsedMeshes() const {
         return usedMeshes;
     }
-    bool mesh_key_t::operator==(const mesh_key_t& rhs) const = default;
 
 }

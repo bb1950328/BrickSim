@@ -10,7 +10,7 @@ namespace bricksim::mesh {
         mesh_identifier_t meshIdentifier;
         bool windingInversed;
         size_t texmapHash;
-        bool operator==(const mesh_key_t& rhs) const;
+        bool operator==(const mesh_key_t& rhs) const = default;
     };
 }
 

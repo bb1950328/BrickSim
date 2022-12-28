@@ -31,7 +31,7 @@ namespace bricksim {
         Fraction operator*=(long other);
         Fraction operator/=(long other);
 
-        bool operator==(const Fraction& other) const;
+        bool operator==(const Fraction& other) const = default;
         bool operator>(const Fraction& other) const;
         bool operator<(const Fraction& other) const;
         bool operator>=(const Fraction& other) const;

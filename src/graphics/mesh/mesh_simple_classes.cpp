@@ -5,15 +5,11 @@
 #include <cstring>
 
 namespace bricksim::mesh {
-    bool MeshInstance::operator==(const MeshInstance& other) const = default;
 
-    bool TriangleVertex::operator==(const TriangleVertex& other) const = default;
     TriangleVertex::TriangleVertex(const glm::vec3& position, const glm::vec3& normal) :
         position(position), normal(normal) {}
 
-    bool TexturedTriangleVertex::operator==(const TexturedTriangleVertex& other) const = default;
 
-    bool LineVertex::operator==(const LineVertex& other) const = default;
 
     void TriangleInstance::setColor(const ldr::ColorReference color) {
         const auto colorLocked = color.get();

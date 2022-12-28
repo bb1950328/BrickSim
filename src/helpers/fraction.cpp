@@ -109,8 +109,6 @@ namespace bricksim {
         return Fraction(*this);
     }
 
-    bool Fraction::operator==(const Fraction& other) const = default;
-
     bool Fraction::operator>(const Fraction& other) const {
         return a * other.b > other.a * b;
     }

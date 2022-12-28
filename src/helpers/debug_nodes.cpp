@@ -2,7 +2,8 @@
 #include "debug_nodes.h"
 
 namespace bricksim::etree {
-    PointDebugNode::PointDebugNode(const std::shared_ptr<Node> &parent) : UVSphereNode(ldr::color_repo::getPureColor(color::getRandom()), parent), position(0.f, 0.f, 0.f) {
+    PointDebugNode::PointDebugNode(const std::shared_ptr<Node>& parent) :
+        UVSphereNode(ldr::color_repo::getPureColor(color::getRandom()), parent) {
         visibleInElementTree = false;
         layer = constants::DEBUG_NODES_LAYER;
     }

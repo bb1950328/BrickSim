@@ -12,7 +12,6 @@ namespace bricksim {
 
     Task::Task(std::string name, std::function<void(float*)> taskFunction, bool autostart) :
         name(std::move(name)), function(std::move(taskFunction)) {
-        is_done = false;
         if (autostart) {
             startThread();
         }
@@ -49,7 +48,7 @@ namespace bricksim {
 
     void Task::joinThread() {
         thread->join();
-        spdlog::info("thread of task {} joined. task used {}ms.", name, duration_us / 1000.0f);
+        spdlog::info("thread of task {} joined. task used {}ms.", name, static_cast<float>(duration_us) / 1000.f);
     }
 
     bool Task::isStarted() const {
@@ -64,7 +63,7 @@ namespace bricksim {
         return progress;
     }
 
-    const float* const Task::getProgressPtr() const {
+    const float* Task::getProgressPtr() const {
         return &progress;
     }
 
@@ -85,4 +84,5 @@ namespace bricksim {
         progress = other.progress;
         return *this;
     }
+    Task::~Task() = default;
 }

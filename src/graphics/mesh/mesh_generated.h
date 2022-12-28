@@ -94,7 +94,7 @@ namespace bricksim::mesh::generated {
 
     class XYZLineNode : public GeneratedMeshNode {
     public:
-        XYZLineNode(const std::shared_ptr<Node>& parent);
+        explicit XYZLineNode(const std::shared_ptr<Node>& parent);
 
     private:
         std::string getDescription() override;

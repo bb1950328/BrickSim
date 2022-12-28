@@ -44,12 +44,15 @@ namespace bricksim::geometry {
     bool isPointInTriangle(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec3& point);
 
     class Plane3dTo2dConverter {
-        glm::vec3 origin, xDir, yDir, planeNormal;
+        glm::vec3 origin;
+        glm::vec3 planeNormal;
+        glm::vec3 xDir;
+        glm::vec3 yDir;
 
     public:
         Plane3dTo2dConverter(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
-        glm::vec2 convert3dTo2d(const glm::vec3& pointOnPlane);
-        glm::vec3 convert2dTo3d(const glm::vec2& coord);
+        [[nodiscard]] glm::vec2 convert3dTo2d(const glm::vec3& pointOnPlane) const;
+        [[nodiscard]] glm::vec3 convert2dTo3d(const glm::vec2& coord) const;
     };
 
     /**
@@ -76,7 +79,7 @@ namespace bricksim::geometry {
     template<glm::length_t L>
     std::vector<std::vector<glm::vec<L, float, glm::defaultp>>> joinTrianglesToPolygon(std::vector<std::array<glm::vec<L, float, glm::defaultp>, 3>> triangles) {
         static_assert(L == 2 || L == 3, "this only works for 2D and 3D coordinates");
-        typedef glm::vec<L, float, glm::defaultp> point;
+        using point = glm::vec<L, float, glm::defaultp>;
         std::vector<std::vector<point>> result;
         while (!triangles.empty()) {
             std::vector<point> currentPoly(triangles.back().begin(), triangles.back().end());
@@ -89,7 +92,8 @@ namespace bricksim::geometry {
                     const auto i1 = findPointInPolygonEpsilon(currentPoly, (*tri)[1]);
                     const auto i2 = findPointInPolygonEpsilon(currentPoly, (*tri)[2]);
                     point additionalCoord;
-                    int ia, ib;
+                    int ia;
+                    int ib;
                     foundOne = true;
                     if (i0 >= 0 && i1 >= 0) {
                         additionalCoord = (*tri)[2];

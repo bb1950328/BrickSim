@@ -21,7 +21,7 @@ namespace bricksim::ldr {
     class File;
     class TexmapStartCommand;
 
-    enum FileType {
+    enum class FileType {
         MODEL,
         MPD_SUBFILE,
         PART,
@@ -29,7 +29,7 @@ namespace bricksim::ldr {
         PRIMITIVE
     };
 
-    enum WindingOrder {
+    enum class WindingOrder {
         CW,
         CCW
     };
@@ -39,7 +39,7 @@ namespace bricksim::ldr {
     struct BfcState {
         bool active = false;
         bool invertNext = false;
-        WindingOrder windingOrder = CCW;
+        WindingOrder windingOrder = WindingOrder::CCW;
     };
 
     class FileMetaInfo {
@@ -269,7 +269,7 @@ namespace bricksim::ldr {
 
     class TexmapStartCommand : public CommentOrMetaElement {
     public:
-        enum ProjectionMethod {
+        enum class ProjectionMethod {
             PLANAR,
             CYLINDRICAL,
             SPHERICAL,
@@ -331,7 +331,7 @@ namespace bricksim::ldr {
         FileMetaInfo metaInfo;
         std::vector<std::shared_ptr<connection::ldcad_snap_meta::MetaCommand>> ldcadSnapMetas;
 
-        void printStructure(int indent = 0);
+        void printStructure(int indent = 0) const;
         [[nodiscard]] const std::string& getDescription() const;
         [[nodiscard]] const std::size_t& getHash() const;
 

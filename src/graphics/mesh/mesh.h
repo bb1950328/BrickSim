@@ -66,7 +66,7 @@ namespace bricksim::mesh {
         void deallocateGraphics();
         virtual ~Mesh();
 
-        size_t getTriangleCount();
+        size_t getTriangleCount() const;
         const std::optional<OuterDimensions>& getOuterDimensions();
 
     private:
@@ -84,7 +84,7 @@ namespace bricksim::mesh {
 
         void appendNewSceneInstancesAtEnd(scene_id_t sceneId, const std::vector<MeshInstance>& newSceneInstances);
         std::vector<glm::mat4> getInstancesForLineData();
-        std::vector<TexturedTriangleInstance> getInstancesForTexturedTriangleData();
+        std::vector<TexturedTriangleInstance> getInstancesForTexturedTriangleData() const;
         void rewriteInstanceBuffer();
         void calculateAndAddTexmapVertices(const ldr::ColorReference& color, const std::shared_ptr<ldr::TexmapStartCommand>& appliedTexmap, std::vector<glm::vec3>& transformedPoints);
     };

@@ -1,6 +1,4 @@
 #include "regular_file_repo.h"
-#include "../helpers/stringutil.h"
-#include "../helpers/util.h"
 #include <spdlog/spdlog.h>
 
 namespace bricksim::ldr::file_repo {
@@ -26,7 +24,7 @@ namespace bricksim::ldr::file_repo {
 
             if (shouldFileBeSavedInList(pathWithForwardSlash)) {
                 files.push_back(pathWithForwardSlash);
-                *progress = std::min(1.0f, 0.5f * files.size() / ESTIMATE_PART_LIBRARY_FILE_COUNT);
+                *progress = std::min(1.f, .5f * static_cast<float>(files.size()) / ESTIMATE_PART_LIBRARY_FILE_COUNT);
             }
         }
         return files;

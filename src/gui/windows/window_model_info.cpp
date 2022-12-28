@@ -38,7 +38,7 @@ namespace bricksim::gui::windows::model_info {
     void fillPartStats(PartStats& stats, const std::shared_ptr<etree::Node>& node, bool countSubfile = false) {
         const etree::NodeType nodeType = node->getType();
 
-        if (nodeType == etree::TYPE_PART) {
+        if (nodeType == etree::NodeType::TYPE_PART) {
             const auto ldrNode = std::dynamic_pointer_cast<etree::PartNode>(node);
             const char* fileName = ldrNode->ldrFile->metaInfo.name.c_str();
 
@@ -59,9 +59,9 @@ namespace bricksim::gui::windows::model_info {
             stats.differentParts.insert(nameHash);
             stats.differentPartsAndColors.insert(util::combinedHash(ldrNode->getDisplayColor(), nameHash));
 
-        } else if (nodeType == etree::TYPE_MPD_SUBFILE_INSTANCE) {
+        } else if (nodeType == etree::NodeType::TYPE_MPD_SUBFILE_INSTANCE) {
             fillPartStats(stats, std::dynamic_pointer_cast<etree::MpdSubfileInstanceNode>(node)->mpdSubfileNode, true);
-        } else if (nodeType != etree::TYPE_MPD_SUBFILE || countSubfile) {
+        } else if (nodeType != etree::NodeType::TYPE_MPD_SUBFILE || countSubfile) {
             for (const auto& child: node->getChildren()) {
                 fillPartStats(stats, child);
             }

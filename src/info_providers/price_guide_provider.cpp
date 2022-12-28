@@ -10,7 +10,7 @@
 namespace bricksim::info_providers::price_guide {
     namespace {
 
-        std::optional<bricklink::Currency> getCurrencyByCode(const std::string& code) {
+        std::optional<bricklink::Currency> getCurrencyByCode(std::string_view code) {
             for (const auto& currency: bricklink_constants::getCurrencies()) {
                 if (currency.second.codeCurrency == code) {
                     return {currency.second};
@@ -19,7 +19,7 @@ namespace bricksim::info_providers::price_guide {
             return {};
         }
 
-        std::optional<bricklink::Color> getColorByName(const std::string& name) {
+        std::optional<bricklink::Color> getColorByName(std::string_view name) {
             for (const auto& color: bricklink_constants::getColors()) {
                 if (stringutil::equalsAlphanum(color.second.strColorName, name)) {
                     return {color.second};
@@ -33,14 +33,14 @@ namespace bricksim::info_providers::price_guide {
         int getIdItem(const std::string& partCode) {
             //todo save in cache db
             static std::mutex lock;
-            std::lock_guard<std::mutex> lg(lock);
+            std::scoped_lock<std::mutex> lg(lock);
             auto it = idItems.find(partCode);
             if (it == idItems.end()) {
-                auto res = util::requestGET("https://www.bricklink.com/v2/catalog/catalogitem.page?P=" + partCode);
+                auto [statusCode, content] = util::requestGET("https://www.bricklink.com/v2/catalog/catalogitem.page?P=" + partCode);
                 // todo http error handling
                 std::regex rgx("idItem:\\s+(\\d+)");
                 std::smatch matches;
-                if (std::regex_search(res.second, matches, rgx)) {
+                if (std::regex_search(content, matches, rgx)) {
                     int val = std::stoi(matches[1].str());
                     idItems.emplace(partCode, val);
                     return val;
@@ -69,12 +69,12 @@ namespace bricksim::info_providers::price_guide {
         const std::string& colorCodeStr = std::to_string(getColorByName(colorName)->idColor);
         const std::string& currencyCodeStr = std::to_string(getCurrencyByCode(currencyCode)->idCurrency);
         std::string pgUrl = std::string("https://www.bricklink.com/v2/catalog/catalogitem_pgtab.page?idItem=") + partIdStr + "&idColor=" + colorCodeStr + "&st=2&gm=0&gc=0&ei=0&prec=4&showflag=0&showbulk=0&currency=" + currencyCodeStr;
-        auto res = util::requestGET(pgUrl, false, 3500);//don't use cache because relevant numbers are saved in priceGuideCache
+        auto [statusCode, content] = util::requestGET(pgUrl, false, 3500);//don't use cache because relevant numbers are saved in priceGuideCache
         std::regex rgx(
                 R"(\s*<TABLE CELLSPACING=0 CELLPADDING=0 CLASS="pcipgSummaryTable"><TR><TD>Total Lots:</TD><TD><b>(\d+)</b></TD></TR><TR><TD>Total Qty:</TD><TD><b>(\d+)</b></TD></TR><TR><TD>Min Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR><TR><TD>Avg Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR><TR><TD>Qty Avg Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR><TR><TD>Max Price:</TD><TD><b>[A-Za-z]+ ([.\d]+)</b></TD></TR></TABLE>\s*)");
 
         std::stringstream html;
-        html << res.second;
+        html << content;
         for (std::string line; getline(html, line);) {
             std::smatch matches;
             if (std::regex_search(line, matches, rgx)) {

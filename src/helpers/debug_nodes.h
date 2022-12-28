@@ -6,7 +6,8 @@
 namespace bricksim::etree {
     class PointDebugNode : public mesh::generated::UVSphereNode {
     private:
-        glm::vec3 position;
+        glm::vec3 position{0.f};
+
     public:
         explicit PointDebugNode(const std::shared_ptr<Node> &parent);
         std::string getDescription() override;

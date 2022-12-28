@@ -106,14 +106,16 @@ namespace bricksim::connection {
                         const auto& sec = cylCommand->secs[i];
                         auto& part = result->parts[i];
                         switch (sec.variant) {
-                            case ldcad_snap_meta::CylShapeVariant::R:
-                                part.type = CylindricalShapeType::ROUND;
+                            using enum ldcad_snap_meta::CylShapeVariant;
+                            using enum CylindricalShapeType;
+                            case R:
+                                part.type = ROUND;
                                 break;
-                            case ldcad_snap_meta::CylShapeVariant::A:
-                                part.type = CylindricalShapeType::AXLE;
+                            case A:
+                                part.type = AXLE;
                                 break;
-                            case ldcad_snap_meta::CylShapeVariant::S:
-                                part.type = CylindricalShapeType::SQUARE;
+                            case S:
+                                part.type = SQUARE;
                                 break;
                             default:
                                 break;
@@ -137,23 +139,24 @@ namespace bricksim::connection {
                     }
 
                     switch (cylCommand->caps) {
-                        case ldcad_snap_meta::CylCaps::NONE:
+                        using enum ldcad_snap_meta::CylCaps;
+                        case NONE:
                             result->openStart = true;
                             result->openEnd = true;
                             break;
-                        case ldcad_snap_meta::CylCaps::ONE:
+                        case ONE:
                             result->openStart = result->gender == Gender::F;
                             result->openEnd = result->gender == Gender::M;
                             break;
-                        case ldcad_snap_meta::CylCaps::TWO:
+                        case TWO:
                             result->openStart = false;
                             result->openEnd = false;
                             break;
-                        case ldcad_snap_meta::CylCaps::A:
+                        case A:
                             result->openStart = false;
                             result->openEnd = true;
                             break;
-                        case ldcad_snap_meta::CylCaps::B:
+                        case B:
                             result->openStart = true;
                             result->openEnd = false;
                             break;
@@ -205,9 +208,9 @@ namespace bricksim::connection {
             float zStart = grid.centerZ ? (static_cast<float>(grid.countZ - 1) / -2.f) * grid.spacingZ : 0;
             for (int ix = 0; ix < grid.countX; ++ix) {
                 for (int iz = 0; iz < grid.countZ; ++iz) {
-                    float dx = xStart + ix * grid.spacingX;
-                    float dz = zStart + iz * grid.spacingZ;
-                    for (auto cn: base) {
+                    float dx = xStart + static_cast<float>(ix) * grid.spacingX;
+                    float dz = zStart + static_cast<float>(iz) * grid.spacingZ;
+                    for (const auto& cn: base) {
                         auto clone = cn->clone();
                         clone->start += glm::vec3(dx, 0, dz);
                         connectors.push_back(clone);

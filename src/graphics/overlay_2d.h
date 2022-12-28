@@ -37,13 +37,14 @@ namespace bricksim::overlay2d {
         std::vector<Vertex> vertices;
         coord_t lastWrittenViewportSize{0, 0};
 
-        unsigned int vao, vbo;
+        unsigned int vao;
+        unsigned int vbo;
 
         void verticesHaveChanged(const std::shared_ptr<Element>& changedElement);
 
     public:
         void updateVertices(coord_t viewportSize);
-        void draw();
+        void draw() const;
 
         void addElement(const std::shared_ptr<Element>& element);
         void removeElement(const std::shared_ptr<Element>& element);
@@ -52,11 +53,11 @@ namespace bricksim::overlay2d {
         ElementCollection& operator=(ElementCollection&) = delete;
         ElementCollection(const ElementCollection&) = delete;
         virtual ~ElementCollection();
-        bool hasElements();
+        [[nodiscard]] bool hasElements() const;
         bool hasChangedElements();
     };
 
-    class Element : std::enable_shared_from_this<Element> {
+    class Element : private std::enable_shared_from_this<Element> {
     private:
         bool verticesHaveChanged = false;
 
@@ -67,6 +68,7 @@ namespace bricksim::overlay2d {
         virtual bool isPointInside(coord_t point) = 0;
         virtual unsigned int getVertexCount() = 0;
         virtual Vertex* writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) = 0;
+        virtual ~Element();
     };
 
     class LineElement : public Element {

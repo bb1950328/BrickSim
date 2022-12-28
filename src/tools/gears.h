@@ -25,7 +25,6 @@ namespace bricksim::gears {
         Gear& operator=(const Gear&) = delete;
         Gear(const Gear&) = delete;
         bool operator==(const Gear& rhs) const;
-        bool operator!=(const Gear& rhs) const;
 
         const char* const description;
         const int numTeeth;
@@ -34,8 +33,8 @@ namespace bricksim::gears {
         const uoset_t<const char*> ldrParts;
     };
 
-    typedef std::shared_ptr<Gear> gear_t;
-    typedef const oset_t<gear_t> gear_collection_t;
+    using gear_t = std::shared_ptr<Gear>;
+    using gear_collection_t = const oset_t<gear_t>;
 
     class GearPair {
     private:

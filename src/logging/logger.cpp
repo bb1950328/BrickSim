@@ -7,8 +7,7 @@ namespace bricksim::logging {
     void initialize() {
         spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e | %-8!l | T%t | %v");
         spdlog::set_level(spdlog::level::trace);
-        const std::shared_ptr<logging::latest_messages_tank::Sink<std::mutex>> x(new logging::latest_messages_tank::Sink<std::mutex>);
-        spdlog::default_logger()->sinks().push_back(x);
+        spdlog::default_logger()->sinks().push_back(std::make_shared<logging::latest_messages_tank::Sink<std::mutex>>());
     }
 
     void cleanup() {

@@ -1,5 +1,7 @@
 #include "latest_log_messages_tank.h"
+
 #include "../config.h"
+#include <utility>
 
 namespace bricksim::logging::latest_messages_tank {
     void addMessage(const latest_messages_tank::LogMessage& msg) {
@@ -18,7 +20,7 @@ namespace bricksim::logging::latest_messages_tank {
     }
 
     iterator getIterator() {
-        return iterator();
+        return {};
     }
 
     void clear() {
@@ -26,8 +28,7 @@ namespace bricksim::logging::latest_messages_tank {
         alwaysKeepingMessages.clear();
     }
 
-    iterator::iterator() :
-        itA(alwaysKeepingMessages.cbegin()), itB(lastNMessages.cbegin()), endA(alwaysKeepingMessages.cend()), endB(lastNMessages.cend()) {
+    iterator::iterator() {
         this->operator++();
     }
 
@@ -49,6 +50,6 @@ namespace bricksim::logging::latest_messages_tank {
         return current;
     }
 
-    LogMessage::LogMessage(const long timestamp, const unsigned char level, const std::string& formattedTime, const std::string& message) :
-        timestamp(timestamp), level(level), formattedTime(formattedTime), message(message) {}
+    LogMessage::LogMessage(const long timestamp, const unsigned char level, std::string formattedTime, std::string message) :
+        timestamp(timestamp), level(level), formattedTime(std::move(formattedTime)), message(std::move(message)) {}
 }

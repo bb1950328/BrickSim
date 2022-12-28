@@ -10,8 +10,6 @@ namespace bricksim {
         simplify();
     }
 
-    Fraction::Fraction(const Fraction& copyFrom) = default;
-
     void Fraction::checkBnot0() const {
         if (0 == b) {
             throw std::invalid_argument("b must not be 0");
@@ -111,13 +109,7 @@ namespace bricksim {
         return Fraction(*this);
     }
 
-    bool Fraction::operator==(const Fraction& other) const {
-        return a == other.a && b == other.b;
-    }
-
-    bool Fraction::operator!=(const Fraction& other) const {
-        return a != other.a || b != other.b;
-    }
+    bool Fraction::operator==(const Fraction& other) const = default;
 
     bool Fraction::operator>(const Fraction& other) const {
         return a * other.b > other.a * b;

@@ -10,9 +10,9 @@ namespace bricksim::info_providers::bricklink_constants {
 
         constexpr long fileSizeEstimated = 1056551;
         float* initialisationProgress;
-        int globalConstantsDownloadProgress(void* ptr, long downTotal, long downNow, long upTotal, long upNow) {
+        int globalConstantsDownloadProgress([[maybe_unused]] void* ptr, [[maybe_unused]] long downTotal, long downNow, [[maybe_unused]] long upTotal, [[maybe_unused]] long upNow) {
             if (initialisationProgress != nullptr) {
-                *initialisationProgress = 0.99f * std::min(downNow, fileSizeEstimated) / fileSizeEstimated;
+                *initialisationProgress = .99f * static_cast<float>(std::min(downNow, fileSizeEstimated)) / fileSizeEstimated;
             }
             return 0;
         }
@@ -32,27 +32,27 @@ namespace bricksim::info_providers::bricklink_constants {
 
         initialisationProgress = progress;
         *progress = 0.0f;
-        auto response = util::requestGET("https://www.bricklink.com/_file/global_constants.js", true, 0, globalConstantsDownloadProgress);
+        auto [statusCode, content] = util::requestGET("https://www.bricklink.com/_file/global_constants.js", true, 0, globalConstantsDownloadProgress);
 
-        if (response.first != util::RESPONSE_CODE_FROM_CACHE && (response.first < 200 || response.first >= 300)) {
-            throw std::runtime_error(std::string("can't download global bricklink constants. HTTP Status: ") + std::to_string(response.first));
+        if (statusCode != util::RESPONSE_CODE_FROM_CACHE && (statusCode < 200 || statusCode >= 300)) {
+            throw std::runtime_error(std::string("can't download global bricklink constants. HTTP Status: ") + std::to_string(statusCode));
         }
 
         int startPos = 0;
 
-        if (response.second.starts_with("var _blvarGlobalConstantsNew = {")) {//todo make a better solution with regex
+        if (content.starts_with("var _blvarGlobalConstantsNew = {")) {//todo make a better solution with regex
             startPos = 31;
         }
 
-        response.second = response.second.substr(startPos);
+        content = content.substr(startPos);
 
-        while (response.second.back() != ';') {
-            response.second.pop_back();
+        while (content.back() != ';') {
+            content.pop_back();
         }
-        response.second.pop_back();
+        content.pop_back();
 
         rapidjson::Document d;
-        d.Parse(response.second.c_str());
+        d.Parse(content.c_str());
 
         assert(d.IsObject());
 

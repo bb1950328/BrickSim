@@ -37,7 +37,7 @@ namespace bricksim::gui_internal {
             ImGui::SetTooltip("%s\n%s%s", part->metaInfo.title.c_str(), part->metaInfo.name.c_str(), availText.c_str());
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            auto& activeEditor = controller::getActiveEditor();
+            const auto& activeEditor = controller::getActiveEditor();
             if (activeEditor != nullptr) {
                 activeEditor->insertLdrElement(part);
             }

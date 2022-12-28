@@ -24,7 +24,8 @@ namespace bricksim::graphics {
             // open files
             vShaderFile.open(vertexPath);
             fShaderFile.open(fragmentPath);
-            std::stringstream vShaderStream, fShaderStream;
+            std::stringstream vShaderStream;
+            std::stringstream fShaderStream;
             // read file's buffer contents into streams
             vShaderStream << vShaderFile.rdbuf();
             fShaderStream << fShaderFile.rdbuf();
@@ -45,11 +46,11 @@ namespace bricksim::graphics {
         } catch (std::ifstream::failure& e) {
             spdlog::error("shader file not read successfully {} {}", e.code().value(), e.code().message());
         }
-        controller::executeOpenGL([&]() {
-            linkProgram(compileShader(vertexCode.c_str(), nullptr, GL_VERTEX_SHADER, "VERTEX"),
-                        compileShader(fragmentCode.c_str(), nullptr, GL_FRAGMENT_SHADER, "FRAGMENT"),
+        controller::executeOpenGL([this, &vertexCode, &fragmentCode, &hasGeometry, &geometryCode]() {
+            linkProgram(compileShader(vertexCode, GL_VERTEX_SHADER, "VERTEX"),
+                        compileShader(fragmentCode, GL_FRAGMENT_SHADER, "FRAGMENT"),
                         hasGeometry,
-                        hasGeometry ? compileShader(geometryCode.c_str(), nullptr, GL_GEOMETRY_SHADER, "GEOMETRY") : 0);
+                        hasGeometry ? compileShader(geometryCode, GL_GEOMETRY_SHADER, "GEOMETRY") : 0);
         });
     }
 
@@ -125,17 +126,18 @@ namespace bricksim::graphics {
 
     void Shader::checkCompileErrors(GLuint shader, const std::string& type) {
         GLint success;
-        GLchar infoLog[1024];
+        std::string infoLog;
+        infoLog.resize(1024);
         if (type != "PROGRAM") {
             glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
             if (!success) {
-                glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
+                glGetShaderInfoLog(shader, static_cast<GLsizei>(infoLog.capacity()), nullptr, infoLog.data());
                 spdlog::error("{} shader compilation error: \n{}", type, infoLog);
             }
         } else {
             glGetProgramiv(shader, GL_LINK_STATUS, &success);
             if (!success) {
-                glGetProgramInfoLog(shader, 1024, nullptr, infoLog);
+                glGetProgramInfoLog(shader, static_cast<GLsizei>(infoLog.capacity()), nullptr, infoLog.data());
                 spdlog::error("{} shader program linking error: \n{}", type, infoLog);
             }
         }
@@ -147,26 +149,23 @@ namespace bricksim::graphics {
         });
     }
 
-    int Shader::compileShader(const char* const code, int* length, int type, const char* const typeName) {
+    int Shader::compileShader(std::string_view code, int type, const char* const typeName) {
         int shaderId = glCreateShader(type);
-        glShaderSource(shaderId, 1, &code, length);
+        const char* string = code.data();
+        const auto length = static_cast<GLint>(code.size());
+        glShaderSource(shaderId, 1, &string, &length);
         glCompileShader(shaderId);
         checkCompileErrors(shaderId, typeName);
         return shaderId;
     }
 
-    Shader::Shader(const char* vertexCodeBegin, const char* const vertexCodeEnd,
-                   const char* fragmentCodeBegin, const char* fragmentCodeEnd,
-                   const char* geometryCodeBegin, const char* geometryCodeEnd) {
-        controller::executeOpenGL([&]() {
-            int vertexLength = vertexCodeEnd - vertexCodeBegin;
-            int fragmentLength = fragmentCodeEnd - fragmentCodeBegin;
-            bool hasGeometry = geometryCodeBegin != nullptr;
-            int geometryLength = geometryCodeEnd - geometryCodeBegin;
-            linkProgram(compileShader(vertexCodeBegin, &vertexLength, GL_VERTEX_SHADER, "VERTEX"),
-                        compileShader(fragmentCodeBegin, &fragmentLength, GL_FRAGMENT_SHADER, "FRAGMENT"),
+    Shader::Shader(std::string_view vertexCode, std::string_view fragmentCode, std::optional<std::string_view> geometryCode) {
+        controller::executeOpenGL([&vertexCode, &fragmentCode, &geometryCode, this]() {
+            bool hasGeometry = geometryCode.has_value();
+            linkProgram(compileShader(vertexCode, GL_VERTEX_SHADER, "VERTEX"),
+                        compileShader(fragmentCode, GL_FRAGMENT_SHADER, "FRAGMENT"),
                         hasGeometry,
-                        hasGeometry ? compileShader(geometryCodeBegin, &geometryLength, GL_GEOMETRY_SHADER, "GEOMETRY") : 0);
+                        hasGeometry ? compileShader(geometryCode.value(), GL_GEOMETRY_SHADER, "GEOMETRY") : 0);
         });
     }
 
@@ -180,6 +179,7 @@ namespace bricksim::graphics {
         }
 
         void initialize() {
+            using enum shader_id_t;
             if (is_directory(std::filesystem::path("./resources/shaders"))) {
                 spdlog::info("loading shaders from source files");
                 allShaders[TRIANGLE] = std::make_unique<Shader>("resources/shaders/triangle_shader.vsh", "resources/shaders/triangle_shader.fsh");
@@ -193,13 +193,13 @@ namespace bricksim::graphics {
                 spdlog::info("loading shaders from embedded data");
 
                 auto createShaderVF = [](const auto& vertexShader, const auto& fragmentShader) {
-                    return std::make_unique<Shader>((const char*)(& (*vertexShader.begin())), (const char*)(&(vertexShader.back())+1),
-                                                    (const char*)(&(*fragmentShader.begin())), (const char*)(&(fragmentShader.back())+1));
+                    return std::make_unique<Shader>(std::string_view(reinterpret_cast<const char*>(vertexShader.data()), vertexShader.size()),
+                                                    std::string_view(reinterpret_cast<const char*>(fragmentShader.data()), fragmentShader.size()));
                 };
                 auto createShaderVFG = [](const auto& vertexShader, const auto& fragmentShader, const auto& geometryShader) {
-                    return std::make_unique<Shader>((const char*)(&(*vertexShader.begin())), (const char*)(&(vertexShader.back())+1),
-                                                    (const char*)(&(*fragmentShader.begin())), (const char*)(&(fragmentShader.back())+1),
-                                                    (const char*)(&(*geometryShader.begin())), (const char*)(&(geometryShader.back())+1));
+                    return std::make_unique<Shader>(std::string_view(reinterpret_cast<const char*>(vertexShader.data()), vertexShader.size()),
+                                                    std::string_view(reinterpret_cast<const char*>(fragmentShader.data()), fragmentShader.size()),
+                                                    std::string_view(reinterpret_cast<const char*>(geometryShader.data()), geometryShader.size()));
                 };
                 
                 allShaders[TRIANGLE] = createShaderVF(resources::shaders::triangle_shader_vsh, resources::shaders::triangle_shader_fsh);

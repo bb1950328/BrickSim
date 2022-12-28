@@ -15,8 +15,8 @@ namespace bricksim::geometry {
 
     float calculateDistanceOfPointToLine(const glm::usvec2& line_start, const glm::usvec2& line_end, const glm::usvec2& point) {
         int numerator = std::abs((line_end.x - line_start.x) * (line_start.y - point.y) - (line_start.x - point.x) * (line_end.y - line_start.y));
-        float denominator = std::sqrt(std::pow(line_end.x - line_start.x, 2.0f) + std::pow(line_end.y - line_start.y, 2.0f));
-        return numerator / denominator;
+        double denominator = std::sqrt(std::pow(line_end.x - line_start.x, 2.0f) + std::pow(line_end.y - line_start.y, 2.0f));
+        return static_cast<float>(numerator) / static_cast<float>(denominator);
     }
 
     NormalProjectionResult normalProjectionOnLineClamped(const glm::vec2& lineStart, const glm::vec2& lineEnd, const glm::vec2& point) {
@@ -229,7 +229,10 @@ namespace bricksim::geometry {
     }
 
     std::vector<glm::vec2> sutherlandHogmanPolygonClipping(const std::vector<glm::vec2>& subjectPolygon, const std::vector<glm::vec2>& clipPolygon) {
-        glm::vec2 cp1, cp2, s, e;
+        glm::vec2 cp1;
+        glm::vec2 cp2;
+        glm::vec2 s;
+        glm::vec2 e;
         std::vector<glm::vec2> inputPolygon;
         std::vector<glm::vec2> outputPolygon = subjectPolygon;
         cp1 = clipPolygon[clipPolygon.size() - 1];
@@ -268,30 +271,29 @@ namespace bricksim::geometry {
         for (size_t i1 = 0, i2 = 1; i1 < polygon.size(); ++i1, i2 = (i1 + 1) % polygon.size()) {
             signedArea += (polygon[i1].x * polygon[i2].y - polygon[i2].x * polygon[i1].y);
         }
-        signedArea *= 0.5;
+        signedArea *= .5f;
         return signedArea;
     }
 
     Plane3dTo2dConverter::Plane3dTo2dConverter(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c) :
-        origin(a), xDir(glm::normalize(b - a)) {
-        planeNormal = glm::triangleNormal(a, b, c);
-        yDir = glm::rotate(glm::mat4(1.f), static_cast<float>(M_PI_2), planeNormal) * glm::vec4(xDir, 0.f);
+        origin(a),
+        planeNormal(glm::triangleNormal(a, b, c)),
+        xDir(glm::normalize(b - a)),
+        yDir(glm::rotate(glm::mat4(1.f), static_cast<float>(M_PI_2), planeNormal) * glm::vec4(xDir, 0.f)) {
     }
 
-    glm::vec2 Plane3dTo2dConverter::convert3dTo2d(const glm::vec3& pointOnPlane) {
+    glm::vec2 Plane3dTo2dConverter::convert3dTo2d(const glm::vec3& pointOnPlane) const {
         const auto& r_P = pointOnPlane;
-        const auto& n = planeNormal;
         const auto& r_O = origin;
         const auto& e_1 = xDir;
         const auto& e_2 = yDir;
 
-        const auto s = glm::dot(n, r_P - r_O);
         const auto t_1 = glm::dot(e_1, r_P - r_O);
         const auto t_2 = glm::dot(e_2, r_P - r_O);
         return {t_1, t_2};
     }
 
-    glm::vec3 Plane3dTo2dConverter::convert2dTo3d(const glm::vec2& coord) {
+    glm::vec3 Plane3dTo2dConverter::convert2dTo3d(const glm::vec2& coord) const {
         return origin + coord.x * xDir + coord.y * yDir;
     }
 
@@ -379,7 +381,7 @@ namespace bricksim::geometry {
 
     bool doesTransformationLeaveAxisParallels(const glm::quat& quaternion) {
         const auto eulerAngles = glm::eulerAngles(glm::normalize(quaternion));
-        constexpr float epsilon = 0.0001;
+        constexpr float epsilon = .0001f;
         bool res = true;
         for (int i = 0; i < 3; ++i) {
             res &= (std::fabs(eulerAngles[i]) < epsilon

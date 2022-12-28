@@ -11,12 +11,12 @@ namespace bricksim::polyclip {
         Vertex(p.x, p.y) {}
 
     Vertex::Vertex(float x, float y) :
-        x(x), y(y), alpha(0.0), next(nullptr), prev(nullptr), neighbour(nullptr), intersect(false), entryExit(false), processed(false) {}
+        x(x), y(y) {}
 
     VertexPtrDistance::VertexPtrDistance(Vertex* vPtr, float dis) :
         ptr(vPtr), distance(dis) {}
 
-    bool SortVertexPtrDistance::operator()(const VertexPtrDistance& v1, const VertexPtrDistance& v2) {
+    bool SortVertexPtrDistance::operator()(const VertexPtrDistance& v1, const VertexPtrDistance& v2) const {
         return v1.distance < v2.distance;
     }
 
@@ -56,8 +56,7 @@ namespace bricksim::polyclip {
         return ++nextIter;
     }
 
-    Polygon::Polygon(std::vector<glm::vec2> vertices) :
-        vertexCount(0) {
+    Polygon::Polygon(std::vector<glm::vec2> vertices) {
         if (!vertices.empty()) {
             auto* newVertex = new Vertex(vertices[0]);
             newVertex->next = newVertex;
@@ -205,7 +204,8 @@ namespace bricksim::polyclip {
             for (auto iter2 = subPoly.begin(); loop2Count < loop2Total; ++loop2Count) {
                 auto nextCheck2 = iter2.next();
 
-                float alphaP = -1.0, alphaQ = -1.0;
+                float alphaP = -1.0;
+                float alphaQ = -1.0;
                 glm::vec2 p1(iter1->x, iter1->y);
                 glm::vec2 p2(iter1->next->x, iter1->next->y);
                 glm::vec2 q1(iter2->x, iter2->y);
@@ -344,7 +344,7 @@ namespace bricksim::polyclip {
             }
 
             ptr->processed = true;
-            auto st = ptr;
+            const auto* st = ptr;
             auto current = ptr;
             std::vector<glm::vec2> poly;
             poly.emplace_back(current->x, current->y);
@@ -380,7 +380,7 @@ namespace bricksim::polyclip {
             }
 
             ptr->processed = true;
-            auto st = ptr;
+            const auto* st = ptr;
             auto current = ptr;
             std::vector<glm::vec2> poly;
             poly.emplace_back(current->x, current->y);
@@ -416,7 +416,7 @@ namespace bricksim::polyclip {
 
             bool self = true;
             ptr->processed = true;
-            auto st = ptr;
+            const auto* st = ptr;
             auto current = ptr;
             std::vector<glm::vec2> poly;
             poly.emplace_back(current->x, current->y);
@@ -513,13 +513,13 @@ namespace bricksim::polyclip {
     bool PolygonOperation::pointInPolygon(const glm::vec2& point, Polygon& polygon) {
         // See https://wrf.ecse.rpi.edu//Research/Short_Notes/pnpoly.html
         bool c = false;
-        for (auto& iter: polygon) {
+        for (const auto& iter: polygon) {
             c ^= (((iter.next->y > point.y) != (iter.y > point.y)) && (point.x < (iter.x - iter.next->x) * (point.y - iter.next->y) / (iter.y - iter.next->y) + iter.next->x));
         }
         return c;
     }
     void PolygonOperation::print(Polygon& polygon) {
-        for (auto& iter: polygon) {
+        for (const auto& iter: polygon) {
             std::cout << iter.x << " " << iter.y << "\n";
         }
     }

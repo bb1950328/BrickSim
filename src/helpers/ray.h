@@ -37,6 +37,6 @@ namespace bricksim {
         }
     };
 
-    typedef Ray<2> Ray2;
-    typedef Ray<3> Ray3;
+    using Ray2 = Ray<2>;
+    using Ray3 = Ray<3>;
 }

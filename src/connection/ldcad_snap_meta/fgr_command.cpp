@@ -6,14 +6,14 @@ namespace bricksim::connection::ldcad_snap_meta {
     FgrCommand::FgrCommand(const parsed_param_container& parameters) :
         id(parse::optionalStringParameter(parameters, "id")),
         group(parse::optionalStringParameter(parameters, "group")),
+        pos(parse::optionalVec3Parameter(parameters, "pos")),
+        ori(parse::optionalMat3Parameter(parameters, "ori")),
         genderOfs(parse::enumParameter(parameters, "genderOfs", Gender::M)),
+        seq(parse::floatVectorParameter(parameters, "seq")),
         radius(parse::floatParameter(parameters, "radius", 0.f)),
         center(parse::boolParameter(parameters, "center", false)),
         scale(parse::enumParameter(parameters, "scale", ScaleType::NONE)),
-        mirror(parse::enumParameter(parameters, "mirror", MirrorType ::NONE)),
-        pos(parse::optionalVec3Parameter(parameters, "pos")),
-        ori(parse::optionalMat3Parameter(parameters, "ori")),
-        seq(parse::floatVectorParameter(parameters, "seq")) {
+        mirror(parse::enumParameter(parameters, "mirror", MirrorType ::NONE)) {
     }
     bool FgrCommand::operator==(const FgrCommand& rhs) const {
         return id == rhs.id

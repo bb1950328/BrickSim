@@ -46,14 +46,7 @@ namespace bricksim::connection::ldcad_snap_meta {
         parse::floatFromString(words[i], spacingZ);
         ++i;
     }
-    bool Grid::operator==(const Grid& rhs) const {
-        return centerX == rhs.centerX
-               && centerZ == rhs.centerZ
-               && countX == rhs.countX
-               && countZ == rhs.countZ
-               && spacingX == rhs.spacingX
-               && spacingZ == rhs.spacingZ;
-    }
+    bool Grid::operator==(const Grid& rhs) const = default;
 
     std::shared_ptr<MetaCommand> Reader::readLine(std::string_view line) {
         parsed_param_container parameters;
@@ -87,25 +80,19 @@ namespace bricksim::connection::ldcad_snap_meta {
         }
     }
 
-    bool CylShapeBlock::operator==(const CylShapeBlock& rhs) const {
-        return variant == rhs.variant
-               && radius == rhs.radius
-               && length == rhs.length;
-    }
+    bool CylShapeBlock::operator==(const CylShapeBlock& rhs) const = default;
 
     std::string MetaCommand::to_string() const {
         std::string result(getName());
-        const auto& parameters = getParameters();
-        for (const auto& item: parameters) {
+        for (const auto& param: getParameters()) {
             result.push_back(' ');
             result.push_back('[');
-            result.append(item.first);
+            result.append(param.first);
             result.push_back('=');
-            result.append(item.second);
+            result.append(param.second);
             result.push_back(']');
         }
         return result;
     }
-    MetaCommand::~MetaCommand() {
-    }
+    MetaCommand::~MetaCommand() = default;
 }

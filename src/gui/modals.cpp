@@ -24,14 +24,14 @@ namespace bricksim::gui::modals {
     }
 
     Modal::Modal(std::string title, std::string message) :
-        title(std::move(title)), message(std::move(message)), state(State::BEFORE_SHOW) {}
+        title(std::move(title)), message(std::move(message)) {}
 
     void Modal::open() {
         ImGui::OpenPopup(getFullWindowTitle().c_str());
         state = State::SHOWING;
     }
 
-    std::string Modal::getFullWindowTitle() {
+    std::string Modal::getFullWindowTitle() const {
         return title;
     }
 
@@ -60,6 +60,7 @@ namespace bricksim::gui::modals {
     const std::string& Modal::getMessage() const {
         return message;
     }
+    Modal::~Modal() = default;
 
     ErrorModal::ErrorModal(std::string errorMessage) :
         Modal(ICON_FA_EXCLAMATION_CIRCLE " Error", std::move(errorMessage)) {
@@ -108,7 +109,7 @@ namespace bricksim::gui::modals {
     bool WaitModal::drawContent() {
         const auto& logoTexture = getLogoTexture();
         ImGui::Image(gui_internal::convertTextureId(logoTexture->getID()),
-                     ImVec2(logoTexture->getSize().x, logoTexture->getSize().y),
+                     ImVec2(static_cast<float>(logoTexture->getSize().x), static_cast<float>(logoTexture->getSize().y)),
                      ImVec2(0, 1), ImVec2(1, 0));
         ImGui::Text("Please wait until this operation has finished.");
         ImGui::Separator();

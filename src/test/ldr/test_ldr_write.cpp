@@ -18,11 +18,11 @@ TEST_CASE("ldr::Line to string") {
 }
 
 TEST_CASE("ldr::Triangle to string") {
-    CHECK(Triangle("123 1 2 3 4 5 6 7 8 9", CCW).getLdrLine() == "3 123 1 2 3 4 5 6 7 8 9");
+    CHECK(Triangle("123 1 2 3 4 5 6 7 8 9", WindingOrder::CCW).getLdrLine() == "3 123 1 2 3 4 5 6 7 8 9");
 }
 
 TEST_CASE("ldr::Quadrilateral to string") {
-    CHECK(Quadrilateral("123 1 2 3 4 5 6 7 8 9 10 11 12", CCW).getLdrLine() == "4 123 1 2 3 4 5 6 7 8 9 10 11 12");
+    CHECK(Quadrilateral("123 1 2 3 4 5 6 7 8 9 10 11 12", WindingOrder::CCW).getLdrLine() == "4 123 1 2 3 4 5 6 7 8 9 10 11 12");
 }
 
 TEST_CASE("ldr::OptionalLine to string") {
@@ -40,7 +40,7 @@ TEST_CASE("ldr::FileMetaInfo to string") {
     metaInfo.theme = "567";
     metaInfo.fileTypeLine = "890";
     metaInfo.headerCategory = "abc";
-    metaInfo.type = PRIMITIVE;
+    metaInfo.type = FileType::PRIMITIVE;
 
     std::stringstream ss;
     ss << metaInfo;

@@ -13,7 +13,7 @@
 
 namespace bricksim::ldr {
     WindingOrder inverseWindingOrder(WindingOrder order) {
-        return order == CW ? CCW : CW;
+        return order == WindingOrder::CW ? WindingOrder::CCW : WindingOrder::CW;
     }
 
     std::shared_ptr<FileElement> FileElement::parseLine(const std::string_view line, BfcState bfcState) {
@@ -40,16 +40,14 @@ namespace bricksim::ldr {
 #ifndef NDEBUG
     FileElement::~FileElement() {
         //todo use std::lock_guard without breaking build
-        metrics::ldrFileElementInstanceCountMtx.lock();
+        std::scoped_lock lg(metrics::ldrFileElementInstanceCountMtx);
         --metrics::ldrFileElementInstanceCount;
-        metrics::ldrFileElementInstanceCountMtx.unlock();
         //std::cout << metrics::ldrFileElementInstanceCount << std::endl;
     }
 
     FileElement::FileElement() {
-        metrics::ldrFileElementInstanceCountMtx.lock();
+        std::scoped_lock lg(metrics::ldrFileElementInstanceCountMtx);
         ++metrics::ldrFileElementInstanceCount;
-        metrics::ldrFileElementInstanceCountMtx.unlock();
         //std::cout << metrics::ldrFileElementInstanceCount << std::endl;
     }
 #else
@@ -74,21 +72,21 @@ namespace bricksim::ldr {
                         std::string bfcCommand = stringutil::trim(metaElement->content.substr(3));
                         if (bfcCommand.starts_with("CERTIFY")) {
                             std::string order = stringutil::trim(bfcCommand.substr(7));
-                            bfcState.windingOrder = order == "CW" ? CW : CCW;
+                            bfcState.windingOrder = order == "CW" ? WindingOrder::CW : WindingOrder::CCW;
                             bfcState.active = true;
                         } else if (bfcCommand.starts_with("CLIP")) {
                             std::string order = stringutil::trim(bfcCommand.substr(4));
                             if (order == "CW") {
-                                bfcState.windingOrder = CW;
+                                bfcState.windingOrder = WindingOrder::CW;
                             } else if (order == "CCW") {
-                                bfcState.windingOrder = CCW;
+                                bfcState.windingOrder = WindingOrder::CCW;
                             }
                             bfcState.active = true;
                         } else if (bfcCommand == "CW") {
-                            bfcState.windingOrder = CW;
+                            bfcState.windingOrder = WindingOrder::CW;
                             bfcState.active = true;//todo this is never explicitly stated in the standard
                         } else if (bfcCommand == "CCW") {
-                            bfcState.windingOrder = CCW;
+                            bfcState.windingOrder = WindingOrder::CCW;
                             bfcState.active = true;//todo this is never explicitly stated in the standard
                         } else if (bfcCommand == "NOCLIP") {
                             bfcState.active = false;
@@ -114,7 +112,7 @@ namespace bricksim::ldr {
                         }
                         element->directTexmap = texmapState.startCommand;
                     } else if (metaElement->content.starts_with(LDCAD_META_START)) {
-                        parseLdcadMeta(metaElement->content.substr(sizeof(LDCAD_META_START)));
+                        parseLdcadMeta(std::string_view(metaElement->content).substr(sizeof(LDCAD_META_START)));
                     }
                 } else if (texmapState.isActive()) {
                     if (texmapState.fallbackSectionReached) {
@@ -131,7 +129,7 @@ namespace bricksim::ldr {
         }
     }
 
-    void File::printStructure(int indent) {
+    void File::printStructure(int indent) const {
         for (const auto& elem: elements) {
             if (elem->getType() == 1) {
                 auto subfileRef = std::dynamic_pointer_cast<SubfileReference>(elem);
@@ -192,12 +190,11 @@ namespace bricksim::ldr {
     }
     File::~File() = default;
 
-    CommentOrMetaElement::CommentOrMetaElement(const std::string_view line) {
-        content = line;
+    CommentOrMetaElement::CommentOrMetaElement(const std::string_view line) :
+        content(line) {
     }
 
     inline void parseNextFloat(const std::string_view line, size_t& start, size_t& end, float& result) {
-        size_t endBackup = end, startBackup = start;
         start = line.find_first_not_of(LDR_WHITESPACE, end);
         end = std::min(line.size(), line.find_first_of(LDR_WHITESPACE, start));
         fast_float::from_chars(line.data() + start, line.data() + end, result);
@@ -236,7 +233,7 @@ namespace bricksim::ldr {
 
         parseNextThreeFloats(line, start, end, &coords[0]);//p1
 
-        if (order == CCW) {
+        if (order == WindingOrder::CCW) {
             parseNextThreeFloats(line, start, end, &coords[1 * 3]);//p2
             parseNextThreeFloats(line, start, end, &coords[2 * 3]);//p3
         } else {
@@ -252,7 +249,7 @@ namespace bricksim::ldr {
 
         parseNextThreeFloats(line, start, end, &coords[0]);//p1
 
-        if (order == CCW) {
+        if (order == WindingOrder::CCW) {
             parseNextThreeFloats(line, start, end, &coords[1 * 3]);//p2
             parseNextThreeFloats(line, start, end, &coords[2 * 3]);//p3
             parseNextThreeFloats(line, start, end, &coords[3 * 3]);//p4
@@ -319,7 +316,7 @@ namespace bricksim::ldr {
     }
 
     SubfileReference::SubfileReference(ColorReference color, const glm::mat4& transformation, bool bfcInverted) :
-        color(color), bfcInverted(bfcInverted) {
+        bfcInverted(bfcInverted), color(color) {
         setTransformationMatrix(transformation);
     }
 
@@ -470,11 +467,11 @@ namespace bricksim::ldr {
     namespace {
         const char* getFileTypeStr(FileType type) {
             switch (type) {
-                case MODEL: return "Model";
-                case MPD_SUBFILE: return "Submodel";
-                case PART: return "Part";
-                case SUBPART: return "Subpart";
-                case PRIMITIVE: return "Primitive";
+                case FileType::MODEL: return "Model";
+                case FileType::MPD_SUBFILE: return "Submodel";
+                case FileType::PART: return "Part";
+                case FileType::SUBPART: return "Subpart";
+                case FileType::PRIMITIVE: return "Primitive";
                 default: return "File";
             }
         }
@@ -493,12 +490,12 @@ namespace bricksim::ldr {
         parseNextThreeFloats(line, start, end, &coords[1 * 3]);//p2
         parseNextThreeFloats(line, start, end, &coords[2 * 3]);//p3
 
-        if (projectionMethod != PLANAR) {
+        if (projectionMethod != ProjectionMethod::PLANAR) {
             parseNextFloat(line, start, end, a());
         } else {
             a() = 0;
         }
-        if (projectionMethod == SPHERICAL) {
+        if (projectionMethod == ProjectionMethod::SPHERICAL) {
             parseNextFloat(line, start, end, b());
         } else {
             b() = 0;
@@ -527,9 +524,9 @@ namespace bricksim::ldr {
 
     std::string TexmapStartCommand::getLdrLine() const {
         std::string abStr;
-        if (projectionMethod == PLANAR) {
+        if (projectionMethod == ProjectionMethod::PLANAR) {
             abStr = "";
-        } else if (projectionMethod == CYLINDRICAL) {
+        } else if (projectionMethod == ProjectionMethod::CYLINDRICAL) {
             abStr = fmt::format("{:g}", a());
         } else {
             abStr = fmt::format("{:g} {:g}", a(), b());
@@ -541,9 +538,9 @@ namespace bricksim::ldr {
     TexmapStartCommand::TexmapStartCommand(const TexmapStartCommand& other) :
         CommentOrMetaElement(other.content),
         projectionMethod(other.projectionMethod),
+        coords(other.coords),
         textureFilename(other.textureFilename),
-        glossmapFileName(other.glossmapFileName),
-        coords(other.coords) {
+        glossmapFileName(other.glossmapFileName) {
     }
 
     void TexmapState::startOrNext(const std::shared_ptr<TexmapStartCommand>& command) {

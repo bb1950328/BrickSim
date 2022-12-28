@@ -33,16 +33,18 @@ namespace bricksim::gui::modals {
         [[nodiscard]] State getState() const;
         [[nodiscard]] const std::string& getMessage() const;
 
+        virtual ~Modal();
+
     protected:
         std::string title;
         std::string message;
-        std::string getFullWindowTitle();
-        State state;
+        [[nodiscard]] std::string getFullWindowTitle() const;
+        State state = State::BEFORE_SHOW;
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_Modal;
     };
 
     class ErrorModal : public Modal {
-        ErrorModal(std::string errorMessage);
+        explicit ErrorModal(std::string errorMessage);
         ErrorModal(std::string title, std::string errorMessage);
 
     public:

@@ -69,7 +69,6 @@ namespace bricksim::mesh {
         const auto& appliedTexmap = triangleElement->directTexmap != nullptr ? triangleElement->directTexmap : texmapOfParent;
         if (appliedTexmap == nullptr) {
             auto& data = getTriangleData(color);
-            auto idx1 = data.getVertexCount();
             for (const auto& tp: transformedPoints) {
                 data.addVertexWithIndex({tp, transformedNormal});
             }
@@ -126,7 +125,7 @@ namespace bricksim::mesh {
                 plainData.addRawVertex(vtx);
             }
             for (const auto& idx: plainIndices) {
-                plainData.addRawIndex(baseIndex + idx);
+                plainData.addRawIndex(static_cast<unsigned int>(baseIndex + idx));
             }
 
             for (const auto& vtx: texturedVertices) {
@@ -159,8 +158,7 @@ namespace bricksim::mesh {
         const auto& appliedTexmap = quadrilateral->directTexmap != nullptr ? quadrilateral->directTexmap : texmapOfParent;
         if (appliedTexmap == nullptr) {
             auto& data = getTriangleData(color);
-            auto idx1 = data.getVertexCount();
-            unsigned int idx = data.getVertexCount();
+            const auto idx = static_cast<unsigned int>(data.getVertexCount());
             for (const auto& tp: transformedPoints) {
                 data.addRawVertex({tp, transformedNormal});
             }
@@ -320,15 +318,13 @@ namespace bricksim::mesh {
 
     Mesh::~Mesh() = default;
 
-    std::vector<TexturedTriangleInstance> Mesh::getInstancesForTexturedTriangleData() {
+    std::vector<TexturedTriangleInstance> Mesh::getInstancesForTexturedTriangleData() const {
         std::vector<TexturedTriangleInstance> array;
         array.reserve(instances.size());
-        for (const auto& inst: instances) {
-            array.push_back({
-                    .idColor = color::convertIntToColorVec3(inst.elementId),
-                    .transformation = glm::transpose(inst.transformation * constants::LDU_TO_OPENGL),
-            });
-        }
+        std::transform(instances.cbegin(), instances.cend(), std::back_inserter(array), [](const auto& inst) {
+            return TexturedTriangleInstance{color::convertIntToColorVec3(inst.elementId),
+                                            glm::transpose(inst.transformation * constants::LDU_TO_OPENGL)};
+        });
         return array;
     }
 
@@ -400,7 +396,7 @@ namespace bricksim::mesh {
                 auto& thisSceneRanges = instanceSceneLayerRanges[sceneId];
                 thisSceneRanges.clear();
                 while (sourceIt != newSceneInstances.end()) {
-                    if (destinationIt->operator!=(*sourceIt)) {
+                    if (*destinationIt != *sourceIt) {
                         instancesHaveChanged = true;
                         *destinationIt = *sourceIt;
                     }
@@ -442,7 +438,7 @@ namespace bricksim::mesh {
 
         auto sourceIt = newSceneInstances.cbegin();
         layer_t currentLayer = sourceIt->layer;
-        unsigned int layerStart = instances.size();
+        auto layerStart = static_cast<unsigned int>(instances.size());
         unsigned int currentLayerInstanceCount = 0;
         instances.reserve(instances.size() + newSceneInstances.size());
 
@@ -463,7 +459,7 @@ namespace bricksim::mesh {
         instancesHaveChanged = true;
     }
 
-    size_t Mesh::getTriangleCount() {
+    size_t Mesh::getTriangleCount() const {
         size_t count = 0;
         for (const auto& item: triangleData) {
             count += item.second.getIndexCount();

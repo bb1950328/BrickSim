@@ -11,7 +11,7 @@ namespace bricksim::graphics::opengl_native_or_replacement {
         } else if (baseinstance == 0) {
             glDrawElementsInstanced(mode, count, type, indices, instancecount);
         } else {
-            //I know that this is a very inefficient solution, but most graphics cards support glDrawElementsInstancedBaseInstance anyways
+            //I know that this is a very inefficient solution, but most graphics cards support glDrawElementsInstancedBaseInstance anyway,
             //and it will only be called when the same mesh is in multiple layers
             std::vector<uint8_t> originalData;
             originalData.resize(totalInstanceBufferSize);
@@ -33,7 +33,7 @@ namespace bricksim::graphics::opengl_native_or_replacement {
         } else if (baseinstance == 0) {
             glDrawArraysInstanced(mode, first, count, instancecount);
         } else {
-            //I know that this is a very inefficient solution, but most graphics cards support glDrawElementsInstancedBaseInstance anyways
+            //I know that this is a very inefficient solution, but most graphics cards support glDrawElementsInstancedBaseInstance anyway,
             //and it will only be called when the same mesh is in multiple layers
             std::vector<uint8_t> originalData;
             originalData.resize(totalInstanceBufferSize);

@@ -1,33 +1,20 @@
 #include "mesh_simple_classes.h"
-#include "../../helpers/util.h"
-#include "../../helpers/geometry.h"
 #include "../../constant_data/constants.h"
+#include "../../helpers/geometry.h"
+#include "../../helpers/util.h"
 #include <cstring>
 
 namespace bricksim::mesh {
-    bool MeshInstance::operator==(const MeshInstance& other) const {
-        return std::memcmp(this, &other, sizeof(*this)) == 0;
-        //return transformation == other.transformation && color.get() == other.color.get() && elementId == other.elementId && selected == other.selected && layer == other.layer && scene == other.scene;
-    }
+    bool MeshInstance::operator==(const MeshInstance& other) const = default;
 
-    bool MeshInstance::operator!=(const MeshInstance& other) const {
-        return std::memcmp(this, &other, sizeof(*this)) != 0;
-        //return transformation != other.transformation || color.get() != other.color.get() || elementId != other.elementId || selected != other.selected || layer != other.layer || scene != other.scene;
-    }
+    bool TriangleVertex::operator==(const TriangleVertex& other) const = default;
+    TriangleVertex::TriangleVertex(const glm::vec3& position, const glm::vec3& normal) :
+        position(position), normal(normal) {}
 
-    bool TriangleVertex::operator==(const TriangleVertex& other) const {
-        //return position == other.position && normal == other.normal;
-        return std::memcmp(this, &other, sizeof(TriangleVertex)) == 0;
-    }
+    bool TexturedTriangleVertex::operator==(const TexturedTriangleVertex& other) const = default;
 
-    bool TexturedTriangleVertex::operator==(const TexturedTriangleVertex& other) const {
-        return std::memcmp(this, &other, sizeof(*this)) == 0;
-    }
+    bool LineVertex::operator==(const LineVertex& other) const = default;
 
-    bool LineVertex::operator==(const LineVertex& other) const {
-        //return position == other.position && color == other.color;
-        return std::memcmp(this, &other, sizeof(LineVertex)) == 0;
-    }
     void TriangleInstance::setColor(const ldr::ColorReference color) {
         const auto colorLocked = color.get();
         diffuseColor = colorLocked->value.asGlmVector();
@@ -43,11 +30,11 @@ namespace bricksim::mesh {
                 specularBrightness = 1;
                 break;
             case ldr::Color::MATTE_METALLIC:
-                ambientFactor = 0.6;
-                specularBrightness = 0.2;
+                ambientFactor = .6f;
+                specularBrightness = .2f;
                 break;
             case ldr::Color::RUBBER:
-                ambientFactor = 0.75;
+                ambientFactor = .75f;
                 specularBrightness = 0;
                 break;
             case ldr::Color::PURE:
@@ -55,8 +42,8 @@ namespace bricksim::mesh {
                 specularBrightness = 0;
                 break;
             default:
-                ambientFactor = 0.5;
-                specularBrightness = 0.5;
+                ambientFactor = .5f;
+                specularBrightness = .5f;
                 break;
         }
     }
@@ -110,7 +97,7 @@ namespace bricksim::mesh {
     }
 
     glm::mat4 RotatedBoundingBox::getUnitBoxTransformation() const {
-        glm::mat4 transf = glm::mat4(1.f);
+        glm::mat4 transf(1.f);
         transf = glm::toMat4(rotation) * transf;
         transf = glm::translate(glm::mat4(1.f), origin + centerOffset) * transf;
         transf = glm::scale(transf, size / 2.f);
@@ -140,4 +127,6 @@ namespace bricksim::mesh {
     RotatedBoundingBox::RotatedBoundingBox() :
         RotatedBoundingBox(AxisAlignedBoundingBox()) {
     }
+    TexturedTriangleInstance::TexturedTriangleInstance(const glm::vec3& idColor, const glm::mat4& transformation) :
+        idColor(idColor), transformation(transformation) {}
 }

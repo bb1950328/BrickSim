@@ -7,7 +7,7 @@
 namespace bricksim::graphics::orientation_cube {
     namespace {
         std::shared_ptr<Scene> scene;
-        short size = 512;//todo config
+        uint16_t size = 512;//todo config
         float lastPitch = 1e9, lastYaw = 1e9;
 
         void updateCamera() {
@@ -34,12 +34,9 @@ namespace bricksim::graphics::orientation_cube {
 
         const auto& rootNode = std::make_shared<etree::RootNode>();
         scene->setRootNode(rootNode);
-        rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::RIGHT));
-        rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::BOTTOM));
-        rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::BACK));
-        rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::LEFT));
-        rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::TOP));
-        rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, CubeSide::FRONT));
+        magic_enum::enum_for_each<CubeSide>([&rootNode](const auto side) {
+            rootNode->addChild(std::make_shared<OrientationCubeSideMeshNode>(rootNode, side));
+        });
         rootNode->incrementVersion();
 
         scene->setCamera(std::make_shared<OrientationCubeCamera>());
@@ -76,7 +73,7 @@ namespace bricksim::graphics::orientation_cube {
         return {};
     }
 
-    short getSize() {
+    uint16_t getSize() {
         return size;
     }
 

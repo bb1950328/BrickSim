@@ -11,7 +11,6 @@ namespace bricksim {
 
     public:
         Fraction(long a, long b);
-        Fraction(const Fraction& copyFrom);
         Fraction operator+(const Fraction& other) const;
         Fraction operator-(const Fraction& other) const;
         Fraction operator*(const Fraction& other) const;
@@ -33,7 +32,6 @@ namespace bricksim {
         Fraction operator/=(long other);
 
         bool operator==(const Fraction& other) const;
-        bool operator!=(const Fraction& other) const;
         bool operator>(const Fraction& other) const;
         bool operator<(const Fraction& other) const;
         bool operator>=(const Fraction& other) const;

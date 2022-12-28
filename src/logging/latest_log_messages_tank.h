@@ -1,10 +1,11 @@
 #pragma once
 
 #include "../helpers/platform_detection.h"
+#include <cinttypes>
 #include <list>
+#include <spdlog/fmt/chrono.h>
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/spdlog.h>
-#include <inttypes.h>
 
 namespace bricksim::logging::latest_messages_tank {
     struct LogMessage {
@@ -13,7 +14,7 @@ namespace bricksim::logging::latest_messages_tank {
         std::string formattedTime;
         std::string message;
 
-        LogMessage(long timestamp, unsigned char level, const std::string& formattedTime, const std::string& message);
+        LogMessage(long timestamp, unsigned char level, std::string formattedTime, std::string message);
     };
 
     namespace {
@@ -26,7 +27,7 @@ namespace bricksim::logging::latest_messages_tank {
 
     class iterator {
     public:
-        typedef iterator self_type;
+        using self_type = iterator;
 
         iterator();
 
@@ -35,10 +36,10 @@ namespace bricksim::logging::latest_messages_tank {
         [[nodiscard]] const LogMessage* getCurrent() const;
 
     private:
-        std::vector<LogMessage>::const_iterator itA;
-        std::list<LogMessage>::const_iterator itB;
-        std::vector<LogMessage>::const_iterator endA;
-        std::list<LogMessage>::const_iterator endB;
+        std::vector<LogMessage>::const_iterator itA = alwaysKeepingMessages.cbegin();
+        std::list<LogMessage>::const_iterator itB = lastNMessages.cbegin();
+        std::vector<LogMessage>::const_iterator endA = alwaysKeepingMessages.cend();
+        std::list<LogMessage>::const_iterator endB = lastNMessages.cend();
         LogMessage const* current{};
     };
 
@@ -54,25 +55,12 @@ namespace bricksim::logging::latest_messages_tank {
     class Sink : public spdlog::sinks::base_sink<Mutex> {
     protected:
         void sink_it_(const spdlog::details::log_msg& msg) override {
-            constexpr auto timeBufSize = sizeof("12:34:56.789");
-            static char timeBuf[timeBufSize];
-            const time_t timestamp = spdlog::log_clock::to_time_t(msg.time);
-            tm tmpTm{};
-#ifdef BRICKSIM_PLATFORM_WINDOWS
-            localtime_s(&tmpTm, &timestamp);
-#else
-            localtime_r(&timestamp, &tmpTm);
-#endif
-            std::strftime(timeBuf, timeBufSize, "%H:%M:%S", &tmpTm);
             const auto timeMs = std::chrono::time_point_cast<std::chrono::milliseconds>(msg.time).time_since_epoch().count();
-            snprintf(&timeBuf[8], 5, ".%03" PRIu64, timeMs % 1000);
-            std::string message = msg.payload.data();
-            //todo std::strcpy(message.get(), msg.payload.data());
-            addMessage(LogMessage(
-                    static_cast<long>(timeMs),
-                    (const unsigned char)msg.level,
-                    timeBuf,
-                    message));
+
+            addMessage({timeMs,
+                        (const unsigned char)msg.level,
+                        fmt::format("{:%H:%M:%S}", msg.time),
+                        msg.payload.data()});
         }
 
         void flush_() override {}

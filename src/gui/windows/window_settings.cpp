@@ -232,7 +232,7 @@ namespace bricksim::gui::windows::settings {
                     ImGui::EndTable();
                 }
                 if (ImGui::Button(ICON_FA_PLUS " Add new")) {
-                    allShortcuts.emplace_back(user_actions::DO_NOTHING, 0, 0, keyboard_shortcut_manager::Event::ON_PRESS);
+                    allShortcuts.emplace_back(user_actions::DO_NOTHING, 0, keyboard_shortcut_manager::modifier_t(0), keyboard_shortcut_manager::Event::ON_PRESS);
                 }
                 ImGui::EndTabItem();
             }

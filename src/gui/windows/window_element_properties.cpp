@@ -44,7 +44,7 @@ namespace bricksim::gui::windows::element_properties {
                 }
 
                 if (ldrNode != nullptr) {
-                    if (ldrNode->ldrFile->metaInfo.type == ldr::PART) {
+                    if (ldrNode->ldrFile->metaInfo.type == ldr::FileType::PART) {
                         const auto fileName = ldrNode->ldrFile->metaInfo.name;
                         const auto lastDot = fileName.rfind('.');
                         auto partCode = lastDot != std::string::npos
@@ -147,7 +147,7 @@ namespace bricksim::gui::windows::element_properties {
                         }
                     }
                 }
-                if ((node->getType() & etree::NodeType::TYPE_MESH) > 0) {
+                if ((static_cast<uint32_t>(node->getType()) & static_cast<uint32_t>(etree::NodeType::TYPE_MESH)) > 0) {
                     auto meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node);
                     if (meshNode->isColorUserEditable() && ImGui::TreeNodeEx(ICON_FA_PALETTE " Color", ImGuiTreeNodeFlags_DefaultOpen)) {
                         static bool isColor16, savedIsColor16;
@@ -170,7 +170,7 @@ namespace bricksim::gui::windows::element_properties {
                             const int columnCount = std::floor(ImGui::GetContentRegionAvail().x / (buttonWidth + ImGui::GetStyle().ItemSpacing.x));
 
                             std::optional<uoset_t<ldr::ColorReference>> availableColors = std::nullopt;
-                            if (meshNode->getType() == etree::TYPE_PART) {
+                            if (meshNode->getType() == etree::NodeType::TYPE_PART) {
                                 availableColors = info_providers::part_color_availability::getAvailableColorsForPart(ldrNode->ldrFile);
                             }
                             bool showAllColors;

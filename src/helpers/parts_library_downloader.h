@@ -3,7 +3,7 @@
 #include <utility>
 
 namespace bricksim::parts_library_downloader {
-    enum Status {
+    enum class Status {
         DOING_NOTHING,
         IN_PROGRESS,
         FAILED,
@@ -13,7 +13,7 @@ namespace bricksim::parts_library_downloader {
         long downTotal = 0;
         long downNow = 0;
         int bytesPerSecond = 0;
-        Status status = DOING_NOTHING;
+        Status status = Status::DOING_NOTHING;
         int progressFunc(void* clientp, long downloadTotal, long downloadNow, long uploadTotal, long uploadNow);
         bool shouldStop = false;
         long lastSpeedCalcTimestampMs;

@@ -21,7 +21,7 @@ namespace bricksim::connection::visualization {
         const SimpleLineColor lineColor;
         const bool inverted;
         const CylindricalShapeType shape;
-        std::vector<glm::vec2> generateShape();
+        std::vector<glm::vec2> generateShape() const;
 
     public:
         LineSunNode(const std::shared_ptr<Node>& parent, SimpleLineColor color, bool inverted, CylindricalShapeType shape);

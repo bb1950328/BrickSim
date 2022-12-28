@@ -18,9 +18,8 @@ namespace bricksim {
         return std::make_shared<Editor>(path);
     }
 
-    Editor::Editor() :
-        filePath() {
-        init(ldr::file_repo::get().addLdrFileWithContent(getNameForNewLdrFile(), ldr::MODEL, ""));
+    Editor::Editor() {
+        init(ldr::file_repo::get().addLdrFileWithContent(getNameForNewLdrFile(), ldr::FileType::MODEL, ""));
     }
 
     Editor::Editor(const std::filesystem::path& path) :
@@ -48,7 +47,7 @@ namespace bricksim {
 
         if (filePath.has_value()) {
             efsw::WatchID watchId = controller::getFileWatcher()->addWatch(filePath->parent_path().string(), this);
-            if (magic_enum::enum_contains<efsw::Error>(watchId)) {
+            if (magic_enum::enum_contains<efsw::Error>(static_cast<std::underlying_type_t<efsw::Errors::Error>>(watchId))) {
                 spdlog::info("Cannot watch file \"{}\": {}", filePath->string(), magic_enum::enum_name(static_cast<efsw::Error>(watchId)));
             } else {
                 fileWatchId = watchId;
@@ -61,7 +60,7 @@ namespace bricksim {
     }
     void Editor::addConnectorDataVisualization(const std::shared_ptr<etree::Node>& node) const {
         for (const auto& child: node->getChildren()) {
-            if (child->type == etree::TYPE_PART) {
+            if (child->type == etree::NodeType::TYPE_PART) {
                 const auto& fileName = std::dynamic_pointer_cast<etree::PartNode>(child)->ldrFile->metaInfo.name;
                 connection::visualization::addVisualization(fileName, child);
             }
@@ -221,16 +220,16 @@ namespace bricksim {
 
     void Editor::insertLdrElement(const std::shared_ptr<ldr::File>& ldrFile) {
         switch (ldrFile->metaInfo.type) {
-            case ldr::MPD_SUBFILE:
+            case ldr::FileType::MPD_SUBFILE:
                 documentNode->addSubfileInstanceNode(ldrFile, {1});
                 documentNode->incrementVersion();
                 break;
-            case ldr::PART:
+            case ldr::FileType::PART:
                 documentNode->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr::ColorReference{1}, documentNode, nullptr));
                 documentNode->incrementVersion();
                 break;
-            case ldr::SUBPART:
-            case ldr::PRIMITIVE:
+            case ldr::FileType::SUBPART:
+            case ldr::FileType::PRIMITIVE:
             default: break;
         }
     }
@@ -325,7 +324,7 @@ namespace bricksim {
         return selectedNodes;
     }
 
-    const std::string& Editor::getFilename() {
+    const std::string& Editor::getFilename() const {
         return documentNode->ldrFile->metaInfo.name;
     }
 

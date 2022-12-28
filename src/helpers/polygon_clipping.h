@@ -7,14 +7,15 @@
 namespace bricksim::polyclip {
 
     struct Vertex {
-        float x, y;
-        Vertex* next;
-        Vertex* prev;
-        bool intersect;
-        bool entryExit;
-        Vertex* neighbour;
-        float alpha;
-        bool processed;
+        float x;
+        float y;
+        Vertex* next = nullptr;
+        Vertex* prev = nullptr;
+        bool intersect = false;
+        bool entryExit = false;
+        Vertex* neighbour = nullptr;
+        float alpha = 0.f;
+        bool processed = false;
 
         Vertex();
         explicit Vertex(const glm::vec2& p);
@@ -28,7 +29,7 @@ namespace bricksim::polyclip {
     };
 
     struct SortVertexPtrDistance {
-        bool operator()(const VertexPtrDistance& v1, const VertexPtrDistance& v2);
+        bool operator()(const VertexPtrDistance& v1, const VertexPtrDistance& v2) const;
     };
 
     class PolygonVertexIterator {
@@ -61,8 +62,8 @@ namespace bricksim::polyclip {
         Vertex* endVertex;
 
     public:
-        typedef PolygonVertexIterator iterator;
-        int vertexCount;
+        using iterator = PolygonVertexIterator;
+        int vertexCount = 0;
 
         explicit Polygon(std::vector<glm::vec2> vertices);
         ~Polygon();

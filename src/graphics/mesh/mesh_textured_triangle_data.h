@@ -10,18 +10,22 @@ namespace bricksim::mesh {
         TexturedTriangleData& operator=(const TexturedTriangleData&) = delete;
         void initBuffers(const std::vector<TexturedTriangleInstance>& instances);
         void rewriteInstanceBuffer(const std::vector<TexturedTriangleInstance>& instances);
-        void freeBuffers();
-        void draw(const InstanceRange& sceneLayerInstanceRange);
+        void freeBuffers() const;
+        void draw(const InstanceRange& sceneLayerInstanceRange) const;
         [[nodiscard]] size_t getVertexCount() const;
         void fillVerticesForOuterDimensions(std::vector<const float*>& coords, size_t& coordCursor) const;
         void addVertex(const TexturedTriangleVertex& vertex);
+
     private:
         std::shared_ptr<graphics::Texture> texture;
         std::vector<TexturedTriangleVertex> vertices;
-        unsigned int VAO, vertexVBO, instanceVBO;
+        unsigned int VAO;
+        unsigned int vertexVBO;
+        unsigned int instanceVBO;
 
         bool verticesAlreadyDeleted = false;
         size_t uploadedVertexCount;
         size_t uploadedInstanceCount;
+        void initBuffersImpl(const std::vector<TexturedTriangleInstance>& instances);
     };
 }

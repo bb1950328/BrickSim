@@ -8,7 +8,7 @@ namespace bricksim::mesh {
     struct TriangleVertex {
         glm::vec3 position;
         glm::vec3 normal;
-
+        TriangleVertex(const glm::vec3& position, const glm::vec3& normal);
         bool operator==(const TriangleVertex& other) const;
     };
 
@@ -41,6 +41,7 @@ namespace bricksim::mesh {
     struct TexturedTriangleInstance {
         glm::vec3 idColor;
         glm::mat4 transformation;
+        TexturedTriangleInstance(const glm::vec3& idColor, const glm::mat4& transformation);
     };
 
     struct MeshInstance {
@@ -51,7 +52,6 @@ namespace bricksim::mesh {
         layer_t layer;
         scene_id_t scene;
         bool operator==(const MeshInstance& other) const;
-        bool operator!=(const MeshInstance& other) const;
     };
 
     struct InstanceRange {

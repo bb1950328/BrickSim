@@ -1,13 +1,14 @@
 #include "color.h"
+#include <spdlog/fmt/fmt.h>
 
 namespace bricksim::color {
     RGB::RGB(const std::string& htmlCode) {
         std::sscanf(htmlCode.c_str(), "#%2hhx%2hhx%2hhx", &red, &green, &blue);
     }
     RGB::RGB(glm::vec3 vector) {
-        red = static_cast<color_component_t>(std::clamp(vector.x, 0.f, 1.f)*255+.5f);
-        green = static_cast<color_component_t>(std::clamp(vector.y, 0.f, 1.f)*255+.5f);
-        blue = static_cast<color_component_t>(std::clamp(vector.z, 0.f, 1.f)*255+.5f);
+        red = static_cast<color_component_t>(std::clamp(vector.x, 0.f, 1.f) * 255 + .5f);
+        green = static_cast<color_component_t>(std::clamp(vector.y, 0.f, 1.f) * 255 + .5f);
+        blue = static_cast<color_component_t>(std::clamp(vector.z, 0.f, 1.f) * 255 + .5f);
     }
 
     RGB::RGB(color_component_t red, color_component_t green, color_component_t blue) :
@@ -19,44 +20,32 @@ namespace bricksim::color {
             green = hsv.value;
             blue = hsv.value;
         } else {
-            float h = hsv.hue / 255.0f;
-            float s = hsv.saturation / 255.0f;
-            float v = hsv.value / 255.0f;
-            auto i = (int)std::floor(h * 6);
-            auto f = h * 6 - i;
+            float h = static_cast<float>(hsv.hue) / 255.f;
+            float s = static_cast<float>(hsv.saturation) / 255.f;
+            float v = static_cast<float>(hsv.value) / 255.f;
+            auto i = static_cast<int8_t>(std::floor(h * 6));
+            auto f = h * 6 - static_cast<float>(i);
             auto p = v * (1.0f - s);
             auto q = v * (1.0f - s * f);
             auto t = v * (1.0f - s * (1.0f - f));
             switch (i % 6) {
                 case 0:
-                    red = v * 255;
-                    green = t * 255;
-                    blue = p * 255;
+                    assignFloat(v, t, p);
                     break;
                 case 1:
-                    red = q * 255;
-                    green = v * 255;
-                    blue = p * 255;
+                    assignFloat(q, v, p);
                     break;
                 case 2:
-                    red = p * 255;
-                    green = v * 255;
-                    blue = t * 255;
+                    assignFloat(p, v, t);
                     break;
                 case 3:
-                    red = p * 255;
-                    green = q * 255;
-                    blue = v * 255;
+                    assignFloat(p, q, v);
                     break;
                 case 4:
-                    red = t * 255;
-                    green = p * 255;
-                    blue = v * 255;
+                    assignFloat(t, p, v);
                     break;
                 case 5:
-                    red = v * 255;
-                    green = p * 255;
-                    blue = q * 255;
+                    assignFloat(v, p, q);
                     break;
                 default:
                     break;//shouldn't get here
@@ -65,14 +54,13 @@ namespace bricksim::color {
     }
 
     std::string RGB::asHtmlCode() const {
-        char buffer[8];
-        snprintf(buffer, 8, "#%02x%02x%02x", red, green, blue);
-        auto result = std::string(buffer);
-        return result;
+        return fmt::format("#{:02x}{:02x}{:02x}", red, green, blue);
     }
 
     glm::vec3 RGB::asGlmVector() const {
-        return glm::vec3(red / 255.0f, green / 255.0f, blue / 255.0f);
+        return {static_cast<float>(red) / 255.0f,
+                static_cast<float>(green) / 255.0f,
+                static_cast<float>(blue) / 255.0f};
     }
 
     const RGB RGB::BLACK{0, 0, 0};
@@ -92,10 +80,16 @@ namespace bricksim::color {
     const RGB RGB::TEAL{0, 128, 128};
     const RGB RGB::NAVY{0, 0, 128};
 
+    void RGB::assignFloat(float r, float g, float b) {
+        red = static_cast<color_component_t>(r * 255);
+        green = static_cast<color_component_t>(g * 255);
+        blue = static_cast<color_component_t>(b * 255);
+    }
+
     HSV::HSV(glm::vec3 vector) {
-        hue = static_cast<color_component_t>(std::clamp(vector.x, 0.f, 1.f)*255+.5f);
-        saturation = static_cast<color_component_t>(std::clamp(vector.y, 0.f, 1.f)*255+.5f);
-        value = static_cast<color_component_t>(std::clamp(vector.z, 0.f, 1.f)*255+.5f);
+        hue = static_cast<color_component_t>(std::clamp(vector.x, 0.f, 1.f) * 255 + .5f);
+        saturation = static_cast<color_component_t>(std::clamp(vector.y, 0.f, 1.f) * 255 + .5f);
+        value = static_cast<color_component_t>(std::clamp(vector.z, 0.f, 1.f) * 255 + .5f);
     }
 
     HSV::HSV(RGB rgb) {
@@ -103,28 +97,31 @@ namespace bricksim::color {
         auto minc = std::min(std::min(rgb.red, rgb.green), rgb.blue);
         value = maxc;
         if (maxc != minc) {
-            const auto maxmindiff = maxc - minc;
-            saturation = maxmindiff * 1.0f / maxc;
-            auto rc = (maxc - rgb.red) * 1.0f / maxmindiff;
-            auto gc = (maxc - rgb.green) * 1.0f / maxmindiff;
-            auto bc = (maxc - rgb.blue) * 1.0f / maxmindiff;
+            const auto maxmindiff = static_cast<float>(maxc - minc);
+            saturation = static_cast<color_component_t>(maxmindiff / static_cast<float>(maxc));
+            auto rc = static_cast<float>(maxc - rgb.red) / maxmindiff;
+            auto gc = static_cast<float>(maxc - rgb.green) / maxmindiff;
+            auto bc = static_cast<float>(maxc - rgb.blue) / maxmindiff;
             float h;
             if (rgb.red == maxc) {
                 h = bc - gc;
             } else if (rgb.green == maxc) {
-                h = 2.0f + rc - bc;
+                h = 2.f + rc - bc;
             } else {
-                h = 4.0f + gc - rc;
+                h = 4.f + gc - rc;
             }
-            hue = (((h / 255 / 6.0f) - (int)(h / 255 / 6.0f)) * 255.0f);
+            hue = static_cast<color_component_t>(((h / 255.f / 6.f) - std::floor(h / 255.f / 6.f)) * 255.f);
         }
     }
 
     glm::vec3 HSV::asGlmVector() const {
-        return glm::vec3(hue / 255.0f, saturation / 255.0f, value / 255.0f);
+        return {static_cast<float>(hue) / 255.f,
+                static_cast<float>(saturation) / 255.f,
+                static_cast<float>(value) / 255.f};
     }
 
-    HSV::HSV(color_component_t hue, color_component_t saturation, color_component_t value) : hue(hue), saturation(saturation), value(value) {}
+    HSV::HSV(color_component_t hue, color_component_t saturation, color_component_t value) :
+        hue(hue), saturation(saturation), value(value) {}
 
     glm::vec3 convertIntToColorVec3(unsigned int value) {
         unsigned char bluePart = value & 0xffu;//blue first is intended
@@ -132,7 +129,9 @@ namespace bricksim::color {
         unsigned char greenPart = value & 0xffu;
         value >>= 8u;
         unsigned char redPart = value & 0xffu;
-        return glm::vec3(redPart / 255.0f, greenPart / 255.0f, bluePart / 255.0f);
+        return {static_cast<float>(redPart) / 255.f,
+                static_cast<float>(greenPart) / 255.f,
+                static_cast<float>(bluePart) / 255.f};
     }
 
     unsigned int getIntFromColor(unsigned char red, unsigned char green, unsigned char blue) {
@@ -141,7 +140,7 @@ namespace bricksim::color {
     }
 
     RGB getRandom() {
-        static std::mt19937 rng(123456789ul); // NOLINT(cert-msc51-cpp)
-        return RGB(HSV(rng()&0xff, 0xff, 0xff));
+        static std::mt19937 rng(123456789uL);// NOLINT(cert-msc51-cpp)
+        return RGB(HSV(rng() & 0xff, 0xff, 0xff));
     }
 }

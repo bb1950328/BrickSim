@@ -76,7 +76,7 @@ namespace bricksim::connection::visualization {
         switch (shape) {
             case CylindricalShapeType::ROUND:
                 for (int i = 0; i < 12; ++i) {
-                    float a = M_PIf * 2.f * i / 12;
+                    float a = M_PI * 2.f * i / 12;
                     result.push_back({std::cos(a) * .5f, std::sin(a) * .5f});
                 }
                 break;
@@ -88,12 +88,12 @@ namespace bricksim::connection::visualization {
                 break;
             case CylindricalShapeType::AXLE:
                 for (int i = 0; i < 4; ++i) {
-                    float a = M_PIf * 2.f * i / 4;
+                    float a = M_PI * 2.f * i / 4;
                     constexpr float offset = .35f;
                     result.push_back({std::cos(a - offset) * .5f, std::sin(a - offset) * .5f});
                     result.push_back({std::cos(a) * .5f, std::sin(a) * .5f});
                     result.push_back({std::cos(a + offset) * .5f, std::sin(a + offset) * .5f});
-                    result.push_back({std::cos(a + M_PI_4f) * .235f, std::sin(a + M_PI_4f) * .235f});
+                    result.push_back({std::cos(a + M_PI_4) * .235f, std::sin(a + M_PI_4) * .235f});
                 }
                 break;
             default:

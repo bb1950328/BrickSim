@@ -2,13 +2,17 @@
 #include "catch2/catch_test_macros.hpp"
 #include <glm/gtc/epsilon.hpp>
 
+//#include <string_view>
+
+using namespace std::literals;
+
 namespace bricksim {
     TEST_CASE("stringutil::asLower") {
         std::string expected = "qwertzuiopasdfghjklyxcvbnm";
-        CHECK(expected == stringutil::asLower("qwertzuiopasdfghjklyxcvbnm"));
-        CHECK(expected == stringutil::asLower("qWeRtZuIoPaSdFgHjKlYxCvBnM"));
-        CHECK(expected == stringutil::asLower("QWERTZUIOPASDFGHJKLYXCVBNM"));
-        CHECK(std::string("1234567890+*ç%&/()=") == stringutil::asLower("1234567890+*ç%&/()="));
+        CHECK(expected == stringutil::asLower("qwertzuiopasdfghjklyxcvbnm"sv));
+        CHECK(expected == stringutil::asLower("qWeRtZuIoPaSdFgHjKlYxCvBnM"sv));
+        CHECK(expected == stringutil::asLower("QWERTZUIOPASDFGHJKLYXCVBNM"sv));
+        CHECK(std::string("1234567890+*ç%&/()=") == stringutil::asLower("1234567890+*ç%&/()="sv));
     }
 
     TEST_CASE("stringutil::toLowerInPlace") {
@@ -26,10 +30,10 @@ namespace bricksim {
 
     TEST_CASE("stringutil::asUpper") {
         std::string expected = "QWERTZUIOPASDFGHJKLYXCVBNM";
-        CHECK(expected == stringutil::asUpper("qwertzuiopasdfghjklyxcvbnm"));
-        CHECK(expected == stringutil::asUpper("qWeRtZuIoPaSdFgHjKlYxCvBnM"));
-        CHECK(expected == stringutil::asUpper("QWERTZUIOPASDFGHJKLYXCVBNM"));
-        CHECK(std::string("1234567890+*ç%&/()=") == stringutil::asUpper("1234567890+*ç%&/()="));
+        CHECK(expected == stringutil::asUpper("qwertzuiopasdfghjklyxcvbnm"sv));
+        CHECK(expected == stringutil::asUpper("qWeRtZuIoPaSdFgHjKlYxCvBnM"sv));
+        CHECK(expected == stringutil::asUpper("QWERTZUIOPASDFGHJKLYXCVBNM"sv));
+        CHECK(std::string("1234567890+*ç%&/()=") == stringutil::asUpper("1234567890+*ç%&/()="sv));
     }
 
     TEST_CASE("stringutil::toUpperInPlace") {

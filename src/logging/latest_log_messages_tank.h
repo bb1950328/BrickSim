@@ -55,7 +55,7 @@ namespace bricksim::logging::latest_messages_tank {
     class Sink : public spdlog::sinks::base_sink<Mutex> {
     protected:
         void sink_it_(const spdlog::details::log_msg& msg) override {
-            const auto timeMs = std::chrono::time_point_cast<std::chrono::milliseconds>(msg.time).time_since_epoch().count();
+            const auto timeMs = static_cast<long>(std::chrono::time_point_cast<std::chrono::milliseconds>(msg.time).time_since_epoch().count());
 
             addMessage({timeMs,
                         (const unsigned char)msg.level,

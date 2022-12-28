@@ -1,7 +1,6 @@
 #include "scene.h"
 #include "../config.h"
 #include "../controller.h"
-#include "../helpers/util.h"
 #include "../metrics.h"
 #include "shaders.h"
 #include <palanteer.h>
@@ -107,7 +106,7 @@ namespace bricksim::graphics {
     }
 
     Scene::Scene(scene_id_t sceneId) :
-        image({64, 64}), meshCollection(sceneId), id(sceneId) {
+        id(sceneId), meshCollection(sceneId) {
         setImageSize({10, 10});
     }
 
@@ -131,18 +130,18 @@ namespace bricksim::graphics {
         }
 
         meshCollection.rereadElementTreeIfNeeded();
-        GLubyte middlePixel[3];
+        std::array<GLubyte, 3> middlePixel{};
 
         if (!needRender) {
-            controller::executeOpenGL([&]() {
+            controller::executeOpenGL([this, &middlePixel, &x, &y]() {
                 glUseProgram(0);
                 glBindFramebuffer(GL_FRAMEBUFFER, selection->getFBO());
-                glReadPixels(x, (selection->getSize().y - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel);
+                glReadPixels(x, (selection->getSize().y - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel.data());
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
             });
         } else {
             const glm::mat4 projectionView = projectionMatrix * camera->getViewMatrix();
-            controller::executeOpenGL([&]() {
+            controller::executeOpenGL([this, &projectionView, &middlePixel, &x, &y]() {
 #ifdef BRICKSIM_USE_RENDERDOC
                 const auto* renderdocApi = controller::getRenderdocAPI();
                 if (renderdocApi) {
@@ -154,8 +153,8 @@ namespace bricksim::graphics {
                 glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                const auto& triangleSelectionShader = shaders::get(shaders::TRIANGLE_SELECTION);
-                const auto& texturedTriangleSelectionShader = shaders::get(shaders::TEXTURED_TRIANGLE_SELECTION);
+                const auto& triangleSelectionShader = shaders::get(shaders::shader_id_t::TRIANGLE_SELECTION);
+                const auto& texturedTriangleSelectionShader = shaders::get(shaders::shader_id_t::TEXTURED_TRIANGLE_SELECTION);
                 triangleSelectionShader.use();
                 triangleSelectionShader.setMat4("projectionView", projectionView);
                 texturedTriangleSelectionShader.use();
@@ -169,7 +168,7 @@ namespace bricksim::graphics {
                 }
                 glUseProgram(0);
 
-                glReadPixels(x, (selection->getSize().y - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel);
+                glReadPixels(x, (selection->getSize().y - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel.data());
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #ifdef BRICKSIM_USE_RENDERDOC
                 if (renderdocApi) {
@@ -258,16 +257,16 @@ namespace bricksim::graphics {
                 glm::mat4 view = camera->getViewMatrix();
                 const glm::mat4& projectionView = projectionMatrix * view;
 
-                const auto& triangleShader = shaders::get(shaders::TRIANGLE);
-                const auto& textureShader = shaders::get(shaders::TEXTURED_TRIANGLE);
-                const auto& lineShader = shaders::get(shaders::LINE);
-                const auto& optionalLineShader = shaders::get(shaders::OPTIONAL_LINE);
+                const auto& triangleShader = shaders::get(shaders::shader_id_t::TRIANGLE);
+                const auto& textureShader = shaders::get(shaders::shader_id_t::TEXTURED_TRIANGLE);
+                const auto& lineShader = shaders::get(shaders::shader_id_t::LINE);
+                const auto& optionalLineShader = shaders::get(shaders::shader_id_t::OPTIONAL_LINE);
 
                 if (drawTriangles) {
                     triangleShader.use();
                     triangleShader.setVec3("viewPos", camera->getCameraPos());
                     triangleShader.setMat4("projectionView", projectionView);
-                    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+                    glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
                     glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
                     glm::vec3 ambientColor = diffuseColor * glm::vec3(1.3f);
                     triangleShader.setVec3("light.position", camera->getCameraPos());
@@ -307,7 +306,7 @@ namespace bricksim::graphics {
                 if (overlayCollection.hasElements()) {
                     plScope("draw overlays");
                     glClear(GL_DEPTH_BUFFER_BIT);
-                    shaders::get(shaders::OVERLAY).use();
+                    shaders::get(shaders::shader_id_t::OVERLAY).use();
                     overlayCollection.draw();
                 }
 
@@ -322,7 +321,7 @@ namespace bricksim::graphics {
             });
 
             auto after = std::chrono::high_resolution_clock::now();
-            metrics::lastSceneRenderTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0f;
+            metrics::lastSceneRenderTimeMs = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.f;
         }
     }
 
@@ -342,7 +341,7 @@ namespace bricksim::graphics {
         return overlayCollection;
     }
 
-    glm::usvec2 Scene::worldToScreenCoordinates(glm::vec3 worldCoords) {
+    glm::usvec2 Scene::worldToScreenCoordinates(glm::vec3 worldCoords) const {
         const auto projectionView = projectionMatrix * camera->getViewMatrix();
         const auto gl_Position = projectionView * glm::vec4(worldCoords, 1.0f);
         const glm::vec2 ndc = {gl_Position.x / gl_Position.w,
@@ -354,7 +353,7 @@ namespace bricksim::graphics {
         return getSelectionPixel(coords.x, coords.y);
     }
 
-    Ray3 Scene::screenCoordinatesToWorldRay(glm::usvec2 screenCoords) {
+    Ray3 Scene::screenCoordinatesToWorldRay(glm::usvec2 screenCoords) const {
         //https://stackoverflow.com/a/30005258/8733066
         const auto projectionView = projectionMatrix * camera->getViewMatrix();
         const auto ndc = glm::vec2(screenCoords) / glm::vec2(imageSize) * 2.0f - 1.0f;

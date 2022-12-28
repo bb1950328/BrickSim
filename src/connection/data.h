@@ -22,7 +22,7 @@ namespace bricksim::connection {
         Connector(std::string group, const glm::vec3& start);
 
         virtual std::shared_ptr<Connector> clone();
-        virtual ~Connector(){};
+        virtual ~Connector() = default;
     };
 
     enum class CylindricalShapeType {
@@ -110,8 +110,8 @@ namespace bricksim::connection {
 
     class ConnectionGraph {
     public:
-        typedef std::shared_ptr<etree::LdrNode> node_t;
-        typedef std::shared_ptr<Connection> edge_t;
+        using node_t = std::shared_ptr<etree::LdrNode>;
+        using edge_t = std::shared_ptr<Connection>;
         uomap_t<node_t, uomap_t<node_t, std::vector<edge_t>>> adjacencyLists;
 
         void addConnection(const node_t& a, const node_t& b, const edge_t& edge);

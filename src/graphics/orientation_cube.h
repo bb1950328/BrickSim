@@ -34,7 +34,8 @@ namespace bricksim::graphics::orientation_cube {
 
         class OrientationCubeCamera : public Camera {
         private:
-            float pitch = 1e9, yaw = 1e9;
+            float pitch = 1e9;
+            float yaw = 1e9;
             glm::vec3 viewPos;
             glm::mat4 viewMatrix;
             glm::vec3 target{0.0f, 0.0f, 0.0f};
@@ -52,6 +53,6 @@ namespace bricksim::graphics::orientation_cube {
     unsigned int getImage();
     unsigned int getSelectionImage();
     std::optional<CubeSide> getSide(glm::usvec2 pos);
-    short getSize();
+    uint16_t getSize();
     void cleanup();
 }

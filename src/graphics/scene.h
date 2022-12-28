@@ -9,8 +9,9 @@
 #include <filesystem>
 #include <map>
 
-typedef unsigned short framebuffer_size_t;
 namespace bricksim::graphics {
+    using framebuffer_size_t = unsigned short;
+
     class CompleteFramebuffer {
     private:
         unsigned int framebuffer;
@@ -50,7 +51,7 @@ namespace bricksim::graphics {
     class Scene {
     private:
         scene_id_t id;
-        CompleteFramebuffer image;
+        CompleteFramebuffer image{{64, 64}};
         std::optional<CompleteFramebuffer> selection;
         std::shared_ptr<etree::Node> rootNode;
         mesh::SceneMeshCollection meshCollection;
@@ -58,19 +59,22 @@ namespace bricksim::graphics {
         std::shared_ptr<Camera> camera;
         glm::usvec2 imageSize;
         glm::mat4 projectionMatrix;
-        glm::mat4 currentImageViewMatrix, currentSelectionImageViewMatrix;
-        //bool imageUpToDate, selectionImageUpToDate, elementTreeRereadNeeded;
-        uint64_t imageEtreeVersion = 0, selectionImageEtreeVersion = 0;
-        bool drawTriangles = true, drawLines = true;
-        bool currentImageDrawTriangles = true, currentImageDrawLines = true;
+        glm::mat4 currentImageViewMatrix;
+        glm::mat4 currentSelectionImageViewMatrix;
+        uint64_t imageEtreeVersion = 0;
+        uint64_t selectionImageEtreeVersion = 0;
+        bool drawTriangles = true;
+        bool drawLines = true;
+        bool currentImageDrawTriangles = true;
+        bool currentImageDrawLines = true;
 
     public:
         explicit Scene(scene_id_t sceneId);//todo make constructor private and set scenes::create as a friend
         unsigned int getSelectionPixel(framebuffer_size_t x, framebuffer_size_t y);
         unsigned int getSelectionPixel(glm::usvec2 coords);
         void updateImage();
-        glm::usvec2 worldToScreenCoordinates(glm::vec3 worldCoords);
-        Ray3 screenCoordinatesToWorldRay(glm::usvec2 screenCoords);
+        glm::usvec2 worldToScreenCoordinates(glm::vec3 worldCoords) const;
+        Ray3 screenCoordinatesToWorldRay(glm::usvec2 screenCoords) const;
 
         [[nodiscard]] const std::shared_ptr<etree::Node>& getRootNode() const;
         void setRootNode(const std::shared_ptr<etree::Node>& newRootNode);

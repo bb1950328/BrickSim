@@ -23,7 +23,7 @@ namespace bricksim::mesh {
         auto it = allMeshes.find(key);
         if (it == allMeshes.end()) {
             plScope("node->addToMesh");
-            std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+            auto mesh = std::make_shared<Mesh>();
             allMeshes[key] = mesh;
             mesh->name = node->getDescription();
             node->addToMesh(mesh, key.windingInversed, texmap);
@@ -76,11 +76,11 @@ namespace bricksim::mesh {
         glm::mat4 absoluteTransformation = parentAbsoluteTransformation * node->getRelativeTransformation();
         std::shared_ptr<ldr::TexmapStartCommand> texmap = parentTexmap != nullptr ? graphics::texmap_projection::transformTexmapStartCommand(parentTexmap, node->getRelativeTransformation()) : nullptr;
         if (node->visible) {
-            if ((node->getType() & etree::TYPE_MESH) > 0) {
+            if ((static_cast<uint32_t>(node->getType()) & static_cast<uint32_t>(etree::NodeType::TYPE_MESH)) > 0) {
                 std::shared_ptr<etree::MeshNode> meshNode;
                 ldr::ColorReference color;
                 std::shared_ptr<etree::MeshNode> nodeToGetColorFrom;
-                if (node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE) {
+                if (node->getType() == etree::NodeType::TYPE_MPD_SUBFILE_INSTANCE) {
                     const auto instanceNode = std::dynamic_pointer_cast<etree::MpdSubfileInstanceNode>(node);
                     meshNode = instanceNode->mpdSubfileNode;
                     absoluteTransformation = instanceNode->getRelativeTransformation() * parentAbsoluteTransformation;
@@ -104,7 +104,7 @@ namespace bricksim::mesh {
                     texmap = graphics::texmap_projection::transformTexmapStartCommand(texmap, glm::transpose(node->getRelativeTransformation()));
                 }
 
-                if (node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE) {
+                if (node->getType() == etree::NodeType::TYPE_MPD_SUBFILE_INSTANCE) {
                     parentColor = color;
                 }
 
@@ -115,8 +115,8 @@ namespace bricksim::mesh {
                 if (selectionTargetElementId.has_value()) {
                     elementId = selectionTargetElementId.value();
                 } else {
-                    elementId = elementsSortedById.size();
-                    if (node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE) {
+                    elementId = static_cast<unsigned int>(elementsSortedById.size());
+                    if (node->getType() == etree::NodeType::TYPE_MPD_SUBFILE_INSTANCE) {
                         selectionTargetElementId = elementId;//for the children
                     }
                 }
@@ -157,17 +157,15 @@ namespace bricksim::mesh {
         }
         auto after = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count();
-        metrics::lastElementTreeRereadMs = duration / 1000.0f;
+        metrics::lastElementTreeRereadMs = static_cast<float>(duration) / 1000.f;
         lastElementTreeReadVersion = rootNode->getVersion();
     }
 
     void SceneMeshCollection::updateMeshInstances() {
-        for (const auto& pair: newMeshInstances) {
-            auto meshKey = pair.first;
-            auto newInstancesOfThisScene = pair.second;
+        for (auto& [meshKey, newInstancesOfThisScene]: newMeshInstances) {
             auto mesh = allMeshes[meshKey];
 
-            std::sort(newInstancesOfThisScene.begin(), newInstancesOfThisScene.end(), [](MeshInstance& a, MeshInstance& b) {
+            std::sort(newInstancesOfThisScene.begin(), newInstancesOfThisScene.end(), [](const auto& a, const auto& b) {
                 return a.layer > b.layer;
             });
 
@@ -198,12 +196,12 @@ namespace bricksim::mesh {
             const auto& outerDimensions = mesh->getOuterDimensions();
             aabb.includeAABB(outerDimensions->aabb);
         }
-        bool isSubfileInstance = node->getType() == etree::TYPE_MPD_SUBFILE_INSTANCE;
+        bool isSubfileInstance = node->getType() == etree::NodeType::TYPE_MPD_SUBFILE_INSTANCE;
         const auto& children = isSubfileInstance
                                        ? std::dynamic_pointer_cast<const etree::MpdSubfileInstanceNode>(node)->mpdSubfileNode->getChildren()
                                        : node->getChildren();
         for (const auto& child: children) {
-            if (child->getType() & etree::TYPE_MESH) {
+            if (static_cast<uint32_t>(child->getType()) & static_cast<uint32_t>(etree::NodeType::TYPE_MESH)) {
                 auto childResult = getRelativeRotatedBBox(std::dynamic_pointer_cast<const etree::MeshNode>(child));
                 if (childResult.has_value()) {
                     aabb.includeBBox(childResult.value());
@@ -261,10 +259,6 @@ namespace bricksim::mesh {
     const uoset_t<std::shared_ptr<Mesh>>& SceneMeshCollection::getUsedMeshes() const {
         return usedMeshes;
     }
-    bool mesh_key_t::operator==(const mesh_key_t& rhs) const {
-        return meshIdentifier == rhs.meshIdentifier && windingInversed == rhs.windingInversed && texmapHash == rhs.texmapHash;
-    }
-    bool mesh_key_t::operator!=(const mesh_key_t& rhs) const {
-        return !(rhs == *this);
-    }
+    bool mesh_key_t::operator==(const mesh_key_t& rhs) const = default;
+
 }

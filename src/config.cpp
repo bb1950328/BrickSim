@@ -26,7 +26,7 @@ namespace bricksim::config {
 
     template<>
     [[nodiscard]] float get<float>(const Key<float>& key) {
-        return doubleValues.get(key.name, key.defaultValue);
+        return static_cast<float>(doubleValues.get(key.name, key.defaultValue));
     }
     template<>
     [[nodiscard]] bool get<bool>(const Key<bool>& key) {

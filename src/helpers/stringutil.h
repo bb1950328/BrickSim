@@ -13,12 +13,12 @@ namespace bricksim::stringutil {
     std::string asUpper(std::string_view string);
     void toLowerInPlace(char* string);
     void toUpperInPlace(char* string);
-    void replaceAll(std::string& str, const std::string& from, const std::string& to);
+    void replaceAll(std::string& str, std::string_view from, std::string_view to);
     std::string replaceChar(const std::string& str, char from, char to);
     std::string formatBytesValue(uint64_t bytes);
-    bool containsIgnoreCase(const std::string& full, const std::string& sub);
+    bool containsIgnoreCase(std::string_view full, std::string_view sub);
     bool charEqualsIgnoreCase(char a, char b);
     bool stringEqualsIgnoreCase(std::string_view a, std::string_view b);
-    bool equalsAlphanum(const std::string& a, const std::string& b);
+    bool equalsAlphanum(std::string_view a, std::string_view b);
     std::vector<std::string_view> splitByChar(std::string_view string, char delimiter);
 }

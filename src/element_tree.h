@@ -8,7 +8,8 @@
 #include <memory>
 
 namespace bricksim::etree {
-    enum NodeType {
+    //todo rename all to remove TYPE_
+    enum class NodeType : uint32_t {
         TYPE_OTHER = 0,
         TYPE_ROOT = 1u << 0u,
         TYPE_MESH = 1u << 1u,
@@ -31,7 +32,7 @@ namespace bricksim::etree {
         std::weak_ptr<Node> parent;
         std::string displayName;
         bool selected = false;
-        NodeType type = TYPE_OTHER;
+        NodeType type = NodeType::TYPE_OTHER;
         layer_t layer = constants::DEFAULT_LAYER;//todo think about inheritance of this attribute
 
         [[nodiscard]] const glm::mat4& getRelativeTransformation() const;
@@ -93,7 +94,7 @@ namespace bricksim::etree {
 
     class LdrNode : public MeshNode {
     public:
-        LdrNode(NodeType nodeType, const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap);
+        LdrNode(NodeType nodeType, const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap);
         /**
          * This function is necessary because shared_from_this() doesn't work inside the constructor. so this function should be called immediately after creating
          * an object of type LdrNode. todo find a better solution for this
@@ -172,10 +173,13 @@ namespace bricksim::etree {
 
     private:
         ldr::TexmapStartCommand::ProjectionMethod projectionMethod;
-        glm::vec3 p1, p2, p3;
+        glm::vec3 p1;
+        glm::vec3 p2;
+        glm::vec3 p3;
         std::string textureFilename;
         std::weak_ptr<graphics::Texture> texture;
-        float a, b;
+        float a;
+        float b;
         void updateCalculatedValues();
     };
 

@@ -40,13 +40,13 @@ TEST_CASE("parse ldr::Line") {
 
 TEST_CASE("parse ldr::Triangle") {
     const std::string line = GENERATE("123 1 2 3 4 5 6 9 8 7");
-    const WindingOrder wo = GENERATE(CCW, CW);
+    const WindingOrder wo = GENERATE(WindingOrder::CCW, WindingOrder::CW);
     const auto tri = Triangle(line, wo);
     auto actualNormal = glm::triangleNormal(
             glm::vec3(tri.x1(), tri.y1(), tri.z1()),
             glm::vec3(tri.x2(), tri.y2(), tri.z2()),
             glm::vec3(tri.x3(), tri.y3(), tri.z3()));
-    const auto expectedNormal = (wo == CW ? -1.f : 1.f) * glm::vec3(-0.4082482905f, 0.8164965809f, -0.4082482905f);
+    const auto expectedNormal = (wo == WindingOrder::CW ? -1.f : 1.f) * glm::vec3(-0.4082482905f, 0.8164965809f, -0.4082482905f);
     //we can only check the normal because p1;p2;p3 is the same as p3;p1;p2 for example
     CHECK(actualNormal == ApproxVec(expectedNormal));
 
@@ -61,7 +61,7 @@ TEST_CASE("parse ldr::TexmapStartCommand 1") {
             "!TEXMAP\tSTART\tPLANAR\t1\t2\t3\t4\t5\t6\t7\t8\t9\ttexture.png\tGLOSSMAP\tglossmap.png",
             "!TEXMAP\t START  \t\tPLANAR\t \t1  \t 2 \t3 \t   4\t   5\t  \t6\t 7\t 8\t 9\t  texture.png\t  \tGLOSSMAP  \t  glossmap.png\t ");
     const auto command = TexmapStartCommand(line);
-    CHECK(command.projectionMethod == bricksim::ldr::TexmapStartCommand::PLANAR);
+    CHECK(command.projectionMethod == bricksim::ldr::TexmapStartCommand::ProjectionMethod::PLANAR);
     CHECK(command.x1() == Catch::Approx(1.f));
     CHECK(command.y1() == Catch::Approx(2.f));
     CHECK(command.z1() == Catch::Approx(3.f));
@@ -79,12 +79,12 @@ TEST_CASE("parse ldr::TexmapStartCommand 1") {
 
 TEST_CASE("parse ldr::TexmapStartCommand 2") {
     auto cylindricalCommand = TexmapStartCommand("!TEXMAP START CYLINDRICAL 1 2 3 4 5 6 7 8 9 11 texture.png");
-    CHECK(cylindricalCommand.projectionMethod == TexmapStartCommand::CYLINDRICAL);
+    CHECK(cylindricalCommand.projectionMethod == TexmapStartCommand::ProjectionMethod::CYLINDRICAL);
     CHECK(cylindricalCommand.a() == Catch::Approx(11.f));
     CHECK(cylindricalCommand.b() == Catch::Approx(0.f));
 
     auto sphericalCommand = TexmapStartCommand("!TEXMAP START SPHERICAL 1 2 3 4 5 6 7 8 9 11 22 texture.png");
-    CHECK(sphericalCommand.projectionMethod == TexmapStartCommand::SPHERICAL);
+    CHECK(sphericalCommand.projectionMethod == TexmapStartCommand::ProjectionMethod::SPHERICAL);
     CHECK(sphericalCommand.a() == Catch::Approx(11.f));
     CHECK(sphericalCommand.b() == Catch::Approx(22.f));
 
@@ -103,7 +103,7 @@ TEST_CASE("parse ldr::TexmapStartCommand 2") {
 
 TEST_CASE("ldr::readSimpleFile 1") {
     const std::string filename = GENERATE("filename.ldr", "filename.dat", "filename.mpd");
-    const auto type = GENERATE(MODEL, MPD_SUBFILE, PART, SUBPART, PRIMITIVE);
+    const auto type = GENERATE(FileType::MODEL, FileType::MPD_SUBFILE, FileType::PART, FileType::SUBPART, FileType::PRIMITIVE);
     const auto file = readSimpleFile(filename, type, "0 Title123\n0 Comment 1\n0 Comment 2", {});
     REQUIRE(file->elements.size() == 2);
     CHECK(file->elements[0]->getLdrLine() == "0 Comment 1");
@@ -115,7 +115,7 @@ TEST_CASE("ldr::readSimpleFile 1") {
 
 TEST_CASE("ldr::readSimpleFile with MetaInfo") {
     const auto file = readSimpleFile("filename.ldr",
-                                     PART,
+                                     FileType::PART,
                                      "0 TitleXYZ\n"
                                      "0 Name: NameXYZ\n"
                                      "0 Author: AuthorXYZ\n"

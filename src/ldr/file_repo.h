@@ -16,7 +16,7 @@ namespace bricksim::ldr::file_repo {
         ZIP,
     };
 
-    enum BinaryFileSearchPath {
+    enum class BinaryFileSearchPath {
         DEFAULT,
         TEXMAP,
     };
@@ -39,15 +39,15 @@ namespace bricksim::ldr::file_repo {
         void initialize(float* progress);
 
         std::shared_ptr<File> getFile(const std::string& name);
-        std::shared_ptr<BinaryFile> getBinaryFile(const std::string& name, BinaryFileSearchPath searchPath = DEFAULT);
+        std::shared_ptr<BinaryFile> getBinaryFile(const std::string& name, BinaryFileSearchPath searchPath = BinaryFileSearchPath::DEFAULT);
         bool hasFileCached(const std::string& name);
-        const uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>>& getAllFilesInMemory();
+        [[nodiscard]] const uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>>& getAllFilesInMemory() const;
         std::shared_ptr<File> reloadFile(const std::string& name);
         std::shared_ptr<File> addLdrFileWithContent(const std::string& name, FileType type, const std::string& content);
         std::shared_ptr<File> addLdrFileWithContent(const std::string& name, FileType type, const std::string& content, const std::optional<std::string>& shadowContent);
         std::shared_ptr<BinaryFile> addBinaryFileWithContent(const std::string& name, const std::shared_ptr<BinaryFile>& file);
         std::filesystem::path& getBasePath();
-        oset_t<std::string> getAllCategories();
+        static oset_t<std::string> getAllCategories();
 
         /**
          * @param type
@@ -70,9 +70,9 @@ namespace bricksim::ldr::file_repo {
         virtual std::shared_ptr<BinaryFile> getLibraryBinaryFileContent(const std::string& nameRelativeToRoot) = 0;
         virtual ~FileRepo();
         omap_t<std::string, oset_t<std::shared_ptr<File>>> getAllPartsGroupedByCategory();
-        omap_t<std::string, oset_t<std::shared_ptr<File>>> getLoadedPartsGroupedByCategory();
+        omap_t<std::string, oset_t<std::shared_ptr<File>>> getLoadedPartsGroupedByCategory() const;
 
-        void changeFileName(std::shared_ptr<File>& file, const std::string& newName);
+        void changeFileName(const std::shared_ptr<File>& file, const std::string& newName);
 
     protected:
         static std::string readFileFromFilesystem(const std::filesystem::path& path);

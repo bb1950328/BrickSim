@@ -9,8 +9,7 @@ namespace bricksim::ldr::file_repo {
     ShadowFileRepo::ShadowFileRepo(const std::filesystem::path& basePath) :
         basePath(basePath) {
     }
-    ShadowFileRepo::~ShadowFileRepo() {
-    }
+    ShadowFileRepo::~ShadowFileRepo() = default;
     void initializeShadowFileRepo() {
         std::filesystem::path path = util::extendHomeDirPath(config::get(config::SHADOW_LIBRARY_PATH));
         if (std::filesystem::is_regular_file(path) && ZipShadowFileRepo::isValidZip(path)) {
@@ -50,7 +49,7 @@ namespace bricksim::ldr::file_repo {
         return zip_open(candidatePath.string().c_str(), ZIP_RDONLY, &err) != nullptr;
     }
     std::optional<std::string> ZipShadowFileRepo::getContent(const std::string& pathRelativeToBase) {
-        std::lock_guard<std::mutex> lg(libzipLock);
+        std::scoped_lock<std::mutex> lg(libzipLock);
         struct zip_stat stat {};
         auto found = zip_stat(archive, pathRelativeToBase.c_str(), 0, &stat);
         if (found == -1) {

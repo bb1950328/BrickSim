@@ -8,8 +8,8 @@ namespace bricksim::connection::ldcad_snap_meta {
         group(parse::optionalStringParameter(parameters, "group")),
         pos(parse::optionalVec3Parameter(parameters, "pos")),
         ori(parse::optionalMat3Parameter(parameters, "ori")),
-        bounding(parse::boundingParameter(parameters, "bounding")),
         gender(parse::enumParameter(parameters, "gender", Gender::M)),
+        bounding(parse::boundingParameter(parameters, "bounding")),
         scale(parse::enumParameter(parameters, "scale", ScaleType::NONE)),
         mirror(parse::enumParameter(parameters, "mirror", MirrorType::NONE)) {
     }

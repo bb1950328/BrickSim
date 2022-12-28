@@ -11,7 +11,7 @@ namespace bricksim::ldr {
                                                                 const std::string& content,
                                                                 const std::optional<std::string>& shadowContent) {
         //plFunction();
-        if (mainFileType != MODEL) {
+        if (mainFileType != FileType::MODEL) {
             return {{name, readSimpleFile(name, mainFileType, content, shadowContent)}};
         }
         auto mainFile = std::make_shared<File>();
@@ -48,7 +48,7 @@ namespace bricksim::ldr {
                         currentFile = it->second;
                     } else {
                         currentFile = std::make_shared<File>();
-                        currentFile.value()->metaInfo.type = MPD_SUBFILE;
+                        currentFile.value()->metaInfo.type = FileType::MPD_SUBFILE;
                         files.emplace(currentName, currentFile.value());
                     }
                 }
@@ -63,7 +63,7 @@ namespace bricksim::ldr {
         return files;
     }
 
-    std::shared_ptr<File> readSimpleFile(const std::string& name,
+    std::shared_ptr<File> readSimpleFile(std::string_view name,
                                          FileType type,
                                          const std::string& content,
                                          const std::optional<std::string>& shadowContent) {

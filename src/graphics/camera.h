@@ -11,6 +11,7 @@ namespace bricksim::graphics {
         [[nodiscard]] virtual const glm::mat4& getViewMatrix() const = 0;
         [[nodiscard]] virtual const glm::vec3& getCameraPos() const = 0;
         [[nodiscard]] virtual const glm::vec3& getTargetPos() const = 0;
+        virtual ~Camera();
     };
 
     class CadCamera : public Camera {
@@ -36,11 +37,13 @@ namespace bricksim::graphics {
         void setStandardView(int i);
 
     private:
-        float pitch = 45.f;   // up/down angle
-        float yaw = 45.f;     // left/right angle
+        float pitch = 45.f;    // up/down angle
+        float yaw = 45.f;      // left/right angle
         float distance = 12.0f;// distance between target point and camera
 
-        glm::vec3 front, target, cameraPos;
+        glm::vec3 front;
+        glm::vec3 target;
+        glm::vec3 cameraPos;
         const glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
         float mouseRotateSensitivity;
         float mouseZoomSensitivity;
@@ -58,6 +61,7 @@ namespace bricksim::graphics {
 
     private:
         glm::mat4 viewMatrix;
-        glm::vec3 cameraPos, target;
+        glm::vec3 cameraPos;
+        glm::vec3 target;
     };
 }

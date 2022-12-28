@@ -7,21 +7,22 @@ namespace bricksim::connection::visualization {
     namespace {
         color::RGB getRGBFromSimpleLineColor(SimpleLineColor color) {
             switch (color) {
-                case SimpleLineColor::RED:
+                using enum bricksim::connection::visualization::SimpleLineColor;
+                case RED:
                     return {0xff, 0, 0};
-                case SimpleLineColor::GREEN:
+                case GREEN:
                     return {0, 0xff, 0};
-                case SimpleLineColor::BLUE:
+                case BLUE:
                     return {0, 0, 0xff};
-                case SimpleLineColor::CYAN:
+                case CYAN:
                     return {0, 0xff, 0xff};
-                case SimpleLineColor::MAGENTA:
+                case MAGENTA:
                     return {0xff, 0, 0xff};
-                case SimpleLineColor::YELLOW:
+                case YELLOW:
                     return {0xff, 0xff, 0};
-                case SimpleLineColor::WHITE:
+                case WHITE:
                     return {0xff, 0xff, 0xff};
-                case SimpleLineColor::BLACK:
+                case BLACK:
                     return {0, 0, 0};
             }
         }
@@ -46,7 +47,7 @@ namespace bricksim::connection::visualization {
         const auto color = getRGBFromSimpleLineColor(lineColor).asGlmVector();
         const auto basePoints = generateShape();
         for (int i1 = 0; i1 < basePoints.size(); ++i1) {
-            const int i2 = (i1 + 1) % basePoints.size();
+            const int i2 = (i1 + 1) % static_cast<int>(basePoints.size());
 
             //shape circumfence
             lineData.addVertex({{basePoints[i1].x, basePoints[i1].y, 0.f}, color});
@@ -57,43 +58,30 @@ namespace bricksim::connection::visualization {
             lineData.addVertex({{basePoints[i1].x, basePoints[i1].y, 0.f}, color});
             lineData.addVertex({{basePoints[i1].x * factor, basePoints[i1].y * factor, 0.f}, color});
         }
-
-        /*        constexpr auto rCircle = .5f;
-        const auto rRay = inverted ? .4f : .6f;
-        for (int i1 = 0; i1 < NUM_CORNERS; ++i1) {
-            const int i2 = (i1 + 1) % NUM_CORNERS;
-            const auto a1 = M_PI * 2 * i1 / NUM_CORNERS;
-            const auto a2 = M_PI * 2 * i2 / NUM_CORNERS;
-            lineData.addVertex({{std::cos(a1) * rCircle, std::sin(a1) * rCircle, 0}, color});
-            lineData.addVertex({{std::cos(a2) * rCircle, std::sin(a2) * rCircle, 0}, color});
-
-            lineData.addVertex({{std::cos(a1) * rCircle, std::sin(a1) * rCircle, 0}, color});
-            lineData.addVertex({{std::cos(a1) * rRay, std::sin(a1) * rRay, 0}, color});
-        }*/
     }
-    std::vector<glm::vec2> LineSunNode::generateShape() {
+    std::vector<glm::vec2> LineSunNode::generateShape() const {
         std::vector<glm::vec2> result;
         switch (shape) {
             case CylindricalShapeType::ROUND:
                 for (int i = 0; i < 12; ++i) {
-                    float a = M_PI * 2.f * i / 12;
-                    result.push_back({std::cos(a) * .5f, std::sin(a) * .5f});
+                    float a = static_cast<float>(M_PI) * 2.f * static_cast<float>(i) / 12;
+                    result.emplace_back(std::cos(a) * .5f, std::sin(a) * .5f);
                 }
                 break;
             case CylindricalShapeType::SQUARE:
-                result.push_back({-.5f, -.5f});
-                result.push_back({.5f, -.5f});
-                result.push_back({.5f, .5f});
-                result.push_back({-.5f, .5f});
+                result.emplace_back(-.5f, -.5f);
+                result.emplace_back(.5f, -.5f);
+                result.emplace_back(.5f, .5f);
+                result.emplace_back(-.5f, .5f);
                 break;
             case CylindricalShapeType::AXLE:
                 for (int i = 0; i < 4; ++i) {
-                    float a = M_PI * 2.f * i / 4;
+                    float a = static_cast<float>(M_PI) * 2.f * static_cast<float>(i) / 4;
                     constexpr float offset = .35f;
-                    result.push_back({std::cos(a - offset) * .5f, std::sin(a - offset) * .5f});
-                    result.push_back({std::cos(a) * .5f, std::sin(a) * .5f});
-                    result.push_back({std::cos(a + offset) * .5f, std::sin(a + offset) * .5f});
-                    result.push_back({std::cos(a + M_PI_4) * .235f, std::sin(a + M_PI_4) * .235f});
+                    result.emplace_back(std::cos(a - offset) * .5f, std::sin(a - offset) * .5f);
+                    result.emplace_back(std::cos(a) * .5f, std::sin(a) * .5f);
+                    result.emplace_back(std::cos(a + offset) * .5f, std::sin(a + offset) * .5f);
+                    result.emplace_back(std::cos(a + M_PI_4) * .235f, std::sin(a + M_PI_4) * .235f);
                 }
                 break;
             default:

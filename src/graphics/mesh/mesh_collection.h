@@ -11,7 +11,6 @@ namespace bricksim::mesh {
         bool windingInversed;
         size_t texmapHash;
         bool operator==(const mesh_key_t& rhs) const;
-        bool operator!=(const mesh_key_t& rhs) const;
     };
 }
 
@@ -30,7 +29,8 @@ namespace bricksim::mesh {
  */
     class SceneMeshCollection {
     private:
-        uoset_t<std::shared_ptr<Mesh>> usedMeshes, lastUsedMeshes;
+        uoset_t<std::shared_ptr<Mesh>> usedMeshes;
+        uoset_t<std::shared_ptr<Mesh>> lastUsedMeshes;
         oset_t<layer_t> layersInUse;
         scene_id_t scene;
         std::shared_ptr<etree::Node> rootNode;

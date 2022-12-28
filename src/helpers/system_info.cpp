@@ -19,7 +19,7 @@ namespace bricksim::helpers::system_info {
         std::vector<std::pair<std::string, std::string>> result;
         const GLubyte* vendor;
         const GLubyte* renderer;
-        controller::executeOpenGL([&]() {
+        controller::executeOpenGL([&vendor, &renderer]() {
             vendor = glGetString(GL_VENDOR);
             renderer = glGetString(GL_RENDERER);
         });

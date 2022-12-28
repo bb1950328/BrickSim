@@ -37,7 +37,7 @@ namespace bricksim::ldr::file_repo {
     }
 
     std::vector<std::string> ZipFileRepo::listAllFileNames(float* progress) {
-        std::lock_guard<std::mutex> lg(libzipLock);
+        std::scoped_lock<std::mutex> lg(libzipLock);
         std::vector<std::string> result;
         struct zip_stat fileStat {};
         int nameCutOff = rootFolderName.size();
@@ -80,7 +80,7 @@ namespace bricksim::ldr::file_repo {
     }
 
     std::string ZipFileRepo::getLibraryLdrFileContent(const std::string& nameRelativeToRoot) {
-        std::lock_guard<std::mutex> lg(libzipLock);
+        std::scoped_lock<std::mutex> lg(libzipLock);
         auto [stat, file] = openFileByName(nameRelativeToRoot);
 
         if (file == nullptr) {
@@ -127,7 +127,7 @@ namespace bricksim::ldr::file_repo {
     }
 
     std::shared_ptr<BinaryFile> ZipFileRepo::getLibraryBinaryFileContent(const std::string& nameRelativeToRoot) {
-        std::lock_guard<std::mutex> lg(libzipLock);
+        std::scoped_lock<std::mutex> lg(libzipLock);
         auto [stat, file] = openFileByName(nameRelativeToRoot);
         if (file == nullptr) {
             return nullptr;

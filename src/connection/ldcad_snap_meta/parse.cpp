@@ -26,7 +26,7 @@ namespace bricksim::connection::ldcad_snap_meta::parse {
         if (it != parameters.end()) {
             return stringutil::stringEqualsIgnoreCase(it->second, "true");
         } else {
-            return false;
+            return defaultValue;
         }
     }
     float floatParameter(const parsed_param_container& parameters, const char* paramName, float defaultValue) {

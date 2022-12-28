@@ -42,8 +42,9 @@ TEST_CASE("color::RGB::asGlmVector()") {
 }
 
 TEST_CASE("color::RGB::asHtmlCode()") {
-    CHECK(color::RGB(11, 22, 33).asHtmlCode()=="#0b1621");
-    CHECK(color::RGB::BLACK.asHtmlCode()=="#000000");
+    CHECK(color::RGB(11, 22, 33).asHtmlCode() == "#0b1621");
+    CHECK(color::RGB(0x02, 0x00, 0x12).asHtmlCode() == "#020012");
+    CHECK(color::RGB::BLACK.asHtmlCode() == "#000000");
 }
 
 TEST_CASE("construct color::HSV from (int, int, int)") {

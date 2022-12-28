@@ -20,10 +20,10 @@ namespace bricksim::mesh::generated {
                 TriangleVertex{glm::vec4(RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f)});
         auto southPoleIndex = triangleData.addRawVertex(
                 TriangleVertex{glm::vec4(-RADIUS, 0.0f, 0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f)});
-        auto firstMainIndex = triangleData.getVertexCount();
+        auto firstMainIndex = static_cast<unsigned int>(triangleData.getVertexCount());
 
-        float latDeltaRadians = M_PI / DIVISIONS;
-        float lonDeltaRadians = 2.0f * M_PI / DIVISIONS;
+        float latDeltaRadians = static_cast<float>(M_PI) / static_cast<float>(DIVISIONS);
+        float lonDeltaRadians = 2.f * static_cast<float>(M_PI) / static_cast<float>(DIVISIONS);
 
         //to swap second and third index without branches
         auto secondIdxDelta = windingInversed ? +1 : 0;
@@ -31,16 +31,16 @@ namespace bricksim::mesh::generated {
 
         //todo this can be more efficient because the coordinates are 8 times the same just with different signs (but will be more difficult to get the indexes right)
         for (uint16_t iLat = 1; iLat < DIVISIONS; ++iLat) {
-            float latLineRadius = std::sin(iLat * latDeltaRadians) * RADIUS;
-            float x = std::cos(iLat * latDeltaRadians) * RADIUS;
+            float latLineRadius = std::sin(static_cast<float>(iLat) * latDeltaRadians) * RADIUS;
+            float x = std::cos(static_cast<float>(iLat) * latDeltaRadians) * RADIUS;
             for (uint16_t iLon = 0; iLon < DIVISIONS; ++iLon) {
-                float y = std::sin(iLon * lonDeltaRadians) * latLineRadius;
-                float z = std::cos(iLon * lonDeltaRadians) * latLineRadius;
+                float y = std::sin(static_cast<float>(iLon) * lonDeltaRadians) * latLineRadius;
+                float z = std::cos(static_cast<float>(iLon) * lonDeltaRadians) * latLineRadius;
                 triangleData.addRawVertex(TriangleVertex{glm::vec4(x, y, z, 1.0f), glm::vec3(x, y, z) * (1 / RADIUS)});
             }
         }
 
-        auto lastMainIndex = triangleData.getVertexCount() - 1;
+        auto lastMainIndex = static_cast<unsigned int>(triangleData.getVertexCount()) - 1;
 
         for (int i1 = 0, i2 = 1; i1 < DIVISIONS; ++i1, i2 = (i1 + 1) % DIVISIONS) {
             //north cap
@@ -142,7 +142,7 @@ namespace bricksim::mesh::generated {
 
         auto& triangleData = mesh->getTriangleData(color);
 
-        unsigned int firstIndex = triangleData.getVertexCount();
+        auto firstIndex = static_cast<unsigned int>(triangleData.getVertexCount());
 
         for (uint16_t i = 0; i < NUM_CORNERS; ++i) {
             auto rotationMatrix = glm::rotate((float)(2 * M_PI * i / NUM_CORNERS), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -196,25 +196,25 @@ namespace bricksim::mesh::generated {
                                      const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         const ldr::ColorReference& color = ldr::color_repo::getInstanceDummyColor();
         auto& triangleData = mesh->getTriangleData(color);
-        auto firstIndex = triangleData.getVertexCount();
+        auto firstIndex = static_cast<unsigned int>(triangleData.getVertexCount());
 
         std::vector<TriangleVertex> baseVertices;
-        float angleStep = 2 * M_PI / DIVISIONS;
-        for (int i = 0; i < DIVISIONS; ++i) {
-            float sinValue = std::sin(i * angleStep);
-            float cosValue = std::cos(i * angleStep);
+        float angleStep = 2.f * static_cast<float>(M_PI) / DIVISIONS;
+        for (uint16_t i = 0; i < DIVISIONS; ++i) {
+            float sinValue = std::sin(static_cast<float>(i) * angleStep);
+            float cosValue = std::cos(static_cast<float>(i) * angleStep);
             glm::vec4 position(sinValue * TUBE_RADIUS, cosValue * TUBE_RADIUS + CENTER_TO_TUBE_RADIUS, 0.0f, 1.0f);
             glm::vec3 normal(-sinValue, -cosValue, 0.0f);
-            baseVertices.push_back(TriangleVertex{position, normal});
+            baseVertices.emplace_back(position, normal);
         }
 
         constexpr float angleRatio = .25f;
-        for (int i = 0; i <= DIVISIONS; ++i) {
-            float angle = i * angleRatio * angleStep;
+        for (uint16_t i = 0; i <= DIVISIONS; ++i) {
+            float angle = static_cast<float>(i) * angleRatio * angleStep;
             auto rotation = glm::rotate(angle, glm::vec3(-1.0f, 0.0f, 0.0f));
             for (int j = 0; j < DIVISIONS; ++j) {
-                triangleData.addRawVertex(TriangleVertex{glm::vec4(baseVertices[j].position, 1.f) * rotation,
-                                                         glm::vec4(baseVertices[j].normal, 0.0f) * rotation});
+                triangleData.addRawVertex({glm::vec4(baseVertices[j].position, 1.f) * rotation,
+                                           glm::vec4(baseVertices[j].normal, 0.0f) * rotation});
             }
         }
 
@@ -232,7 +232,7 @@ namespace bricksim::mesh::generated {
         }
 
         if (WITH_ENDS) {
-            auto capAFirstIndex = triangleData.getVertexCount();
+            auto capAFirstIndex = static_cast<unsigned int>(triangleData.getVertexCount());
             for (int j = 0; j < DIVISIONS; ++j) {
                 triangleData.addRawVertex(
                         TriangleVertex{glm::vec4(baseVertices[j].position, 1.f), glm::vec3(0.0f, 0.0f, 1.0f)});
@@ -243,7 +243,7 @@ namespace bricksim::mesh::generated {
                 }
             }
 
-            auto capBFirstIndex = triangleData.getVertexCount();
+            auto capBFirstIndex = static_cast<unsigned int>(triangleData.getVertexCount());
             auto endRotation = glm::rotate(0.5f * float(M_PI), glm::vec3(1.0f, 0.0f, 0.0f));
             for (int j = 0; j < DIVISIONS; ++j) {
                 triangleData.addRawVertex(TriangleVertex{glm::vec4(baseVertices[j].position, 1.f) * endRotation,
@@ -288,7 +288,7 @@ namespace bricksim::mesh::generated {
         4-------------5       X
          */
         constexpr float N = 0.5f;
-        glm::vec4 pos[] = {
+        constexpr std::array<glm::vec4, 8> pos = {{
                 {+N, -N, +N, 1.0f},//0
                 {+N, +N, +N, 1.0f},//1
                 {-N, -N, +N, 1.0f},//2
@@ -297,7 +297,7 @@ namespace bricksim::mesh::generated {
                 {+N, +N, -N, 1.0f},//5
                 {-N, +N, -N, 1.0f},//6
                 {-N, -N, -N, 1.0f},//7
-        };
+        }};
         glm::vec3 normalXneg{-1, 0, 0};
         glm::vec3 normalXpos{+1, 0, 0};
         glm::vec3 normalYneg{0, -1, 0};

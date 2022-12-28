@@ -2,8 +2,8 @@
 #include "../controller.h"
 #include "../helpers/geometry.h"
 #include "../helpers/util.h"
-#include <glad/glad.h>
 #include <cmath>
+#include <glad/glad.h>
 #include <palanteer.h>
 
 namespace bricksim::overlay2d {
@@ -22,13 +22,6 @@ namespace bricksim::overlay2d {
             const glm::vec2 p2 = startFloat + halfEdge;
             const glm::vec2 p3 = endFloat + halfEdge;
             const glm::vec2 p4 = endFloat - halfEdge;
-            //std::cout << "line(start=" << start.x << "/" << start.y << ", end=" << end.x << "/" << end.y << ")" << std::endl;
-            //std::cout << "p1=" << p1.x << ", " << p1.y << std::endl;
-            //std::cout << "p2=" << p2.x << ", " << p2.y << std::endl;
-            //std::cout << "p3=" << p3.x << ", " << p3.y << std::endl;
-            //std::cout << "p4=" << p4.x << ", " << p4.y << std::endl;
-            //std::cout << "startToEnd=" << startToEnd.x << ", " << startToEnd.y << std::endl;
-            //std::cout << "halfEdge=" << halfEdge.x << ", " << halfEdge.y << std::endl;
             return generateVerticesForQuad(firstVertexLocation, p1, p2, p3, p4, color, viewportSize);
         }
 
@@ -66,11 +59,13 @@ namespace bricksim::overlay2d {
         }
 
         Vertex* generateVerticesForSquare(Vertex* firstVertexLocation, coord_t center, length_t sideLength, color::RGB color, coord_t viewportSize) {
-            const float halfSideLength = sideLength / 2;
-            auto p1 = glm::vec2{(float)center.x - halfSideLength, (float)center.y + halfSideLength};
-            auto p2 = glm::vec2{(float)center.x + halfSideLength, (float)center.y + halfSideLength};
-            auto p3 = glm::vec2{(float)center.x + halfSideLength, (float)center.y - halfSideLength};
-            auto p4 = glm::vec2{(float)center.x - halfSideLength, (float)center.y - halfSideLength};
+            const float halfSideLength = static_cast<float>(sideLength) / 2;
+            const auto x = static_cast<float>(center.x);
+            const auto y = static_cast<float>(center.y);
+            auto p1 = glm::vec2{x - halfSideLength, y + halfSideLength};
+            auto p2 = glm::vec2{x + halfSideLength, y + halfSideLength};
+            auto p3 = glm::vec2{x + halfSideLength, y - halfSideLength};
+            auto p4 = glm::vec2{x - halfSideLength, y - halfSideLength};
             return generateVerticesForQuad(firstVertexLocation, p1, p2, p3, p4, color, viewportSize);
         }
 
@@ -80,11 +75,15 @@ namespace bricksim::overlay2d {
 
         Vertex* generateVerticesForRegularPolygon(Vertex* firstVertexLocation, coord_t center, length_t radius, short numEdges, color::RGB color,
                                                   coord_t viewportSize) {
-            float angleStep = 2 * M_PI / numEdges;
-            const glm::vec2 p0 = toNDC(coord_t{radius + center.x, center.y}, viewportSize);
-            glm::vec2 lastP = toNDC(glm::vec2{radius * std::cos(angleStep) + center.x, radius * std::sin(angleStep) + center.y}, viewportSize);
+            float angleStep = 2 * static_cast<float>(M_PI) / static_cast<float>(numEdges);
+            const auto cx = static_cast<float>(center.x);
+            const auto cy = static_cast<float>(center.y);
+            const auto fRadius = static_cast<float>(radius);
+            const glm::vec2 p0 = toNDC(coord_t{fRadius + cx, cy}, viewportSize);
+            glm::vec2 lastP = toNDC(glm::vec2{fRadius * std::cos(angleStep) + cx, fRadius * std::sin(angleStep) + cy}, viewportSize);
             for (short i = 2; i < numEdges; ++i) {
-                glm::vec2 currentP = toNDC(glm::vec2{radius * std::cos(angleStep * i) + center.x, radius * std::sin(angleStep * i) + center.y}, viewportSize);
+                const auto angle = angleStep * (i);
+                glm::vec2 currentP = toNDC(glm::vec2{fRadius * std::cos(angle) + cx, fRadius * std::sin(angle) + cy}, viewportSize);
 
                 *firstVertexLocation = {p0, color.asGlmVector()};
                 ++firstVertexLocation;
@@ -131,13 +130,13 @@ namespace bricksim::overlay2d {
         }
 
         constexpr glm::vec2 toNDC(coord_t coord, coord_t viewportSize) {
-            return glm::vec2((float)coord.x / (float)viewportSize.x * 2 - 1,
-                             (float)coord.y / (float)viewportSize.y * 2 - 1);
+            return {(float)coord.x / (float)viewportSize.x * 2 - 1,
+                    (float)coord.y / (float)viewportSize.y * 2 - 1};
         }
 
         constexpr glm::vec2 toNDC(glm::vec2 coord, coord_t viewportSize) {
-            return glm::vec2(coord.x / (float)viewportSize.x * 2 - 1,
-                             coord.y / (float)viewportSize.y * 2 - 1);
+            return {coord.x / (float)viewportSize.x * 2 - 1,
+                    coord.y / (float)viewportSize.y * 2 - 1};
         }
     }
 
@@ -153,7 +152,7 @@ namespace bricksim::overlay2d {
     bool Element::haveVerticesChanged() const {
         return verticesHaveChanged;
     }
-
+    Element::~Element() = default;
     void ElementCollection::verticesHaveChanged(const std::shared_ptr<Element>& changedElement) {
         changedElements.insert(changedElement);
     }
@@ -191,7 +190,7 @@ namespace bricksim::overlay2d {
                     }
                 }
                 if (needToAppendAtEnd) {
-                    range.start = vertices.size();
+                    range.start = static_cast<unsigned int>(vertices.size());
                     range.count = newVertexCount;
                     vertices.resize(vertices.size() + newVertexCount);
                     auto firstVertexLocation = &vertices[range.start];
@@ -206,28 +205,29 @@ namespace bricksim::overlay2d {
                     }
                 }
             }
-            controller::executeOpenGL([&]() {
+            controller::executeOpenGL([this, needToRewriteEverything, &changedVerticesCount, &changedRanges]() {
                 //todo update metrics::vramUsageBytes
                 glBindVertexArray(vao);
                 glBindBuffer(GL_ARRAY_BUFFER, vbo);
                 if (needToRewriteEverything) {
-                    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
-                    changedVerticesCount = vertices.size();
+                    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>((vertices.size() * sizeof(Vertex))), &vertices[0], GL_STATIC_DRAW);
+                    changedVerticesCount = static_cast<unsigned int>(vertices.size());
                 } else {
                     for (const auto& range: changedRanges) {
-                        glBufferSubData(GL_ARRAY_BUFFER, range.start * sizeof(Vertex), range.count * sizeof(Vertex), &vertices[range.start]);
+                        const auto offset = static_cast<GLsizeiptr>((range.start * sizeof(Vertex)));
+                        const auto size = static_cast<GLsizeiptr>((range.count * sizeof(Vertex)));
+                        glBufferSubData(GL_ARRAY_BUFFER, offset, size, &vertices[range.start]);
                         changedVerticesCount += range.count;
                     }
                 }
             });
             changedElements.clear();
             lastWrittenViewportSize = viewportSize;
-            //spdlog::debug("overlay2d with VAO={} updated {} of {} vertices", VAO, changedVerticesCount, vertices.size());
         }
     }
 
     ElementCollection::ElementCollection() {// NOLINT(cppcoreguidelines-pro-type-member-init)
-        controller::executeOpenGL([&]() {
+        controller::executeOpenGL([this]() {
             glGenVertexArrays(1, &vao);
             glBindVertexArray(vao);
 
@@ -246,15 +246,15 @@ namespace bricksim::overlay2d {
     }
 
     ElementCollection::~ElementCollection() {
-        controller::executeOpenGL([&]() {
+        controller::executeOpenGL([this]() {
             glDeleteVertexArrays(1, &vao);
             glDeleteBuffers(1, &vbo);
         });
     }
 
-    void ElementCollection::draw() {
+    void ElementCollection::draw() const {
         glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices.size()));
     }
 
     void ElementCollection::addElement(const std::shared_ptr<Element>& element) {
@@ -267,13 +267,13 @@ namespace bricksim::overlay2d {
         verticesHaveChanged(element);
     }
 
-    bool ElementCollection::hasElements() {
+    bool ElementCollection::hasElements() const {
         return !elements.empty();
     }
 
     bool ElementCollection::hasChangedElements() {
         //todo maybe not the best design (changing state and returning something)
-        for (auto& item: elements) {
+        for (const auto& item: elements) {
             if (item->haveVerticesChanged()) {
                 changedElements.insert(item);
                 item->setVerticesHaveChanged(false);
@@ -283,7 +283,7 @@ namespace bricksim::overlay2d {
     }
 
     bool LineElement::isPointInside(coord_t point) {
-        return geometry::calculateDistanceOfPointToLine(start, end, point) <= width / 2;
+        return geometry::calculateDistanceOfPointToLine(start, end, point) <= static_cast<float>(width) / 2.f;
     }
 
     unsigned int LineElement::getVertexCount() {
@@ -322,7 +322,7 @@ namespace bricksim::overlay2d {
     }
 
     void LineElement::setWidth(float value) {
-        LineElement::width = value;
+        LineElement::width = static_cast<length_t>(value);
         setVerticesHaveChanged(true);
     }
 
@@ -501,7 +501,7 @@ namespace bricksim::overlay2d {
         float tipLength = calculateTipLength();
         if (projLengthFromEnd > tipLength) {
             //on the line part
-            return normalProjection.distancePointToLine < lineWidth / 2;
+            return normalProjection.distancePointToLine < static_cast<float>(lineWidth) / 2;
         } else {
             //on the tip part
             return normalProjection.distancePointToLine < projLengthFromEnd / tipLength * tipWidth / 2;
@@ -530,7 +530,7 @@ namespace bricksim::overlay2d {
         auto fullLineLength = glm::length(fullLine);
         auto normalizedLine = glm::normalize(fullLine);
         glm::vec2 normalLineEnd = startFloat + normalizedLine * (fullLineLength - tipLength);
-        const glm::vec2 halfEdge = glm::vec2(normalizedLine.y, -normalizedLine.x) * (lineWidth / 2.0f);
+        const glm::vec2 halfEdge = glm::vec2(normalizedLine.y, -normalizedLine.x) * (static_cast<float>(lineWidth) / 2.0f);
         const glm::vec2 p1 = startFloat - halfEdge;
         const glm::vec2 p2 = startFloat + halfEdge;
         const glm::vec2 p3 = normalLineEnd - halfEdge;
@@ -548,11 +548,11 @@ namespace bricksim::overlay2d {
     }
 
     float ArrowElement::calculateTipLength() const {
-        return lineWidth * tipLengthFactor;
+        return static_cast<float>(lineWidth) * tipLengthFactor;
     }
 
     float ArrowElement::calculateTipWidth() const {
-        return lineWidth * tipWidthFactor;
+        return static_cast<float>(lineWidth) * tipWidthFactor;
     }
 
     const coord_t& ArrowElement::getStart() const {

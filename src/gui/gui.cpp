@@ -23,9 +23,9 @@
 
 namespace bricksim::gui {
     namespace {
-        char const* lFilterPatterns[NUM_LDR_FILTER_PATTERNS] = {"*.ldr", "*.dat", "*.mpd", "*.io"};
-        char const* imageFilterPatterns[NUM_IMAGE_FILTER_PATTERNS] = {"*.png", "*.jpg", "*.bmp", "*.tga"};
-        char const* zipFilterPatterns[NUM_ZIP_FILTER_PATTERNS] = {"*.zip"};
+        constexpr std::array<char const*, 4> LDRAW_FILE_FILTER_PATTERNS = {"*.ldr", "*.dat", "*.mpd", "*.io"};
+        constexpr std::array<char const*, 4> IMAGE_FILE_FILTER_PATTERNS = {"*.png", "*.jpg", "*.bmp", "*.tga"};
+        constexpr std::array<char const*, 1> ZIP_FILE_FILTER_PATTERNS = {"*.zip"};
         bool setupDone = false;
         GLFWwindow* window;
         double lastScrollDeltaY;
@@ -52,16 +52,16 @@ namespace bricksim::gui {
             }
             ImFontConfig fontConfig;
             fontConfig.FontDataOwnedByAtlas = false;//otherwise ImGui tries to free() the data which causes a crash because the data is const
-            io.Fonts->AddFontFromMemoryTTF((void*)fontData, fontDataLength, 13.0f * scaleFactor, &fontConfig, nullptr);
+            io.Fonts->AddFontFromMemoryTTF((void*)fontData, static_cast<int>(fontDataLength), 13.f * scaleFactor, &fontConfig, nullptr);
 
             // merge in icons from Font Awesome
-            static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
+            static const std::array<ImWchar, 3> icons_ranges = {ICON_MIN_FA, ICON_MAX_FA, 0};
             ImFontConfig iconsConfig;
             iconsConfig.MergeMode = true;
             iconsConfig.PixelSnapH = true;
             iconsConfig.FontDataOwnedByAtlas = false;
             io.Fonts->AddFontFromMemoryTTF((void*)resources::fonts::fa_solid_900_ttf.data(), resources::fonts::fa_solid_900_ttf.size(),
-                                           13.0f * scaleFactor, &iconsConfig, icons_ranges);
+                                           13.f * scaleFactor, &iconsConfig, icons_ranges.data());
         }
 
         void setupStyle() {
@@ -138,13 +138,14 @@ namespace bricksim::gui {
             throw std::invalid_argument("setup called twice");
         }
         GLFWmonitor* monitor = glfwGetPrimaryMonitor();//todo get the monitor on which the window is
-        float xscale, yscale;
+        float xscale;
+        float yscale;
         glfwGetMonitorContentScale(monitor, &xscale, &yscale);
         spdlog::info("xscale={}, yscale={}", xscale, yscale);
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
-        auto scaleFactor = (float)(config::get(config::GUI_SCALE));
+        auto scaleFactor = config::get(config::GUI_SCALE);
         if (xscale > 1 || yscale > 1) {
             scaleFactor *= (xscale + yscale) / 2.0f;
             ImGuiStyle& style = ImGui::GetStyle();
@@ -154,10 +155,10 @@ namespace bricksim::gui {
 
         auto flipFlagBefore = util::isStbiFlipVertically();
         util::setStbiFlipVertically(false);
-        GLFWimage images[1];
+        std::array<GLFWimage, 1> images{};
         images[0].pixels = stbi_load_from_memory(resources::logos::logo_icon_png.data(), resources::logos::logo_icon_png.size(),
                                                  &images[0].width, &images[0].height, nullptr, 4);//rgba channels
-        glfwSetWindowIcon(window, 1, images);
+        glfwSetWindowIcon(window, 1, images.data());
         stbi_image_free(images[0].pixels);
 
         util::setStbiFlipVertically(flipFlagBefore);
@@ -185,11 +186,11 @@ namespace bricksim::gui {
     }
 
     void showOpenFileDialog() {
-        char* fileNameChars = tinyfd_openFileDialog(
+        char const* fileNameChars = tinyfd_openFileDialog(
                 "Open File",
                 "",
-                NUM_LDR_FILTER_PATTERNS,
-                lFilterPatterns,
+                LDRAW_FILE_FILTER_PATTERNS.size(),
+                LDRAW_FILE_FILTER_PATTERNS.data(),
                 nullptr,
                 0);
         if (fileNameChars != nullptr) {
@@ -199,7 +200,7 @@ namespace bricksim::gui {
     }
 
     void showSaveFileAsDialog() {
-        auto& activeEditor = controller::getActiveEditor();
+        const auto& activeEditor = controller::getActiveEditor();
         if (activeEditor != nullptr) {
             showSaveFileAsDialog(activeEditor);
         } else {
@@ -208,11 +209,11 @@ namespace bricksim::gui {
     }
     void showSaveFileAsDialog(const std::shared_ptr<Editor>& editor) {
         std::string title = fmt::format("Save \"{}\" as", editor->getFilename());
-        char *fileNameChars = tinyfd_saveFileDialog(
+        char const* fileNameChars = tinyfd_saveFileDialog(
                 title.c_str(),
                 "",
-                NUM_LDR_FILTER_PATTERNS,
-                lFilterPatterns,
+                LDRAW_FILE_FILTER_PATTERNS.size(),
+                LDRAW_FILE_FILTER_PATTERNS.data(),
                 nullptr);
         if (fileNameChars != nullptr) {
             std::string fileName(fileNameChars);
@@ -221,7 +222,7 @@ namespace bricksim::gui {
     }
 
     void showSaveCopyAsDialog() {
-        auto& activeEditor = controller::getActiveEditor();
+        const auto& activeEditor = controller::getActiveEditor();
         if (activeEditor != nullptr) {
             showSaveCopyAsDialog(activeEditor);
         } else {
@@ -230,11 +231,11 @@ namespace bricksim::gui {
     }
     void showSaveCopyAsDialog(const std::shared_ptr<Editor>& editor) {
         std::string title = fmt::format("Save copy of \"{}\"", editor->getFilename());
-        char *fileNameChars = tinyfd_saveFileDialog(
+        char const* fileNameChars = tinyfd_saveFileDialog(
                 "Save Copy As",
                 "",
-                NUM_LDR_FILTER_PATTERNS,
-                lFilterPatterns,
+                LDRAW_FILE_FILTER_PATTERNS.size(),
+                LDRAW_FILE_FILTER_PATTERNS.data(),
                 nullptr);
         if (fileNameChars != nullptr) {
             std::string fileName(fileNameChars);
@@ -243,7 +244,7 @@ namespace bricksim::gui {
     }
 
     void showScreenshotDialog() {
-        auto& activeEditor = controller::getActiveEditor();
+        const auto& activeEditor = controller::getActiveEditor();
         if (activeEditor != nullptr) {
             showScreenshotDialog(activeEditor);
         } else {
@@ -252,11 +253,11 @@ namespace bricksim::gui {
     }
     void showScreenshotDialog(const std::shared_ptr<Editor>& editor) {
         std::string title = fmt::format("Save Screenshot of \"{}\"", editor->getFilename());
-        char *fileNameChars = tinyfd_saveFileDialog(
+        char const* fileNameChars = tinyfd_saveFileDialog(
                 title.c_str(),
                 "",
-                NUM_IMAGE_FILTER_PATTERNS,
-                imageFilterPatterns,
+                IMAGE_FILE_FILTER_PATTERNS.size(),
+                IMAGE_FILE_FILTER_PATTERNS.data(),
                 nullptr);
         if (fileNameChars != nullptr) {
             std::string fileNameString(fileNameChars);
@@ -269,37 +270,43 @@ namespace bricksim::gui {
     }
 
     void applyDefaultWindowLayout() {
+        using enum bricksim::gui::windows::Id;
         spdlog::debug("applying default window layout");
         ImGui::DockBuilderRemoveNodeChildNodes(dockspaceId);
 
-        ImGuiID level0left, level0right;
-        ImGui::DockBuilderSplitNode(dockspaceId, ImGuiDir_Right, 0.4, &level0right, &level0left);
+        ImGuiID level0left;
+        ImGuiID level0right;
+        ImGui::DockBuilderSplitNode(dockspaceId, ImGuiDir_Right, .4f, &level0right, &level0left);
 
-        ImGuiID level1rightTop, level1rightBottom;
-        ImGui::DockBuilderSplitNode(level0right, ImGuiDir_Down, 0.6, &level1rightBottom, &level1rightTop);
+        ImGuiID level1rightTop;
+        ImGuiID level1rightBottom;
+        ImGui::DockBuilderSplitNode(level0right, ImGuiDir_Down, .6f, &level1rightBottom, &level1rightTop);
 
-        ImGuiID level2rightTopLeft, level2rightTopRight;
-        ImGui::DockBuilderSplitNode(level1rightTop, ImGuiDir_Left, 0.4, &level2rightTopLeft, &level2rightTopRight);
+        ImGuiID level2rightTopLeft;
+        ImGuiID level2rightTopRight;
+        ImGui::DockBuilderSplitNode(level1rightTop, ImGuiDir_Left, .4f, &level2rightTopLeft, &level2rightTopRight);
 
-        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::ORIENTATION_CUBE), level2rightTopLeft);
-        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::DEBUG), level2rightTopRight);
-        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::ELEMENT_PROPERTIES), level1rightBottom);
+        ImGui::DockBuilderDockWindow(windows::getName(ORIENTATION_CUBE), level2rightTopLeft);
+        ImGui::DockBuilderDockWindow(windows::getName(DEBUG), level2rightTopRight);
+        ImGui::DockBuilderDockWindow(windows::getName(ELEMENT_PROPERTIES), level1rightBottom);
 
-        ImGuiID level1leftBottom, level1leftTop;
-        ImGui::DockBuilderSplitNode(level0left, ImGuiDir_Down, 0.4, &level1leftBottom, &level1leftTop);
+        ImGuiID level1leftBottom;
+        ImGuiID level1leftTop;
+        ImGui::DockBuilderSplitNode(level0left, ImGuiDir_Down, .4f, &level1leftBottom, &level1leftTop);
 
-        ImGuiID level2leftTopLeft, level2leftTopRight;
-        ImGui::DockBuilderSplitNode(level1leftTop, ImGuiDir_Left, 0.3, &level2leftTopLeft, &level2leftTopRight);
+        ImGuiID level2leftTopLeft;
+        ImGuiID level2leftTopRight;
+        ImGui::DockBuilderSplitNode(level1leftTop, ImGuiDir_Left, .3f, &level2leftTopLeft, &level2leftTopRight);
 
-        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::PART_PALETTE), level1leftBottom);
-        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::ELEMENT_TREE), level2leftTopLeft);
-        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::VIEW_3D), level2leftTopRight);
+        ImGui::DockBuilderDockWindow(windows::getName(PART_PALETTE), level1leftBottom);
+        ImGui::DockBuilderDockWindow(windows::getName(ELEMENT_TREE), level2leftTopLeft);
+        ImGui::DockBuilderDockWindow(windows::getName(VIEW_3D), level2leftTopRight);
     }
-
 
     void drawMainWindows() {
         plFunction();
         if (ImGui::BeginMainMenuBar()) {
+            //todo class MenuBarHandler, function for each menu
             if (ImGui::BeginMenu("File")) {
                 gui_internal::actionMenuItem(user_actions::NEW_FILE);
                 gui_internal::actionMenuItem(user_actions::OPEN_FILE);
@@ -342,23 +349,24 @@ namespace bricksim::gui {
             }
 
             if (ImGui::BeginMenu("View")) {
-                gui_internal::windowMenuItem(windows::Id::VIEW_3D);
-                gui_internal::windowMenuItem(windows::Id::ORIENTATION_CUBE);
+                using enum bricksim::gui::windows::Id;
+                gui_internal::windowMenuItem(VIEW_3D);
+                gui_internal::windowMenuItem(ORIENTATION_CUBE);
                 ImGui::Separator();
-                gui_internal::windowMenuItem(windows::Id::ELEMENT_TREE);
-                gui_internal::windowMenuItem(windows::Id::ELEMENT_PROPERTIES);
+                gui_internal::windowMenuItem(ELEMENT_TREE);
+                gui_internal::windowMenuItem(ELEMENT_PROPERTIES);
                 ImGui::Separator();
-                gui_internal::windowMenuItem(windows::Id::PART_PALETTE);
-                gui_internal::windowMenuItem(windows::Id::LDRAW_FILE_INSPECTOR);
+                gui_internal::windowMenuItem(PART_PALETTE);
+                gui_internal::windowMenuItem(LDRAW_FILE_INSPECTOR);
                 ImGui::Separator();
-                gui_internal::windowMenuItem(windows::Id::MODEL_INFO);
-                gui_internal::windowMenuItem(windows::Id::EDITOR_META_INFO);
+                gui_internal::windowMenuItem(MODEL_INFO);
+                gui_internal::windowMenuItem(EDITOR_META_INFO);
                 ImGui::Separator();
-                gui_internal::windowMenuItem(windows::Id::SETTINGS);
+                gui_internal::windowMenuItem(SETTINGS);
                 ImGui::Separator();
-                gui_internal::windowMenuItem(windows::Id::IMGUI_DEMO);
-                gui_internal::windowMenuItem(windows::Id::DEBUG);
-                gui_internal::windowMenuItem(windows::Id::LOG);
+                gui_internal::windowMenuItem(IMGUI_DEMO);
+                gui_internal::windowMenuItem(DEBUG);
+                gui_internal::windowMenuItem(LOG);
                 ImGui::Separator();
                 if (ImGui::MenuItem("Apply default window layout")) {
                     applyDefaultWindowLayout();
@@ -415,12 +423,11 @@ namespace bricksim::gui {
             openFindActionPopup = false;
         }
         if (ImGui::BeginPopupModal("Execute Action by Name", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            constexpr int searchBufSize = 48;
-            static char searchBuf[searchBufSize];
+            static std::string searchBuf(48, '\0');
             if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
                 ImGui::SetKeyboardFocusHere(0);
             }
-            ImGui::InputText(ICON_FA_SEARCH, searchBuf, searchBufSize);
+            ImGui::InputText(ICON_FA_SEARCH, searchBuf.data(), searchBuf.capacity());
 
             static std::optional<user_actions::Action> selectedAction;
             if (ImGui::BeginListBox("##actionsByNameListBox")) {
@@ -552,9 +559,8 @@ namespace bricksim::gui {
          * D Download in progress
          * Z Finished
          */
-        static long bytesDownloaded = 0, bytesTotal = 0;
         static std::thread downloadThread;//todo make this work
-        static char pathBuffer[1023];
+        static std::string pathBuffer(1023, '\0');
         static auto windowFlags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize;
         ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
         if (state == 'A') {
@@ -569,12 +575,11 @@ namespace bricksim::gui {
                 ImGui::Text(" ");
                 ImGui::Text("But this directory isn't recognized as a valid ldraw parts library.");
                 ImGui::Text("Your options are:");
-                //ImGui::BulletText(" ");
                 ImGui::Bullet();
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_EDIT " Change the path manually to point to your ldraw directory")) {
                     state = 'B';
-                    strcpy(pathBuffer, parts_lib_raw.c_str());
+                    pathBuffer.assign(parts_lib_raw);
                 }
                 ImGui::BulletText("Move the ldraw parts directory to the path above");
                 ImGui::SameLine();
@@ -599,22 +604,22 @@ namespace bricksim::gui {
             ImGui::End();
         } else if (state == 'B') {
             if (ImGui::Begin("Set LDraw parts library path", nullptr, windowFlags)) {
-                ImGui::InputText("LDraw parts directory or zip path", pathBuffer, sizeof(pathBuffer));
+                ImGui::InputText("LDraw parts directory or zip path", pathBuffer.data(), pathBuffer.capacity());
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_FOLDER_OPEN)) {
-                    char* folderNameChars = tinyfd_selectFolderDialog("Select LDraw parts library folder", pathBuffer);
-                    std::strcpy(pathBuffer, folderNameChars);
+                    char const* folderNameChars = tinyfd_selectFolderDialog("Select LDraw parts library folder", pathBuffer.c_str());
+                    pathBuffer.assign(folderNameChars);
                 }
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_FILE_ARCHIVE)) {
-                    char* fileNameChars = tinyfd_openFileDialog(
+                    char const* fileNameChars = tinyfd_openFileDialog(
                             "Select LDraw parts library .zip",
-                            pathBuffer,
-                            NUM_ZIP_FILTER_PATTERNS,
-                            zipFilterPatterns,
+                            pathBuffer.c_str(),
+                            ZIP_FILE_FILTER_PATTERNS.size(),
+                            ZIP_FILE_FILTER_PATTERNS.data(),
                             "LDraw parts library",
                             0);
-                    std::strcpy(pathBuffer, fileNameChars);
+                    pathBuffer.assign(fileNameChars);
                 }
                 //todo make button for file dialog
                 ImGui::TextDisabled("'~' will be replaced with '%s' (the current home directory)", util::extendHomeDir("~").c_str());
@@ -645,14 +650,15 @@ namespace bricksim::gui {
         } else if (state == 'D') {
             if (ImGui::Begin(ICON_FA_DOWNLOAD " Downloading LDraw parts library", nullptr, windowFlags)) {
                 switch (parts_library_downloader::getStatus()) {
-                    case parts_library_downloader::DOING_NOTHING:
+                    using enum parts_library_downloader::Status;
+                    case DOING_NOTHING:
                         downloadThread = std::thread(parts_library_downloader::downloadPartsLibrary);
                         break;
-                    case parts_library_downloader::IN_PROGRESS: {
-                        auto progress = parts_library_downloader::getProgress();
+                    case IN_PROGRESS: {
+                        auto [downNow, downTotal] = parts_library_downloader::getProgress();
                         ImGui::Text(ICON_FA_DOWNLOAD " Downloading ldraw parts library...");
 
-                        const float progressFraction = 1.0f * progress.first / progress.second;
+                        const float progressFraction = static_cast<float>(downNow) / static_cast<float>(downTotal);
                         const auto bytesPerSecondTxt = stringutil::formatBytesValue(parts_library_downloader::getSpeedBytesPerSecond());
                         const auto speedTxt = fmt::format("{:.1f}% {}/s", progressFraction * 100, bytesPerSecondTxt);
                         ImGui::ProgressBar(progressFraction, ImVec2(-FLT_MIN, 0), speedTxt.c_str());
@@ -660,18 +666,18 @@ namespace bricksim::gui {
                             parts_library_downloader::stopDownload();
                             downloadThread.join();
                             ImGui::End();
-                            return REQUEST_EXIT;
+                            return PartsLibrarySetupResponse::REQUEST_EXIT;
                         }
                         break;
                     }
-                    case parts_library_downloader::FAILED:
+                    case FAILED:
                         ImGui::TextColored(color::RGB::RED, ICON_FA_TIMES_CIRCLE " Download failed with error code %d", parts_library_downloader::getErrorCode());
                         if (ImGui::Button(ICON_FA_CHEVRON_LEFT " Back")) {
                             parts_library_downloader::reset();
                             state = 'Z';
                         }
                         break;
-                    case parts_library_downloader::FINISHED:
+                    case FINISHED:
                         state = 'Z';
                         parts_library_downloader::reset();
                         break;
@@ -683,7 +689,7 @@ namespace bricksim::gui {
         if (finished) {
             state = 'A';
         }
-        return finished ? FINISHED : RUNNING;
+        return finished ? PartsLibrarySetupResponse::FINISHED : PartsLibrarySetupResponse::RUNNING;
     }
 
     void drawWaitMessage(const std::string& message, float progress) {
@@ -693,7 +699,7 @@ namespace bricksim::gui {
             //ImGui::SetNextWindowSize(ImVec2(fontSize * 18, fontSize * 6));
             ImGui::Begin("Please wait", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::Image(gui_internal::convertTextureId(logoTexture->getID()),
-                         ImVec2(logoTexture->getSize().x, logoTexture->getSize().y),
+                         ImVec2(static_cast<float>(logoTexture->getSize().x), static_cast<float>(logoTexture->getSize().y)),
                          ImVec2(0, 1), ImVec2(1, 0));
             ImGui::Text("%s %s", gui_internal::getAnimatedHourglassIcon(), message.c_str());
             ImGui::ProgressBar(progress);

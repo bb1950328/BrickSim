@@ -53,7 +53,7 @@ namespace bricksim::controller {
         std::chrono::milliseconds idle_sleep(25);
 
         constexpr unsigned short lastFrameTimesSize = 256;
-        float lastFrameTimes[lastFrameTimesSize] = {0};//in ms
+        std::array<float, lastFrameTimesSize> lastFrameTimes = {0};//in ms
         unsigned short lastFrameTimesStartIdx = 0;
 
         std::shared_ptr<efsw::FileWatcher> fileWatcher;
@@ -62,7 +62,7 @@ namespace bricksim::controller {
         RENDERDOC_API_1_1_2* rdoc_api = nullptr;
 #endif
 
-        void APIENTRY openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+        void APIENTRY openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, [[maybe_unused]] GLsizei length, const GLchar* message, [[maybe_unused]] const void* userParam) {
             if (id == 131185 || id == 131169) {
                 //Buffer detailed info: Buffer object 2 (bound to GL_ELEMENT_ARRAY_BUFFER_ARB, usage hint is GL_STREAM_DRAW) will use VIDEO memory as the source for buffer object operations.
                 //Framebuffer detailed info: The driver allocated storage for renderbuffer 1.
@@ -114,7 +114,7 @@ namespace bricksim::controller {
             glfwInit();
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-            glfwWindowHint(GLFW_SAMPLES, (int)(config::get(config::MSAA_SAMPLES)));
+            glfwWindowHint(GLFW_SAMPLES, config::get(config::MSAA_SAMPLES));
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
             if (enableDebugOutput) {
@@ -129,7 +129,7 @@ namespace bricksim::controller {
             windowWidth = std::max(25, config::get(config::SCREEN_WIDTH));
             windowHeight = std::max(25, config::get(config::SCREEN_HEIGHT));
 
-            window = glfwCreateWindow(windowWidth, windowHeight, "BrickSim", nullptr, nullptr);
+            window = glfwCreateWindow(static_cast<int>(windowWidth), static_cast<int>(windowHeight), "BrickSim", nullptr, nullptr);
             if (window == nullptr) {
                 spdlog::critical("Failed to create GLFW window");
                 glfwTerminate();
@@ -186,7 +186,7 @@ namespace bricksim::controller {
             return true;
         }
 
-        void window_size_callback(GLFWwindow* _, int width, int height) {
+        void window_size_callback([[maybe_unused]] GLFWwindow* _, int width, int height) {
             if (windowWidth != width || windowHeight != height) {
                 windowWidth = width;
                 windowHeight = height;
@@ -196,11 +196,11 @@ namespace bricksim::controller {
             }
         }
 
-        void keyCallback(GLFWwindow* _, int key, int scancode, int action, int mods) {
-            keyboard_shortcut_manager::shortcutPressed(key, action, mods, gui::areKeysCaptured());
+        void keyCallback([[maybe_unused]] GLFWwindow* _, int key, [[maybe_unused]] int scancode, int action, int mods) {
+            keyboard_shortcut_manager::shortcutPressed(key, action, static_cast<keyboard_shortcut_manager::modifier_t>(mods), gui::areKeysCaptured());
         }
 
-        void scroll_callback(GLFWwindow* _, double xoffset, double yoffset) {
+        void scroll_callback([[maybe_unused]] GLFWwindow* _, [[maybe_unused]] double xoffset, double yoffset) {
             //todo use xoffset to do something, maybe pan?
             gui::setLastScrollDeltaY(yoffset);
             if (ImGui::GetIO().WantCaptureMouse) {
@@ -274,7 +274,7 @@ namespace bricksim::controller {
                 }
             }
 
-            Task initSteps[]{
+            std::array<Task, 8> initSteps{{
                     {"load color definitions", ldr::color_repo::initialize},
                     {"initialize shadow file repo", ldr::file_repo::initializeShadowFileRepo},
                     {"initialize file list", [](float* progress) { ldr::file_repo::get().initialize(progress); spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().string()); }},
@@ -283,7 +283,7 @@ namespace bricksim::controller {
                     {"initialize BrickLink constants", info_providers::bricklink_constants::initialize},
                     {"initialize keyboard shortcuts", keyboard_shortcut_manager::initialize},
                     {"initialize orientation cube generator", graphics::orientation_cube::initialize},
-            };
+            }};
 
             const auto drawWaitMessageInFrame = [](const std::string& message, float progress) {
                 gui::beginFrame();
@@ -296,13 +296,13 @@ namespace bricksim::controller {
                 });
             };
 
-            constexpr float progressStep = 1.0f / std::size(initSteps);
-            for (int i = 0; i < std::size(initSteps); ++i) {
+            constexpr float progressStep = 1.0f / initSteps.size();
+            for (int i = 0; i < initSteps.size(); ++i) {
                 auto& currentStep = initSteps[i];
                 currentStep.startThread();
                 while (!currentStep.isDone()) {
                     if (gui::isSetupDone()) {
-                        drawWaitMessageInFrame(currentStep.getName(), progressStep * (i + currentStep.getProgress()));
+                        drawWaitMessageInFrame(currentStep.getName(), progressStep * (static_cast<float>(i) + currentStep.getProgress()));
                     } else {
                         std::chrono::milliseconds sleepTime(16);
                         std::this_thread::sleep_for(sleepTime);
@@ -383,7 +383,7 @@ namespace bricksim::controller {
         spdlog::info("BrickSim started.");
         const auto startupTime = std::chrono::high_resolution_clock::now();
         if (initialize()) {
-            spdlog::info("Initialisation finished in {}s", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startupTime).count() / 1000.0f);
+            spdlog::info("Initialisation finished in {}s", static_cast<float>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startupTime).count()) / 1000.0f);
         } else {
             return 1;
         }
@@ -461,7 +461,7 @@ namespace bricksim::controller {
             } while (glfwGetTime() - loopStart < 1.0 / 60 && moreWork);
 
             auto after = std::chrono::high_resolution_clock::now();
-            lastFrameTimes[lastFrameTimesStartIdx] = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0f;
+            lastFrameTimes[lastFrameTimesStartIdx] = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.0f;
             lastFrameTimesStartIdx = (lastFrameTimesStartIdx + 1) % lastFrameTimesSize;
 
             executeOpenGL([]() {
@@ -489,9 +489,9 @@ namespace bricksim::controller {
     }
 
     void openFile(const std::string& path) {
-        foregroundTasks.push(Task(std::string("Open ") + path, [path]() {
+        foregroundTasks.emplace("Open " + path, [path]() {
             editors.emplace_back(Editor::openFile(path));
-        }));
+        });
     }
 
     void createNewFile() {
@@ -533,7 +533,8 @@ namespace bricksim::controller {
 
     void addBackgroundTask(std::string name, const std::function<void()>& function) {
         static unsigned int sId = 0;
-        backgroundTasks.emplace(sId++, Task(std::move(name), function)).first->second.startThread();
+        backgroundTasks.emplace(sId, Task(std::move(name), function)).first->second.startThread();
+        ++sId;
     }
 
     std::queue<Task>& getForegroundTasks() {
@@ -541,7 +542,7 @@ namespace bricksim::controller {
     }
 
     std::tuple<unsigned short, float*, unsigned short> getLastFrameTimes() {
-        return std::make_tuple(lastFrameTimesSize, lastFrameTimes, lastFrameTimesStartIdx);
+        return std::make_tuple(lastFrameTimesSize, lastFrameTimes.data(), lastFrameTimesStartIdx);
     }
 
     void executeOpenGL(std::function<void()> const& functor) {
@@ -550,7 +551,7 @@ namespace bricksim::controller {
         }
         static std::recursive_mutex openGlMutex;
         plLockWait("OpenGL");
-        std::lock_guard<std::recursive_mutex> lg(openGlMutex);
+        std::scoped_lock<std::recursive_mutex> lg(openGlMutex);
         plLockScopeState("OpenGL", true);
         glfwMakeContextCurrent(window);
         functor();
@@ -576,12 +577,12 @@ namespace bricksim::controller {
         return activeEditor;
     }
 
-    void setActiveEditor(std::shared_ptr<Editor>& editor) {
+    void setActiveEditor(const std::shared_ptr<Editor>& editor) {
         activeEditor = editor;
     }
 
     std::optional<std::shared_ptr<Editor>> getEditorOfScene(scene_id_t sceneId) {
-        auto& scene = graphics::scenes::get(sceneId);
+        auto const& scene = graphics::scenes::get(sceneId);
         for (auto& item: editors) {
             if (item->getScene() == scene) {
                 return item;

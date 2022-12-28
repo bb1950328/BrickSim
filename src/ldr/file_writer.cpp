@@ -10,7 +10,7 @@ namespace bricksim::ldr {
                 auto sfElement = std::dynamic_pointer_cast<SubfileReference>(element);
                 if (sfElement != nullptr) {
                     const auto& subfile = sfElement->getFile();
-                    if (subfile->metaInfo.type == MPD_SUBFILE && foundSubmodelNames.find(sfElement->filename) == foundSubmodelNames.end()) {
+                    if (subfile->metaInfo.type == FileType::MPD_SUBFILE && foundSubmodelNames.find(sfElement->filename) == foundSubmodelNames.end()) {
                         submodels.emplace_back(sfElement->filename, subfile);
                         foundSubmodelNames.insert(sfElement->filename);
                     }
@@ -39,15 +39,13 @@ namespace bricksim::ldr {
         std::vector<std::pair<std::string, std::shared_ptr<File>>> submodels;
         writeElements(file, stream, submodels, foundSubmodelNames);
 
-        for (size_t i = 0; i < submodels.size(); ++i) {
+        for (const auto& [name, subfile]: submodels) {
             stream << LDR_NEWLINE << LDR_NEWLINE;
-
-            const auto& subfile = submodels[i].second;
 
             stream << "0 FILE " << subfile->metaInfo.name << LDR_NEWLINE;
 
             nameBackup = subfile->metaInfo.name;
-            subfile->metaInfo.name = submodels[i].first;
+            subfile->metaInfo.name = name;
             stream << subfile->metaInfo;
             subfile->metaInfo.name = nameBackup;
 

@@ -5,9 +5,9 @@
 
 namespace bricksim::graphics {
     void CadCamera::updateVectors() {
-        front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        front.y = sin(glm::radians(pitch));
-        front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        front.x = static_cast<float>(std::cos(glm::radians(yaw)) * cos(glm::radians(pitch)));
+        front.y = std::sin(glm::radians(pitch));
+        front.z = static_cast<float>(std::sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
         front = glm::normalize(front);
 
         cameraPos = front * distance + target;
@@ -16,9 +16,9 @@ namespace bricksim::graphics {
 
     CadCamera::CadCamera() {
         target = glm::vec3(0.0f, 0.0f, 0.0f);
-        mouseRotateSensitivity = (float)config::get(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY);
-        mousePanSensitivity = (float)config::get(config::MOUSE_3DVIEW_PAN_SENSITIVITY);
-        mouseZoomSensitivity = (float)config::get(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY);
+        mouseRotateSensitivity = config::get(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY);
+        mousePanSensitivity = config::get(config::MOUSE_3DVIEW_PAN_SENSITIVITY);
+        mouseZoomSensitivity = config::get(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY);
         updateVectors();
     }
 
@@ -161,4 +161,5 @@ namespace bricksim::graphics {
     const glm::vec3& FitContentCamera::getTargetPos() const {
         return target;
     }
+    Camera::~Camera() = default;
 }

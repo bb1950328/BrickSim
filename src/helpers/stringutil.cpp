@@ -6,6 +6,7 @@
 
 #ifdef __SSE2__
 
+    #include <array>
     #include <cstring>
     #include <glm/gtx/matrix_decompose.hpp>
     #include <immintrin.h>
@@ -170,7 +171,7 @@ namespace bricksim::stringutil {
         asUpper(string, string, std::strlen(string));
     }
 
-    void replaceAll(std::string& str, const std::string& from, const std::string& to) {
+    void replaceAll(std::string& str, std::string_view from, std::string_view to) {
         //https://stackoverflow.com/a/3418285/8733066
         //todo maybe this has optimization potential
         if (from.empty()) {
@@ -196,8 +197,8 @@ namespace bricksim::stringutil {
     }
 
     std::string formatBytesValue(uint64_t bytes) {
-        double doubleBytes = bytes;
-        static std::string bytePrefixes[] = {"B", "KB", "MB", "GB", "TB"};
+        auto doubleBytes = static_cast<double>(bytes);
+        static std::array<const char*, 5> bytePrefixes = {"B", "KB", "MB", "GB", "TB"};
         size_t prefixIndex = 0;
         while (doubleBytes >= 1024 && prefixIndex < std::size(bytePrefixes) - 1) {
             prefixIndex++;
@@ -211,7 +212,7 @@ namespace bricksim::stringutil {
         return resultStream.str();
     }
 
-    bool equalsAlphanum(const std::string& a, const std::string& b) {
+    bool equalsAlphanum(std::string_view a, std::string_view b) {
         auto itA = a.cbegin();
         auto itB = b.cbegin();
         while (itA != a.cend() || itB != b.cend()) {
@@ -236,7 +237,7 @@ namespace bricksim::stringutil {
         return itA == a.cend() && itB == b.cend();
     }
 
-    bool containsIgnoreCase(const std::string& full, const std::string& sub) {
+    bool containsIgnoreCase(std::string_view full, std::string_view sub) {
         return std::search(
                        full.begin(), full.end(),
                        sub.begin(), sub.end(),

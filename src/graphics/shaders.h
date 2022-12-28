@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <optional>
 #include <string>
 
 namespace bricksim::graphics {
@@ -9,13 +10,12 @@ namespace bricksim::graphics {
     public:
         unsigned int id;
         Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr);
-        Shader(const char* vertexCodeBegin, const char* vertexCodeEnd,
-               const char* fragmentCodeBegin, const char* fragmentCodeEnd,
-               const char* geometryCodeBegin = nullptr, const char* geometryCodeEnd = nullptr);
+        Shader(std::string_view vertexCode, std::string_view fragmentCode, std::optional<std::string_view> geometryCode = std::nullopt);
 
         void use() const;
 
         // utility uniform functions
+        //todo make template
         void setBool(const std::string& name, bool value) const;
         void setInt(const std::string& name, int value) const;
         void setFloat(const std::string& name, float value) const;
@@ -37,11 +37,11 @@ namespace bricksim::graphics {
         // utility function for checking shader compilation/linking errors.
         static void checkCompileErrors(GLuint shader, const std::string& type);
         void linkProgram(unsigned int vertex, unsigned int fragment, bool hasGeometry, unsigned int geometry);
-        int compileShader(const char* const code, int* length, int type, const char* const typeName);
+        static int compileShader(std::string_view code, int type, const char* typeName);
     };
 
     namespace shaders {
-        enum shader_id_t {
+        enum class shader_id_t {
             TRIANGLE,
             TEXTURED_TRIANGLE,
             LINE,

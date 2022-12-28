@@ -9,8 +9,8 @@ namespace bricksim::mesh {
         TriangleData(const TriangleData&) = delete;
         TriangleData& operator=(const TriangleData&) = delete;
         void initBuffers(const std::vector<MeshInstance>& instances);
-        void freeBuffers();
-        void draw(const std::optional<InstanceRange>& sceneLayerInstanceRange);
+        void freeBuffers() const;
+        void draw(const std::optional<InstanceRange>& sceneLayerInstanceRange) const;
         unsigned int addRawVertex(const TriangleVertex& vertex);
         void addRawIndex(unsigned int index);
         void addVertexWithIndex(const TriangleVertex& vertex);
@@ -27,12 +27,17 @@ namespace bricksim::mesh {
         ldr::ColorReference color;
         std::vector<TriangleVertex> vertices;
         std::vector<unsigned int> indices;
-        unsigned int VAO, vertexVBO, instanceVBO, EBO;
-        std::vector<TriangleInstance> generateInstancesArray(const std::vector<MeshInstance>& instances);
+        unsigned int VAO;
+        unsigned int vertexVBO;
+        unsigned int instanceVBO;
+        unsigned int EBO;
+        std::vector<TriangleInstance> generateInstancesArray(const std::vector<MeshInstance>& instances) const;
 
         size_t instanceCount;
         size_t lastInstanceBufferSize = 0;
         bool dataAlreadyDeleted = false;
-        size_t uploadedVertexCount, uploadedIndexCount;
+        size_t uploadedVertexCount;
+        size_t uploadedIndexCount;
+        void initBuffersImpl(const std::vector<MeshInstance>& instances);
     };
 }

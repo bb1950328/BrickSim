@@ -69,7 +69,7 @@ namespace bricksim::controller {
     RENDERDOC_API_1_1_2* getRenderdocAPI();
 #endif
     std::optional<std::shared_ptr<Editor>> getEditorOfScene(scene_id_t sceneId);
-    void setActiveEditor(std::shared_ptr<Editor>& editor);
+    void setActiveEditor(const std::shared_ptr<Editor>& editor);
 
     std::shared_ptr<efsw::FileWatcher> getFileWatcher();
 }

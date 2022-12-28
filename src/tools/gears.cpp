@@ -20,10 +20,6 @@ namespace bricksim::gears {
         return id == rhs.id;
     }
 
-    bool Gear::operator!=(const Gear& rhs) const {
-        return id != rhs.id;
-    }
-
     Fraction GearPair::getRatio() const {
         return Fraction(driver->numTeeth, follower->numTeeth);
     }
@@ -33,36 +29,37 @@ namespace bricksim::gears {
     }
 
     bool GearPair::isValid() const {
+        using enum GearType;
         //todo maybe a 2d bool table is faster
         if (follower->type == GearType::WORM) {
             return false;
         }
         if (follower->type == GearType::INTERNAL_SPUR) {
             switch (driver->type) {
-                case GearType::WORM:
-                case GearType::INTERNAL_SPUR:
-                case GearType::EXTERNAL_BEVEL: return false;
-                case GearType::EXTERNAL_DOUBLE_BEVEL:
-                case GearType::EXTERNAL_SPUR_AND_SINGLE_BEVEL:
-                case GearType::EXTERNAL_SPUR: return true;
+                case WORM:
+                case INTERNAL_SPUR:
+                case EXTERNAL_BEVEL: return false;
+                case EXTERNAL_DOUBLE_BEVEL:
+                case EXTERNAL_SPUR_AND_SINGLE_BEVEL:
+                case EXTERNAL_SPUR: return true;
             }
-        } else if (follower->type == GearType::EXTERNAL_BEVEL) {
+        } else if (follower->type == EXTERNAL_BEVEL) {
             switch (driver->type) {
-                case GearType::WORM:
-                case GearType::EXTERNAL_SPUR:
-                case GearType::INTERNAL_SPUR: return false;
-                case GearType::EXTERNAL_SPUR_AND_SINGLE_BEVEL:
-                case GearType::EXTERNAL_DOUBLE_BEVEL:
-                case GearType::EXTERNAL_BEVEL: return true;
+                case WORM:
+                case EXTERNAL_SPUR:
+                case INTERNAL_SPUR: return false;
+                case EXTERNAL_SPUR_AND_SINGLE_BEVEL:
+                case EXTERNAL_DOUBLE_BEVEL:
+                case EXTERNAL_BEVEL: return true;
             }
-        } else if (follower->type == GearType::EXTERNAL_SPUR) {
+        } else if (follower->type == EXTERNAL_SPUR) {
             switch (driver->type) {
-                case GearType::EXTERNAL_BEVEL: return false;
-                case GearType::EXTERNAL_SPUR_AND_SINGLE_BEVEL:
-                case GearType::EXTERNAL_DOUBLE_BEVEL:
-                case GearType::WORM:
-                case GearType::EXTERNAL_SPUR:
-                case GearType::INTERNAL_SPUR: return true;
+                case EXTERNAL_BEVEL: return false;
+                case EXTERNAL_SPUR_AND_SINGLE_BEVEL:
+                case EXTERNAL_DOUBLE_BEVEL:
+                case WORM:
+                case EXTERNAL_SPUR:
+                case INTERNAL_SPUR: return true;
             }
         }
         return true;

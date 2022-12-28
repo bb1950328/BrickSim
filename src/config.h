@@ -40,7 +40,7 @@ namespace bricksim::config {
         T ValuesCache<T>::get(const char* key, T defaultValue) {
             const auto it = values.find(key);
             if (it == values.end()) {
-                std::lock_guard<std::mutex> lg(mutex);
+                std::scoped_lock<std::mutex> lg(mutex);
                 std::optional<T> opt = readFunction(key);
                 if (opt.has_value()) {
                     return values[key] = opt.value();
@@ -54,7 +54,7 @@ namespace bricksim::config {
 
         template<typename T>
         void ValuesCache<T>::set(const char* key, T value) {
-            std::lock_guard<std::mutex> lg(mutex);
+            std::scoped_lock<std::mutex> lg(mutex);
             writeFunction(key, value);
             values[key] = value;
         }
@@ -75,7 +75,7 @@ namespace bricksim::config {
 
     template<typename T>
         requires(
-                std::is_same<T, std::string>::value
+                std::is_same_v<T, std::string>
                 || std::is_convertible_v<T, int> || std::is_convertible_v<T, double> || std::is_convertible_v<T, color::RGB>)
     class Key {
     public:
@@ -87,10 +87,6 @@ namespace bricksim::config {
 
         bool operator==(const Key& rhs) const {
             return std::strcmp(name, rhs.name) == 0;
-        }
-
-        bool operator!=(const Key& rhs) const {
-            return !(rhs == *this);// NOLINT
         }
     };
 

@@ -329,7 +329,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                 ImGui::PushItemWidth(-1.f);
                 if (ImGui::BeginListBox("##All Files")) {
                     for (const auto &item: ldr::file_repo::get().getAllFilesInMemory()) {
-                        if (showTypes[item.second.second->metaInfo.type]) {
+                        if (showTypes[magic_enum::enum_index(item.second.second->metaInfo.type).value()]) {
                             const auto text = fmt::format("{}: {}", item.first, item.second.second->metaInfo.title);
                             if (ImGui::Selectable(text.c_str(), item.second.second == currentFile)) {
                                 setCurrentFile(item.second.second);

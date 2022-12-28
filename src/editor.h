@@ -10,17 +10,17 @@ namespace bricksim {
 
     class SelectionVisualizationNode : public etree::MeshNode {
     public:
-        SelectionVisualizationNode(const std::shared_ptr<Node> &parent);
+        explicit SelectionVisualizationNode(const std::shared_ptr<Node>& parent);
 
-        virtual mesh_identifier_t getMeshIdentifier() const override;
+        mesh_identifier_t getMeshIdentifier() const override;
 
-        virtual void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
-                               const std::shared_ptr<ldr::TexmapStartCommand> &texmap) override;
+        void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
+                       const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
 
-        [[nodiscard]] virtual bool isDisplayNameUserEditable() const override;
+        [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };
 
-    class Editor : efsw::FileWatchListener {
+    class Editor : private efsw::FileWatchListener {
     public:
         static std::shared_ptr<Editor> createNew();
         static std::shared_ptr<Editor> openFile(const std::filesystem::path& path);
@@ -42,7 +42,7 @@ namespace bricksim {
         [[nodiscard]] const std::shared_ptr<graphics::CadCamera>& getCamera() const;
         [[nodiscard]] const uomap_t<std::shared_ptr<etree::Node>, uint64_t>& getSelectedNodes() const;
 
-        const std::string& getFilename();
+        [[nodiscard]] const std::string& getFilename() const;
 
         void save();
         void saveAs(const std::filesystem::path& newPath);

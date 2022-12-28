@@ -79,7 +79,6 @@ namespace bricksim::connection::ldcad_snap_meta {
         }
     }
 
-    bool CylShapeBlock::operator==(const CylShapeBlock& rhs) const = default;
 
     std::string MetaCommand::to_string() const {
         std::string result(getName());

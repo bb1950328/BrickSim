@@ -54,7 +54,7 @@ namespace bricksim::connection::ldcad_snap_meta {
         CylShapeVariant variant;
         float radius;
         float length;
-        bool operator==(const CylShapeBlock& rhs) const;
+        bool operator==(const CylShapeBlock& rhs) const = default;
     };
     enum class CylCaps {
         NONE,

@@ -46,7 +46,6 @@ namespace bricksim::connection::ldcad_snap_meta {
         parse::floatFromString(words[i], spacingZ);
         ++i;
     }
-    bool Grid::operator==(const Grid& rhs) const = default;
 
     std::shared_ptr<MetaCommand> Reader::readLine(std::string_view line) {
         parsed_param_container parameters;

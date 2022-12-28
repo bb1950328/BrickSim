@@ -26,7 +26,7 @@ namespace bricksim::connection::ldcad_snap_meta {
         float spacingZ;
         explicit Grid(std::string_view command);
 
-        bool operator==(const Grid& rhs) const;
+        bool operator==(const Grid& rhs) const = default;
     };
 
     enum class ScaleType {

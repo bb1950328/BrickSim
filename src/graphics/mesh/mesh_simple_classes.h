@@ -9,13 +9,13 @@ namespace bricksim::mesh {
         glm::vec3 position;
         glm::vec3 normal;
         TriangleVertex(const glm::vec3& position, const glm::vec3& normal);
-        bool operator==(const TriangleVertex& other) const;
+        bool operator==(const TriangleVertex& other) const = default;
     };
 
     struct TexturedTriangleVertex {
         glm::vec3 position;
         glm::vec2 textureCoord;
-        bool operator==(const TexturedTriangleVertex& other) const;
+        bool operator==(const TexturedTriangleVertex& other) const = default;
 
         TexturedTriangleVertex(const glm::vec3& position, const glm::vec2& textureCoord) :
             position(position), textureCoord(textureCoord) {}
@@ -25,7 +25,7 @@ namespace bricksim::mesh {
         glm::vec3 position;
         glm::vec3 color;
 
-        bool operator==(const LineVertex& other) const;
+        bool operator==(const LineVertex& other) const = default;
     };
 
     struct TriangleInstance {
@@ -51,7 +51,7 @@ namespace bricksim::mesh {
         bool selected;
         layer_t layer;
         scene_id_t scene;
-        bool operator==(const MeshInstance& other) const;
+        bool operator==(const MeshInstance& other) const = default;
     };
 
     struct InstanceRange {

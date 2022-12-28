@@ -113,15 +113,15 @@ namespace bricksim::transform_gizmo {
 
     void TransformGizmo::startDrag(std::shared_ptr<etree::Node>& draggedNode, const glm::svec2 initialCursorPos) {
         auto [type, axis] = node->getTransformTypeAndAxis(draggedNode);
-        spdlog::debug("start transform gizmo drag (type={}, axis={}, initialCursorPos={})", type, axis, glm::to_string(initialCursorPos));
+        spdlog::debug("start transform gizmo drag (type={}, axis={}, initialCursorPos={})", magic_enum::enum_name(type), axis, glm::to_string(initialCursorPos));
         switch (type) {
-            case TRANSLATE_1D:
+            case TransformType::TRANSLATE_1D:
                 currentTransformationOperation = std::make_unique<Translate1dOperation>(*this, glm::vec2(initialCursorPos), axis);
                 break;
-            case TRANSLATE_2D:
+            case TransformType::TRANSLATE_2D:
                 currentTransformationOperation = std::make_unique<Translate2dOperation>(*this, glm::vec2(initialCursorPos), axis);
                 break;
-            case ROTATE:
+            case TransformType::ROTATE:
                 currentTransformationOperation = std::make_unique<RotateOperation>(*this, glm::vec2(initialCursorPos), axis);
                 break;
             default: break;
@@ -243,18 +243,18 @@ namespace bricksim::transform_gizmo {
 
     std::pair<TransformType, int> TGNode::getTransformTypeAndAxis(std::shared_ptr<etree::Node>& node) {
         if (node == centerBall) {
-            return {TRANSLATE_3D, 0};
+            return {TransformType::TRANSLATE_3D, 0};
         }
         for (int i = 0; i < 3; ++i) {
             if (node == translate1dArrows[i]) {
-                return {TRANSLATE_1D, i};
+                return {TransformType::TRANSLATE_1D, i};
             } else if (node == translate2dArrows[i]) {
-                return {TRANSLATE_2D, i};
+                return {TransformType::TRANSLATE_2D, i};
             } else if (node == rotateQuarterTori[i]) {
-                return {ROTATE, i};
+                return {TransformType::ROTATE, i};
             }
         }
-        return {NONE, 0};
+        return {TransformType::NONE, 0};
     }
 
     mesh_identifier_t TG2DArrowNode::getMeshIdentifier() const {
@@ -346,7 +346,7 @@ namespace bricksim::transform_gizmo {
     }
 
     constexpr TransformType Translate1dOperation::getType() {
-        return TRANSLATE_1D;
+        return TransformType::TRANSLATE_1D;
     }
 
     Translate1dOperation::Translate1dOperation(TransformGizmo& gizmo, const glm::vec2& startMousePos, int axis) :
@@ -396,7 +396,7 @@ namespace bricksim::transform_gizmo {
     }
 
     constexpr TransformType Translate2dOperation::getType() {
-        return TRANSLATE_2D;
+        return TransformType::TRANSLATE_2D;
     }
 
     RotateOperation::RotateOperation(TransformGizmo& gizmo, const glm::vec2& startMousePos, int axis) :
@@ -424,6 +424,6 @@ namespace bricksim::transform_gizmo {
     }
 
     constexpr TransformType RotateOperation::getType() {
-        return ROTATE;
+        return TransformType::ROTATE;
     }
 }

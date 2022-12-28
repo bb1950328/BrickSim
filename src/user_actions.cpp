@@ -19,7 +19,7 @@ namespace bricksim::user_actions {
 
         constexpr auto actionsCount = magic_enum::enum_count<Action>();
 
-        std::array<const char* const, actionsCount> names{
+        constexpr std::array<const char* const, actionsCount> names{
                 ICON_FA_TIMES_CIRCLE " Do nothing",
                 ICON_FA_SIGN_OUT_ALT " Exit",
                 ICON_FA_FOLDER_OPEN " Open",
@@ -57,7 +57,7 @@ namespace bricksim::user_actions {
                 "Toggle Transform Gizmo Rotation (World / Selected Element)",
         };
 
-        std::array<std::function<bool()>, actionsCount> actionEnabledFuncs{
+        const std::array<std::function<bool()>, actionsCount> actionEnabledFuncs{
                 alwaysTrue,     //DO_NOTHING
                 alwaysTrue,     //EXIT
                 alwaysTrue,     //OPEN_FILE
@@ -95,7 +95,7 @@ namespace bricksim::user_actions {
                 alwaysTrue,     //TOGGLE_TRANSFORM_GIZMO_ROTATION
         };
 
-        std::array<std::function<void()>, actionsCount> functions{
+        const std::array<std::function<void()>, actionsCount> functions{
                 []() {},                                                          //DO_NOTHING
                 []() { controller::setUserWantsToExit(true); },                   //EXIT
                 gui::showOpenFileDialog,                                          //OPEN_FILE

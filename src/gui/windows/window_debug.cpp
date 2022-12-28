@@ -1,17 +1,12 @@
 #include "../../controller.h"
-#include "../../graphics/scene.h"
-#include "../../helpers/util.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "../../metrics.h"
-#include "../../types.h"
 #include "../gui.h"
+#include <cinttypes>
 #include <glm/gtx/io.hpp>
 #include <map>
 #include <memory>
-#include <sstream>
-#include <inttypes.h>
 
-#include "../../helpers/stringutil.h"
 #include "window_debug.h"
 #include "window_mesh_inspector.h"
 

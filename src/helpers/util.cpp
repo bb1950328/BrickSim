@@ -74,10 +74,9 @@ namespace bricksim::util {
     bool memeqzero(const void* data, size_t length) {
         //from https://github.com/rustyrussell/ccan/blob/master/ccan/mem/mem.c#L92
         const auto* p = static_cast<const unsigned char*>(data);
-        size_t len;
 
         /* Check first 16 bytes manually */
-        for (len = 0; len < 16; len++) {
+        for (size_t len = 0; len < 16; len++) {
             if (!length) {
                 return true;
             }
@@ -171,9 +170,10 @@ namespace bricksim::util {
         if (!curl) {
             return {-1, ""};
         }
-        char errorBuffer[CURL_ERROR_SIZE+1];
+        char errorBuffer[CURL_ERROR_SIZE + 1];
         errorBuffer[0] = '\0';
 
+        curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
         curl_easy_setopt(curl, CURLOPT_USERPWD, "user:pass");

@@ -30,17 +30,18 @@ namespace bricksim::graphics {
 
             const auto totalBufferSize = size * size * 3;
             metrics::thumbnailBufferUsageBytes += totalBufferSize;
-            auto buffer = std::make_unique<GLbyte[]>(totalBufferSize);
-            controller::executeOpenGL([&]() {
+            std::vector<GLbyte> buffer;
+            buffer.resize(totalBufferSize);
+            controller::executeOpenGL([this, &buffer, &fileKey]() {
                 //todo copy image directrly (VRAM -> VRAM instead of VRAM -> RAM -> VRAM)
                 glBindFramebuffer(GL_READ_FRAMEBUFFER, scene->getImage().getFBO());
-                glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
+                glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
                 unsigned int textureId;
                 glGenTextures(1, &textureId);
                 glBindTexture(GL_TEXTURE_2D, textureId);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.get());
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 //glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, size, size, 0);
@@ -49,7 +50,7 @@ namespace bricksim::graphics {
                 images[fileKey] = textureId;
             });
             auto after = std::chrono::high_resolution_clock::now();
-            metrics::lastThumbnailRenderingTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(after - before).count() / 1000.0;
+            metrics::lastThumbnailRenderingTimeMs = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.f;
         }
         lastAccessed.remove(fileKey);
         lastAccessed.push_back(fileKey);
@@ -100,8 +101,8 @@ namespace bricksim::graphics {
 
     bool ThumbnailGenerator::workOnRenderQueue() {
         if (!renderRequests.empty()) {
-            const auto& request = renderRequests.front();
-            getThumbnail(request.first, request.second);
+            const auto& [file, color] = renderRequests.front();
+            getThumbnail(file, color);
             renderRequests.pop_front();
         }
         return !renderRequests.empty();
@@ -140,7 +141,7 @@ namespace bricksim::graphics {
         return destinationTextureId;
     }
 
-    bool ThumbnailGenerator::renderQueueEmpty() {
+    bool ThumbnailGenerator::renderQueueEmpty() const {
         return renderRequests.empty();
     }
 
@@ -157,11 +158,7 @@ namespace bricksim::graphics {
         }
     }
 
-    ThumbnailGenerator::ThumbnailGenerator() :
-        camera(std::make_shared<FitContentCamera>()),
-        size(config::get(config::THUMBNAIL_SIZE)),
-        projection(glm::perspective(glm::radians(50.0f), 1.0f, 0.001f, 1000.0f)),
-        rotationDegrees(glm::vec3(45, -45, 0)) {
+    ThumbnailGenerator::ThumbnailGenerator() {
         maxCachedThumbnails = config::get(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
         scene = scenes::create(scenes::THUMBNAIL_SCENE_ID);
         scene->setCamera(camera);

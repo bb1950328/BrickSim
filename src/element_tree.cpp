@@ -354,30 +354,28 @@ namespace bricksim::etree {
 
     const char* getDisplayNameOfType(const NodeType& type) {
         switch (type) {
-            using enum NodeType;
-            case TYPE_ROOT: return "Root";
-            case TYPE_MESH: return "Mesh";
-            case TYPE_MPD_SUBFILE_INSTANCE: return "MPD subfile Instance";
-            case TYPE_LDRFILE: return "LDraw file";
-            case TYPE_MPD_SUBFILE: return "MPD subfile";
-            case TYPE_MULTI_PART_DOCUMENT: return "MPD file";
-            case TYPE_PART: return "Part";
-            case TYPE_OTHER:
+            case NodeType::TYPE_ROOT: return "Root";
+            case NodeType::TYPE_MESH: return "Mesh";
+            case NodeType::TYPE_MPD_SUBFILE_INSTANCE: return "MPD subfile Instance";
+            case NodeType::TYPE_LDRFILE: return "LDraw file";
+            case NodeType::TYPE_MPD_SUBFILE: return "MPD subfile";
+            case NodeType::TYPE_MULTI_PART_DOCUMENT: return "MPD file";
+            case NodeType::TYPE_PART: return "Part";
+            case NodeType::TYPE_OTHER:
             default: return "Other";
         }
     }
 
     color::RGB getColorOfType(const NodeType& type) {
         switch (type) {
-            using enum NodeType;
-            case TYPE_MPD_SUBFILE_INSTANCE: return config::get(config::COLOR_MPD_SUBFILE_INSTANCE);
-            case TYPE_MPD_SUBFILE: return config::get(config::COLOR_MPD_SUBFILE);
-            case TYPE_MULTI_PART_DOCUMENT: return config::get(config::COLOR_MULTI_PART_DOCUMENT);
-            case TYPE_PART: return config::get(config::COLOR_OFFICAL_PART);//todo unoffical part
-            case TYPE_OTHER:
-            case TYPE_ROOT:
-            case TYPE_MESH:
-            case TYPE_LDRFILE:
+            case NodeType::TYPE_MPD_SUBFILE_INSTANCE: return config::get(config::COLOR_MPD_SUBFILE_INSTANCE);
+            case NodeType::TYPE_MPD_SUBFILE: return config::get(config::COLOR_MPD_SUBFILE);
+            case NodeType::TYPE_MULTI_PART_DOCUMENT: return config::get(config::COLOR_MULTI_PART_DOCUMENT);
+            case NodeType::TYPE_PART: return config::get(config::COLOR_OFFICAL_PART);//todo unoffical part
+            case NodeType::TYPE_OTHER:
+            case NodeType::TYPE_ROOT:
+            case NodeType::TYPE_MESH:
+            case NodeType::TYPE_LDRFILE:
             default: return {255, 255, 255};
         }
     }

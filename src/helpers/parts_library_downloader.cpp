@@ -25,21 +25,20 @@ namespace bricksim::parts_library_downloader {
     }
 
     void downloadPartsLibrary() {
-        using enum Status;
-        status = IN_PROGRESS;
+        status = Status::IN_PROGRESS;
         spdlog::info("starting parts library download");
         auto filePath = util::extendHomeDir("~/ldraw.zip");
         auto [statusCode, content] = util::downloadFile(constants::LDRAW_LIBRARY_DOWNLOAD_URL, filePath, progressFunc);
         if (statusCode < 200 || statusCode >= 300) {
             spdlog::error("parts library download failed. Error code: {}", statusCode);
             errorCode = statusCode;
-            status = FAILED;
+            status = Status::FAILED;
             return;
         }
         spdlog::info("parts library download finished");
 
         config::set(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(filePath));
-        status = FINISHED;
+        status = Status::FINISHED;
     }
 
     void reset() {

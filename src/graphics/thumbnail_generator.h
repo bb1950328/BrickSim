@@ -1,14 +1,15 @@
 #pragma once
 
+#include "../config.h"
+#include "../helpers/util.h"
 #include "../ldr/colors.h"
 #include "../ldr/files.h"
 #include "scene.h"
 #include <list>
 #include <memory>
-#include "../helpers/util.h"
 
 namespace bricksim::graphics {
-    typedef std::pair<std::shared_ptr<ldr::File>, ldr::ColorReference> thumbnail_file_key_t;
+    using thumbnail_file_key_t = std::pair<std::shared_ptr<ldr::File>, ldr::ColorReference>;
 }
 namespace std {
     template<>
@@ -23,19 +24,19 @@ namespace bricksim::graphics {
     class ThumbnailGenerator {
     private:
         std::shared_ptr<Scene> scene;
-        const std::shared_ptr<FitContentCamera> camera;
+        const std::shared_ptr<FitContentCamera> camera = std::make_shared<FitContentCamera>();
         uomap_t<thumbnail_file_key_t, unsigned int> images;
         std::list<thumbnail_file_key_t> lastAccessed;
-        glm::mat4 projection;
+        glm::mat4 projection = glm::perspective(glm::radians(50.0f), 1.0f, 0.001f, 1000.0f);
         int maxCachedThumbnails;
         int framebufferSize = 0;
         [[nodiscard]] unsigned int copyImageToTexture() const;
         glm::vec3 renderedRotationDegrees;
         std::list<thumbnail_file_key_t> renderRequests;//TODO check if this can be made a set (maybe faster)
     public:
-        int size;
+        int size = config::get(config::THUMBNAIL_SIZE);
 
-        glm::vec3 rotationDegrees;
+        glm::vec3 rotationDegrees = glm::vec3(45, -45, 0);
         ThumbnailGenerator();
         unsigned int getThumbnail(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color);
         std::optional<unsigned int> getThumbnailNonBlocking(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color);
@@ -45,7 +46,7 @@ namespace bricksim::graphics {
         void discardAllImages();
 
         bool workOnRenderQueue();
-        bool renderQueueEmpty();
+        [[nodiscard]] bool renderQueueEmpty() const;
         void removeFromRenderQueue(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color);
     };
 }

@@ -114,7 +114,7 @@ namespace bricksim::util {
      * @param progressFunc int(void* clientp, long downloadTotal, long downloadNow, long uploadTotal, long uploadNow) // if return value is != 0, transfer stops
      * @return (responseCode, responseString)
      */
-    std::pair<int, std::string> downloadFile(const std::string& url, const std::filesystem::path targetFile, int (*progressFunc)(void*, long, long, long, long) = nullptr);
+    std::pair<int, std::string> downloadFile(const std::string& url, std::filesystem::path targetFile, int (*progressFunc)(void*, long, long, long, long) = nullptr);
 
     std::string readFileToString(const std::filesystem::path& path);
 

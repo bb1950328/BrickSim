@@ -270,7 +270,6 @@ namespace bricksim::gui {
     }
 
     void applyDefaultWindowLayout() {
-        using enum bricksim::gui::windows::Id;
         spdlog::debug("applying default window layout");
         ImGui::DockBuilderRemoveNodeChildNodes(dockspaceId);
 
@@ -286,9 +285,9 @@ namespace bricksim::gui {
         ImGuiID level2rightTopRight;
         ImGui::DockBuilderSplitNode(level1rightTop, ImGuiDir_Left, .4f, &level2rightTopLeft, &level2rightTopRight);
 
-        ImGui::DockBuilderDockWindow(windows::getName(ORIENTATION_CUBE), level2rightTopLeft);
-        ImGui::DockBuilderDockWindow(windows::getName(DEBUG), level2rightTopRight);
-        ImGui::DockBuilderDockWindow(windows::getName(ELEMENT_PROPERTIES), level1rightBottom);
+        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::ORIENTATION_CUBE), level2rightTopLeft);
+        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::DEBUG), level2rightTopRight);
+        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::ELEMENT_PROPERTIES), level1rightBottom);
 
         ImGuiID level1leftBottom;
         ImGuiID level1leftTop;
@@ -298,9 +297,9 @@ namespace bricksim::gui {
         ImGuiID level2leftTopRight;
         ImGui::DockBuilderSplitNode(level1leftTop, ImGuiDir_Left, .3f, &level2leftTopLeft, &level2leftTopRight);
 
-        ImGui::DockBuilderDockWindow(windows::getName(PART_PALETTE), level1leftBottom);
-        ImGui::DockBuilderDockWindow(windows::getName(ELEMENT_TREE), level2leftTopLeft);
-        ImGui::DockBuilderDockWindow(windows::getName(VIEW_3D), level2leftTopRight);
+        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::PART_PALETTE), level1leftBottom);
+        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::ELEMENT_TREE), level2leftTopLeft);
+        ImGui::DockBuilderDockWindow(windows::getName(windows::Id::VIEW_3D), level2leftTopRight);
     }
 
     void drawMainWindows() {
@@ -349,24 +348,23 @@ namespace bricksim::gui {
             }
 
             if (ImGui::BeginMenu("View")) {
-                using enum bricksim::gui::windows::Id;
-                gui_internal::windowMenuItem(VIEW_3D);
-                gui_internal::windowMenuItem(ORIENTATION_CUBE);
+                gui_internal::windowMenuItem(windows::Id::VIEW_3D);
+                gui_internal::windowMenuItem(windows::Id::ORIENTATION_CUBE);
                 ImGui::Separator();
-                gui_internal::windowMenuItem(ELEMENT_TREE);
-                gui_internal::windowMenuItem(ELEMENT_PROPERTIES);
+                gui_internal::windowMenuItem(windows::Id::ELEMENT_TREE);
+                gui_internal::windowMenuItem(windows::Id::ELEMENT_PROPERTIES);
                 ImGui::Separator();
-                gui_internal::windowMenuItem(PART_PALETTE);
-                gui_internal::windowMenuItem(LDRAW_FILE_INSPECTOR);
+                gui_internal::windowMenuItem(windows::Id::PART_PALETTE);
+                gui_internal::windowMenuItem(windows::Id::LDRAW_FILE_INSPECTOR);
                 ImGui::Separator();
-                gui_internal::windowMenuItem(MODEL_INFO);
-                gui_internal::windowMenuItem(EDITOR_META_INFO);
+                gui_internal::windowMenuItem(windows::Id::MODEL_INFO);
+                gui_internal::windowMenuItem(windows::Id::EDITOR_META_INFO);
                 ImGui::Separator();
-                gui_internal::windowMenuItem(SETTINGS);
+                gui_internal::windowMenuItem(windows::Id::SETTINGS);
                 ImGui::Separator();
-                gui_internal::windowMenuItem(IMGUI_DEMO);
-                gui_internal::windowMenuItem(DEBUG);
-                gui_internal::windowMenuItem(LOG);
+                gui_internal::windowMenuItem(windows::Id::IMGUI_DEMO);
+                gui_internal::windowMenuItem(windows::Id::DEBUG);
+                gui_internal::windowMenuItem(windows::Id::LOG);
                 ImGui::Separator();
                 if (ImGui::MenuItem("Apply default window layout")) {
                     applyDefaultWindowLayout();
@@ -650,11 +648,10 @@ namespace bricksim::gui {
         } else if (state == 'D') {
             if (ImGui::Begin(ICON_FA_DOWNLOAD " Downloading LDraw parts library", nullptr, windowFlags)) {
                 switch (parts_library_downloader::getStatus()) {
-                    using enum parts_library_downloader::Status;
-                    case DOING_NOTHING:
+                    case parts_library_downloader::Status::DOING_NOTHING:
                         downloadThread = std::thread(parts_library_downloader::downloadPartsLibrary);
                         break;
-                    case IN_PROGRESS: {
+                    case parts_library_downloader::Status::IN_PROGRESS: {
                         auto [downNow, downTotal] = parts_library_downloader::getProgress();
                         ImGui::Text(ICON_FA_DOWNLOAD " Downloading ldraw parts library...");
 
@@ -670,14 +667,14 @@ namespace bricksim::gui {
                         }
                         break;
                     }
-                    case FAILED:
+                    case parts_library_downloader::Status::FAILED:
                         ImGui::TextColored(color::RGB::RED, ICON_FA_TIMES_CIRCLE " Download failed with error code %d", parts_library_downloader::getErrorCode());
                         if (ImGui::Button(ICON_FA_CHEVRON_LEFT " Back")) {
                             parts_library_downloader::reset();
                             state = 'Z';
                         }
                         break;
-                    case FINISHED:
+                    case parts_library_downloader::Status::FINISHED:
                         state = 'Z';
                         parts_library_downloader::reset();
                         break;

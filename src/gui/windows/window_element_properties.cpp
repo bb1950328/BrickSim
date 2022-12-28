@@ -1,18 +1,13 @@
 #include "../../config.h"
 #include "../../controller.h"
-#include "../../helpers/util.h"
 #include "../../info_providers/part_color_availability_provider.h"
-#include "../../info_providers/price_guide_provider.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
-#include "../gui.h"
 #include "../gui_internal.h"
 #include <glm/ext/quaternion_trigonometric.hpp>
 #include <glm/gtx/euler_angles.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
-#include "../../helpers/stringutil.h"
 #include "window_element_properties.h"
 #include "window_ldraw_file_inspector.h"
 
@@ -20,7 +15,7 @@ namespace bricksim::gui::windows::element_properties {
     void draw(Data& data) {
         static std::shared_ptr<etree::Node> lastSelectedNode = nullptr;
         if (ImGui::Begin(data.name, &data.visible)) {
-            auto& activeEditor = controller::getActiveEditor();
+            const auto& activeEditor = controller::getActiveEditor();
             if (activeEditor == nullptr || activeEditor->getSelectedNodes().empty()) {
                 ImGui::Text("Select an element to view its properties here");
             } else if (activeEditor->getSelectedNodes().size() == 1) {

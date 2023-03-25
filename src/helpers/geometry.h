@@ -12,14 +12,56 @@ namespace bricksim::geometry {
     bool doesTransformationInverseWindingOrder(const glm::mat4& transformation);
     float calculateDistanceOfPointToLine(const glm::vec2& line_start, const glm::vec2& line_end, const glm::vec2& point);
     float calculateDistanceOfPointToLine(const glm::usvec2& line_start, const glm::usvec2& line_end, const glm::usvec2& point);
+    template<int N>
     struct NormalProjectionResult {
-        glm::vec2 nearestPointOnLine;
-        glm::vec2 projection;
+        glm::vec<N, float> nearestPointOnLine;
+        glm::vec<N, float> projection;
         float projectionLength;
         float distancePointToLine;
         float lineLength;
     };
-    NormalProjectionResult normalProjectionOnLineClamped(const glm::vec2& lineStart, const glm::vec2& lineEnd, const glm::vec2& point);
+
+    template<int N>
+        requires(2 <= N && N <= 3)
+    NormalProjectionResult<N> normalProjectionOnLineClamped(const glm::vec<N, float>& lineStart, const glm::vec<N, float>& lineEnd, const glm::vec<N, float>& point) {
+        //https://stackoverflow.com/a/47366970/8733066
+        //             point
+        //             +
+        //          /  |
+        //       /     |
+        // start-------⦝----- end
+        //             ↑
+        //         nearestPointOnLine
+        //
+        // projection is from start to nearestPointOnLine
+        NormalProjectionResult<N> result{};
+        glm::vec<N, float> line = lineEnd - lineStart;
+        result.lineLength = glm::length(line);
+        glm::vec<N, float> lineUnit = line / result.lineLength;
+        glm::vec<N, float> startToPoint = point - lineStart;
+        result.projectionLength = glm::dot(startToPoint, lineUnit);
+
+        if (result.projectionLength > result.lineLength) {
+            result.nearestPointOnLine = lineEnd;
+            result.projectionLength = result.lineLength;
+            result.projection = line;
+        } else if (result.projectionLength < 0.0f) {
+            result.nearestPointOnLine = lineStart;
+            result.projectionLength = 0.0f;
+            if constexpr (N == 2) {
+                result.projection = {0, 0};
+            } else {
+                result.projection = {0, 0, 0};
+            }
+        } else {
+            result.projection = lineUnit * result.projectionLength;
+            result.nearestPointOnLine = lineStart + result.projection;
+        }
+        result.distancePointToLine = glm::length(point - result.nearestPointOnLine);
+
+        return result;
+    }
+
     struct ClosestLineBetweenTwoRaysResult {
         glm::vec3 pointOnA;
         glm::vec3 pointOnB;
@@ -38,6 +80,7 @@ namespace bricksim::geometry {
 
     float getAngleBetweenThreePointsUnsigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
     float getAngleBetweenThreePointsSigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& planeNormal);
+    float getAngleBetweenTwoVectors(const glm::vec3& a, const glm::vec3& b);
 
     float getDistanceBetweenPointAndPlane(const Ray3& planeNormal, const glm::vec3& point);
 

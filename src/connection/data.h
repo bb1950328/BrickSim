@@ -57,8 +57,9 @@ namespace bricksim::connection {
                              bool openEnd,
                              bool slide);
 
-        float getTotalLength() const;
+        [[nodiscard]] float getTotalLength() const;
         std::shared_ptr<Connector> clone() override;
+        [[nodiscard]] glm::vec3 getEnd() const;
     };
 
     class ClipConnector : public Connector {

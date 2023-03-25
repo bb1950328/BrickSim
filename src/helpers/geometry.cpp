@@ -19,41 +19,6 @@ namespace bricksim::geometry {
         return static_cast<float>(numerator) / static_cast<float>(denominator);
     }
 
-    NormalProjectionResult normalProjectionOnLineClamped(const glm::vec2& lineStart, const glm::vec2& lineEnd, const glm::vec2& point) {
-        //https://stackoverflow.com/a/47366970/8733066
-        //             point
-        //             +
-        //          /  |
-        //       /     |
-        // start-------⦝----- end
-        //             ↑
-        //         nearestPointOnLine
-        //
-        // projection is from start to nearestPointOnLine
-        NormalProjectionResult result{};
-        glm::vec2 line = lineEnd - lineStart;
-        result.lineLength = glm::length(line);
-        glm::vec2 lineUnit = line / result.lineLength;
-        glm::vec2 startToPoint = point - lineStart;
-        result.projectionLength = glm::dot(startToPoint, lineUnit);
-
-        if (result.projectionLength > result.lineLength) {
-            result.nearestPointOnLine = lineEnd;
-            result.projectionLength = result.lineLength;
-            result.projection = line;
-        } else if (result.projectionLength < 0.0f) {
-            result.nearestPointOnLine = lineStart;
-            result.projectionLength = 0.0f;
-            result.projection = {0, 0};
-        } else {
-            result.projection = lineUnit * result.projectionLength;
-            result.nearestPointOnLine = lineStart + result.projection;
-        }
-        result.distancePointToLine = glm::length(point - result.nearestPointOnLine);
-
-        return result;
-    }
-
     void gaussianElimination(std::array<float, 12>& matrix) {
         constexpr auto cols = 4;
         constexpr auto rows = 3;
@@ -140,15 +105,17 @@ namespace bricksim::geometry {
     }
 
     float getAngleBetweenThreePointsUnsigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c) {
-        const auto ab = b - a;
-        const auto bc = b - c;
-        return std::acos(glm::dot(ab, bc) / (glm::length(ab) * glm::length(bc)));
+        return getAngleBetweenTwoVectors(b - a, b - c);
     }
 
     float getAngleBetweenThreePointsSigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& planeNormal) {
         const auto ab = b - a;
         const auto cb = b - c;
         return std::atan2(glm::dot(glm::cross(ab, cb), glm::normalize(planeNormal)), glm::dot(ab, cb));
+    }
+
+    float getAngleBetweenTwoVectors(const glm::vec3& a, const glm::vec3& b) {
+        return std::acos(glm::dot(a, b) / (glm::length(a) * glm::length(b)));
     }
 
     glm::quat quaternionRotationFromOneVectorToAnother(const glm::vec3& v1, const glm::vec3& v2) {

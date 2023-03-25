@@ -67,6 +67,9 @@ namespace bricksim::connection {
     std::shared_ptr<Connector> CylindricalConnector::clone() {
         return std::make_shared<CylindricalConnector>(*this);
     }
+    glm::vec3 CylindricalConnector::getEnd() const {
+        return start + direction * getTotalLength();
+    }
 
     Connector::Connector(std::string group, const glm::vec3& start) :
         group(std::move(group)), start(start) {}

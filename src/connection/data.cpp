@@ -49,8 +49,7 @@ namespace bricksim::connection {
                                                bool openStart,
                                                bool openEnd,
                                                bool slide) :
-        Connector(std::move(group), start),
-        direction(direction),
+        Connector(std::move(group), start, direction),
         gender(gender),
         parts(std::move(parts)),
         openStart(openStart),
@@ -71,8 +70,8 @@ namespace bricksim::connection {
         return start + direction * getTotalLength();
     }
 
-    Connector::Connector(std::string group, const glm::vec3& start) :
-        group(std::move(group)), start(start) {}
+    Connector::Connector(std::string group, const glm::vec3& start, const glm::vec3& direction) :
+        group(std::move(group)), start(start), direction(direction) {}
 
     std::shared_ptr<Connector> Connector::clone() {
         return std::make_shared<Connector>(*this);
@@ -84,15 +83,18 @@ namespace bricksim::connection {
                                  float radius,
                                  float width,
                                  bool slide) :
-        Connector(group, start),
-        direction(direction), radius(radius), width(width), slide(slide) {}
+        Connector(group, start, direction), radius(radius), width(width), slide(slide) {}
     std::shared_ptr<Connector> ClipConnector::clone() {
         return std::make_shared<ClipConnector>(*this);
     }
     std::shared_ptr<Connector> FingerConnector::clone() {
         return std::make_shared<FingerConnector>(*this);
     }
+    FingerConnector::FingerConnector(const std::string& group, const glm::vec3& start, const glm::vec3& direction, Gender firstFingerGender, float radius, const std::vector<float>& fingerWidths) :
+        Connector(group, start, direction), firstFingerGender(firstFingerGender), radius(radius), fingerWidths(fingerWidths) {}
     std::shared_ptr<Connector> GenericConnector::clone() {
         return std::make_shared<GenericConnector>(*this);
     }
+    GenericConnector::GenericConnector(const std::string& group, const glm::vec3& start, const glm::vec3& direction, Gender gender, const bounding_variant_t& bounding) :
+        Connector(group, start, direction), gender(gender), bounding(bounding) {}
 }

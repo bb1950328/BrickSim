@@ -4,6 +4,8 @@
 #include "ldcad_snap_meta/clear_command.h"
 #include "ldcad_snap_meta/clp_command.h"
 #include "ldcad_snap_meta/cyl_command.h"
+#include "ldcad_snap_meta/fgr_command.h"
+#include "ldcad_snap_meta/gen_command.h"
 #include "ldcad_snap_meta/incl_command.h"
 #include "spdlog/spdlog.h"
 namespace bricksim::connection {
@@ -184,6 +186,35 @@ namespace bricksim::connection {
                                     clpCommand->radius,
                                     clpCommand->length,
                                     clpCommand->slide));
+                }
+
+                const auto fgrCommand = std::dynamic_pointer_cast<ldcad_snap_meta::FgrCommand>(command);
+                if (fgrCommand != nullptr && (!fgrCommand->id.has_value() || !clearIDs.contains(*fgrCommand->id))) {
+                    const auto fgrTransf = combinePosOri(fgrCommand) * transformation;
+                    connectors.push_back(
+                            std::make_shared<FingerConnector>(
+                                    fgrCommand->group.value_or(""),
+                                    fgrTransf * glm::vec4(0.f, 0.f, 0.f, 1.f),
+                                    fgrTransf * glm::vec4(0.f, -1.f, 0.f, 0.f),
+                                    fgrCommand->genderOfs == ldcad_snap_meta::Gender::M
+                                            ? Gender::M
+                                            : Gender::F,
+                                    fgrCommand->radius,
+                                    fgrCommand->seq));
+                }
+
+                const auto genCommand = std::dynamic_pointer_cast<ldcad_snap_meta::GenCommand>(command);
+                if (genCommand != nullptr && (!genCommand->id.has_value() || !clearIDs.contains(*genCommand->id))) {
+                    const auto genTransf = combinePosOri(genCommand) * transformation;
+                    connectors.push_back(
+                            std::make_shared<GenericConnector>(
+                                    genCommand->group.value_or(""),
+                                    genTransf * glm::vec4(0.f, 0.f, 0.f, 1.f),
+                                    genTransf * glm::vec4(0.f, -1.f, 0.f, 0.f),
+                                    genCommand->gender == ldcad_snap_meta::Gender::M
+                                            ? Gender::M
+                                            : Gender::F,
+                                    genCommand->bounding));
                 }
             }
 

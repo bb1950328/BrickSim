@@ -18,8 +18,9 @@ namespace bricksim::connection {
     public:
         std::string group;
         glm::vec3 start;
+        glm::vec3 direction;
 
-        Connector(std::string group, const glm::vec3& start);
+        Connector(std::string group, const glm::vec3& start, const glm::vec3& direction);
 
         virtual std::shared_ptr<Connector> clone();
         virtual ~Connector() = default;
@@ -41,7 +42,6 @@ namespace bricksim::connection {
 
     class CylindricalConnector : public Connector {
     public:
-        glm::vec3 direction;
         Gender gender;
         std::vector<CylindricalShapePart> parts;
         bool openStart;
@@ -64,7 +64,6 @@ namespace bricksim::connection {
 
     class ClipConnector : public Connector {
     public:
-        glm::vec3 direction;
         float radius;
         float width;
         bool slide;
@@ -80,10 +79,16 @@ namespace bricksim::connection {
 
     class FingerConnector : public Connector {
     public:
-        glm::vec3 direction;
         Gender firstFingerGender;
         float radius;
         std::vector<float> fingerWidths;
+
+        FingerConnector(const std::string& group,
+                        const glm::vec3& start,
+                        const glm::vec3& direction,
+                        Gender firstFingerGender,
+                        float radius,
+                        const std::vector<float>& fingerWidths);
         std::shared_ptr<Connector> clone() override;
     };
 
@@ -91,6 +96,12 @@ namespace bricksim::connection {
     public:
         Gender gender;
         bounding_variant_t bounding;
+
+        GenericConnector(const std::string& group,
+                         const glm::vec3& start,
+                         const glm::vec3& direction,
+                         Gender gender,
+                         const bounding_variant_t& bounding);
         std::shared_ptr<Connector> clone() override;
     };
 

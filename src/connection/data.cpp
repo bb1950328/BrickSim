@@ -36,11 +36,6 @@ namespace bricksim::connection {
         return {adjacencyLists[a][b], adjacencyLists[b][a]};
     }
 
-    Connection::Connection(size_t connectorA, size_t connectorB, DegreesOfFreedom degreesOfFreedom) :
-        connectorA(connectorA),
-        connectorB(connectorB),
-        degreesOfFreedom(std::move(degreesOfFreedom)) {}
-
     CylindricalConnector::CylindricalConnector(std::string group,
                                                const glm::vec3& start,
                                                const glm::vec3& direction,
@@ -68,6 +63,24 @@ namespace bricksim::connection {
     }
     glm::vec3 CylindricalConnector::getEnd() const {
         return start + direction * getTotalLength();
+    }
+    float CylindricalConnector::getRadiusAt(float offsetFromStart) const {
+        for (const auto& item: parts) {
+            if (item.length < offsetFromStart) {
+                return item.radius;
+            }
+            offsetFromStart -= item.length;
+        }
+        return NAN;
+    }
+    const CylindricalShapePart& CylindricalConnector::getPartAt(float offsetFromStart) const {
+        for (const auto& item: parts) {
+            if (item.length < offsetFromStart) {
+                return item;
+            }
+            offsetFromStart -= item.length;
+        }
+        return parts.back();
     }
 
     Connector::Connector(std::string group, const glm::vec3& start, const glm::vec3& direction) :
@@ -97,4 +110,11 @@ namespace bricksim::connection {
     }
     GenericConnector::GenericConnector(const std::string& group, const glm::vec3& start, const glm::vec3& direction, Gender gender, const bounding_variant_t& bounding) :
         Connector(group, start, direction), gender(gender), bounding(bounding) {}
+    DegreesOfFreedom::DegreesOfFreedom(const std::vector<glm::vec3>& slideDirections, const std::vector<glm::vec3>& rotationAxes) :
+        slideDirections(slideDirections), rotationAxes(rotationAxes) {}
+    DegreesOfFreedom::DegreesOfFreedom() {}
+    Connection::Connection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, const DegreesOfFreedom& degreesOfFreedom) :
+        connectorA(connectorA), connectorB(connectorB), degreesOfFreedom(degreesOfFreedom) {}
+    Connection::Connection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB) :
+        connectorA(connectorA), connectorB(connectorB), degreesOfFreedom() {}
 }

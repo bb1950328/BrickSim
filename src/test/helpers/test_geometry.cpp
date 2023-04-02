@@ -24,7 +24,7 @@ namespace bricksim {
     }
 
     TEST_CASE("geometry::normalProjectionOnLineClamped 0") {
-        auto result = geometry::normalProjectionOnLineClamped({0, 0}, {2, 0}, {1, 1});
+        auto result = geometry::normalProjectionOnLineClamped<2>({0, 0}, {2, 0}, {1, 1});
         CHECK(result.distancePointToLine == Catch::Approx(1));
         CHECK(result.lineLength == Catch::Approx(2));
         CHECK(result.nearestPointOnLine == ApproxVec(glm::vec2(1, 0)));
@@ -33,7 +33,7 @@ namespace bricksim {
     }
 
     TEST_CASE("geometry::normalProjectionOnLineClamped 1") {
-        auto result = geometry::normalProjectionOnLineClamped({1, 1}, {3, 3}, {1, 3});
+        auto result = geometry::normalProjectionOnLineClamped<2>({1, 1}, {3, 3}, {1, 3});
         CHECK(result.distancePointToLine == Catch::Approx(sqrt(2)));
         CHECK(result.lineLength == Catch::Approx(2 * sqrt(2)));
         CHECK(result.nearestPointOnLine == ApproxVec(glm::vec2(2, 2)));
@@ -42,7 +42,7 @@ namespace bricksim {
     }
 
     TEST_CASE("geometry::normalProjectionOnLineClamped 2") {
-        auto result = geometry::normalProjectionOnLineClamped({10, 20}, {14, 22}, {11, 23});
+        auto result = geometry::normalProjectionOnLineClamped<2>({10, 20}, {14, 22}, {11, 23});
         CHECK(result.distancePointToLine == Catch::Approx(sqrt(2 * 2 + 1 * 1)));
         CHECK(result.lineLength == Catch::Approx(sqrt(4 * 4 + 2 * 2)));
         CHECK(result.nearestPointOnLine == ApproxVec(glm::vec2(12, 21)));
@@ -286,17 +286,15 @@ namespace bricksim {
 
     TEST_CASE("geometry::splitPolygonByPlane") {
         std::vector<glm::vec2> outer = {
-            glm::vec2(0, 0),
-            glm::vec2(5, -1),
-            glm::vec2(6, 4),
-            glm::vec2(1, 5)
-        };
+                glm::vec2(0, 0),
+                glm::vec2(5, -1),
+                glm::vec2(6, 4),
+                glm::vec2(1, 5)};
         std::vector<glm::vec2> hole = {
-            glm::vec2(1, 3),
-            glm::vec2(4, 4),
-            glm::vec2(5, 1),
-            glm::vec2(2, 0)
-        };
+                glm::vec2(1, 3),
+                glm::vec2(4, 4),
+                glm::vec2(5, 1),
+                glm::vec2(2, 0)};
         std::vector<glm::vec2> expectedResult = {
                 outer[0],
                 outer[1],
@@ -307,11 +305,22 @@ namespace bricksim {
                 hole[2],
                 outer[1],
                 outer[2],
-                outer[3]
-        };
+                outer[3]};
         const auto actualResult = geometry::convertPolygonWithHoleToC(outer, hole);
 
         CHECK_VEC_VECTOR(expectedResult, actualResult);
+    }
+
+    TEST_CASE("geometry::getAngleBetweenTwoVectors") {
+        CHECK(geometry::getAngleBetweenTwoVectors({1, 0, 0}, {0, 1, 0}) == Catch::Approx(M_PI / 2));
+        CHECK(geometry::getAngleBetweenTwoVectors({1, 0, 1}, {-1, 0, -1}) == Catch::Approx(M_PI));
+
+        CHECK(geometry::getAngleBetweenTwoVectors({0, 0, 1}, {0, 1, 0}) == Catch::Approx(M_PI / 2));
+        CHECK(geometry::getAngleBetweenTwoVectors({0, 0, 1}, {0, 0, 1}) == Catch::Approx(0));
+        CHECK(geometry::getAngleBetweenTwoVectors({0, 0, 1}, {0, 0, -1}) == Catch::Approx(M_PI));
+        CHECK(geometry::getAngleBetweenTwoVectors({0, 0, 1}, {0, 1, 1}) == Catch::Approx(M_PI / 4));
+
+        CHECK(geometry::getAngleBetweenTwoVectors({0, 0, 3}, {0, 7, 7}) == Catch::Approx(M_PI / 4));
     }
 
     //todo tests for geometry::getAngleBetweenThreePointsSigned

@@ -178,18 +178,18 @@ namespace bricksim::mesh {
         newMeshInstances.clear();
     }
 
-    AxisAlignedBoundingBox SceneMeshCollection::getAbsoluteAABB(const std::shared_ptr<const etree::MeshNode>& node) const {
+    aabb::AABB SceneMeshCollection::getAbsoluteAABB(const std::shared_ptr<const etree::MeshNode>& node) const {
         return getRelativeAABB(node).transform(node->getAbsoluteTransformation());
     }
 
-    AxisAlignedBoundingBox SceneMeshCollection::getRelativeAABB(const std::shared_ptr<const etree::MeshNode>& node) const {
+    aabb::AABB SceneMeshCollection::getRelativeAABB(const std::shared_ptr<const etree::MeshNode>& node) const {
         //todo something here is wrong for subfile instances
         glm::mat4 absoluteTransformation = node->getAbsoluteTransformation();
         auto it = allMeshes.find({node->getMeshIdentifier(), false});
         if (it == allMeshes.end()) {
             it = allMeshes.find({node->getMeshIdentifier(), true});
         }
-        mesh::AxisAlignedBoundingBox aabb;
+        aabb::AABB aabb;
         bool first = true;
         if (it != allMeshes.end()) {
             const auto& mesh = it->second;
@@ -213,27 +213,27 @@ namespace bricksim::mesh {
         return aabb;
     }
 
-    std::optional<RotatedBoundingBox> SceneMeshCollection::getAbsoluteRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const {
+    std::optional<aabb::RotatedBoundingBox> SceneMeshCollection::getAbsoluteRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const {
         const auto relativeAABB = getRelativeAABB(node);
         if (relativeAABB.isDefined()) {
             const auto nodeAbsTransf = glm::transpose(node->getAbsoluteTransformation());
             if (geometry::doesTransformationLeaveAxisParallels(nodeAbsTransf)) {
-                return mesh::RotatedBoundingBox(relativeAABB.transform(nodeAbsTransf));
+                return aabb::RotatedBoundingBox(relativeAABB.transform(nodeAbsTransf));
             } else {
-                return mesh::RotatedBoundingBox(relativeAABB).transform(nodeAbsTransf);
+                return aabb::RotatedBoundingBox(relativeAABB).transform(nodeAbsTransf);
             }
         }
         return std::nullopt;
     }
 
-    std::optional<RotatedBoundingBox> SceneMeshCollection::getRelativeRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const {
+    std::optional<aabb::RotatedBoundingBox> SceneMeshCollection::getRelativeRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const {
         const auto relativeAABB = getRelativeAABB(node);
         if (relativeAABB.isDefined()) {
             const auto nodeRelTransf = glm::transpose(node->getRelativeTransformation());
             if (geometry::doesTransformationLeaveAxisParallels(nodeRelTransf)) {
-                return mesh::RotatedBoundingBox(relativeAABB.transform(nodeRelTransf));
+                return aabb::RotatedBoundingBox(relativeAABB.transform(nodeRelTransf));
             } else {
-                return mesh::RotatedBoundingBox(relativeAABB).transform(nodeRelTransf);
+                return aabb::RotatedBoundingBox(relativeAABB).transform(nodeRelTransf);
             }
         }
         return std::nullopt;

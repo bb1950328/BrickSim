@@ -17,6 +17,7 @@ namespace bricksim::geometry {
         glm::vec<N, float> nearestPointOnLine;
         glm::vec<N, float> projection;
         float projectionLength;
+        float projectionLengthUnclamped;
         float distancePointToLine;
         float lineLength;
     };
@@ -40,6 +41,7 @@ namespace bricksim::geometry {
         glm::vec<N, float> lineUnit = line / result.lineLength;
         glm::vec<N, float> startToPoint = point - lineStart;
         result.projectionLength = glm::dot(startToPoint, lineUnit);
+        result.projectionLengthUnclamped = result.projectionLength;
 
         if (result.projectionLength > result.lineLength) {
             result.nearestPointOnLine = lineEnd;

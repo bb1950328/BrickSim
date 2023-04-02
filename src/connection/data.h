@@ -58,8 +58,15 @@ namespace bricksim::connection {
                              bool slide);
 
         [[nodiscard]] float getTotalLength() const;
-        std::shared_ptr<Connector> clone() override;
         [[nodiscard]] glm::vec3 getEnd() const;
+        /**
+         * @param offsetFromStart
+         * @return
+         * if the offset is out of bounds, this function will just return the first or last shape part
+         */
+        [[nodiscard]] const CylindricalShapePart& getPartAt(float offsetFromStart) const;
+        [[nodiscard]] float getRadiusAt(float offsetFromStart) const;
+        std::shared_ptr<Connector> clone() override;
     };
 
     class ClipConnector : public Connector {
@@ -109,15 +116,20 @@ namespace bricksim::connection {
     public:
         std::vector<glm::vec3> slideDirections;
         std::vector<glm::vec3> rotationAxes;
+
+        DegreesOfFreedom();
+        DegreesOfFreedom(const std::vector<glm::vec3>& slideDirections,
+                         const std::vector<glm::vec3>& rotationAxes);
     };
 
     class Connection {
     public:
-        std::size_t connectorA;
-        std::size_t connectorB;
+        std::shared_ptr<Connector> connectorA;
+        std::shared_ptr<Connector> connectorB;
         DegreesOfFreedom degreesOfFreedom;
 
-        Connection(size_t connectorA, size_t connectorB, DegreesOfFreedom degreesOfFreedom);
+        Connection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB);
+        Connection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, const DegreesOfFreedom& degreesOfFreedom);
     };
 
     class ConnectionGraph {

@@ -115,7 +115,8 @@ namespace bricksim::geometry {
     }
 
     float getAngleBetweenTwoVectors(const glm::vec3& a, const glm::vec3& b) {
-        return std::acos(glm::dot(a, b) / (glm::length(a) * glm::length(b)));
+        //because of float imprecision, the arg for arccos can be slightly out of the domain of [-1;1], so clamp is needed
+        return std::acos(std::clamp(glm::dot(a, b) / (glm::length(a) * glm::length(b)), -1.f, 1.f));
     }
 
     glm::quat quaternionRotationFromOneVectorToAnother(const glm::vec3& v1, const glm::vec3& v2) {

@@ -495,7 +495,7 @@ namespace bricksim::overlay2d {
         tipWidthFactor(tipWidthFactor), color(color) {}
 
     bool ArrowElement::isPointInside(coord_t point) {
-        const auto normalProjection = geometry::normalProjectionOnLineClamped(start, end, point);
+        const auto normalProjection = geometry::normalProjectionOnLineClamped<2>(start, end, point);
         const auto projLengthFromEnd = normalProjection.projectionLength - normalProjection.lineLength;
         float tipWidth = calculateTipWidth();
         float tipLength = calculateTipLength();

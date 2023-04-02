@@ -523,8 +523,8 @@ namespace bricksim::mesh {
 
             Miniball::Miniball<Miniball::CoordAccessor<const float* const*, const float*>> mb(3, &coords[0], &coords[0] + vertexCount);
 
-            AxisAlignedBoundingBox aabb;
-            
+            aabb::AABB aabb;
+
             for (const float* c : coords) {
                 aabb.includePoint({c[0], c[1], c[2]});
             }

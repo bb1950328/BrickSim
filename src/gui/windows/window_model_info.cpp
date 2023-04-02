@@ -117,7 +117,7 @@ namespace bricksim::gui::windows::model_info {
                 addTableLine("Different parts and colors");
                 ImGui::Text("%" PRIu64, partStats.differentPartsAndColors.size());
 
-                mesh::AxisAlignedBoundingBox modelDimensions;
+                aabb::AABB modelDimensions;
                 for (const auto& node: nodes) {
                     const auto meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node.first);
                     if (meshNode != nullptr) {

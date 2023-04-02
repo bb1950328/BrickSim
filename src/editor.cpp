@@ -360,7 +360,7 @@ namespace bricksim {
                 if (meshNode != nullptr) {
                     const auto relativeAABB = scene->getMeshCollection().getRelativeAABB(meshNode);
                     if (relativeAABB.isDefined()) {
-                        const auto rotatedBBox = mesh::RotatedBoundingBox(relativeAABB, glm::vec3(0.f, 0.f, 0.f),
+                        const auto rotatedBBox = aabb::RotatedBoundingBox(relativeAABB, glm::vec3(0.f, 0.f, 0.f),
                                                                           glm::quat(1.f, 0.f, 0.f, 0.f))
                                                          .transform(
                                                                  glm::transpose(meshNode->getAbsoluteTransformation()));
@@ -371,7 +371,7 @@ namespace bricksim {
                 }
                 selectedNodes.begin()->second = selectedNodes.begin()->first->getVersion();
             } else {
-                mesh::AxisAlignedBoundingBox aabb;
+                aabb::AABB aabb;
                 for (auto& node: selectedNodes) {
                     std::shared_ptr<etree::MeshNode> meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node.first);
                     if (meshNode != nullptr) {

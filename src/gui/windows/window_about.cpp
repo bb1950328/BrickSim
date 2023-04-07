@@ -16,7 +16,7 @@ namespace bricksim::gui::windows::about {
         const std::array<License, 6> licenses = {
                 License{"Apache License, Version 2.0", "https://www.apache.org/licenses/LICENSE-2.0", "Hugo", (const char*)(resources::licenses::Apache2_txt.data())},
                 License{"2-Clause BSD License", "https://opensource.org/licenses/BSD-2-Clause", "pytorch/cpuinfo", (const char*)(resources::licenses::bsd2clause_txt.data())},
-                License{"3-Clause BSD License", "https://opensource.org/licenses/BSD-3-Clause", "CMake, ", (const char*)(resources::licenses::bsd3clause_txt.data())},
+                License{"3-Clause BSD License", "https://opensource.org/licenses/BSD-3-Clause", "CMake, FCL", (const char*)(resources::licenses::bsd3clause_txt.data())},
                 License{"GPLv3", "https://www.gnu.org/licenses/gpl-3.0.en.html", "BrickSim itself, Miniball", (const char*)(resources::licenses::GPLv3_txt.data())},
                 License{"MIT", "https://opensource.org/licenses/MIT", "dear imgui, SQLiteCpp, glad, rapidjson, magic_enum", (const char*)(resources::licenses::MIT_txt.data())},
                 License{"zlib", "https://opensource.org/licenses/Zlib", "GLFW, tinyfiledialogs", (const char*)(resources::licenses::zlib_txt.data())},

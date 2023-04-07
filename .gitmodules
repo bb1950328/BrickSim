@@ -56,3 +56,6 @@
 [submodule "src/lib/sfsw"]
 	path = src/lib/esfw
 	url = https://github.com/SpartanJ/efsw.git
+[submodule "src/lib/fcl"]
+	path = src/lib/fcl
+	url = https://github.com/bb1950328/fcl.git

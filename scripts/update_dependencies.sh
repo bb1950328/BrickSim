@@ -105,3 +105,9 @@ echo -e "\033[0;32mINFO: Updating tinyfiledialogs\033[0m"
 cd ../tinyfiledialogs || exit 1
 git checkout master
 git pull
+
+echo -e "\033[0;32mINFO: Updating fcl\033[0m"
+cd ../fcl || exit 1
+git checkout master
+git pull
+

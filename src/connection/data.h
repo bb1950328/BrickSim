@@ -23,6 +23,7 @@ namespace bricksim::connection {
         Connector(std::string group, const glm::vec3& start, const glm::vec3& direction);
 
         virtual std::shared_ptr<Connector> clone();
+        virtual std::string infoStr();
         virtual ~Connector() = default;
     };
 
@@ -67,6 +68,7 @@ namespace bricksim::connection {
         [[nodiscard]] const CylindricalShapePart& getPartAt(float offsetFromStart) const;
         [[nodiscard]] float getRadiusAt(float offsetFromStart) const;
         std::shared_ptr<Connector> clone() override;
+        std::string infoStr() override;
     };
 
     class ClipConnector : public Connector {
@@ -82,6 +84,7 @@ namespace bricksim::connection {
                       float width,
                       bool slide);
         std::shared_ptr<Connector> clone() override;
+        std::string infoStr() override;
     };
 
     class FingerConnector : public Connector {
@@ -97,6 +100,7 @@ namespace bricksim::connection {
                         float radius,
                         const std::vector<float>& fingerWidths);
         std::shared_ptr<Connector> clone() override;
+        std::string infoStr() override;
     };
 
     class GenericConnector : public Connector {
@@ -110,6 +114,7 @@ namespace bricksim::connection {
                          Gender gender,
                          const bounding_variant_t& bounding);
         std::shared_ptr<Connector> clone() override;
+        std::string infoStr() override;
     };
 
     class DegreesOfFreedom {
@@ -129,7 +134,7 @@ namespace bricksim::connection {
         DegreesOfFreedom degreesOfFreedom;
 
         Connection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB);
-        Connection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, const DegreesOfFreedom& degreesOfFreedom);
+        Connection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom degreesOfFreedom);
     };
 
     class ConnectionGraph {
@@ -144,7 +149,10 @@ namespace bricksim::connection {
 
         void removeAllConnections(const node_t& a, const node_t& b);
 
-        const std::vector<edge_t>& getConnections(const node_t& a, const node_t& b);
+        [[nodiscard]] const std::vector<edge_t>& getConnections(const node_t& a, const node_t& b) const;
+        [[nodiscard]] const uomap_t<node_t, std::vector<edge_t>>& getConnections(const node_t& node) const;
+
+        [[nodiscard]] uint64_t countTotalConnections() const;
 
     private:
         std::array<std::vector<edge_t>, 2> getBothVectors(const node_t& a, const node_t& b);

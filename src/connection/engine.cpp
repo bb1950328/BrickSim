@@ -1,11 +1,28 @@
 #include "engine.h"
 #include "../helpers/geometry.h"
 #include "connector_data_provider.h"
+#include "spdlog/spdlog.h"
 
 namespace bricksim::connection::engine {
+    namespace {
+        std::vector<std::shared_ptr<etree::LdrNode>> getAllLdrNodesFlat(const std::shared_ptr<etree::Node>& node) {
+            std::vector<std::shared_ptr<etree::LdrNode>> flat;
+            std::function<void(const std::shared_ptr<etree::Node>&)> traverse = [&flat, &traverse](const std::shared_ptr<etree::Node>& node) {
+                const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
+                if (ldrNode != nullptr) {
+                    flat.push_back(ldrNode);
+                }
+                for (const auto& item: ldrNode->getChildren()) {
+                    traverse(item);
+                }
+            };
+            traverse(node);
+            return flat;
+        }
+    }
 
-    std::vector<Connection> findConnections(const std::shared_ptr<etree::LdrNode>& a, const std::shared_ptr<etree::LdrNode>& b) {
-        std::vector<Connection> result;
+    std::vector<std::shared_ptr<Connection>> findConnections(const std::shared_ptr<etree::LdrNode>& a, const std::shared_ptr<etree::LdrNode>& b) {
+        std::vector<std::shared_ptr<Connection>> result;
 
         const auto& connectorsA = getConnectorsOfPart(a->ldrFile->metaInfo.name);
         const auto& connectorsB = getConnectorsOfPart(b->ldrFile->metaInfo.name);
@@ -36,7 +53,7 @@ namespace bricksim::connection::engine {
                         //todo maybe check bounding shapes, but documentation is unclear
                         // is it a connection when the two bounding shapes touch
                         // or is it only a connection when the shapes have the same dimensions and the orientation matches too?
-                        result.emplace_back(ca, cb);
+                        result.push_back(std::make_shared<Connection>(ca, cb));
                         continue;
                     }
                 } else {
@@ -58,7 +75,8 @@ namespace bricksim::connection::engine {
                                         const int maleIdx = caCyl->gender == Gender::M ? 0 : 1;
                                         const int femaleIdx = 1 - maleIdx;
 
-                                        std::vector<float> aBoundaries(caCyl->parts.size() + 1);
+                                        std::vector<float> aBoundaries;
+                                        aBoundaries.reserve(caCyl->parts.size() + 1);
                                         aBoundaries.push_back(0);
                                         float offset = 0;
                                         for (const auto& item: caCyl->parts) {
@@ -66,7 +84,8 @@ namespace bricksim::connection::engine {
                                             aBoundaries.push_back(offset);
                                         }
 
-                                        std::vector<float> bBoundaries(cbCyl->parts.size() + 1);
+                                        std::vector<float> bBoundaries;
+                                        bBoundaries.reserve(cbCyl->parts.size() + 1);
                                         std::vector<CylindricalShapePart> bParts(cbCyl->parts.size());
                                         if (sameDir) {
                                             offset = projOnA.projectionLengthUnclamped;
@@ -97,18 +116,20 @@ namespace bricksim::connection::engine {
                                         }
                                         bool radialCollision = false;
                                         bool rotationPossible = true;
+                                        bool contact = false;
                                         bool slidePossible = caCyl->slide || cbCyl->slide;
                                         while (true) {
-                                            if (aCursor <= 0 && bCursor <= 0) {
+                                            if (aCursor >= 0 && bCursor >= 0) {
                                                 const auto& pa = caCyl->parts[aCursor];
                                                 const auto& pb = bParts[bCursor];
-                                                const float ra = pa.radius;
-                                                const float rb = pb.radius;
-                                                if ((caCyl->gender == Gender::M && ra - rb > CYLINDRICAL_CONNECTION_RADIUS_TOLERANCE)
-                                                    || (caCyl->gender != Gender::M && rb - ra > CYLINDRICAL_CONNECTION_RADIUS_TOLERANCE)) {
+                                                const float radii[2] = {pa.radius, pb.radius};
+                                                const float maleRadius = radii[maleIdx];
+                                                const float femaleRadius = radii[femaleIdx];
+                                                if (maleRadius - femaleRadius > CYLINDRICAL_CONNECTION_RADIUS_TOLERANCE) {
                                                     radialCollision = true;
                                                     break;
                                                 }
+                                                contact |= femaleRadius - maleRadius < CYLINDRICAL_CONNECTION_RADIUS_TOLERANCE;
                                                 if (pa.type != CylindricalShapeType::ROUND && pa.type == pb.type) {
                                                     rotationPossible = false;
                                                 }
@@ -133,7 +154,7 @@ namespace bricksim::connection::engine {
                                             if (rotationPossible) {
                                                 rotationAxes.push_back(ca->direction);
                                             }
-                                            result.emplace_back(ca, cb, DegreesOfFreedom(slideDirections, rotationAxes));
+                                            result.push_back(std::make_shared<Connection>(ca, cb, DegreesOfFreedom(slideDirections, rotationAxes)));
                                         }
                                     }
                                 }
@@ -143,17 +164,46 @@ namespace bricksim::connection::engine {
                 }
             }
         }
-    }
-    ConnectionGraph findConnections(const std::shared_ptr<etree::Node>& node, mesh::SceneMeshCollection& meshCollection) {
-        //todo implement aabb tree
-        // each editor should have an aabb tree of all nodes that is always up to date and passed to this method
-        // traverse the aabb tree and call findConnections(node, node) for all collisions
-        // insert the resulting connections into the connectiongraph
-        // maybe use https://github.com/lohedges/aabbcc https://github.com/albin-johansson/abby https://github.com/iauns/cpm-glm-aabb
-        ConnectionGraph result = ConnectionGraph();
-        addConnections(node, result);
         return result;
     }
-    void addConnections(const std::shared_ptr<etree::Node>& node, ConnectionGraph& graph) {
+
+    ConnectionGraph findConnections(const std::shared_ptr<etree::Node>& node, const mesh::SceneMeshCollection& meshCollection) {
+        std::vector<std::shared_ptr<etree::LdrNode>> flat = getAllLdrNodesFlat(node);
+        ConnectionGraph result = ConnectionGraph();
+
+        // TODO replace this O(n^2) garbage with an AABB tree
+        //  also add an AABB tree on `Editor` which is constantly updated
+        for (const auto& a: flat) {
+            const auto aAABB = meshCollection.getAbsoluteAABB(a);
+            for (const auto& b: flat) {
+                const auto bAABB = meshCollection.getAbsoluteAABB(b);
+                if (aAABB.intersects(bAABB)) {
+                    for (const auto& conn: findConnections(a, b)) {
+                        result.addConnection(a, b, conn);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    ConnectionGraph findConnections(const std::shared_ptr<etree::LdrNode>& activeNode, const std::shared_ptr<etree::Node>& passiveNode, const mesh::SceneMeshCollection& meshCollection) {
+        std::vector<std::shared_ptr<etree::LdrNode>> flat = getAllLdrNodesFlat(passiveNode);
+        ConnectionGraph result = ConnectionGraph();
+
+        const auto activeAABB = meshCollection.getAbsoluteAABB(activeNode);
+        for (const auto& a: flat) {
+            const auto aAABB = meshCollection.getAbsoluteAABB(a);
+            if (aAABB.intersects(activeAABB)) {
+                for (const auto& conn: findConnections(a, activeNode)) {
+                    result.addConnection(a, activeNode, conn);
+                }
+            }
+        }
+
+        spdlog::debug("tested against {} other parts, found {} connections", flat.size(), result.countTotalConnections());
+
+        return result;
     }
 }

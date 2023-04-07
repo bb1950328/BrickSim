@@ -1,3 +1,4 @@
+#include "../../connection/engine.h"
 #include "../../controller.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "../../metrics.h"
@@ -6,10 +7,10 @@
 #include <glm/gtx/io.hpp>
 #include <map>
 #include <memory>
-#include <sstream>
 
 #include "window_debug.h"
 #include "window_mesh_inspector.h"
+#include <sstream>
 
 namespace bricksim::gui::windows::debug {
     namespace {
@@ -20,6 +21,8 @@ namespace bricksim::gui::windows::debug {
         void drawCameraTab();
 
         void drawMeshesTab();
+
+        void drawConnectionTab();
 
         constexpr size_t MESHES_TAB_BUF_SIZE = 32;
 
@@ -175,7 +178,7 @@ namespace bricksim::gui::windows::debug {
                     }
                 }
 
-                for (auto & editor: controller::getEditors()) {
+                for (auto& editor: controller::getEditors()) {
                     const auto& rootNode = editor->getRootNode();
                     ImGui::Text("Element tree root node version: %" PRIu64, rootNode->getVersion());
                     ImGui::SameLine();
@@ -292,6 +295,47 @@ namespace bricksim::gui::windows::debug {
                 ImGui::EndTabItem();
             }
         }
+
+        void drawConnectionTab() {
+            if (ImGui::BeginTabItem("Connections")) {
+                const auto activeEditor = controller::getActiveEditor();
+                if (activeEditor == nullptr) {
+                    ImGui::Text("Make an editor active and select a part to see its connections");
+                } else {
+                    const auto selectedNodes = activeEditor->getSelectedNodes();
+                    std::vector<std::shared_ptr<etree::LdrNode>> ldrNodes;
+                    for (const auto& node: selectedNodes) {
+                        const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node.first);
+                        if (ldrNode != nullptr) {
+                            ldrNodes.push_back(ldrNode);
+                        }
+                    }
+                    if (ldrNodes.size() == 1) {
+                        const auto node = ldrNodes[0];
+                        const connection::ConnectionGraph connectionGraph = connection::engine::findConnections(node, activeEditor->getDocumentNode(), activeEditor->getScene()->getMeshCollection());
+                        const auto& connectionsToNode = connectionGraph.getConnections(node);
+                        ImGui::Text("%lu connections between selected part and all other parts", connectionGraph.countTotalConnections());
+                        for (const auto& c: connectionsToNode) {
+                            if (ImGui::TreeNode(&c, "%s", c.first->displayName.c_str())) {
+                                for (const auto& item: c.second) {
+                                    ImGui::BulletText("%s <-> %s", item->connectorA->infoStr().c_str(), item->connectorB->infoStr().c_str());
+                                }
+                                ImGui::TreePop();
+                            }
+                        }
+                    } else if (ldrNodes.size() == 2) {
+                        const auto connections = connection::engine::findConnections(ldrNodes[0], ldrNodes[1]);
+                        ImGui::Text("%lu connections between the two selected parts", connections.size());
+                        for (const auto& c: connections) {
+                            ImGui::BulletText("%s <-> %s", c->connectorA->infoStr().c_str(), c->connectorB->infoStr().c_str());
+                        }
+                    } else {
+                        ImGui::Text("select one or two parts to see its connections");
+                    }
+                }
+                ImGui::EndTabItem();
+            }
+        }
     }
 
     void draw(Data& data) {
@@ -301,6 +345,7 @@ namespace bricksim::gui::windows::debug {
                 drawPerformanceTab();
                 drawMeshesTab();
                 drawCameraTab();
+                drawConnectionTab();
 
                 ImGui::EndTabBar();
             }

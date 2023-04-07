@@ -8,7 +8,7 @@ namespace bricksim::connection::engine {
     constexpr float POSITION_TOLERANCE_LDU = .1f;
     constexpr float CYLINDRICAL_CONNECTION_RADIUS_TOLERANCE = 1.f;
 
-    std::vector<Connection> findConnections(const std::shared_ptr<etree::LdrNode>& a, const std::shared_ptr<etree::LdrNode>& b);
-    ConnectionGraph findConnections(const std::shared_ptr<etree::Node>& node, mesh::SceneMeshCollection& meshCollection);
-    void addConnections(const std::shared_ptr<etree::Node>& node, ConnectionGraph& graph);
+    std::vector<std::shared_ptr<Connection>> findConnections(const std::shared_ptr<etree::LdrNode>& a, const std::shared_ptr<etree::LdrNode>& b);
+    ConnectionGraph findConnections(const std::shared_ptr<etree::Node>& node, const mesh::SceneMeshCollection& meshCollection);
+    ConnectionGraph findConnections(const std::shared_ptr<etree::LdrNode>& activeNode, const std::shared_ptr<etree::Node>& passiveNode, const mesh::SceneMeshCollection& meshCollection);
 }

@@ -60,8 +60,8 @@ namespace bricksim::mesh {
 
         [[nodiscard]] aabb::AABB getAbsoluteAABB(const std::shared_ptr<const etree::MeshNode>& node) const;
         [[nodiscard]] aabb::AABB getRelativeAABB(const std::shared_ptr<const etree::MeshNode>& node) const;
-        [[nodiscard]] std::optional<aabb::RotatedBoundingBox> getAbsoluteRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const;
-        [[nodiscard]] std::optional<aabb::RotatedBoundingBox> getRelativeRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const;
+        [[nodiscard]] std::optional<aabb::OBB> getAbsoluteRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const;
+        [[nodiscard]] std::optional<aabb::OBB> getRelativeRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const;
         [[nodiscard]] const oset_t<layer_t>& getLayersInUse() const;
         [[nodiscard]] std::shared_ptr<etree::Node> getElementById(element_id_t id) const;
         [[nodiscard]] const std::shared_ptr<etree::Node>& getRootNode() const;

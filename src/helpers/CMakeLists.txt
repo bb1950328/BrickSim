@@ -1,6 +1,6 @@
 target_sources(BrickSimLib PRIVATE
-        aabb.cpp
-        aabb.h
+        bounding_volumes.cpp
+        bounding_volumes.h
         color.cpp
         color.h
         debug_nodes.cpp

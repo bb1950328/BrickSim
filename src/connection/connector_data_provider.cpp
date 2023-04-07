@@ -51,7 +51,7 @@ namespace bricksim::connection {
                         clearIDs.insert(*clearCommand->id);
                     } else {
                         clearAll = true;
-                        break;
+                        connectors.clear();
                     }
                 }
 

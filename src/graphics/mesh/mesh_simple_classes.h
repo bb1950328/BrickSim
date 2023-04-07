@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../helpers/aabb.h"
+#include "../../helpers/bounding_volumes.h"
 #include "../../ldr/colors.h"
 #include <glm/glm.hpp>
 

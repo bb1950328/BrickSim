@@ -204,7 +204,7 @@ namespace bricksim::mesh {
             if (static_cast<uint32_t>(child->getType()) & static_cast<uint32_t>(etree::NodeType::TYPE_MESH)) {
                 auto childResult = getRelativeRotatedBBox(std::dynamic_pointer_cast<const etree::MeshNode>(child));
                 if (childResult.has_value()) {
-                    aabb.includeBBox(childResult.value());
+                    aabb.includeOBB(childResult.value());
                 }
             }
         }
@@ -213,27 +213,27 @@ namespace bricksim::mesh {
         return aabb;
     }
 
-    std::optional<aabb::RotatedBoundingBox> SceneMeshCollection::getAbsoluteRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const {
+    std::optional<aabb::OBB> SceneMeshCollection::getAbsoluteRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const {
         const auto relativeAABB = getRelativeAABB(node);
         if (relativeAABB.isDefined()) {
             const auto nodeAbsTransf = glm::transpose(node->getAbsoluteTransformation());
             if (geometry::doesTransformationLeaveAxisParallels(nodeAbsTransf)) {
-                return aabb::RotatedBoundingBox(relativeAABB.transform(nodeAbsTransf));
+                return aabb::OBB(relativeAABB.transform(nodeAbsTransf));
             } else {
-                return aabb::RotatedBoundingBox(relativeAABB).transform(nodeAbsTransf);
+                return aabb::OBB(relativeAABB).transform(nodeAbsTransf);
             }
         }
         return std::nullopt;
     }
 
-    std::optional<aabb::RotatedBoundingBox> SceneMeshCollection::getRelativeRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const {
+    std::optional<aabb::OBB> SceneMeshCollection::getRelativeRotatedBBox(const std::shared_ptr<const etree::MeshNode>& node) const {
         const auto relativeAABB = getRelativeAABB(node);
         if (relativeAABB.isDefined()) {
             const auto nodeRelTransf = glm::transpose(node->getRelativeTransformation());
             if (geometry::doesTransformationLeaveAxisParallels(nodeRelTransf)) {
-                return aabb::RotatedBoundingBox(relativeAABB.transform(nodeRelTransf));
+                return aabb::OBB(relativeAABB.transform(nodeRelTransf));
             } else {
-                return aabb::RotatedBoundingBox(relativeAABB).transform(nodeRelTransf);
+                return aabb::OBB(relativeAABB).transform(nodeRelTransf);
             }
         }
         return std::nullopt;

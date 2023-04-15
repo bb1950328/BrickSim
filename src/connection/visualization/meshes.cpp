@@ -22,6 +22,7 @@ namespace bricksim::connection::visualization {
                 case SimpleLineColor::WHITE:
                     return {0xff, 0xff, 0xff};
                 case SimpleLineColor::BLACK:
+                default:
                     return {0, 0, 0};
             }
         }

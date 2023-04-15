@@ -155,6 +155,6 @@ namespace bricksim::connection {
         [[nodiscard]] uint64_t countTotalConnections() const;
 
     private:
-        std::array<std::vector<edge_t>, 2> getBothVectors(const node_t& a, const node_t& b);
+        std::array<std::reference_wrapper<std::vector<ConnectionGraph::edge_t>>, 2> getBothVectors(const node_t& a, const node_t& b);
     };
 }

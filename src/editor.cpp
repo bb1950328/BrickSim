@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 
 #include "config.h"
+#include "connection/engine.h"
 #include "connection/visualization/connector_data_visualizer.h"
 #include "controller.h"
 #include "ldr/file_repo.h"
@@ -186,6 +187,27 @@ namespace bricksim {
             item.first->selected = false;
         }
         selectedNodes.clear();
+        updateSelectionVisualization();
+    }
+
+    void Editor::nodeSelectConnected() {
+        connection::ConnectionGraph graph;
+        for (const auto& item: selectedNodes) {
+            const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(item.first);
+            if (ldrNode != nullptr) {
+                connection::engine::findConnections(ldrNode, documentNode, graphics::scenes::get(sceneId)->getMeshCollection(), graph);
+            }
+        }
+        for (const auto& item: selectedNodes) {
+            const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(item.first);
+            if (ldrNode != nullptr) {
+                for (const auto& edge: graph.getConnections(ldrNode)) {
+                    if (!edge.second.empty()) {
+                        selectedNodes.emplace(edge.first, edge.first->getVersion());
+                    }
+                }
+            }
+        }
         updateSelectionVisualization();
     }
 

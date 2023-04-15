@@ -16,6 +16,7 @@ namespace bricksim::ldr {
         }
         auto mainFile = std::make_shared<File>();
         mainFile->metaInfo.type = mainFileType;
+        mainFile->metaInfo.name = name;
         uomap_t<std::string, std::shared_ptr<File>> files = {{name, mainFile}};
         std::optional<std::shared_ptr<File>> currentFile = mainFile;
 

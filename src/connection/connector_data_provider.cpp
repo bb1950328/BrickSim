@@ -43,6 +43,10 @@ namespace bricksim::connection {
                               const std::shared_ptr<ldr::File>& file,
                               glm::mat4 const& transformation,
                               uoset_t<std::string> clearIDs) {
+            if (file->metaInfo.type == ldr::FileType::MODEL) {
+                return;
+            }
+
             bool clearAll = false;
             for (const auto& command: file->ldcadSnapMetas) {
                 const auto clearCommand = std::dynamic_pointer_cast<ldcad_snap_meta::ClearCommand>(command);

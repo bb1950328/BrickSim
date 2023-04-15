@@ -17,14 +17,13 @@ namespace bricksim::geometry {
         glm::vec<N, float> nearestPointOnLine;
         glm::vec<N, float> projection;
         float projectionLength;
-        float projectionLengthUnclamped;
         float distancePointToLine;
         float lineLength;
     };
 
     template<int N>
         requires(2 <= N && N <= 3)
-    NormalProjectionResult<N> normalProjectionOnLineClamped(const glm::vec<N, float>& lineStart, const glm::vec<N, float>& lineEnd, const glm::vec<N, float>& point) {
+    NormalProjectionResult<N> normalProjectionOnLine(const glm::vec<N, float>& lineStart, const glm::vec<N, float>& lineEnd, const glm::vec<N, float>& point, bool clamp) {
         //https://stackoverflow.com/a/47366970/8733066
         //             point
         //             +
@@ -41,27 +40,33 @@ namespace bricksim::geometry {
         glm::vec<N, float> lineUnit = line / result.lineLength;
         glm::vec<N, float> startToPoint = point - lineStart;
         result.projectionLength = glm::dot(startToPoint, lineUnit);
-        result.projectionLengthUnclamped = result.projectionLength;
 
-        if (result.projectionLength > result.lineLength) {
-            result.nearestPointOnLine = lineEnd;
-            result.projectionLength = result.lineLength;
-            result.projection = line;
-        } else if (result.projectionLength < 0.0f) {
-            result.nearestPointOnLine = lineStart;
-            result.projectionLength = 0.0f;
-            if constexpr (N == 2) {
-                result.projection = {0, 0};
-            } else {
-                result.projection = {0, 0, 0};
+        result.projection = lineUnit * result.projectionLength;
+        result.nearestPointOnLine = lineStart + result.projection;
+        if (clamp) {
+            if (result.projectionLength > result.lineLength) {
+                result.nearestPointOnLine = lineEnd;
+                result.projectionLength = result.lineLength;
+                result.projection = line;
+            } else if (result.projectionLength < 0.0f) {
+                result.nearestPointOnLine = lineStart;
+                result.projectionLength = 0.0f;
+                if constexpr (N == 2) {
+                    result.projection = {0, 0};
+                } else {
+                    result.projection = {0, 0, 0};
+                }
             }
-        } else {
-            result.projection = lineUnit * result.projectionLength;
-            result.nearestPointOnLine = lineStart + result.projection;
         }
         result.distancePointToLine = glm::length(point - result.nearestPointOnLine);
 
         return result;
+    }
+
+    template<int N>
+        requires(2 <= N && N <= 3)
+    NormalProjectionResult<N> normalProjectionOnLineClamped(const glm::vec<N, float>& lineStart, const glm::vec<N, float>& lineEnd, const glm::vec<N, float>& point) {
+        return normalProjectionOnLine<N>(lineStart, lineEnd, point, true);
     }
 
     struct ClosestLineBetweenTwoRaysResult {

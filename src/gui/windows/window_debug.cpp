@@ -5,9 +5,11 @@
 #include "../gui.h"
 #include <cinttypes>
 #include <glm/gtx/io.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <map>
 #include <memory>
 
+#include "spdlog/spdlog.h"
 #include "window_debug.h"
 #include "window_mesh_inspector.h"
 #include <sstream>
@@ -312,20 +314,39 @@ namespace bricksim::gui::windows::debug {
                     }
                     if (ldrNodes.size() == 1) {
                         const auto node = ldrNodes[0];
+                        const auto before = std::chrono::high_resolution_clock::now();
                         const connection::ConnectionGraph connectionGraph = connection::engine::findConnections(node, activeEditor->getDocumentNode(), activeEditor->getScene()->getMeshCollection());
+                        const auto after = std::chrono::high_resolution_clock::now();
+                        const auto time = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.0f;
                         const auto& connectionsToNode = connectionGraph.getConnections(node);
-                        ImGui::Text("%lu connections between selected part and all other parts", connectionGraph.countTotalConnections());
+                        ImGui::Text("%lu connections between selected part and all other parts found in %.3fms", connectionGraph.countTotalConnections(), time);
                         for (const auto& c: connectionsToNode) {
-                            if (ImGui::TreeNode(&c, "%s", c.first->displayName.c_str())) {
+                            std::string id = fmt::format("{} {}", c.first->ldrFile->metaInfo.name, glm::to_string(c.first->getAbsoluteTransformation()));
+                            if (ImGui::TreeNode(id.c_str(), "%s", c.first->displayName.c_str())) {
+                                uint64_t i = 1;
                                 for (const auto& item: c.second) {
-                                    ImGui::BulletText("%s <-> %s", item->connectorA->infoStr().c_str(), item->connectorB->infoStr().c_str());
+                                    if (ImGui::TreeNode(fmt::format("Connection {}", i).c_str())) {
+                                        ImGui::BulletText("A: %s", item->connectorA->infoStr().c_str());
+                                        ImGui::BulletText("B: %s", item->connectorB->infoStr().c_str());
+                                        for (const auto& ra: item->degreesOfFreedom.rotationAxes) {
+                                            ImGui::BulletText("Rotation axis: %s", glm::to_string(ra).c_str());
+                                        }
+                                        for (const auto& sd: item->degreesOfFreedom.slideDirections) {
+                                            ImGui::BulletText("Slide direction: %s", glm::to_string(sd).c_str());
+                                        }
+                                        ImGui::TreePop();
+                                    }
+                                    ++i;
                                 }
                                 ImGui::TreePop();
                             }
                         }
                     } else if (ldrNodes.size() == 2) {
+                        const auto before = std::chrono::high_resolution_clock::now();
                         const auto connections = connection::engine::findConnections(ldrNodes[0], ldrNodes[1]);
-                        ImGui::Text("%lu connections between the two selected parts", connections.size());
+                        const auto after = std::chrono::high_resolution_clock::now();
+                        const auto time = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.0f;
+                        ImGui::Text("%lu connections between the two selected parts found in %.3fms", connections.size(), time);
                         for (const auto& c: connections) {
                             ImGui::BulletText("%s <-> %s", c->connectorA->infoStr().c_str(), c->connectorB->infoStr().c_str());
                         }

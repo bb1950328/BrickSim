@@ -1,6 +1,7 @@
 #include "engine.h"
 #include "../helpers/geometry.h"
 #include "connector_data_provider.h"
+#include "spdlog/fmt/ostr.h"
 #include "spdlog/spdlog.h"
 
 namespace bricksim::connection::engine {
@@ -27,15 +28,17 @@ namespace bricksim::connection::engine {
         const auto& connectorsA = getConnectorsOfPart(a->ldrFile->metaInfo.name);
         const auto& connectorsB = getConnectorsOfPart(b->ldrFile->metaInfo.name);
         for (const auto& ca: connectorsA) {
-            const glm::vec3 caAbsoluteStart = a->getAbsoluteTransformation() * glm::vec4(ca->start, 1.f);
-            const glm::vec3 caAbsoluteDirection = a->getAbsoluteTransformation() * glm::vec4(ca->direction, 0.f);
+            const glm::mat4 aAbsTransf = glm::transpose(a->getAbsoluteTransformation());
+            const glm::vec3 caAbsoluteStart = aAbsTransf * glm::vec4(ca->start, 1.f);
+            const glm::vec3 caAbsoluteDirection = aAbsTransf * glm::vec4(ca->direction, 0.f);
             const auto caClip = std::dynamic_pointer_cast<ClipConnector>(ca);
             const auto caCyl = std::dynamic_pointer_cast<CylindricalConnector>(ca);//todo maybe only call dynamic_pointer_cast if previous results are nullptr
             const auto caFinger = std::dynamic_pointer_cast<FingerConnector>(ca);
             const auto caGeneric = std::dynamic_pointer_cast<GenericConnector>(ca);
             for (const auto& cb: connectorsB) {
-                const glm::vec3 cbAbsoluteStart = b->getAbsoluteTransformation() * glm::vec4(cb->start, 1.f);
-                const glm::vec3 cbAbsoluteDirection = b->getAbsoluteTransformation() * glm::vec4(cb->direction, 0.f);
+                const glm::mat4 bAbsTransf = glm::transpose(b->getAbsoluteTransformation());
+                const glm::vec3 cbAbsoluteStart = bAbsTransf * glm::vec4(cb->start, 1.f);
+                const glm::vec3 cbAbsoluteDirection = bAbsTransf * glm::vec4(cb->direction, 0.f);
                 const auto cbClip = std::dynamic_pointer_cast<ClipConnector>(cb);
                 const auto cbCyl = std::dynamic_pointer_cast<CylindricalConnector>(cb);
                 const auto cbFinger = std::dynamic_pointer_cast<FingerConnector>(cb);
@@ -58,16 +61,18 @@ namespace bricksim::connection::engine {
                     }
                 } else {
                     if (caCyl != nullptr) {
+                        const glm::vec3 caAbsoluteEnd = aAbsTransf * glm::vec4(caCyl->getEnd(), 1.f);
                         if (cbCyl != nullptr) {
+                            const glm::vec3 cbAbsoluteEnd = bAbsTransf * glm::vec4(cbCyl->getEnd(), 1.f);
                             if (caCyl->gender != cbCyl->gender) {
                                 const bool sameDir = absoluteDirectionAngleDifference < PARALLELITY_ANGLE_TOLERANCE;
                                 const bool oppositeDir = absoluteDirectionAngleDifference > M_PI - PARALLELITY_ANGLE_TOLERANCE;
                                 if (sameDir || oppositeDir) {
-                                    const geometry::NormalProjectionResult<3> projOnA = geometry::normalProjectionOnLineClamped<3>(caCyl->start, caCyl->getEnd(), cbCyl->start);
-                                    if ((sameDir && projOnA.projectionLength > caCyl->getTotalLength())                                          // Aaaaaaa   Bbbbbbbbb
-                                        || (sameDir && projOnA.projectionLengthUnclamped < cbCyl->getTotalLength())                              // Bbbbbb  Aaaaaa
-                                        || (oppositeDir && projOnA.projectionLengthUnclamped > caCyl->getTotalLength() + cbCyl->getTotalLength())// Aaaaaaa  bbbbbbbbB
-                                        || (oppositeDir && projOnA.projectionLengthUnclamped < 0)) {                                             // bbbbbbB   Aaaaaaaa
+                                    const geometry::NormalProjectionResult<3> projOnA = geometry::normalProjectionOnLine<3>(caAbsoluteStart, caAbsoluteEnd, cbAbsoluteStart, false);
+                                    if ((sameDir && projOnA.projectionLength > caCyl->getTotalLength())                                 // Aaaaaaa   Bbbbbbbbb
+                                        || (sameDir && projOnA.projectionLength < -cbCyl->getTotalLength())                             // Bbbbbb  Aaaaaa
+                                        || (oppositeDir && projOnA.projectionLength > caCyl->getTotalLength() + cbCyl->getTotalLength())// Aaaaaaa  bbbbbbbbB
+                                        || (oppositeDir && projOnA.projectionLength < 0)) {                                             // bbbbbbB   Aaaaaaaa
                                         //the directions are colinear, but the parts are too far away from each other
                                         continue;
                                     }
@@ -86,9 +91,10 @@ namespace bricksim::connection::engine {
 
                                         std::vector<float> bBoundaries;
                                         bBoundaries.reserve(cbCyl->parts.size() + 1);
-                                        std::vector<CylindricalShapePart> bParts(cbCyl->parts.size());
+                                        std::vector<CylindricalShapePart> bParts;
+                                        bParts.reserve(cbCyl->parts.size());
                                         if (sameDir) {
-                                            offset = projOnA.projectionLengthUnclamped;
+                                            offset = projOnA.projectionLength;
                                             bBoundaries.push_back(offset);
                                             for (const auto& item: cbCyl->parts) {
                                                 offset += item.length;
@@ -96,7 +102,7 @@ namespace bricksim::connection::engine {
                                                 bParts.push_back(item);
                                             }
                                         } else {
-                                            offset = projOnA.projectionLengthUnclamped - cbCyl->getTotalLength();
+                                            offset = projOnA.projectionLength - cbCyl->getTotalLength();
                                             bBoundaries.push_back(offset);
                                             for (auto it = cbCyl->parts.rbegin(); it < cbCyl->parts.rend(); ++it) {
                                                 offset += it->length;
@@ -118,7 +124,7 @@ namespace bricksim::connection::engine {
                                         bool rotationPossible = true;
                                         bool contact = false;
                                         bool slidePossible = caCyl->slide || cbCyl->slide;
-                                        while (true) {
+                                        while (aCursor < static_cast<int>(caCyl->parts.size()) && bCursor < static_cast<int>(bParts.size())) {
                                             if (aCursor >= 0 && bCursor >= 0) {
                                                 const auto& pa = caCyl->parts[aCursor];
                                                 const auto& pb = bParts[bCursor];
@@ -145,7 +151,7 @@ namespace bricksim::connection::engine {
                                                 ++bCursor;
                                             }
                                         }
-                                        if (!radialCollision) {
+                                        if (!radialCollision && contact) {
                                             std::vector<glm::vec3> slideDirections;
                                             std::vector<glm::vec3> rotationAxes;
                                             if (slidePossible) {

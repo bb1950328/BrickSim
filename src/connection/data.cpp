@@ -9,8 +9,8 @@
 namespace bricksim::connection {
 
     void ConnectionGraph::addConnection(const ConnectionGraph::node_t& a, const ConnectionGraph::node_t& b, const ConnectionGraph::edge_t& edge) {
-        for (auto& item: getBothVectors(a, b)) {
-            item.push_back(edge);
+        for (auto& vec: getBothVectors(a, b)) {
+            vec.get().push_back(edge);
         }
     }
     void ConnectionGraph::removeAllConnections(const ConnectionGraph::node_t& a, const ConnectionGraph::node_t& b) {
@@ -29,14 +29,15 @@ namespace bricksim::connection {
         return empty;
     }
     void ConnectionGraph::removeConnection(const ConnectionGraph::node_t& a, const ConnectionGraph::node_t& b, const ConnectionGraph::edge_t& edge) {
-        for (auto& vec: getBothVectors(a, b)) {
+        for (auto& vec_wrapper: getBothVectors(a, b)) {
+            auto& vec = vec_wrapper.get();
             const auto it = std::find(vec.begin(), vec.end(), edge);
             if (it != vec.end()) {
                 vec.erase(it);
             }
         }
     }
-    std::array<std::vector<ConnectionGraph::edge_t>, 2> ConnectionGraph::getBothVectors(const ConnectionGraph::node_t& a, const ConnectionGraph::node_t& b) {
+    std::array<std::reference_wrapper<std::vector<ConnectionGraph::edge_t>>, 2> ConnectionGraph::getBothVectors(const ConnectionGraph::node_t& a, const ConnectionGraph::node_t& b) {
         return {adjacencyLists[a][b], adjacencyLists[b][a]};
     }
     const uomap_t<ConnectionGraph::node_t, std::vector<ConnectionGraph::edge_t>>& ConnectionGraph::getConnections(const ConnectionGraph::node_t& node) const {

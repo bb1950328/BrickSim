@@ -179,9 +179,11 @@ namespace bricksim::connection::engine {
 
         // TODO replace this O(n^2) garbage with an AABB tree
         //  also add an AABB tree on `Editor` which is constantly updated
-        for (const auto& a: flat) {
+        for (int i = 0; i < flat.size(); ++i) {
+            const auto a = flat[i];
             const auto aAABB = meshCollection.getAbsoluteAABB(a);
-            for (const auto& b: flat) {
+            for (int j = 0; j < i; ++j) {
+                const auto b = flat[j];
                 const auto bAABB = meshCollection.getAbsoluteAABB(b);
                 if (aAABB.intersects(bAABB)) {
                     for (const auto& conn: findConnections(a, b)) {
@@ -195,9 +197,13 @@ namespace bricksim::connection::engine {
     }
 
     ConnectionGraph findConnections(const std::shared_ptr<etree::LdrNode>& activeNode, const std::shared_ptr<etree::Node>& passiveNode, const mesh::SceneMeshCollection& meshCollection) {
-        std::vector<std::shared_ptr<etree::LdrNode>> flat = getAllLdrNodesFlat(passiveNode);
-        ConnectionGraph result = ConnectionGraph();
+        ConnectionGraph result;
+        findConnections(activeNode, passiveNode, meshCollection, result);
+        return result;
+    }
 
+    void findConnections(const std::shared_ptr<etree::LdrNode>& activeNode, const std::shared_ptr<etree::Node>& passiveNode, const mesh::SceneMeshCollection& meshCollection, ConnectionGraph& result) {
+        std::vector<std::shared_ptr<etree::LdrNode>> flat = getAllLdrNodesFlat(passiveNode);
         const auto activeAABB = meshCollection.getAbsoluteAABB(activeNode);
         for (const auto& a: flat) {
             const auto aAABB = meshCollection.getAbsoluteAABB(a);
@@ -207,9 +213,5 @@ namespace bricksim::connection::engine {
                 }
             }
         }
-
-        spdlog::debug("tested against {} other parts, found {} connections", flat.size(), result.countTotalConnections());
-
-        return result;
     }
 }

@@ -374,6 +374,7 @@ namespace bricksim::gui {
             if (ImGui::BeginMenu("Selection")) {
                 gui_internal::actionMenuItem(user_actions::SELECT_ALL);
                 gui_internal::actionMenuItem(user_actions::SELECT_NOTHING);
+                gui_internal::actionMenuItem(user_actions::SELECT_CONNECTED);
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("3D")) {

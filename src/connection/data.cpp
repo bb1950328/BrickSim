@@ -58,7 +58,7 @@ namespace bricksim::connection {
         return total / 2;
     }
 
-    CylindricalConnector::CylindricalConnector(std::string group,
+    CylindricalConnector::CylindricalConnector(const std::string& group,
                                                const glm::vec3& start,
                                                const glm::vec3& direction,
                                                Gender gender,
@@ -66,7 +66,7 @@ namespace bricksim::connection {
                                                bool openStart,
                                                bool openEnd,
                                                bool slide) :
-        Connector(std::move(group), start, direction),
+        ConnectorWithLength(group, start, direction),
         gender(gender),
         parts(std::move(parts)),
         openStart(openStart),
@@ -83,9 +83,7 @@ namespace bricksim::connection {
     std::shared_ptr<Connector> CylindricalConnector::clone() {
         return std::make_shared<CylindricalConnector>(*this);
     }
-    glm::vec3 CylindricalConnector::getEnd() const {
-        return start + direction * getTotalLength();
-    }
+
     float CylindricalConnector::getRadiusAt(float offsetFromStart) const {
         for (const auto& item: parts) {
             if (item.length < offsetFromStart) {
@@ -130,7 +128,7 @@ namespace bricksim::connection {
                                  float radius,
                                  float width,
                                  bool slide) :
-        Connector(group, start, direction),
+        ConnectorWithLength(group, start, direction),
         radius(radius),
         width(width),
         slide(slide) {
@@ -141,6 +139,9 @@ namespace bricksim::connection {
     std::string ClipConnector::infoStr() {
         return fmt::format("clip[group={}, radius={}, width={}, slide={}, start={}, direction={}]", group, radius, width, slide, start, direction);
     }
+    float ClipConnector::getTotalLength() const {
+        return width;
+    }
     std::shared_ptr<Connector> FingerConnector::clone() {
         return std::make_shared<FingerConnector>(*this);
     }
@@ -150,7 +151,7 @@ namespace bricksim::connection {
                                      Gender firstFingerGender,
                                      float radius,
                                      const std::vector<float>& fingerWidths) :
-        Connector(group, start, direction),
+        ConnectorWithLength(group, start, direction),
         firstFingerGender(firstFingerGender),
         radius(radius),
         fingerWidths(fingerWidths) {
@@ -158,6 +159,10 @@ namespace bricksim::connection {
     std::string FingerConnector::infoStr() {
         return fmt::format("finger[group={}, firstFingerGender={}, radius={}, fingerWidths={}, start={}, direction={}]", group, magic_enum::enum_name(firstFingerGender), radius, fingerWidths, start, direction);
     }
+    float FingerConnector::getTotalLength() const {
+        return std::reduce(fingerWidths.begin(), fingerWidths.end());
+    }
+
     std::shared_ptr<Connector> GenericConnector::clone() {
         return std::make_shared<GenericConnector>(*this);
     }
@@ -174,9 +179,9 @@ namespace bricksim::connection {
         return fmt::format("generic[group={}, gender={}, bounding={}, start={}, direction={}]", group, magic_enum::enum_name(gender), bounding.index(), start, direction);
     }
     DegreesOfFreedom::DegreesOfFreedom(const std::vector<glm::vec3>& slideDirections,
-                                       const std::vector<glm::vec3>& rotationAxes) :
+                                       const std::vector<RotationPossibility>& rotationPossibilities) :
         slideDirections(slideDirections),
-        rotationAxes(rotationAxes) {
+        rotationPossibilities(rotationPossibilities) {
     }
     DegreesOfFreedom::DegreesOfFreedom() = default;
     Connection::Connection(const std::shared_ptr<Connector>& connectorA,
@@ -192,4 +197,11 @@ namespace bricksim::connection {
         connectorB(connectorB),
         degreesOfFreedom() {
     }
+    glm::vec3 ConnectorWithLength::getEnd() const {
+        return start + glm::normalize(direction) * getTotalLength();
+    }
+    ConnectorWithLength::ConnectorWithLength(const std::string& group,
+                                             const glm::vec3& start,
+                                             const glm::vec3& direction) :
+        Connector(group, start, direction) {}
 }

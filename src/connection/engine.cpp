@@ -1,8 +1,10 @@
 #include "engine.h"
+
 #include "../helpers/geometry.h"
 #include "connector_data_provider.h"
 #include "spdlog/fmt/ostr.h"
 #include "spdlog/spdlog.h"
+#include <utility>
 
 namespace bricksim::connection::engine {
     namespace {
@@ -20,154 +22,258 @@ namespace bricksim::connection::engine {
             traverse(node);
             return flat;
         }
+
+        ConnectionChecker::ConnectionChecker(ConnectorCheckData a, ConnectorCheckData b, std::vector<std::shared_ptr<Connection>>& result) :
+            a(std::move(a)),
+            b(std::move(b)),
+            result(result),
+            absoluteDirectionAngleDifference(geometry::getAngleBetweenTwoVectors(a.absDirection, b.absDirection)),
+            sameDir(absoluteDirectionAngleDifference < PARALLELITY_ANGLE_TOLERANCE),
+            oppositeDir(absoluteDirectionAngleDifference > M_PI - PARALLELITY_ANGLE_TOLERANCE) {
+        }
+        void ConnectionChecker::findConnections() {
+            if (a.generic != nullptr || b.generic != nullptr) {
+                if (a.generic != nullptr && b.generic != nullptr) {
+                    findGenericGeneric();
+                }
+                return;
+            }
+            if (a.cyl != nullptr && b.cyl != nullptr) {
+                findCylCyl();
+                return;
+            }
+            if (a.finger != nullptr && b.finger != nullptr) {
+                findFingerFinger();
+                return;
+            }
+        }
+        bool ConnectionChecker::findGenericGeneric() {
+            if (a.generic->group == b.generic->group
+                && a.generic->gender != b.generic->gender
+                //&& a.generic->bounding == b.generic->bounding
+                && glm::length2(a.absStart - b.absStart) < std::pow(POSITION_TOLERANCE_LDU, 2)) {
+                //todo maybe check bounding shapes, but documentation is unclear
+                // is it a connection when the two bounding shapes touch
+                // or is it only a connection when the shapes have the same dimensions and the orientation matches too?
+                result.push_back(std::make_shared<Connection>(a.connector, b.connector));
+                return true;
+            }
+            return false;
+        }
+        bool ConnectionChecker::findCylCyl() {
+            if ((!sameDir && !oppositeDir)
+                || a.cyl->gender == b.cyl->gender) {
+                return false;
+            }
+            const auto startOffset = projectConnectorsWithLength();
+            if (!startOffset.has_value()) {
+                return false;
+            }
+
+            const int maleIdx = a.cyl->gender == Gender::M ? 0 : 1;
+            const int femaleIdx = 1 - maleIdx;
+
+            std::vector<float> aBoundaries;
+            aBoundaries.reserve(a.cyl->parts.size() + 1);
+            aBoundaries.push_back(0);
+            float offset = 0;
+            for (const auto& item: a.cyl->parts) {
+                offset += item.length;
+                aBoundaries.push_back(offset);
+            }
+
+            std::vector<float> bBoundaries;
+            bBoundaries.reserve(b.cyl->parts.size() + 1);
+            std::vector<CylindricalShapePart> bParts;
+            bParts.reserve(b.cyl->parts.size());
+            if (sameDir) {
+                offset = startOffset.value();
+                bBoundaries.push_back(offset);
+                for (const auto& item: b.cyl->parts) {
+                    offset += item.length;
+                    bBoundaries.push_back(offset);
+                    bParts.push_back(item);
+                }
+            } else {
+                offset = startOffset.value() - b.cyl->getTotalLength();
+                bBoundaries.push_back(offset);
+                for (auto it = b.cyl->parts.rbegin(); it < b.cyl->parts.rend(); ++it) {
+                    offset += it->length;
+                    bBoundaries.push_back(offset);
+                    bParts.push_back(*it);
+                }
+            }
+
+            //float lengthCursor = std::min(aBoundaries[0], bBoundaries[0]);
+            //const float maxLengthCursorValue = std::max(aBoundaries.back(), bBoundaries.back());
+            int aCursor = -1;
+            int bCursor = -1;
+            if (aBoundaries.front() < bBoundaries.front()) {
+                aCursor = 0;
+            } else {
+                bCursor = 0;
+            }
+            bool radialCollision = false;
+            bool rotationPossible = true;
+            bool contact = false;
+            bool slidePossible = a.cyl->slide || b.cyl->slide;
+            while (aCursor < static_cast<int>(a.cyl->parts.size()) && bCursor < static_cast<int>(bParts.size())) {
+                if (aCursor >= 0 && bCursor >= 0) {
+                    const auto& pa = a.cyl->parts[aCursor];
+                    const auto& pb = bParts[bCursor];
+                    const float radii[2] = {pa.radius, pb.radius};
+                    const float maleRadius = radii[maleIdx];
+                    const float femaleRadius = radii[femaleIdx];
+                    if (maleRadius - femaleRadius > CONNECTION_RADIUS_TOLERANCE) {
+                        radialCollision = true;
+                        break;
+                    }
+                    contact |= femaleRadius - maleRadius < CONNECTION_RADIUS_TOLERANCE;
+                    if (pa.type != CylindricalShapeType::ROUND && pa.type == pb.type) {
+                        rotationPossible = false;
+                    }
+                    if ((aCursor >= aBoundaries.size() - 2 && aBoundaries[aCursor + 1] < bBoundaries[bCursor])
+                        || (bCursor >= bBoundaries.size() - 2 && bBoundaries[bCursor + 1] < aBoundaries[aCursor])) {
+                        //no more common parts
+                        break;
+                    }
+                }
+                if (aBoundaries[aCursor + 1] < bBoundaries[bCursor + 1]) {
+                    ++aCursor;
+                } else {
+                    ++bCursor;
+                }
+            }
+            if (radialCollision || !contact) {
+                return false;
+            }
+            DegreesOfFreedom dof;
+            if (slidePossible) {
+                dof.slideDirections.push_back(a.absDirection);
+            }
+            if (rotationPossible) {
+                dof.rotationPossibilities.push_back({a.absStart, a.absDirection});
+            }
+            result.push_back(std::make_shared<Connection>(a.connector, b.connector, dof));
+            return true;
+        }
+        bool bricksim::connection::engine::ConnectionChecker::findFingerFinger() {
+            if ((!sameDir && !oppositeDir)
+                || a.finger->group != b.finger->group
+                || std::abs(a.finger->radius - b.finger->radius) > CONNECTION_RADIUS_TOLERANCE) {
+                return false;
+            }
+            const auto startOffsetOpt = projectConnectorsWithLength();
+            if (!startOffsetOpt.has_value()) {
+                return false;
+            }
+            const float startOffset = startOffsetOpt.value();
+            if (sameDir) {//todo try to extract common code from this if/else
+                int aCursorIdx = 0;
+                int bCursorIdx = 0;
+                if (startOffset < -POSITION_TOLERANCE_LDU) {
+                    float offset = -startOffset;
+                    while (offset > POSITION_TOLERANCE_LDU) {
+                        offset -= b.finger->fingerWidths[bCursorIdx];
+                        ++bCursorIdx;
+                    }
+                    if (offset < -POSITION_TOLERANCE_LDU) {
+                        return false;
+                    }
+                } else if (startOffset > POSITION_TOLERANCE_LDU) {
+                    float offset = startOffset;
+                    while (offset > POSITION_TOLERANCE_LDU) {
+                        offset -= a.finger->fingerWidths[aCursorIdx];
+                        ++aCursorIdx;
+                    }
+                    if (offset < -POSITION_TOLERANCE_LDU) {
+                        return false;
+                    }
+                }
+                if ((std::abs(aCursorIdx - bCursorIdx) % 2 == 0
+                     && a.finger->firstFingerGender == b.finger->firstFingerGender)
+                    || (std::abs(aCursorIdx - bCursorIdx) % 2 == 1
+                        && a.finger->firstFingerGender != b.finger->firstFingerGender)) {
+                    return false;
+                }
+                while (aCursorIdx < static_cast<int>(a.finger->fingerWidths.size())
+                       && bCursorIdx < static_cast<int>(b.finger->fingerWidths.size())) {
+                    if (std::abs(a.finger->fingerWidths[aCursorIdx] - b.finger->fingerWidths[bCursorIdx]) > POSITION_TOLERANCE_LDU) {
+                        return false;
+                    }
+                    ++aCursorIdx;
+                    ++bCursorIdx;
+                }
+            } else {
+                int aCursorIdx = 0;
+                int bCursorIdx = static_cast<int>(b.finger->fingerWidths.size()) - 1;
+                const float aOffset = startOffset - b.finger->getTotalLength();
+                if (aOffset < -POSITION_TOLERANCE_LDU) {
+                    float offset = -aOffset;
+                    while (offset > POSITION_TOLERANCE_LDU) {
+                        offset -= b.finger->fingerWidths[bCursorIdx];
+                        --bCursorIdx;
+                    }
+                    if (offset < -POSITION_TOLERANCE_LDU) {
+                        return false;
+                    }
+                } else if (aOffset > POSITION_TOLERANCE_LDU) {
+                    float offset = aOffset;
+                    while (offset > POSITION_TOLERANCE_LDU) {
+                        offset -= a.finger->fingerWidths[aCursorIdx];
+                        ++aCursorIdx;
+                    }
+                    if (offset < -POSITION_TOLERANCE_LDU) {
+                        return false;
+                    }
+                }
+                if ((std::abs(aCursorIdx - bCursorIdx) % 2 == 0
+                     && a.finger->firstFingerGender == b.finger->firstFingerGender)
+                    || (std::abs(aCursorIdx - bCursorIdx) % 2 == 1
+                        && a.finger->firstFingerGender != b.finger->firstFingerGender)) {
+                    return false;
+                }
+                while (aCursorIdx < static_cast<int>(a.finger->fingerWidths.size())
+                       && bCursorIdx < static_cast<int>(b.finger->fingerWidths.size())) {
+                    if (std::abs(a.finger->fingerWidths[aCursorIdx] - b.finger->fingerWidths[bCursorIdx]) > POSITION_TOLERANCE_LDU) {
+                        return false;
+                    }
+                    ++aCursorIdx;
+                    --bCursorIdx;
+                }
+            }
+            const DegreesOfFreedom dof({}, {RotationPossibility(a.absStart, a.absDirection)});
+            result.push_back(std::make_shared<Connection>(a.connector, b.connector, dof));
+            return true;
+        }
+        std::optional<float> bricksim::connection::engine::ConnectionChecker::projectConnectorsWithLength() {
+            const auto projOnA = geometry::normalProjectionOnLine<3>(a.absStart, a.absEnd, b.absStart, false);
+            const float aLength = a.connectorWithLength->getTotalLength();
+            const float bLength = b.connectorWithLength->getTotalLength();
+
+            if ((sameDir && projOnA.projectionLength > aLength)                 // Aaaaaaa   Bbbbbbbbb
+                || (sameDir && projOnA.projectionLength < -bLength)             // Bbbbbb  Aaaaaa
+                || (oppositeDir && projOnA.projectionLength > aLength + bLength)// Aaaaaaa  bbbbbbbbB
+                || (oppositeDir && projOnA.projectionLength < 0)
+                || projOnA.distancePointToLine >= COLINEARITY_TOLERANCE_LDU) {// bbbbbbB   Aaaaaaaa
+                return std::nullopt;
+            } else {
+                return {projOnA.projectionLength};
+            }
+        }
     }
 
     std::vector<std::shared_ptr<Connection>> findConnections(const std::shared_ptr<etree::LdrNode>& a, const std::shared_ptr<etree::LdrNode>& b) {
         std::vector<std::shared_ptr<Connection>> result;
-
         const auto& connectorsA = getConnectorsOfPart(a->ldrFile->metaInfo.name);
         const auto& connectorsB = getConnectorsOfPart(b->ldrFile->metaInfo.name);
+
         for (const auto& ca: connectorsA) {
-            const glm::mat4 aAbsTransf = glm::transpose(a->getAbsoluteTransformation());
-            const glm::vec3 caAbsoluteStart = aAbsTransf * glm::vec4(ca->start, 1.f);
-            const glm::vec3 caAbsoluteDirection = aAbsTransf * glm::vec4(ca->direction, 0.f);
-            const auto caClip = std::dynamic_pointer_cast<ClipConnector>(ca);
-            const auto caCyl = std::dynamic_pointer_cast<CylindricalConnector>(ca);//todo maybe only call dynamic_pointer_cast if previous results are nullptr
-            const auto caFinger = std::dynamic_pointer_cast<FingerConnector>(ca);
-            const auto caGeneric = std::dynamic_pointer_cast<GenericConnector>(ca);
+            const ConnectorCheckData aData(a, ca);
             for (const auto& cb: connectorsB) {
-                const glm::mat4 bAbsTransf = glm::transpose(b->getAbsoluteTransformation());
-                const glm::vec3 cbAbsoluteStart = bAbsTransf * glm::vec4(cb->start, 1.f);
-                const glm::vec3 cbAbsoluteDirection = bAbsTransf * glm::vec4(cb->direction, 0.f);
-                const auto cbClip = std::dynamic_pointer_cast<ClipConnector>(cb);
-                const auto cbCyl = std::dynamic_pointer_cast<CylindricalConnector>(cb);
-                const auto cbFinger = std::dynamic_pointer_cast<FingerConnector>(cb);
-                const auto cbGeneric = std::dynamic_pointer_cast<GenericConnector>(cb);
-
-                const float absoluteDirectionAngleDifference = geometry::getAngleBetweenTwoVectors(caAbsoluteDirection, cbAbsoluteDirection);
-
-                if (caGeneric != nullptr || cbGeneric != nullptr) {
-                    if (caGeneric != nullptr
-                        && cbGeneric != nullptr
-                        && caGeneric->group == cbGeneric->group
-                        && caGeneric->gender != cbGeneric->gender
-                        //&& caGeneric->bounding == cbGeneric->bounding
-                        && glm::length2(caAbsoluteStart - cbAbsoluteStart) < std::pow(POSITION_TOLERANCE_LDU, 2)) {
-                        //todo maybe check bounding shapes, but documentation is unclear
-                        // is it a connection when the two bounding shapes touch
-                        // or is it only a connection when the shapes have the same dimensions and the orientation matches too?
-                        result.push_back(std::make_shared<Connection>(ca, cb));
-                        continue;
-                    }
-                } else {
-                    if (caCyl != nullptr) {
-                        const glm::vec3 caAbsoluteEnd = aAbsTransf * glm::vec4(caCyl->getEnd(), 1.f);
-                        if (cbCyl != nullptr) {
-                            const glm::vec3 cbAbsoluteEnd = bAbsTransf * glm::vec4(cbCyl->getEnd(), 1.f);
-                            if (caCyl->gender != cbCyl->gender) {
-                                const bool sameDir = absoluteDirectionAngleDifference < PARALLELITY_ANGLE_TOLERANCE;
-                                const bool oppositeDir = absoluteDirectionAngleDifference > M_PI - PARALLELITY_ANGLE_TOLERANCE;
-                                if (sameDir || oppositeDir) {
-                                    const geometry::NormalProjectionResult<3> projOnA = geometry::normalProjectionOnLine<3>(caAbsoluteStart, caAbsoluteEnd, cbAbsoluteStart, false);
-                                    if ((sameDir && projOnA.projectionLength > caCyl->getTotalLength())                                 // Aaaaaaa   Bbbbbbbbb
-                                        || (sameDir && projOnA.projectionLength < -cbCyl->getTotalLength())                             // Bbbbbb  Aaaaaa
-                                        || (oppositeDir && projOnA.projectionLength > caCyl->getTotalLength() + cbCyl->getTotalLength())// Aaaaaaa  bbbbbbbbB
-                                        || (oppositeDir && projOnA.projectionLength < 0)) {                                             // bbbbbbB   Aaaaaaaa
-                                        //the directions are colinear, but the parts are too far away from each other
-                                        continue;
-                                    }
-                                    if (projOnA.distancePointToLine < COLINEARITY_TOLERANCE_LDU) {
-                                        const int maleIdx = caCyl->gender == Gender::M ? 0 : 1;
-                                        const int femaleIdx = 1 - maleIdx;
-
-                                        std::vector<float> aBoundaries;
-                                        aBoundaries.reserve(caCyl->parts.size() + 1);
-                                        aBoundaries.push_back(0);
-                                        float offset = 0;
-                                        for (const auto& item: caCyl->parts) {
-                                            offset += item.length;
-                                            aBoundaries.push_back(offset);
-                                        }
-
-                                        std::vector<float> bBoundaries;
-                                        bBoundaries.reserve(cbCyl->parts.size() + 1);
-                                        std::vector<CylindricalShapePart> bParts;
-                                        bParts.reserve(cbCyl->parts.size());
-                                        if (sameDir) {
-                                            offset = projOnA.projectionLength;
-                                            bBoundaries.push_back(offset);
-                                            for (const auto& item: cbCyl->parts) {
-                                                offset += item.length;
-                                                bBoundaries.push_back(offset);
-                                                bParts.push_back(item);
-                                            }
-                                        } else {
-                                            offset = projOnA.projectionLength - cbCyl->getTotalLength();
-                                            bBoundaries.push_back(offset);
-                                            for (auto it = cbCyl->parts.rbegin(); it < cbCyl->parts.rend(); ++it) {
-                                                offset += it->length;
-                                                bBoundaries.push_back(offset);
-                                                bParts.push_back(*it);
-                                            }
-                                        }
-
-                                        //float lengthCursor = std::min(aBoundaries[0], bBoundaries[0]);
-                                        //const float maxLengthCursorValue = std::max(aBoundaries.back(), bBoundaries.back());
-                                        int aCursor = -1;
-                                        int bCursor = -1;
-                                        if (aBoundaries.front() < bBoundaries.front()) {
-                                            aCursor = 0;
-                                        } else {
-                                            bCursor = 0;
-                                        }
-                                        bool radialCollision = false;
-                                        bool rotationPossible = true;
-                                        bool contact = false;
-                                        bool slidePossible = caCyl->slide || cbCyl->slide;
-                                        while (aCursor < static_cast<int>(caCyl->parts.size()) && bCursor < static_cast<int>(bParts.size())) {
-                                            if (aCursor >= 0 && bCursor >= 0) {
-                                                const auto& pa = caCyl->parts[aCursor];
-                                                const auto& pb = bParts[bCursor];
-                                                const float radii[2] = {pa.radius, pb.radius};
-                                                const float maleRadius = radii[maleIdx];
-                                                const float femaleRadius = radii[femaleIdx];
-                                                if (maleRadius - femaleRadius > CYLINDRICAL_CONNECTION_RADIUS_TOLERANCE) {
-                                                    radialCollision = true;
-                                                    break;
-                                                }
-                                                contact |= femaleRadius - maleRadius < CYLINDRICAL_CONNECTION_RADIUS_TOLERANCE;
-                                                if (pa.type != CylindricalShapeType::ROUND && pa.type == pb.type) {
-                                                    rotationPossible = false;
-                                                }
-                                                if ((aCursor >= aBoundaries.size() - 2 && aBoundaries[aCursor + 1] < bBoundaries[bCursor])
-                                                    || (bCursor >= bBoundaries.size() - 2 && bBoundaries[bCursor + 1] < aBoundaries[aCursor])) {
-                                                    //no more common parts
-                                                    break;
-                                                }
-                                            }
-                                            if (aBoundaries[aCursor + 1] < bBoundaries[bCursor + 1]) {
-                                                ++aCursor;
-                                            } else {
-                                                ++bCursor;
-                                            }
-                                        }
-                                        if (!radialCollision && contact) {
-                                            std::vector<glm::vec3> slideDirections;
-                                            std::vector<glm::vec3> rotationAxes;
-                                            if (slidePossible) {
-                                                slideDirections.push_back(ca->direction);
-                                            }
-                                            if (rotationPossible) {
-                                                rotationAxes.push_back(ca->direction);
-                                            }
-                                            result.push_back(std::make_shared<Connection>(ca, cb, DegreesOfFreedom(slideDirections, rotationAxes)));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                const ConnectorCheckData bData(b, cb);
+                ConnectionChecker checker(aData, bData, result);
+                checker.findConnections();
             }
         }
         return result;
@@ -212,6 +318,21 @@ namespace bricksim::connection::engine {
                     result.addConnection(a, activeNode, conn);
                 }
             }
+        }
+    }
+    ConnectorCheckData::ConnectorCheckData(const std::shared_ptr<etree::LdrNode>& node, const std::shared_ptr<Connector>& connector) :
+        absTransformation(glm::transpose(node->getAbsoluteTransformation())),
+        absStart(absTransformation * glm::vec4(connector->start, 1.f)),
+        absEnd(absStart),
+        absDirection(absTransformation * glm::vec4(connector->direction, 0.f)),
+        connector(connector),
+        connectorWithLength(std::dynamic_pointer_cast<ConnectorWithLength>(connector)),
+        clip(std::dynamic_pointer_cast<ClipConnector>(connector)),
+        cyl(std::dynamic_pointer_cast<CylindricalConnector>(connector)),
+        finger(std::dynamic_pointer_cast<FingerConnector>(connector)),
+        generic(std::dynamic_pointer_cast<GenericConnector>(connector)) {
+        if (connectorWithLength != nullptr) {
+            absEnd = absTransformation * glm::vec4(connectorWithLength->getEnd(), 1.f);
         }
     }
 }

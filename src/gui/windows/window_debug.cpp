@@ -328,8 +328,10 @@ namespace bricksim::gui::windows::debug {
                                     if (ImGui::TreeNode(fmt::format("Connection {}", i).c_str())) {
                                         ImGui::BulletText("A: %s", item->connectorA->infoStr().c_str());
                                         ImGui::BulletText("B: %s", item->connectorB->infoStr().c_str());
-                                        for (const auto& ra: item->degreesOfFreedom.rotationAxes) {
-                                            ImGui::BulletText("Rotation axis: %s", glm::to_string(ra).c_str());
+                                        for (const auto& ra: item->degreesOfFreedom.rotationPossibilities) {
+                                            ImGui::BulletText("Rotation possibility: origin=%s, axis=%s",
+                                                              glm::to_string(ra.origin).c_str(),
+                                                              glm::to_string(ra.axis).c_str());
                                         }
                                         for (const auto& sd: item->degreesOfFreedom.slideDirections) {
                                             ImGui::BulletText("Slide direction: %s", glm::to_string(sd).c_str());

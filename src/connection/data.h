@@ -27,6 +27,13 @@ namespace bricksim::connection {
         virtual ~Connector() = default;
     };
 
+    class ConnectorWithLength : public Connector {
+    public:
+        ConnectorWithLength(const std::string& group, const glm::vec3& start, const glm::vec3& direction);
+        [[nodiscard]] virtual float getTotalLength() const = 0;
+        [[nodiscard]] glm::vec3 getEnd() const;
+    };
+
     enum class CylindricalShapeType {
         ROUND,
         AXLE,
@@ -41,7 +48,7 @@ namespace bricksim::connection {
         float length;
     };
 
-    class CylindricalConnector : public Connector {
+    class CylindricalConnector : public ConnectorWithLength {
     public:
         Gender gender;
         std::vector<CylindricalShapePart> parts;
@@ -49,7 +56,7 @@ namespace bricksim::connection {
         bool openEnd;
         bool slide;
 
-        CylindricalConnector(std::string group,
+        CylindricalConnector(const std::string& group,
                              const glm::vec3& start,
                              const glm::vec3& direction,
                              Gender gender,
@@ -58,8 +65,7 @@ namespace bricksim::connection {
                              bool openEnd,
                              bool slide);
 
-        [[nodiscard]] float getTotalLength() const;
-        [[nodiscard]] glm::vec3 getEnd() const;
+        [[nodiscard]] float getTotalLength() const override;
         /**
          * @param offsetFromStart
          * @return
@@ -71,7 +77,7 @@ namespace bricksim::connection {
         std::string infoStr() override;
     };
 
-    class ClipConnector : public Connector {
+    class ClipConnector : public ConnectorWithLength {
     public:
         float radius;
         float width;
@@ -85,9 +91,10 @@ namespace bricksim::connection {
                       bool slide);
         std::shared_ptr<Connector> clone() override;
         std::string infoStr() override;
+        [[nodiscard]] float getTotalLength() const override;
     };
 
-    class FingerConnector : public Connector {
+    class FingerConnector : public ConnectorWithLength {
     public:
         Gender firstFingerGender;
         float radius;
@@ -101,6 +108,7 @@ namespace bricksim::connection {
                         const std::vector<float>& fingerWidths);
         std::shared_ptr<Connector> clone() override;
         std::string infoStr() override;
+        [[nodiscard]] float getTotalLength() const override;
     };
 
     class GenericConnector : public Connector {
@@ -117,14 +125,19 @@ namespace bricksim::connection {
         std::string infoStr() override;
     };
 
+    struct RotationPossibility {
+        glm::vec3 origin;
+        glm::vec3 axis;
+    };
+
     class DegreesOfFreedom {
     public:
         std::vector<glm::vec3> slideDirections;
-        std::vector<glm::vec3> rotationAxes;
+        std::vector<RotationPossibility> rotationPossibilities;
 
         DegreesOfFreedom();
         DegreesOfFreedom(const std::vector<glm::vec3>& slideDirections,
-                         const std::vector<glm::vec3>& rotationAxes);
+                         const std::vector<RotationPossibility>& rotationPossibilities);
     };
 
     class Connection {

@@ -218,8 +218,8 @@ namespace bricksim::connection::engine {
             if ((sameDir && projOnA.projectionLength > aLength)                 // Aaaaaaa   Bbbbbbbbb
                 || (sameDir && projOnA.projectionLength < -bLength)             // Bbbbbb  Aaaaaa
                 || (oppositeDir && projOnA.projectionLength > aLength + bLength)// Aaaaaaa  bbbbbbbbB
-                || (oppositeDir && projOnA.projectionLength < 0)
-                || projOnA.distancePointToLine >= COLINEARITY_TOLERANCE_LDU) {// bbbbbbB   Aaaaaaaa
+                || (oppositeDir && projOnA.projectionLength < 0)                // bbbbbbB   Aaaaaaaa
+                || projOnA.distancePointToLine >= COLINEARITY_TOLERANCE_LDU) {  //a and b aren't colinear
                 return std::nullopt;
             } else {
                 return {projOnA.projectionLength};
@@ -289,13 +289,19 @@ namespace bricksim::connection::engine {
         absStart(absTransformation * glm::vec4(connector->start, 1.f)),
         absEnd(absStart),
         absDirection(absTransformation * glm::vec4(connector->direction, 0.f)),
-        connector(connector),
-        connectorWithLength(std::dynamic_pointer_cast<ConnectorWithLength>(connector)),
-        clip(std::dynamic_pointer_cast<ClipConnector>(connector)),
-        cyl(std::dynamic_pointer_cast<CylindricalConnector>(connector)),
-        finger(std::dynamic_pointer_cast<FingerConnector>(connector)),
-        generic(std::dynamic_pointer_cast<GenericConnector>(connector)) {
-        if (connectorWithLength != nullptr) {
+        connector(connector) {
+        clip = std::dynamic_pointer_cast<ClipConnector>(connector);
+        if (clip == nullptr) {
+            cyl = std::dynamic_pointer_cast<CylindricalConnector>(connector);
+            if (cyl == nullptr) {
+                finger = std::dynamic_pointer_cast<FingerConnector>(connector);
+                if (finger == nullptr) {
+                    generic = std::dynamic_pointer_cast<GenericConnector>(connector);
+                }
+            }
+        }
+        if (generic == nullptr) {
+            connectorWithLength = std::dynamic_pointer_cast<ConnectorWithLength>(connector);
             absEnd = absTransformation * glm::vec4(connectorWithLength->getEnd(), 1.f);
         }
     }

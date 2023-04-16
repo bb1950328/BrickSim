@@ -167,82 +167,46 @@ namespace bricksim::connection::engine {
             if (!startOffsetOpt.has_value()) {
                 return false;
             }
-            const float startOffset = startOffsetOpt.value();
-            if (sameDir) {//todo try to extract common code from this if/else
-                int aCursorIdx = 0;
-                int bCursorIdx = 0;
-                if (startOffset < -POSITION_TOLERANCE_LDU) {
-                    float offset = -startOffset;
-                    while (offset > POSITION_TOLERANCE_LDU) {
-                        offset -= b.finger->fingerWidths[bCursorIdx];
-                        ++bCursorIdx;
-                    }
-                    if (offset < -POSITION_TOLERANCE_LDU) {
-                        return false;
-                    }
-                } else if (startOffset > POSITION_TOLERANCE_LDU) {
-                    float offset = startOffset;
-                    while (offset > POSITION_TOLERANCE_LDU) {
-                        offset -= a.finger->fingerWidths[aCursorIdx];
-                        ++aCursorIdx;
-                    }
-                    if (offset < -POSITION_TOLERANCE_LDU) {
-                        return false;
-                    }
+            int aCursorIdx = 0;
+            int bCursorIdx = sameDir ? 0 : static_cast<int>(b.finger->fingerWidths.size()) - 1;
+            const int bCursorStep = sameDir ? 1 : -1;
+            const float aOffset = sameDir ? startOffsetOpt.value() : startOffsetOpt.value() - b.finger->getTotalLength();
+
+            if (aOffset < -POSITION_TOLERANCE_LDU) {
+                float offset = -aOffset;
+                while (offset > POSITION_TOLERANCE_LDU) {
+                    offset -= b.finger->fingerWidths[bCursorIdx];
+                    bCursorIdx += bCursorStep;
                 }
-                if ((std::abs(aCursorIdx - bCursorIdx) % 2 == 0
-                     && a.finger->firstFingerGender == b.finger->firstFingerGender)
-                    || (std::abs(aCursorIdx - bCursorIdx) % 2 == 1
-                        && a.finger->firstFingerGender != b.finger->firstFingerGender)) {
+                if (offset < -POSITION_TOLERANCE_LDU) {
                     return false;
                 }
-                while (aCursorIdx < static_cast<int>(a.finger->fingerWidths.size())
-                       && bCursorIdx < static_cast<int>(b.finger->fingerWidths.size())) {
-                    if (std::abs(a.finger->fingerWidths[aCursorIdx] - b.finger->fingerWidths[bCursorIdx]) > POSITION_TOLERANCE_LDU) {
-                        return false;
-                    }
+            } else if (aOffset > POSITION_TOLERANCE_LDU) {
+                float offset = aOffset;
+                while (offset > POSITION_TOLERANCE_LDU) {
+                    offset -= a.finger->fingerWidths[aCursorIdx];
                     ++aCursorIdx;
-                    ++bCursorIdx;
                 }
-            } else {
-                int aCursorIdx = 0;
-                int bCursorIdx = static_cast<int>(b.finger->fingerWidths.size()) - 1;
-                const float aOffset = startOffset - b.finger->getTotalLength();
-                if (aOffset < -POSITION_TOLERANCE_LDU) {
-                    float offset = -aOffset;
-                    while (offset > POSITION_TOLERANCE_LDU) {
-                        offset -= b.finger->fingerWidths[bCursorIdx];
-                        --bCursorIdx;
-                    }
-                    if (offset < -POSITION_TOLERANCE_LDU) {
-                        return false;
-                    }
-                } else if (aOffset > POSITION_TOLERANCE_LDU) {
-                    float offset = aOffset;
-                    while (offset > POSITION_TOLERANCE_LDU) {
-                        offset -= a.finger->fingerWidths[aCursorIdx];
-                        ++aCursorIdx;
-                    }
-                    if (offset < -POSITION_TOLERANCE_LDU) {
-                        return false;
-                    }
-                }
-                if ((std::abs(aCursorIdx - bCursorIdx) % 2 == 0
-                     && a.finger->firstFingerGender == b.finger->firstFingerGender)
-                    || (std::abs(aCursorIdx - bCursorIdx) % 2 == 1
-                        && a.finger->firstFingerGender != b.finger->firstFingerGender)) {
+                if (offset < -POSITION_TOLERANCE_LDU) {
                     return false;
-                }
-                while (aCursorIdx < static_cast<int>(a.finger->fingerWidths.size())
-                       && bCursorIdx < static_cast<int>(b.finger->fingerWidths.size())) {
-                    if (std::abs(a.finger->fingerWidths[aCursorIdx] - b.finger->fingerWidths[bCursorIdx]) > POSITION_TOLERANCE_LDU) {
-                        return false;
-                    }
-                    ++aCursorIdx;
-                    --bCursorIdx;
                 }
             }
-            const DegreesOfFreedom dof({}, {RotationPossibility(a.absStart, a.absDirection)});
+            if ((std::abs(aCursorIdx - bCursorIdx) % 2 == 0
+                 && a.finger->firstFingerGender == b.finger->firstFingerGender)
+                || (std::abs(aCursorIdx - bCursorIdx) % 2 == 1
+                    && a.finger->firstFingerGender != b.finger->firstFingerGender)) {
+                return false;
+            }
+            while (aCursorIdx < static_cast<int>(a.finger->fingerWidths.size())
+                   && bCursorIdx < static_cast<int>(b.finger->fingerWidths.size())) {
+                if (std::abs(a.finger->fingerWidths[aCursorIdx] - b.finger->fingerWidths[bCursorIdx]) > POSITION_TOLERANCE_LDU) {
+                    return false;
+                }
+                ++aCursorIdx;
+                bCursorIdx += bCursorStep;
+            }
+            DegreesOfFreedom dof;
+            dof.rotationPossibilities.emplace_back(a.absStart, a.absDirection);
             result.push_back(std::make_shared<Connection>(a.connector, b.connector, dof));
             return true;
         }

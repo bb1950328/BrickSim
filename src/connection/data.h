@@ -128,6 +128,7 @@ namespace bricksim::connection {
     struct RotationPossibility {
         glm::vec3 origin;
         glm::vec3 axis;
+        RotationPossibility(const glm::vec3& origin, const glm::vec3& axis);
     };
 
     class DegreesOfFreedom {

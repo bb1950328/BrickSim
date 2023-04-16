@@ -4,6 +4,7 @@
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/fmt/ranges.h>
 
+#include <numeric>
 #include <utility>
 
 namespace bricksim::connection {
@@ -204,4 +205,6 @@ namespace bricksim::connection {
                                              const glm::vec3& start,
                                              const glm::vec3& direction) :
         Connector(group, start, direction) {}
+    RotationPossibility::RotationPossibility(const glm::vec3& origin, const glm::vec3& axis) :
+        origin(origin), axis(axis) {}
 }

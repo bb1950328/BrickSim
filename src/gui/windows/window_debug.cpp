@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 
+#include "../../connection/visualization/connection_graphviz_generator.h"
 #include "spdlog/spdlog.h"
 #include "window_debug.h"
 #include "window_mesh_inspector.h"
@@ -358,6 +359,11 @@ namespace bricksim::gui::windows::debug {
                         }
                     } else {
                         ImGui::Text("select one or two parts to see its connections");
+                    }
+                    if (ImGui::Button("Copy GraphViz of all Connections to Clipboard")) {
+                        const auto graph = connection::engine::findConnections(activeEditor->getDocumentNode(), activeEditor->getScene()->getMeshCollection());
+                        const auto graphvizCode = connection::visualization::generateGraphviz(graph);
+                        glfwSetClipboardString(getWindow(), graphvizCode.c_str());
                     }
                 }
                 ImGui::EndTabItem();

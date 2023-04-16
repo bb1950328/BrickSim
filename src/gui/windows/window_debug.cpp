@@ -314,10 +314,14 @@ namespace bricksim::gui::windows::debug {
                     }
                     if (ldrNodes.size() == 1) {
                         const auto node = ldrNodes[0];
-                        const auto before = std::chrono::high_resolution_clock::now();
-                        const connection::ConnectionGraph connectionGraph = connection::engine::findConnections(node, activeEditor->getDocumentNode(), activeEditor->getScene()->getMeshCollection());
-                        const auto after = std::chrono::high_resolution_clock::now();
-                        const auto time = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.0f;
+                        connection::ConnectionGraph connectionGraph;
+                        float time = 999999999999.f;
+                        for (int i = 0; i < 10; ++i) {
+                            const auto before = std::chrono::high_resolution_clock::now();
+                            connectionGraph = connection::engine::findConnections(node, activeEditor->getDocumentNode(), activeEditor->getScene()->getMeshCollection());
+                            const auto after = std::chrono::high_resolution_clock::now();
+                            time = std::min(time, static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.0f);
+                        }
                         const auto& connectionsToNode = connectionGraph.getConnections(node);
                         ImGui::Text("%lu connections between selected part and all other parts found in %.3fms", connectionGraph.countTotalConnections(), time);
                         for (const auto& c: connectionsToNode) {

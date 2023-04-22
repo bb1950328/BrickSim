@@ -365,20 +365,21 @@ namespace bricksim::gui::windows::debug {
                     }
                     if (graphviz_wrapper::isAvailable()) {
                         if (ImGui::Button("Export all Connections with GraphViz")) {
-                            char const* outputPath = tinyfd_saveFileDialog(
+                            char const* outputPathChars = tinyfd_saveFileDialog(
                                     "Export Connection Graph",
                                     "connections.png",
                                     graphviz_wrapper::OUTPUT_FILE_FILTER_PATTERNS.size(),
                                     graphviz_wrapper::OUTPUT_FILE_FILTER_PATTERNS.data(),
                                     nullptr);
-                            if (outputPath != nullptr) {
-                                controller::getForegroundTasks().emplace("Export Connections with GraphViz", [&outputPath, activeEditor](auto* progress) {
+                            if (outputPathChars != nullptr) {
+                                std::filesystem::path outputFile = outputPathChars;
+                                controller::getForegroundTasks().emplace("Export Connections with GraphViz", [outputFile, activeEditor](auto* progress) {
                                     *progress = .0f;
                                     const auto graph = connection::engine::findConnections(activeEditor->getDocumentNode(), activeEditor->getScene()->getMeshCollection());
                                     *progress = .2f;
                                     const auto graphvizCode = connection::visualization::generateGraphviz(graph);
                                     *progress = .3f;
-                                    graphvizCode.renderToFile(outputPath);
+                                    graphvizCode.renderToFile(outputFile);
                                     *progress = 1.f;
                                 });
                             }

@@ -59,6 +59,3 @@
 [submodule "src/lib/fcl"]
 	path = src/lib/fcl
 	url = https://github.com/bb1950328/fcl
-[submodule "src/lib/libccd"]
-	path = src/lib/libccd
-	url = https://github.com/danfis/libccd.git

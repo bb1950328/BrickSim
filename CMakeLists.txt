@@ -253,10 +253,6 @@ if (USE_PALANTEER)
 endif ()
 target_include_directories(BrickSimLib PRIVATE src/lib/palanteer/c++)
 
-#libccd
-set(CMAKE_POLICY_DEFAULT_CMP0048 NEW)
-add_subdirectory(src/lib/libccd)
-
 #fcl
 set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
 set(FCL_STATIC_LIBRARY ON CACHE BOOL "Whether the FCL library should be static rather than shared" FORCE)

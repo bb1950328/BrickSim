@@ -365,8 +365,6 @@ namespace bricksim::gui::windows::debug {
                     }
                     if (graphviz_wrapper::isAvailable()) {
                         if (ImGui::Button("Export all Connections with GraphViz")) {
-                            const auto graph = connection::engine::findConnections(activeEditor->getDocumentNode(), activeEditor->getScene()->getMeshCollection());
-                            const auto graphvizCode = connection::visualization::generateGraphviz(graph);
                             char const* outputPath = tinyfd_saveFileDialog(
                                     "Export Connection Graph",
                                     "connections.png",
@@ -374,7 +372,15 @@ namespace bricksim::gui::windows::debug {
                                     graphviz_wrapper::OUTPUT_FILE_FILTER_PATTERNS.data(),
                                     nullptr);
                             if (outputPath != nullptr) {
-                                graphvizCode.renderToFile(outputPath);
+                                controller::getForegroundTasks().emplace("Export Connections with GraphViz", [&outputPath, activeEditor](auto* progress) {
+                                    *progress = .0f;
+                                    const auto graph = connection::engine::findConnections(activeEditor->getDocumentNode(), activeEditor->getScene()->getMeshCollection());
+                                    *progress = .2f;
+                                    const auto graphvizCode = connection::visualization::generateGraphviz(graph);
+                                    *progress = .3f;
+                                    graphvizCode.renderToFile(outputPath);
+                                    *progress = 1.f;
+                                });
                             }
                         }
                     } else {

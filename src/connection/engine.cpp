@@ -1,9 +1,11 @@
 #include "engine.h"
 
 #include "../helpers/geometry.h"
+#include "../helpers/glm_eigen_conversion.h"
 #include "connector_data_provider.h"
 #include "spdlog/fmt/ostr.h"
 #include "spdlog/spdlog.h"
+#include <fcl/broadphase/broadphase_dynamic_AABB_tree.h>
 #include <utility>
 
 namespace bricksim::connection::engine {
@@ -243,13 +245,44 @@ namespace bricksim::connection::engine {
         return result;
     }
 
+    bool collisionCallback(fcl::CollisionObjectf* o1, fcl::CollisionObjectf* o2, void* cdata) {
+        //spdlog::debug("collision callback {} {}", fmt::ptr(o1), fmt::ptr(o2));
+        auto* result = static_cast<ConnectionGraph*>(cdata);
+        const auto a = static_cast<std::shared_ptr<etree::LdrNode>*>(o1->getUserData());
+        const auto b = static_cast<std::shared_ptr<etree::LdrNode>*>(o2->getUserData());
+        for (const auto& conn: findConnections(*a, *b)) {
+            static uint64_t c = 0;
+            spdlog::debug("found conn {}", c++);
+            result->addConnection(*a, *b, conn);
+        }
+        return false;
+    }
+
     ConnectionGraph findConnections(const std::shared_ptr<etree::Node>& node, const mesh::SceneMeshCollection& meshCollection) {
         std::vector<std::shared_ptr<etree::LdrNode>> flat = getAllLdrNodesFlat(node);
         ConnectionGraph result = ConnectionGraph();
 
+        std::vector<std::unique_ptr<fcl::CollisionObjectf>> objects;
+        objects.reserve(flat.size());
+        fcl::DynamicAABBTreeCollisionManagerf manager;
+        spdlog::debug("start with finding connections");
+        for (auto& a: flat) {
+            const auto aAABB = meshCollection.getRelativeAABB(a);
+            auto size = aAABB.getSize();
+            auto box = std::make_shared<fcl::Boxf>(fcl::Vector3f(&size[0]));
+
+            objects.emplace_back(std::make_unique<fcl::CollisionObjectf>(box));
+
+            objects.back()->setTransform(fcl::Transform3f(glm2eigen(a->getAbsoluteTransformation())));
+            objects.back()->setUserData(static_cast<void*>(&a));
+            manager.registerObject(objects.back().get());
+        }
+        spdlog::debug("collision manager built");
+        manager.collide(&result, collisionCallback);
+
         // TODO replace this O(n^2) garbage with an AABB tree
         //  also add an AABB tree on `Editor` which is constantly updated
-        for (int i = 0; i < flat.size(); ++i) {
+        /*for (int i = 0; i < flat.size(); ++i) {
             const auto a = flat[i];
             const auto aAABB = meshCollection.getAbsoluteAABB(a);
             for (int j = 0; j < i; ++j) {
@@ -261,7 +294,7 @@ namespace bricksim::connection::engine {
                     }
                 }
             }
-        }
+        }*/
 
         return result;
     }

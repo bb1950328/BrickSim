@@ -9,6 +9,8 @@ target_sources(BrickSimLib PRIVATE
         fraction.h
         geometry.cpp
         geometry.h
+        glm_eigen_conversion.cpp
+        glm_eigen_conversion.h
         graphviz_wrapper.cpp
         graphviz_wrapper.h
         palanteer_implementation.cpp

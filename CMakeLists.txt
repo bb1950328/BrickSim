@@ -253,13 +253,21 @@ if (USE_PALANTEER)
 endif ()
 target_include_directories(BrickSimLib PRIVATE src/lib/palanteer/c++)
 
+#libccd
+set(CMAKE_POLICY_DEFAULT_CMP0048 NEW)
+add_subdirectory(src/lib/libccd)
+
 #fcl
-#set(CMAKE_POLICY_DEFAULT_CMP0111 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
 set(FCL_STATIC_LIBRARY ON CACHE BOOL "Whether the FCL library should be static rather than shared" FORCE)
 set(FCL_WITH_OCTOMAP OFF CACHE BOOL "OctoMap library support" FORCE)
 add_subdirectory(src/lib/fcl)
 target_link_libraries(BrickSimLib PRIVATE fcl)
-#target_include_directories(jbcopter_lib PUBLIC lib/fcl/include)
+#target_include_directories(BrickSimLib PUBLIC lib/fcl/include)
+
+#eigen
+find_package(Eigen3 3.4 REQUIRED NO_MODULE)
+target_link_libraries(BrickSimLib PRIVATE Eigen3::Eigen)
 
 add_subdirectory(src)
 

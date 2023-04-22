@@ -15,7 +15,7 @@ namespace bricksim::connection::engine {
                 if (ldrNode != nullptr) {
                     flat.push_back(ldrNode);
                 }
-                for (const auto& item: ldrNode->getChildren()) {
+                for (const auto& item: node->getChildren()) {
                     traverse(item);
                 }
             };
@@ -152,7 +152,7 @@ namespace bricksim::connection::engine {
                 dof.slideDirections.push_back(a.absDirection);
             }
             if (rotationPossible) {
-                dof.rotationPossibilities.push_back({a.absStart, a.absDirection});
+                dof.rotationPossibilities.emplace_back(a.absStart, a.absDirection);
             }
             result.push_back(std::make_shared<Connection>(a.connector, b.connector, dof));
             return true;

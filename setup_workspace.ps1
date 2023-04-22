@@ -1,4 +1,4 @@
-vcpkg install freeglut zlib
+vcpkg install freeglut zlib eigen3
 
 Expand-Archive 'src\lib\glad.zip' 'glad_tmp'
 Move-Item -Path 'glad_tmp\src\glad.c' -Destination 'src\lib\glad.c'

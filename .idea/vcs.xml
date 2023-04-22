@@ -27,9 +27,11 @@
     <mapping directory="$PROJECT_DIR$/src/lib/earcut.hpp/glfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/esfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/fast_float" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/fcl" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/glfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/glm" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/imgui" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/libccd" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/libzip" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/magic_enum" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/palanteer" vcs="Git" />

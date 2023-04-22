@@ -1,2 +1,1 @@
-freeglut
-zlib
+freeglut zlib

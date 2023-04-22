@@ -9,7 +9,7 @@
 
 namespace bricksim::graphics {
 
-    unsigned int ThumbnailGenerator::getThumbnail(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference color) {
+    std::shared_ptr<Texture> ThumbnailGenerator::getThumbnail(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference color) {
         plFunction();
         if (renderedRotationDegrees != rotationDegrees) {
             discardAllImages();
@@ -33,21 +33,21 @@ namespace bricksim::graphics {
             std::vector<GLbyte> buffer;
             buffer.resize(totalBufferSize);
             controller::executeOpenGL([this, &buffer, &fileKey]() {
-                //todo copy image directrly (VRAM -> VRAM instead of VRAM -> RAM -> VRAM)
+                //todo copy image directly (VRAM -> VRAM instead of VRAM -> RAM -> VRAM)
                 glBindFramebuffer(GL_READ_FRAMEBUFFER, scene->getImage().getFBO());
                 glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-                unsigned int textureId;
+                texture_id_t textureId;
                 glGenTextures(1, &textureId);
                 glBindTexture(GL_TEXTURE_2D, textureId);
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 //glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, size, size, 0);
-                //t odo this causes source=API, type=ERROR, id=1282: Error has been generated. GL error GL_INVALID_OPERATION in FramebufferTexture2D: (ID: 2333930068) Generic error
+                //todo this causes source=API, type=ERROR, id=1282: Error has been generated. GL error GL_INVALID_OPERATION in FramebufferTexture2D: (ID: 2333930068) Generic error
                 //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
-                images[fileKey] = textureId;
+                images.emplace(fileKey, std::make_shared<Texture>(textureId, size, size, 3));
             });
             auto after = std::chrono::high_resolution_clock::now();
             metrics::lastThumbnailRenderingTimeMs = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.f;
@@ -58,12 +58,6 @@ namespace bricksim::graphics {
     }
 
     void ThumbnailGenerator::discardAllImages() {
-        controller::executeOpenGL([this]() {
-            for (const auto& item: images) {
-                glDeleteTextures(1, &item.second);
-            }
-        });
-
         images.clear();
         lastAccessed.clear();
     }
@@ -73,7 +67,6 @@ namespace bricksim::graphics {
             int deletedCount = 0;
             while (lastAccessed.size() > maxCachedThumbnails - reserve_space_for) {
                 auto lastAccessedIt = lastAccessed.front();
-                glDeleteTextures(1, &images[lastAccessedIt]);
                 lastAccessed.remove(lastAccessedIt);
                 images.erase(lastAccessedIt);
                 deletedCount++;
@@ -82,7 +75,7 @@ namespace bricksim::graphics {
         });
     }
 
-    std::optional<unsigned int> ThumbnailGenerator::getThumbnailNonBlocking(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color) {
+    std::optional<std::shared_ptr<Texture>> ThumbnailGenerator::getThumbnailNonBlocking(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color) {
         if (renderedRotationDegrees != rotationDegrees) {
             discardAllImages();
             renderedRotationDegrees = rotationDegrees;

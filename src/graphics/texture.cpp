@@ -38,17 +38,7 @@ namespace bricksim::graphics {
             glGenTextures(1, &textureId);
             glBindTexture(GL_TEXTURE_2D, textureId);
 
-            GLint format;
-            if (nrChannels == 1) {
-                format = GL_RED;
-            } else if (nrChannels == 3) {
-                format = GL_RGB;
-            } else if (nrChannels == 4) {
-                format = GL_RGBA;
-            } else {
-                spdlog::warn("image has a weird number of channels: {}", nrChannels);
-                format = GL_RGB;
-            }
+            GLint format = getGlFormatFromNrChannels(nrChannels);
             glBindTexture(GL_TEXTURE_2D, textureId);
             glTexImage2D(GL_TEXTURE_2D, 0, format, imgWidth, imgHeight, 0, format, GL_UNSIGNED_BYTE, data);
             glGenerateMipmap(GL_TEXTURE_2D);
@@ -59,6 +49,20 @@ namespace bricksim::graphics {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         });
         return textureId;
+    }
+    GLint Texture::getGlFormatFromNrChannels(int nrChannels) {
+        GLint format;
+        if (nrChannels == 1) {
+            format = GL_RED;
+        } else if (nrChannels == 3) {
+            format = GL_RGB;
+        } else if (nrChannels == 4) {
+            format = GL_RGBA;
+        } else {
+            spdlog::warn("image has a weird number of channels: {}", nrChannels);
+            format = GL_RGB;
+        }
+        return format;
     }
 
     void Texture::bind(uint8_t slot) const {
@@ -88,5 +92,23 @@ namespace bricksim::graphics {
 
     void Texture::unbind() const {
         glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    Texture::Texture(texture_id_t textureId, int width, int height, int nrChannels) :
+        textureId(textureId), width(width), height(height), nrChannels(nrChannels) {}
+
+    void Texture::saveToFile(const std::filesystem::path& path) {
+        auto data = std::vector<GLubyte>();
+        data.resize((size_t)width * height * nrChannels);
+        controller::executeOpenGL([this, &data]() {
+            GLint format = getGlFormatFromNrChannels(nrChannels);
+            bind();
+            glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, &data[0]);
+            unbind();
+        });
+
+        const bool success = util::writeImage(path.string().c_str(), &data[0], width, height, nrChannels);
+        if (!success) {
+            throw std::invalid_argument("Texture::saveToFile did not succeed");
+        }
     }
 }

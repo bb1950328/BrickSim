@@ -26,101 +26,101 @@ jobs:
     name: Linux Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
 
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-        fetch-depth: 0
-    
-    - name: Setup Workspace
-      run: ./setup_workspace.sh
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          fetch-depth: 0
 
-    - if: "contains(github.event.head_commit.message, 'codeql')"
-      name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
-      with:
-        languages: cpp
+      - name: Setup Workspace
+        run: ./setup_workspace.sh
 
-    - name: Create Build Directory
-      run: mkdir -p ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
+      - if: "contains(github.event.head_commit.message, 'codeql')"
+        name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: cpp
 
-    - run: ls -l /usr/lib | grep linux
-    - run: ls -l /usr
+      - name: Create Build Directory
+        run: mkdir -p ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
 
-    - name: install ccache
-      run: sudo apt install ccache
+      - run: ls -l /usr/lib | grep linux
+      - run: ls -l /usr
 
-    - name: Get timestamp
-      run: echo "::set-output name=timestamp::$(date --iso-8601=seconds)"
-      id: get_timestamp
+      - name: install ccache
+        run: sudo apt install ccache
 
-    - name: Setup cache
-      uses: actions/cache@v2
-      with:
-        path: ${{runner.workspace}}/.ccache
-        key: ccache-${{ runner.os }}-${{ matrix.arch }}-${{ steps.get_timestamp.outputs.timestamp }}
-        restore-keys: |
-          ccache-${{ runner.os }}-${{ matrix.arch }}-
+      - name: Get timestamp
+        run: echo "::set-output name=timestamp::$(date --iso-8601=seconds)"
+        id: get_timestamp
 
-    - name: Configure CMake
-      shell: bash
-      working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
-      run: |
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_LIBRARY_PATH=/usr/lib/${{ matrix.arch }}-linux-gnu -G Ninja
-      env:
-        CC: gcc-10
-        CXX: g++-10
-        CFLAGS: -m${{ matrix.bits }}
-        LDFLAGS: -m${{ matrix.bits }}
-        CXXFLAGS: -m${{ matrix.bits }}
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: ${{runner.workspace}}/.ccache
+          key: ccache-${{ runner.os }}-${{ matrix.arch }}-${{ steps.get_timestamp.outputs.timestamp }}
+          restore-keys: |
+            ccache-${{ runner.os }}-${{ matrix.arch }}-
 
-        CCACHE_BASEDIR: ${{runner.workspace}}
-        CCACHE_DIR: ${{runner.workspace}}/.ccache
-        CCACHE_COMPRESS: true
-        CCACHE_COMPRESSLEVEL: 6
-        CCACHE_MAXSIZE: 500M
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
+        run: |
+          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+                -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_LIBRARY_PATH=/usr/lib/${{ matrix.arch }}-linux-gnu -G Ninja
+        env:
+          CC: gcc-10
+          CXX: g++-10
+          CFLAGS: -m${{ matrix.bits }}
+          LDFLAGS: -m${{ matrix.bits }}
+          CXXFLAGS: -m${{ matrix.bits }}
 
-#    - name: get info
-#      run: |
-#        gcc --version
-#        whereis gcc
-#        echo "runner.workspace: \"${{runner.workspace}}\""
+          CCACHE_BASEDIR: ${{runner.workspace}}
+          CCACHE_DIR: ${{runner.workspace}}/.ccache
+          CCACHE_COMPRESS: true
+          CCACHE_COMPRESSLEVEL: 6
+          CCACHE_MAXSIZE: 500M
 
-    - name: Build
-      working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
-      shell: bash
-      run: |
-        ccache -z # zero statistics
-        cmake --build . --target BrickSim BrickSimTests --config $BUILD_TYPE -j $(nproc --all)
-        ccache -s # print statistics
-      env:
-        CCACHE_BASEDIR: ${{runner.workspace}}
-        CCACHE_DIR: ${{runner.workspace}}/.ccache
-        CCACHE_COMPRESS: true
-        CCACHE_COMPRESSLEVEL: 6
-        CCACHE_MAXSIZE: 500M
+      #    - name: get info
+      #      run: |
+      #        gcc --version
+      #        whereis gcc
+      #        echo "runner.workspace: \"${{runner.workspace}}\""
 
-    - if: "contains(github.event.head_commit.message, 'codeql')"
-      name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
-      with:
-        config-file: ./.github/codeql/codeql-config.yml
+      - name: Build
+        working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
+        shell: bash
+        run: |
+          ccache -z # zero statistics
+          cmake --build . --target BrickSim BrickSimTests --config $BUILD_TYPE -j $(nproc --all)
+          ccache -s # print statistics
+        env:
+          CCACHE_BASEDIR: ${{runner.workspace}}
+          CCACHE_DIR: ${{runner.workspace}}/.ccache
+          CCACHE_COMPRESS: true
+          CCACHE_COMPRESSLEVEL: 6
+          CCACHE_MAXSIZE: 500M
 
-    - name: list all binaries in runner workspace
-      run: find ${{runner.workspace}} -type f -executable
+      - if: "contains(github.event.head_commit.message, 'codeql')"
+        name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
+        with:
+          config-file: ./.github/codeql/codeql-config.yml
 
-    - name: BrickSimRawBinary
-      uses: actions/upload-artifact@v2
-      with:
-        name: BrickSimRawBinary_Linux${{ matrix.bits }}
-        path: |
-          ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSim
+      - name: list all binaries in runner workspace
+        run: find ${{runner.workspace}} -type f -executable
 
-    - name: Upload BrickSimTests
-      uses: actions/upload-artifact@v2
-      with:
-        name: BrickSimTests_Linux${{ matrix.bits }}
-        path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSimTests
+      - name: BrickSimRawBinary
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimRawBinary_Linux${{ matrix.bits }}
+          path: |
+            ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSim
+
+      - name: Upload BrickSimTests
+        uses: actions/upload-artifact@v2
+        with:
+          name: BrickSimTests_Linux${{ matrix.bits }}
+          path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSimTests
   testLinux:
     name: Linux Tests
     needs: buildLinux
@@ -153,7 +153,7 @@ jobs:
         if: failure()
         run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes
 
-#todo publish only one comment for all platforms
+      #todo publish only one comment for all platforms
       #- name: Publish Test Result Comment
       #  if: failure()
       #  run: |
@@ -247,20 +247,21 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+      # todo convert the next two steps to a setup_workspace.ps1 script
       - name: Install packages
         shell: cmd
         working-directory: ${{runner.workspace}}\BrickSim
-        run: vcpkg "@vcpkg_rf.txt"
-      
+        run: vcpkg install "@vcpkg_rf.txt"
+
       - name: Unzip files
         shell: powershell
         working-directory: ${{runner.workspace}}\BrickSim
         run: |
-             Expand-Archive 'src\lib\glad.zip' 'glad_tmp'
-             Move-Item -Path 'glad_tmp\src\glad.c' -Destination 'src\lib\glad.c'
-             Move-Item -Path 'glad_tmp\include' -Destination 'src\lib\include'
-             Remove-Item -Recurse -Force 'glad_tmp'
-      
+          Expand-Archive 'src\lib\glad.zip' 'glad_tmp'
+          Move-Item -Path 'glad_tmp\src\glad.c' -Destination 'src\lib\glad.c'
+          Move-Item -Path 'glad_tmp\include' -Destination 'src\lib\include'
+          Remove-Item -Recurse -Force 'glad_tmp'
+
       - name: Get git info
         shell: bash
         id: git_info
@@ -595,7 +596,7 @@ jobs:
         with:
           name: UnitTestReport_Windows64
           path: artifacts
-    
+
       - name: Split files by format
         run: |
           mkdir junitReports
@@ -603,7 +604,7 @@ jobs:
           mv artifacts/*junit* junitReports
           mv artifacts/*catch* catchReports
       - run: ls -Rl
-    
+
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1.28
         with:

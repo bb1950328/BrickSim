@@ -247,20 +247,11 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-      # todo convert the next two steps to a setup_workspace.ps1 script
-      - name: Install packages
-        shell: cmd
-        working-directory: ${{runner.workspace}}\BrickSim
-        run: vcpkg install "@vcpkg_rf.txt"
 
-      - name: Unzip files
+      - name: Setup Workspace
         shell: powershell
         working-directory: ${{runner.workspace}}\BrickSim
-        run: |
-          Expand-Archive 'src\lib\glad.zip' 'glad_tmp'
-          Move-Item -Path 'glad_tmp\src\glad.c' -Destination 'src\lib\glad.c'
-          Move-Item -Path 'glad_tmp\include' -Destination 'src\lib\include'
-          Remove-Item -Recurse -Force 'glad_tmp'
+        run: .\setup_workspace.ps1
 
       - name: Get git info
         shell: bash

@@ -399,7 +399,8 @@ namespace bricksim::controller {
         //openFile("test_files/connection_info_problem_parts.ldr");
         //openFile("test_files/two_bricks_stacked.ldr");
         //openFile("3001.dat");
-        openFile("car.ldr");
+        //openFile("car.ldr");
+        openFile("~/ldraw/models/car_fixed.ldr");
         //openFile("10197.dat");
         //openFile("~/Downloads/datsville.ldr");
         //openFile("~/Downloads/42131_Bulldozer.mpd");

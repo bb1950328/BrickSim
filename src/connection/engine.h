@@ -35,6 +35,7 @@ namespace bricksim::connection::engine {
             bool findGenericGeneric();
             bool findCylCyl();
             bool findFingerFinger();
+            bool findClipCyl();
 
             std::optional<float> projectConnectorsWithLength();
 

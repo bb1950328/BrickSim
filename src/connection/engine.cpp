@@ -48,6 +48,10 @@ namespace bricksim::connection::engine {
                 findFingerFinger();
                 return;
             }
+            if ((a.cyl != nullptr && b.clip != nullptr)
+                || (a.clip != nullptr && b.cyl != nullptr)) {
+                findClipCyl();
+            }
         }
         bool ConnectionChecker::findGenericGeneric() {
             if (a.generic->group == b.generic->group
@@ -226,6 +230,49 @@ namespace bricksim::connection::engine {
             } else {
                 return {projOnA.projectionLength};
             }
+        }
+        bool bricksim::connection::engine::ConnectionChecker::findClipCyl() {
+            const auto clipData = a.clip != nullptr ? a : b;
+            const auto cylData = a.cyl != nullptr ? a : b;
+            const auto clip = clipData.clip;
+            const auto cyl = cylData.cyl;
+            if ((!sameDir && !oppositeDir)
+                || cyl->gender != Gender::M) {
+                return false;
+            }
+            const auto projOnA = geometry::normalProjectionOnLine<3>(cylData.absStart, cylData.absEnd, clipData.absStart, false);
+            if (projOnA.distancePointToLine > POSITION_TOLERANCE_LDU) {
+                return false;
+            }
+            float offset = projOnA.projectionLength;
+            if (oppositeDir) {
+                offset -= clip->width;
+            }
+            int i = 0;
+            while (offset > cyl->parts[i].length) {
+                offset -= cyl->parts[i].length;
+                ++i;
+            }
+            bool touching = false;
+            while (offset > -clip->width) {
+                float radiusDiff = cyl->parts[i].radius - clip->radius;
+                if (radiusDiff > CONNECTION_RADIUS_TOLERANCE) {
+                    return false;
+                }
+                touching |= radiusDiff > -CONNECTION_RADIUS_TOLERANCE;
+                offset -= cyl->parts[i].length;
+                ++i;
+            }
+            if (!touching) {
+                return false;
+            }
+            DegreesOfFreedom dof;
+            dof.rotationPossibilities.emplace_back(cylData.absStart, cylData.absDirection);
+            if (cyl->slide && clip->slide) {
+                dof.slideDirections.push_back(cylData.absDirection);
+            }
+            result.push_back(std::make_shared<Connection>(a.connector, b.connector, dof));
+            return true;
         }
     }
 

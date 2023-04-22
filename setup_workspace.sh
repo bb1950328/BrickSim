@@ -65,7 +65,7 @@ if [[ "$OS" == "mac" ]]; then
     echo "brew already installed."
   fi
 
-  brew install openssl ninja
+  brew install openssl ninja libccd eigen
 fi
 ###########################################
 

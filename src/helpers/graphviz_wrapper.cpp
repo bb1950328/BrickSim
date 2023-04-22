@@ -4,8 +4,8 @@
 #include <spdlog/spdlog.h>
 
 #ifdef BRICKSIM_PLATFORM_WINDOWS
-    #include <processthreadsapi.h>
     #include <windows.h>
+    #include <processthreadsapi.h>
     #ifdef min
         #undef min
     #endif
@@ -29,7 +29,7 @@ namespace bricksim::graphviz_wrapper {
 
 #ifdef BRICKSIM_PLATFORM_WINDOWS
         const auto tmpDotFile = std::filesystem::temp_directory_path() / fmt::format("input.{}.dot", GetCurrentProcessId());
-        const auto options = fmt::format("-T{} {} -o {}", format, tmpDotFile.string(), outputPath.string();
+        const auto options = fmt::format("-T{} {} -o {}", format, tmpDotFile.string(), outputPath.string());
         ShellExecute(nullptr, "dot", options.c_str(), nullptr, nullptr, SW_SHOWNORMAL);//todo testing
         std::filesystem::remove(tmpDotFile);
 #elif defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)

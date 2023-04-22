@@ -2,6 +2,7 @@
 #include "../config.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "platform_detection.h"
+#include "stringutil.h"
 #include <array>
 #include <cstring>
 #include <curl/curl.h>
@@ -11,7 +12,6 @@
 #include <sstream>
 #include <stb_image.h>
 #include <stb_image_write.h>
-#include "stringutil.h"
 
 #ifdef BRICKSIM_PLATFORM_WINDOWS
     #include <windows.h>
@@ -68,8 +68,6 @@ namespace bricksim::util {
         }
 #endif
     }
-
-
 
     bool memeqzero(const void* data, size_t length) {
         //from https://github.com/rustyrussell/ccan/blob/master/ccan/mem/mem.c#L92
@@ -222,7 +220,7 @@ namespace bricksim::util {
         curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &elapsed);
         curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &effectiveUrl);
 
-        if (useCache && 100 <= response_code && response_code < 400 && result==CURLE_OK && !response_string.empty()) {
+        if (useCache && 100 <= response_code && response_code < 400 && result == CURLE_OK && !response_string.empty()) {
             db::requestCache::put(url, response_string);
         }
 
@@ -288,6 +286,20 @@ namespace bricksim::util {
 
     bool isUvInsideImage(const glm::vec2& uv) {
         return 0 <= uv.x && uv.x <= 1 && 0 <= uv.y && uv.y <= 1;
+    }
+    std::string randomAlphanumString(uint64_t length) {
+        std::string result;
+        result.reserve(length);
+
+        std::random_device rd;
+        std::mt19937 rng(rd());
+        std::uniform_int_distribution<> distribution(0, static_cast<int>(ALPHANUM_CHARS.size()) - 1);
+
+        for (int i = 0; i < length; ++i) {
+            result += ALPHANUM_CHARS[distribution(rng)];
+        }
+
+        return result;
     }
 
     glm::mat4 DecomposedTransformation::orientationAsMat4() const {

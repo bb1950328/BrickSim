@@ -10,10 +10,13 @@
 #include <memory>
 
 #include "../../connection/visualization/connection_graphviz_generator.h"
+#include "../../helpers/graphviz_wrapper.h"
+#include "imgui_internal.h"
 #include "spdlog/spdlog.h"
 #include "window_debug.h"
 #include "window_mesh_inspector.h"
 #include <sstream>
+#include <tinyfiledialogs.h>
 
 namespace bricksim::gui::windows::debug {
     namespace {
@@ -360,10 +363,29 @@ namespace bricksim::gui::windows::debug {
                     } else {
                         ImGui::Text("select one or two parts to see its connections");
                     }
-                    if (ImGui::Button("Copy GraphViz of all Connections to Clipboard")) {
-                        const auto graph = connection::engine::findConnections(activeEditor->getDocumentNode(), activeEditor->getScene()->getMeshCollection());
-                        const auto graphvizCode = connection::visualization::generateGraphviz(graph);
-                        glfwSetClipboardString(getWindow(), graphvizCode.c_str());
+                    if (graphviz_wrapper::isAvailable()) {
+                        if (ImGui::Button("Export all Connections with GraphViz")) {
+                            const auto graph = connection::engine::findConnections(activeEditor->getDocumentNode(), activeEditor->getScene()->getMeshCollection());
+                            const auto graphvizCode = connection::visualization::generateGraphviz(graph);
+                            char const* outputPath = tinyfd_saveFileDialog(
+                                    "Export Connection Graph",
+                                    "connections.png",
+                                    graphviz_wrapper::OUTPUT_FILE_FILTER_PATTERNS.size(),
+                                    graphviz_wrapper::OUTPUT_FILE_FILTER_PATTERNS.data(),
+                                    nullptr);
+                            if (outputPath != nullptr) {
+                                graphvizCode.renderToFile(outputPath);
+                            }
+                        }
+                    } else {
+                        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+                        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * .5f);
+                        ImGui::Button("Export all Connections with GraphViz");
+                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                            ImGui::SetTooltip("GraphViz could not be detected");
+                        }
+                        ImGui::PopItemFlag();
+                        ImGui::PopStyleVar();
                     }
                 }
                 ImGui::EndTabItem();

@@ -19,6 +19,7 @@ namespace bricksim::graphics {
     public:
         explicit Texture(const std::filesystem::path& image);
         Texture(const unsigned char* fileData, unsigned int dataSize);
+        Texture(texture_id_t textureId, int width, int height, int nrChannels);
         Texture& operator=(const Texture&) = delete;
         Texture(const Texture&) = delete;
         ~Texture();
@@ -30,5 +31,8 @@ namespace bricksim::graphics {
         void unbind() const;
         [[nodiscard]] texture_id_t getID() const;
         [[nodiscard]] glm::ivec2 getSize() const;
+
+        void saveToFile(const std::filesystem::path& path);
+        static int getGlFormatFromNrChannels(int nrChannels);
     };
 }

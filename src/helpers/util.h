@@ -18,6 +18,7 @@ namespace bricksim::util {
     const char PATH_SEPARATOR = '/';
     const char PATH_SEPARATOR_FOREIGN = '\\';
 #endif
+    const std::string ALPHANUM_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     // path functions
     std::string extendHomeDir(const std::string& input);
@@ -132,4 +133,6 @@ namespace bricksim::util {
         const auto it = map.find(key);
         return it == map.cend() ? defaultValue : it->second;
     }
+
+    std::string randomAlphanumString(uint64_t length);
 }

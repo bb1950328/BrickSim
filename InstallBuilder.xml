@@ -4,9 +4,9 @@
     <version>0.0.1</version>
     <readmeFile>${build_project_directory}/README.md</readmeFile>
     <licenseFile>${build_project_directory}/LICENSE</licenseFile>
+    <leftImage>${build_project_directory}/resources/logos/logo_fit_314x163.png</leftImage>
     <logoImage>${build_project_directory}/resources/logos/logo_icon_48x48.png</logoImage>
     <splashImage>${build_project_directory}/resources/logos/logo_fit_314x163.png</splashImage>
-    <osxPlatforms>osx-x86_64 osx-arm64</osxPlatforms>
     <componentList>
         <component>
             <name>main</name>
@@ -140,10 +140,16 @@
             </startMenuShortcutList>
         </component>
     </componentList>
+    <createOsxBundleDmg>1</createOsxBundleDmg>
     <enableRollback>1</enableRollback>
     <enableTimestamp>1</enableTimestamp>
+    <osxApplicationBundleIcon>${build_project_directory}/resources/logos/logo_icon.icns</osxApplicationBundleIcon>
+    <osxPlatforms>osx-x86_64 osx-arm64</osxPlatforms>
+    <osxUninstallerApplicationBundleIcon>${build_project_directory}/resources/logos/logo_icon_uninstall.icns</osxUninstallerApplicationBundleIcon>
     <saveRelativePaths>1</saveRelativePaths>
     <vendor>bb1950328</vendor>
+    <windowsExecutableIcon>${build_project_directory}/resources/logos/logo_icon.ico</windowsExecutableIcon>
+    <windowsUninstallerExecutableIcon>${build_project_directory}/resources/logos/logo_icon_uninstall.ico</windowsUninstallerExecutableIcon>
     <parameterList>
         <directoryParameter>
             <name>installdir</name>

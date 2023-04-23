@@ -609,7 +609,8 @@ jobs:
       matrix:
         include: [
           { arch: x86_64, name: 64 },
-          { arch: arm64, name: ARM }
+          # todo re-enable ARM when there is a GitHub-hosted runner for M1 (https://github.com/github/roadmap/issues/528)
+          # { arch: arm64, name: ARM }
         ]
 
     steps:
@@ -677,11 +678,11 @@ jobs:
           name: UnitTestReport_Mac64
           path: artifacts
 
-      - name: Download UnitTestReport_MacARM
-        uses: actions/download-artifact@v3
-        with:
-          name: UnitTestReport_MacARM
-          path: artifacts
+      # - name: Download UnitTestReport_MacARM
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: UnitTestReport_MacARM
+      #     path: artifacts
 
       - name: Split files by format
         run: |

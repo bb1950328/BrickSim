@@ -11,6 +11,7 @@ on:
   workflow_dispatch:
 env:
   BUILD_TYPE: Release
+  INSTALLBUILDER_VERSION: 23.1.0
 jobs:
   buildLinux:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip linux ci')"
@@ -183,13 +184,13 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ runner.workspace }}/installbuilder_installer.run
-          key: installbuilder-23.1.0-linux-x64-installer
+          key: installbuilder-${{ env.INSTALLBUILDER_VERSION }}-linux-x64-installer
       - name: Download InstallBuilder installer on cache miss
         if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
         working-directory: ${{ runner.workspace }}
         #WARNING: if you change the version here, also change it in the cache key
         run: |
-          wget https://releases.bitrock.com/installbuilder/installbuilder-enterprise-23.1.0-linux-x64-installer.run -O installbuilder_installer.run
+          wget https://releases.bitrock.com/installbuilder/installbuilder-enterprise-${{ env.INSTALLBUILDER_VERSION }}-linux-x64-installer.run -O installbuilder_installer.run
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         run: |
@@ -309,14 +310,14 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ runner.workspace }}/installbuilder_installer.exe
-          key: installbuilder-enterprise-23.1.0-windows-x64-installer
+          key: installbuilder-enterprise-${{ env.INSTALLBUILDER_VERSION }}-windows-x64-installer
 
       - name: Download InstallBuilder installer on cache miss
         if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
         working-directory: ${{ runner.workspace }}
         shell: powershell
         #WARNING: if you change the version here, also change it in the cache key
-        run: Invoke-WebRequest -Uri https://releases.bitrock.com/installbuilder/installbuilder-enterprise-23.1.0-windows-x64-installer.exe -OutFile installbuilder_installer.exe
+        run: Invoke-WebRequest -Uri https://releases.bitrock.com/installbuilder/installbuilder-enterprise-${ { env.INSTALLBUILDER_VERSION } }-windows-x64-installer.exe -OutFile installbuilder_installer.exe
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         shell: powershell
@@ -541,7 +542,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ runner.workspace }}/installbuilder_installer.dmg
-          key: installbuilder-enterprise-23.1.0-osx-installer
+          key: installbuilder-enterprise-${{ env.INSTALLBUILDER_VERSION }}-osx-installer
 
       - name: Download InstallBuilder installer on cache miss
         if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
@@ -549,14 +550,14 @@ jobs:
         #WARNING: if you change the version here, also change it in the cache key
         run: |
           brew install wget
-          wget -nv https://releases.bitrock.com/installbuilder/installbuilder-enterprise-23.1.0-osx-installer.dmg -O installbuilder_installer.dmg
+          wget -nv https://releases.bitrock.com/installbuilder/installbuilder-enterprise-${{ env.INSTALLBUILDER_VERSION }}-osx-installer.dmg -O installbuilder_installer.dmg
 
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         run: |
           hdiutil attach -noverify installbuilder_installer.dmg
           ls -l -R "/Volumes/InstallBuilder Enterprise"
-          /Volumes/InstallBuilder\ Enterprise/installbuilder-enterprise-23.1.0-osx-installer.app/Contents/MacOS/installbuilder.sh \
+          /Volumes/InstallBuilder\ Enterprise/installbuilder-enterprise-${{ env.INSTALLBUILDER_VERSION }}-osx-installer.app/Contents/MacOS/installbuilder.sh \
                   --mode unattended --prefix ${{ runner.workspace }}/installbuilder
           #sudo hdiutil detach "/Volumes/InstallBuilder Enterprise"
         #todo find out why the previous line causes error "hdiutil: couldn't unmount "disk2" - Resource busy"

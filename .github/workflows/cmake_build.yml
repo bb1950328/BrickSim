@@ -121,6 +121,14 @@ jobs:
     name: Linux Tests (${{ matrix.bits }} bit / ${{ matrix.arch }})
     needs: buildLinux
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { arch: x86_64, bits: 64 },
+        ]
+
     steps:
       - name: Download test artifact
         uses: actions/download-artifact@v3
@@ -431,7 +439,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip mac ci')"
     runs-on: macos-11
 
-    name: MacOS Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
+    name: MacOS Build (${{ matrix.arch }})
 
     strategy:
       fail-fast: false
@@ -512,14 +520,14 @@ jobs:
       - name: Upload Tests Binary
         uses: actions/upload-artifact@v3
         with:
-          name: BrickSimTests__Mac${{ matrix.name }}
+          name: BrickSimTests_Mac${{ matrix.name }}
           path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.name }}/BrickSimTests
 
   buildInstallerMac:
     needs: buildMac
     runs-on: macos-11
 
-    name: MacOS Installer (${{ matrix.bits }} bit / ${{ matrix.arch }})
+    name: MacOS Installer (${{ matrix.arch }})
 
     strategy:
       fail-fast: false
@@ -594,7 +602,7 @@ jobs:
     needs: buildMac
     runs-on: macos-11
 
-    name: MacOS Tests (${{ matrix.bits }} bit / ${{ matrix.arch }})
+    name: MacOS Tests (${{ matrix.arch }})
 
     strategy:
       fail-fast: false

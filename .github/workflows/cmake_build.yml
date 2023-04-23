@@ -252,7 +252,7 @@ jobs:
           echo "total_hours=$(./scripts/get_git_total_hours.sh)" >> "$GITHUB_OUTPUT"
           echo "version_tag=$(./scripts/get_git_tag.sh)" >> "$GITHUB_OUTPUT"
 
-      - name: Configure
+      - name: Configure and Build
         shell: cmd
         working-directory: ${{runner.workspace}}\BrickSim
         run: |
@@ -272,10 +272,6 @@ jobs:
             -G "Ninja" ^
             ..\..
 
-      - name: Build
-        shell: cmd
-        working-directory: ${{runner.workspace}}\BrickSim\cmake-build\release64
-        run: |
           cmake --build . --target BrickSim BrickSimTests --config Release  -j 2
 
       - name: Upload BrickSimRawBinary
@@ -515,7 +511,7 @@ jobs:
     needs: buildMac
     runs-on: macos-11
 
-    name: Mac Installer Build
+    name: MacOS Installer Build
 
     strategy:
       fail-fast: false

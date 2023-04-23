@@ -27,7 +27,7 @@ jobs:
     name: Linux Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
           fetch-depth: 0
@@ -55,7 +55,7 @@ jobs:
         id: get_timestamp
 
       - name: Setup cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{runner.workspace}}/.ccache
           key: ccache-${{ runner.os }}-${{ matrix.arch }}-${{ steps.get_timestamp.outputs.timestamp }}
@@ -111,14 +111,14 @@ jobs:
         run: find ${{runner.workspace}} -type f -executable
 
       - name: BrickSimRawBinary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: BrickSimRawBinary_Linux${{ matrix.bits }}
           path: |
             ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSim
 
       - name: Upload BrickSimTests
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: BrickSimTests_Linux${{ matrix.bits }}
           path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSimTests
@@ -128,7 +128,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download test artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: BrickSimTests_Linux64
 
@@ -164,7 +164,7 @@ jobs:
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: UnitTestReport_Linux64
           path: ${{runner.workspace}}/*TestReport*.xml
@@ -185,7 +185,7 @@ jobs:
     steps:
       - name: Setup cache of InstallBuilder installer
         id: installbuilder-installer-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ runner.workspace }}/installbuilder_installer.run
           key: installbuilder-23.1.0-linux-x64-installer
@@ -200,13 +200,13 @@ jobs:
           chmod a+x installbuilder_installer.run
           ./installbuilder_installer.run --mode unattended --prefix ${{ runner.workspace }}/installbuilder
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: false
           fetch-depth: 0
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: BrickSimRawBinary_Linux${{ matrix.bits }}
           path: ${{ runner.workspace }}/artifacts
@@ -228,7 +228,7 @@ jobs:
         run: rm ${{ runner.workspace }}/license.xml
 
       - name: Upload BrickSimInstaller
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: BrickSimInstaller_Linux${{ matrix.bits }}
           path: ${{runner.workspace}}/installbuilder/output/*.run
@@ -244,7 +244,7 @@ jobs:
       VCPKG_DEFAULT_TRIPLET: x64-windows
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
           fetch-depth: 0
@@ -283,14 +283,14 @@ jobs:
       #  uses: mxschmitt/action-tmate@v3
 
       - name: Upload BrickSimRawBinary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: BrickSimRawBinary_Windows64
           path: |
             ${{runner.workspace}}\BrickSim\cmake-build\release64\BrickSim.exe
             ${{runner.workspace}}\BrickSim\cmake-build\release64\zlib1.dll
       - name: Upload BrickSimTests
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: BrickSimTests_Windows64
           path: ${{runner.workspace}}\BrickSim\cmake-build\release64\BrickSimTests.exe
@@ -304,7 +304,7 @@ jobs:
     steps:
       - name: Setup cache of InstallBuilder installer
         id: installbuilder-installer-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ runner.workspace }}/installbuilder_installer.exe
           key: installbuilder-enterprise-23.1.0-windows-x64-installer
@@ -321,13 +321,13 @@ jobs:
         run: |
           Start-Process -FilePath installbuilder_installer.exe -ArgumentList "--mode unattended --prefix ${{ runner.workspace }}\installbuilder"
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: false
           fetch-depth: 0
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: BrickSimRawBinary_Windows64
           path: ${{ runner.workspace }}/artifacts
@@ -358,7 +358,7 @@ jobs:
         run: Remove-Item -Path ${{ runner.workspace }}/license.xml
 
       - name: Upload BrickSimInstaller
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: BrickSimInstaller_Windows64
           path: ${{runner.workspace}}\installbuilder\output\*.exe
@@ -380,7 +380,7 @@ jobs:
 
     steps:
       - name: Download test artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: BrickSimTests_Windows64
 
@@ -408,7 +408,7 @@ jobs:
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: UnitTestReport_Windows64
           path: ${{runner.workspace}}/*TestReport*.xml
@@ -428,7 +428,7 @@ jobs:
         ]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
           fetch-depth: 0
@@ -447,7 +447,7 @@ jobs:
         id: get_timestamp
 
       - name: Setup Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{runner.workspace}}/.ccache
           key: ccache-${{ runner.os }}-${{ matrix.arch }}-${{ steps.get_timestamp.outputs.timestamp }}
@@ -489,7 +489,7 @@ jobs:
           CCACHE_MAXSIZE: 500M
 
       - name: Upload Binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: BrickSimRawBinary_Mac${{ matrix.name }}
           path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.name }}/BrickSim
@@ -511,7 +511,7 @@ jobs:
     steps:
       - name: Setup cache of InstallBuilder installer
         id: installbuilder-installer-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ runner.workspace }}/installbuilder_installer.dmg
           key: installbuilder-enterprise-23.1.0-osx-installer
@@ -534,13 +534,13 @@ jobs:
           #sudo hdiutil detach "/Volumes/InstallBuilder Enterprise"
         #todo find out why the previous line causes error "hdiutil: couldn't unmount "disk2" - Resource busy"
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: false
           fetch-depth: 0
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: BrickSimRawBinary_Mac${{ matrix.name }}
           path: ${{ runner.workspace }}/artifacts
@@ -564,7 +564,7 @@ jobs:
         run: rm ${{ runner.workspace }}/license.xml
 
       - name: Upload BrickSimInstaller
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: BrickSimInstaller_Mac${{ matrix.name }}
           path: ${{runner.workspace}}/installbuilder/output/*.app
@@ -578,13 +578,13 @@ jobs:
     if: success() || failure()
     steps:
       - name: Download UnitTestReport_Linux64
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: UnitTestReport_Linux64
           path: artifacts
 
       - name: Download UnitTestReport_Windows64
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: UnitTestReport_Windows64
           path: artifacts

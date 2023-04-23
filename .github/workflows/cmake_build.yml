@@ -116,8 +116,9 @@ jobs:
         with:
           name: BrickSimTests_Linux${{ matrix.bits }}
           path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSimTests
+
   testLinux:
-    name: Linux Tests
+    name: Linux Tests (${{ matrix.bits }} bit / ${{ matrix.arch }})
     needs: buildLinux
     runs-on: ubuntu-latest
     steps:
@@ -166,7 +167,7 @@ jobs:
           { arch: x86_64, bits: 64 },
         ]
 
-    name: Linux Installer Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
+    name: Linux Installer (${{ matrix.bits }} bit / ${{ matrix.arch }})
 
     steps:
       - name: Setup cache of InstallBuilder installer
@@ -292,7 +293,7 @@ jobs:
     needs: buildWindows
     runs-on: windows-latest
 
-    name: Windows Installer Build (64 bit / x86_64)
+    name: Windows Installer (64 bit / x86_64)
 
     steps:
       - name: Setup cache of InstallBuilder installer
@@ -430,7 +431,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip mac ci')"
     runs-on: macos-11
 
-    name: MacOS Build
+    name: MacOS Build (${{ matrix.bits }} bit / ${{ matrix.arch }})
 
     strategy:
       fail-fast: false
@@ -467,6 +468,7 @@ jobs:
           restore-keys: |
             ccache-${{ runner.os }}-${{ matrix.arch }}-
 
+
       - name: Configure CMake
         shell: bash
         working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.name }}
@@ -492,7 +494,7 @@ jobs:
         shell: bash
         run: |
           ccache -z # zero statistics
-          cmake --build . --target BrickSim --config $BUILD_TYPE -j $(sysctl -n hw.logicalcpu)
+          cmake --build . --target BrickSim BrickSimTests --config $BUILD_TYPE -j $(sysctl -n hw.logicalcpu)
           ccache -s # print statistics
         env:
           CCACHE_BASEDIR: ${{runner.workspace}}
@@ -501,17 +503,23 @@ jobs:
           CCACHE_COMPRESSLEVEL: 6
           CCACHE_MAXSIZE: 500M
 
-      - name: Upload Binary
+      - name: Upload Application Binary
         uses: actions/upload-artifact@v3
         with:
           name: BrickSimRawBinary_Mac${{ matrix.name }}
           path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.name }}/BrickSim
 
+      - name: Upload Tests Binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: BrickSimTests__Mac${{ matrix.name }}
+          path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.name }}/BrickSimTests
+
   buildInstallerMac:
     needs: buildMac
     runs-on: macos-11
 
-    name: MacOS Installer Build
+    name: MacOS Installer (${{ matrix.bits }} bit / ${{ matrix.arch }})
 
     strategy:
       fail-fast: false
@@ -582,6 +590,51 @@ jobs:
           name: BrickSimInstaller_Mac${{ matrix.name }}
           path: ${{runner.workspace}}/installbuilder/output/*.app
 
+  testMac:
+    needs: buildMac
+    runs-on: macos-11
+
+    name: MacOS Tests (${{ matrix.bits }} bit / ${{ matrix.arch }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { arch: x86_64, name: 64 },
+          { arch: arm64, name: ARM }
+        ]
+
+    steps:
+      - name: Download test artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: BrickSimTests_Mac${{ matrix.name }}
+
+      - name: Make tests executable
+        run: chmod a+x ${{runner.workspace}}/BrickSim/BrickSimTests
+
+      - name: Run tests with JUnit XML output
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -r junit > ${{runner.workspace}}/junitTestReport_Mac${{ matrix.name }}.xml
+
+      - name: Run tests with Catch2 XML output
+        if: always()
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes -r xml > ${{runner.workspace}}/catchTestReport_Mac${{ matrix.name }}.xml
+
+      - name: Print report to log
+        run: cat ${{runner.workspace}}/catchTestReport_Mac${{ matrix.name }}.xml
+        if: always()
+
+      - name: Run tests with Console output
+        if: failure()
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: UnitTestReport_Mac${{ matrix.name }}
+          path: ${{runner.workspace}}/*TestReport*.xml
+
   publishTestResults:
     name: Publish Catch2 Test Results
     needs:
@@ -600,6 +653,18 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: UnitTestReport_Windows64
+          path: artifacts
+
+      - name: Download UnitTestReport_Mac64
+        uses: actions/download-artifact@v3
+        with:
+          name: UnitTestReport_Mac64
+          path: artifacts
+
+      - name: Download UnitTestReport_MacARM
+        uses: actions/download-artifact@v3
+        with:
+          name: UnitTestReport_MacARM
           path: artifacts
 
       - name: Split files by format

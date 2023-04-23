@@ -437,7 +437,7 @@ jobs:
 
   buildMac:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip mac ci')"
-    runs-on: macos-11
+    runs-on: macos-latest
 
     name: MacOS Build (${{ matrix.arch }})
 
@@ -525,7 +525,7 @@ jobs:
 
   buildInstallerMac:
     needs: buildMac
-    runs-on: macos-11
+    runs-on: macos-latest
 
     name: MacOS Installer (${{ matrix.arch }})
 
@@ -600,7 +600,7 @@ jobs:
 
   testMac:
     needs: buildMac
-    runs-on: macos-11
+    runs-on: macos-latest
 
     name: MacOS Tests (${{ matrix.arch }})
 

@@ -354,9 +354,7 @@ jobs:
           Start-Process -FilePath "${{ runner.workspace }}\installbuilder\bin\builder-cli.exe" `
             -Wait `
             -NoNewWindow `
-            -ArgumentList "build ${{ runner.workspace }}\BrickSim\InstallBuilder.xml windows-x64 " `
-              +"--setvars project.version=$VERSION project.outputDirectory=${{runner.workspace}}\installbuilder\output " `
-              +"--license ${{ runner.workspace }}\license.xml"
+            -ArgumentList "build ${{ runner.workspace }}\BrickSim\InstallBuilder.xml windows-x64 --setvars project.version=$VERSION project.outputDirectory=${{runner.workspace}}\installbuilder\output --license ${{ runner.workspace }}\license.xml"
 
       - name: Delete license file
         shell: powershell

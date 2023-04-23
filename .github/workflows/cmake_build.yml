@@ -62,8 +62,12 @@ jobs:
         shell: bash
         working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
         run: |
-          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-                -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_LIBRARY_PATH=/usr/lib/${{ matrix.arch }}-linux-gnu -G Ninja
+          cmake $GITHUB_WORKSPACE \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_LIBRARY_PATH=/usr/lib/${{ matrix.arch }}-linux-gnu \
+            -G Ninja
         env:
           CC: gcc-10
           CXX: g++-10
@@ -142,7 +146,7 @@ jobs:
 
       - name: Run tests with Console output
         if: failure()
-        run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes
+        run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Test Results
         if: always()
@@ -175,7 +179,8 @@ jobs:
         if: steps.installbuilder-installer-cache.outputs.cache-hit != 'true'
         working-directory: ${{ runner.workspace }}
         #WARNING: if you change the version here, also change it in the cache key
-        run: wget https://releases.bitrock.com/installbuilder/installbuilder-enterprise-23.1.0-linux-x64-installer.run -O installbuilder_installer.run
+        run: |
+          wget https://releases.bitrock.com/installbuilder/installbuilder-enterprise-23.1.0-linux-x64-installer.run -O installbuilder_installer.run
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         run: |
@@ -200,12 +205,14 @@ jobs:
           chmod a+x $GITHUB_WORKSPACE/cmake-build/release${{ matrix.bits }}/BrickSim
 
       - name: Save license to file
-        run: echo "${{ secrets.INSTALLBUILDER_LICENSE_XML_BASE64 }}" | base64 --decode > ${{ runner.workspace }}/license.xml
+        run: |
+          echo "${{ secrets.INSTALLBUILDER_LICENSE_XML_BASE64 }}" | base64 --decode > ${{ runner.workspace }}/license.xml
 
       - name: Build Installer
         run: |
           ${{ runner.workspace }}/installbuilder/bin/builder build $GITHUB_WORKSPACE/InstallBuilder.xml linux-x64 \
-                        --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v) --license ${{ runner.workspace }}/license.xml
+            --setvars project.version=$($GITHUB_WORKSPACE/scripts/get_git_tag.sh | tr -d v) \
+            --license ${{ runner.workspace }}/license.xml
       - name: Delete license file
         run: rm ${{ runner.workspace }}/license.xml
 
@@ -245,19 +252,30 @@ jobs:
           echo "total_hours=$(./scripts/get_git_total_hours.sh)" >> "$GITHUB_OUTPUT"
           echo "version_tag=$(./scripts/get_git_tag.sh)" >> "$GITHUB_OUTPUT"
 
-      - name: Configure and Build
+      - name: Configure
         shell: cmd
         working-directory: ${{runner.workspace}}\BrickSim
         run: |
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          
+
           md cmake-build
           cd cmake-build
           md release64
           cd release64
 
-          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DGIT_COMMIT_HASH:STRING=${{ steps.git_info.outputs.commit_hash }} -DGIT_COMMIT_COUNT:STRING=${{ steps.git_info.outputs.commit_count }} -DTOTAL_HOURS:STRING=${{ steps.git_info.outputs.total_hours }} -DGIT_VERSION_TAG:STRING=${{ steps.git_info.outputs.version_tag }} -G "Ninja" ..\..
+          cmake -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" ^
+            -DGIT_COMMIT_HASH:STRING=${{ steps.git_info.outputs.commit_hash }} ^
+            -DGIT_COMMIT_COUNT:STRING=${{ steps.git_info.outputs.commit_count }} ^
+            -DTOTAL_HOURS:STRING=${{ steps.git_info.outputs.total_hours }} ^
+            -DGIT_VERSION_TAG:STRING=${{ steps.git_info.outputs.version_tag }} ^
+            -G "Ninja" ^
+            ..\..
 
+      - name: Build
+        shell: cmd
+        working-directory: ${{runner.workspace}}\BrickSim\cmake-build\release64
+        run: |
           cmake --build . --target BrickSim BrickSimTests --config Release  -j 2
 
       - name: Upload BrickSimRawBinary
@@ -267,6 +285,7 @@ jobs:
           path: |
             ${{runner.workspace}}\BrickSim\cmake-build\release64\BrickSim.exe
             ${{runner.workspace}}\BrickSim\cmake-build\release64\zlib1.dll
+
       - name: Upload BrickSimTests
         uses: actions/upload-artifact@v3
         with:
@@ -319,21 +338,25 @@ jobs:
       - name: Save license to file
         shell: powershell
         run: |
-          [Text.Encoding]::Utf8.GetString([Convert]::FromBase64String("${{ secrets.INSTALLBUILDER_LICENSE_XML_BASE64 }}")) | Out-File -FilePath ${{ runner.workspace }}/license.xml
+          [Text.Encoding]::Utf8.GetString([Convert]::FromBase64String("${{ secrets.INSTALLBUILDER_LICENSE_XML_BASE64 }}")) | Out-File -FilePath "${{ runner.workspace }}/license.xml"
 
       - name: Build Installer
         shell: powershell
         run: |
-          $VERSION = git describe --tags --match v[0-9]* --abbrev=0
+          $VERSION = git describe --tags --match v[0-9]* --abbrev = 0
           $VERSION = $VERSION -replace "v"
-          
-          New-Item -ItemType directory -Path ${{runner.workspace}}\installbuilder\output
-          Start-Process -FilePath "${{ runner.workspace }}\installbuilder\bin\builder-cli.exe" -Wait -NoNewWindow `
-            -ArgumentList "build ${{ runner.workspace }}\BrickSim\InstallBuilder.xml windows-x64 --setvars project.version=$VERSION project.outputDirectory=${{runner.workspace}}\installbuilder\output --license ${{ runner.workspace }}\license.xml"
+          New-Item -ItemType directory -Path "${{runner.workspace}}\installbuilder\output"
+          Start-Process -FilePath "${{ runner.workspace }}\installbuilder\bin\builder-cli.exe" `
+            -Wait `
+            -NoNewWindow `
+            -ArgumentList "build ${{ runner.workspace }}\BrickSim\InstallBuilder.xml windows-x64 " `
+              +"--setvars project.version=$VERSION project.outputDirectory=${{runner.workspace}}\installbuilder\output " `
+              +"--license ${{ runner.workspace }}\license.xml"
 
       - name: Delete license file
         shell: powershell
-        run: Remove-Item -Path ${{ runner.workspace }}/license.xml
+        run: |
+          Remove-Item -Path "${{ runner.workspace }}/license.xml"
 
       - name: Upload BrickSimInstaller
         uses: actions/upload-artifact@v3
@@ -364,25 +387,41 @@ jobs:
 
       - name: Get info about the .exe
         shell: powershell
-        run: Get-Command "${{runner.workspace}}\BrickSim\BrickSimTests.exe" | Format-List
+        run: |
+          Get-Command "${{runner.workspace}}\BrickSim\BrickSimTests.exe" | Format-List
 
       - name: Run tests with JUnit XML output
         shell: powershell
-        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-r junit" -Wait -NoNewWindow -RedirectStandardOutput ${{runner.workspace}}\junitTestReport_Windows64.xml
+        run: |
+          Start-Process -FilePath "${{runner.workspace}}\BrickSim\BrickSimTests.exe" `
+            -ArgumentList "-r junit" `
+            -Wait `
+            -NoNewWindow `
+            -RedirectStandardOutput "${{runner.workspace}}\junitTestReport_Windows64.xml"
 
       - name: Run tests with Catch2 XML output
         shell: powershell
-        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-d yes -r xml" -Wait -NoNewWindow -RedirectStandardOutput ${{runner.workspace}}\catchTestReport_Windows64.xml
+        run: |
+          Start-Process -FilePath "${{runner.workspace}}\BrickSim\BrickSimTests.exe" `
+            -ArgumentList "-d yes -r xml" `
+            -Wait `
+            -NoNewWindow `
+            -RedirectStandardOutput "${{runner.workspace}}\catchTestReport_Windows64.xml"
 
       - name: Print report to log
-        shell: powershell
-        run: Get-Content ${{runner.workspace}}\catchTestReport_Windows64.xml
         if: always()
+        shell: powershell
+        run: |
+          Get-Content "${{runner.workspace}}\catchTestReport_Windows64.xml"
 
       - name: Run tests with Console output
         if: always()
         shell: powershell
-        run: Start-Process -FilePath ${{runner.workspace}}\BrickSim\BrickSimTests.exe -ArgumentList "-d yes" -Wait -NoNewWindow
+        run: |
+          Start-Process -FilePath "${{runner.workspace}}\BrickSim\BrickSimTests.exe" `
+            -ArgumentList "-d yes" `
+            -Wait `
+            -NoNewWindow
 
       - name: Upload Test Results
         if: always()
@@ -421,8 +460,8 @@ jobs:
         run: brew install ccache
 
       - name: Get timestamp
-        run: echo "timestamp=$(date --iso-8601=seconds)" >> "$GITHUB_OUTPUT"
         id: get_timestamp
+        run: echo "timestamp=$(date --iso-8601=seconds)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Cache
         uses: actions/cache@v3
@@ -436,8 +475,12 @@ jobs:
         shell: bash
         working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.name }}
         run: |
-          cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}" -G Ninja
+          cmake $GITHUB_WORKSPACE \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}" \
+            -G Ninja
         env:
           CC: clang
           CXX: clang++
@@ -447,10 +490,6 @@ jobs:
           CCACHE_COMPRESS: true
           CCACHE_COMPRESSLEVEL: 6
           CCACHE_MAXSIZE: 500M
-
-      - name: get info
-        run: |
-          echo "runner.workspace: \"${{runner.workspace}}\""
 
       - name: Build
         working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.name }}
@@ -573,7 +612,6 @@ jobs:
           mkdir catchReports
           mv artifacts/*junit* junitReports
           mv artifacts/*catch* catchReports
-      - run: ls -Rl
 
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1.28
@@ -581,4 +619,3 @@ jobs:
           files: junitReports/*.xml
           check_name: Catch2 Test Results
           comment_title: Catch2 Test Results
-

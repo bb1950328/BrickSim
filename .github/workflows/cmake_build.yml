@@ -339,8 +339,8 @@ jobs:
       - name: Build Installer
         shell: powershell
         run: |
-          $VERSION = git describe --tags --match v[0-9]* --abbrev = 0
-          $VERSION = $VERSION -replace "v"
+          $VERSION = git describe --tags --match v[0-9]*
+          $VERSION = $VERSION.Substring(1,$VERSION.IndexOf('-'))
           New-Item -ItemType directory -Path "${{runner.workspace}}\installbuilder\output"
           Start-Process -FilePath "${{ runner.workspace }}\installbuilder\bin\builder-cli.exe" `
             -Wait `

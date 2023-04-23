@@ -148,8 +148,8 @@
     <osxUninstallerApplicationBundleIcon>${build_project_directory}/resources/logos/logo_icon_uninstall.icns</osxUninstallerApplicationBundleIcon>
     <saveRelativePaths>1</saveRelativePaths>
     <vendor>bb1950328</vendor>
-    <windowsExecutableIcon>${build_project_directory}/resources/logos/logo_icon.icns</windowsExecutableIcon>
-    <windowsUninstallerExecutableIcon>${build_project_directory}/resources/logos/logo_icon_uninstall.icns</windowsUninstallerExecutableIcon>
+    <windowsExecutableIcon>${build_project_directory}/resources/logos/logo_icon.ico</windowsExecutableIcon>
+    <windowsUninstallerExecutableIcon>${build_project_directory}/resources/logos/logo_icon_uninstall.ico</windowsUninstallerExecutableIcon>
     <parameterList>
         <directoryParameter>
             <name>installdir</name>

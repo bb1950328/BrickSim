@@ -595,7 +595,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: BrickSimInstaller_Mac${{ matrix.name }}
-          path: ${{runner.workspace}}/installbuilder/output/*.app
+          path: ${{runner.workspace}}/installbuilder/output/*.dmg
 
   testMac:
     needs: buildMac

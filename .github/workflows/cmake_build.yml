@@ -5,7 +5,6 @@ on:
     branches:
       - master
       - stable
-      - fix_macos_build
     paths-ignore:
       - "docs/**"
       - '**/*.md'
@@ -44,14 +43,11 @@ jobs:
       - name: Create Build Directory
         run: mkdir -p ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
 
-      - run: ls -l /usr/lib | grep linux
-      - run: ls -l /usr
-
       - name: install ccache
         run: sudo apt install ccache
 
       - name: Get timestamp
-        run: echo "::set-output name=timestamp::$(date --iso-8601=seconds)"
+        run: echo "timestamp=$(date --iso-8601=seconds)" >> "$GITHUB_OUTPUT"
         id: get_timestamp
 
       - name: Setup cache
@@ -80,12 +76,6 @@ jobs:
           CCACHE_COMPRESS: true
           CCACHE_COMPRESSLEVEL: 6
           CCACHE_MAXSIZE: 500M
-
-      #    - name: get info
-      #      run: |
-      #        gcc --version
-      #        whereis gcc
-      #        echo "runner.workspace: \"${{runner.workspace}}\""
 
       - name: Build
         working-directory: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}
@@ -153,14 +143,6 @@ jobs:
       - name: Run tests with Console output
         if: failure()
         run: ${{runner.workspace}}/BrickSim/BrickSimTests -d yes
-
-      #todo publish only one comment for all platforms
-      #- name: Publish Test Result Comment
-      #  if: failure()
-      #  run: |
-      #    pip3 install PyGithub
-      #    wget -O ${{runner.workspace}}/publish_test_results.py https://raw.githubusercontent.com/bb1950328/BrickSim/${GITHUB_REF##*/}/.github/workflows/publish_test_results.py
-      #    python3 ${{runner.workspace}}/publish_test_results.py ${{runner.workspace}}/catchTestReport.xml ${{ github.token }} ${{ github.sha }}
 
       - name: Upload Test Results
         if: always()
@@ -258,10 +240,10 @@ jobs:
         shell: bash
         id: git_info
         run: |
-          echo "::set-output name=commit_hash::$(./scripts/get_git_commit_hash.sh)"
-          echo "::set-output name=commit_count::$(./scripts/get_git_commit_count.sh)"
-          echo "::set-output name=total_hours::$(./scripts/get_git_total_hours.sh)"
-          echo "::set-output name=version_tag::$(./scripts/get_git_tag.sh)"
+          echo "commit_hash=$(./scripts/get_git_commit_hash.sh)" >> "$GITHUB_OUTPUT"
+          echo "commit_count=$(./scripts/get_git_commit_count.sh)" >> "$GITHUB_OUTPUT"
+          echo "total_hours=$(./scripts/get_git_total_hours.sh)" >> "$GITHUB_OUTPUT"
+          echo "version_tag=$(./scripts/get_git_tag.sh)" >> "$GITHUB_OUTPUT"
 
       - name: Configure and Build
         shell: cmd
@@ -277,10 +259,6 @@ jobs:
           cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DGIT_COMMIT_HASH:STRING=${{ steps.git_info.outputs.commit_hash }} -DGIT_COMMIT_COUNT:STRING=${{ steps.git_info.outputs.commit_count }} -DTOTAL_HOURS:STRING=${{ steps.git_info.outputs.total_hours }} -DGIT_VERSION_TAG:STRING=${{ steps.git_info.outputs.version_tag }} -G "Ninja" ..\..
 
           cmake --build . --target BrickSim BrickSimTests --config Release  -j 2
-
-      #- if: failure()
-      #  name: Setup tmate session
-      #  uses: mxschmitt/action-tmate@v3
 
       - name: Upload BrickSimRawBinary
         uses: actions/upload-artifact@v3
@@ -443,7 +421,7 @@ jobs:
         run: brew install ccache
 
       - name: Get timestamp
-        run: echo "::set-output name=timestamp::$(date --iso-8601=seconds)"
+        run: echo "timestamp=$(date --iso-8601=seconds)" >> "$GITHUB_OUTPUT"
         id: get_timestamp
 
       - name: Setup Cache

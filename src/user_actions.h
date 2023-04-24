@@ -45,6 +45,7 @@ namespace bricksim::user_actions {
         EXECUTE_ACTION_BY_NAME,
         TOGGLE_TRANSFORM_GIZMO_ROTATION,
         SELECT_CONNECTED,
+        INLINE_SELECTED_ELEMENTS,
     };
 
     constexpr size_t getCount();

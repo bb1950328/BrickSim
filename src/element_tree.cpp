@@ -64,6 +64,10 @@ namespace bricksim::etree {
         children.push_back(newChild);
     }
 
+    void Node::addChild(std::size_t position, const std::shared_ptr<Node>& newChild) {
+        children.insert(children.cbegin() + position, newChild);
+    }
+
     void Node::removeChild(const std::shared_ptr<Node>& childToDelete) {
         auto it = children.begin();
         while (*it != childToDelete && it != children.end()) {
@@ -201,14 +205,17 @@ namespace bricksim::etree {
                     auto sfElement = std::dynamic_pointer_cast<ldr::SubfileReference>(element);
                     auto subFile = sfElement->getFile();
                     std::shared_ptr<Node> newNode = nullptr;
-                    if (subFile->metaInfo.type == ldr::FileType::MPD_SUBFILE) {
+                    if (subFile->metaInfo.type == ldr::FileType::MPD_SUBFILE || subFile->metaInfo.type==ldr::FileType::MODEL) {
                         auto subFileNode = findMpdNodeAndAddSubfileNode(subFile, sfElement->color, shared_from_this());
                         newNode = std::make_shared<MpdSubfileInstanceNode>(subFileNode, sfElement->color, shared_from_this(), sfElement->directTexmap);
                         childrenWithOwnNode.insert(sfElement);
                     } else if (subFile->metaInfo.type == ldr::FileType::PART) {
                         childrenWithOwnNode.insert(sfElement);
                         newNode = std::make_shared<PartNode>(subFile, sfElement->color, shared_from_this(), sfElement->directTexmap);
-                    }
+                    }/* else if (subFile->metaInfo.type == ldr::FileType::MODEL) {
+                        childrenWithOwnNode.insert(sfElement);
+                        newNode = std::make_shared<MpdNode>(subFile, sfElement->color, shared_from_this());
+                    }*/
                     if (nullptr != newNode) {
                         children.push_back(newNode);
                         newNode->setRelativeTransformation(sfElement->getTransformationMatrix());

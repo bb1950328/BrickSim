@@ -457,22 +457,20 @@ namespace bricksim {
                 } else {
                     const auto subfileInstItem = std::dynamic_pointer_cast<etree::MpdSubfileInstanceNode>(item);
                     if (subfileInstItem != nullptr) {
-                        newNode = std::make_shared<etree::MpdSubfileInstanceNode>(subfileInstNodeToInline->mpdSubfileNode,
+                        newNode = std::make_shared<etree::MpdSubfileInstanceNode>(subfileInstItem->mpdSubfileNode,
                                                                                   newColor,
                                                                                   parent,
-                                                                                  subfileInstNodeToInline->getDirectTexmap());
+                                                                                  subfileInstItem->getDirectTexmap());
                     }
                 }
                 if (newNode != nullptr) {
                     const auto meshT = glm::transpose(meshItem->getRelativeTransformation());
                     const auto nodeToInlineT = glm::transpose(nodeToInline->getRelativeTransformation());
-                    //const auto finalT = meshT * nodeToInlineT;
-                    const auto finalT = nodeToInlineT * meshT;
-                    spdlog::debug("mesh: {}", meshT);
-                    spdlog::debug("nodeToInline: {}", nodeToInlineT);
-                    spdlog::debug("final: {}", finalT);
-                    newNode->setRelativeTransformation(glm::transpose(finalT));
+                    newNode->setRelativeTransformation(glm::transpose(nodeToInlineT * meshT));
                     parent->addChild(indexInSiblings++, newNode);
+                    if (nodeWasSelected) {
+                        selectedNodes.emplace(newNode, newNode->getVersion());
+                    }
                 }
             }
         } else {
@@ -480,6 +478,7 @@ namespace bricksim {
             return;
         }
         parent->removeChild(nodeToInline);
+        parent->incrementVersion();
         if (nodeWasSelected && updateSelectionVisualization) {
             this->updateSelectionVisualization();
         }

@@ -1,0 +1,10 @@
+0 FILE subfile_ref.ldr
+0 subfile reference to another .ldr file outside the parts library
+0 Name: subfile_ref.ldr
+0 Author: bb1950328
+0 !LDRAW_ORG Model
+0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
+0 !THEME Technic
+
+1 4 20 0 40 0 0 -1 0 1 0 1 0 0 test_files/bricks_test.ldr
+1 5 0 80 0 1 0 0 0 1 0 0 0 1 test_files/bricks_test.ldr

@@ -56,6 +56,7 @@ namespace bricksim::user_actions {
                 ICON_FA_SEARCH " Find action",
                 "Toggle Transform Gizmo Rotation (World / Selected Element)",
                 ICON_FA_PUZZLE_PIECE " Select connected",
+                ICON_FA_EXPAND_ARROWS_ALT " Inline Selected Elements",
         };
 
         const std::array<std::function<bool()>, actionsCount> actionEnabledFuncs{
@@ -95,6 +96,7 @@ namespace bricksim::user_actions {
                 alwaysTrue,     //EXECUTE_ACTION_BY_NAME
                 alwaysTrue,     //TOGGLE_TRANSFORM_GIZMO_ROTATION
                 hasActiveEditor,//SELECT_CONNECTED
+                hasActiveEditor,//INLINE_SELECTED_ELEMENTS
         };
 
         const std::array<std::function<void()>, actionsCount> functions{
@@ -134,6 +136,7 @@ namespace bricksim::user_actions {
                 []() { gui::showExecuteActionByNameDialog(); },                   //EXECUTE_ACTION_BY_NAME
                 controller::toggleTransformGizmoRotationState,                    //TOGGLE_TRANSFORM_GIZMO_ROTATION
                 []() { controller::getActiveEditor()->nodeSelectConnected(); },   //SELECT_CONNECTED
+                []() { controller::getActiveEditor()->inlineSelectedElements(); },   //INLINE_SELECTED_ELEMENTS
         };
     }
 

@@ -427,6 +427,73 @@ namespace bricksim {
             }
         }
     }
+    void Editor::inlineElement(const std::shared_ptr<etree::Node>& nodeToInline) {
+        inlineElement(nodeToInline, true);
+    }
+    void Editor::inlineElement(const std::shared_ptr<etree::Node>& nodeToInline, bool updateSelectionVisualization) {
+        auto parent = nodeToInline->parent.lock();
+        const auto& siblings = parent->getChildren();
+        std::size_t indexInSiblings = 0;
+        while (siblings[indexInSiblings] != nodeToInline && indexInSiblings < siblings.size()) {
+            ++indexInSiblings;
+        }
+
+        const bool nodeWasSelected = selectedNodes.erase(nodeToInline) > 0;
+
+        const auto subfileInstNodeToInline = std::dynamic_pointer_cast<etree::MpdSubfileInstanceNode>(nodeToInline);
+        if (subfileInstNodeToInline != nullptr) {
+            for (const auto& item: subfileInstNodeToInline->mpdSubfileNode->getChildren()) {
+                const auto meshItem = std::dynamic_pointer_cast<etree::MeshNode>(item);
+                const auto partItem = std::dynamic_pointer_cast<etree::PartNode>(item);
+                std::shared_ptr<etree::Node> newNode = nullptr;
+                const auto newColor = meshItem->getElementColor() == ldr::Color::MAIN_COLOR_CODE
+                                              ? subfileInstNodeToInline->getElementColor()
+                                              : meshItem->getElementColor();
+                if (partItem != nullptr) {
+                    newNode = std::make_shared<etree::PartNode>(partItem->ldrFile,
+                                                                newColor,
+                                                                parent,
+                                                                subfileInstNodeToInline->getDirectTexmap());
+                } else {
+                    const auto subfileInstItem = std::dynamic_pointer_cast<etree::MpdSubfileInstanceNode>(item);
+                    if (subfileInstItem != nullptr) {
+                        newNode = std::make_shared<etree::MpdSubfileInstanceNode>(subfileInstItem->mpdSubfileNode,
+                                                                                  newColor,
+                                                                                  parent,
+                                                                                  subfileInstItem->getDirectTexmap());
+                    }
+                }
+                if (newNode != nullptr) {
+                    const auto meshT = glm::transpose(meshItem->getRelativeTransformation());
+                    const auto nodeToInlineT = glm::transpose(nodeToInline->getRelativeTransformation());
+                    newNode->setRelativeTransformation(glm::transpose(nodeToInlineT * meshT));
+                    parent->addChild(indexInSiblings++, newNode);
+                    if (nodeWasSelected) {
+                        selectedNodes.emplace(newNode, newNode->getVersion());
+                    }
+                }
+            }
+        } else {
+            spdlog::warn("nothing to inline on node {}", nodeToInline->getDescription());
+            return;
+        }
+        parent->removeChild(nodeToInline);
+        parent->incrementVersion();
+        if (nodeWasSelected && updateSelectionVisualization) {
+            this->updateSelectionVisualization();
+        }
+    }
+
+    void Editor::inlineSelectedElements() {
+        std::vector<std::shared_ptr<etree::Node>> nodesToInline;
+        for (const auto& [node, version]: selectedNodes) {
+            nodesToInline.push_back(node);
+        }
+        for (const auto& node: nodesToInline) {
+            inlineElement(node, false);
+        }
+        updateSelectionVisualization();
+    }
 
     SelectionVisualizationNode::SelectionVisualizationNode(const std::shared_ptr<Node>& parent) :
         MeshNode(1, parent, nullptr) {

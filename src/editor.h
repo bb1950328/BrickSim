@@ -80,6 +80,10 @@ namespace bricksim {
         void hideSelectedElements();
         void unhideAllElements();
 
+        void inlineElement(const std::shared_ptr<etree::Node>& nodeToInline);
+        void inlineElement(const std::shared_ptr<etree::Node>& nodeToInline, bool updateSelectionVisualization);
+        void inlineSelectedElements();
+
         void update();
 
     private:

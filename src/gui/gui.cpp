@@ -328,6 +328,8 @@ namespace bricksim::gui {
                 gui_internal::actionMenuItem(user_actions::CUT);
                 gui_internal::actionMenuItem(user_actions::COPY);
                 gui_internal::actionMenuItem(user_actions::PASTE);
+                ImGui::Separator();
+                gui_internal::actionMenuItem(user_actions::INLINE_SELECTED_ELEMENTS);
                 ImGui::EndMenu();
             }
             auto& editors = controller::getEditors();

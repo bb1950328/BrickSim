@@ -317,7 +317,7 @@ jobs:
         working-directory: ${{ runner.workspace }}
         shell: powershell
         #WARNING: if you change the version here, also change it in the cache key
-        run: Invoke-WebRequest -Uri https://releases.bitrock.com/installbuilder/installbuilder-enterprise-${ { env.INSTALLBUILDER_VERSION } }-windows-x64-installer.exe -OutFile installbuilder_installer.exe
+        run: Invoke-WebRequest -Uri https://releases.bitrock.com/installbuilder/installbuilder-enterprise-${{ env.INSTALLBUILDER_VERSION }}-windows-x64-installer.exe -OutFile installbuilder_installer.exe
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         shell: powershell

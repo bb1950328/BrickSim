@@ -83,9 +83,11 @@ namespace bricksim::etree {
         return parentLocked == possibleParent || (parentLocked != nullptr && parentLocked->isChildOf(possibleParent));
     }
 
-    std::shared_ptr<Node> Node::getRoot() {
+    std::shared_ptr<RootNode> Node::getRoot() {
         const auto parentSp = parent.lock();
-        return !parentSp ? shared_from_this() : parentSp->getRoot();
+        return parentSp == nullptr
+                       ? std::dynamic_pointer_cast<RootNode>(shared_from_this())
+                       : parentSp->getRoot();
     }
 
     uint64_t Node::getVersion() const {
@@ -98,6 +100,9 @@ namespace bricksim::etree {
             ++node->version;
             node = node->parent.lock().get();
         } while (node != nullptr);
+    }
+    bool Node::isDirectChildOfTypeAllowed(NodeType type) const {
+        return true;
     }
 
     Node::~Node() = default;
@@ -117,7 +122,7 @@ namespace bricksim::etree {
                 case 1: {
                     auto sfElement = std::dynamic_pointer_cast<ldr::SubfileReference>(element);
                     if (childrenWithOwnNode.find(sfElement) == childrenWithOwnNode.end()) {
-                        mesh->addLdrSubfileReference(dummyColor, sfElement, glm::mat4(1.0f), windingInversed, texmap);
+                        mesh->addLdrSubfileReference(ldrFile->nameSpace, dummyColor, sfElement, glm::mat4(1.0f), windingInversed, texmap);
                     }
                 } break;
                 case 2:
@@ -133,29 +138,6 @@ namespace bricksim::etree {
                     mesh->addLdrOptionalLine(dummyColor, std::dynamic_pointer_cast<ldr::OptionalLine>(element), glm::mat4(1.0f));
                     break;
             }
-        }
-    }
-
-    std::shared_ptr<MpdSubfileNode> findMpdNodeAndAddSubfileNode(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& actualNode) {
-        if (actualNode->getType() == NodeType::TYPE_MULTI_PART_DOCUMENT) {
-            //check if the subfileNode already exists
-            for (const auto& child: actualNode->getChildren()) {
-                if (child->getType() == NodeType::TYPE_MPD_SUBFILE) {
-                    auto mpdSubfileChild = std::dynamic_pointer_cast<MpdSubfileNode>(child);
-                    if (ldrFile == mpdSubfileChild->ldrFile) {
-                        return mpdSubfileChild;
-                    }
-                }
-            }
-            //the node doesn't exist, we have to create it
-            auto addedNode = std::make_shared<MpdSubfileNode>(ldrFile, ldrColor, actualNode);
-            addedNode->createChildNodes();
-            actualNode->addChild(addedNode);
-            return addedNode;
-        } else if (actualNode->parent.expired()) {
-            return nullptr;
-        } else {
-            return findMpdNodeAndAddSubfileNode(ldrFile, ldrColor, actualNode->parent.lock());
         }
     }
 
@@ -183,12 +165,6 @@ namespace bricksim::etree {
         }
     }
 
-    void LdrNode::addSubfileInstanceNode(const std::shared_ptr<ldr::File>& subFile, const ldr::ColorReference instanceColor) {
-        auto subfileNode = findMpdNodeAndAddSubfileNode(subFile, {1}, shared_from_this());
-        auto instanceNode = std::make_shared<MpdSubfileInstanceNode>(subfileNode, instanceColor, shared_from_this(), nullptr);
-        this->children.push_back(instanceNode);
-    }
-
     void LdrNode::createChildNodes() {
         plFunction();
         if (!childNodesCreated) {
@@ -199,25 +175,14 @@ namespace bricksim::etree {
                 if (element->getType() == 0) {
                     const auto texmapStartCommand = dynamic_pointer_cast<ldr::TexmapStartCommand>(element);
                     if (texmapStartCommand != nullptr) {
-                        children.push_back(std::make_shared<TexmapNode>(texmapStartCommand, shared_from_this()));
+                        children.push_back(std::make_shared<TexmapNode>(ldrFile->nameSpace, texmapStartCommand, shared_from_this()));
                     }
                 } else if (element->getType() == 1) {
                     auto sfElement = std::dynamic_pointer_cast<ldr::SubfileReference>(element);
-                    auto subFile = sfElement->getFile();
-                    std::shared_ptr<Node> newNode = nullptr;
-                    if (subFile->metaInfo.type == ldr::FileType::MPD_SUBFILE || subFile->metaInfo.type==ldr::FileType::MODEL) {
-                        auto subFileNode = findMpdNodeAndAddSubfileNode(subFile, sfElement->color, shared_from_this());
-                        newNode = std::make_shared<MpdSubfileInstanceNode>(subFileNode, sfElement->color, shared_from_this(), sfElement->directTexmap);
-                        childrenWithOwnNode.insert(sfElement);
-                    } else if (subFile->metaInfo.type == ldr::FileType::PART) {
-                        childrenWithOwnNode.insert(sfElement);
-                        newNode = std::make_shared<PartNode>(subFile, sfElement->color, shared_from_this(), sfElement->directTexmap);
-                    }/* else if (subFile->metaInfo.type == ldr::FileType::MODEL) {
-                        childrenWithOwnNode.insert(sfElement);
-                        newNode = std::make_shared<MpdNode>(subFile, sfElement->color, shared_from_this());
-                    }*/
-                    if (nullptr != newNode) {
-                        children.push_back(newNode);
+                    auto subFile = sfElement->getFile(ldrFile->nameSpace);
+
+                    if (subFile->metaInfo.type == ldr::FileType::MPD_SUBFILE || subFile->metaInfo.type == ldr::FileType::MODEL || subFile->metaInfo.type == ldr::FileType::PART) {
+                        const auto newNode = addModelInstanceNode(subFile, sfElement->color);
                         newNode->setRelativeTransformation(sfElement->getTransformationMatrix());
                         subfileRefChildNodeSaveInfos.emplace(newNode, ChildNodeSaveInfo{newNode->getVersion(), element});
                     }
@@ -226,10 +191,22 @@ namespace bricksim::etree {
             childNodesCreated = true;
         }
     }
+
+    std::shared_ptr<MeshNode> LdrNode::addModelInstanceNode(const std::shared_ptr<ldr::File>& subFile, ldr::ColorReference instanceColor) {
+        std::shared_ptr<MeshNode> newNode;
+        if (subFile->metaInfo.type == ldr::FileType::PART) {
+            newNode = std::make_shared<PartNode>(subFile, instanceColor, shared_from_this(), nullptr);
+        } else {
+            const auto subModelNode = getRoot()->getModelNode(subFile);
+            newNode = std::make_shared<ModelInstanceNode>(subModelNode, instanceColor, shared_from_this(), nullptr);
+        }
+        addChild(newNode);
+        return newNode;
+    }
     void LdrNode::writeChangesToLdrFile() {
         if (version != lastSaveToLdrFileVersion) {
             for (const auto& item: children) {
-                if (item->getType() == NodeType::TYPE_PART || item->getType() == NodeType::TYPE_MPD_SUBFILE_INSTANCE) {
+                if (item->getType() == NodeType::TYPE_PART || item->getType() == NodeType::TYPE_MODEL_INSTANCE) {
                     auto saveInfos = subfileRefChildNodeSaveInfos.find(item);
                     if (saveInfos != subfileRefChildNodeSaveInfos.end()) {
                         if (item->getVersion() != saveInfos->second.lastSaveToLdrFileVersion) {
@@ -245,8 +222,6 @@ namespace bricksim::etree {
                         ldrFile->elements.push_back(subfileRefElement);
                         subfileRefChildNodeSaveInfos.emplace(item, ChildNodeSaveInfo{item->getVersion(), subfileRefElement});
                     }
-                } else if (item->getType() == NodeType::TYPE_MPD_SUBFILE) {
-                    std::dynamic_pointer_cast<MpdSubfileNode>(item)->writeChangesToLdrFile();
                 }
             }
             lastSaveToLdrFileVersion = version;
@@ -264,51 +239,50 @@ namespace bricksim::etree {
     bool RootNode::isDisplayNameUserEditable() const {
         return false;
     }
-
-    mesh_identifier_t MpdSubfileInstanceNode::getMeshIdentifier() const {
-        return mpdSubfileNode->getMeshIdentifier();
+    bool RootNode::isDirectChildOfTypeAllowed(NodeType type) const {
+        return type == NodeType::TYPE_MESH || type == NodeType::TYPE_MODEL;
+    }
+    std::shared_ptr<ModelNode> RootNode::getModelNode(const std::shared_ptr<ldr::File>& ldrFile) {
+        for (const auto& item: children) {
+            auto modelItem = dynamic_pointer_cast<ModelNode>(item);
+            if (modelItem != nullptr && modelItem->ldrFile == ldrFile) {
+                return modelItem;
+            }
+        }
+        auto newNode = std::make_shared<ModelNode>(ldrFile, ldr::color_repo::INSTANCE_DUMMY_COLOR_CODE, shared_from_this());
+        newNode->createChildNodes();
+        addChild(newNode);
+        return newNode;
     }
 
-    void MpdSubfileInstanceNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
-        mpdSubfileNode->addToMesh(mesh, windingInversed, texmap);
+    mesh_identifier_t ModelInstanceNode::getMeshIdentifier() const {
+        return modelNode->getMeshIdentifier();
     }
 
-    std::string MpdSubfileInstanceNode::getDescription() {
-        return mpdSubfileNode->getDescription();
+    void ModelInstanceNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
+        modelNode->addToMesh(mesh, windingInversed, texmap);
     }
 
-    bool MpdSubfileInstanceNode::isDisplayNameUserEditable() const {
+    std::string ModelInstanceNode::getDescription() {
+        return modelNode->getDescription();
+    }
+
+    bool ModelInstanceNode::isDisplayNameUserEditable() const {
         return false;
     }
 
-    MpdSubfileInstanceNode::MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap) :
-        MeshNode(color, parent, directTexmap), mpdSubfileNode(mpdSubfileNode) {
-        type = NodeType::TYPE_MPD_SUBFILE_INSTANCE;
-        this->displayName = mpdSubfileNode->displayName;
+    ModelInstanceNode::ModelInstanceNode(const std::shared_ptr<ModelNode>& modelNode, ldr::ColorReference color, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap) :
+        MeshNode(color, parent, directTexmap), modelNode(modelNode) {
+        type = NodeType::TYPE_MODEL_INSTANCE;
+        this->displayName = modelNode->displayName;
     }
 
-    bool MpdSubfileNode::isTransformationUserEditable() const {
-        return false;
-    }
-
-    bool MpdSubfileNode::isColorUserEditable() const {
-        return false;
-    }
-
-    bool MpdNode::isDisplayNameUserEditable() const {
+    bool ModelNode::isDisplayNameUserEditable() const {
         return true;
     }
 
-    MpdNode::MpdNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) :
-        LdrNode(NodeType::TYPE_MULTI_PART_DOCUMENT, ldrFile, ldrColor, parent, nullptr) {
-    }
-
-    bool MpdSubfileNode::isDisplayNameUserEditable() const {
-        return true;
-    }
-
-    MpdSubfileNode::MpdSubfileNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference color, const std::shared_ptr<Node>& parent) :
-        LdrNode(NodeType::TYPE_MPD_SUBFILE, ldrFile, color, parent, nullptr) {
+    ModelNode::ModelNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent) :
+        LdrNode(NodeType::TYPE_MODEL, ldrFile, ldrColor, parent, nullptr) {
         visible = false;
     }
 
@@ -363,10 +337,9 @@ namespace bricksim::etree {
         switch (type) {
             case NodeType::TYPE_ROOT: return "Root";
             case NodeType::TYPE_MESH: return "Mesh";
-            case NodeType::TYPE_MPD_SUBFILE_INSTANCE: return "MPD subfile Instance";
+            case NodeType::TYPE_MODEL_INSTANCE: return "Model Instance";
             case NodeType::TYPE_LDRFILE: return "LDraw file";
-            case NodeType::TYPE_MPD_SUBFILE: return "MPD subfile";
-            case NodeType::TYPE_MULTI_PART_DOCUMENT: return "MPD file";
+            case NodeType::TYPE_MODEL: return "Model";
             case NodeType::TYPE_PART: return "Part";
             case NodeType::TYPE_OTHER:
             default: return "Other";
@@ -375,9 +348,8 @@ namespace bricksim::etree {
 
     color::RGB getColorOfType(const NodeType& type) {
         switch (type) {
-            case NodeType::TYPE_MPD_SUBFILE_INSTANCE: return config::get(config::COLOR_MPD_SUBFILE_INSTANCE);
-            case NodeType::TYPE_MPD_SUBFILE: return config::get(config::COLOR_MPD_SUBFILE);
-            case NodeType::TYPE_MULTI_PART_DOCUMENT: return config::get(config::COLOR_MULTI_PART_DOCUMENT);
+            case NodeType::TYPE_MODEL_INSTANCE: return config::get(config::COLOR_MPD_SUBFILE_INSTANCE);
+            case NodeType::TYPE_MODEL: return config::get(config::COLOR_MULTI_PART_DOCUMENT);
             case NodeType::TYPE_PART: return config::get(config::COLOR_OFFICAL_PART);//todo unoffical part
             case NodeType::TYPE_OTHER:
             case NodeType::TYPE_ROOT:
@@ -400,7 +372,7 @@ namespace bricksim::etree {
         return nullptr;
     }
 
-    TexmapNode::TexmapNode(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, const std::shared_ptr<Node>& parent) :
+    TexmapNode::TexmapNode(const std::shared_ptr<ldr::FileNamespace>& fileNamespace, const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, const std::shared_ptr<Node>& parent) :
         MeshNode(ldr::color_repo::INSTANCE_DUMMY_COLOR_CODE, parent, nullptr),
         projectionMethod(startCommand->projectionMethod),
         p1(startCommand->x1(), startCommand->y1(), startCommand->z1()),
@@ -411,7 +383,7 @@ namespace bricksim::etree {
         b(startCommand->b()) {
         auto flipVerticallyBackup = util::isStbiFlipVertically();
         util::setStbiFlipVertically(false);//todo I'm not 100% sure if this is right
-        const auto& textureFile = ldr::file_repo::get().getBinaryFile(textureFilename, ldr::file_repo::BinaryFileSearchPath::TEXMAP);
+        const auto& textureFile = ldr::file_repo::get().getBinaryFile(fileNamespace, textureFilename, ldr::file_repo::BinaryFileSearchPath::TEXMAP);
         texture = graphics::Texture::getFromBinaryFileCached(textureFile);
         util::setStbiFlipVertically(flipVerticallyBackup);
         updateCalculatedValues();

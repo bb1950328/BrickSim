@@ -40,7 +40,7 @@ namespace bricksim::gui::windows::element_tree {
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
             for (auto& editor: controller::getEditors()) {
-                drawElementTreeNode(editor->getDocumentNode(), editor);
+                drawElementTreeNode(editor->getRootNode(), editor);
             }
         }
         ImGui::End();

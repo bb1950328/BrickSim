@@ -44,15 +44,15 @@ namespace bricksim::ldr {
 
     class FileMetaInfo {
     public:
-        std::string title;                         //usually the first line in the file
-        std::string name;                          //0 Name: xxxxx
-        std::string author;                        //0 Author: xxxxx
-        oset_t<std::string> keywords;              //0 !KEYWORDS xxx, yyyy, zzzz
-        std::vector<std::string> history;          //0 !HISTORY xxxx
-        std::string license;                       //0 !LICENSE xxxx
-        std::string theme;                         //0 !THEME
-        std::string fileTypeLine;                  //0 !LDRAW_ORG
-        std::optional<std::string> headerCategory; //0 !CATEGORY xxxx
+        std::string title;                        //usually the first line in the file
+        std::string name;                         //0 Name: xxxxx
+        std::string author;                       //0 Author: xxxxx
+        oset_t<std::string> keywords;             //0 !KEYWORDS xxx, yyyy, zzzz
+        std::vector<std::string> history;         //0 !HISTORY xxxx
+        std::string license;                      //0 !LICENSE xxxx
+        std::string theme;                        //0 !THEME
+        std::string fileTypeLine;                 //0 !LDRAW_ORG
+        std::optional<std::string> headerCategory;//0 !CATEGORY xxxx
         FileType type;
 
         friend std::ostream& operator<<(std::ostream& os, const FileMetaInfo& info);
@@ -60,8 +60,18 @@ namespace bricksim::ldr {
         bool addLine(const std::string& line);
 
         [[nodiscard]] const std::string& getCategory();
+
     private:
         bool firstLine = true;
+    };
+
+    struct FileNamespace {
+        std::string name;
+        std::filesystem::path searchPath;
+
+        FileNamespace(std::string name, const std::filesystem::path& searchPath);
+        bool operator==(const FileNamespace& rhs) const;
+        bool operator!=(const FileNamespace& rhs) const;
     };
 
     class FileElement {
@@ -104,7 +114,7 @@ namespace bricksim::ldr {
         [[nodiscard]] std::string getLdrLine() const override;
         [[nodiscard]] glm::mat4 getTransformationMatrix() const;
         void setTransformationMatrix(const glm::mat4& matrix);
-        std::shared_ptr<File> getFile();
+        std::shared_ptr<File> getFile(const std::shared_ptr<FileNamespace>& fileNamespace);
 
         inline float& x() { return numbers[0]; }
         inline float& y() { return numbers[1]; }
@@ -330,6 +340,7 @@ namespace bricksim::ldr {
         uoset_t<std::shared_ptr<File>> mpdSubFiles;
         FileMetaInfo metaInfo;
         std::vector<std::shared_ptr<connection::ldcad_snap_meta::MetaCommand>> ldcadSnapMetas;
+        std::shared_ptr<FileNamespace> nameSpace;
 
         void printStructure(int indent = 0) const;
         [[nodiscard]] const std::string& getDescription() const;
@@ -352,7 +363,7 @@ namespace bricksim::ldr {
 }
 
 namespace robin_hood {
-    template <>
+    template<>
     struct hash<bricksim::ldr::TexmapStartCommand> {
         size_t operator()(bricksim::ldr::TexmapStartCommand const& value) const noexcept {
             return hash<std::string>()(value.getLdrLine());//todo make this faster while still being correct

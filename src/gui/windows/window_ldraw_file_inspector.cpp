@@ -1,5 +1,6 @@
 #include "window_ldraw_file_inspector.h"
 #include "../../connection/connector_data_provider.h"
+#include "../../controller.h"
 #include "../../element_tree.h"
 #include "../../graphics/connection_visualization.h"
 #include "../../ldr/file_repo.h"
@@ -35,17 +36,18 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
             }
         }
 
-        int partNameInputCallback(ImGuiInputTextCallbackData *data) {
-            auto &fileRepo = ldr::file_repo::get();
-            if (fileRepo.hasFileCached(data->Buf)) {
-                setCurrentFile(fileRepo.getFile(data->Buf));
+        int partNameInputCallback(ImGuiInputTextCallbackData* data) {
+            const auto ns = controller::getActiveEditor()->getFileNamespace();
+            auto& fileRepo = ldr::file_repo::get();
+            if (fileRepo.hasFileCached(ns, data->Buf)) {
+                setCurrentFile(fileRepo.getFile(ns, data->Buf));
             } else {
                 const auto extendedName = std::string(data->Buf) + ".dat";
-                if (fileRepo.hasFileCached(extendedName)) {
+                if (fileRepo.hasFileCached(ns, extendedName)) {
                     const auto lengthBefore = data->BufTextLen;
                     data->InsertChars(lengthBefore, ".dat");
                     data->CursorPos = lengthBefore;
-                    setCurrentFile(fileRepo.getFile(extendedName));
+                    setCurrentFile(fileRepo.getFile(ns, extendedName));
                 } else {
                     setCurrentFile(nullptr);
                 }
@@ -53,22 +55,22 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
             return 0;
         }
 
-        void showSnapLineNodes(const std::shared_ptr<ldr::File> &file,
-                               std::weak_ptr<connection::ldcad_snap_meta::MetaCommand> &currentlySelected) {
-            for (const auto &item: file->ldcadSnapMetas) {
+        void showSnapLineNodes(const std::shared_ptr<ldr::File>& file,
+                               std::weak_ptr<connection::ldcad_snap_meta::MetaCommand>& currentlySelected) {
+            for (const auto& item: file->ldcadSnapMetas) {
                 auto flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
                 if (currentlySelected.lock() == item) {
                     flags |= ImGuiTreeNodeFlags_Selected;
                 }
-                ImGui::TreeNodeEx(reinterpret_cast<const void *>(item.get()), flags, "%s", item->to_string().c_str());
+                ImGui::TreeNodeEx(reinterpret_cast<const void*>(item.get()), flags, "%s", item->to_string().c_str());
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
                     currentlySelected = item;
                 }
             }
-            for (const auto &item: file->elements) {
+            for (const auto& item: file->elements) {
                 if (item->getType() == 1) {
                     const auto subfileRef = std::dynamic_pointer_cast<ldr::SubfileReference>(item);
-                    const auto subfile = subfileRef->getFile();
+                    const auto subfile = subfileRef->getFile(file->nameSpace);
                     if (!subfile->ldcadSnapMetas.empty()) {
                         if (ImGui::TreeNode(subfileRef.get(), "%s", subfileRef->filename.c_str())) {
                             showSnapLineNodes(subfile, currentlySelected);
@@ -81,9 +83,9 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
         void showBrickSimSnapConnectorTree() {
             if (ImGui::BeginChild("##snapConnectorTree")) {
-                const auto &connectors = connection::getConnectorsOfPart(currentFile->metaInfo.name);
-                char *nodeId = 0;
-                for (const auto &item: connectors) {
+                const auto& connectors = connection::getConnectorsOfPart(currentFile->metaInfo.name);
+                char* nodeId = 0;
+                for (const auto& item: connectors) {
                     const auto clipConn = std::dynamic_pointer_cast<connection::ClipConnector>(item);
                     const auto cylConn = std::dynamic_pointer_cast<connection::CylindricalConnector>(item);
                     const auto fgrConn = std::dynamic_pointer_cast<connection::FingerConnector>(item);
@@ -109,7 +111,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                             ImGui::BulletText("direction=%s", glm::to_string(cylConn->direction).c_str());
                             ImGui::BulletText("gender=%s", magic_enum::enum_name(cylConn->gender).data());
                             if (ImGui::TreeNode("Parts")) {
-                                for (const auto &part: cylConn->parts) {
+                                for (const auto& part: cylConn->parts) {
                                     ImGui::BulletText("type=%s flexibleRadius=%s radius=%f length=%f",
                                                       magic_enum::enum_name(part.type).data(),
                                                       std::to_string(part.flexibleRadius).c_str(),
@@ -126,7 +128,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                             ImGui::BulletText("gender=%s", magic_enum::enum_name(fgrConn->firstFingerGender).data());
                             ImGui::BulletText("radius=%f", fgrConn->radius);
                             if (ImGui::TreeNode("Finger Widths")) {
-                                for (const auto &width: fgrConn->fingerWidths) {
+                                for (const auto& width: fgrConn->fingerWidths) {
                                     ImGui::BulletText("%f", width);
                                 }
                                 ImGui::TreePop();
@@ -134,25 +136,25 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                         } else if (genConn != nullptr) {
                             ImGui::BulletText("gender=%s", magic_enum::enum_name(genConn->gender).data());
                             if (std::holds_alternative<connection::BoundingPnt>(genConn->bounding)) {
-                                const auto &bounding = std::get<connection::BoundingPnt>(genConn->bounding);
+                                const auto& bounding = std::get<connection::BoundingPnt>(genConn->bounding);
                                 ImGui::BulletText("bounding=point");
                             } else if (std::holds_alternative<connection::BoundingBox>(genConn->bounding)) {
-                                const auto &bounding = std::get<connection::BoundingBox>(genConn->bounding);
+                                const auto& bounding = std::get<connection::BoundingBox>(genConn->bounding);
                                 ImGui::BulletText("bounding=box");
                                 ImGui::BulletText("x=%f", bounding.x);
                                 ImGui::BulletText("y=%f", bounding.y);
                                 ImGui::BulletText("z=%f", bounding.z);
                             } else if (std::holds_alternative<connection::BoundingCube>(genConn->bounding)) {
-                                const auto &bounding = std::get<connection::BoundingCube>(genConn->bounding);
+                                const auto& bounding = std::get<connection::BoundingCube>(genConn->bounding);
                                 ImGui::BulletText("bounding=cube");
                                 ImGui::BulletText("size=%f", bounding.size);
                             } else if (std::holds_alternative<connection::BoundingCyl>(genConn->bounding)) {
-                                const auto &bounding = std::get<connection::BoundingCyl>(genConn->bounding);
+                                const auto& bounding = std::get<connection::BoundingCyl>(genConn->bounding);
                                 ImGui::BulletText("bounding=cyl");
                                 ImGui::BulletText("radius=%f", bounding.radius);
                                 ImGui::BulletText("length=%f", bounding.length);
                             } else if (std::holds_alternative<connection::BoundingSph>(genConn->bounding)) {
-                                const auto &bounding = std::get<connection::BoundingSph>(genConn->bounding);
+                                const auto& bounding = std::get<connection::BoundingSph>(genConn->bounding);
                                 ImGui::BulletText("bounding=sph");
                                 ImGui::BulletText("radius=%f", bounding.radius);
                             }
@@ -170,10 +172,10 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
             graphics::connection_visualization::setVisualizedPart(currentFile->metaInfo.name);
             const auto camera = graphics::connection_visualization::getCamera();
 
-            const ImVec2 &windowPos = ImGui::GetWindowPos();
-            const ImVec2 &imgPos = ImGui::GetCursorPos();
-            const ImVec2 &mousePos = ImGui::GetMousePos();
-            const ImGuiIO &imGuiIo = ImGui::GetIO();
+            const ImVec2& windowPos = ImGui::GetWindowPos();
+            const ImVec2& imgPos = ImGui::GetCursorPos();
+            const ImVec2& mousePos = ImGui::GetMousePos();
+            const ImGuiIO& imGuiIo = ImGui::GetIO();
             const glm::svec2 nowRelCursorPos = {
                     mousePos.x - windowPos.x - imgPos.x,
                     mousePos.y - windowPos.y - imgPos.y};
@@ -199,7 +201,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
             const auto lastScrollDeltaY = getLastScrollDeltaY();
             if (std::abs(lastScrollDeltaY) > 0.01 && nowFocussedAndHovered) {
-                camera->moveForwardBackward((float) lastScrollDeltaY);
+                camera->moveForwardBackward((float)lastScrollDeltaY);
             }
 
             lastLeftDown = nowLeftDown;
@@ -216,10 +218,10 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
         }
 
         void showMetaInfo() {
-            const auto &metaInfo = currentFile->metaInfo;
+            const auto& metaInfo = currentFile->metaInfo;
 
             if (ImGui::BeginTable("##metaInfoTable", 2)) {
-                constexpr auto rowStart = [](const char *const name) {
+                constexpr auto rowStart = [](const char* const name) {
                     ImGui::TableNextColumn();
                     ImGui::Text("%s", name);
                     ImGui::TableNextColumn();
@@ -240,12 +242,12 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                 ImGui::Text("%s", metaInfo.author.c_str());
 
                 rowStart("Keywords");
-                for (const auto &item: metaInfo.keywords) {
+                for (const auto& item: metaInfo.keywords) {
                     ImGui::BulletText("%s", item.c_str());
                 }
 
                 rowStart("History");
-                for (const auto &item: metaInfo.history) {
+                for (const auto& item: metaInfo.history) {
                     ImGui::BulletText("%s", item.c_str());
                 }
 
@@ -263,8 +265,6 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
                 ImGui::EndTable();
             }
-
-
 
             /*
 
@@ -292,14 +292,14 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
         }
     }
 
-    void setCurrentFile(const std::shared_ptr<ldr::File> &newFile) {
+    void setCurrentFile(const std::shared_ptr<ldr::File>& newFile) {
         if (currentFile != newFile) {
             currentFile = newFile;
             currentFileChanged();
         }
     }
 
-    void draw(Data &data) {
+    void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
             static std::array<bool, magic_enum::enum_count<ldr::FileType>()> showTypes;
 
@@ -313,10 +313,10 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
             if (ImGui::BeginTable("##File selector", 2, ImGuiTableFlags_None)) {
                 ImGui::TableSetupColumn("##filters", ImGuiTableColumnFlags_NoReorder
-                                                     | ImGuiTableColumnFlags_NoResize
-                                                     | ImGuiTableColumnFlags_WidthFixed);
+                                                             | ImGuiTableColumnFlags_NoResize
+                                                             | ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableSetupColumn("##listbox", ImGuiTableColumnFlags_NoReorder
-                                                     | ImGuiTableColumnFlags_NoResize);
+                                                             | ImGuiTableColumnFlags_NoResize);
                 ImGui::TableNextColumn();
                 for (int i = 0; i < magic_enum::enum_count<ldr::FileType>(); ++i) {
                     const auto type = static_cast<const ldr::FileType>(i);
@@ -328,12 +328,18 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
                 ImGui::PushItemWidth(-1.f);
                 if (ImGui::BeginListBox("##All Files")) {
-                    for (const auto &item: ldr::file_repo::get().getAllFilesInMemory()) {
-                        if (showTypes[magic_enum::enum_index(item.second.second->metaInfo.type).value()]) {
-                            const auto text = fmt::format("{}: {}", item.first, item.second.second->metaInfo.title);
-                            if (ImGui::Selectable(text.c_str(), item.second.second == currentFile)) {
-                                setCurrentFile(item.second.second);
+                    for (const auto& [nsKey, nsMap]: ldr::file_repo::get().getAllFilesInMemory()) {
+                        if (ImGui::TreeNode("%s (%s)", nsKey->name.c_str(), nsKey->searchPath.c_str())) {
+                            for (const auto& [nameKey, value]: nsMap) {
+                                const auto& [fileType, file] = value;
+                                if (showTypes[magic_enum::enum_index(file->metaInfo.type).value()]) {
+                                    const auto text = fmt::format("{}: {}", nameKey, file->metaInfo.title);
+                                    if (ImGui::Selectable(text.c_str(), file == currentFile)) {
+                                        setCurrentFile(file);
+                                    }
+                                }
                             }
+                            ImGui::TreePop();
                         }
                     }
                     ImGui::EndListBox();

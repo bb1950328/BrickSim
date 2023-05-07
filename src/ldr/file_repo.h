@@ -38,16 +38,17 @@ namespace bricksim::ldr::file_repo {
         FileRepo(const FileRepo&) = delete;
         void initialize(float* progress);
 
-        std::shared_ptr<File> getFile(const std::string& name);
-        std::shared_ptr<BinaryFile> getBinaryFile(const std::string& name, BinaryFileSearchPath searchPath = BinaryFileSearchPath::DEFAULT);
-        bool hasFileCached(const std::string& name);
-        [[nodiscard]] const uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>>& getAllFilesInMemory() const;
-        std::shared_ptr<File> reloadFile(const std::string& name);
-        std::shared_ptr<File> addLdrFileWithContent(const std::string& name, FileType type, const std::string& content);
-        std::shared_ptr<File> addLdrFileWithContent(const std::string& name, FileType type, const std::string& content, const std::optional<std::string>& shadowContent);
-        std::shared_ptr<BinaryFile> addBinaryFileWithContent(const std::string& name, const std::shared_ptr<BinaryFile>& file);
+        std::shared_ptr<File> getFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name);
+        std::shared_ptr<BinaryFile> getBinaryFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, BinaryFileSearchPath searchPath = BinaryFileSearchPath::DEFAULT);
+        bool hasFileCached(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name);
+        [[nodiscard]] const uomap_t<std::shared_ptr<FileNamespace>, uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>>>& getAllFilesInMemory() const;
+        std::shared_ptr<File> reloadFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name);
+        std::shared_ptr<File> addLdrFileWithContent(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, FileType type, const std::string& content);
+        std::shared_ptr<File> addLdrFileWithContent(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, FileType type, const std::string& content, const std::optional<std::string>& shadowContent);
+        std::shared_ptr<BinaryFile> addBinaryFileWithContent(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, const std::shared_ptr<BinaryFile>& file);
         std::filesystem::path& getBasePath();
         static oset_t<std::string> getAllCategories();
+        std::shared_ptr<FileNamespace> getNamespace(const std::string& name);
 
         /**
          * @param type
@@ -72,10 +73,9 @@ namespace bricksim::ldr::file_repo {
         omap_t<std::string, oset_t<std::shared_ptr<File>>> getAllPartsGroupedByCategory();
         omap_t<std::string, oset_t<std::shared_ptr<File>>> getLoadedPartsGroupedByCategory() const;
 
-        void changeFileName(const std::shared_ptr<File>& file, const std::string& newName);
+        void changeFileName(const std::shared_ptr<FileNamespace>& fileNamespace, const std::shared_ptr<File>& file, const std::string& newName);
 
     protected:
-        static std::string readFileFromFilesystem(const std::filesystem::path& path);
         static bool shouldFileBeSavedInList(const std::string& filename);
         /**
          * this is the reverse function of ldr::FileRepo::getPathRelativeToBase
@@ -86,10 +86,10 @@ namespace bricksim::ldr::file_repo {
         std::filesystem::path basePath;
 
     private:
-        uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>> ldrFiles;
+        uomap_t<std::shared_ptr<FileNamespace>, uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>>> ldrFiles;
         std::mutex ldrFilesMtx;
 
-        uomap_t<std::string, std::shared_ptr<BinaryFile>> binaryFiles;
+        uomap_t<std::shared_ptr<FileNamespace>, uomap_t<std::string, std::shared_ptr<BinaryFile>>> binaryFiles;
         std::mutex binaryFilesMtx;
 
         omap_t<std::string, oset_t<std::shared_ptr<File>>> partsByCategory;

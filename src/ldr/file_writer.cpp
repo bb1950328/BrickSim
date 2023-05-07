@@ -9,7 +9,7 @@ namespace bricksim::ldr {
             for (const auto& element: file->elements) {
                 auto sfElement = std::dynamic_pointer_cast<SubfileReference>(element);
                 if (sfElement != nullptr) {
-                    const auto& subfile = sfElement->getFile();
+                    const auto& subfile = sfElement->getFile(file->nameSpace);
                     if (subfile->metaInfo.type == FileType::MPD_SUBFILE && foundSubmodelNames.find(sfElement->filename) == foundSubmodelNames.end()) {
                         submodels.emplace_back(sfElement->filename, subfile);
                         foundSubmodelNames.insert(sfElement->filename);

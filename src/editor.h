@@ -35,7 +35,8 @@ namespace bricksim {
 
         const std::optional<std::filesystem::path>& getFilePath();
         std::shared_ptr<etree::RootNode>& getRootNode();
-        std::shared_ptr<etree::MpdNode>& getDocumentNode();
+        std::shared_ptr<etree::ModelNode>& getEditingModel();
+        std::shared_ptr<ldr::FileNamespace>& getFileNamespace();
         [[nodiscard]] bool isModified() const;
         std::shared_ptr<graphics::Scene>& getScene();
         std::unique_ptr<transform_gizmo::TransformGizmo>& getTransformGizmo();
@@ -98,7 +99,8 @@ namespace bricksim {
         std::optional<std::filesystem::path> filePath;
         std::optional<efsw::WatchID> fileWatchId;
         std::shared_ptr<etree::RootNode> rootNode;
-        std::shared_ptr<etree::MpdNode> documentNode;
+        std::shared_ptr<etree::ModelNode> editingModel;
+        std::shared_ptr<ldr::FileNamespace> fileNamespace;
         scene_id_t sceneId{};
         std::shared_ptr<graphics::Scene> scene;
         std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;

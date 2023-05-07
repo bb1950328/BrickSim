@@ -322,7 +322,7 @@ namespace bricksim::gui::windows::debug {
                         float time = 999999999999.f;
                         for (int i = 0; i < 10; ++i) {
                             const auto before = std::chrono::high_resolution_clock::now();
-                            connectionGraph = connection::engine::findConnections(node, activeEditor->getDocumentNode(), activeEditor->getScene()->getMeshCollection());
+                            connectionGraph = connection::engine::findConnections(node, activeEditor->getEditingModel(), activeEditor->getScene()->getMeshCollection());
                             const auto after = std::chrono::high_resolution_clock::now();
                             time = std::min(time, static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.0f);
                         }
@@ -375,7 +375,7 @@ namespace bricksim::gui::windows::debug {
                                 std::filesystem::path outputFile = outputPathChars;
                                 controller::getForegroundTasks().emplace("Export Connections with GraphViz", [outputFile, activeEditor](auto* progress) {
                                     *progress = .0f;
-                                    const auto graph = connection::engine::findConnections(activeEditor->getDocumentNode(), activeEditor->getScene()->getMeshCollection());
+                                    const auto graph = connection::engine::findConnections(activeEditor->getEditingModel(), activeEditor->getScene()->getMeshCollection());
                                     *progress = .2f;
                                     const auto graphvizCode = connection::visualization::generateGraphviz(graph);
                                     *progress = .3f;

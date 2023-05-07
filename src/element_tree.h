@@ -13,15 +13,16 @@ namespace bricksim::etree {
         TYPE_OTHER = 0,
         TYPE_ROOT = 1u << 0u,
         TYPE_MESH = 1u << 1u,
-        TYPE_MPD_SUBFILE_INSTANCE = (1u << 2u) | TYPE_MESH,
         TYPE_LDRFILE = (1u << 3u) | TYPE_MESH,
-        TYPE_MPD_SUBFILE = (1u << 4u) | TYPE_LDRFILE,
-        TYPE_MULTI_PART_DOCUMENT = (1u << 5u) | TYPE_LDRFILE,
+        TYPE_MODEL_INSTANCE = (1u << 4u) | TYPE_LDRFILE,
+        TYPE_MODEL = (1u << 5u) | TYPE_LDRFILE,
         TYPE_PART = (1u << 6u) | TYPE_LDRFILE,
     };
 
     const char* getDisplayNameOfType(const NodeType& type);
     color::RGB getColorOfType(const NodeType& type);
+
+    class RootNode;
 
     class Node : public std::enable_shared_from_this<Node> {
     public:
@@ -50,11 +51,12 @@ namespace bricksim::etree {
         void addChild(std::size_t position, const std::shared_ptr<Node>& newChild);
         bool isChildOf(const std::shared_ptr<Node>& possibleParent) const;
         void removeChild(const std::shared_ptr<Node>& childToDelete);
+        virtual bool isDirectChildOfTypeAllowed(NodeType type) const;
 
         uint64_t getVersion() const;
         void incrementVersion();
 
-        std::shared_ptr<Node> getRoot();
+        std::shared_ptr<RootNode> getRoot();
 
         virtual ~Node();
 
@@ -68,11 +70,15 @@ namespace bricksim::etree {
         void invalidateAbsoluteTransformation();
     };
 
+    class ModelNode;
+
     class RootNode : public Node {
     public:
         RootNode();
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
+        bool isDirectChildOfTypeAllowed(NodeType type) const override;
+        std::shared_ptr<ModelNode> getModelNode(const std::shared_ptr<ldr::File>& ldrFile);
     };
 
     class MeshNode : public Node {
@@ -111,9 +117,9 @@ namespace bricksim::etree {
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
 
         /**
-         * finds the subfileNode and creates a MpdSubfileInstanceNode as child of this
+         * finds the ModelNode and creates a ModelInstanceNode as child of this
          */
-        void addSubfileInstanceNode(const std::shared_ptr<ldr::File>& subFile, ldr::ColorReference instanceColor);
+        std::shared_ptr<MeshNode> addModelInstanceNode(const std::shared_ptr<ldr::File>& subFile, ldr::ColorReference instanceColor);
         void writeChangesToLdrFile();
 
     private:
@@ -126,33 +132,22 @@ namespace bricksim::etree {
         uint64_t lastSaveToLdrFileVersion = 0;
     };
 
-    class MpdSubfileNode;
-
-    class MpdSubfileInstanceNode : public MeshNode {
+    class ModelInstanceNode : public MeshNode {
     public:
-        MpdSubfileInstanceNode(const std::shared_ptr<MpdSubfileNode>& mpdSubfileNode, ldr::ColorReference color, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap);
+        ModelInstanceNode(const std::shared_ptr<ModelNode>& modelNode, ldr::ColorReference color, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap);
 
-        std::shared_ptr<MpdSubfileNode> mpdSubfileNode;
+        std::shared_ptr<ModelNode> modelNode;
         mesh_identifier_t getMeshIdentifier() const override;
         void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
         std::string getDescription() override;
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };
 
-    class MpdNode : public LdrNode {
+    class ModelNode : public LdrNode {
     public:
-        MpdNode(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent);
+        ModelNode(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
-    };
-
-    class MpdSubfileNode : public LdrNode {
-    public:
-        MpdSubfileNode(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color, const std::shared_ptr<Node>& parent);
-
-        [[nodiscard]] bool isDisplayNameUserEditable() const override;
-        [[nodiscard]] bool isTransformationUserEditable() const override;
-        [[nodiscard]] bool isColorUserEditable() const override;
     };
 
     class PartNode : public LdrNode {
@@ -164,7 +159,7 @@ namespace bricksim::etree {
 
     class TexmapNode : public MeshNode {
     public:
-        TexmapNode(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, const std::shared_ptr<Node>& parent);
+        TexmapNode(const std::shared_ptr<ldr::FileNamespace>& fileNamespace, const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, const std::shared_ptr<Node>& parent);
 
         mesh_identifier_t getMeshIdentifier() const override;
 

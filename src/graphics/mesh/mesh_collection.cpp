@@ -80,9 +80,9 @@ namespace bricksim::mesh {
                 std::shared_ptr<etree::MeshNode> meshNode;
                 ldr::ColorReference color;
                 std::shared_ptr<etree::MeshNode> nodeToGetColorFrom;
-                if (node->getType() == etree::NodeType::TYPE_MPD_SUBFILE_INSTANCE) {
-                    const auto instanceNode = std::dynamic_pointer_cast<etree::MpdSubfileInstanceNode>(node);
-                    meshNode = instanceNode->mpdSubfileNode;
+                if (node->getType() == etree::NodeType::TYPE_MODEL_INSTANCE) {
+                    const auto instanceNode = std::dynamic_pointer_cast<etree::ModelInstanceNode>(node);
+                    meshNode = instanceNode->modelNode;
                     absoluteTransformation = instanceNode->getRelativeTransformation() * parentAbsoluteTransformation;
                     nodeToGetColorFrom = instanceNode;
                     nodeToParseChildren = meshNode;
@@ -104,7 +104,7 @@ namespace bricksim::mesh {
                     texmap = graphics::texmap_projection::transformTexmapStartCommand(texmap, glm::transpose(node->getRelativeTransformation()));
                 }
 
-                if (node->getType() == etree::NodeType::TYPE_MPD_SUBFILE_INSTANCE) {
+                if (node->getType() == etree::NodeType::TYPE_MODEL_INSTANCE) {
                     parentColor = color;
                 }
 
@@ -116,7 +116,7 @@ namespace bricksim::mesh {
                     elementId = selectionTargetElementId.value();
                 } else {
                     elementId = static_cast<unsigned int>(elementsSortedById.size());
-                    if (node->getType() == etree::NodeType::TYPE_MPD_SUBFILE_INSTANCE) {
+                    if (node->getType() == etree::NodeType::TYPE_MODEL_INSTANCE) {
                         selectionTargetElementId = elementId;//for the children
                     }
                 }
@@ -196,9 +196,9 @@ namespace bricksim::mesh {
             const auto& outerDimensions = mesh->getOuterDimensions();
             aabb.includeAABB(outerDimensions->aabb);
         }
-        bool isSubfileInstance = node->getType() == etree::NodeType::TYPE_MPD_SUBFILE_INSTANCE;
+        bool isSubfileInstance = node->getType() == etree::NodeType::TYPE_MODEL_INSTANCE;
         const auto& children = isSubfileInstance
-                                       ? std::dynamic_pointer_cast<const etree::MpdSubfileInstanceNode>(node)->mpdSubfileNode->getChildren()
+                                       ? std::dynamic_pointer_cast<const etree::ModelInstanceNode>(node)->modelNode->getChildren()
                                        : node->getChildren();
         for (const auto& child: children) {
             if (static_cast<uint32_t>(child->getType()) & static_cast<uint32_t>(etree::NodeType::TYPE_MESH)) {

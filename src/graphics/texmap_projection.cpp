@@ -251,7 +251,7 @@ namespace bricksim::graphics::texmap_projection {
     std::shared_ptr<Texture> getTexture(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand) {
         auto flipVerticallyBackup = util::isStbiFlipVertically();
         util::setStbiFlipVertically(false);//todo I'm not 100% sure if this is right
-        const auto& textureFile = ldr::file_repo::get().getBinaryFile(startCommand->textureFilename, ldr::file_repo::BinaryFileSearchPath::TEXMAP);
+        const auto& textureFile = ldr::file_repo::get().getBinaryFile(nullptr, startCommand->textureFilename, ldr::file_repo::BinaryFileSearchPath::TEXMAP);
         auto texture = graphics::Texture::getFromBinaryFileCached(textureFile);
         util::setStbiFlipVertically(flipVerticallyBackup);
         return texture;

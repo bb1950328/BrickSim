@@ -383,7 +383,7 @@ namespace bricksim {
 
             if (selectedNodes.size() == 1) {
                 const auto meshNode = std::dynamic_pointer_cast<etree::MeshNode>(selectedNodes.begin()->first);
-                if (meshNode != nullptr) {
+                if (meshNode != nullptr && meshNode->visible) {
                     const auto relativeAABB = scene->getMeshCollection().getRelativeAABB(meshNode);
                     if (relativeAABB.isDefined()) {
                         const auto rotatedBBox = aabb::OBB(relativeAABB, glm::vec3(0.f, 0.f, 0.f),
@@ -395,18 +395,16 @@ namespace bricksim {
                                 glm::transpose(rotatedBBox.getUnitBoxTransformation()));
                     }
                 }
-                selectedNodes.begin()->second = selectedNodes.begin()->first->getVersion();
             } else {
                 aabb::AABB aabb;
                 for (auto& node: selectedNodes) {
                     std::shared_ptr<etree::MeshNode> meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node.first);
-                    if (meshNode != nullptr) {
+                    if (meshNode != nullptr && meshNode->visible) {
                         auto nodeBBox = scene->getMeshCollection().getAbsoluteRotatedBBox(meshNode);
                         if (nodeBBox.has_value()) {
                             aabb.includeOBB(nodeBBox.value());
                         }
                     }
-                    node.second = node.first->getVersion();
                 }
                 if (aabb.isDefined()) {
                     selectionVisualizationNode->visible = true;
@@ -419,6 +417,9 @@ namespace bricksim {
                 }
             }
             selectionVisualizationNode->incrementVersion();
+            for (auto& node: selectedNodes) {
+                node.second = node.first->getVersion();
+            }
         }
     }
 

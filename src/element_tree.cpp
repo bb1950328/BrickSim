@@ -101,7 +101,7 @@ namespace bricksim::etree {
             node = node->parent.lock().get();
         } while (node != nullptr);
     }
-    bool Node::isDirectChildOfTypeAllowed(NodeType type) const {
+    bool Node::isDirectChildOfTypeAllowed(NodeType potentialChildType) const {
         return true;
     }
 

@@ -51,7 +51,7 @@ namespace bricksim::etree {
         void addChild(std::size_t position, const std::shared_ptr<Node>& newChild);
         bool isChildOf(const std::shared_ptr<Node>& possibleParent) const;
         void removeChild(const std::shared_ptr<Node>& childToDelete);
-        virtual bool isDirectChildOfTypeAllowed(NodeType type) const;
+        virtual bool isDirectChildOfTypeAllowed(NodeType potentialChildType) const;
 
         uint64_t getVersion() const;
         void incrementVersion();

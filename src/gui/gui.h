@@ -22,6 +22,9 @@ namespace bricksim::gui {
         std::vector<std::string> options;
     };
 
+    constexpr color::RGB COLOR_ACTIVE_EDITOR = {0, 255, 0};
+    constexpr color::RGB COLOR_EDITING_MODEL = {0, 255, 255};
+
     void drawMenuBar(bool* show);
 
     void setWindow(GLFWwindow* value);

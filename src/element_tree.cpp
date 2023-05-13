@@ -64,18 +64,12 @@ namespace bricksim::etree {
         children.push_back(newChild);
     }
 
-    void Node::addChild(std::size_t position, const std::shared_ptr<Node>& newChild) {
+    void Node::addChild(std::vector<std::shared_ptr<Node>>::difference_type position, const std::shared_ptr<Node>& newChild) {
         children.insert(children.cbegin() + position, newChild);
     }
 
     void Node::removeChild(const std::shared_ptr<Node>& childToDelete) {
-        auto it = children.begin();
-        while (*it != childToDelete && it != children.end()) {
-            ++it;
-        }
-        if (it != children.end()) {
-            children.erase(it);
-        }
+        std::erase(children, childToDelete);
     }
 
     bool Node::isChildOf(const std::shared_ptr<Node>& possibleParent) const {

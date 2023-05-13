@@ -8,6 +8,7 @@
 #include "controller.h"
 #include "ldr/file_repo.h"
 #include "ldr/file_writer.h"
+#include "lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "spdlog/fmt/bundled/format.h"
 #include "spdlog/fmt/ostr.h"
 
@@ -20,8 +21,10 @@ namespace bricksim {
     }
 
     Editor::Editor() {
+        const auto newFileLocation = util::extendHomeDirPath(config::get(config::NEW_FILE_LOCATION));
         const auto newName = getNameForNewLdrFile();
-        fileNamespace = std::make_shared<ldr::FileNamespace>(newName, "/");
+        filePath = newFileLocation / newName;
+        fileNamespace = std::make_shared<ldr::FileNamespace>(newName, newFileLocation);
         init(ldr::file_repo::get().addLdrFileWithContent(fileNamespace, newName, ldr::FileType::MODEL, ""));
     }
 
@@ -33,6 +36,7 @@ namespace bricksim {
 
     void Editor::init(const std::shared_ptr<ldr::File>& ldrFile) {
         rootNode = std::make_shared<etree::RootNode>();
+        rootNode->displayName = ldrFile->metaInfo.name;
         editingModel = std::make_shared<etree::ModelNode>(ldrFile, 1, rootNode);
         rootNode->addChild(editingModel);
         editingModel->createChildNodes();
@@ -350,8 +354,8 @@ namespace bricksim {
         return selectedNodes;
     }
 
-    const std::string& Editor::getFilename() const {
-        return editingModel->ldrFile->metaInfo.name;
+    std::string Editor::getFilename() const {
+        return this->filePath->filename();
     }
 
     void Editor::handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename, efsw::Action action, std::string oldFilename) {
@@ -501,6 +505,18 @@ namespace bricksim {
     }
     std::shared_ptr<ldr::FileNamespace>& Editor::getFileNamespace() {
         return fileNamespace;
+    }
+    bool Editor::isActive() const {
+        return controller::getActiveEditor().get() == this;
+    }
+    void Editor::setEditingModel(const std::shared_ptr<etree::ModelNode>& newEditingModel) {
+        editingModel->visible = false;
+        editingModel->incrementVersion();
+
+        editingModel = newEditingModel;
+
+        editingModel->visible = true;
+        editingModel->incrementVersion();
     }
 
     SelectionVisualizationNode::SelectionVisualizationNode(const std::shared_ptr<Node>& parent) :

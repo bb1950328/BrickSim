@@ -303,7 +303,14 @@ namespace bricksim::ldr::file_repo {
             for (int threadNum = 0; threadNum < numCores; ++threadNum) {
                 const long iStart = threadNum * filesPerThread;                                    //inclusive
                 const long iEnd = (threadNum == numCores - 1) ? numFiles : iStart + filesPerThread;//exclusive
-                threads.emplace_back([this, iStart, iEnd, &fileNames, progress]() {
+                threads.emplace_back([this,
+                                      iStart,
+                                      iEnd,
+#ifdef USE_PL
+                                      &threadNum,
+#endif
+                                      &fileNames,
+                                      progress]() {
 #ifdef USE_PL
                     std::string threadName = "FileList filler #" + std::to_string(threadNum);
                     plDeclareThreadDyn(threadName.c_str());

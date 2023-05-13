@@ -77,10 +77,10 @@ namespace bricksim::gui::windows::mesh_inspector {
                         ImGui::Text("%u", index);
 
                         ImGui::TableNextColumn();
-                        ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::RED);
+                        ImGui::PushStyleColor(ImGuiCol_Text, color::RED);
                         ImGui::Text("%.2f", vertex.position.x);
                         ImGui::PopStyleColor();
-                        ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::GREEN);
+                        ImGui::PushStyleColor(ImGuiCol_Text, color::GREEN);
                         ImGui::SameLine();
                         ImGui::Text("%.2f", vertex.position.y);
                         ImGui::PopStyleColor();
@@ -90,10 +90,10 @@ namespace bricksim::gui::windows::mesh_inspector {
                         ImGui::PopStyleColor();
 
                         ImGui::TableNextColumn();
-                        ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::RED);
+                        ImGui::PushStyleColor(ImGuiCol_Text, color::RED);
                         ImGui::Text("%.2f", vertex.normal.x);
                         ImGui::PopStyleColor();
-                        ImGui::PushStyleColor(ImGuiCol_Text, color::RGB::GREEN);
+                        ImGui::PushStyleColor(ImGuiCol_Text, color::GREEN);
                         ImGui::SameLine();
                         ImGui::Text("%.2f", vertex.normal.y);
                         ImGui::PopStyleColor();

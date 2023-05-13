@@ -36,6 +36,7 @@ namespace bricksim {
         const std::optional<std::filesystem::path>& getFilePath();
         std::shared_ptr<etree::RootNode>& getRootNode();
         std::shared_ptr<etree::ModelNode>& getEditingModel();
+        void setEditingModel(const std::shared_ptr<etree::ModelNode>& newEditingModel);
         std::shared_ptr<ldr::FileNamespace>& getFileNamespace();
         [[nodiscard]] bool isModified() const;
         std::shared_ptr<graphics::Scene>& getScene();
@@ -43,7 +44,7 @@ namespace bricksim {
         [[nodiscard]] const std::shared_ptr<graphics::CadCamera>& getCamera() const;
         [[nodiscard]] const uomap_t<std::shared_ptr<etree::Node>, uint64_t>& getSelectedNodes() const;
 
-        [[nodiscard]] const std::string& getFilename() const;
+        [[nodiscard]] std::string getFilename() const;
 
         void save();
         void saveAs(const std::filesystem::path& newPath);
@@ -87,8 +88,10 @@ namespace bricksim {
 
         void update();
 
+        bool isActive() const;
+
     private:
-        void handleFileAction(efsw::WatchID watchid, const std::string &dir, const std::string &filename,
+        void handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename,
                               efsw::Action action, std::string oldFilename) override;
 
         void updateSelectionVisualization();

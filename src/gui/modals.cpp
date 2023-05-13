@@ -72,7 +72,7 @@ namespace bricksim::gui::modals {
 
     bool ErrorModal::drawContent() {
         //todo draw a big error icon on the left side #50
-        ImGui::TextColored(color::RGB::RED, "%s", message.c_str());
+        ImGui::TextColored(color::RED, "%s", message.c_str());
         ImGui::PushItemWidth(-1);
         if (ImGui::Button("OK")) {
             return false;
@@ -132,8 +132,8 @@ namespace bricksim::gui::modals {
             const auto& answ = answers[i];
             if (answ.buttonColor.has_value()) {
                 ImGui::PushStyleColor(ImGuiCol_Button, answ.buttonColor.value());
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, answ.buttonColor.value() * 0.6 + color::RGB::WHITE * 0.4);
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, answ.buttonColor.value() * 0.4 + color::RGB::WHITE * 0.6);
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, answ.buttonColor.value() * 0.6 + color::WHITE * 0.4);
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, answ.buttonColor.value() * 0.4 + color::WHITE * 0.6);
             }
             if (ImGui::Button(answ.text.c_str())) {
                 chosenAnswer = i;

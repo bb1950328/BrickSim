@@ -46,7 +46,7 @@ namespace bricksim::gui_internal {
     }
 
     color::RGB getWhiteOrBlackBetterContrast(const glm::vec3& col) {
-        return util::vectorSum(col) > 1.5 ? color::RGB::BLACK : color::RGB::WHITE;
+        return util::vectorSum(col) > 1.5 ? color::BLACK : color::WHITE;
     }
 
     void drawColorGroup(const std::shared_ptr<etree::MeshNode>& ldrNode, const ImVec2& buttonSize, const int columnCount,

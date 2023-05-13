@@ -21,11 +21,10 @@ namespace bricksim::gui::windows::view3d {
     }
 
     void draw(Data& data) {
-        const auto& activeEditor = controller::getActiveEditor();
         ImGuiDockNode* lastDockNode = nullptr;
         for (auto& editor: controller::getEditors()) {
-            const auto fileName = editor->getFilename();
-            std::string windowTitle = fmt::format("{}{}{}###View3D{}", editor == activeEditor ? ICON_FA_EDIT " " : "", editor->isModified() ? "*" : "", fileName, fileName);
+            const bool isActiveEditor = editor->isActive();
+            const auto windowTitle = editor->getFilename();
             bool open = true;
             ImGuiWindow* imGuiWindow = ImGui::FindWindowByName(windowTitle.c_str());
             if (imGuiWindow == nullptr) {
@@ -35,7 +34,13 @@ namespace bricksim::gui::windows::view3d {
             } else if (imGuiWindow->DockNode != nullptr) {
                 lastDockNode = imGuiWindow->DockNode;
             }
+            if (isActiveEditor) {
+                ImGui::PushStyleColor(ImGuiCol_Text, COLOR_ACTIVE_EDITOR);
+            }
             if (ImGui::Begin(windowTitle.c_str(), &open, ImGuiWindowFlags_NoScrollWithMouse)) {
+                if (isActiveEditor) {
+                    ImGui::PopStyleColor();
+                }
                 ImGui::BeginChild("3DRender");
                 const ImVec2& regionAvail = ImGui::GetContentRegionAvail();
                 const auto& scene = editor->getScene();

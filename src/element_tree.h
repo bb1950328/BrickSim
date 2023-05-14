@@ -35,6 +35,7 @@ namespace bricksim::etree {
         bool selected = false;
         NodeType type = NodeType::TYPE_OTHER;
         layer_t layer = constants::DEFAULT_LAYER;//todo think about inheritance of this attribute
+        using version_t = uint64_t;
 
         [[nodiscard]] const glm::mat4& getRelativeTransformation() const;
         void setRelativeTransformation(const glm::mat4& newValue);
@@ -53,7 +54,7 @@ namespace bricksim::etree {
         void removeChild(const std::shared_ptr<Node>& childToDelete);
         virtual bool isDirectChildOfTypeAllowed(NodeType potentialChildType) const;
 
-        uint64_t getVersion() const;
+        version_t getVersion() const;
         void incrementVersion();
 
         std::shared_ptr<RootNode> getRoot();
@@ -65,7 +66,7 @@ namespace bricksim::etree {
         glm::mat4 relativeTransformation = glm::mat4(1.0f);
         mutable glm::mat4 absoluteTransformation;
         mutable bool absoluteTransformationValid = false;
-        uint64_t version = 0;
+        version_t version = 0;
 
         void invalidateAbsoluteTransformation();
     };

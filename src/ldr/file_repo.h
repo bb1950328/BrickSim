@@ -43,8 +43,8 @@ namespace bricksim::ldr::file_repo {
         bool hasFileCached(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name);
         [[nodiscard]] const uomap_t<std::shared_ptr<FileNamespace>, uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>>>& getAllFilesInMemory() const;
         std::shared_ptr<File> reloadFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name);
-        std::shared_ptr<File> addLdrFileWithContent(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, FileType type, const std::string& content);
-        std::shared_ptr<File> addLdrFileWithContent(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, FileType type, const std::string& content, const std::optional<std::string>& shadowContent);
+        std::shared_ptr<File> addLdrFileWithContent(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, const std::filesystem::path& source, FileType type, const std::string& content);
+        std::shared_ptr<File> addLdrFileWithContent(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, const std::filesystem::path& source, FileType type, const std::string& content, const std::optional<std::string>& shadowContent);
         std::shared_ptr<BinaryFile> addBinaryFileWithContent(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, const std::shared_ptr<BinaryFile>& file);
         std::filesystem::path& getBasePath();
         static oset_t<std::string> getAllCategories();

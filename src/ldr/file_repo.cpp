@@ -144,19 +144,19 @@ namespace bricksim::ldr::file_repo {
                     }
                     const auto shadowContent = getShadowFileRepo().getContent(FileRepo::getPathRelativeToBase(type, entryOpt->name));
                     const auto realFileContent = getLibraryLdrFileContent(type, entryOpt->name);
-                    return addLdrFileWithContent(nullptr, entryOpt->name, type, realFileContent, shadowContent);
+                    return addLdrFileWithContent(nullptr, entryOpt->name, "", type, realFileContent, shadowContent);
                 }
             }
             throw std::invalid_argument(fmt::format("no file named \"{}\" in the library namespace", name));
         }
         const auto extendedPath = util::extendHomeDirPath(name);
         if (extendedPath.is_absolute() && std::filesystem::exists(extendedPath)) {
-            return addLdrFileWithContent(nullptr, name, FileType::MODEL, getContentOfLdrFile(extendedPath));
+            return addLdrFileWithContent(nullptr, name, extendedPath, FileType::MODEL, getContentOfLdrFile(extendedPath));
         }
 
         const auto finalPath = fileNamespace->searchPath / name;
         if (std::filesystem::exists(finalPath)) {
-            return addLdrFileWithContent(fileNamespace, name, FileType::MODEL, getContentOfLdrFile(finalPath));
+            return addLdrFileWithContent(fileNamespace, name, finalPath, FileType::MODEL, getContentOfLdrFile(finalPath));
         }
 
         try {
@@ -223,8 +223,21 @@ namespace bricksim::ldr::file_repo {
         }
     }
 
-    std::shared_ptr<File> FileRepo::addLdrFileWithContent(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, FileType type, const std::string& content, const std::optional<std::string>& shadowContent) {
-        auto readResults = readComplexFile(fileNamespace, name, type, content, shadowContent);
+    std::shared_ptr<File> FileRepo::addLdrFileWithContent(const std::shared_ptr<FileNamespace>& fileNamespace,
+                                                          const std::string& name,
+                                                          const std::filesystem::path& source,
+                                                          FileType type,
+                                                          const std::string& content) {
+        return addLdrFileWithContent(fileNamespace, name, source, type, content, {});
+    }
+
+    std::shared_ptr<File> FileRepo::addLdrFileWithContent(const std::shared_ptr<FileNamespace>& fileNamespace,
+                                                          const std::string& name,
+                                                          const std::filesystem::path& source,
+                                                          FileType type,
+                                                          const std::string& content,
+                                                          const std::optional<std::string>& shadowContent) {
+        auto readResults = readComplexFile(fileNamespace, name, source, type, content, shadowContent);
         {
             plLockWait("FileRepo::ldrFilesMtx");
             std::scoped_lock<std::mutex> lg(ldrFilesMtx);
@@ -321,7 +334,7 @@ namespace bricksim::ldr::file_repo {
                         if (isBinaryFilename(name)) {
                             entries.push_back({*fileName, name, PSEUDO_CATEGORY_BINARY_FILE});
                         } else {
-                            auto ldrFile = addLdrFileWithContent(nullptr, name, type, getLibraryLdrFileContent(*fileName));
+                            auto ldrFile = addLdrFileWithContent(nullptr, name, "", type, getLibraryLdrFileContent(*fileName));
 
                             std::string category;
                             if (type == ldr::FileType::PART) {
@@ -444,9 +457,7 @@ namespace bricksim::ldr::file_repo {
         }
         return getFile(fileNamespace, name);
     }
-    std::shared_ptr<File> FileRepo::addLdrFileWithContent(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, FileType type, const std::string& content) {
-        return addLdrFileWithContent(fileNamespace, name, type, content, {});
-    }
+
     const uomap_t<std::shared_ptr<FileNamespace>, uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>>>& FileRepo::getAllFilesInMemory() const {
         return ldrFiles;
     }

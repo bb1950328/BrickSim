@@ -25,7 +25,7 @@ namespace bricksim {
         const auto newName = getNameForNewLdrFile();
         filePath = newFileLocation / newName;
         fileNamespace = std::make_shared<ldr::FileNamespace>(newName, newFileLocation);
-        init(ldr::file_repo::get().addLdrFileWithContent(fileNamespace, newName, ldr::FileType::MODEL, ""));
+        init(ldr::file_repo::get().addLdrFileWithContent(fileNamespace, newName, *filePath, ldr::FileType::MODEL, ""));
     }
 
     Editor::Editor(const std::filesystem::path& path) :
@@ -108,7 +108,14 @@ namespace bricksim {
     }
 
     bool Editor::isModified() const {
-        return lastSavedVersion != editingModel->getVersion();
+        return std::any_of(rootNode->getChildren().begin(), rootNode->getChildren().end(),
+                           [this](auto item) {
+                               return isModified(std::dynamic_pointer_cast<etree::ModelNode>(item));
+                           });
+    }
+    bool Editor::isModified(const std::shared_ptr<etree::ModelNode>& model) const {
+        const auto it = lastSavedVersions.find(model);
+        return it == lastSavedVersions.end() || it->second < model->getVersion();
     }
 
     std::shared_ptr<graphics::Scene>& Editor::getScene() {
@@ -121,10 +128,15 @@ namespace bricksim {
         if (filePath->empty()) {
             throw std::invalid_argument("can't save when filePath is empty");
         }
-        if (lastSavedVersion != editingModel->getVersion()) {
-            editingModel->writeChangesToLdrFile();
-            ldr::writeFile(editingModel->ldrFile, filePath.value());
-            lastSavedVersion = editingModel->getVersion();
+        for (const auto& item: rootNode->getChildren()) {
+            const auto model = std::dynamic_pointer_cast<etree::ModelNode>(item);
+            if (isModified(model)) {
+                model->writeChangesToLdrFile();
+                //todo write LdrFile to physical file
+                // non-MPD files are easy
+                // for MPD files we have to find all LdrFiles of each physical file, then write them together
+                lastSavedVersions[model] = model->getVersion();
+            }
         }
     }
 

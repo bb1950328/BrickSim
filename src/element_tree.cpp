@@ -84,7 +84,7 @@ namespace bricksim::etree {
                        : parentSp->getRoot();
     }
 
-    uint64_t Node::getVersion() const {
+    Node::version_t Node::getVersion() const {
         return version;
     }
 

@@ -331,16 +331,21 @@ namespace bricksim::ldr {
         [[nodiscard]] bool isActive() const;
     };
 
+    struct FileSource {
+        std::filesystem::path path;
+        bool isMainFile;
+    };
+
     class File {
     public:
         File() = default;
         virtual ~File();
 
         std::vector<std::shared_ptr<FileElement>> elements;
-        uoset_t<std::shared_ptr<File>> mpdSubFiles;
         FileMetaInfo metaInfo;
         std::vector<std::shared_ptr<connection::ldcad_meta::MetaCommand>> ldcadMetas;
         std::shared_ptr<FileNamespace> nameSpace;
+        FileSource source;
 
         void printStructure(int indent = 0) const;
         [[nodiscard]] const std::string& getDescription() const;

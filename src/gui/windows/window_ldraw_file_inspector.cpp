@@ -6,6 +6,7 @@
 #include "../../ldr/file_repo.h"
 #include "../../ldr/file_writer.h"
 #include "../../ldr/shadow_file_repo.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "../gui.h"
 #include "../gui_internal.h"
 #include "glm/gtx/string_cast.hpp"
@@ -263,6 +264,17 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                 rowStart("File Type");
                 ImGui::Text("%s", std::string(magic_enum::enum_name(metaInfo.type)).c_str());
 
+                rowStart("Source");
+                if (currentFile->source.path.empty()) {
+                    ImGui::Text("");
+                } else {
+                    ImGui::Text("%sfile of %s", currentFile->source.isMainFile ? "main " : "sub", currentFile->source.path.c_str());
+                    ImGui::SameLine();
+                    if (ImGui::Button(ICON_FA_PASTE)) {
+                        glfwSetClipboardString(getWindow(), currentFile->source.path.c_str());
+                    }
+                }
+
                 ImGui::EndTable();
             }
 
@@ -329,7 +341,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                 ImGui::PushItemWidth(-1.f);
                 if (ImGui::BeginListBox("##All Files")) {
                     for (const auto& [nsKey, nsMap]: ldr::file_repo::get().getAllFilesInMemory()) {
-                        if (ImGui::TreeNode("%s (%s)", nsKey->name.c_str(), nsKey->searchPath.c_str())) {
+                        if (nsKey == nullptr ? ImGui::TreeNode("Library Namespace") : ImGui::TreeNode("%s (%s)", nsKey->name.c_str(), nsKey->searchPath.c_str())) {
                             for (const auto& [nameKey, value]: nsMap) {
                                 const auto& [fileType, file] = value;
                                 if (showTypes[magic_enum::enum_index(file->metaInfo.type).value()]) {

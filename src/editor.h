@@ -108,6 +108,7 @@ namespace bricksim {
         std::shared_ptr<graphics::Scene> scene;
         std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;
         uint64_t lastSavedVersion = 0;
+        uomap_t<std::shared_ptr<etree::ModelNode>, etree::Node::version_t> lastSavedVersions;
         uomap_t<std::shared_ptr<etree::Node>, uint64_t> selectedNodes;//value is last version, use to check if selected node was modified in the meantime
         std::shared_ptr<SelectionVisualizationNode> selectionVisualizationNode;
         std::shared_ptr<graphics::CadCamera> camera;
@@ -118,5 +119,6 @@ namespace bricksim {
         };
         DraggingNodeType currentlyDraggingNodeType = DraggingNodeType::NONE;//todo change this to object oriented design
         void addConnectorDataVisualization(const std::shared_ptr<etree::Node>& node) const;
+        bool isModified(const std::shared_ptr<ModelNode>& model) const;
     };
 }

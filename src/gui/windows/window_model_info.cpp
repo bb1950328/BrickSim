@@ -59,9 +59,9 @@ namespace bricksim::gui::windows::model_info {
             stats.differentParts.insert(nameHash);
             stats.differentPartsAndColors.insert(util::combinedHash(ldrNode->getDisplayColor(), nameHash));
 
-        } else if (nodeType == etree::NodeType::TYPE_MPD_SUBFILE_INSTANCE) {
-            fillPartStats(stats, std::dynamic_pointer_cast<etree::MpdSubfileInstanceNode>(node)->mpdSubfileNode, true);
-        } else if (nodeType != etree::NodeType::TYPE_MPD_SUBFILE || countSubfile) {
+        } else if (nodeType == etree::NodeType::TYPE_MODEL_INSTANCE) {
+            fillPartStats(stats, std::dynamic_pointer_cast<etree::ModelInstanceNode>(node)->modelNode, true);
+        } else if (countSubfile) {
             for (const auto& child: node->getChildren()) {
                 fillPartStats(stats, child);
             }
@@ -76,7 +76,7 @@ namespace bricksim::gui::windows::model_info {
             auto nodes = selectedLocked->getSelectedNodes();
             if (nodes.empty()) {
                 ImGui::Text("Model Statistics:");
-                nodes.emplace(selectedLocked->getDocumentNode(), 0);
+                nodes.emplace(selectedLocked->getEditingModel(), 0);
             } else {
                 ImGui::Text("Statistics of the %zu selected elements:", nodes.size());
             }

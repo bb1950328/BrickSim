@@ -63,7 +63,7 @@ namespace bricksim::connection {
                 if (inclCommand != nullptr) {
                     glm::mat4 transf = combinePosOriScale(inclCommand);
 
-                    const auto includedFile = ldr::file_repo::get().getFile(inclCommand->ref);
+                    const auto includedFile = ldr::file_repo::get().getFile(nullptr, inclCommand->ref);
 
                     if (inclCommand->grid.has_value()) {
                         std::vector<std::shared_ptr<Connector>> base;
@@ -227,7 +227,7 @@ namespace bricksim::connection {
                     if (item->getType() == 1) {
                         const auto sfReference = std::dynamic_pointer_cast<ldr::SubfileReference>(item);
                         const auto sfReferenceTransformation = glm::transpose(sfReference->getTransformationMatrix());
-                        createConnectors(connectors, sfReference->getFile(), sfReferenceTransformation * transformation, clearIDs);
+                        createConnectors(connectors, sfReference->getFile(file->nameSpace), sfReferenceTransformation * transformation, clearIDs);
                     }
                 }
             }
@@ -257,7 +257,7 @@ namespace bricksim::connection {
             return it->second;
         }
         auto& result = cache.insert({name, std::vector<std::shared_ptr<Connector>>()}).first->second;
-        const auto file = ldr::file_repo::get().getFile(name);
+        const auto file = ldr::file_repo::get().getFile(nullptr, name);
         createConnectors(result, file, glm::mat4(1.f), {});
         return result;
     }

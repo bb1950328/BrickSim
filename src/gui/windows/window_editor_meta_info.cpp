@@ -11,7 +11,7 @@ namespace bricksim::gui::windows::editor_meta_info {
             static std::weak_ptr<Editor> lastSelectedEditor;
             gui_internal::drawEditorSelectionCombo(selectedEditor, "Model");
             auto selectedEditorLocked = selectedEditor.lock();
-            auto& metaInfo = selectedEditorLocked->getDocumentNode()->ldrFile->metaInfo;
+            auto& metaInfo = selectedEditorLocked->getEditingModel()->ldrFile->metaInfo;
 
             ImGui::Separator();
 

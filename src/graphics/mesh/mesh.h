@@ -52,7 +52,7 @@ namespace bricksim::mesh {
         Mesh(const Mesh&) = delete;
 
         void addLdrFile(ldr::ColorReference mainColor, const std::shared_ptr<ldr::File>& file, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmap);
-        void addLdrSubfileReference(ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmap);
+        void addLdrSubfileReference(const std::shared_ptr<ldr::FileNamespace>& fileNamespace, ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmap);
         void addLdrLine(ldr::ColorReference mainColor, const std::shared_ptr<ldr::Line>& lineElement, const glm::mat4& transformation);
         void addLdrTriangle(ldr::ColorReference mainColor, const std::shared_ptr<ldr::Triangle>& triangleElement, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmapOfParent);
         void addLdrQuadrilateral(ldr::ColorReference mainColor, const std::shared_ptr<ldr::Quadrilateral>& quadrilateral, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmapOfParent);

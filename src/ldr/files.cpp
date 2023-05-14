@@ -137,7 +137,7 @@ namespace bricksim::ldr {
                     std::cout << "\t";
                 }
                 std::cout << subfileRef->filename << "\n";
-                subfileRef->getFile()->printStructure(indent + 1);
+                subfileRef->getFile(nameSpace)->printStructure(indent + 1);
             }
         }
     }
@@ -282,9 +282,9 @@ namespace bricksim::ldr {
         return 1;
     }
 
-    std::shared_ptr<File> SubfileReference::getFile() {
+    std::shared_ptr<File> SubfileReference::getFile(const std::shared_ptr<FileNamespace>& fileNamespace) {
         if (file == nullptr) {
-            file = ldr::file_repo::get().getFile(filename);
+            file = ldr::file_repo::get().getFile(fileNamespace, filename);
         }
         return file;
     }
@@ -558,5 +558,14 @@ namespace bricksim::ldr {
 
     bool TexmapState::isActive() const {
         return startCommand != nullptr;
+    }
+
+    FileNamespace::FileNamespace(std::string name, const std::filesystem::path& searchPath) :
+        name(std::move(name)), searchPath(std::filesystem::absolute(searchPath)) {}
+    bool FileNamespace::operator==(const FileNamespace& rhs) const {
+        return name == rhs.name && searchPath == rhs.searchPath;
+    }
+    bool FileNamespace::operator!=(const FileNamespace& rhs) const {
+        return !(rhs == *this);
     }
 }

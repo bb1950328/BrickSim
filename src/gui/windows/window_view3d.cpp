@@ -8,6 +8,7 @@
 
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "../gui.h"
+#include "../node_context_menu.h"
 #include "spdlog/fmt/bundled/format.h"
 #include "window_view3d.h"
 
@@ -21,11 +22,10 @@ namespace bricksim::gui::windows::view3d {
     }
 
     void draw(Data& data) {
-        const auto& activeEditor = controller::getActiveEditor();
         ImGuiDockNode* lastDockNode = nullptr;
         for (auto& editor: controller::getEditors()) {
-            const auto fileName = editor->getFilename();
-            std::string windowTitle = fmt::format("{}{}{}###View3D{}", editor == activeEditor ? ICON_FA_EDIT " " : "", editor->isModified() ? "*" : "", fileName, fileName);
+            const bool isActiveEditor = editor->isActive();
+            const auto windowTitle = editor->getFilename();
             bool open = true;
             ImGuiWindow* imGuiWindow = ImGui::FindWindowByName(windowTitle.c_str());
             if (imGuiWindow == nullptr) {
@@ -35,7 +35,13 @@ namespace bricksim::gui::windows::view3d {
             } else if (imGuiWindow->DockNode != nullptr) {
                 lastDockNode = imGuiWindow->DockNode;
             }
+            if (isActiveEditor) {
+                ImGui::PushStyleColor(ImGuiCol_Text, COLOR_ACTIVE_EDITOR);
+            }
             if (ImGui::Begin(windowTitle.c_str(), &open, ImGuiWindowFlags_NoScrollWithMouse)) {
+                if (isActiveEditor) {
+                    ImGui::PopStyleColor();
+                }
                 ImGui::BeginChild("3DRender");
                 const ImVec2& regionAvail = ImGui::GetContentRegionAvail();
                 const auto& scene = editor->getScene();
@@ -77,6 +83,10 @@ namespace bricksim::gui::windows::view3d {
 
                     static DragMode dragMode = NOT_DRAGGING;
 
+                    if (!lastIsWindowFocused) {
+                        lastCursorPos = currentCursorPos;
+                    }
+
                     const glm::svec2 deltaCursorPos = currentCursorPos - lastCursorPos;
                     const bool currentlyAnyMouseDown = currentLeftMouseDown || currentMiddleMouseDown || currentRightMouseDown;
                     static bool lastAnyMouseDown = currentlyAnyMouseDown;
@@ -105,11 +115,15 @@ namespace bricksim::gui::windows::view3d {
                         //user just ended click without dragging
                         auto nodeUnderCursor = getNodeUnderCursor(scene, relCursorPos);
                         if (nodeUnderCursor) {
-                            if (lastLeftMouseDown && editor->isNodeClickable(nodeUnderCursor)) {
-                                editor->nodeClicked(nodeUnderCursor, imGuiIo.KeyCtrl, imGuiIo.KeyShift);
+                            if (editor->isNodeClickable(nodeUnderCursor)) {
+                                if (lastLeftMouseDown || lastRightMouseDown) {
+                                    editor->nodeClicked(nodeUnderCursor, imGuiIo.KeyCtrl, imGuiIo.KeyShift);
+                                }
+                                if (lastRightMouseDown) {
+                                    node_context_menu::openContextMenu({editor, nodeUnderCursor});
+                                }
                             }
-                            //todo add context menu when right click
-                            //todo add something else when middle click
+                            //todo add something useful when middle click
                         } else {
                             editor->nodeSelectNone();
                         }

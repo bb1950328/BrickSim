@@ -11,9 +11,6 @@ namespace bricksim::color {
         blue = static_cast<color_component_t>(std::clamp(vector.z, 0.f, 1.f) * 255 + .5f);
     }
 
-    RGB::RGB(color_component_t red, color_component_t green, color_component_t blue) :
-        red(red), green(green), blue(blue) {}
-
     RGB::RGB(const HSV& hsv) {
         if (hsv.saturation == 0) {
             red = hsv.value;
@@ -62,23 +59,6 @@ namespace bricksim::color {
                 static_cast<float>(green) / 255.0f,
                 static_cast<float>(blue) / 255.0f};
     }
-
-    const RGB RGB::BLACK{0, 0, 0};
-    const RGB RGB::WHITE{255, 255, 255};
-    const RGB RGB::RED{255, 0, 0};
-    const RGB RGB::LIME{0, 255, 0};
-    const RGB RGB::BLUE{0, 0, 255};
-    const RGB RGB::YELLOW{255, 255, 0};
-    const RGB RGB::CYAN{0, 255, 255};
-    const RGB RGB::MAGENTA{255, 0, 255};
-    const RGB RGB::SILVER{192, 192, 192};
-    const RGB RGB::GRAY{128, 128, 128};
-    const RGB RGB::MAROON{128, 0, 0};
-    const RGB RGB::OLIVE{128, 128, 0};
-    const RGB RGB::GREEN{0, 128, 0};
-    const RGB RGB::PURPLE{128, 0, 128};
-    const RGB RGB::TEAL{0, 128, 128};
-    const RGB RGB::NAVY{0, 0, 128};
 
     void RGB::assignFloat(float r, float g, float b) {
         red = static_cast<color_component_t>(r * 255);

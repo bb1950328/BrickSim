@@ -44,21 +44,19 @@ TEST_CASE("color::RGB::asGlmVector()") {
 TEST_CASE("color::RGB::asHtmlCode()") {
     CHECK(color::RGB(11, 22, 33).asHtmlCode() == "#0b1621");
     CHECK(color::RGB(0x02, 0x00, 0x12).asHtmlCode() == "#020012");
-    CHECK(color::RGB::BLACK.asHtmlCode() == "#000000");
+    CHECK(color::BLACK.asHtmlCode() == "#000000");
 }
 
 TEST_CASE("construct color::HSV from (int, int, int)") {
     color::HSV col(1, 2, 3);
-    CHECK(col.hue==1);
+    CHECK(col.hue == 1);
     CHECK(col.saturation == 2);
     CHECK(col.value == 3);
 }
 
-
 TEST_CASE("construct color::HSV from glm::vec3") {
     color::HSV col(glm::vec3(.25f, .5f, .75f));
-    CHECK(col.hue==64);
+    CHECK(col.hue == 64);
     CHECK(col.saturation == 128);
     CHECK(col.value == 191);
 }
-

@@ -8,6 +8,7 @@
 #include "controller.h"
 #include "ldr/file_repo.h"
 #include "ldr/file_writer.h"
+#include "lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "spdlog/fmt/bundled/format.h"
 #include "spdlog/fmt/ostr.h"
 
@@ -20,20 +21,27 @@ namespace bricksim {
     }
 
     Editor::Editor() {
-        init(ldr::file_repo::get().addLdrFileWithContent(getNameForNewLdrFile(), ldr::FileType::MODEL, ""));
+        const auto newFileLocation = util::extendHomeDirPath(config::get(config::NEW_FILE_LOCATION));
+        const auto newName = getNameForNewLdrFile();
+        filePath = newFileLocation / newName;
+        fileNamespace = std::make_shared<ldr::FileNamespace>(newName, newFileLocation);
+        init(ldr::file_repo::get().addLdrFileWithContent(fileNamespace, newName, ldr::FileType::MODEL, ""));
     }
 
     Editor::Editor(const std::filesystem::path& path) :
-        filePath(path) {
-        init(ldr::file_repo::get().getFile(path.string()));
+        filePath(path),
+        fileNamespace(std::make_shared<ldr::FileNamespace>(path.filename().string(), path.parent_path())) {
+        init(ldr::file_repo::get().getFile(fileNamespace, path.filename().string()));
     }
 
     void Editor::init(const std::shared_ptr<ldr::File>& ldrFile) {
         rootNode = std::make_shared<etree::RootNode>();
-        documentNode = std::make_shared<etree::MpdNode>(ldrFile, 1, rootNode);
-        documentNode->createChildNodes();
-        rootNode->addChild(documentNode);
-        documentNode->incrementVersion();
+        rootNode->displayName = ldrFile->metaInfo.name;
+        editingModel = std::make_shared<etree::ModelNode>(ldrFile, 1, rootNode);
+        rootNode->addChild(editingModel);
+        editingModel->createChildNodes();
+        editingModel->visible = true;
+        editingModel->incrementVersion();
 
         const auto& allScenes = graphics::scenes::getAll();
         sceneId = graphics::scenes::FIRST_MAIN_SCENE_ID;
@@ -76,7 +84,7 @@ namespace bricksim {
         do {
             nameCounter++;
             name = fmt::format("Untitled{:d}.mpd", nameCounter);
-        } while (fileRepo.hasFileCached(name));
+        } while (fileRepo.getNamespace(name) != nullptr);
         return name;
     }
 
@@ -95,12 +103,12 @@ namespace bricksim {
         return rootNode;
     }
 
-    std::shared_ptr<etree::MpdNode>& Editor::getDocumentNode() {
-        return documentNode;
+    std::shared_ptr<etree::ModelNode>& Editor::getEditingModel() {
+        return editingModel;
     }
 
     bool Editor::isModified() const {
-        return lastSavedVersion != documentNode->getVersion();
+        return lastSavedVersion != editingModel->getVersion();
     }
 
     std::shared_ptr<graphics::Scene>& Editor::getScene() {
@@ -113,22 +121,22 @@ namespace bricksim {
         if (filePath->empty()) {
             throw std::invalid_argument("can't save when filePath is empty");
         }
-        if (lastSavedVersion != documentNode->getVersion()) {
-            documentNode->writeChangesToLdrFile();
-            ldr::writeFile(documentNode->ldrFile, filePath.value());
-            lastSavedVersion = documentNode->getVersion();
+        if (lastSavedVersion != editingModel->getVersion()) {
+            editingModel->writeChangesToLdrFile();
+            ldr::writeFile(editingModel->ldrFile, filePath.value());
+            lastSavedVersion = editingModel->getVersion();
         }
     }
 
     void Editor::saveAs(const std::filesystem::path& newPath) {
         filePath = newPath;
-        ldr::file_repo::get().changeFileName(documentNode->ldrFile, newPath.filename().string());
+        ldr::file_repo::get().changeFileName(fileNamespace, editingModel->ldrFile, newPath.filename().string());
         save();
     }
 
     void Editor::saveCopyAs(const std::filesystem::path& copyPath) {
-        documentNode->writeChangesToLdrFile();
-        ldr::writeFile(documentNode->ldrFile, copyPath);
+        editingModel->writeChangesToLdrFile();
+        ldr::writeFile(editingModel->ldrFile, copyPath);
     }
 
     void Editor::nodeSelectAddRemove(const std::shared_ptr<etree::Node>& node) {
@@ -177,8 +185,8 @@ namespace bricksim {
 
     void Editor::nodeSelectAll() {
         nodeSelectNone();
-        documentNode->selected = true;
-        selectedNodes.emplace(documentNode, documentNode->getVersion());
+        editingModel->selected = true;
+        selectedNodes.emplace(editingModel, editingModel->getVersion());
         updateSelectionVisualization();
     }
 
@@ -195,7 +203,7 @@ namespace bricksim {
         for (const auto& item: selectedNodes) {
             const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(item.first);
             if (ldrNode != nullptr) {
-                connection::engine::findConnections(ldrNode, documentNode, graphics::scenes::get(sceneId)->getMeshCollection(), graph);
+                connection::engine::findConnections(ldrNode, editingModel, graphics::scenes::get(sceneId)->getMeshCollection(), graph);
             }
         }
         for (const auto& item: selectedNodes) {
@@ -243,12 +251,12 @@ namespace bricksim {
     void Editor::insertLdrElement(const std::shared_ptr<ldr::File>& ldrFile) {
         switch (ldrFile->metaInfo.type) {
             case ldr::FileType::MPD_SUBFILE:
-                documentNode->addSubfileInstanceNode(ldrFile, {1});
-                documentNode->incrementVersion();
+                editingModel->addModelInstanceNode(ldrFile, {1});
+                editingModel->incrementVersion();
                 break;
             case ldr::FileType::PART:
-                documentNode->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr::ColorReference{1}, documentNode, nullptr));
-                documentNode->incrementVersion();
+                editingModel->addChild(std::make_shared<etree::PartNode>(ldrFile, ldr::ColorReference{1}, editingModel, nullptr));
+                editingModel->incrementVersion();
                 break;
             case ldr::FileType::SUBPART:
             case ldr::FileType::PRIMITIVE:
@@ -346,8 +354,8 @@ namespace bricksim {
         return selectedNodes;
     }
 
-    const std::string& Editor::getFilename() const {
-        return documentNode->ldrFile->metaInfo.name;
+    std::string Editor::getFilename() const {
+        return this->filePath->filename().string();
     }
 
     void Editor::handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename, efsw::Action action, std::string oldFilename) {
@@ -355,12 +363,12 @@ namespace bricksim {
         if (filePath.has_value() && fullPath == filePath.value()) {
             spdlog::info(R"(editor file change detected: {} fullPath="{}" oldFilename="{}")",
                          magic_enum::enum_name(action), fullPath.string(), oldFilename);
-            rootNode->removeChild(documentNode);
-            documentNode = std::make_shared<etree::MpdNode>(ldr::file_repo::get().reloadFile(filePath->string()), 1,
-                                                            rootNode);
-            documentNode->createChildNodes();
-            rootNode->addChild(documentNode);
-            documentNode->incrementVersion();
+            rootNode->removeChild(editingModel);
+            editingModel = std::make_shared<etree::ModelNode>(ldr::file_repo::get().reloadFile(fileNamespace, filePath->string()), 1, rootNode);
+            editingModel->createChildNodes();
+            rootNode->addChild(editingModel);
+            editingModel->visible = true;
+            editingModel->incrementVersion();
         }
     }
 
@@ -379,7 +387,7 @@ namespace bricksim {
 
             if (selectedNodes.size() == 1) {
                 const auto meshNode = std::dynamic_pointer_cast<etree::MeshNode>(selectedNodes.begin()->first);
-                if (meshNode != nullptr) {
+                if (meshNode != nullptr && meshNode->visible) {
                     const auto relativeAABB = scene->getMeshCollection().getRelativeAABB(meshNode);
                     if (relativeAABB.isDefined()) {
                         const auto rotatedBBox = aabb::OBB(relativeAABB, glm::vec3(0.f, 0.f, 0.f),
@@ -391,18 +399,16 @@ namespace bricksim {
                                 glm::transpose(rotatedBBox.getUnitBoxTransformation()));
                     }
                 }
-                selectedNodes.begin()->second = selectedNodes.begin()->first->getVersion();
             } else {
                 aabb::AABB aabb;
                 for (auto& node: selectedNodes) {
                     std::shared_ptr<etree::MeshNode> meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node.first);
-                    if (meshNode != nullptr) {
+                    if (meshNode != nullptr && meshNode->visible) {
                         auto nodeBBox = scene->getMeshCollection().getAbsoluteRotatedBBox(meshNode);
                         if (nodeBBox.has_value()) {
                             aabb.includeOBB(nodeBBox.value());
                         }
                     }
-                    node.second = node.first->getVersion();
                 }
                 if (aabb.isDefined()) {
                     selectionVisualizationNode->visible = true;
@@ -415,6 +421,9 @@ namespace bricksim {
                 }
             }
             selectionVisualizationNode->incrementVersion();
+            for (auto& node: selectedNodes) {
+                node.second = node.first->getVersion();
+            }
         }
     }
 
@@ -440,27 +449,27 @@ namespace bricksim {
 
         const bool nodeWasSelected = selectedNodes.erase(nodeToInline) > 0;
 
-        const auto subfileInstNodeToInline = std::dynamic_pointer_cast<etree::MpdSubfileInstanceNode>(nodeToInline);
-        if (subfileInstNodeToInline != nullptr) {
-            for (const auto& item: subfileInstNodeToInline->mpdSubfileNode->getChildren()) {
+        const auto modelInstNodeToInline = std::dynamic_pointer_cast<etree::ModelInstanceNode>(nodeToInline);
+        if (modelInstNodeToInline != nullptr) {
+            for (const auto& item: modelInstNodeToInline->modelNode->getChildren()) {
                 const auto meshItem = std::dynamic_pointer_cast<etree::MeshNode>(item);
                 const auto partItem = std::dynamic_pointer_cast<etree::PartNode>(item);
                 std::shared_ptr<etree::Node> newNode = nullptr;
                 const auto newColor = meshItem->getElementColor() == ldr::Color::MAIN_COLOR_CODE
-                                              ? subfileInstNodeToInline->getElementColor()
+                                              ? modelInstNodeToInline->getElementColor()
                                               : meshItem->getElementColor();
                 if (partItem != nullptr) {
                     newNode = std::make_shared<etree::PartNode>(partItem->ldrFile,
                                                                 newColor,
                                                                 parent,
-                                                                subfileInstNodeToInline->getDirectTexmap());
+                                                                modelInstNodeToInline->getDirectTexmap());
                 } else {
-                    const auto subfileInstItem = std::dynamic_pointer_cast<etree::MpdSubfileInstanceNode>(item);
+                    const auto subfileInstItem = std::dynamic_pointer_cast<etree::ModelInstanceNode>(item);
                     if (subfileInstItem != nullptr) {
-                        newNode = std::make_shared<etree::MpdSubfileInstanceNode>(subfileInstItem->mpdSubfileNode,
-                                                                                  newColor,
-                                                                                  parent,
-                                                                                  subfileInstItem->getDirectTexmap());
+                        newNode = std::make_shared<etree::ModelInstanceNode>(subfileInstItem->modelNode,
+                                                                             newColor,
+                                                                             parent,
+                                                                             subfileInstItem->getDirectTexmap());
                     }
                 }
                 if (newNode != nullptr) {
@@ -493,6 +502,21 @@ namespace bricksim {
             inlineElement(node, false);
         }
         updateSelectionVisualization();
+    }
+    std::shared_ptr<ldr::FileNamespace>& Editor::getFileNamespace() {
+        return fileNamespace;
+    }
+    bool Editor::isActive() const {
+        return controller::getActiveEditor().get() == this;
+    }
+    void Editor::setEditingModel(const std::shared_ptr<etree::ModelNode>& newEditingModel) {
+        editingModel->visible = false;
+        editingModel->incrementVersion();
+
+        editingModel = newEditingModel;
+
+        editingModel->visible = true;
+        editingModel->incrementVersion();
     }
 
     SelectionVisualizationNode::SelectionVisualizationNode(const std::shared_ptr<Node>& parent) :

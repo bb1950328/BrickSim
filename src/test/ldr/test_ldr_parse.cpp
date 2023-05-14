@@ -104,7 +104,7 @@ TEST_CASE("parse ldr::TexmapStartCommand 2") {
 TEST_CASE("ldr::readSimpleFile 1") {
     const std::string filename = GENERATE("filename.ldr", "filename.dat", "filename.mpd");
     const auto type = GENERATE(FileType::MODEL, FileType::MPD_SUBFILE, FileType::PART, FileType::SUBPART, FileType::PRIMITIVE);
-    const auto file = readSimpleFile(filename, type, "0 Title123\n0 Comment 1\n0 Comment 2", {});
+    const auto file = readSimpleFile(nullptr, filename, type, "0 Title123\n0 Comment 1\n0 Comment 2", {});
     REQUIRE(file->elements.size() == 2);
     CHECK(file->elements[0]->getLdrLine() == "0 Comment 1");
     CHECK(file->elements[1]->getLdrLine() == "0 Comment 2");
@@ -114,7 +114,8 @@ TEST_CASE("ldr::readSimpleFile 1") {
 }
 
 TEST_CASE("ldr::readSimpleFile with MetaInfo") {
-    const auto file = readSimpleFile("filename.ldr",
+    const auto file = readSimpleFile(nullptr,
+                                     "filename.ldr",
                                      FileType::PART,
                                      "0 TitleXYZ\n"
                                      "0 Name: NameXYZ\n"

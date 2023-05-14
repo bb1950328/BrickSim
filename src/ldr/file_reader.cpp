@@ -6,17 +6,19 @@
 #include <spdlog/spdlog.h>
 
 namespace bricksim::ldr {
-    uomap_t<std::string, std::shared_ptr<File>> readComplexFile(const std::string& name,
+    uomap_t<std::string, std::shared_ptr<File>> readComplexFile(const std::shared_ptr<FileNamespace>& fileNamespace,
+                                                                const std::string& name,
                                                                 FileType mainFileType,
                                                                 const std::string& content,
                                                                 const std::optional<std::string>& shadowContent) {
         //plFunction();
         if (mainFileType != FileType::MODEL) {
-            return {{name, readSimpleFile(name, mainFileType, content, shadowContent)}};
+            return {{name, readSimpleFile(fileNamespace, name, mainFileType, content, shadowContent)}};
         }
         auto mainFile = std::make_shared<File>();
         mainFile->metaInfo.type = mainFileType;
         mainFile->metaInfo.name = name;
+        mainFile->nameSpace = fileNamespace;
         uomap_t<std::string, std::shared_ptr<File>> files = {{name, mainFile}};
         std::optional<std::shared_ptr<File>> currentFile = mainFile;
 
@@ -49,6 +51,7 @@ namespace bricksim::ldr {
                         currentFile = it->second;
                     } else {
                         currentFile = std::make_shared<File>();
+                        currentFile.value()->nameSpace = fileNamespace;
                         currentFile.value()->metaInfo.type = FileType::MPD_SUBFILE;
                         files.emplace(currentName, currentFile.value());
                     }
@@ -64,7 +67,8 @@ namespace bricksim::ldr {
         return files;
     }
 
-    std::shared_ptr<File> readSimpleFile(std::string_view name,
+    std::shared_ptr<File> readSimpleFile(const std::shared_ptr<FileNamespace>& fileNamespace,
+                                         std::string_view name,
                                          FileType type,
                                          const std::string& content,
                                          const std::optional<std::string>& shadowContent) {
@@ -72,6 +76,7 @@ namespace bricksim::ldr {
         auto file = std::make_shared<File>();
         file->metaInfo.type = type;
         file->metaInfo.name = name;
+        file->nameSpace = fileNamespace;
         size_t lineStart = 0;
         size_t lineEnd = 0;
         std::string_view contentSV = content;
@@ -82,7 +87,7 @@ namespace bricksim::ldr {
             } else {
                 ++lineEnd;
             }
-            
+
             file->addTextLine(contentSV.substr(lineStart, lineEnd - lineStart));
             lineStart = lineEnd;
         }

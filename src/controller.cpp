@@ -3,11 +3,13 @@
 #include "controller.h"
 #include "config.h"
 #include "db.h"
+#include "graphics/connection_visualization.h"
 #include "graphics/opengl_native_or_replacement.h"
 #include "graphics/orientation_cube.h"
 #include "graphics/shaders.h"
 #include "gui/gui.h"
 #include "gui/modals.h"
+#include "gui/node_context_menu.h"
 #include "helpers/util.h"
 #include "info_providers/bricklink_constants_provider.h"
 #include "keyboard_shortcut_manager.h"
@@ -20,7 +22,6 @@
 #include "stb_image.h"
 #include "stb_image_write.h"
 #include "user_actions.h"
-#include "graphics/connection_visualization.h"
 #include <glad/glad.h>
 #include <palanteer.h>
 #include <spdlog/spdlog.h>
@@ -328,7 +329,7 @@ namespace bricksim::controller {
             }
             auto& bgTasks = getBackgroundTasks();
             spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
-            for (auto & bgTask : bgTasks) {
+            for (auto& bgTask: bgTasks) {
                 bgTask.second.joinThread();
             }
             spdlog::info("all background tasks finished, exiting now");
@@ -338,7 +339,7 @@ namespace bricksim::controller {
             graphics::Texture::deleteCached();
             graphics::shaders::cleanup();
             activeEditor = nullptr;
-            for (const auto &item : editors) {
+            for (const auto& item: editors) {
                 if (item.use_count() > 1) {
                     spdlog::warn("somebody else still has a shared_ptr to editor \"{}\". use_count={}", item->getFilename(), item.use_count());
                 }
@@ -452,6 +453,7 @@ namespace bricksim::controller {
             gui::beginFrame();
             gui::drawMainWindows();
             gui::modals::handle();
+            gui::node_context_menu::drawContextMenu();
 
             handleForegroundTasks();
 
@@ -492,8 +494,9 @@ namespace bricksim::controller {
     }
 
     void openFile(const std::string& path) {
-        foregroundTasks.emplace("Open " + path, [path]() {
-            editors.emplace_back(Editor::openFile(path));
+        const auto absPath = std::filesystem::absolute(util::extendHomeDirPath(path));
+        foregroundTasks.emplace(fmt::format("Open {}", absPath.string()), [absPath]() {
+            editors.emplace_back(Editor::openFile(absPath));
         });
     }
 

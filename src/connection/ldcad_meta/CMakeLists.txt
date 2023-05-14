@@ -13,6 +13,8 @@ target_sources(BrickSimLib PRIVATE
         gen_command.h
         incl_command.cpp
         incl_command.h
+        mirror_info_command.cpp
+        mirror_info_command.h
         parse.cpp
         parse.h
         write.cpp

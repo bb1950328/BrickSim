@@ -2,7 +2,7 @@
 #include "base.h"
 #include "../bounding.h"
 
-namespace bricksim::connection::ldcad_snap_meta {
+namespace bricksim::connection::ldcad_meta {
     class GenCommand : public MetaCommand {
     public:
         constexpr const static char* const NAME = "SNAP_GEN";

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../connection/ldcad_snap_meta/base.h"
+#include "../connection/ldcad_meta/base.h"
 #include "../helpers/util.h"
 #include "colors.h"
 #include <array>
@@ -339,7 +339,7 @@ namespace bricksim::ldr {
         std::vector<std::shared_ptr<FileElement>> elements;
         uoset_t<std::shared_ptr<File>> mpdSubFiles;
         FileMetaInfo metaInfo;
-        std::vector<std::shared_ptr<connection::ldcad_snap_meta::MetaCommand>> ldcadSnapMetas;
+        std::vector<std::shared_ptr<connection::ldcad_meta::MetaCommand>> ldcadMetas;
         std::shared_ptr<FileNamespace> nameSpace;
 
         void printStructure(int indent = 0) const;
@@ -354,6 +354,9 @@ namespace bricksim::ldr {
         mutable std::size_t hash = 0;
         BfcState bfcState;
         TexmapState texmapState;
+        /**
+         * @param metaContent the line, without "0 !LDCAD"
+         */
         void parseLdcadMeta(const std::string_view& metaContent);
     };
 

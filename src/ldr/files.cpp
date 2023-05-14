@@ -174,18 +174,18 @@ namespace bricksim::ldr {
                 ++lineEnd;
             }
 
-            parseLdcadMeta(stringutil::trim(view.substr(lineStart, lineEnd - lineStart)));
+            parseLdcadMeta(stringutil::trim(view.substr(lineStart + sizeof(LDCAD_META_START), lineEnd - lineStart)));
 
             lineStart = lineEnd;
         }
     }
     void File::parseLdcadMeta(const std::string_view& metaContent) {
-        const std::string line(stringutil::trim(metaContent.substr(sizeof(LDCAD_META_START))));
-        const auto metaCommand = connection::ldcad_snap_meta::Reader::readLine(line);
+        const std::string line(metaContent);
+        const auto metaCommand = connection::ldcad_meta::Reader::readLine(line);
         if (metaCommand != nullptr) {
-            ldcadSnapMetas.push_back(metaCommand);
-        } else {
-            spdlog::warn("read unknown/invalid ldcad snap meta in {}: {}", metaInfo.name, line);
+            ldcadMetas.push_back(metaCommand);
+        } else if (!connection::ldcad_meta::Reader::isUnsupportedCommand(line)) {
+            spdlog::warn("unknown/invalid ldcad snap meta in {}: {}", metaInfo.name, line);
         }
     }
     File::~File() = default;

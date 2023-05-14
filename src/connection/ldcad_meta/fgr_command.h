@@ -1,7 +1,7 @@
 #pragma once
 #include "base.h"
 
-namespace bricksim::connection::ldcad_snap_meta {
+namespace bricksim::connection::ldcad_meta {
     class FgrCommand : public MetaCommand {
     public:
         constexpr const static char* const NAME = "SNAP_FGR";

@@ -1,11 +1,11 @@
-#include "../../connection/ldcad_snap_meta/base.h"
-#include "../../connection/ldcad_snap_meta/clear_command.h"
-#include "../../connection/ldcad_snap_meta/cyl_command.h"
-#include "../../connection/ldcad_snap_meta/fgr_command.h"
-#include "../../connection/ldcad_snap_meta/incl_command.h"
+#include "../../connection/ldcad_meta/base.h"
+#include "../../connection/ldcad_meta/clear_command.h"
+#include "../../connection/ldcad_meta/cyl_command.h"
+#include "../../connection/ldcad_meta/fgr_command.h"
+#include "../../connection/ldcad_meta/incl_command.h"
 #include "../testing_tools.h"
 
-using namespace bricksim::connection::ldcad_snap_meta;
+using namespace bricksim::connection::ldcad_meta;
 
 TEST_CASE("Reader::readLine 0") {
     const auto command = Reader::readLine("something else");

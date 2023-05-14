@@ -11,7 +11,7 @@
 #include <variant>
 #include <vector>
 
-namespace bricksim::connection::ldcad_snap_meta {
+namespace bricksim::connection::ldcad_meta {
     //documentation: http://www.melkert.net/LDCad/tech/meta#:~:text=20%20and%2020.-,Part%20snapping%20metas,-Part%20snapping%20metas
 
     using parsed_param_container = uomap_t<std::string, std::string_view>;
@@ -63,6 +63,11 @@ namespace bricksim::connection::ldcad_snap_meta {
         A,
         B,
     };
+    enum class Axis {
+        X,
+        Y,
+        Z,
+    };
 
     class MetaCommand {
     public:
@@ -77,5 +82,6 @@ namespace bricksim::connection::ldcad_snap_meta {
     class Reader {
     public:
         static std::shared_ptr<MetaCommand> readLine(std::string_view line);
+        static bool isUnsupportedCommand(std::string_view command);
     };
 }

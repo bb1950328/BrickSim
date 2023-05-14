@@ -1,6 +1,6 @@
 #include "parse.h"
 #include "glm/gtc/type_ptr.hpp"
-namespace bricksim::connection::ldcad_snap_meta::parse {
+namespace bricksim::connection::ldcad_meta::parse {
     fast_float::from_chars_result floatFromString(std::string_view sv, float& value) {
         const char* begin = &sv.front();
         const char* end = &sv.back() + 1;
@@ -27,6 +27,14 @@ namespace bricksim::connection::ldcad_snap_meta::parse {
             return stringutil::stringEqualsIgnoreCase(it->second, "true");
         } else {
             return defaultValue;
+        }
+    }
+    std::optional<bool> optionalBoolParameter(const parsed_param_container& parameters, const char* paramName) {
+        const auto it = parameters.find(paramName);
+        if (it != parameters.end()) {
+            return stringutil::stringEqualsIgnoreCase(it->second, "true");
+        } else {
+            return {};
         }
     }
     float floatParameter(const parsed_param_container& parameters, const char* paramName, float defaultValue) {
@@ -120,5 +128,4 @@ namespace bricksim::connection::ldcad_snap_meta::parse {
             throw std::invalid_argument("");
         }
     }
-
 }

@@ -9,13 +9,22 @@
 #include "gen_command.h"
 #include "glm/gtc/type_ptr.hpp"
 #include "incl_command.h"
+#include "mirror_info_command.h"
 #include "parse.h"
 #include "spdlog/fmt/fmt.h"
 #include "spdlog/spdlog.h"
 #include <utility>
 #include <vector>
 
-namespace bricksim::connection::ldcad_snap_meta {
+namespace bricksim::connection::ldcad_meta {
+    namespace {
+        uoset_t<const char*> UNSUPPORTED_COMMANDS = {
+                "MARKER",
+                "SCRIPT",
+                "CONTENT",
+                "GENERATED",
+        };
+    }
 
     Grid::Grid(std::string_view command) {
         std::vector<std::string_view> words = stringutil::splitByChar(command, ' ');
@@ -74,11 +83,21 @@ namespace bricksim::connection::ldcad_snap_meta {
             return std::make_shared<FgrCommand>(parameters);
         } else if (line.starts_with(GenCommand::NAME)) {
             return std::make_shared<GenCommand>(parameters);
+        } else if (line.starts_with(MirrorInfoCommand::NAME)) {
+            return std::make_shared<MirrorInfoCommand>(parameters);
         } else {
             return nullptr;
         }
     }
-
+    bool Reader::isUnsupportedCommand(std::string_view command) {
+        return command.starts_with("GROUP")
+               || command.starts_with("PATH")
+               || command.starts_with("SPRING")
+               || command.starts_with("MARKER")
+               || command.starts_with("SCRIPT")
+               || command.starts_with("CONTENT")
+               || command.starts_with("GENERATED");
+    }
 
     std::string MetaCommand::to_string() const {
         std::string result(getName());

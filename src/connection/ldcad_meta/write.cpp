@@ -1,7 +1,7 @@
 #include "write.h"
 #include <spdlog/fmt/fmt.h>
 
-namespace bricksim::connection::ldcad_snap_meta::write {
+namespace bricksim::connection::ldcad_meta::write {
     void optionalStringParameter(written_param_container& parameters, const char* paramName, const std::optional<std::string>& value) {
         if (value.has_value()) {
             parameters.insert({paramName, value.value()});
@@ -65,6 +65,12 @@ namespace bricksim::connection::ldcad_snap_meta::write {
             boolParameter(parameters, paramName, value);
         }
     }
+    void optionalBoolParameter(written_param_container& parameters, const char* paramName, std::optional<bool> value) {
+        if (value.has_value()) {
+            boolParameter(parameters, paramName, *value);
+        }
+    }
+
     void floatParameter(written_param_container& parameters, const char* const paramName, float value) {
         parameters.insert({paramName, fmt::format("{:g}", value)});
     }
@@ -105,5 +111,4 @@ namespace bricksim::connection::ldcad_snap_meta::write {
     void boundingParameter(written_param_container& parameters, const char* paramName, const bounding_variant_t& value) {
         parameters.insert({paramName, boundingToString(value)});
     }
-
 }

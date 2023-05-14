@@ -56,8 +56,8 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
         }
 
         void showSnapLineNodes(const std::shared_ptr<ldr::File>& file,
-                               std::weak_ptr<connection::ldcad_snap_meta::MetaCommand>& currentlySelected) {
-            for (const auto& item: file->ldcadSnapMetas) {
+                               std::weak_ptr<connection::ldcad_meta::MetaCommand>& currentlySelected) {
+            for (const auto& item: file->ldcadMetas) {
                 auto flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
                 if (currentlySelected.lock() == item) {
                     flags |= ImGuiTreeNodeFlags_Selected;
@@ -71,7 +71,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                 if (item->getType() == 1) {
                     const auto subfileRef = std::dynamic_pointer_cast<ldr::SubfileReference>(item);
                     const auto subfile = subfileRef->getFile(file->nameSpace);
-                    if (!subfile->ldcadSnapMetas.empty()) {
+                    if (!subfile->ldcadMetas.empty()) {
                         if (ImGui::TreeNode(subfileRef.get(), "%s", subfileRef->filename.c_str())) {
                             showSnapLineNodes(subfile, currentlySelected);
                             ImGui::TreePop();
@@ -371,7 +371,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                         ImGui::EndTabItem();
                     }
                     if (ImGui::BeginTabItem("Meta Snap Info")) {
-                        static std::weak_ptr<connection::ldcad_snap_meta::MetaCommand> currentlySelected;
+                        static std::weak_ptr<connection::ldcad_meta::MetaCommand> currentlySelected;
                         showSnapLineNodes(currentFile, currentlySelected);
                         ImGui::EndTabItem();
                     }

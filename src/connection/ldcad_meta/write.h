@@ -3,7 +3,7 @@
 #include "../../lib/magic_enum/include/magic_enum.hpp"
 #include "base.h"
 
-namespace bricksim::connection::ldcad_snap_meta::write {
+namespace bricksim::connection::ldcad_meta::write {
     void optionalStringParameter(written_param_container& parameters, const char* paramName, const std::optional<std::string>& value);
     void stringParameter(written_param_container& parameters, const char* paramName, const std::string& value);
 
@@ -16,6 +16,7 @@ namespace bricksim::connection::ldcad_snap_meta::write {
 
     void boolParameter(written_param_container& parameters, const char* paramName, bool value);
     void boolParameter(written_param_container& parameters, const char* paramName, bool value, bool defaultValue);
+    void optionalBoolParameter(written_param_container& parameters, const char* paramName, std::optional<bool> value);
 
     void floatParameter(written_param_container& parameters, const char* paramName, float value);
     void floatParameter(written_param_container& parameters, const char* paramName, float value, float defaultValue);
@@ -24,6 +25,12 @@ namespace bricksim::connection::ldcad_snap_meta::write {
     template<typename E>
     void enumParameter(written_param_container& parameters, const char* const paramName, E value) {
         parameters.insert({paramName, magic_enum::enum_name(value)});
+    }
+    template<typename E>
+    void optionalEnumParameter(written_param_container& parameters, const char* const paramName, std::optional<E> value) {
+        if (value.has_value()) {
+            parameters.insert({paramName, magic_enum::enum_name(*value)});
+        }
     }
 
     template<typename E>

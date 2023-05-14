@@ -6,7 +6,7 @@
 #include <charconv>
 #include <optional>
 #include <vector>
-namespace bricksim::connection::ldcad_snap_meta::parse {
+namespace bricksim::connection::ldcad_meta::parse {
     fast_float::from_chars_result floatFromString(std::string_view sv, float& value);
 
     template<typename T>
@@ -48,8 +48,19 @@ namespace bricksim::connection::ldcad_snap_meta::parse {
         }
     }
 
+    template<typename E>
+    std::optional<E> optionalEnumParameter(const parsed_param_container& parameters, const char* const paramName) {
+        const auto it = parameters.find(paramName);
+        if (it != parameters.end()) {
+            return magic_enum::enum_cast<E>(it->second, stringutil::charEqualsIgnoreCase);
+        } else {
+            return {};
+        }
+    }
+
     std::optional<std::string> optionalStringParameter(const parsed_param_container& parameters, const char* paramName);
     bool boolParameter(const parsed_param_container& parameters, const char* paramName, bool defaultValue);
+    std::optional<bool> optionalBoolParameter(const parsed_param_container& parameters, const char* paramName);
     float floatParameter(const parsed_param_container& parameters, const char* paramName, float defaultValue);
     std::vector<float> floatVectorParameter(const parsed_param_container& parameters, const char* paramName);
     std::optional<glm::vec3> optionalVec3Parameter(const parsed_param_container& parameters, const char* paramName);

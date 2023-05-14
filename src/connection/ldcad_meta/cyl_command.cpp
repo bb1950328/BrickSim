@@ -2,7 +2,7 @@
 #include "parse.h"
 #include "write.h"
 
-namespace bricksim::connection::ldcad_snap_meta {
+namespace bricksim::connection::ldcad_meta {
     CylCommand::CylCommand(const parsed_param_container& parameters) :
         id(parse::optionalStringParameter(parameters, "id")),
         group(parse::optionalStringParameter(parameters, "group")),

@@ -9,5 +9,5 @@ target_sources(BrickSimLib PRIVATE
         engine.h
         )
 
-add_subdirectory(ldcad_snap_meta)
+add_subdirectory(ldcad_meta)
 add_subdirectory(visualization)

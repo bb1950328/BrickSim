@@ -355,7 +355,7 @@ namespace bricksim {
     }
 
     std::string Editor::getFilename() const {
-        return this->filePath->filename();
+        return this->filePath->filename().string();
     }
 
     void Editor::handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename, efsw::Action action, std::string oldFilename) {

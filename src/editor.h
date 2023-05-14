@@ -119,6 +119,6 @@ namespace bricksim {
         };
         DraggingNodeType currentlyDraggingNodeType = DraggingNodeType::NONE;//todo change this to object oriented design
         void addConnectorDataVisualization(const std::shared_ptr<etree::Node>& node) const;
-        bool isModified(const std::shared_ptr<ModelNode>& model) const;
+        [[nodiscard]] bool isModified(const std::shared_ptr<etree::ModelNode>& model) const;
     };
 }

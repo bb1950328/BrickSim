@@ -179,6 +179,7 @@ namespace bricksim::etree {
                         const auto newNode = addModelInstanceNode(subFile, sfElement->color);
                         newNode->setRelativeTransformation(sfElement->getTransformationMatrix());
                         subfileRefChildNodeSaveInfos.emplace(newNode, ChildNodeSaveInfo{newNode->getVersion(), element});
+                        childrenWithOwnNode.emplace(sfElement);
                     }
                 }
             }

@@ -8,7 +8,7 @@
 namespace bricksim::gui::windows::element_tree {
     namespace {
         const node_context_menu::ImGuiContextMenuDrawHandler contextMenuDrawHandler{};
-        void drawElementTreeNode(const std::shared_ptr<etree::Node>& node, const std::shared_ptr<Editor>& editor, std::vector<std::function<void()>>& runAfterTasks) {
+        void drawElementTreeNode(const std::shared_ptr<etree::Node>& node, const std::shared_ptr<Editor>& editor) {
             if (node->visibleInElementTree) {
                 color::RGB textColor = color::WHITE;
                 if (node == editor->getRootNode()) {
@@ -28,10 +28,12 @@ namespace bricksim::gui::windows::element_tree {
                 const auto drawChildren = ImGui::TreeNodeEx(node->getDescription().c_str(), flags);
                 const auto itemClicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
                 ImGui::PopStyleColor();
-                node_context_menu::drawContextMenu(editor, node, contextMenuDrawHandler, runAfterTasks);
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+                    node_context_menu::openContextMenu({editor, node});
+                }
                 if (drawChildren && !node->getChildren().empty()) {
                     for (const auto& child: node->getChildren()) {
-                        drawElementTreeNode(child, editor, runAfterTasks);
+                        drawElementTreeNode(child, editor);
                     }
                     ImGui::TreePop();
                 }
@@ -44,12 +46,8 @@ namespace bricksim::gui::windows::element_tree {
 
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
-            std::vector<std::function<void()>> runAfterTasks;
             for (auto& editor: controller::getEditors()) {
-                drawElementTreeNode(editor->getRootNode(), editor, runAfterTasks);
-            }
-            for (const auto& task: runAfterTasks) {
-                task();
+                drawElementTreeNode(editor->getRootNode(), editor);
             }
         }
         ImGui::End();

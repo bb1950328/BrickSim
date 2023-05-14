@@ -8,6 +8,7 @@
 
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
 #include "../gui.h"
+#include "../node_context_menu.h"
 #include "spdlog/fmt/bundled/format.h"
 #include "window_view3d.h"
 
@@ -82,6 +83,10 @@ namespace bricksim::gui::windows::view3d {
 
                     static DragMode dragMode = NOT_DRAGGING;
 
+                    if (!lastIsWindowFocused) {
+                        lastCursorPos = currentCursorPos;
+                    }
+
                     const glm::svec2 deltaCursorPos = currentCursorPos - lastCursorPos;
                     const bool currentlyAnyMouseDown = currentLeftMouseDown || currentMiddleMouseDown || currentRightMouseDown;
                     static bool lastAnyMouseDown = currentlyAnyMouseDown;
@@ -110,11 +115,15 @@ namespace bricksim::gui::windows::view3d {
                         //user just ended click without dragging
                         auto nodeUnderCursor = getNodeUnderCursor(scene, relCursorPos);
                         if (nodeUnderCursor) {
-                            if (lastLeftMouseDown && editor->isNodeClickable(nodeUnderCursor)) {
-                                editor->nodeClicked(nodeUnderCursor, imGuiIo.KeyCtrl, imGuiIo.KeyShift);
+                            if (editor->isNodeClickable(nodeUnderCursor)) {
+                                if (lastLeftMouseDown || lastRightMouseDown) {
+                                    editor->nodeClicked(nodeUnderCursor, imGuiIo.KeyCtrl, imGuiIo.KeyShift);
+                                }
+                                if (lastRightMouseDown) {
+                                    node_context_menu::openContextMenu({editor, nodeUnderCursor});
+                                }
                             }
-                            //todo add context menu when right click
-                            //todo add something else when middle click
+                            //todo add something useful when middle click
                         } else {
                             editor->nodeSelectNone();
                         }

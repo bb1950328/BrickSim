@@ -36,12 +36,12 @@ TEST_CASE("construct color::RGB from HSV") {
     CHECK(col.blue == 30);
 }
 
-TEST_CASE("color::asGlmVector()") {
+TEST_CASE("color::RGB::asGlmVector()") {
     const glm::vec3 vec(.2f, .4f, .6f);
     CHECK(color::RGB(vec).asGlmVector() == ApproxVec(vec));
 }
 
-TEST_CASE("color::asHtmlCode()") {
+TEST_CASE("color::RGB::asHtmlCode()") {
     CHECK(color::RGB(11, 22, 33).asHtmlCode() == "#0b1621");
     CHECK(color::RGB(0x02, 0x00, 0x12).asHtmlCode() == "#020012");
     CHECK(color::BLACK.asHtmlCode() == "#000000");
@@ -54,11 +54,9 @@ TEST_CASE("construct color::HSV from (int, int, int)") {
     CHECK(col.value == 3);
 }
 
-
 TEST_CASE("construct color::HSV from glm::vec3") {
     color::HSV col(glm::vec3(.25f, .5f, .75f));
-    CHECK(col.hue==64);
+    CHECK(col.hue == 64);
     CHECK(col.saturation == 128);
     CHECK(col.value == 191);
 }
-

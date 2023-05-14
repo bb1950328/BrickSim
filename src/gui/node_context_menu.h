@@ -6,6 +6,9 @@
 namespace bricksim::gui::node_context_menu {
     class ContextMenuDrawHandler {
     public:
+        ContextMenuDrawHandler();
+        virtual ~ContextMenuDrawHandler();
+
         [[nodiscard]] virtual bool beginMenu() const = 0;
         [[nodiscard]] virtual bool beginSubMenu(const std::string& name) const;
         [[nodiscard]] virtual bool beginSubMenu(const std::string& name, std::optional<color::RGB> color) const = 0;
@@ -16,6 +19,9 @@ namespace bricksim::gui::node_context_menu {
     };
     class ImGuiContextMenuDrawHandler : public ContextMenuDrawHandler {
     public:
+        ImGuiContextMenuDrawHandler();
+        ~ImGuiContextMenuDrawHandler() override;
+
         [[nodiscard]] bool beginMenu() const override;
         [[nodiscard]] bool beginSubMenu(const std::string& name, std::optional<color::RGB> color) const override;
         [[nodiscard]] bool drawAction(const std::string& name, std::optional<color::RGB> color) const override;
@@ -23,8 +29,12 @@ namespace bricksim::gui::node_context_menu {
         void endMenu() const override;
     };
 
-    void drawContextMenu(const std::shared_ptr<Editor>& editor,
-                         const std::shared_ptr<etree::Node>& context,
-                         const ContextMenuDrawHandler& drawHandler,
-                         std::vector<std::function<void()>>& runAfterTasks);
+    struct Context {
+        std::shared_ptr<Editor> editor;
+        std::shared_ptr<etree::Node> node;
+    };
+
+    void openContextMenu(Context newContext);
+
+    void drawContextMenu();
 }

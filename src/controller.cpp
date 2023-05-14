@@ -9,6 +9,7 @@
 #include "graphics/shaders.h"
 #include "gui/gui.h"
 #include "gui/modals.h"
+#include "gui/node_context_menu.h"
 #include "helpers/util.h"
 #include "info_providers/bricklink_constants_provider.h"
 #include "keyboard_shortcut_manager.h"
@@ -452,6 +453,7 @@ namespace bricksim::controller {
             gui::beginFrame();
             gui::drawMainWindows();
             gui::modals::handle();
+            gui::node_context_menu::drawContextMenu();
 
             handleForegroundTasks();
 

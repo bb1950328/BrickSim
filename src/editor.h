@@ -20,7 +20,7 @@ namespace bricksim {
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };
 
-    class Editor : private efsw::FileWatchListener {
+    class Editor : private efsw::FileWatchListener, public std::enable_shared_from_this<Editor> {
     public:
         static std::shared_ptr<Editor> createNew();
         static std::shared_ptr<Editor> openFile(const std::filesystem::path& path);
@@ -101,6 +101,7 @@ namespace bricksim {
 
         std::optional<std::filesystem::path> filePath;
         std::optional<efsw::WatchID> fileWatchId;
+        bool enableFileAutoReload = true;
         std::shared_ptr<etree::RootNode> rootNode;
         std::shared_ptr<etree::ModelNode> editingModel;
         std::shared_ptr<ldr::FileNamespace> fileNamespace;
@@ -108,6 +109,7 @@ namespace bricksim {
         std::shared_ptr<graphics::Scene> scene;
         std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;
         uint64_t lastSavedVersion = 0;
+        uomap_t<std::shared_ptr<etree::ModelNode>, etree::Node::version_t> lastSavedVersions;
         uomap_t<std::shared_ptr<etree::Node>, uint64_t> selectedNodes;//value is last version, use to check if selected node was modified in the meantime
         std::shared_ptr<SelectionVisualizationNode> selectionVisualizationNode;
         std::shared_ptr<graphics::CadCamera> camera;
@@ -118,5 +120,9 @@ namespace bricksim {
         };
         DraggingNodeType currentlyDraggingNodeType = DraggingNodeType::NONE;//todo change this to object oriented design
         void addConnectorDataVisualization(const std::shared_ptr<etree::Node>& node) const;
+        [[nodiscard]] bool isModified(const std::shared_ptr<etree::ModelNode>& model) const;
+        void setAsActiveEditor();
+        void deleteModelInstances(const std::shared_ptr<etree::ModelNode>& modelToDelete, const std::shared_ptr<etree::Node>& currentNode);
+        void writeTo(const std::filesystem::path& mainFilePath);
     };
 }

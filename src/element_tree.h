@@ -35,6 +35,7 @@ namespace bricksim::etree {
         bool selected = false;
         NodeType type = NodeType::TYPE_OTHER;
         layer_t layer = constants::DEFAULT_LAYER;//todo think about inheritance of this attribute
+        using version_t = uint64_t;
 
         [[nodiscard]] const glm::mat4& getRelativeTransformation() const;
         void setRelativeTransformation(const glm::mat4& newValue);
@@ -51,9 +52,10 @@ namespace bricksim::etree {
         void addChild(std::vector<std::shared_ptr<Node>>::difference_type position, const std::shared_ptr<Node>& newChild);
         bool isChildOf(const std::shared_ptr<Node>& possibleParent) const;
         void removeChild(const std::shared_ptr<Node>& childToDelete);
+        void removeChildIf(std::function<bool(const std::shared_ptr<Node>&)> predicate);
         virtual bool isDirectChildOfTypeAllowed(NodeType potentialChildType) const;
 
-        uint64_t getVersion() const;
+        version_t getVersion() const;
         void incrementVersion();
 
         std::shared_ptr<RootNode> getRoot();
@@ -65,7 +67,7 @@ namespace bricksim::etree {
         glm::mat4 relativeTransformation = glm::mat4(1.0f);
         mutable glm::mat4 absoluteTransformation;
         mutable bool absoluteTransformationValid = false;
-        uint64_t version = 0;
+        version_t version = 0;
 
         void invalidateAbsoluteTransformation();
     };
@@ -79,6 +81,7 @@ namespace bricksim::etree {
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
         bool isDirectChildOfTypeAllowed(NodeType type) const override;
         std::shared_ptr<ModelNode> getModelNode(const std::shared_ptr<ldr::File>& ldrFile);
+        bool isTransformationUserEditable() const override;
     };
 
     class MeshNode : public Node {
@@ -148,6 +151,8 @@ namespace bricksim::etree {
         ModelNode(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
+        bool isTransformationUserEditable() const override;
+        bool isColorUserEditable() const override;
     };
 
     class PartNode : public LdrNode {

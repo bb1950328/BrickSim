@@ -1,6 +1,4 @@
 #include "file_reader.h"
-#include "../helpers/stringutil.h"
-#include "../helpers/util.h"
 #include <magic_enum.hpp>
 #include <palanteer.h>
 #include <spdlog/spdlog.h>
@@ -8,17 +6,19 @@
 namespace bricksim::ldr {
     uomap_t<std::string, std::shared_ptr<File>> readComplexFile(const std::shared_ptr<FileNamespace>& fileNamespace,
                                                                 const std::string& name,
+                                                                const std::filesystem::path& source,
                                                                 FileType mainFileType,
                                                                 const std::string& content,
                                                                 const std::optional<std::string>& shadowContent) {
         //plFunction();
         if (mainFileType != FileType::MODEL) {
-            return {{name, readSimpleFile(fileNamespace, name, mainFileType, content, shadowContent)}};
+            return {{name, readSimpleFile(fileNamespace, name, source, mainFileType, content, shadowContent)}};
         }
         auto mainFile = std::make_shared<File>();
         mainFile->metaInfo.type = mainFileType;
         mainFile->metaInfo.name = name;
         mainFile->nameSpace = fileNamespace;
+        mainFile->source = {source, true};
         uomap_t<std::string, std::shared_ptr<File>> files = {{name, mainFile}};
         std::optional<std::shared_ptr<File>> currentFile = mainFile;
 
@@ -27,7 +27,7 @@ namespace bricksim::ldr {
         }
 
         size_t lineStart = 0;
-        size_t lineEnd = 0;
+        size_t lineEnd;
         bool firstFile = true;
         bool hasMoreLines = true;
         while (hasMoreLines) {
@@ -53,6 +53,7 @@ namespace bricksim::ldr {
                         currentFile = std::make_shared<File>();
                         currentFile.value()->nameSpace = fileNamespace;
                         currentFile.value()->metaInfo.type = FileType::MPD_SUBFILE;
+                        currentFile.value()->source = {source, false};
                         files.emplace(currentName, currentFile.value());
                     }
                 }
@@ -69,6 +70,7 @@ namespace bricksim::ldr {
 
     std::shared_ptr<File> readSimpleFile(const std::shared_ptr<FileNamespace>& fileNamespace,
                                          std::string_view name,
+                                         const std::filesystem::path& source,
                                          FileType type,
                                          const std::string& content,
                                          const std::optional<std::string>& shadowContent) {

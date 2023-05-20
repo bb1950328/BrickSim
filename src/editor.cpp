@@ -1,5 +1,6 @@
 #include "editor.h"
 #include <magic_enum.hpp>
+#include <numeric>
 #include <spdlog/spdlog.h>
 
 #include "config.h"
@@ -8,9 +9,8 @@
 #include "controller.h"
 #include "ldr/file_repo.h"
 #include "ldr/file_writer.h"
-#include "lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "palanteer.h"
 #include "spdlog/fmt/bundled/format.h"
-#include "spdlog/fmt/ostr.h"
 
 namespace bricksim {
     std::shared_ptr<Editor> Editor::createNew() {
@@ -25,7 +25,7 @@ namespace bricksim {
         const auto newName = getNameForNewLdrFile();
         filePath = newFileLocation / newName;
         fileNamespace = std::make_shared<ldr::FileNamespace>(newName, newFileLocation);
-        init(ldr::file_repo::get().addLdrFileWithContent(fileNamespace, newName, ldr::FileType::MODEL, ""));
+        init(ldr::file_repo::get().addLdrFileWithContent(fileNamespace, newName, *filePath, ldr::FileType::MODEL, ""));
     }
 
     Editor::Editor(const std::filesystem::path& path) :
@@ -108,7 +108,14 @@ namespace bricksim {
     }
 
     bool Editor::isModified() const {
-        return lastSavedVersion != editingModel->getVersion();
+        return std::any_of(rootNode->getChildren().begin(), rootNode->getChildren().end(),
+                           [this](auto item) {
+                               return isModified(std::dynamic_pointer_cast<etree::ModelNode>(item));
+                           });
+    }
+    bool Editor::isModified(const std::shared_ptr<etree::ModelNode>& model) const {
+        const auto it = lastSavedVersions.find(model);
+        return it == lastSavedVersions.end() || it->second < model->getVersion();
     }
 
     std::shared_ptr<graphics::Scene>& Editor::getScene() {
@@ -117,26 +124,84 @@ namespace bricksim {
     std::unique_ptr<transform_gizmo::TransformGizmo>& Editor::getTransformGizmo() {
         return transformGizmo;
     }
+
+    void Editor::writeTo(const std::filesystem::path& mainFilePath) {
+        plScope("Editor::writeTo");
+        bool enableAutoReloadBackup = enableFileAutoReload;
+        enableFileAutoReload = false;
+        uomap_t<std::filesystem::path, std::vector<std::shared_ptr<ldr::File>>> ldrFilesByPath;
+        for (const auto& item: rootNode->getChildren()) {
+            const auto model = std::dynamic_pointer_cast<etree::ModelNode>(item);
+            if (model != nullptr) {
+                if (isModified(model)) {
+                    model->writeChangesToLdrFile();
+                    lastSavedVersions[model] = model->getVersion();
+                }
+                ldrFilesByPath[model->ldrFile->source.path].push_back(model->ldrFile);
+            }
+        }
+
+        for (auto& [pathKey, filesValue]: ldrFilesByPath) {
+            std::shared_ptr<ldr::File> mainFile = nullptr;
+            for (auto it = filesValue.begin(); it != filesValue.end(); ++it) {
+                if ((*it)->source.isMainFile) {
+                    mainFile = *it;
+                    filesValue.erase(it);
+                    break;
+                }
+            }
+            if (mainFile == nullptr) {
+                spdlog::warn("attempting to write without mainFile to {}", pathKey.string());
+                mainFile = std::make_shared<ldr::File>();
+            }
+            std::sort(filesValue.begin(),
+                      filesValue.end(),
+                      [](const auto& a, const auto& b) {
+                          return a->metaInfo.name < b->metaInfo.name;
+                      });
+            const auto fileNamesList = std::accumulate(filesValue.begin(),
+                                                       filesValue.end(),
+                                                       std::string(),
+                                                       [](std::string result, const auto& file) {
+                                                           return file->source.isMainFile
+                                                                          ? std::move(result)
+                                                                          : (std::move(result) += file->metaInfo.name + ", ");
+                                                       });
+
+            std::filesystem::path physicalPath;
+            if (!filePath->empty() && pathKey == *filePath) {
+                //current file is the main file
+                physicalPath = mainFilePath;
+            } else {
+                physicalPath = pathKey;
+            }
+
+            auto before = std::chrono::high_resolution_clock::now();
+            ldr::writeFiles(mainFile, filesValue, physicalPath);
+            auto after = std::chrono::high_resolution_clock::now();
+
+            const auto timeUs = static_cast<float>(std::chrono::duration_cast<std::chrono::nanoseconds>(after - before).count()) / 1000.f;
+            spdlog::info("written {} files to {} in {}µs (mainFile={}, subfiles={})", 1 + filesValue.size(), pathKey.string(), timeUs, mainFile->metaInfo.name, fileNamesList);
+        }
+        enableFileAutoReload = enableAutoReloadBackup;
+    }
+
     void Editor::save() {
         if (filePath->empty()) {
             throw std::invalid_argument("can't save when filePath is empty");
         }
-        if (lastSavedVersion != editingModel->getVersion()) {
-            editingModel->writeChangesToLdrFile();
-            ldr::writeFile(editingModel->ldrFile, filePath.value());
-            lastSavedVersion = editingModel->getVersion();
-        }
+        writeTo(*filePath);
     }
 
     void Editor::saveAs(const std::filesystem::path& newPath) {
         filePath = newPath;
         ldr::file_repo::get().changeFileName(fileNamespace, editingModel->ldrFile, newPath.filename().string());
+        rootNode->displayName = newPath.filename().string();
         save();
     }
 
     void Editor::saveCopyAs(const std::filesystem::path& copyPath) {
-        editingModel->writeChangesToLdrFile();
-        ldr::writeFile(editingModel->ldrFile, copyPath);
+        writeTo(copyPath);
     }
 
     void Editor::nodeSelectAddRemove(const std::shared_ptr<etree::Node>& node) {
@@ -148,6 +213,7 @@ namespace bricksim {
             selectedNodes.erase(iterator);
         }
         updateSelectionVisualization();
+        setAsActiveEditor();
     }
 
     void Editor::nodeSelectSet(const std::shared_ptr<etree::Node>& node) {
@@ -158,6 +224,7 @@ namespace bricksim {
         node->selected = true;
         selectedNodes.emplace(node, node->getVersion());
         updateSelectionVisualization();
+        setAsActiveEditor();
     }
 
     void Editor::nodeSelectUntil(const std::shared_ptr<etree::Node>& node) {
@@ -181,6 +248,7 @@ namespace bricksim {
             }
         }
         updateSelectionVisualization();
+        setAsActiveEditor();
     }
 
     void Editor::nodeSelectAll() {
@@ -188,6 +256,7 @@ namespace bricksim {
         editingModel->selected = true;
         selectedNodes.emplace(editingModel, editingModel->getVersion());
         updateSelectionVisualization();
+        setAsActiveEditor();
     }
 
     void Editor::nodeSelectNone() {
@@ -196,6 +265,7 @@ namespace bricksim {
         }
         selectedNodes.clear();
         updateSelectionVisualization();
+        setAsActiveEditor();
     }
 
     void Editor::nodeSelectConnected() {
@@ -217,6 +287,7 @@ namespace bricksim {
             }
         }
         updateSelectionVisualization();
+        setAsActiveEditor();
     }
 
     void Editor::setStandard3dView(int i) {
@@ -266,6 +337,9 @@ namespace bricksim {
 
     void Editor::deleteElement(const std::shared_ptr<etree::Node>& nodeToDelete) {
         auto parent = nodeToDelete->parent.lock();
+        if (nodeToDelete->getType() == etree::NodeType::TYPE_MODEL) {
+            deleteModelInstances(std::dynamic_pointer_cast<etree::ModelNode>(nodeToDelete), rootNode);
+        }
         parent->removeChild(nodeToDelete);
         parent->incrementVersion();
         selectedNodes.erase(nodeToDelete);
@@ -359,16 +433,18 @@ namespace bricksim {
     }
 
     void Editor::handleFileAction(efsw::WatchID watchid, const std::string& dir, const std::string& filename, efsw::Action action, std::string oldFilename) {
-        auto fullPath = std::filesystem::path(dir) / filename;
-        if (filePath.has_value() && fullPath == filePath.value()) {
-            spdlog::info(R"(editor file change detected: {} fullPath="{}" oldFilename="{}")",
-                         magic_enum::enum_name(action), fullPath.string(), oldFilename);
-            rootNode->removeChild(editingModel);
-            editingModel = std::make_shared<etree::ModelNode>(ldr::file_repo::get().reloadFile(fileNamespace, filePath->string()), 1, rootNode);
-            editingModel->createChildNodes();
-            rootNode->addChild(editingModel);
-            editingModel->visible = true;
-            editingModel->incrementVersion();
+        if (enableFileAutoReload) {
+            auto fullPath = std::filesystem::path(dir) / filename;
+            if (filePath.has_value() && fullPath == filePath.value()) {
+                spdlog::info(R"(editor file change detected: {} fullPath="{}" oldFilename="{}")",
+                             magic_enum::enum_name(action), fullPath.string(), oldFilename);
+                rootNode->removeChild(editingModel);
+                editingModel = std::make_shared<etree::ModelNode>(ldr::file_repo::get().reloadFile(fileNamespace, filePath->string()), 1, rootNode);
+                editingModel->createChildNodes();
+                rootNode->addChild(editingModel);
+                editingModel->visible = true;
+                editingModel->incrementVersion();
+            }
         }
     }
 
@@ -415,7 +491,6 @@ namespace bricksim {
                     glm::mat4 transf(1.f);
                     transf = glm::translate(transf, aabb.getCenter());
                     transf = glm::scale(transf, aabb.getSize() / 2.f);
-                    spdlog::debug("center={}, size={}", aabb.getCenter(), aabb.getSize());
                     selectionVisualizationNode->setRelativeTransformation(glm::transpose(transf));
                 } else {
                 }
@@ -517,6 +592,17 @@ namespace bricksim {
 
         editingModel->visible = true;
         editingModel->incrementVersion();
+    }
+    void Editor::setAsActiveEditor() {
+        controller::setActiveEditor(shared_from_this());
+    }
+    void Editor::deleteModelInstances(const std::shared_ptr<etree::ModelNode>& modelToDelete, const std::shared_ptr<etree::Node>& currentNode) {
+        currentNode->removeChildIf([&modelToDelete](auto item) {
+            return item->getType() == etree::NodeType::TYPE_MODEL_INSTANCE && std::dynamic_pointer_cast<etree::ModelInstanceNode>(item)->modelNode == modelToDelete;
+        });
+        for (const auto& child: currentNode->getChildren()) {
+            deleteModelInstances(modelToDelete, child);
+        }
     }
 
     SelectionVisualizationNode::SelectionVisualizationNode(const std::shared_ptr<Node>& parent) :

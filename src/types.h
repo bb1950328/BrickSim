@@ -1,9 +1,12 @@
 #pragma once
-
+#include "helpers/platform_detection.h"
+#ifdef BRICKSIM_PLATFORM_MACOS
+    #include <filesystem>
+#endif
 #include <glm/fwd.hpp>
 #include <map>
-#include <set>
 #include <robin_hood.h>
+#include <set>
 
 namespace bricksim {
     using layer_t = unsigned char;
@@ -33,4 +36,14 @@ namespace glm {
     using svec2 = vec<2, short, defaultp>;
     using svec3 = vec<3, short, defaultp>;
     using svec4 = vec<4, short, defaultp>;
+}
+namespace std {
+#ifdef BRICKSIM_PLATFORM_MACOS
+    template<>
+    struct hash<filesystem::path> {
+        size_t operator()(const filesystem::path& value) const noexcept {
+            return filesystem::hash_value(value);
+        }
+    };
+#endif
 }

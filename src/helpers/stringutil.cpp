@@ -272,4 +272,12 @@ namespace bricksim::stringutil {
                               return tolower(a) == tolower(b);
                           });
     }
+    std::string repeat(const std::string& str, unsigned int times) {
+        std::string result;
+        result.reserve(str.size() * times + 1);
+        for (int i = 0; i < times; ++i) {
+            result += str;
+        }
+        return result;
+    }
 }

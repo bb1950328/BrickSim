@@ -38,10 +38,11 @@ namespace bricksim::gui::windows::view3d {
             if (isActiveEditor) {
                 ImGui::PushStyleColor(ImGuiCol_Text, COLOR_ACTIVE_EDITOR);
             }
-            if (ImGui::Begin(windowTitle.c_str(), &open, ImGuiWindowFlags_NoScrollWithMouse)) {
-                if (isActiveEditor) {
-                    ImGui::PopStyleColor();
-                }
+            const auto windowOpen = ImGui::Begin(windowTitle.c_str(), nullptr, ImGuiWindowFlags_NoScrollWithMouse);
+            if (isActiveEditor) {
+                ImGui::PopStyleColor();
+            }
+            if (windowOpen) {
                 ImGui::BeginChild("3DRender");
                 const ImVec2& regionAvail = ImGui::GetContentRegionAvail();
                 const auto& scene = editor->getScene();

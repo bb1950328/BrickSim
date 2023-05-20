@@ -356,13 +356,13 @@ namespace bricksim::etree {
     color::RGB getColorOfType(const NodeType& type) {
         switch (type) {
             case NodeType::TYPE_MODEL_INSTANCE: return config::get(config::COLOR_MPD_SUBFILE_INSTANCE);
-            case NodeType::TYPE_MODEL: return config::get(config::COLOR_MULTI_PART_DOCUMENT);
             case NodeType::TYPE_PART: return config::get(config::COLOR_OFFICAL_PART);//todo unoffical part
+            case NodeType::TYPE_MODEL:
             case NodeType::TYPE_OTHER:
             case NodeType::TYPE_ROOT:
             case NodeType::TYPE_MESH:
             case NodeType::TYPE_LDRFILE:
-            default: return {255, 255, 255};
+            default: return color::WHITE;
         }
     }
 

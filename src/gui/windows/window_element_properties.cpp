@@ -295,7 +295,7 @@ namespace bricksim::gui::windows::element_properties {
         }
     }
 
-    void drawColorEdit(const std::shared_ptr<etree::Node>& lastSelectedNode, const std::shared_ptr<etree::LdrNode>& node) {
+    void drawColorEdit(const std::shared_ptr<etree::Node>& lastSelectedNode, const std::shared_ptr<etree::MeshNode>& node) {
         if (ImGui::TreeNodeEx(ICON_FA_PALETTE " Color", ImGuiTreeNodeFlags_DefaultOpen)) {
             static bool isColor16, savedIsColor16;
             if (lastSelectedNode == node) {
@@ -318,7 +318,8 @@ namespace bricksim::gui::windows::element_properties {
 
                 std::optional<uoset_t<ldr::ColorReference>> availableColors = std::nullopt;
                 if (node->getType() == etree::NodeType::TYPE_PART) {
-                    availableColors = info_providers::part_color_availability::getAvailableColorsForPart(node->ldrFile);
+                    const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
+                    availableColors = info_providers::part_color_availability::getAvailableColorsForPart(ldrNode->ldrFile);
                 }
                 bool showAllColors;
                 if (availableColors.has_value() && !availableColors.value().empty()) {
@@ -417,7 +418,7 @@ namespace bricksim::gui::windows::element_properties {
                         drawTransformationEdit(lastSelectedNode, node);
                     }
                     if (meshNode != nullptr && meshNode->isColorUserEditable()) {
-                        drawColorEdit(lastSelectedNode, ldrNode);
+                        drawColorEdit(lastSelectedNode, meshNode);
                     }
                     if (node->getType() == etree::NodeType::TYPE_PART) {
                         drawPriceGuide(node);

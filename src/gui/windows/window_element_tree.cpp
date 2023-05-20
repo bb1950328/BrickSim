@@ -17,6 +17,8 @@ namespace bricksim::gui::windows::element_tree {
                     }
                 } else if (node == editor->getEditingModel()) {
                     textColor = COLOR_EDITING_MODEL;
+                } else {
+                    textColor = etree::getColorOfType(node->getType());
                 }
 
                 ImGuiTreeNodeFlags flags = node->selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None;

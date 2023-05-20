@@ -2,7 +2,8 @@
 #include "../gui.h"
 #include <memory>
 
-#include "../node_context_menu.h"
+#include "../context_menu/context_menu_handler.h"
+#include "../context_menu/node_context_menu.h"
 #include "window_element_tree.h"
 
 namespace bricksim::gui::windows::element_tree {

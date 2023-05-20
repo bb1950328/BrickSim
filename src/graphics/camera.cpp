@@ -95,6 +95,10 @@ namespace bricksim::graphics {
         distance = value;
         updateVectors();
     }
+    void CadCamera::setTargetPos(const glm::vec3& pos) {
+        target = pos;
+        updateVectors();
+    }
 
     float CadCamera::getPitch() const {
         return pitch;

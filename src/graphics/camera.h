@@ -24,6 +24,7 @@ namespace bricksim::graphics {
         void setPitch(float value);//degrees
         void setYaw(float value);  //degrees
         void setDistance(float value);
+        void setTargetPos(const glm::vec3& pos);
 
         [[nodiscard]] const glm::mat4& getViewMatrix() const override;
         [[nodiscard]] const glm::vec3& getCameraPos() const override;

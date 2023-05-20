@@ -74,6 +74,7 @@ namespace bricksim {
         void panViewDown();
         void panViewLeft();
         void panViewRight();
+        void centerElementIn3dView(const std::shared_ptr<etree::Node>& node);
 
         void insertLdrElement(const std::shared_ptr<ldr::File>& ldrFile);
         void deleteElement(const std::shared_ptr<etree::Node>& nodeToDelete);

@@ -318,6 +318,12 @@ namespace bricksim {
     void Editor::panViewRight() {
         camera->mousePan(+1, 0);
     }
+    void Editor::centerElementIn3dView(const std::shared_ptr<etree::Node>& node) {
+        const glm::mat4 transfT = glm::transpose(node->getAbsoluteTransformation());
+        const glm::vec4 pos = transfT[3];
+        spdlog::debug("targetPos=[{}, {}, {}]", pos.x, pos.y, pos.z);
+        camera->setTargetPos(pos * constants::LDU_TO_OPENGL);
+    }
 
     void Editor::insertLdrElement(const std::shared_ptr<ldr::File>& ldrFile) {
         switch (ldrFile->metaInfo.type) {

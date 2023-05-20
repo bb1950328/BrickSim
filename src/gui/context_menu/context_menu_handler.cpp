@@ -1,20 +1,8 @@
-#include "node_context_menu.h"
+#include "context_menu_handler.h"
 
-#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
-#include "imgui.h"
-#include "imgui_internal.h"
-#include "spdlog/spdlog.h"
-#include <utility>
+#include <imgui_internal.h>
 
 namespace bricksim::gui::node_context_menu {
-    namespace {
-        Context context;
-        uint64_t contextUnusedFrames = 0;
-        std::unique_ptr<ContextMenuDrawHandler> drawHandler = std::make_unique<ImGuiContextMenuDrawHandler>();
-
-        const ImGuiID POPUP_ID_HASH = 0x283e48fd;
-    }
-
     bool ImGuiContextMenuDrawHandler::beginMenu() const {
         return ImGui::BeginPopupEx(POPUP_ID_HASH, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize);
     }
@@ -56,33 +44,4 @@ namespace bricksim::gui::node_context_menu {
     }
     ContextMenuDrawHandler::ContextMenuDrawHandler() = default;
     ContextMenuDrawHandler::~ContextMenuDrawHandler() = default;
-
-    void drawContextMenu() {
-        if (drawHandler->beginMenu()) {
-            if (context.node->type == etree::NodeType::TYPE_MODEL) {
-                if (drawHandler->drawAction(ICON_FA_EDIT " Make Editing Model")) {
-                    context.editor->setEditingModel(std::dynamic_pointer_cast<etree::ModelNode>(context.node));
-                }
-            }
-
-            if (context.node->getType() != etree::NodeType::TYPE_ROOT) {
-                if (drawHandler->drawAction(ICON_FA_TRASH " Delete", color::RED)) {
-                    context.editor->deleteElement(context.node);
-                }
-            }
-            drawHandler->endMenu();
-        } else if (context.node != nullptr) {
-            ++contextUnusedFrames;
-            if (contextUnusedFrames > 8) {
-                context = {};
-                contextUnusedFrames = 0;
-            }
-        }
-    }
-
-    void openContextMenu(Context newContext) {
-        context = std::move(newContext);
-        ImGui::OpenPopupEx(POPUP_ID_HASH);
-        spdlog::debug("Open context menu on {}", context.node->displayName);
-    }
 }

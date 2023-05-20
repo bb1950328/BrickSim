@@ -1,8 +1,9 @@
 #pragma once
-
-#include "../editor.h"
-#include "../element_tree.h"
+#include "../../helpers/color.h"
+#include <imgui.h>
+#include <optional>
 #include <string>
+
 namespace bricksim::gui::node_context_menu {
     class ContextMenuDrawHandler {
     public:
@@ -19,6 +20,7 @@ namespace bricksim::gui::node_context_menu {
     };
     class ImGuiContextMenuDrawHandler : public ContextMenuDrawHandler {
     public:
+        static const ImGuiID POPUP_ID_HASH = 0x283e48fd;
         ImGuiContextMenuDrawHandler();
         ~ImGuiContextMenuDrawHandler() override;
 
@@ -28,13 +30,4 @@ namespace bricksim::gui::node_context_menu {
         void endSubMenu() const override;
         void endMenu() const override;
     };
-
-    struct Context {
-        std::shared_ptr<Editor> editor;
-        std::shared_ptr<etree::Node> node;
-    };
-
-    void openContextMenu(Context newContext);
-
-    void drawContextMenu();
 }

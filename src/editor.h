@@ -20,7 +20,7 @@ namespace bricksim {
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
     };
 
-    class Editor : private efsw::FileWatchListener {
+    class Editor : private efsw::FileWatchListener, public std::enable_shared_from_this<Editor> {
     public:
         static std::shared_ptr<Editor> createNew();
         static std::shared_ptr<Editor> openFile(const std::filesystem::path& path);
@@ -120,5 +120,7 @@ namespace bricksim {
         DraggingNodeType currentlyDraggingNodeType = DraggingNodeType::NONE;//todo change this to object oriented design
         void addConnectorDataVisualization(const std::shared_ptr<etree::Node>& node) const;
         [[nodiscard]] bool isModified(const std::shared_ptr<etree::ModelNode>& model) const;
+        void setAsActiveEditor();
+        void deleteModelInstances(const std::shared_ptr<etree::ModelNode>& modelToDelete, const std::shared_ptr<etree::Node>& currentNode);
     };
 }

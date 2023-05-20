@@ -266,12 +266,15 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
                 rowStart("Source");
                 if (currentFile->source.path.empty()) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-zero-length"
                     ImGui::Text("");
+#pragma GCC diagnostic pop
                 } else {
                     ImGui::Text("%sfile of %s", currentFile->source.isMainFile ? "main " : "sub", currentFile->source.path.c_str());
                     ImGui::SameLine();
                     if (ImGui::Button(ICON_FA_PASTE)) {
-                        glfwSetClipboardString(getWindow(), currentFile->source.path.c_str());
+                        glfwSetClipboardString(getWindow(), currentFile->source.path.string().c_str());
                     }
                 }
 

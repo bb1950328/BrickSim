@@ -52,6 +52,7 @@ namespace bricksim::etree {
         void addChild(std::vector<std::shared_ptr<Node>>::difference_type position, const std::shared_ptr<Node>& newChild);
         bool isChildOf(const std::shared_ptr<Node>& possibleParent) const;
         void removeChild(const std::shared_ptr<Node>& childToDelete);
+        void removeChildIf(std::function<bool(const std::shared_ptr<Node>&)> predicate);
         virtual bool isDirectChildOfTypeAllowed(NodeType potentialChildType) const;
 
         version_t getVersion() const;
@@ -80,6 +81,7 @@ namespace bricksim::etree {
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
         bool isDirectChildOfTypeAllowed(NodeType type) const override;
         std::shared_ptr<ModelNode> getModelNode(const std::shared_ptr<ldr::File>& ldrFile);
+        bool isTransformationUserEditable() const override;
     };
 
     class MeshNode : public Node {
@@ -149,6 +151,8 @@ namespace bricksim::etree {
         ModelNode(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent);
 
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
+        bool isTransformationUserEditable() const override;
+        bool isColorUserEditable() const override;
     };
 
     class PartNode : public LdrNode {

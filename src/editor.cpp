@@ -160,6 +160,7 @@ namespace bricksim {
             selectedNodes.erase(iterator);
         }
         updateSelectionVisualization();
+        setAsActiveEditor();
     }
 
     void Editor::nodeSelectSet(const std::shared_ptr<etree::Node>& node) {
@@ -170,6 +171,7 @@ namespace bricksim {
         node->selected = true;
         selectedNodes.emplace(node, node->getVersion());
         updateSelectionVisualization();
+        setAsActiveEditor();
     }
 
     void Editor::nodeSelectUntil(const std::shared_ptr<etree::Node>& node) {
@@ -193,6 +195,7 @@ namespace bricksim {
             }
         }
         updateSelectionVisualization();
+        setAsActiveEditor();
     }
 
     void Editor::nodeSelectAll() {
@@ -200,6 +203,7 @@ namespace bricksim {
         editingModel->selected = true;
         selectedNodes.emplace(editingModel, editingModel->getVersion());
         updateSelectionVisualization();
+        setAsActiveEditor();
     }
 
     void Editor::nodeSelectNone() {
@@ -208,6 +212,7 @@ namespace bricksim {
         }
         selectedNodes.clear();
         updateSelectionVisualization();
+        setAsActiveEditor();
     }
 
     void Editor::nodeSelectConnected() {
@@ -229,6 +234,7 @@ namespace bricksim {
             }
         }
         updateSelectionVisualization();
+        setAsActiveEditor();
     }
 
     void Editor::setStandard3dView(int i) {
@@ -278,6 +284,9 @@ namespace bricksim {
 
     void Editor::deleteElement(const std::shared_ptr<etree::Node>& nodeToDelete) {
         auto parent = nodeToDelete->parent.lock();
+        if (nodeToDelete->getType() == etree::NodeType::TYPE_MODEL) {
+            deleteModelInstances(std::dynamic_pointer_cast<etree::ModelNode>(nodeToDelete), rootNode);
+        }
         parent->removeChild(nodeToDelete);
         parent->incrementVersion();
         selectedNodes.erase(nodeToDelete);
@@ -529,6 +538,17 @@ namespace bricksim {
 
         editingModel->visible = true;
         editingModel->incrementVersion();
+    }
+    void Editor::setAsActiveEditor() {
+        controller::setActiveEditor(shared_from_this());
+    }
+    void Editor::deleteModelInstances(const std::shared_ptr<etree::ModelNode>& modelToDelete, const std::shared_ptr<etree::Node>& currentNode) {
+        currentNode->removeChildIf([&modelToDelete](auto item) {
+            return item->getType() == etree::NodeType::TYPE_MODEL_INSTANCE && std::dynamic_pointer_cast<etree::ModelInstanceNode>(item)->modelNode == modelToDelete;
+        });
+        for (const auto& child: currentNode->getChildren()) {
+            deleteModelInstances(modelToDelete, child);
+        }
     }
 
     SelectionVisualizationNode::SelectionVisualizationNode(const std::shared_ptr<Node>& parent) :

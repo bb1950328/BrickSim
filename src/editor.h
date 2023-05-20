@@ -101,6 +101,7 @@ namespace bricksim {
 
         std::optional<std::filesystem::path> filePath;
         std::optional<efsw::WatchID> fileWatchId;
+        bool enableFileAutoReload = true;
         std::shared_ptr<etree::RootNode> rootNode;
         std::shared_ptr<etree::ModelNode> editingModel;
         std::shared_ptr<ldr::FileNamespace> fileNamespace;
@@ -122,5 +123,6 @@ namespace bricksim {
         [[nodiscard]] bool isModified(const std::shared_ptr<etree::ModelNode>& model) const;
         void setAsActiveEditor();
         void deleteModelInstances(const std::shared_ptr<etree::ModelNode>& modelToDelete, const std::shared_ptr<etree::Node>& currentNode);
+        void writeTo(const std::filesystem::path& mainFilePath);
     };
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../editor.h"
 #include "../../element_tree.h"
 #include "windows.h"
 

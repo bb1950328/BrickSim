@@ -452,7 +452,7 @@ namespace bricksim::ldr::file_repo {
         auto it = nsFiles.find(name);
         if (it != nsFiles.end()) {
             nsFiles.erase(it);
-        } else {
+        } else if (fileNamespace != nullptr) {
             reloadFile(nullptr, name);
         }
         return getFile(fileNamespace, name);

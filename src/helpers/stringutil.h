@@ -21,4 +21,5 @@ namespace bricksim::stringutil {
     bool stringEqualsIgnoreCase(std::string_view a, std::string_view b);
     bool equalsAlphanum(std::string_view a, std::string_view b);
     std::vector<std::string_view> splitByChar(std::string_view string, char delimiter);
+    std::string repeat(const std::string& str, unsigned int times);
 }

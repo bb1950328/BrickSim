@@ -1,4 +1,4 @@
-#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../../logging/latest_log_messages_tank.h"
 #include "../gui.h"
 #include <filesystem>
@@ -49,7 +49,7 @@ namespace bricksim::gui::windows::log {
             ImGui::SameLine();
             bool copyClicked = ImGui::Button(ICON_FA_CLIPBOARD " Copy");
             ImGui::SameLine();
-            bool saveClicked = ImGui::Button(ICON_FA_SAVE " Save");
+            bool saveClicked = ImGui::Button(ICON_FA_FLOPPY_DISK " Save");
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_BAN " Clear")) {
                 logging::latest_messages_tank::clear();

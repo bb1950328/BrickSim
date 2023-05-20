@@ -44,7 +44,7 @@ namespace bricksim::gui::modals {
     };
 
     class ErrorModal : public Modal {
-        explicit ErrorModal(std::string errorMessage);
+        explicit ErrorModal(const std::string& errorMessage);
         ErrorModal(std::string title, std::string errorMessage);
 
     public:

@@ -1,7 +1,7 @@
 #include "../../controller.h"
 #include "../../ldr/colors.h"
 #include "../../ldr/file_repo.h"
-#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../../part_finder.h"
 #include "../gui.h"
 #include "../gui_internal.h"
@@ -12,7 +12,7 @@ namespace bricksim::gui::windows::part_palette {
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
             static char searchTextBuffer[128] = {'\0'};
-            ImGui::InputText(ICON_FA_SEARCH "##search", searchTextBuffer, 128);
+            ImGui::InputText(ICON_FA_MAGNIFYING_GLASS "##search", searchTextBuffer, 128);
             ImGui::SameLine();
             static int thumbnailZoomPercent = 100;//todo get from config
             ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8);
@@ -61,11 +61,11 @@ namespace bricksim::gui::windows::part_palette {
                         ImGui::TreePop();
                     }
                 }
-                if (ImGui::Button(ICON_FA_WINDOW_CLOSE " Cancel")) {
+                if (ImGui::Button(ICON_FA_RECTANGLE_XMARK " Cancel")) {
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::SameLine();
-                if (ImGui::Button(ICON_FA_CHECK_SQUARE " Apply")) {
+                if (ImGui::Button(ICON_FA_SQUARE_CHECK " Apply")) {
                     color = colorChosenInPopup.get();
                     ImGui::CloseCurrentPopup();
                 }

@@ -1,4 +1,4 @@
-#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include <array>
 
 #include <chrono>
@@ -35,9 +35,9 @@ namespace bricksim::gui::windows {
                     {Id::VIEW_3D, ICON_FA_CUBES " 3D View", true, view3d::draw},
                     {Id::ELEMENT_TREE, ICON_FA_LIST " Element Tree", true, element_tree::draw},
                     {Id::ELEMENT_PROPERTIES, ICON_FA_WRENCH " Element Properties", true, element_properties::draw},
-                    {Id::PART_PALETTE, ICON_FA_TH " Part Palette", false/*todo true*/, part_palette::draw},
-                    {Id::SETTINGS, ICON_FA_SLIDERS_H " Settings", false, settings::draw},
-                    {Id::ABOUT, ICON_FA_INFO_CIRCLE " About", false, about::draw},
+                    {Id::PART_PALETTE, ICON_FA_TABLE_CELLS " Part Palette", false /*todo true*/, part_palette::draw},
+                    {Id::SETTINGS, ICON_FA_SLIDERS " Settings", false, settings::draw},
+                    {Id::ABOUT, ICON_FA_CIRCLE_INFO " About", false, about::draw},
                     {Id::SYSTEM_INFO, ICON_FA_MICROCHIP " System Info", false, system_info::draw},
                     {Id::DEBUG, ICON_FA_BUG " Debug", true, debug::draw},
                     {Id::MESH_INSPECTOR, ICON_FA_SHAPES " Mesh Inspector", false, mesh_inspector::draw},
@@ -45,9 +45,9 @@ namespace bricksim::gui::windows {
                     {Id::ORIENTATION_CUBE, ICON_FA_CUBE " Orientation Cube", true, orientation_cube::draw},
                     {Id::LOG, ICON_FA_LIST " Log", false, log::draw},
                     {Id::GEAR_RATIO_CALCULATOR, "Gear Ratio Calculator", false, tools::gear_ratio_calculator::draw},
-                    {Id::MODEL_INFO, ICON_FA_INFO_CIRCLE" Model Info", false, model_info::draw},
-                    {Id::EDITOR_META_INFO, ICON_FA_RECEIPT" Meta-Info", false, editor_meta_info::draw},
-                    {Id::LDRAW_FILE_INSPECTOR, ICON_FA_EYE" LDraw File Inspector", false, ldraw_file_inspector::draw},
+                    {Id::MODEL_INFO, ICON_FA_INFO " Model Info", false, model_info::draw},
+                    {Id::EDITOR_META_INFO, ICON_FA_RECEIPT " Meta-Info", false, editor_meta_info::draw},
+                    {Id::LDRAW_FILE_INSPECTOR, ICON_FA_EYE " LDraw File Inspector", false, ldraw_file_inspector::draw},
             }};
 
     void drawAll() {

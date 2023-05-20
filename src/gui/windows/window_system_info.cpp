@@ -1,5 +1,5 @@
 #include "../../helpers/system_info.h"
-#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../gui.h"
 #include <ostream>
 #include <sstream>
@@ -30,7 +30,7 @@ namespace bricksim::gui::windows::system_info {
                 glfwSetClipboardString(getWindow(), result.str().data());
             }
             ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_WINDOW_CLOSE " Close")) {
+            if (ImGui::Button(ICON_FA_RECTANGLE_XMARK " Close")) {
                 data.visible = false;
             }
         }

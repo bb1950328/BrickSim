@@ -1,7 +1,7 @@
 #include "../../config.h"
 #include "../../controller.h"
 #include "../../info_providers/part_color_availability_provider.h"
-#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../gui_internal.h"
 #include <glm/ext/quaternion_trigonometric.hpp>
 #include <glm/gtx/euler_angles.hpp>
@@ -31,7 +31,7 @@ namespace bricksim::gui::windows::element_properties {
             if (nodeHasChanged || transformationHasChanged) {
                 lastTreePosition = inputPosition = decomposedTreeTransf.translation;
             }
-            ImGui::DragFloat3(ICON_FA_ARROWS_ALT " Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
+            ImGui::DragFloat3(ICON_FA_LOCATION_DOT " Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
             translationChanged = glm::any(glm::epsilonNotEqual(decomposedTreeTransf.translation, inputPosition, 0.01f));
         }
 
@@ -46,7 +46,7 @@ namespace bricksim::gui::windows::element_properties {
                 lastTreeEulerAnglesRad = currentTreeAnglesRad;
                 inputEulerAnglesDeg = glm::degrees(currentTreeAnglesRad);
             }
-            ImGui::DragFloat3(ICON_FA_SYNC " Rotation", &inputEulerAnglesDeg[0], 1.0f, -180, 180, "%.1f°");
+            ImGui::DragFloat3(ICON_FA_ARROWS_ROTATE " Rotation", &inputEulerAnglesDeg[0], 1.0f, -180, 180, "%.1f°");
             rotationChanged = glm::any(glm::epsilonNotEqual(glm::radians(inputEulerAnglesDeg), lastTreeEulerAnglesRad, 0.0001f));
         } else {
             static glm::vec3 lastTreeQuatAxis;
@@ -60,7 +60,7 @@ namespace bricksim::gui::windows::element_properties {
                 inputQuatAxis = currentQuatAxis;
             }
             ImGui::DragFloat3(ICON_FA_LOCATION_ARROW " Rotation Axis", &inputQuatAxis[0], 0.01f, -1e9, +1e9, "%.2f");
-            ImGui::DragFloat(ICON_FA_SYNC " Rotation Angle", &inputQuatAngleDeg, 1.0f, 0, 360, "%.0f °");
+            ImGui::DragFloat(ICON_FA_ARROWS_ROTATE " Rotation Angle", &inputQuatAngleDeg, 1.0f, 0, 360, "%.0f °");
             rotationChanged = std::abs(lastTreeQuatAngleDeg - inputQuatAngleDeg) > 0.01 || glm::any(glm::epsilonNotEqual(inputQuatAxis, lastTreeQuatAxis, 0.001f));
         }
 
@@ -71,7 +71,7 @@ namespace bricksim::gui::windows::element_properties {
                 lastTreeScale = decomposedTreeTransf.scale;
                 inputScalePercent = decomposedTreeTransf.scale * 100.0f;
             }
-            ImGui::DragFloat3(ICON_FA_EXPAND_ARROWS_ALT " Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
+            ImGui::DragFloat3(ICON_FA_MAXIMIZE " Scale", &inputScalePercent[0], 1.0f, -1e9, 1e9, "%.2f%%");
             scaleChanged = util::biggestValue(glm::abs(inputScalePercent / 100.0f - decomposedTreeTransf.scale)) > 0.001;
         }
 
@@ -105,7 +105,7 @@ namespace bricksim::gui::windows::element_properties {
         if (!displayNameEditable && ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(ICON_FA_TIMES_CIRCLE " Changing the name of an element of this type is not possible.");
+            ImGui::TextUnformatted(ICON_FA_CIRCLE_XMARK " Changing the name of an element of this type is not possible.");
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
         }
@@ -136,7 +136,7 @@ namespace bricksim::gui::windows::element_properties {
             const auto colorBricklinkName = util::translateLDrawColorNameToBricklink(color->name);
             auto availableColors = info_providers::part_color_availability::getAvailableColorsForPart(partNode->ldrFile);
             if (availableColors.has_value()) {
-                if (ImGui::Button(ICON_FA_SYNC " (Re)load all available colors")) {
+                if (ImGui::Button(ICON_FA_CLOUD_ARROW_DOWN " (Re)load all available colors")) {
                     for (const auto& item: availableColors.value()) {
                         const auto itemValue = item.get();
                         controller::addBackgroundTask("Reload price guide for " + partCode + " in " + itemValue->name, [partCode, itemValue, currencyCode]() {
@@ -162,7 +162,7 @@ namespace bricksim::gui::windows::element_properties {
             }
             if (!pGuides.empty()) {
                 if (pGuides.find(color->asReference()) != pGuides.end()) {
-                    if (ImGui::Button((ICON_FA_SYNC " Reload for " + color->name).c_str())) {
+                    if (ImGui::Button((ICON_FA_CLOUD_ARROW_DOWN " Reload for " + color->name).c_str())) {
                         controller::addBackgroundTask("Reload price guide for " + partCode, [partCode, colorBricklinkName, currencyCode]() {
                             info_providers::price_guide::getPriceGuide(partCode, currencyCode, colorBricklinkName, true);
                         });
@@ -375,13 +375,13 @@ namespace bricksim::gui::windows::element_properties {
         if (!selectedTypes.contains(etree::NodeType::TYPE_ROOT)) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8, 0, 0, 1));
             std::string deleteButtonLabel = selectedNodes.size() > 1
-                                                    ? fmt::format(ICON_FA_TRASH_ALT " Delete {} elements", selectedNodes.size())
-                                                    : ICON_FA_TRASH_ALT " Delete element";
+                                                    ? fmt::format(ICON_FA_TRASH_CAN " Delete {} elements", selectedNodes.size())
+                                                    : ICON_FA_TRASH_CAN " Delete element";
             if (ImGui::Button(deleteButtonLabel.c_str())) {
                 activeEditor->deleteSelectedElements();
             }
             if (ImGui::IsItemHovered() && selectedTypes.contains(etree::NodeType::TYPE_MODEL)) {
-                ImGui::SetTooltip(ICON_FA_EXCLAMATION_TRIANGLE " When you delete a model, all its instances will be deleted too");
+                ImGui::SetTooltip(ICON_FA_TRIANGLE_EXCLAMATION " When you delete a model, all its instances will be deleted too");
             }
             ImGui::PopStyleColor();
         }

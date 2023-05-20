@@ -6,7 +6,7 @@
 #include "../../ldr/file_repo.h"
 #include "../../ldr/file_writer.h"
 #include "../../ldr/shadow_file_repo.h"
-#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../gui.h"
 #include "../gui_internal.h"
 #include "glm/gtx/string_cast.hpp"

@@ -7,7 +7,7 @@
 #include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include "../ldr/file_repo.h"
-#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../metrics.h"
 #include "gui_internal.h"
 #include "windows/windows.h"
@@ -317,7 +317,7 @@ namespace bricksim::gui {
 
                 gui_internal::actionMenuItem(user_actions::EXIT);
 
-                ImGui::MenuItem(ICON_FA_INFO_CIRCLE " About", "", windows::isVisible(windows::Id::ABOUT));
+                ImGui::MenuItem(ICON_FA_CIRCLE_INFO " About", "", windows::isVisible(windows::Id::ABOUT));
                 ImGui::MenuItem(ICON_FA_MICROCHIP " System Info", "", windows::isVisible(windows::Id::SYSTEM_INFO));
                 ImGui::EndMenu();
             }
@@ -428,7 +428,7 @@ namespace bricksim::gui {
             if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
                 ImGui::SetKeyboardFocusHere(0);
             }
-            ImGui::InputText(ICON_FA_SEARCH, searchBuf.data(), searchBuf.capacity());
+            ImGui::InputText(ICON_FA_MAGNIFYING_GLASS, searchBuf.data(), searchBuf.capacity());
 
             static std::optional<user_actions::Action> selectedAction;
             if (ImGui::BeginListBox("##actionsByNameListBox")) {
@@ -496,7 +496,7 @@ namespace bricksim::gui {
                 close = true;
             }
             ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_WINDOW_CLOSE " Cancel") || close || glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+            if (ImGui::Button(ICON_FA_RECTANGLE_XMARK " Cancel") || close || glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
                 searchBuf[0] = '\0';
                 selectedAction = std::nullopt;
                 ImGui::CloseCurrentPopup();
@@ -506,13 +506,13 @@ namespace bricksim::gui {
     }
 
     void drawDocumentMenu(const std::shared_ptr<Editor>& editor) {
-        if (ImGui::MenuItem(ICON_FA_SAVE" Save")) {
+        if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK " Save")) {
             editor->save();
         }
-        if (ImGui::MenuItem(ICON_FA_SAVE" Save as")) {
+        if (ImGui::MenuItem(ICON_FA_FLOPPY_DISK " Save as")) {
             showSaveFileAsDialog(editor);
         }
-        if (ImGui::MenuItem(ICON_FA_COPY" Save copy as")) {
+        if (ImGui::MenuItem(ICON_FA_COPY " Save copy as")) {
             showSaveCopyAsDialog(editor);
         }
         if (ImGui::MenuItem(ICON_FA_CAMERA" Save screenshot")) {
@@ -565,7 +565,7 @@ namespace bricksim::gui {
         static auto windowFlags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize;
         ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
         if (state == 'A') {
-            if (ImGui::Begin(ICON_FA_EXCLAMATION_TRIANGLE " LDraw library not found.", nullptr, windowFlags)) {
+            if (ImGui::Begin(ICON_FA_TRIANGLE_EXCLAMATION " LDraw library not found.", nullptr, windowFlags)) {
                 auto parts_lib_raw = config::get(config::LDRAW_PARTS_LIBRARY);
                 auto parts_lib_extended = util::extendHomeDir(parts_lib_raw);
 
@@ -578,7 +578,7 @@ namespace bricksim::gui {
                 ImGui::Text("Your options are:");
                 ImGui::Bullet();
                 ImGui::SameLine();
-                if (ImGui::Button(ICON_FA_EDIT " Change the path manually to point to your ldraw directory")) {
+                if (ImGui::Button(ICON_FA_PEN " Change the path manually to point to your ldraw directory")) {
                     state = 'B';
                     pathBuffer.assign(parts_lib_raw);
                 }
@@ -612,7 +612,7 @@ namespace bricksim::gui {
                     pathBuffer.assign(folderNameChars);
                 }
                 ImGui::SameLine();
-                if (ImGui::Button(ICON_FA_FILE_ARCHIVE)) {
+                if (ImGui::Button(ICON_FA_FILE_ZIPPER)) {
                     char const* fileNameChars = tinyfd_openFileDialog(
                             "Select LDraw parts library .zip",
                             pathBuffer.c_str(),
@@ -632,7 +632,7 @@ namespace bricksim::gui {
                     libraryType = ldr::file_repo::getLibraryType(enteredPath);
                 }
                 if (libraryType == ldr::file_repo::LibraryType::INVALID) {
-                    ImGui::TextColored(color::RED, ICON_FA_TIMES_CIRCLE " This path doesn't exist or isn't a valid LDraw parts library");
+                    ImGui::TextColored(color::RED, ICON_FA_CIRCLE_XMARK " This path doesn't exist or isn't a valid LDraw parts library");
                 } else if (libraryType == ldr::file_repo::LibraryType::DIRECTORY) {
                     ImGui::TextColored(color::GREEN, ICON_FA_CHECK "This is a valid path to an LDraw parts library directory.");
                 } else {
@@ -642,7 +642,7 @@ namespace bricksim::gui {
                     state = 'A';
                 }
                 ImGui::SameLine();
-                if (ImGui::Button(ICON_FA_CHECK_CIRCLE " OK")) {
+                if (ImGui::Button(ICON_FA_CIRCLE_CHECK " OK")) {
                     state = 'Z';
                     config::set(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(pathBuffer));
                 }
@@ -662,7 +662,7 @@ namespace bricksim::gui {
                         const auto bytesPerSecondTxt = stringutil::formatBytesValue(parts_library_downloader::getSpeedBytesPerSecond());
                         const auto speedTxt = fmt::format("{:.1f}% {}/s", progressFraction * 100, bytesPerSecondTxt);
                         ImGui::ProgressBar(progressFraction, ImVec2(-FLT_MIN, 0), speedTxt.c_str());
-                        if (ImGui::Button(ICON_FA_STOP_CIRCLE " Cancel and exit program")) {
+                        if (ImGui::Button(ICON_FA_CIRCLE_STOP " Cancel and exit program")) {
                             parts_library_downloader::stopDownload();
                             downloadThread.join();
                             ImGui::End();
@@ -671,7 +671,7 @@ namespace bricksim::gui {
                         break;
                     }
                     case parts_library_downloader::Status::FAILED:
-                        ImGui::TextColored(color::RED, ICON_FA_TIMES_CIRCLE " Download failed with error code %d", parts_library_downloader::getErrorCode());
+                        ImGui::TextColored(color::RED, ICON_FA_CIRCLE_XMARK " Download failed with error code %d", parts_library_downloader::getErrorCode());
                         if (ImGui::Button(ICON_FA_CHEVRON_LEFT " Back")) {
                             parts_library_downloader::reset();
                             state = 'Z';

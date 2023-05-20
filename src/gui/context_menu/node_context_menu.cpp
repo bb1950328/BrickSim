@@ -1,6 +1,6 @@
 #include "node_context_menu.h"
 
-#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "context_menu_handler.h"
 #include "imgui_internal.h"
 #include "spdlog/spdlog.h"
@@ -16,7 +16,7 @@ namespace bricksim::gui::node_context_menu {
     void drawContextMenu() {
         if (drawHandler->beginMenu()) {
             if (context.node->type == etree::NodeType::TYPE_MODEL) {
-                if (drawHandler->drawAction(ICON_FA_EDIT " Make Editing Model")) {
+                if (drawHandler->drawAction(ICON_FA_FILE_PEN " Make Editing Model")) {
                     context.editor->setEditingModel(std::dynamic_pointer_cast<etree::ModelNode>(context.node));
                 }
             }
@@ -25,7 +25,7 @@ namespace bricksim::gui::node_context_menu {
                 if (drawHandler->drawAction(ICON_FA_TRASH " Delete", color::RED)) {
                     context.editor->deleteElement(context.node);
                 }
-                if (drawHandler->drawAction(ICON_FA_CROSSHAIRS " Center in 3D View")) {
+                if (drawHandler->drawAction(ICON_FA_ARROWS_TO_EYE " Center in 3D View")) {
                     context.editor->centerElementIn3dView(context.node);
                 }
             }

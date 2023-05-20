@@ -1,5 +1,5 @@
 #include "window_mesh_inspector.h"
-#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../gui.h"
 #include <imgui.h>
 #include <memory>
@@ -192,7 +192,7 @@ namespace bricksim::gui::windows::mesh_inspector {
                             drawColorLabel(inst.color);
 
                             ImGui::TableNextColumn();
-                            ImGui::Text(inst.selected ? ICON_FA_CHECK_SQUARE : ICON_FA_SQUARE);
+                            ImGui::Text(inst.selected ? ICON_FA_SQUARE_CHECK : ICON_FA_SQUARE);
 
                             ImGui::TableNextColumn();
                             const auto& mat = inst.transformation;
@@ -288,7 +288,7 @@ namespace bricksim::gui::windows::mesh_inspector {
 
                 ImGui::EndTabBar();
             }
-            if (ImGui::Button(ICON_FA_WINDOW_CLOSE " Close")) {
+            if (ImGui::Button(ICON_FA_RECTANGLE_XMARK " Close")) {
                 data.visible = false;
             }
         }

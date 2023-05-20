@@ -6,7 +6,7 @@
 #include <imgui_internal.h>
 #include <memory>
 
-#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../context_menu/node_context_menu.h"
 #include "../gui.h"
 #include "spdlog/fmt/bundled/format.h"

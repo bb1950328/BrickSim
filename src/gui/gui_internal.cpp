@@ -3,7 +3,7 @@
 #include "../helpers/util.h"
 #include "../info_providers/part_color_availability_provider.h"
 #include "../keyboard_shortcut_manager.h"
-#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 
 namespace bricksim::gui_internal {
     bool drawPartThumbnail(const ImVec2& actualThumbSizeSquared, const std::shared_ptr<ldr::File>& part, const ldr::ColorReference color) {

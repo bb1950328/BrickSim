@@ -1,6 +1,6 @@
 #include "../../connection/engine.h"
 #include "../../controller.h"
-#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../../metrics.h"
 #include "../gui.h"
 #include <cinttypes>
@@ -188,7 +188,7 @@ namespace bricksim::gui::windows::debug {
                     const auto& rootNode = editor->getRootNode();
                     ImGui::Text("Element tree root node version: %" PRIu64, rootNode->getVersion());
                     ImGui::SameLine();
-                    if (ImGui::Button(ICON_FA_PLUS_SQUARE " Increment")) {
+                    if (ImGui::Button(ICON_FA_SQUARE_PLUS " Increment")) {
                         rootNode->incrementVersion();
                     }
                 }
@@ -210,8 +210,8 @@ namespace bricksim::gui::windows::debug {
                 ImGui::Text(ICON_FA_MEMORY " Total graphics buffer size: %s", stringutil::formatBytesValue(metrics::vramUsageBytes).c_str());
                 ImGui::Text(ICON_FA_IMAGES " Total thumbnail buffer size: %s", stringutil::formatBytesValue(metrics::thumbnailBufferUsageBytes).c_str());
                 ImGui::Text("Memory saved by deleting vertex data from RAM: %s", stringutil::formatBytesValue(metrics::memorySavedByDeletingVertexData).c_str());
-                ImGui::Text(ICON_FA_SYNC " Last element tree reread: %.2f ms", metrics::lastElementTreeRereadMs);
-                ImGui::Text(ICON_FA_HISTORY " Last thumbnail render time: %.2f ms", metrics::lastThumbnailRenderingTimeMs);
+                ImGui::Text(ICON_FA_ARROWS_ROTATE " Last element tree reread: %.2f ms", metrics::lastElementTreeRereadMs);
+                ImGui::Text(ICON_FA_IMAGES " Last thumbnail render time: %.2f ms", metrics::lastThumbnailRenderingTimeMs);
 #ifndef NDEBUG
                 ImGui::Text("ldr::FileElement instance count: %zu", metrics::ldrFileElementInstanceCount);
 #endif

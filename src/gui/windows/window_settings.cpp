@@ -1,7 +1,7 @@
 #include "../../config.h"
 #include "../../info_providers/bricklink_constants_provider.h"
 #include "../../keyboard_shortcut_manager.h"
-#include "../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../../user_actions.h"
 #include "../gui.h"
 #include <glm/glm.hpp>
@@ -152,7 +152,7 @@ namespace bricksim::gui::windows::settings {
 
         void drawGeneralTab() {
             if (ImGui::BeginTabItem("General")) {
-                ImGui::SliderFloat(ICON_FA_EXPAND_ARROWS_ALT " UI Scale", &guiScale, 0.25, 8, "%.2f");
+                ImGui::SliderFloat(ICON_FA_MAXIMIZE " UI Scale", &guiScale, 0.25, 8, "%.2f");
                 ImGui::InputInt2(ICON_FA_WINDOW_MAXIMIZE " Initial Window Size", initialWindowSize);
                 ImGui::InputText("LDraw path", ldrawDir, sizeof(ldrawDir));
                 ImGui::InputText("Shadow library path", shadowLibraryPath, sizeof(shadowLibraryPath));
@@ -161,9 +161,9 @@ namespace bricksim::gui::windows::settings {
                 ImGui::ColorEdit3(ICON_FA_FILL " Background Color", &backgroundColor.x);
                 ImGui::SliderInt(ICON_FA_VECTOR_SQUARE " Part thumbnail size", &thumbnailSizeLog, 4, 11,
                                  (std::to_string((int)std::pow(2, thumbnailSizeLog)) + "px").c_str());
-                ImGui::InputDouble(ICON_FA_TH " Thumbnail cache size in GB", &thumbnailCacheSizeGB, 0.1f);
+                ImGui::InputDouble(ICON_FA_DATABASE " Thumbnail cache size in GB", &thumbnailCacheSizeGB, 0.1f);
                 ImGui::Combo(ICON_FA_WINDOW_RESTORE " Viewports", &enableViewportsInt, "Disabled\0Enabled\0");
-                ImGui::Combo(ICON_FA_MONEY_BILL_ALT " Bricklink currency code", &currencyCodeIndex, currencyCodeStrings.data());
+                ImGui::Combo(ICON_FA_CENT_SIGN " Bricklink currency code", &currencyCodeIndex, currencyCodeStrings.data());
                 ImGui::EndTabItem();
             }
         }
@@ -181,9 +181,9 @@ namespace bricksim::gui::windows::settings {
 
         void draw3DViewTab() {
             if (ImGui::BeginTabItem(windows::getName(windows::Id::VIEW_3D))) {
-                ImGui::DragFloat(ICON_FA_SYNC_ALT " Rotation Sensitivity", &mouseSensitivityRotation, 1.0f, 10.0f, 1000.0f, "%.0f%%");
-                ImGui::DragFloat(ICON_FA_ARROWS_ALT " Pan Sensitivity", &mouseSensitivityPan, 1.0f, 10.0f, 1000.0f, "%.0f%%");
-                ImGui::DragFloat(ICON_FA_SEARCH " Zoom Sensitivity", &mouseSensitivityRotation, 1.0f, 10.0f, 1000.0f, "%.0f%%");
+                ImGui::DragFloat(ICON_FA_ARROWS_ROTATE " Rotation Sensitivity", &mouseSensitivityRotation, 1.0f, 10.0f, 1000.0f, "%.0f%%");
+                ImGui::DragFloat(ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Pan Sensitivity", &mouseSensitivityPan, 1.0f, 10.0f, 1000.0f, "%.0f%%");
+                ImGui::DragFloat(ICON_FA_MAGNIFYING_GLASS " Zoom Sensitivity", &mouseSensitivityRotation, 1.0f, 10.0f, 1000.0f, "%.0f%%");
                 ImGui::SliderInt("MSAA Samples", &msaaElem, 0, 4, std::to_string((int)std::pow(2, msaaElem)).c_str());
                 ImGui::Checkbox(ICON_FA_RETWEET " Back face culling", &faceCullingEnabled);
                 ImGui::EndTabItem();
@@ -193,7 +193,7 @@ namespace bricksim::gui::windows::settings {
         void drawDebugTab() {
             if (ImGui::BeginTabItem(ICON_FA_BUG " Debug")) {
                 ImGui::Checkbox(ICON_FA_HAND_POINTER " Display Selection Buffer", &displaySelectionBuffer);
-                ImGui::Checkbox(ICON_FA_LONG_ARROW_ALT_UP " Show Normals", &showNormals);
+                ImGui::Checkbox(ICON_FA_ARROW_UP_RIGHT_FROM_SQUARE " Show Normals", &showNormals);
                 ImGui::Checkbox(ICON_FA_GLOBE " Draw minimal enclosing ball lines", &drawMinEnclosingBallLines);
                 ImGui::Checkbox("Enable OpenGL debug output", &enableGlDebugOutput);
                 ImGui::EndTabItem();
@@ -222,7 +222,7 @@ namespace bricksim::gui::windows::settings {
                             shouldOpenSelectKeyModal = true;
                         }
                         ImGui::TableNextColumn();
-                        std::string btnName = ICON_FA_TRASH_ALT + std::string("##") + shortcut->getDisplayName() + actionName;
+                        std::string btnName = ICON_FA_TRASH + std::string("##") + shortcut->getDisplayName() + actionName;
                         if (ImGui::Button(btnName.c_str())) {
                             allShortcuts.erase(shortcut);
                         } else {
@@ -246,7 +246,7 @@ namespace bricksim::gui::windows::settings {
                 if (shouldOpenSelectActionModal) {
                     currentlySelectedAction = currentlyEditingShortcut.value().get().action;
                 }
-                ImGui::InputTextWithHint(ICON_FA_SEARCH, "type to filter actions...", searchBuf, searchBufSize);
+                ImGui::InputTextWithHint(ICON_FA_MAGNIFYING_GLASS, "type to filter actions...", searchBuf, searchBufSize);
                 if (ImGui::BeginListBox("##actionListBox")) {
                     for (const auto& action: user_actions::findActionsByName(searchBuf)) {
                         const bool is_selected = (action == currentlySelectedAction);
@@ -266,7 +266,7 @@ namespace bricksim::gui::windows::settings {
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::SameLine();
-                if (ImGui::Button(ICON_FA_WINDOW_CLOSE " Cancel##actionChooser")) {
+                if (ImGui::Button(ICON_FA_RECTANGLE_XMARK " Cancel##actionChooser")) {
                     currentlyEditingShortcut = {};
                     ImGui::CloseCurrentPopup();
                 }
@@ -294,7 +294,7 @@ namespace bricksim::gui::windows::settings {
                     close = true;
                 }
                 ImGui::SameLine();
-                if (ImGui::Button(ICON_FA_WINDOW_CLOSE " Cancel")) {
+                if (ImGui::Button(ICON_FA_RECTANGLE_XMARK " Cancel")) {
                     close = true;
                 }
                 if (close) {
@@ -329,11 +329,11 @@ namespace bricksim::gui::windows::settings {
                 ImGui::EndChild();
             }
             ImGui::Separator();
-            if (ImGui::Button(ICON_FA_SAVE " Save")) {
+            if (ImGui::Button(ICON_FA_FLOPPY_DISK " Save")) {
                 save();
             }
             ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_HISTORY " Discard Changes")) {
+            if (ImGui::Button(ICON_FA_CLOCK_ROTATE_LEFT " Discard Changes")) {
                 load();
             }
             ImGui::SameLine();

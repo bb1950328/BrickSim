@@ -1,5 +1,5 @@
 #include "modals.h"
-#include "../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "gui.h"
 #include "gui_internal.h"
 
@@ -62,8 +62,8 @@ namespace bricksim::gui::modals {
     }
     Modal::~Modal() = default;
 
-    ErrorModal::ErrorModal(std::string errorMessage) :
-        Modal(ICON_FA_EXCLAMATION_CIRCLE " Error", std::move(errorMessage)) {
+    ErrorModal::ErrorModal(const std::string& errorMessage) :
+        Modal(ICON_FA_CIRCLE_EXCLAMATION " Error", errorMessage) {
     }
 
     ErrorModal::ErrorModal(std::string title, std::string errorMessage) :
@@ -149,7 +149,7 @@ namespace bricksim::gui::modals {
     }
 
     ClosedEndedQuestionModal::ClosedEndedQuestionModal(std::string question, std::vector<Answer> answers) :
-        ClosedEndedQuestionModal(ICON_FA_QUESTION_CIRCLE " Question", std::move(question), std::move(answers)) {}
+        ClosedEndedQuestionModal(ICON_FA_CIRCLE_QUESTION " Question", std::move(question), std::move(answers)) {}
 
     ClosedEndedQuestionModal::ClosedEndedQuestionModal(std::string title, std::string question, std::vector<Answer> answers) :
         Modal(std::move(title), std::move(question)), answers(std::move(answers)) {

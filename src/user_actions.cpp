@@ -3,7 +3,7 @@
 #include "gui/gui.h"
 #include "helpers/stringutil.h"
 #include "helpers/util.h"
-#include "lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "lib/IconFontCppHeaders/IconsFontAwesome6.h"
 
 namespace bricksim::user_actions {
     namespace {
@@ -20,20 +20,20 @@ namespace bricksim::user_actions {
         constexpr auto actionsCount = magic_enum::enum_count<Action>();
 
         constexpr std::array<const char* const, actionsCount> names{
-                ICON_FA_TIMES_CIRCLE " Do nothing",
-                ICON_FA_SIGN_OUT_ALT " Exit",
+                ICON_FA_BAN " Do nothing",
+                ICON_FA_DOOR_OPEN " Exit",
                 ICON_FA_FOLDER_OPEN " Open",
-                ICON_FA_SAVE " Save",
-                ICON_FA_SAVE " Save as",
+                ICON_FA_FLOPPY_DISK " Save",
+                ICON_FA_FLOPPY_DISK " Save as",
                 ICON_FA_COPY " Save copy as",
                 ICON_FA_PLUS " New file",
-                ICON_FA_UNDO " Undo",
-                ICON_FA_REDO " Redo",
-                ICON_FA_CUT " Cut",
+                ICON_FA_ROTATE_LEFT " Undo",
+                ICON_FA_ROTATE_RIGHT " Redo",
+                ICON_FA_SCISSORS " Cut",
                 ICON_FA_COPY " Copy",
                 ICON_FA_PASTE " Paste",
-                ICON_FA_CHECK_SQUARE " Select all",
-                ICON_FA_MINUS_SQUARE " Select nothing",
+                ICON_FA_SQUARE_CHECK " Select all",
+                ICON_FA_SQUARE_MINUS " Select nothing",
                 ICON_FA_DICE_ONE " Front view",
                 ICON_FA_DICE_TWO " Top view",
                 ICON_FA_DICE_THREE " Right view",
@@ -44,19 +44,19 @@ namespace bricksim::user_actions {
                 ICON_FA_ANGLE_DOWN " Rotate view downwards",
                 ICON_FA_ANGLE_LEFT " Rotate view left",
                 ICON_FA_ANGLE_RIGHT " Rotate view right",
-                ICON_FA_ANGLE_DOUBLE_UP " Pan view upwards",
-                ICON_FA_ANGLE_DOUBLE_DOWN " Pan view downwards",
-                ICON_FA_ANGLE_DOUBLE_LEFT " Pan view left",
-                ICON_FA_ANGLE_DOUBLE_RIGHT " Pan view right",
-                ICON_FA_TRASH_ALT " Delete selected element(s)",
+                ICON_FA_ANGLES_UP " Pan view upwards",
+                ICON_FA_ANGLES_DOWN " Pan view downwards",
+                ICON_FA_ANGLES_LEFT " Pan view left",
+                ICON_FA_ANGLES_RIGHT " Pan view right",
+                ICON_FA_TRASH_CAN " Delete selected element(s)",
                 ICON_FA_EYE_SLASH " Hide selected element(s)",
                 ICON_FA_EYE " Unhide all elements",
-                ICON_FA_TH_LARGE " Apply default window layout",
+                ICON_FA_TABLE_CELLS_LARGE " Apply default window layout",
                 ICON_FA_CAMERA " Take screenshot",
-                ICON_FA_SEARCH " Find action",
+                ICON_FA_MAGNIFYING_GLASS " Find action",
                 "Toggle Transform Gizmo Rotation (World / Selected Element)",
                 ICON_FA_PUZZLE_PIECE " Select connected",
-                ICON_FA_EXPAND_ARROWS_ALT " Inline Selected Elements",
+                ICON_FA_BARS " Inline Selected Elements",
         };
 
         const std::array<std::function<bool()>, actionsCount> actionEnabledFuncs{

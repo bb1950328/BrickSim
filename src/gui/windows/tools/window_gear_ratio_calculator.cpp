@@ -1,4 +1,4 @@
-#include "../../../lib/IconFontCppHeaders/IconsFontAwesome5.h"
+#include "../../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../../../tools/gears.h"
 #include "../../gui.h"
 #include <list>
@@ -76,7 +76,7 @@ namespace bricksim::gui::windows::tools::gear_ratio_calculator {
                         ImGui::EndCombo();
                     }
                     ImGui::TableSetColumnIndex(2);
-                    if (ImGui::Button(ICON_FA_TRASH_ALT)) {
+                    if (ImGui::Button(ICON_FA_TRASH_CAN)) {
                         it = pairs.erase(it);
                     } else {
                         ++it;

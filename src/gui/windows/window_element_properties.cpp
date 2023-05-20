@@ -374,8 +374,8 @@ namespace bricksim::gui::windows::element_properties {
         if (!selectedTypes.contains(etree::NodeType::TYPE_ROOT)) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8, 0, 0, 1));
             std::string deleteButtonLabel = selectedNodes.size() > 1
-                                                    ? (std::string(ICON_FA_TRASH_ALT " Delete ") + std::__cxx11::to_string(selectedNodes.size()) + " elements")
-                                                    : ICON_FA_TRASH_ALT " Delete Element";
+                                                    ? fmt::format(ICON_FA_TRASH_ALT " Delete {} elements", selectedNodes.size())
+                                                    : ICON_FA_TRASH_ALT " Delete element";
             if (ImGui::Button(deleteButtonLabel.c_str())) {
                 activeEditor->deleteSelectedElements();
             }

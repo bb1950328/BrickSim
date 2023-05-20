@@ -1,6 +1,6 @@
 #include "editor.h"
 #include <magic_enum.hpp>
-#include <spdlog/fmt/chrono.h>
+#include <numeric>
 #include <spdlog/spdlog.h>
 
 #include "config.h"

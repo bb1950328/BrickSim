@@ -93,6 +93,29 @@ namespace bricksim::overlay2d {
         void setColor(const color::RGB& value);
     };
 
+    class DashedLineElement : public Element {
+    private:
+        std::vector<coord_t> points;
+        length_t spaceBetweenDashes;
+        length_t width;
+        color::RGB color;
+        void validatePoints();
+
+    public:
+        DashedLineElement(const std::vector<coord_t>& points, length_t spaceBetweenDashes, length_t width, const color::RGB& color);
+        bool isPointInside(coord_t point) override;
+        unsigned int getVertexCount() override;
+        Vertex* writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) override;
+        const std::vector<coord_t>& getPoints() const;
+        void setPoints(const std::vector<coord_t>& newPoints);
+        length_t getSpaceBetweenDashes() const;
+        void setSpaceBetweenDashes(length_t newSpaceBetweenDashes);
+        length_t getWidth() const;
+        void setWidth(length_t newWidth);
+        const color::RGB& getColor() const;
+        void setColor(const color::RGB& newColor);
+    };
+
     class TriangleElement : public Element {
     private:
         coord_t p0, p1, p2;

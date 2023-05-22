@@ -3,7 +3,7 @@
 #include "element_tree.h"
 #include "graphics/scene.h"
 #include "ldr/file_repo.h"
-#include "transform_gizmo.h"
+#include "transform_gizmo2.h"
 #include <efsw/efsw.hpp>
 
 namespace bricksim {
@@ -40,7 +40,7 @@ namespace bricksim {
         std::shared_ptr<ldr::FileNamespace>& getFileNamespace();
         [[nodiscard]] bool isModified() const;
         std::shared_ptr<graphics::Scene>& getScene();
-        std::unique_ptr<transform_gizmo::TransformGizmo>& getTransformGizmo();
+        std::unique_ptr<transform_gizmo::TransformGizmo2>& getTransformGizmo();
         [[nodiscard]] const std::shared_ptr<graphics::CadCamera>& getCamera() const;
         [[nodiscard]] const uomap_t<std::shared_ptr<etree::Node>, uint64_t>& getSelectedNodes() const;
 
@@ -108,7 +108,7 @@ namespace bricksim {
         std::shared_ptr<ldr::FileNamespace> fileNamespace;
         scene_id_t sceneId{};
         std::shared_ptr<graphics::Scene> scene;
-        std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;
+        std::unique_ptr<transform_gizmo::TransformGizmo2> transformGizmo;
         uint64_t lastSavedVersion = 0;
         uomap_t<std::shared_ptr<etree::ModelNode>, etree::Node::version_t> lastSavedVersions;
         uomap_t<std::shared_ptr<etree::Node>, uint64_t> selectedNodes;//value is last version, use to check if selected node was modified in the meantime

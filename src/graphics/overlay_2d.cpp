@@ -608,4 +608,59 @@ namespace bricksim::overlay2d {
         ArrowElement::color = value;
         setVerticesHaveChanged(true);
     }
+    DashedLineElement::DashedLineElement(const std::vector<coord_t>& points, length_t spaceBetweenDashes, length_t width, const color::RGB& color) :
+        points(points), spaceBetweenDashes(spaceBetweenDashes), width(width), color(color) {
+        validatePoints();
+    }
+    bool DashedLineElement::isPointInside(coord_t point) {
+        return false;//todo implement
+    }
+    unsigned int DashedLineElement::getVertexCount() {
+        return getVertexCountForLine() * (points.size() - 1);
+    }
+    Vertex* DashedLineElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
+        Vertex* nextVertexLocation = firstVertexLocation;
+        for (int i = 0; i < points.size() - 1; ++i) {
+            const auto& p1 = points[i];
+            const auto& p2 = points[i + 1];
+            //todo this code verbositiy because of missing automatic type conversion is unacceptable
+            const glm::svec2 delta(p2.x - p1.x, p2.y - p1.y);
+            const auto factor = spaceBetweenDashes / std::sqrt(delta.x * delta.x + delta.y * delta.y) / 2.;
+            const glm::svec2 halfGap(delta.x * factor, delta.y * factor);
+            nextVertexLocation = generateVerticesForLine(nextVertexLocation, {p1.x + halfGap.x, p1.y + halfGap.y}, {p2.y - halfGap.y, p2.y - halfGap.y}, width, color, viewportSize);
+        }
+        return nextVertexLocation;
+    }
+    const std::vector<coord_t>& DashedLineElement::getPoints() const {
+        return points;
+    }
+    void DashedLineElement::setPoints(const std::vector<coord_t>& newPoints) {
+        points = newPoints;
+        validatePoints();
+        setVerticesHaveChanged(true);
+    }
+    length_t DashedLineElement::getSpaceBetweenDashes() const {
+        return spaceBetweenDashes;
+    }
+    void DashedLineElement::setSpaceBetweenDashes(length_t newSpaceBetweenDashes) {
+        spaceBetweenDashes = newSpaceBetweenDashes;
+        setVerticesHaveChanged(true);
+    }
+    length_t DashedLineElement::getWidth() const {
+        return width;
+    }
+    void DashedLineElement::setWidth(length_t newWidth) {
+        width = newWidth;
+        setVerticesHaveChanged(true);
+    }
+    const color::RGB& DashedLineElement::getColor() const {
+        return color;
+    }
+    void DashedLineElement::setColor(const color::RGB& newColor) {
+        color = newColor;
+        setVerticesHaveChanged(true);
+    }
+    void DashedLineElement::validatePoints() {
+        assert(points.size() >= 2);
+    }
 }

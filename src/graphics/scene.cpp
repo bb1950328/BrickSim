@@ -341,12 +341,11 @@ namespace bricksim::graphics {
         return overlayCollection;
     }
 
-    glm::usvec2 Scene::worldToScreenCoordinates(glm::vec3 worldCoords) const {
-        const auto projectionView = projectionMatrix * camera->getViewMatrix();
-        const auto gl_Position = projectionView * glm::vec4(worldCoords, 1.0f);
-        const glm::vec2 ndc = {gl_Position.x / gl_Position.w,
-                               gl_Position.y / gl_Position.w};
-        return (ndc + 1.0f) / 2.0f * glm::vec2(imageSize);
+    glm::vec3 Scene::worldToScreenCoordinates(glm::vec3 worldCoords) const {
+        const glm::mat4 projectionView = projectionMatrix * camera->getViewMatrix();
+        const auto gl_Position = projectionView * glm::vec4(worldCoords, 1.f);
+        const glm::vec3 ndc = gl_Position / gl_Position.w;
+        return (ndc + 1.0f) / 2.0f * glm::vec3(imageSize, 1.f);
     }
 
     unsigned int Scene::getSelectionPixel(glm::usvec2 coords) {

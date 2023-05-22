@@ -2,6 +2,8 @@
 #include "../controller.h"
 #include "../helpers/geometry.h"
 #include "../helpers/util.h"
+#include "glm/gtx/string_cast.hpp"
+#include "spdlog/spdlog.h"
 #include <cmath>
 #include <glad/glad.h>
 #include <palanteer.h>
@@ -14,14 +16,12 @@ namespace bricksim::overlay2d {
             // + start                        end +
             // |                                  |
             // 4----------------------------------3
-            auto startFloat = glm::vec2(start);
-            auto endFloat = glm::vec2(end);
-            const auto startToEnd = endFloat - startFloat;
-            const glm::vec2 halfEdge = glm::normalize(glm::vec2(-startToEnd.x, startToEnd.y)) * (width / 2.0f);
-            const glm::vec2 p1 = startFloat - halfEdge;
-            const glm::vec2 p2 = startFloat + halfEdge;
-            const glm::vec2 p3 = endFloat + halfEdge;
-            const glm::vec2 p4 = endFloat - halfEdge;
+            const auto startToEnd = end - start;
+            const auto halfEdge = glm::normalize(glm::vec2(-startToEnd.y, startToEnd.x)) * (width / 2.f);
+            const auto p1 = start - halfEdge;
+            const auto p2 = start + halfEdge;
+            const auto p3 = end + halfEdge;
+            const auto p4 = end - halfEdge;
             return generateVerticesForQuad(firstVertexLocation, p1, p2, p3, p4, color, viewportSize);
         }
 
@@ -62,10 +62,10 @@ namespace bricksim::overlay2d {
             const float halfSideLength = static_cast<float>(sideLength) / 2;
             const auto x = static_cast<float>(center.x);
             const auto y = static_cast<float>(center.y);
-            auto p1 = glm::vec2{x - halfSideLength, y + halfSideLength};
-            auto p2 = glm::vec2{x + halfSideLength, y + halfSideLength};
-            auto p3 = glm::vec2{x + halfSideLength, y - halfSideLength};
-            auto p4 = glm::vec2{x - halfSideLength, y - halfSideLength};
+            glm::vec2 p1(x - halfSideLength, y + halfSideLength);
+            glm::vec2 p2(x + halfSideLength, y + halfSideLength);
+            glm::vec2 p3(x + halfSideLength, y - halfSideLength);
+            glm::vec2 p4(x - halfSideLength, y - halfSideLength);
             return generateVerticesForQuad(firstVertexLocation, p1, p2, p3, p4, color, viewportSize);
         }
 
@@ -108,19 +108,28 @@ namespace bricksim::overlay2d {
          * |     |
          * p4 -- p3
          */
-        Vertex* generateVerticesForQuad(Vertex* firstVertexLocation, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& p4,
-                                        color::RGB color, coord_t viewportSize) {
-            *firstVertexLocation = {toNDC(p1, viewportSize), color.asGlmVector()};
+        Vertex* generateVerticesForQuad(Vertex* firstVertexLocation,
+                                        const glm::vec2& p1,
+                                        const glm::vec2& p2,
+                                        const glm::vec2& p3,
+                                        const glm::vec2& p4,
+                                        color::RGB color,
+                                        coord_t viewportSize) {
+            const auto p1ndc = toNDC(p1, viewportSize);
+            const auto p2ndc = toNDC(p2, viewportSize);
+            const auto p3ndc = toNDC(p3, viewportSize);
+            const auto p4ndc = toNDC(p4, viewportSize);
+            *firstVertexLocation = {p1ndc, color.asGlmVector()};
             ++firstVertexLocation;
-            *firstVertexLocation = {toNDC(p4, viewportSize), color.asGlmVector()};
+            *firstVertexLocation = {p4ndc, color.asGlmVector()};
             ++firstVertexLocation;
-            *firstVertexLocation = {toNDC(p3, viewportSize), color.asGlmVector()};
+            *firstVertexLocation = {p3ndc, color.asGlmVector()};
             ++firstVertexLocation;
-            *firstVertexLocation = {toNDC(p3, viewportSize), color.asGlmVector()};
+            *firstVertexLocation = {p3ndc, color.asGlmVector()};
             ++firstVertexLocation;
-            *firstVertexLocation = {toNDC(p2, viewportSize), color.asGlmVector()};
+            *firstVertexLocation = {p2ndc, color.asGlmVector()};
             ++firstVertexLocation;
-            *firstVertexLocation = {toNDC(p1, viewportSize), color.asGlmVector()};
+            *firstVertexLocation = {p1ndc, color.asGlmVector()};
             ++firstVertexLocation;
             return firstVertexLocation;
         }
@@ -130,13 +139,11 @@ namespace bricksim::overlay2d {
         }
 
         constexpr glm::vec2 toNDC(coord_t coord, coord_t viewportSize) {
-            return {(float)coord.x / (float)viewportSize.x * 2 - 1,
-                    (float)coord.y / (float)viewportSize.y * 2 - 1};
+            return coord / viewportSize * 2.f - 1.f;
         }
 
-        constexpr glm::vec2 toNDC(glm::vec2 coord, coord_t viewportSize) {
-            return {coord.x / (float)viewportSize.x * 2 - 1,
-                    coord.y / (float)viewportSize.y * 2 - 1};
+        constexpr bool isNDConScreen(glm::vec2 ndc) {
+            return -1.f <= ndc.x && ndc.x <= 1.f && -1.f <= ndc.y && ndc.y <= 1.f;
         }
     }
 
@@ -185,7 +192,7 @@ namespace bricksim::overlay2d {
                     //adjust ranges after current
                     for (auto& item: vertexRanges) {
                         if (item.second.start > range.start) {
-                            item.second.count -= range.count;
+                            item.second.start -= range.count;
                         }
                     }
                 }
@@ -283,7 +290,7 @@ namespace bricksim::overlay2d {
     }
 
     bool LineElement::isPointInside(coord_t point) {
-        return geometry::calculateDistanceOfPointToLine(start, end, point) <= static_cast<float>(width) / 2.f;
+        return geometry::calculateDistanceOfPointToLine(start, end, point) <= width / 2.f;
     }
 
     unsigned int LineElement::getVertexCount() {
@@ -340,9 +347,9 @@ namespace bricksim::overlay2d {
 
     bool TriangleElement::isPointInside(coord_t point) {
         //https://stackoverflow.com/a/2049593/8733066
-        int d1 = ((int)point.x - p1.x) * ((int)p0.y - p1.y) - ((int)p0.x - p1.x) * ((int)point.y - p1.y);
-        int d2 = ((int)point.x - p2.x) * ((int)p1.y - p2.y) - ((int)p1.x - p2.x) * ((int)point.y - p2.y);
-        int d3 = ((int)point.x - p0.x) * ((int)p2.y - p0.y) - ((int)p2.x - p0.x) * ((int)point.y - p0.y);
+        const auto d1 = (point.x - p1.x) * (p0.y - p1.y) - (p0.x - p1.x) * (point.y - p1.y);
+        const auto d2 = (point.x - p2.x) * (p1.y - p2.y) - (p1.x - p2.x) * (point.y - p2.y);
+        const auto d3 = (point.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (point.y - p0.y);
 
         return (d1 >= 0 && d2 >= 0 && d3 >= 0) || (d1 <= 0 && d2 <= 0 && d3 <= 0);
     }
@@ -394,7 +401,7 @@ namespace bricksim::overlay2d {
         center(center), sideLength(sideLength), color(color) {}
 
     bool SquareElement::isPointInside(coord_t point) {
-        return std::abs((int)point.x - center.x) < sideLength / 2 && std::abs((int)point.y - center.y) < sideLength / 2;
+        return std::abs(point.x - center.x) < sideLength / 2.f && std::abs(point.y - center.y) < sideLength / 2.f;
     }
 
     unsigned int SquareElement::getVertexCount() {
@@ -438,9 +445,7 @@ namespace bricksim::overlay2d {
     bool RegularPolygonElement::isPointInside(coord_t point) {
         //todo this is for a circle so it's wrong for points near the middle between two corners for polygons with low edge count
         // calculate the distance from center to outline for the angle between center and point
-        const auto dx = (int)point.x - center.x;
-        const auto dy = (int)point.y - center.y;
-        return std::sqrt(dx * dx + dy * dy) < radius;
+        return glm::length2(point - center) < radius * radius;
     }
 
     unsigned int RegularPolygonElement::getVertexCount() {
@@ -623,11 +628,14 @@ namespace bricksim::overlay2d {
         for (int i = 0; i < points.size() - 1; ++i) {
             const auto& p1 = points[i];
             const auto& p2 = points[i + 1];
-            //todo this code verbositiy because of missing automatic type conversion is unacceptable
-            const glm::svec2 delta(p2.x - p1.x, p2.y - p1.y);
-            const auto factor = spaceBetweenDashes / std::sqrt(delta.x * delta.x + delta.y * delta.y) / 2.;
-            const glm::svec2 halfGap(delta.x * factor, delta.y * factor);
-            nextVertexLocation = generateVerticesForLine(nextVertexLocation, {p1.x + halfGap.x, p1.y + halfGap.y}, {p2.y - halfGap.y, p2.y - halfGap.y}, width, color, viewportSize);
+            const glm::vec2 delta = p2 - p1;
+            const glm::vec2 halfGap(delta * (spaceBetweenDashes / glm::length(delta) / 2.f));
+            if (i == 0) {
+                //spdlog::debug("|delta|={}, |halfGap|={}", glm::length(delta), glm::length(halfGap));
+            }
+            const coord_t lineStart = p1 + halfGap;
+            const coord_t lineEnd = p2 - halfGap;
+            nextVertexLocation = generateVerticesForLine(nextVertexLocation, lineStart, lineEnd, width, color, viewportSize);
         }
         return nextVertexLocation;
     }

@@ -10,9 +10,9 @@
 #include <vector>
 
 namespace bricksim::overlay2d {
-    typedef glm::usvec2 coord_t;
+    typedef glm::vec2 coord_t;
 
-    typedef short length_t;
+    typedef float length_t;
 
     class Vertex {
     public:
@@ -245,7 +245,8 @@ namespace bricksim::overlay2d {
         constexpr unsigned int getVertexCountForQuad();
 
         constexpr glm::vec2 toNDC(coord_t coord, coord_t viewportSize);
-        constexpr glm::vec2 toNDC(glm::vec2 coord, coord_t viewportSize);
+        constexpr bool isNDConScreen(glm::vec2 ndc);
+
         template<class T>
         constexpr glm::vec2 toNDC(T coord, coord_t viewportSize) = delete;//disable automatic conversion
     }

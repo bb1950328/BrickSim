@@ -3,6 +3,7 @@
 #include "db.h"
 #include "helpers/color.h"
 #include "helpers/util.h"
+#include "snapping/snap_const.h"
 #include <cstring>
 #include <functional>
 #include <map>
@@ -182,4 +183,8 @@ namespace bricksim::config {
     const Key<bool> ENABLE_TEXMAP_SUPPORT("enableTexmapSupport", true);
     const Key<bool> DISPLAY_CONNECTOR_DATA_IN_3D_VIEW("displayConnectorDataIn3DView", false);
     const Key<std::string> NEW_FILE_LOCATION("newFileLocation", "~");
+    const Key<int> LINEAR_SNAP_STEP_XZ("linearSnapStepXZ", 20);
+    const Key<int> LINEAR_SNAP_STEP_Y("linearSnapStepY", 20);
+    const Key<std::string> LINEAR_SNAP_PRESETS("linearSnapPresets", snap::DEFAULT_LINEAR_SNAP_DISTANCE_PRESETS);
+    const Key<bool> SNAP_ENABLED("snapEnabled", true);
 }

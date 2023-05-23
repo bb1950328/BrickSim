@@ -37,6 +37,7 @@ namespace bricksim::controller {
         std::shared_ptr<graphics::ThumbnailGenerator> thumbnailGenerator;
         std::list<std::shared_ptr<Editor>> editors;
         std::shared_ptr<Editor> activeEditor = nullptr;
+        snap::Handler snapHandler;
 
         unsigned int windowWidth;
         unsigned int windowHeight;
@@ -275,7 +276,7 @@ namespace bricksim::controller {
                 }
             }
 
-            std::array<Task, 8> initSteps{{
+            std::array<Task, 9> initSteps{{
                     {"load color definitions", ldr::color_repo::initialize},
                     {"initialize shadow file repo", ldr::file_repo::initializeShadowFileRepo},
                     {"initialize file list", [](float* progress) { ldr::file_repo::get().initialize(progress); spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().string()); }},
@@ -284,6 +285,7 @@ namespace bricksim::controller {
                     {"initialize BrickLink constants", info_providers::bricklink_constants::initialize},
                     {"initialize keyboard shortcuts", keyboard_shortcut_manager::initialize},
                     {"initialize orientation cube generator", graphics::orientation_cube::initialize},
+                    {"initialize snap handler", []() { snapHandler.init(); }},
             }};
 
             const auto drawWaitMessageInFrame = [](const std::string& message, float progress) {
@@ -334,6 +336,7 @@ namespace bricksim::controller {
             }
             spdlog::info("all background tasks finished, exiting now");
             gui::cleanup();
+            snapHandler.cleanup();
             graphics::orientation_cube::cleanup();
             graphics::connection_visualization::cleanupIfNeeded();
             graphics::Texture::deleteCached();
@@ -598,6 +601,9 @@ namespace bricksim::controller {
     }
     std::shared_ptr<efsw::FileWatcher> getFileWatcher() {
         return fileWatcher;
+    }
+    snap::Handler& getSnapHandler() {
+        return snapHandler;
     }
 
 #ifdef BRICKSIM_USE_RENDERDOC

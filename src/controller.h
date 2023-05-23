@@ -4,11 +4,12 @@
 #include "element_tree.h"
 #include "graphics/thumbnail_generator.h"
 #include "ldr/files.h"
-#include <efsw/efsw.hpp>
+#include "snapping/snap_handler.h"
 #include "tasks.h"
 #include "transform_gizmo.h"
 #include "types.h"
 #include <GLFW/glfw3.h>
+#include <efsw/efsw.hpp>
 #include <functional>
 #include <memory>
 #include <queue>
@@ -53,6 +54,7 @@ namespace bricksim::controller {
 
     std::list<std::shared_ptr<Editor>>& getEditors();
     std::shared_ptr<Editor>& getActiveEditor();
+    snap::Handler& getSnapHandler();
 
     void executeOpenGL(std::function<void()> const& functor);
 

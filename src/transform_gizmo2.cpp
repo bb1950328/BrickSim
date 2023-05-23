@@ -1,5 +1,6 @@
 #include "transform_gizmo2.h"
 #include "config.h"
+#include "controller.h"
 #include "editor.h"
 #include "glm/gtx/string_cast.hpp"
 #include "spdlog/spdlog.h"
@@ -17,13 +18,15 @@ namespace bricksim::transform_gizmo {
         }
     }
     void TransformGizmo2::update() {
+        const auto& linearSnapPreset = controller::getSnapHandler().getLinear().getCurrentPreset();
         glm::vec3 pos = {0, 0, 0};
         constexpr std::array<glm::vec3, 3> axes = {glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 1.f)};
         for (int a = 0; a < 3; ++a) {
             std::vector<o2d::coord_t> linePoints;
+            const auto step = a == 1 ? linearSnapPreset.stepY : linearSnapPreset.stepXZ;
             for (int i = -10; i < 11; ++i) {
-                const glm::vec3 worldCoord = pos + axes[a] * static_cast<float>(i);
-                const glm::vec3 screenCoord = scene->worldToScreenCoordinates(worldCoord);
+                const glm::vec3 worldCoord = pos + axes[a] * static_cast<float>(i * step);
+                const glm::vec3 screenCoord = scene->worldToScreenCoordinates(glm::vec4(worldCoord, 1.f) * constants::LDU_TO_OPENGL);
                 if (-1 <= screenCoord.z && screenCoord.z <= 1) {
                     linePoints.emplace_back(screenCoord);
                 }

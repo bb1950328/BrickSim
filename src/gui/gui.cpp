@@ -334,13 +334,13 @@ namespace bricksim::gui {
             }
             auto& editors = controller::getEditors();
             if (editors.size() == 1) {
-                if(ImGui::BeginMenu("Document")) {
+                if (ImGui::BeginMenu("Document")) {
                     drawDocumentMenu(*editors.begin());
                     ImGui::EndMenu();
                 }
             } else {
                 if (ImGui::BeginMenu("Documents")) {
-                    for (const auto & editor: editors) {
+                    for (const auto& editor: editors) {
                         if (ImGui::BeginMenu(editor->getFilename().c_str())) {
                             drawDocumentMenu(editor);
                             ImGui::EndMenu();
@@ -370,6 +370,39 @@ namespace bricksim::gui {
                 ImGui::Separator();
                 if (ImGui::MenuItem("Apply default window layout")) {
                     applyDefaultWindowLayout();
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Snap")) {
+                auto& handler = controller::getSnapHandler();
+                ImGui::MenuItem("Enabled", nullptr, handler.isEnabledPtr());
+                if (ImGui::BeginMenu(ICON_FA_RULER_COMBINED " Linear snap steps")) {
+                    auto& linearHandler = handler.getLinear();
+                    const auto& presets = linearHandler.getPresets();
+                    for (int i = 0; i < presets.size(); ++i) {
+                        const auto txt = fmt::format("{} XZ={} Y={}", presets[i].name, presets[i].stepXZ, presets[i].stepY);
+                        if (ImGui::MenuItem(txt.c_str(), nullptr, linearHandler.getCurrentPresetIndex() == i)) {
+                            linearHandler.setCurrentPresetIndex(i);
+                        }
+                    }
+                    const auto txt = fmt::format("Custom XZ={} Y={}", linearHandler.getTemporaryPreset().stepXZ, linearHandler.getTemporaryPreset().stepY);
+                    if (ImGui::MenuItem(txt.c_str(), nullptr, linearHandler.getCurrentPresetIndex() == snap::LinearHandler::TEMPORARY_PRESET_INDEX)) {
+                        linearHandler.setCurrentPresetIndex(snap::LinearHandler::TEMPORARY_PRESET_INDEX);
+                    }
+                    if (ImGui::BeginMenu(ICON_FA_PENCIL " Edit Custom")) {
+                        static int xz;
+                        static int y;
+                        auto& tmpPreset = linearHandler.getTemporaryPreset();
+                        xz = tmpPreset.stepXZ;
+                        y = tmpPreset.stepY;
+                        if (ImGui::InputInt("XZ", &xz, 1, 20) | ImGui::InputInt("Y", &y, 1, 20)) {
+                            linearHandler.setTemporaryPreset({"",
+                                                              std::clamp(xz, 1, 20000),
+                                                              std::clamp(y, 1, 20000)});
+                        }
+                        ImGui::EndMenu();
+                    }
+                    ImGui::EndMenu();
                 }
                 ImGui::EndMenu();
             }
@@ -515,7 +548,7 @@ namespace bricksim::gui {
         if (ImGui::MenuItem(ICON_FA_COPY " Save copy as")) {
             showSaveCopyAsDialog(editor);
         }
-        if (ImGui::MenuItem(ICON_FA_CAMERA" Save screenshot")) {
+        if (ImGui::MenuItem(ICON_FA_CAMERA " Save screenshot")) {
             showScreenshotDialog(editor);
         }
     }
@@ -540,7 +573,7 @@ namespace bricksim::gui {
                 ImGui::RenderPlatformWindowsDefault();
             }
             controller::executeOpenGL([]() {
-              ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
             });
         }
     }

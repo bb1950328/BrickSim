@@ -276,7 +276,7 @@ namespace bricksim::controller {
                 }
             }
 
-            std::array<Task, 9> initSteps{{
+            std::array<Task, 10> initSteps{{
                     {"load color definitions", ldr::color_repo::initialize},
                     {"initialize shadow file repo", ldr::file_repo::initializeShadowFileRepo},
                     {"initialize file list", [](float* progress) { ldr::file_repo::get().initialize(progress); spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().string()); }},
@@ -286,6 +286,7 @@ namespace bricksim::controller {
                     {"initialize keyboard shortcuts", keyboard_shortcut_manager::initialize},
                     {"initialize orientation cube generator", graphics::orientation_cube::initialize},
                     {"initialize snap handler", []() { snapHandler.init(); }},
+                    {"initialize user actions", []() { user_actions::init(); }},
             }};
 
             const auto drawWaitMessageInFrame = [](const std::string& message, float progress) {

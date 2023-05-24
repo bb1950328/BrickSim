@@ -186,4 +186,8 @@ namespace bricksim::user_actions {
     const char* getName(const Action& action) {
         return names[action];
     }
+    void init() {
+        ALL_ACTIONS.reserve(getCount());
+        magic_enum::enum_for_each<Action>([](const auto& a) { ALL_ACTIONS.push_back(a); });
+    }
 }

@@ -55,6 +55,7 @@ namespace bricksim::user_actions {
     bool isInFilter(Action action, const std::string& filter);
     const std::vector<Action>& findActionsByName(const std::string& name);
     const char* getName(const Action& action);
+    void init();
 }
 
 #pragma clang diagnostic pop

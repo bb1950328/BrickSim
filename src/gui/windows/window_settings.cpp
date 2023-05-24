@@ -206,7 +206,7 @@ namespace bricksim::gui::windows::settings {
             bool shouldOpenSelectKeyModal = false;
             static bool isWaitingOnKeyCatch = false;
             if (ImGui::BeginTabItem(ICON_FA_KEYBOARD " Shortcuts")) {
-                if (ImGui::BeginTable("##key_shortucts", 3)) {
+                if (ImGui::BeginTable("##key_shortucts", 3, ImGuiTableFlags_Borders)) {
                     auto shortcut = allShortcuts.begin();
                     while (shortcut != allShortcuts.end()) {
                         ImGui::TableNextRow();
@@ -239,7 +239,8 @@ namespace bricksim::gui::windows::settings {
             if (shouldOpenSelectActionModal) {
                 ImGui::OpenPopup("Select action");
             }
-            if (ImGui::BeginPopupModal("Select action", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            bool popupOpen = true;
+            if (ImGui::BeginPopupModal("Select action", &popupOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
                 constexpr int searchBufSize = 32;
                 static char searchBuf[searchBufSize];
                 static user_actions::Action currentlySelectedAction = user_actions::DO_NOTHING;
@@ -251,7 +252,9 @@ namespace bricksim::gui::windows::settings {
                     for (const auto& action: user_actions::findActionsByName(searchBuf)) {
                         const bool is_selected = (action == currentlySelectedAction);
                         if (ImGui::Selectable(user_actions::getName(action), is_selected)) {
-                            currentlySelectedAction = action;
+                            currentlyEditingShortcut.value().get().action = action;
+                            currentlyEditingShortcut = {};
+                            ImGui::CloseCurrentPopup();
                         }
 
                         if (is_selected) {
@@ -260,17 +263,9 @@ namespace bricksim::gui::windows::settings {
                     }
                     ImGui::EndListBox();
                 }
-                if (ImGui::Button(ICON_FA_CHECK " OK##actionChooser")) {
-                    currentlyEditingShortcut.value().get().action = currentlySelectedAction;
-                    currentlyEditingShortcut = {};
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(ICON_FA_RECTANGLE_XMARK " Cancel##actionChooser")) {
-                    currentlyEditingShortcut = {};
-                    ImGui::CloseCurrentPopup();
-                }
                 ImGui::EndPopup();
+            } else {
+                currentlyEditingShortcut = {};
             }
             if (shouldOpenSelectKeyModal) {
                 keyboard_shortcut_manager::setCatchNextShortcut(true);
@@ -282,6 +277,7 @@ namespace bricksim::gui::windows::settings {
                 if (caught.has_value()) {
                     ImGui::Text("Currently selected: %s", caught->getDisplayName().c_str());
                 } else {
+                    //todo crash here
                     ImGui::Text("Currently selected: %s", currentlyEditingShortcut.value().get().getDisplayName().c_str());
                 }
 

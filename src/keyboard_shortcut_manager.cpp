@@ -124,13 +124,19 @@ namespace bricksim::keyboard_shortcut_manager {
         }
         if (!isCapturedByGui) {
             for (const auto& shortcut: shortcuts) {
-                if (shortcut.key == key && shortcut.event == event && (shortcut.modifiers & modifiers) == shortcut.modifiers) {
-                    spdlog::debug("event {} matched shortcut, executing action", shortcut.getDisplayName());
-                    user_actions::execute(shortcut.action);
+                if (shortcut.key == key
+                    && (shortcut.event == event || shortcut.event == Event::ON_REPEAT && event == Event::ON_PRESS)
+                    && (shortcut.modifiers & modifiers) == shortcut.modifiers) {
+                    spdlog::debug("event {} {} matched shortcut, executing action", magic_enum::enum_name(event), shortcut.getDisplayName());
+                    try {
+                        user_actions::execute(shortcut.action);
+                    } catch (const std::invalid_argument& ex) {
+                        spdlog::warn("could not execute action because {}", ex.what());
+                    }
                     return;
                 }
             }
-            spdlog::debug("event {} did not match any shortcut (key={}, modifiers={:b})", KeyboardShortcut(user_actions::Action::DO_NOTHING, key, modifiers, event).getDisplayName(), key, modifiers);
+            spdlog::debug("event {} {} did not match any shortcut (key={}, modifiers={:b})", magic_enum::enum_name(event), KeyboardShortcut(user_actions::Action::DO_NOTHING, key, modifiers, event).getDisplayName(), key, modifiers);
         }
     }
 

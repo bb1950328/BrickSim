@@ -4,10 +4,10 @@
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../../user_actions.h"
 #include "../gui.h"
-#include <glm/glm.hpp>
 #include <vector>
 
 #include "window_settings.h"
+#include <spdlog/fmt/fmt.h>
 
 namespace bricksim::gui::windows::settings {
     namespace {
@@ -206,12 +206,19 @@ namespace bricksim::gui::windows::settings {
             bool shouldOpenSelectKeyModal = false;
             static bool isWaitingOnKeyCatch = false;
             if (ImGui::BeginTabItem(ICON_FA_KEYBOARD " Shortcuts")) {
-                if (ImGui::BeginTable("##key_shortucts", 3, ImGuiTableFlags_Borders)) {
+                if (ImGui::BeginTable("##key_shortucts", 4, ImGuiTableFlags_Borders)) {
+                    ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthStretch);
+                    ImGui::TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch);
+                    ImGui::TableSetupColumn("Event", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableHeadersRow();
+
                     auto shortcut = allShortcuts.begin();
                     while (shortcut != allShortcuts.end()) {
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
                         const char* actionName = user_actions::getName(shortcut->action);
+                        std::string idString = fmt::format("##{}{}", shortcut->getDisplayName(), actionName);
                         if (ImGui::Button(actionName)) {
                             currentlyEditingShortcut = *shortcut;
                             shouldOpenSelectActionModal = true;
@@ -221,13 +228,33 @@ namespace bricksim::gui::windows::settings {
                             currentlyEditingShortcut = *shortcut;
                             shouldOpenSelectKeyModal = true;
                         }
+
                         ImGui::TableNextColumn();
-                        std::string btnName = ICON_FA_TRASH + std::string("##") + shortcut->getDisplayName() + actionName;
-                        if (ImGui::Button(btnName.c_str())) {
+                        const auto currentEventDisplayName = *(keyboard_shortcut_manager::EVENT_DISPLAY_NAMES.cbegin() + *magic_enum::enum_index(shortcut->event));
+                        ImGui::PushItemWidth(175.f * config::get(config::GUI_SCALE));
+                        const auto comboOpen = ImGui::BeginCombo(idString.c_str(), currentEventDisplayName, ImGuiComboFlags_None);
+
+                        if (comboOpen) {
+                            auto it = keyboard_shortcut_manager::EVENT_DISPLAY_NAMES.cbegin();
+                            for (const auto& event: magic_enum::enum_values<keyboard_shortcut_manager::Event>()) {
+                                if (ImGui::Selectable(*it, shortcut->event == event)) {
+                                    shortcut->event = event;
+                                }
+                                ++it;
+                            }
+                            ImGui::EndCombo();
+                        }
+                        ImGui::PopItemWidth();
+
+                        ImGui::TableNextColumn();
+                        std::string btnName = ICON_FA_TRASH_CAN + idString;
+                        ImGui::PushStyleColor(ImGuiCol_Text, 0xff0000ff);
+                        if (ImGui::Selectable(btnName.c_str())) {
                             allShortcuts.erase(shortcut);
                         } else {
                             ++shortcut;
                         }
+                        ImGui::PopStyleColor();
                     }
                     ImGui::EndTable();
                 }
@@ -264,8 +291,6 @@ namespace bricksim::gui::windows::settings {
                     ImGui::EndListBox();
                 }
                 ImGui::EndPopup();
-            } else {
-                currentlyEditingShortcut = {};
             }
             if (shouldOpenSelectKeyModal) {
                 keyboard_shortcut_manager::setCatchNextShortcut(true);

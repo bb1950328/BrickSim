@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gui/windows/windows.h"
 #include "magic_enum.hpp"
 #include <array>
 #include <optional>
@@ -27,9 +28,10 @@ namespace bricksim::keyboard_shortcut_manager {
         key_t key;
         modifier_t modifiers;
         Event event;
+        std::optional<gui::windows::Id> windowScope;
         [[nodiscard]] std::string getDisplayName() const;
         KeyboardShortcut();
-        KeyboardShortcut(user_actions::Action action, int key, modifier_t modifiers, Event event);
+        KeyboardShortcut(user_actions::Action action, int key, modifier_t modifiers, Event event, std::optional<gui::windows::Id> windowScope = std::nullopt);
         KeyboardShortcut(const KeyboardShortcut& other) = default;
         KeyboardShortcut(KeyboardShortcut&& other) = default;
         KeyboardShortcut& operator=(const KeyboardShortcut& other) = default;

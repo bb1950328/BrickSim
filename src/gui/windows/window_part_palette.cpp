@@ -11,6 +11,7 @@
 namespace bricksim::gui::windows::part_palette {
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
+            collectWindowInfo(data.id);
             static char searchTextBuffer[128] = {'\0'};
             ImGui::InputText(ICON_FA_MAGNIFYING_GLASS "##search", searchTextBuffer, 128);
             ImGui::SameLine();

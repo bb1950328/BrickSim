@@ -36,6 +36,9 @@ namespace bricksim::gui {
 
         ImGuiID dockspaceId = 0;
 
+        std::optional<windows::Id> currentlyFocusedWindow;
+        std::optional<windows::Id> lastFocusedWindow;
+
         void setupFont(float scaleFactor, ImGuiIO& io) {
             auto fontName = config::get(config::FONT);
             const unsigned char* fontData;
@@ -304,6 +307,8 @@ namespace bricksim::gui {
 
     void drawMainWindows() {
         plFunction();
+        lastFocusedWindow = currentlyFocusedWindow;
+        currentlyFocusedWindow = {};
         if (ImGui::BeginMainMenuBar()) {
             //todo class MenuBarHandler, function for each menu
             if (ImGui::BeginMenu("File")) {
@@ -765,5 +770,13 @@ namespace bricksim::gui {
     }
     const std::shared_ptr<graphics::Texture>& getLogoTexture() {
         return logoTexture;
+    }
+    void collectWindowInfo(windows::Id id) {
+        if (ImGui::IsWindowFocused(ImGuiHoveredFlags_ChildWindows)) {
+            currentlyFocusedWindow = id;
+        }
+    }
+    std::optional<windows::Id> getCurrentlyFocusedWindow() {
+        return currentlyFocusedWindow.has_value() ? currentlyFocusedWindow : lastFocusedWindow;
     }
 }

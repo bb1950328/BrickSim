@@ -1,5 +1,6 @@
 #include "keyboard_shortcut_manager.h"
 #include "db.h"
+#include "gui/gui.h"
 #include "helpers/stringutil.h"
 #include "helpers/util.h"
 #include "user_actions.h"
@@ -126,7 +127,8 @@ namespace bricksim::keyboard_shortcut_manager {
             for (const auto& shortcut: shortcuts) {
                 if (shortcut.key == key
                     && (shortcut.event == event || shortcut.event == Event::ON_REPEAT && event == Event::ON_PRESS)
-                    && (shortcut.modifiers & modifiers) == shortcut.modifiers) {
+                    && (shortcut.modifiers & modifiers) == shortcut.modifiers
+                    && (!shortcut.windowScope.has_value() || shortcut.windowScope == gui::getCurrentlyFocusedWindow())) {
                     spdlog::debug("event {} {} matched shortcut, executing action", magic_enum::enum_name(event), shortcut.getDisplayName());
                     try {
                         user_actions::execute(shortcut.action);
@@ -205,8 +207,8 @@ namespace bricksim::keyboard_shortcut_manager {
         return displayName;
     }
 
-    KeyboardShortcut::KeyboardShortcut(user_actions::Action action, int key, modifier_t modifiers, Event event) :
-        action(action), key(key), modifiers(modifiers), event(event) {}
+    KeyboardShortcut::KeyboardShortcut(user_actions::Action action, int key, modifier_t modifiers, Event event, std::optional<gui::windows::Id> windowScope) :
+        action(action), key(key), modifiers(modifiers), event(event), windowScope(windowScope) {}
     KeyboardShortcut::KeyboardShortcut() :
         action(user_actions::Action::DO_NOTHING), key(0), modifiers(modifier_t(0)), event(Event::ON_PRESS) {}
 }

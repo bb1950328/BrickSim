@@ -206,10 +206,11 @@ namespace bricksim::gui::windows::settings {
             bool shouldOpenSelectKeyModal = false;
             static bool isWaitingOnKeyCatch = false;
             if (ImGui::BeginTabItem(ICON_FA_KEYBOARD " Shortcuts")) {
-                if (ImGui::BeginTable("##key_shortucts", 4, ImGuiTableFlags_Borders)) {
+                if (ImGui::BeginTable("##key_shortucts", 5, ImGuiTableFlags_Borders)) {
                     ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthStretch);
                     ImGui::TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch);
                     ImGui::TableSetupColumn("Event", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("Scope", ImGuiTableColumnFlags_WidthFixed);
                     ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
                     ImGui::TableHeadersRow();
 
@@ -232,15 +233,32 @@ namespace bricksim::gui::windows::settings {
                         ImGui::TableNextColumn();
                         const auto currentEventDisplayName = *(keyboard_shortcut_manager::EVENT_DISPLAY_NAMES.cbegin() + *magic_enum::enum_index(shortcut->event));
                         ImGui::PushItemWidth(175.f * config::get(config::GUI_SCALE));
-                        const auto comboOpen = ImGui::BeginCombo(idString.c_str(), currentEventDisplayName, ImGuiComboFlags_None);
 
-                        if (comboOpen) {
+                        if (ImGui::BeginCombo(idString.c_str(), currentEventDisplayName)) {
                             auto it = keyboard_shortcut_manager::EVENT_DISPLAY_NAMES.cbegin();
                             for (const auto& event: magic_enum::enum_values<keyboard_shortcut_manager::Event>()) {
                                 if (ImGui::Selectable(*it, shortcut->event == event)) {
                                     shortcut->event = event;
                                 }
                                 ++it;
+                            }
+                            ImGui::EndCombo();
+                        }
+                        ImGui::PopItemWidth();
+
+                        ImGui::TableNextColumn();
+                        ImGui::PushItemWidth(250.f * config::get(config::GUI_SCALE));
+                        const auto currentScopeDisplayName = shortcut->windowScope.has_value()
+                                                                     ? gui::windows::getName(*shortcut->windowScope)
+                                                                     : "All Windows";
+                        if (ImGui::BeginCombo((idString + "scope").c_str(), currentScopeDisplayName)) {
+                            if (ImGui::Selectable("All Windows", !shortcut->windowScope.has_value())) {
+                                shortcut->windowScope = std::nullopt;
+                            }
+                            for (const auto& id: magic_enum::enum_values<gui::windows::Id>()) {
+                                if (ImGui::Selectable(windows::getName(id), shortcut->windowScope == id)) {
+                                    shortcut->windowScope = id;
+                                }
                             }
                             ImGui::EndCombo();
                         }
@@ -332,6 +350,7 @@ namespace bricksim::gui::windows::settings {
 
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
+            collectWindowInfo(data.id);
             static bool firstTime = true;
             static float buttonLineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 5 + 1;
             if (firstTime) {

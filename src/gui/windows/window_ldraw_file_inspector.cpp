@@ -316,6 +316,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
+            collectWindowInfo(data.id);
             static std::array<bool, magic_enum::enum_count<ldr::FileType>()> showTypes;
 
             if (static bool first = true; first) {

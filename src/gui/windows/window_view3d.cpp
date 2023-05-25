@@ -23,6 +23,7 @@ namespace bricksim::gui::windows::view3d {
 
     void draw(Data& data) {
         ImGuiDockNode* lastDockNode = nullptr;
+        bool windowInfoCollected = false;
         for (auto& editor: controller::getEditors()) {
             const bool isActiveEditor = editor->isActive();
             const auto windowTitle = editor->getFilename();
@@ -43,6 +44,10 @@ namespace bricksim::gui::windows::view3d {
                 ImGui::PopStyleColor();
             }
             if (windowOpen) {
+                if (!windowInfoCollected) {
+                    collectWindowInfo(data.id);
+                    windowInfoCollected = true;
+                }
                 ImGui::BeginChild("3DRender");
                 const ImVec2& regionAvail = ImGui::GetContentRegionAvail();
                 const auto& scene = editor->getScene();

@@ -1,5 +1,6 @@
 #include "window_editor_meta_info.h"
 #include "../../editor.h"
+#include "../gui.h"
 #include "../gui_internal.h"
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
@@ -7,6 +8,7 @@
 namespace bricksim::gui::windows::editor_meta_info {
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible, ImGuiWindowFlags_None)) {
+            collectWindowInfo(data.id);
             static std::weak_ptr<Editor> selectedEditor;
             static std::weak_ptr<Editor> lastSelectedEditor;
             gui_internal::drawEditorSelectionCombo(selectedEditor, "Model");

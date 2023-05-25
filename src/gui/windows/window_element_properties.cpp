@@ -8,6 +8,7 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
+#include "../gui.h"
 #include "window_element_properties.h"
 #include "window_ldraw_file_inspector.h"
 
@@ -389,6 +390,7 @@ namespace bricksim::gui::windows::element_properties {
     void draw(Data& data) {
         static std::shared_ptr<etree::Node> lastSelectedNode = nullptr;
         if (ImGui::Begin(data.name, &data.visible)) {
+            collectWindowInfo(data.id);
             const auto& activeEditor = controller::getActiveEditor();
             if (activeEditor == nullptr || activeEditor->getSelectedNodes().empty()) {
                 ImGui::Text("Select an element to view its properties here");

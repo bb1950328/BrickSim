@@ -25,6 +25,7 @@ namespace bricksim::gui::windows::about {
 
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible, ImGuiWindowFlags_None)) {
+            collectWindowInfo(data.id);
             if (ImGui::BeginTabBar("##aboutTabBar", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
                 if (ImGui::BeginTabItem("About BrickSim")) {
                     ImGui::TextWrapped("BrickSim is a program which should help you building and analyzing digital brick models.");

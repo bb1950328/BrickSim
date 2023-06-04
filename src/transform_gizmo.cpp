@@ -1,4 +1,4 @@
-#include "transform_gizmo2.h"
+#include "transform_gizmo.h"
 #include "config.h"
 #include "controller.h"
 #include "editor.h"
@@ -10,15 +10,15 @@
 
 namespace bricksim::transform_gizmo {
 
-    TransformGizmo2::TransformGizmo2(Editor& editor) :
+    TransformGizmo::TransformGizmo(Editor& editor) :
         editor(editor), scene(editor.getScene()) {
     }
-    void TransformGizmo2::update() {
+    void TransformGizmo::update() {
         if (isActive()) {
             updateAxisLines();
         }
     }
-    void TransformGizmo2::updateAxisLines() {
+    void TransformGizmo::updateAxisLines() {
         const auto& linearSnapPreset = controller::getSnapHandler().getLinear().getCurrentPreset();
         glm::vec3 pos = data->initialNodeCenter;
         constexpr std::array<glm::vec3, 3> axes = {
@@ -54,7 +54,7 @@ namespace bricksim::transform_gizmo {
             pos = axisEndPos;
         }
     }
-    void TransformGizmo2::start(const std::vector<std::shared_ptr<etree::Node>>& nodes) {
+    void TransformGizmo::start(const std::vector<std::shared_ptr<etree::Node>>& nodes) {
         addAxisLines();
         data = std::make_unique<TranslationData>();
 
@@ -72,7 +72,7 @@ namespace bricksim::transform_gizmo {
         data->initialNodeCenter = center / center.w;
         data->currentNodeCenter = data->initialNodeCenter;
     }
-    void TransformGizmo2::updateCursorPos(glm::svec2 currentCursorPos) {
+    void TransformGizmo::updateCursorPos(glm::svec2 currentCursorPos) {
         const auto worldRay = editor.getScene()->screenCoordinatesToWorldRay(currentCursorPos) * constants::OPENGL_TO_LDU;
         const auto lockedAxesCount = std::accumulate(data->lockedAxes.cbegin(), data->lockedAxes.cend(), 0);
         glm::vec3 projectedPoint;
@@ -118,11 +118,11 @@ namespace bricksim::transform_gizmo {
             ++transfIt;
         }
     }
-    void TransformGizmo2::end() {
+    void TransformGizmo::end() {
         removeAxisLines();
         data = nullptr;
     }
-    void TransformGizmo2::addAxisLines() {
+    void TransformGizmo::addAxisLines() {
         static auto lineWidth = static_cast<o2d::length_t>(8 * config::get(config::GUI_SCALE));
         auto it = axisLines.begin();
         for (const auto color: {color::RED, color::GREEN, color::BLUE}) {
@@ -133,7 +133,7 @@ namespace bricksim::transform_gizmo {
             ++it;
         }
     }
-    void TransformGizmo2::removeAxisLines() {
+    void TransformGizmo::removeAxisLines() {
         for (auto& axisLine: axisLines) {
             if (axisLine != nullptr) {
                 scene->getOverlayCollection().removeElement(axisLine);
@@ -141,25 +141,25 @@ namespace bricksim::transform_gizmo {
             }
         }
     }
-    bool TransformGizmo2::isActive() {
+    bool TransformGizmo::isActive() {
         return data != nullptr;
     }
-    void TransformGizmo2::toggleAxisLock(unsigned int axisIndex) {
+    void TransformGizmo::toggleAxisLock(unsigned int axisIndex) {
         if (isActive()) {
             data->lockedAxes[axisIndex] ^= true;
         }
     }
-    void TransformGizmo2::toggleAxisLock(bool x, bool y, bool z) {
+    void TransformGizmo::toggleAxisLock(bool x, bool y, bool z) {
         if (data->lockedAxes[0] == x && data->lockedAxes[1] == y && data->lockedAxes[2] == z) {
             data->lockedAxes = {false, false, false};
         } else {
             data->lockedAxes = {x, y, z};
         }
     }
-    bool TransformGizmo2::isCursorDataInitialized() const {
+    bool TransformGizmo::isCursorDataInitialized() const {
         return data->cursorDataInitialized;
     }
-    void TransformGizmo2::initCursorData(glm::svec2 initialCursorPos) {
+    void TransformGizmo::initCursorData(glm::svec2 initialCursorPos) {
         const auto worldRay = editor.getScene()->screenCoordinatesToWorldRay(initialCursorPos) * constants::OPENGL_TO_LDU;
         const auto npResult = geometry::normalProjectionOnLine(worldRay, data->initialNodeCenter);
         data->distanceToCamera = npResult.projectionLength;
@@ -168,7 +168,7 @@ namespace bricksim::transform_gizmo {
         data->currentPoint = data->startPoint;
         data->cursorDataInitialized = true;
     }
-    void TransformGizmo2::cancel() {
+    void TransformGizmo::cancel() {
         auto nodeIt = data->nodes.begin();
         auto transfIt = data->initialRelativeTransformations.begin();
         while (nodeIt != data->nodes.end()) {
@@ -180,5 +180,5 @@ namespace bricksim::transform_gizmo {
         }
         end();
     }
-    TransformGizmo2::~TransformGizmo2() = default;
+    TransformGizmo::~TransformGizmo() = default;
 }

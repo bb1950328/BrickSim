@@ -25,14 +25,14 @@ namespace bricksim::transform_gizmo {
         glm::svec2 initialCursorPos;
     };
 
-    class TransformGizmo2 {
+    class TransformGizmo {
     public:
-        explicit TransformGizmo2(Editor& editor);
-        TransformGizmo2(const TransformGizmo2&) = delete;
-        TransformGizmo2(TransformGizmo2&&) = delete;
-        TransformGizmo2& operator=(const TransformGizmo2&) = delete;
-        TransformGizmo2& operator=(TransformGizmo2&&) = delete;
-        virtual ~TransformGizmo2();
+        explicit TransformGizmo(Editor& editor);
+        TransformGizmo(const TransformGizmo&) = delete;
+        TransformGizmo(TransformGizmo&&) = delete;
+        TransformGizmo& operator=(const TransformGizmo&) = delete;
+        TransformGizmo& operator=(TransformGizmo&&) = delete;
+        virtual ~TransformGizmo();
 
         void update();
         void start(const std::vector<std::shared_ptr<etree::Node>>& nodes);

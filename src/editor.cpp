@@ -52,7 +52,7 @@ namespace bricksim {
         scene->setRootNode(rootNode);
         camera = std::make_shared<graphics::CadCamera>();
         scene->setCamera(camera);
-        transformGizmo = std::make_unique<transform_gizmo::TransformGizmo2>(*this);
+        transformGizmo = std::make_unique<transform_gizmo::TransformGizmo>(*this);
 
         if (filePath.has_value()) {
             efsw::WatchID watchId = controller::getFileWatcher()->addWatch(filePath->parent_path().string(), this);
@@ -121,7 +121,7 @@ namespace bricksim {
     std::shared_ptr<graphics::Scene>& Editor::getScene() {
         return scene;
     }
-    std::unique_ptr<transform_gizmo::TransformGizmo2>& Editor::getTransformGizmo() {
+    std::unique_ptr<transform_gizmo::TransformGizmo>& Editor::getTransformGizmo() {
         return transformGizmo;
     }
 

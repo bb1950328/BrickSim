@@ -246,7 +246,7 @@ namespace bricksim::user_actions {
                         START_TRANSFORMING_SELECTED_NODES,
                         ICON_FA_UP_DOWN_LEFT_RIGHT " Start transforming selected Elements",
                         EnableCondition::ALWAYS,
-                        []() { controller::getActiveEditor()->startTransformingSelectedNodes(); },//todo
+                        []() { controller::getActiveEditor()->startTransformingSelectedNodes(); },
                 },
                 {
                         TRANSFORMATION_LOCK_X,
@@ -289,6 +289,12 @@ namespace bricksim::user_actions {
                         ICON_FA_FORWARD_STEP " End transformation",
                         EnableCondition::TRANSFORM_IN_PROGRESS,
                         []() { controller::getActiveEditor()->endNodeTransformation(); },
+                },
+                {
+                        CANCEL_TRANSFORMATION,
+                        ICON_FA_CLOCK_ROTATE_LEFT " Cancel transformation",
+                        EnableCondition::TRANSFORM_IN_PROGRESS,
+                        []() { controller::getActiveEditor()->cancelNodeTransformation(); },
                 },
         }};
     }

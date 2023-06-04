@@ -54,6 +54,7 @@ namespace bricksim::user_actions {
         TRANSFORMATION_LOCK_XZ,
         TRANSFORMATION_LOCK_YZ,
         END_TRANSFORMATION,
+        CANCEL_TRANSFORMATION,
     };
     enum class EnableCondition {
         ALWAYS,

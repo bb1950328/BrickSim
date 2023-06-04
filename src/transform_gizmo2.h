@@ -39,6 +39,7 @@ namespace bricksim::transform_gizmo {
         void initCursorData(glm::svec2 initialCursorPos);
         void updateCursorPos(glm::svec2 currentCursorPos);
         void end();
+        void cancel();
 
         bool isActive();
         [[nodiscard]] bool isCursorDataInitialized() const;

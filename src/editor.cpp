@@ -601,6 +601,11 @@ namespace bricksim {
             deleteModelInstances(modelToDelete, child);
         }
     }
+    void Editor::cancelNodeTransformation() {
+        if (transformGizmo->isActive()) {
+            transformGizmo->cancel();
+        }
+    }
 
     SelectionVisualizationNode::SelectionVisualizationNode(const std::shared_ptr<Node>& parent) :
         MeshNode(1, parent, nullptr) {

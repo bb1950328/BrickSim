@@ -21,7 +21,11 @@ namespace bricksim::transform_gizmo {
     void TransformGizmo2::updateAxisLines() {
         const auto& linearSnapPreset = controller::getSnapHandler().getLinear().getCurrentPreset();
         glm::vec3 pos = data->initialNodeCenter;
-        constexpr std::array<glm::vec3, 3> axes = {glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 1.f)};
+        constexpr std::array<glm::vec3, 3> axes = {
+                glm::vec3(1.f, 0.f, 0.f),
+                glm::vec3(0.f, 1.f, 0.f),
+                glm::vec3(0.f, 0.f, 1.f),
+        };
         for (int a = 0; a < 3; ++a) {
             glm::vec3 axisEndPos = pos;
             axisEndPos[a] = data->currentNodeCenter[a];
@@ -163,6 +167,18 @@ namespace bricksim::transform_gizmo {
         data->startPoint = npResult.nearestPointOnLine;
         data->currentPoint = data->startPoint;
         data->cursorDataInitialized = true;
+    }
+    void TransformGizmo2::cancel() {
+        auto nodeIt = data->nodes.begin();
+        auto transfIt = data->initialRelativeTransformations.begin();
+        while (nodeIt != data->nodes.end()) {
+            (*nodeIt)->setRelativeTransformation(glm::transpose(*transfIt));
+            (*nodeIt)->incrementVersion();
+
+            ++nodeIt;
+            ++transfIt;
+        }
+        end();
     }
     TransformGizmo2::~TransformGizmo2() = default;
 }

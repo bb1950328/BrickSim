@@ -63,6 +63,7 @@ namespace bricksim {
 
         void startTransformingSelectedNodes();
         void endNodeTransformation();
+        void cancelNodeTransformation();
         void updateCursorPos(const std::optional<glm::svec2>& value);
 
         void setStandard3dView(int i);//todo refactor this into enum

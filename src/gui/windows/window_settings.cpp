@@ -216,10 +216,11 @@ namespace bricksim::gui::windows::settings {
 
                     auto shortcut = allShortcuts.begin();
                     while (shortcut != allShortcuts.end()) {
+                        const auto* shortcutId = static_cast<void*>(shortcut.base());
+                        ImGui::PushID(shortcutId);
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
                         const char* actionName = user_actions::getName(shortcut->action);
-                        std::string idString = fmt::format("##{}{}", shortcut->getDisplayName(), actionName);
                         if (ImGui::Button(actionName)) {
                             currentlyEditingShortcut = *shortcut;
                             shouldOpenSelectActionModal = true;
@@ -234,7 +235,7 @@ namespace bricksim::gui::windows::settings {
                         const auto currentEventDisplayName = *(keyboard_shortcut_manager::EVENT_DISPLAY_NAMES.cbegin() + *magic_enum::enum_index(shortcut->event));
                         ImGui::PushItemWidth(175.f * config::get(config::GUI_SCALE));
 
-                        if (ImGui::BeginCombo(idString.c_str(), currentEventDisplayName)) {
+                        if (ImGui::BeginCombo("##eventCombo", currentEventDisplayName)) {
                             auto it = keyboard_shortcut_manager::EVENT_DISPLAY_NAMES.cbegin();
                             for (const auto& event: magic_enum::enum_values<keyboard_shortcut_manager::Event>()) {
                                 if (ImGui::Selectable(*it, shortcut->event == event)) {
@@ -251,7 +252,7 @@ namespace bricksim::gui::windows::settings {
                         const auto currentScopeDisplayName = shortcut->windowScope.has_value()
                                                                      ? gui::windows::getName(*shortcut->windowScope)
                                                                      : "All Windows";
-                        if (ImGui::BeginCombo((idString + "scope").c_str(), currentScopeDisplayName)) {
+                        if (ImGui::BeginCombo("##scopeCombo", currentScopeDisplayName)) {
                             if (ImGui::Selectable("All Windows", !shortcut->windowScope.has_value())) {
                                 shortcut->windowScope = std::nullopt;
                             }
@@ -265,7 +266,7 @@ namespace bricksim::gui::windows::settings {
                         ImGui::PopItemWidth();
 
                         ImGui::TableNextColumn();
-                        std::string btnName = ICON_FA_TRASH_CAN + idString;
+                        std::string btnName = ICON_FA_TRASH_CAN;
                         ImGui::PushStyleColor(ImGuiCol_Text, 0xff0000ff);
                         if (ImGui::Selectable(btnName.c_str())) {
                             allShortcuts.erase(shortcut);
@@ -273,11 +274,18 @@ namespace bricksim::gui::windows::settings {
                             ++shortcut;
                         }
                         ImGui::PopStyleColor();
+
+                        ImGui::PopID();
                     }
                     ImGui::EndTable();
                 }
                 if (ImGui::Button(ICON_FA_PLUS " Add new")) {
                     allShortcuts.emplace_back(user_actions::DO_NOTHING, 0, keyboard_shortcut_manager::modifier_t(0), keyboard_shortcut_manager::Event::ON_PRESS);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(ICON_FA_ARROW_ROTATE_LEFT " Reset all to default")) {
+                    keyboard_shortcut_manager::resetToDefault();
+                    allShortcuts = keyboard_shortcut_manager::getAllShortcuts();
                 }
                 ImGui::EndTabItem();
             }
@@ -379,6 +387,7 @@ namespace bricksim::gui::windows::settings {
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_RETWEET " Restore Defaults")) {
                 config::resetAllToDefault();
+                keyboard_shortcut_manager::resetToDefault();
                 load();
             }
         }

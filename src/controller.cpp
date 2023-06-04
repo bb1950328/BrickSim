@@ -378,6 +378,9 @@ namespace bricksim::controller {
         }
 
         void glfwErrorCallback(int code, const char* message) {
+            if (std::strstr(message, "Invalid scancode -1") != nullptr) {
+                return;
+            }
             spdlog::error("GLFW Error: {} {}", code, message);
         }
     }

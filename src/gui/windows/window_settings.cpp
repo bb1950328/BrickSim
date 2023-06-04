@@ -216,7 +216,7 @@ namespace bricksim::gui::windows::settings {
 
                     auto shortcut = allShortcuts.begin();
                     while (shortcut != allShortcuts.end()) {
-                        const auto* shortcutId = static_cast<void*>(shortcut.base());
+                        const auto* shortcutId = static_cast<void*>(&*shortcut);
                         ImGui::PushID(shortcutId);
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();

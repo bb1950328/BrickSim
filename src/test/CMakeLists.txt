@@ -1,4 +1,5 @@
 target_sources(BrickSimTests PRIVATE
+        test_user_actions.cpp
         testing_tools.h
         )
 

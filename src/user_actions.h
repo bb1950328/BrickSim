@@ -46,6 +46,28 @@ namespace bricksim::user_actions {
         TOGGLE_TRANSFORM_GIZMO_ROTATION,
         SELECT_CONNECTED,
         INLINE_SELECTED_ELEMENTS,
+        START_TRANSFORMING_SELECTED_NODES,
+        TRANSFORMATION_LOCK_X,
+        TRANSFORMATION_LOCK_Y,
+        TRANSFORMATION_LOCK_Z,
+        TRANSFORMATION_LOCK_XY,
+        TRANSFORMATION_LOCK_XZ,
+        TRANSFORMATION_LOCK_YZ,
+        END_TRANSFORMATION,
+    };
+    enum class EnableCondition {
+        ALWAYS,
+        HAS_ACTIVE_EDITOR,
+        TRANSFORM_IN_PROGRESS,
+        HAS_SELECTED_NODES,
+    };
+
+    struct ActionData {
+        Action action;
+        const char* name;
+        EnableCondition enableCondition;
+        std::function<void()> function;
+        ActionData(Action action, const char* name, EnableCondition enableCondition, const std::function<void()>& function);
     };
 
     constexpr size_t getCount();
@@ -55,6 +77,7 @@ namespace bricksim::user_actions {
     bool isInFilter(Action action, const std::string& filter);
     const std::vector<Action>& findActionsByName(const std::string& name);
     const char* getName(const Action& action);
+    const ActionData& getData(const Action& action);
     void init();
 }
 

@@ -97,6 +97,8 @@ namespace bricksim::gui::windows::view3d {
                     const bool currentlyAnyMouseDown = currentLeftMouseDown || currentMiddleMouseDown || currentRightMouseDown;
                     static bool lastAnyMouseDown = currentlyAnyMouseDown;
 
+                    editor->updateCursorPos(currentCursorPos);
+
                     if (currentlyAnyMouseDown && dragMode == NOT_DRAGGING && (deltaCursorPos.x != 0 || deltaCursorPos.y != 0)) {
                         //drag just started
                         //todo handle multiple buttons pressed
@@ -107,9 +109,9 @@ namespace bricksim::gui::windows::view3d {
                             dragMode = ROTATE_CAMERA;
                         } else {
                             std::shared_ptr<etree::Node> nodeUnderCursor = getNodeUnderCursor(scene, relCursorPos);
-                            if (nodeUnderCursor && editor->isNodeDraggable(nodeUnderCursor)) {
+                            if (nodeUnderCursor && editor->getSelectedNodes().contains(nodeUnderCursor)) {
                                 dragMode = DRAG_ELEMENT;
-                                editor->startNodeDrag(nodeUnderCursor, relCursorPos);
+                                editor->startTransformingSelectedNodes();
                             } else {
                                 dragMode = ROTATE_CAMERA;
                             }
@@ -157,7 +159,6 @@ namespace bricksim::gui::windows::view3d {
                             camera->mousePan(deltaCursorPos);
                             break;
                         case DRAG_ELEMENT:
-                            editor->updateNodeDragDelta(totalDragDelta);
                             break;
                     }
 
@@ -171,6 +172,8 @@ namespace bricksim::gui::windows::view3d {
                     lastRightMouseDown = currentRightMouseDown;
                     lastCursorPos = currentCursorPos;
                     lastAnyMouseDown = currentlyAnyMouseDown;
+                } else {
+                    editor->updateCursorPos(std::nullopt);
                 }
                 scene->setImageSize({regionAvail.x, regionAvail.y});
                 ImTextureID texture3dView;

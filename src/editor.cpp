@@ -378,55 +378,51 @@ namespace bricksim {
     }
 
     void Editor::nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed) {
-        if (transformGizmo->ownsNode(clickedNode)) {
-            //todo transformGizmo->nodeClicked
+        if (ctrlPressed) {
+            nodeSelectAddRemove(clickedNode);
+        } else if (shiftPressed) {
+            nodeSelectUntil(clickedNode);
         } else {
-            if (ctrlPressed) {
-                nodeSelectAddRemove(clickedNode);
-            } else if (shiftPressed) {
-                nodeSelectUntil(clickedNode);
-            } else {
-                nodeSelectSet(clickedNode);
-            }
+            nodeSelectSet(clickedNode);
         }
     }
 
     bool Editor::isNodeClickable(const std::shared_ptr<etree::Node>& node) {
-        return !transformGizmo->ownsNode(node);
-    }
-
-    bool Editor::isNodeDraggable(const std::shared_ptr<etree::Node>& node) {
-        return transformGizmo->ownsNode(node);
+        return true;
     }
 
     void Editor::startNodeDrag(std::shared_ptr<etree::Node>& draggedNode, const glm::svec2& initialCursorPos) {
-        if (transformGizmo->ownsNode(draggedNode)) {
-            transformGizmo->startDrag(draggedNode, initialCursorPos);
-            currentlyDraggingNodeType = DraggingNodeType::TRANSFORM_GIZMO;
-        }
-    }
-
-    void Editor::updateNodeDragDelta(glm::usvec2 delta) {
-        switch (currentlyDraggingNodeType) {
-            case DraggingNodeType::TRANSFORM_GIZMO:
-                transformGizmo->updateCurrentDragDelta(delta);
-                break;
-            case DraggingNodeType::NONE:
-            default:
-                break;
-        }
+        //todo inline this function
+        startTransformingSelectedNodes();
     }
 
     void Editor::endNodeDrag() {
-        switch (currentlyDraggingNodeType) {
-            case DraggingNodeType::TRANSFORM_GIZMO:
-                transformGizmo->endDrag();
-                break;
-            case DraggingNodeType::NONE:
-            default:
-                break;
+        if (transformGizmo->isActive()) {
+            transformGizmo->endDrag();
         }
     }
+    void Editor::startTransformingSelectedNodes() {
+        std::vector<std::shared_ptr<etree::Node>> selectedNodesVec;
+        selectedNodesVec.reserve(selectedNodes.size());
+        std::transform(selectedNodes.cbegin(), selectedNodes.cend(),
+                       std::back_inserter(selectedNodesVec),
+                       [](const auto& item) { return item.first; });
+        transformGizmo->start(selectedNodesVec);
+        if (cursorPos) {
+            transformGizmo->initCursorData(*cursorPos);
+        }
+    }
+    void Editor::updateCursorPos(const std::optional<glm::svec2>& value) {
+        cursorPos = value;
+        if (cursorPos.has_value() && transformGizmo->isActive()) {
+            if (transformGizmo->isCursorDataInitialized()) {
+                transformGizmo->updateCursorPos(*cursorPos);
+            } else {
+                transformGizmo->initCursorData(*cursorPos);
+            }
+        }
+    }
+
     const std::shared_ptr<graphics::CadCamera>& Editor::getCamera() const {
         return camera;
     }

@@ -2,6 +2,8 @@
 
 #include "catch2/catch_approx.hpp"
 #include "catch2/catch_test_macros.hpp"
+#include "catch2/generators/catch_generators.hpp"
+#include "magic_enum.hpp"
 #include <glm/gtx/io.hpp>
 
 constexpr auto FLOAT_EPSILON = std::numeric_limits<float>::epsilon() * 100;
@@ -137,4 +139,32 @@ std::vector<glm::vec<L, float, glm::defaultp>> consistentStartOfCircularList(con
         return sumA < sumB;
     });
     return reorderCircularList(input, it);
+}
+
+template<typename E>
+struct MagicEnumGenerator : public Catch::Generators::IGenerator<E> {
+    const E& get() const override {
+        return i;
+    }
+
+    bool next() override {
+        const auto idx = *magic_enum::enum_index(i);
+        const auto nextOpt = magic_enum::enum_cast<E>(idx + 1ul);
+        if (!nextOpt) {
+            return false;
+        }
+        i = *nextOpt;
+        return true;
+    }
+    [[nodiscard]] std::string stringifyImpl() const override {
+        return std::string(magic_enum::enum_name(get()));
+    }
+
+protected:
+    E i = *magic_enum::enum_cast<E>(0);
+};
+
+template<typename E>
+Catch::Generators::GeneratorWrapper<E> enumGenerator() {
+    return {Catch::Detail::make_unique<MagicEnumGenerator<E>>() /*new MagicEnumGenerator<E>()*/};
 }

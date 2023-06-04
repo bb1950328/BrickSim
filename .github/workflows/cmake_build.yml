@@ -656,6 +656,7 @@ jobs:
     needs:
       - testLinux
       - testWindows
+      - testMac
     runs-on: ubuntu-latest
     if: success() || failure()
     steps:

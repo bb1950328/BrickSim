@@ -1,5 +1,6 @@
 #pragma once
 
+#include "glm/glm.hpp"
 #include <string>
 #include <vector>
 namespace bricksim::snap {
@@ -7,6 +8,7 @@ namespace bricksim::snap {
         std::string name;
         int stepXZ;
         int stepY;
+        [[nodiscard]] glm::ivec3 stepXYZ() const;
         LinearSnapStepPreset(std::string name, int distanceXz, int distanceY);
         LinearSnapStepPreset(const LinearSnapStepPreset& other) = default;
         LinearSnapStepPreset& operator=(const LinearSnapStepPreset& other) = default;

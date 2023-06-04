@@ -94,4 +94,7 @@ namespace bricksim::snap {
     Handler::Handler() = default;
     LinearSnapStepPreset::LinearSnapStepPreset(std::string name, const int distanceXz, const int distanceY) :
         name(std::move(name)), stepXZ(distanceXz), stepY(distanceY) {}
+    glm::ivec3 LinearSnapStepPreset::stepXYZ() const {
+        return {stepXZ, stepY, stepXZ};
+    }
 }

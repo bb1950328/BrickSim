@@ -19,125 +19,278 @@ namespace bricksim::user_actions {
 
         constexpr auto actionsCount = magic_enum::enum_count<Action>();
 
-        constexpr std::array<const char* const, actionsCount> names{
-                ICON_FA_BAN " Do nothing",
-                ICON_FA_DOOR_OPEN " Exit",
-                ICON_FA_FOLDER_OPEN " Open",
-                ICON_FA_FLOPPY_DISK " Save",
-                ICON_FA_FLOPPY_DISK " Save as",
-                ICON_FA_COPY " Save copy as",
-                ICON_FA_PLUS " New file",
-                ICON_FA_ROTATE_LEFT " Undo",
-                ICON_FA_ROTATE_RIGHT " Redo",
-                ICON_FA_SCISSORS " Cut",
-                ICON_FA_COPY " Copy",
-                ICON_FA_PASTE " Paste",
-                ICON_FA_SQUARE_CHECK " Select all",
-                ICON_FA_SQUARE_MINUS " Select nothing",
-                ICON_FA_DICE_ONE " Front view",
-                ICON_FA_DICE_TWO " Top view",
-                ICON_FA_DICE_THREE " Right view",
-                ICON_FA_DICE_FOUR " Rear view",
-                ICON_FA_DICE_FIVE " Bottom view",
-                ICON_FA_DICE_SIX " Left view",
-                ICON_FA_ANGLE_UP " Rotate view upwards",
-                ICON_FA_ANGLE_DOWN " Rotate view downwards",
-                ICON_FA_ANGLE_LEFT " Rotate view left",
-                ICON_FA_ANGLE_RIGHT " Rotate view right",
-                ICON_FA_ANGLES_UP " Pan view upwards",
-                ICON_FA_ANGLES_DOWN " Pan view downwards",
-                ICON_FA_ANGLES_LEFT " Pan view left",
-                ICON_FA_ANGLES_RIGHT " Pan view right",
-                ICON_FA_TRASH_CAN " Delete selected element(s)",
-                ICON_FA_EYE_SLASH " Hide selected element(s)",
-                ICON_FA_EYE " Unhide all elements",
-                ICON_FA_TABLE_CELLS_LARGE " Apply default window layout",
-                ICON_FA_CAMERA " Take screenshot",
-                ICON_FA_MAGNIFYING_GLASS " Find action",
-                "Toggle Transform Gizmo Rotation (World / Selected Element)",
-                ICON_FA_PUZZLE_PIECE " Select connected",
-                ICON_FA_BARS " Inline Selected Elements",
-        };
-
-        const std::array<std::function<bool()>, actionsCount> actionEnabledFuncs{
-                alwaysTrue,     //DO_NOTHING
-                alwaysTrue,     //EXIT
-                alwaysTrue,     //OPEN_FILE
-                hasActiveEditor,//SAVE_FILE
-                hasActiveEditor,//SAVE_FILE_AS
-                hasActiveEditor,//SAVE_COPY_AS
-                alwaysTrue,     //NEW_FILE
-                alwaysTrue,     //UNDO
-                alwaysTrue,     //REDO
-                alwaysTrue,     //CUT
-                alwaysTrue,     //COPY
-                alwaysTrue,     //PASTE
-                hasActiveEditor,//SELECT_ALL
-                hasActiveEditor,//SELECT_NOTHING
-                hasActiveEditor,//VIEW_3D_FRONT
-                hasActiveEditor,//VIEW_3D_TOP
-                hasActiveEditor,//VIEW_3D_RIGHT
-                hasActiveEditor,//VIEW_3D_REAR
-                hasActiveEditor,//VIEW_3D_BOTTOM
-                hasActiveEditor,//VIEW_3D_LEFT
-                hasActiveEditor,//VIEW_3D_ROTATE_UP
-                hasActiveEditor,//VIEW_3D_ROTATE_DOWN
-                hasActiveEditor,//VIEW_3D_ROTATE_LEFT
-                hasActiveEditor,//VIEW_3D_ROTATE_RIGHT
-                hasActiveEditor,//VIEW_3D_PAN_UP
-                hasActiveEditor,//VIEW_3D_PAN_DOWN
-                hasActiveEditor,//VIEW_3D_PAN_LEFT
-                hasActiveEditor,//VIEW_3D_PAN_RIGHT
-                hasActiveEditor,//DELETE_SELECTED
-                hasActiveEditor,//HIDE_SELECTED
-                hasActiveEditor,//UNHIDE_EVERYTHING
-                alwaysTrue,     //APPLY_DEFAULT_WINDOW_LAYOUT
-                alwaysTrue,     //TAKE_SCREENSHOT
-                alwaysTrue,     //EXECUTE_ACTION_BY_NAME
-                alwaysTrue,     //TOGGLE_TRANSFORM_GIZMO_ROTATION
-                hasActiveEditor,//SELECT_CONNECTED
-                hasActiveEditor,//INLINE_SELECTED_ELEMENTS
-        };
-
-        const std::array<std::function<void()>, actionsCount> functions{
-                []() {},                                                          //DO_NOTHING
-                []() { controller::setUserWantsToExit(true); },                   //EXIT
-                gui::showOpenFileDialog,                                          //OPEN_FILE
-                []() { controller::getActiveEditor()->save(); },                  //SAVE_FILE
-                []() { gui::showSaveFileAsDialog(); },                            //SAVE_FILE_AS
-                []() { gui::showSaveCopyAsDialog(); },                            //SAVE_COPY_AS
-                controller::createNewFile,                                        //NEW_FILE
-                controller::undoLastAction,                                       //UNDO
-                controller::redoLastAction,                                       //REDO
-                controller::cutSelectedObject,                                    //CUT
-                controller::copySelectedObject,                                   //COPY
-                controller::pasteObject,                                          //PASTE
-                []() { controller::getActiveEditor()->nodeSelectAll(); },         //SELECT_ALL
-                []() { controller::getActiveEditor()->nodeSelectNone(); },        //SELECT_NOTHING
-                []() { controller::getActiveEditor()->setStandard3dView(1); },    //VIEW_3D_FRONT
-                []() { controller::getActiveEditor()->setStandard3dView(2); },    //VIEW_3D_TOP
-                []() { controller::getActiveEditor()->setStandard3dView(3); },    //VIEW_3D_RIGHT
-                []() { controller::getActiveEditor()->setStandard3dView(4); },    //VIEW_3D_REAR
-                []() { controller::getActiveEditor()->setStandard3dView(5); },    //VIEW_3D_BOTTOM
-                []() { controller::getActiveEditor()->setStandard3dView(6); },    //VIEW_3D_LEFT
-                []() { controller::getActiveEditor()->rotateViewUp(); },          //VIEW_3D_ROTATE_UP
-                []() { controller::getActiveEditor()->rotateViewDown(); },        //VIEW_3D_ROTATE_DOWN
-                []() { controller::getActiveEditor()->rotateViewLeft(); },        //VIEW_3D_ROTATE_LEFT
-                []() { controller::getActiveEditor()->rotateViewRight(); },       //VIEW_3D_ROTATE_RIGHT
-                []() { controller::getActiveEditor()->panViewUp(); },             //VIEW_3D_PAN_UP
-                []() { controller::getActiveEditor()->panViewDown(); },           //VIEW_3D_PAN_DOWN
-                []() { controller::getActiveEditor()->panViewLeft(); },           //VIEW_3D_PAN_LEFT
-                []() { controller::getActiveEditor()->panViewRight(); },          //VIEW_3D_PAN_RIGHT
-                []() { controller::getActiveEditor()->deleteSelectedElements(); },//DELETE_SELECTED
-                []() { controller::getActiveEditor()->hideSelectedElements(); },  //HIDE_SELECTED
-                []() { controller::getActiveEditor()->unhideAllElements(); },     //UNHIDE_EVERYTHING
-                gui::applyDefaultWindowLayout,                                    //APPLY_DEFAULT_WINDOW_LAYOUT
-                []() { gui::showScreenshotDialog(); },                            //TAKE_SCREENSHOT
-                []() { gui::showExecuteActionByNameDialog(); },                   //EXECUTE_ACTION_BY_NAME
-                controller::toggleTransformGizmoRotationState,                    //TOGGLE_TRANSFORM_GIZMO_ROTATION
-                []() { controller::getActiveEditor()->nodeSelectConnected(); },   //SELECT_CONNECTED
-                []() { controller::getActiveEditor()->inlineSelectedElements(); },   //INLINE_SELECTED_ELEMENTS
-        };
+        const std::array<ActionData, actionsCount> data = {{
+                {
+                        DO_NOTHING,
+                        ICON_FA_BAN " Do nothing",
+                        EnableCondition::ALWAYS,
+                        []() {},
+                },
+                {
+                        EXIT,
+                        ICON_FA_DOOR_OPEN " Exit",
+                        EnableCondition::ALWAYS,
+                        []() { controller::setUserWantsToExit(true); },
+                },
+                {
+                        OPEN_FILE,
+                        ICON_FA_FOLDER_OPEN " Open",
+                        EnableCondition::ALWAYS,
+                        gui::showOpenFileDialog,
+                },
+                {
+                        SAVE_FILE,
+                        ICON_FA_FLOPPY_DISK " Save",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->save(); },
+                },
+                {
+                        SAVE_FILE_AS,
+                        ICON_FA_FLOPPY_DISK " Save as",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { gui::showSaveFileAsDialog(); },
+                },
+                {
+                        SAVE_COPY_AS,
+                        ICON_FA_COPY " Save copy as",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { gui::showSaveCopyAsDialog(); },
+                },
+                {
+                        NEW_FILE,
+                        ICON_FA_PLUS " New file",
+                        EnableCondition::ALWAYS,
+                        controller::createNewFile,
+                },
+                {
+                        UNDO,
+                        ICON_FA_ROTATE_LEFT " Undo",
+                        EnableCondition::ALWAYS,
+                        controller::undoLastAction,
+                },
+                {
+                        REDO,
+                        ICON_FA_ROTATE_RIGHT " Redo",
+                        EnableCondition::ALWAYS,
+                        controller::redoLastAction,
+                },
+                {
+                        CUT,
+                        ICON_FA_SCISSORS " Cut",
+                        EnableCondition::HAS_SELECTED_NODES,
+                        controller::cutSelectedObject,
+                },
+                {
+                        COPY,
+                        ICON_FA_COPY " Copy",
+                        EnableCondition::HAS_SELECTED_NODES,
+                        controller::copySelectedObject,
+                },
+                {
+                        PASTE,
+                        ICON_FA_PASTE " Paste",
+                        EnableCondition::ALWAYS,
+                        controller::pasteObject,
+                },
+                {
+                        SELECT_ALL,
+                        ICON_FA_SQUARE_CHECK " Select all",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->nodeSelectAll(); },
+                },
+                {
+                        SELECT_NOTHING,
+                        ICON_FA_SQUARE_MINUS " Select nothing",
+                        EnableCondition::HAS_SELECTED_NODES,
+                        []() { controller::getActiveEditor()->nodeSelectNone(); },
+                },
+                {
+                        VIEW_3D_FRONT,
+                        ICON_FA_DICE_ONE " Front view",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->setStandard3dView(1); },
+                },
+                {
+                        VIEW_3D_TOP,
+                        ICON_FA_DICE_TWO " Top view",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->setStandard3dView(2); },
+                },
+                {
+                        VIEW_3D_RIGHT,
+                        ICON_FA_DICE_THREE " Right view",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->setStandard3dView(3); },
+                },
+                {
+                        VIEW_3D_REAR,
+                        ICON_FA_DICE_FOUR " Rear view",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->setStandard3dView(4); },
+                },
+                {
+                        VIEW_3D_BOTTOM,
+                        ICON_FA_DICE_FIVE " Bottom view",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->setStandard3dView(5); },
+                },
+                {
+                        VIEW_3D_LEFT,
+                        ICON_FA_DICE_SIX " Left view",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->setStandard3dView(6); },
+                },
+                {
+                        VIEW_3D_ROTATE_UP,
+                        ICON_FA_ANGLE_UP " Rotate view upwards",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->rotateViewUp(); },
+                },
+                {
+                        VIEW_3D_ROTATE_DOWN,
+                        ICON_FA_ANGLE_DOWN " Rotate view downwards",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->rotateViewDown(); },
+                },
+                {
+                        VIEW_3D_ROTATE_LEFT,
+                        ICON_FA_ANGLE_LEFT " Rotate view left",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->rotateViewLeft(); },
+                },
+                {
+                        VIEW_3D_ROTATE_RIGHT,
+                        ICON_FA_ANGLE_RIGHT " Rotate view right",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->rotateViewRight(); },
+                },
+                {
+                        VIEW_3D_PAN_UP,
+                        ICON_FA_ANGLES_UP " Pan view upwards",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->panViewUp(); },
+                },
+                {
+                        VIEW_3D_PAN_DOWN,
+                        ICON_FA_ANGLES_DOWN " Pan view downwards",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->panViewDown(); },
+                },
+                {
+                        VIEW_3D_PAN_LEFT,
+                        ICON_FA_ANGLES_LEFT " Pan view left",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->panViewLeft(); },
+                },
+                {
+                        VIEW_3D_PAN_RIGHT,
+                        ICON_FA_ANGLES_RIGHT " Pan view right",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->panViewRight(); },
+                },
+                {
+                        DELETE_SELECTED,
+                        ICON_FA_TRASH_CAN " Delete selected element(s)",
+                        EnableCondition::HAS_SELECTED_NODES,
+                        []() { controller::getActiveEditor()->deleteSelectedElements(); },
+                },
+                {
+                        HIDE_SELECTED,
+                        ICON_FA_EYE_SLASH " Hide selected element(s)",
+                        EnableCondition::HAS_SELECTED_NODES,
+                        []() { controller::getActiveEditor()->hideSelectedElements(); },
+                },
+                {
+                        UNHIDE_EVERYTHING,
+                        ICON_FA_EYE " Unhide all elements",
+                        EnableCondition::HAS_ACTIVE_EDITOR,
+                        []() { controller::getActiveEditor()->unhideAllElements(); },
+                },
+                {
+                        APPLY_DEFAULT_WINDOW_LAYOUT,
+                        ICON_FA_TABLE_CELLS_LARGE " Apply default window layout",
+                        EnableCondition::ALWAYS,
+                        gui::applyDefaultWindowLayout,
+                },
+                {
+                        TAKE_SCREENSHOT,
+                        ICON_FA_CAMERA " Take screenshot",
+                        EnableCondition::ALWAYS,
+                        []() { gui::showScreenshotDialog(); },
+                },
+                {
+                        EXECUTE_ACTION_BY_NAME,
+                        ICON_FA_MAGNIFYING_GLASS " Find action",
+                        EnableCondition::ALWAYS,
+                        []() { gui::showExecuteActionByNameDialog(); },
+                },
+                {
+                        TOGGLE_TRANSFORM_GIZMO_ROTATION,
+                        "Toggle Transform Gizmo Rotation (World / Selected Element)",
+                        EnableCondition::ALWAYS,
+                        controller::toggleTransformGizmoRotationState,
+                },
+                {
+                        SELECT_CONNECTED,
+                        ICON_FA_PUZZLE_PIECE " Select connected",
+                        EnableCondition::HAS_SELECTED_NODES,
+                        []() { controller::getActiveEditor()->nodeSelectConnected(); },
+                },
+                {
+                        INLINE_SELECTED_ELEMENTS,
+                        ICON_FA_BARS " Inline Selected Elements",
+                        EnableCondition::HAS_SELECTED_NODES,
+                        []() { controller::getActiveEditor()->inlineSelectedElements(); },
+                },
+                {
+                        START_TRANSFORMING_SELECTED_NODES,
+                        ICON_FA_UP_DOWN_LEFT_RIGHT " Start transforming selected Elements",
+                        EnableCondition::ALWAYS,
+                        []() { controller::getActiveEditor()->startTransformingSelectedNodes(); },//todo
+                },
+                {
+                        TRANSFORMATION_LOCK_X,
+                        ICON_FA_RULER_HORIZONTAL " Restrict transformation to X axis",
+                        EnableCondition::TRANSFORM_IN_PROGRESS,
+                        []() { controller::getActiveEditor()->getTransformGizmo()->toggleAxisLock(true, false, false); },
+                },
+                {
+                        TRANSFORMATION_LOCK_Y,
+                        ICON_FA_RULER_VERTICAL " Restrict transformation to Y axis",
+                        EnableCondition::TRANSFORM_IN_PROGRESS,
+                        []() { controller::getActiveEditor()->getTransformGizmo()->toggleAxisLock(false, true, false); },
+                },
+                {
+                        TRANSFORMATION_LOCK_Z,
+                        ICON_FA_RULER " Restrict transformation to Z axis",
+                        EnableCondition::TRANSFORM_IN_PROGRESS,
+                        []() { controller::getActiveEditor()->getTransformGizmo()->toggleAxisLock(false, false, true); },
+                },
+                {
+                        TRANSFORMATION_LOCK_XY,
+                        ICON_FA_RULER_COMBINED " Restrict transformation to X and Y axes",
+                        EnableCondition::TRANSFORM_IN_PROGRESS,
+                        []() { controller::getActiveEditor()->getTransformGizmo()->toggleAxisLock(true, true, false); },
+                },
+                {
+                        TRANSFORMATION_LOCK_XZ,
+                        ICON_FA_RULER_COMBINED " Restrict transformation to X and Z axes",
+                        EnableCondition::TRANSFORM_IN_PROGRESS,
+                        []() { controller::getActiveEditor()->getTransformGizmo()->toggleAxisLock(true, false, true); },
+                },
+                {
+                        TRANSFORMATION_LOCK_YZ,
+                        ICON_FA_RULER_COMBINED " Restrict transformation to Y and Z axes",
+                        EnableCondition::TRANSFORM_IN_PROGRESS,
+                        []() { controller::getActiveEditor()->getTransformGizmo()->toggleAxisLock(false, true, true); },
+                },
+                {
+                        END_TRANSFORMATION,
+                        ICON_FA_FORWARD_STEP " End transformation",
+                        EnableCondition::TRANSFORM_IN_PROGRESS,
+                        []() { controller::getActiveEditor()->endNodeDrag(); },
+                },
+        }};
     }
 
     void execute(Action action) {
@@ -149,11 +302,17 @@ namespace bricksim::user_actions {
     }
 
     bool isEnabled(Action action) {
-        return actionEnabledFuncs[action]();
+        switch (getData(action).enableCondition) {
+            case EnableCondition::ALWAYS: return true;
+            case EnableCondition::HAS_ACTIVE_EDITOR: return hasActiveEditor();
+            case EnableCondition::TRANSFORM_IN_PROGRESS: return hasActiveEditor() && controller::getActiveEditor()->getTransformGizmo()->isActive();
+            case EnableCondition::HAS_SELECTED_NODES: return hasActiveEditor() && !controller::getActiveEditor()->getSelectedNodes().empty();
+            default: return false;
+        }
     }
 
     void executeUnchecked(Action action) {
-        functions[action]();
+        getData(action).function();
     }
 
     const std::vector<Action>& findActionsByName(const std::string& name) {
@@ -165,9 +324,9 @@ namespace bricksim::user_actions {
         static std::string lastName;
         if (lastName != name) {
             results.clear();
-            for (size_t i = 0; i < actionsCount; ++i) {
-                if (stringutil::containsIgnoreCase(names[i], name)) {
-                    results.push_back(static_cast<Action>(i));
+            for (const auto& d: data) {
+                if (stringutil::containsIgnoreCase(d.name, name)) {
+                    results.push_back(d.action);
                 }
             }
             lastName = name;
@@ -180,14 +339,25 @@ namespace bricksim::user_actions {
 
     bool isInFilter(Action action, const std::string& filter) {
         //todo make this typo-robust
-        return stringutil::containsIgnoreCase(names[action], filter);
+        return stringutil::containsIgnoreCase(getData(action).name, filter);
     }
 
     const char* getName(const Action& action) {
-        return names[action];
+        return getData(action).name;
     }
     void init() {
         ALL_ACTIONS.reserve(getCount());
         magic_enum::enum_for_each<Action>([](const auto& a) { ALL_ACTIONS.push_back(a); });
     }
+    const ActionData& getData(const Action& action) {
+        return data[action];
+    }
+    ActionData::ActionData(Action action,
+                           const char* name,
+                           EnableCondition enableCondition,
+                           const std::function<void()>& function) :
+        action(action),
+        name(name),
+        enableCondition(enableCondition),
+        function(function) {}
 }

@@ -12,12 +12,30 @@ namespace bricksim::geometry {
     bool doesTransformationInverseWindingOrder(const glm::mat4& transformation);
     float calculateDistanceOfPointToLine(const glm::vec2& line_start, const glm::vec2& line_end, const glm::vec2& point);
     float calculateDistanceOfPointToLine(const glm::usvec2& line_start, const glm::usvec2& line_end, const glm::usvec2& point);
+    /**
+     * @code
+     *              point
+     *              +
+     *           /  |
+     *        /     |
+     *  start-------⦝----- end
+     *              ↑
+     *          nearestPointOnLine
+     *  @endcode
+     *  \a projection is from start to \a nearestPointOnLine
+     * @tparam N number of dimensions
+     */
     template<int N>
     struct NormalProjectionResult {
+        /// the point where the line is closest to the given point
         glm::vec<N, float> nearestPointOnLine;
+        /// vector from start to \a nearestPointOnLine
         glm::vec<N, float> projection;
+        /// length of \a projection
         float projectionLength;
+        /// distance between point and \a nearestPointOnLine
         float distancePointToLine;
+        /// distance between start and end
         float lineLength;
     };
 
@@ -25,15 +43,6 @@ namespace bricksim::geometry {
         requires(2 <= N && N <= 3)
     NormalProjectionResult<N> normalProjectionOnLine(const glm::vec<N, float>& lineStart, const glm::vec<N, float>& lineEnd, const glm::vec<N, float>& point, bool clamp) {
         //https://stackoverflow.com/a/47366970/8733066
-        //             point
-        //             +
-        //          /  |
-        //       /     |
-        // start-------⦝----- end
-        //             ↑
-        //         nearestPointOnLine
-        //
-        // projection is from start to nearestPointOnLine
         NormalProjectionResult<N> result{};
         glm::vec<N, float> line = lineEnd - lineStart;
         result.lineLength = glm::length(line);
@@ -61,6 +70,16 @@ namespace bricksim::geometry {
         result.distancePointToLine = glm::length(point - result.nearestPointOnLine);
 
         return result;
+    }
+    /**
+     * find the point which is on the @p ray and is closest to @p point
+     * @tparam N number of dimensions
+     * @return NormalProjectionResult
+     */
+    template<int N>
+        requires(2 <= N && N <= 3)
+    NormalProjectionResult<N> normalProjectionOnLine(const Ray<N> ray, const glm::vec<N, float>& point) {
+        return normalProjectionOnLine<N>(ray.origin, ray.origin + ray.direction, point, false);
     }
 
     template<int N>

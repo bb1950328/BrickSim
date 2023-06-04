@@ -6,7 +6,6 @@
 #include "ldr/files.h"
 #include "snapping/snap_handler.h"
 #include "tasks.h"
-#include "transform_gizmo.h"
 #include "types.h"
 #include <GLFW/glfw3.h>
 #include <efsw/efsw.hpp>
@@ -46,7 +45,6 @@ namespace bricksim::controller {
     void copySelectedObject();
     void pasteObject();
 
-    transform_gizmo::RotationState getTransformGizmoRotationState();
     void toggleTransformGizmoRotationState();
 
     void setUserWantsToExit(bool val);

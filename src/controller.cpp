@@ -46,8 +46,6 @@ namespace bricksim::controller {
 
         bool userWantsToExit = false;
 
-        transform_gizmo::RotationState transformGizmoRotationState = transform_gizmo::RotationState::WORLD;
-
         uomap_t<unsigned int, Task> backgroundTasks;
         std::queue<Task> foregroundTasks;
         std::shared_ptr<gui::modals::Modal> foregroundTaskWaitModal = nullptr;
@@ -568,15 +566,8 @@ namespace bricksim::controller {
         glfwMakeContextCurrent(nullptr);
     }
 
-    transform_gizmo::RotationState getTransformGizmoRotationState() {
-        return transformGizmoRotationState;
-    }
-
     void toggleTransformGizmoRotationState() {
-        transformGizmoRotationState =
-                transformGizmoRotationState == transform_gizmo::RotationState::WORLD
-                        ? transform_gizmo::RotationState::SELECTED_ELEMENT
-                        : transform_gizmo::RotationState::WORLD;
+        //todo implement
     }
 
     std::list<std::shared_ptr<Editor>>& getEditors() {

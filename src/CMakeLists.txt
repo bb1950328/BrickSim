@@ -22,8 +22,6 @@ target_sources(BrickSimLib PRIVATE
         part_finder.h
         tasks.cpp
         tasks.h
-        transform_gizmo.cpp
-        transform_gizmo.h
         transform_gizmo2.cpp
         transform_gizmo2.h
         types.h

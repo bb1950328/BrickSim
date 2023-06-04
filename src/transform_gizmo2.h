@@ -15,6 +15,9 @@ namespace bricksim::transform_gizmo {
         std::vector<glm::mat4> initialRelativeTransformations;
         std::array<bool, 3> lockedAxes = {false, false, false};
 
+        glm::vec3 initialNodeCenter;
+        glm::vec3 currentNodeCenter;
+
         bool cursorDataInitialized = false;
         glm::vec3 startPoint;
         glm::vec3 currentPoint;
@@ -35,7 +38,7 @@ namespace bricksim::transform_gizmo {
         void start(const std::vector<std::shared_ptr<etree::Node>>& nodes);
         void initCursorData(glm::svec2 initialCursorPos);
         void updateCursorPos(glm::svec2 currentCursorPos);
-        void endDrag();
+        void end();
 
         bool isActive();
         [[nodiscard]] bool isCursorDataInitialized() const;

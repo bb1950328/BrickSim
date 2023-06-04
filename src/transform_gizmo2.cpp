@@ -5,6 +5,7 @@
 #include "helpers/geometry.h"
 #include "spdlog/spdlog.h"
 #include <glm/gtx/io.hpp>
+#include <numeric>
 #include <spdlog/fmt/ostr.h>
 
 namespace bricksim::transform_gizmo {
@@ -19,19 +20,34 @@ namespace bricksim::transform_gizmo {
     }
     void TransformGizmo2::updateAxisLines() {
         const auto& linearSnapPreset = controller::getSnapHandler().getLinear().getCurrentPreset();
-        glm::vec3 pos = {0, 0, 0};
+        glm::vec3 pos = data->initialNodeCenter;
         constexpr std::array<glm::vec3, 3> axes = {glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 1.f)};
         for (int a = 0; a < 3; ++a) {
-            std::vector<o2d::coord_t> linePoints;
-            const auto step = a == 1 ? linearSnapPreset.stepY : linearSnapPreset.stepXZ;
-            for (int i = -10; i < 11; ++i) {
-                const glm::vec3 worldCoord = pos + axes[a] * static_cast<float>(i * step);
-                const glm::vec3 screenCoord = scene->worldToScreenCoordinates(glm::vec4(worldCoord, 1.f) * constants::LDU_TO_OPENGL);
-                if (-1 <= screenCoord.z && screenCoord.z <= 1) {
-                    linePoints.emplace_back(screenCoord);
+            glm::vec3 axisEndPos = pos;
+            axisEndPos[a] = data->currentNodeCenter[a];
+            if (controller::getSnapHandler().isEnabled()) {
+                std::vector<o2d::coord_t> linePoints;
+                const auto step = a == 1 ? linearSnapPreset.stepY : linearSnapPreset.stepXZ;
+                const auto totalLineLength = data->currentPoint[a] - data->startPoint[a];
+                const auto absTotalLinelength = static_cast<int>(std::abs(totalLineLength));
+                if (absTotalLinelength >= step) {
+                    for (int i = 0; i <= absTotalLinelength; i += step) {
+                        const glm::vec3 worldCoord = pos + axes[a] * std::copysign(static_cast<float>(i), totalLineLength);
+                        const glm::vec3 screenCoord = scene->worldToScreenCoordinates(glm::vec4(worldCoord, 1.f) * constants::LDU_TO_OPENGL);
+                        if (-1 <= screenCoord.z && screenCoord.z <= 1) {
+                            linePoints.emplace_back(screenCoord);
+                        }
+                    }
                 }
+                axisLines[a]->setPoints(linePoints);
+            } else {
+                axisLines[a]->setPoints({
+                        scene->worldToScreenCoordinates(glm::vec4(pos, 1.f) * constants::LDU_TO_OPENGL),
+                        scene->worldToScreenCoordinates(glm::vec4(axisEndPos, 1.f) * constants::LDU_TO_OPENGL),
+                });
             }
-            axisLines[a]->setPoints(linePoints);
+
+            pos = axisEndPos;
         }
     }
     void TransformGizmo2::start(const std::vector<std::shared_ptr<etree::Node>>& nodes) {
@@ -45,34 +61,48 @@ namespace bricksim::transform_gizmo {
                            return glm::transpose(node->getRelativeTransformation());
                        });
 
-        spdlog::debug("start translating {} nodes", data->nodes.size());
+        glm::vec4 center(0.f);
+        for (const auto& item: data->nodes) {
+            center += (glm::transpose(item->getAbsoluteTransformation()) * glm::vec4(0.f, 0.f, 0.f, 1.f));
+        }
+        data->initialNodeCenter = center / center.w;
+        data->currentNodeCenter = data->initialNodeCenter;
     }
     void TransformGizmo2::updateCursorPos(glm::svec2 currentCursorPos) {
         const auto worldRay = editor.getScene()->screenCoordinatesToWorldRay(currentCursorPos) * constants::OPENGL_TO_LDU;
         const auto lockedAxesCount = std::accumulate(data->lockedAxes.cbegin(), data->lockedAxes.cend(), 0);
+        glm::vec3 projectedPoint;
         if (lockedAxesCount == 0) {
-            data->currentPoint = worldRay.origin + data->distanceToCamera * glm::normalize(worldRay.direction);
+            projectedPoint = worldRay.origin + data->distanceToCamera * glm::normalize(worldRay.direction);
         } else if (lockedAxesCount == 1) {
             glm::vec3 planeNormal = {
                     data->lockedAxes[0] ? 1.f : 0.f,
                     data->lockedAxes[1] ? 1.f : 0.f,
                     data->lockedAxes[2] ? 1.f : 0.f,
             };
-            data->currentPoint = geometry::rayPlaneIntersection(worldRay, {data->startPoint, planeNormal}).value_or(data->startPoint);
+            projectedPoint = geometry::rayPlaneIntersection(worldRay, {data->startPoint, planeNormal}).value_or(data->startPoint);
         } else if (lockedAxesCount == 2) {
             glm::vec3 freeAxis = {
                     data->lockedAxes[0] ? 0.f : 1.f,
                     data->lockedAxes[1] ? 0.f : 1.f,
                     data->lockedAxes[2] ? 0.f : 1.f,
             };
-            data->currentPoint = geometry::closestLineBetweenTwoRays(worldRay, {data->startPoint, freeAxis}).pointOnB;
+            projectedPoint = geometry::closestLineBetweenTwoRays(worldRay, {data->startPoint, freeAxis}).pointOnB;
         } else {
-            data->currentPoint = data->startPoint;
+            projectedPoint = data->startPoint;
         }
-        auto translation = data->currentPoint - data->startPoint;
-        const auto& linearSnapPreset = controller::getSnapHandler().getLinear().getCurrentPreset();
-        translation = util::roundToNearestMultiple(translation, linearSnapPreset.stepXYZ());
-        spdlog::debug("current translation: {}", translation);
+        auto translation = projectedPoint - data->startPoint;
+        if (controller::getSnapHandler().isEnabled()) {
+            const auto& linearSnapPreset = controller::getSnapHandler().getLinear().getCurrentPreset();
+            translation = util::roundToNearestMultiple(translation, linearSnapPreset.stepXYZ());
+        }
+
+        const auto oldNodeCenter = data->currentNodeCenter;
+        data->currentNodeCenter = data->initialNodeCenter + translation;
+        if (glm::length(data->currentNodeCenter - oldNodeCenter) > 1.f) {
+            updateAxisLines();
+        }
+        data->currentPoint = data->startPoint + translation;
 
         auto nodeIt = data->nodes.begin();
         auto transfIt = data->initialRelativeTransformations.begin();
@@ -84,10 +114,9 @@ namespace bricksim::transform_gizmo {
             ++transfIt;
         }
     }
-    void TransformGizmo2::endDrag() {
+    void TransformGizmo2::end() {
         removeAxisLines();
         data = nullptr;
-        spdlog::debug("end node drag");
     }
     void TransformGizmo2::addAxisLines() {
         static auto lineWidth = static_cast<o2d::length_t>(8 * config::get(config::GUI_SCALE));
@@ -127,15 +156,12 @@ namespace bricksim::transform_gizmo {
         return data->cursorDataInitialized;
     }
     void TransformGizmo2::initCursorData(glm::svec2 initialCursorPos) {
-        glm::vec4 center(0.f);
-        for (const auto& item: data->nodes) {
-            center += (glm::transpose(item->getAbsoluteTransformation()) * glm::vec4(0.f, 0.f, 0.f, 1.f));
-        }
         const auto worldRay = editor.getScene()->screenCoordinatesToWorldRay(initialCursorPos) * constants::OPENGL_TO_LDU;
-        const auto npResult = geometry::normalProjectionOnLine(worldRay, glm::vec3(center / center.w));
+        const auto npResult = geometry::normalProjectionOnLine(worldRay, data->initialNodeCenter);
         data->distanceToCamera = npResult.projectionLength;
         data->initialCursorPos = initialCursorPos;
         data->startPoint = npResult.nearestPointOnLine;
+        data->currentPoint = data->startPoint;
         data->cursorDataInitialized = true;
     }
     TransformGizmo2::~TransformGizmo2() = default;

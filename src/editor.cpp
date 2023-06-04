@@ -391,14 +391,9 @@ namespace bricksim {
         return true;
     }
 
-    void Editor::startNodeDrag(std::shared_ptr<etree::Node>& draggedNode, const glm::svec2& initialCursorPos) {
-        //todo inline this function
-        startTransformingSelectedNodes();
-    }
-
-    void Editor::endNodeDrag() {
+    void Editor::endNodeTransformation() {
         if (transformGizmo->isActive()) {
-            transformGizmo->endDrag();
+            transformGizmo->end();
         }
     }
     void Editor::startTransformingSelectedNodes() {

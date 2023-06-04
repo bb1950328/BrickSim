@@ -186,7 +186,7 @@ namespace bricksim::overlay2d {
 
                 if (elementVertexCountChanged) {
                     if (!elementIsNew) {
-                        vertices.erase(firstVertex + range.start, firstVertex + range.start + range.count);
+                        vertices.erase(vertices.begin() + range.start, vertices.begin() + range.start + range.count);
                     }
 
                     //adjust ranges after current
@@ -621,18 +621,18 @@ namespace bricksim::overlay2d {
         return false;//todo implement
     }
     unsigned int DashedLineElement::getVertexCount() {
-        return getVertexCountForLine() * (points.size() - 1);
+        return points.empty() ? 0 : getVertexCountForLine() * (points.size() - 1);
     }
     Vertex* DashedLineElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
+        if (points.empty()) {
+            return firstVertexLocation;
+        }
         Vertex* nextVertexLocation = firstVertexLocation;
         for (int i = 0; i < points.size() - 1; ++i) {
             const auto& p1 = points[i];
             const auto& p2 = points[i + 1];
             const glm::vec2 delta = p2 - p1;
             const glm::vec2 halfGap(delta * (spaceBetweenDashes / glm::length(delta) / 2.f));
-            if (i == 0) {
-                //spdlog::debug("|delta|={}, |halfGap|={}", glm::length(delta), glm::length(halfGap));
-            }
             const coord_t lineStart = p1 + halfGap;
             const coord_t lineEnd = p2 - halfGap;
             nextVertexLocation = generateVerticesForLine(nextVertexLocation, lineStart, lineEnd, width, color, viewportSize);
@@ -669,6 +669,6 @@ namespace bricksim::overlay2d {
         setVerticesHaveChanged(true);
     }
     void DashedLineElement::validatePoints() {
-        assert(points.size() >= 2);
+        assert(points.size() != 1);
     }
 }

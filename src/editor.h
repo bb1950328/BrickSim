@@ -62,8 +62,7 @@ namespace bricksim {
         void nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed);
 
         void startTransformingSelectedNodes();
-        void startNodeDrag(std::shared_ptr<etree::Node>& draggedNode, const glm::svec2& initialCursorPos);
-        void endNodeDrag();
+        void endNodeTransformation();
         void updateCursorPos(const std::optional<glm::svec2>& value);
 
         void setStandard3dView(int i);//todo refactor this into enum

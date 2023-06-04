@@ -120,6 +120,9 @@ namespace bricksim::gui::windows::view3d {
                     }
 
                     if (lastAnyMouseDown && !currentlyAnyMouseDown && dragMode == NOT_DRAGGING) {
+                        if (editor->getTransformGizmo()->isActive()) {
+                            editor->endNodeTransformation();
+                        }
                         //user just ended click without dragging
                         auto nodeUnderCursor = getNodeUnderCursor(scene, relCursorPos);
                         if (nodeUnderCursor) {
@@ -142,9 +145,6 @@ namespace bricksim::gui::windows::view3d {
                             totalDragDelta += deltaCursorPos;
                         } else {
                             //dragging just stopped
-                            if (dragMode == DRAG_ELEMENT) {
-                                editor->endNodeDrag();
-                            }
                             dragMode = NOT_DRAGGING;
                         }
                     }

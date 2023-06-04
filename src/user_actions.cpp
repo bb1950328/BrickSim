@@ -288,7 +288,7 @@ namespace bricksim::user_actions {
                         END_TRANSFORMATION,
                         ICON_FA_FORWARD_STEP " End transformation",
                         EnableCondition::TRANSFORM_IN_PROGRESS,
-                        []() { controller::getActiveEditor()->endNodeDrag(); },
+                        []() { controller::getActiveEditor()->endNodeTransformation(); },
                 },
         }};
     }

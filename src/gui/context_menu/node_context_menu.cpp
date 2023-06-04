@@ -21,6 +21,12 @@ namespace bricksim::gui::node_context_menu {
                 }
             }
 
+            if (context.node->type == etree::NodeType::TYPE_MODEL_INSTANCE) {
+                if (drawHandler->drawAction(ICON_FA_FILE_PEN " Edit Referenced Model")) {
+                    context.editor->setEditingModel(std::dynamic_pointer_cast<etree::ModelInstanceNode>(context.node)->modelNode);
+                }
+            }
+
             if (context.node->getType() != etree::NodeType::TYPE_ROOT) {
                 if (drawHandler->drawAction(ICON_FA_TRASH " Delete", color::RED)) {
                     context.editor->deleteElement(context.node);

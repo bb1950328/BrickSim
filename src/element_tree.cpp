@@ -210,12 +210,12 @@ namespace bricksim::etree {
                         if (item->getVersion() != saveInfos->second.lastSaveToLdrFileVersion) {
                             const auto& ldrElement = saveInfos->second.ldrElement;
                             auto subfileRefElement = std::dynamic_pointer_cast<ldr::SubfileReference>(ldrElement);
-                            subfileRefElement->setTransformationMatrix(item->getRelativeTransformation());
+                            subfileRefElement->setTransformationMatrix(glm::transpose(item->getRelativeTransformation()));
                         }
                     } else {
                         auto meshItem = std::dynamic_pointer_cast<MeshNode>(item);
                         auto subfileRefElement = std::make_shared<ldr::SubfileReference>(meshItem->getElementColor(), item->getRelativeTransformation(), false);
-                        subfileRefElement->setTransformationMatrix(item->getRelativeTransformation());
+                        subfileRefElement->setTransformationMatrix(glm::transpose(item->getRelativeTransformation()));
                         subfileRefElement->step = ldrFile->elements.back()->step;
                         ldrFile->elements.push_back(subfileRefElement);
                         subfileRefChildNodeSaveInfos.emplace(item, ChildNodeSaveInfo{item->getVersion(), subfileRefElement});

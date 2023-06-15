@@ -4,6 +4,7 @@
 #include "helpers/stringutil.h"
 #include "helpers/util.h"
 #include "lib/IconFontCppHeaders/IconsFontAwesome6.h"
+#include <magic_enum_utility.hpp>
 
 namespace bricksim::user_actions {
     namespace {

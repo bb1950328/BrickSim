@@ -2,6 +2,7 @@
 #include "../constant_data/resources.h"
 #include "../controller.h"
 #include <magic_enum.hpp>
+#include <magic_enum_utility.hpp>
 #include <spdlog/spdlog.h>
 
 namespace bricksim::graphics::orientation_cube {

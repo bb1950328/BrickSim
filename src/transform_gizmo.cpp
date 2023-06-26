@@ -111,7 +111,9 @@ namespace bricksim::transform_gizmo {
         auto nodeIt = data->nodes.begin();
         auto transfIt = data->initialRelativeTransformations.begin();
         while (nodeIt != data->nodes.end()) {
-            (*nodeIt)->setRelativeTransformation(glm::transpose(glm::translate(*transfIt, translation)));
+            auto newTransf = *transfIt;
+            newTransf[3] += glm::vec4(translation, 0.f);
+            (*nodeIt)->setRelativeTransformation(glm::transpose(newTransf));
             (*nodeIt)->incrementVersion();
 
             ++nodeIt;

@@ -228,7 +228,7 @@ target_link_libraries(BrickSimLib PRIVATE cpuinfo)
 
 #magic_enum
 add_subdirectory(src/lib/magic_enum)
-target_link_libraries(BrickSimLib PRIVATE magic_enum::magic_enum)
+target_link_libraries(BrickSimLib PUBLIC magic_enum::magic_enum)
 
 #fast_float
 add_subdirectory(src/lib/fast_float)

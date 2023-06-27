@@ -10,6 +10,7 @@ namespace bricksim::gui::windows::system_info {
     using namespace helpers::system_info;
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible, ImGuiWindowFlags_AlwaysAutoResize)) {
+            collectWindowInfo(data.id);
             static const auto infoLines = getSystemInfo();
             if (ImGui::BeginTable("##sysInfoTable", 2)) {
                 for (const auto& line: infoLines) {

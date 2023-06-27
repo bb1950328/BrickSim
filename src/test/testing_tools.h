@@ -2,6 +2,8 @@
 
 #include "catch2/catch_approx.hpp"
 #include "catch2/catch_test_macros.hpp"
+#include "catch2/generators/catch_generators.hpp"
+#include "magic_enum.hpp"
 #include <glm/gtx/io.hpp>
 
 constexpr auto FLOAT_EPSILON = std::numeric_limits<float>::epsilon() * 100;
@@ -23,35 +25,42 @@ public:
         }
     }
 
-    bool operator==(const glm::vec<L, T, Q>& rhs) const {
-        bool result = true;
-        for (int i = 0; i < L; ++i) {
-            result &= approxes[i] == rhs[i];
-        }
-        return result;
-    }
-
-    bool operator==(const ApproxVec<L, T, Q>& rhs) const {
-        bool result = true;
-        for (int i = 0; i < L; ++i) {
-            result &= approxes[i] == rhs.value[i];
-        }
-        return result;
-    }
-
     bool operator!=(const glm::vec<L, T, Q>& rhs) const {
-        return !this->operator==(rhs);
+        return !operator==(*this, rhs);
     }
 
     bool operator!=(const ApproxVec<L, T, Q>& rhs) const {
-        return !this->operator==(rhs);
+        return !operator==(*this, rhs);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const ApproxVec& vec) {
         os << vec.value;
         return os;
     }
+
+    template<glm::length_t Lx, typename Tx, glm::qualifier Qx>
+    friend bool operator==(const ApproxVec<Lx, Tx, Qx>& lhs, const glm::vec<Lx, Tx, Qx>& rhs);
+
+    template<glm::length_t Lx, typename Tx, glm::qualifier Qx>
+    friend bool operator==(const ApproxVec<Lx, Tx, Qx>& lhs, const ApproxVec<Lx, Tx, Qx>& rhs);
 };
+
+template<glm::length_t L, typename T, glm::qualifier Q>
+bool operator==(const ApproxVec<L, T, Q>& lhs, const glm::vec<L, T, Q>& rhs) {
+    bool result = true;
+    for (int i = 0; i < L; ++i) {
+        result &= lhs.approxes[i] == rhs[i];
+    }
+    return result;
+}
+template<glm::length_t L, typename T, glm::qualifier Q>
+bool operator==(const ApproxVec<L, T, Q>& lhs, const ApproxVec<L, T, Q>& rhs) {
+    bool result = true;
+    for (int i = 0; i < L; ++i) {
+        result &= lhs.approxes[i] == rhs.value[i];
+    }
+    return result;
+}
 
 template<glm::length_t C, glm::length_t R, typename T, glm::qualifier Q>
 class ApproxMat;
@@ -72,39 +81,45 @@ public:
         }
     }
 
-    bool operator==(const glm::mat<C, R, T, Q>& rhs) const {
-        bool result = true;
-        for (int i = 0; i < C; ++i) {
-            for (int j = 0; j < R; ++j) {
-                result &= approxes[i * R + j] == rhs[i][j];
-            }
-        }
-        return result;
-    }
-
-    bool operator==(const ApproxMat<C, R, T, Q>& rhs) const {
-        bool result = true;
-        for (int i = 0; i < C; ++i) {
-            for (int j = 0; j < R; ++j) {
-                result &= approxes[i * R + j] == rhs.value[i][j];
-            }
-        }
-        return result;
-    }
-
     bool operator!=(const glm::mat<C, R, T, Q>& rhs) const {
-        return !this->operator==(rhs);
+        return !operator==(*this, rhs);
     }
 
     bool operator!=(const ApproxMat<C, R, T, Q>& rhs) const {
-        return !this->operator==(rhs);
+        return !operator==(*this, rhs);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const ApproxMat& mat) {
         os << mat.value;
         return os;
     }
+
+    template<glm::length_t Cx, glm::length_t Rx, typename Tx, glm::qualifier Qx>
+    friend bool operator==(const ApproxMat<Cx, Rx, Tx, Qx>& lhs, const glm::mat<Cx, Rx, Tx, Qx>& rhs);
+    template<glm::length_t Cx, glm::length_t Rx, typename Tx, glm::qualifier Qx>
+    friend bool operator==(const ApproxMat<Cx, Rx, Tx, Qx>& lhs, const ApproxMat<Cx, Rx, Tx, Qx>& rhs);
 };
+template<glm::length_t C, glm::length_t R, typename T, glm::qualifier Q>
+bool operator==(const ApproxMat<C, R, T, Q>& lhs, const glm::mat<C, R, T, Q>& rhs) {
+    bool result = true;
+    for (int i = 0; i < C; ++i) {
+        for (int j = 0; j < R; ++j) {
+            result &= lhs.approxes[i * R + j] == rhs[i][j];
+        }
+    }
+    return result;
+}
+
+template<glm::length_t C, glm::length_t R, typename T, glm::qualifier Q>
+bool operator==(const ApproxMat<C, R, T, Q>& lhs, const ApproxMat<C, R, T, Q>& rhs) {
+    bool result = true;
+    for (int i = 0; i < C; ++i) {
+        for (int j = 0; j < R; ++j) {
+            result &= lhs.approxes[i * R + j] == rhs.value[i][j];
+        }
+    }
+    return result;
+}
 
 template<glm::length_t L, typename T, glm::qualifier Q>
 std::vector<ApproxVec<L, float, glm::defaultp>> convertToApproxVector(const std::vector<glm::vec<L, T, Q>>& a) {
@@ -137,4 +152,32 @@ std::vector<glm::vec<L, float, glm::defaultp>> consistentStartOfCircularList(con
         return sumA < sumB;
     });
     return reorderCircularList(input, it);
+}
+
+template<typename E>
+struct MagicEnumGenerator : public Catch::Generators::IGenerator<E> {
+    const E& get() const override {
+        return i;
+    }
+
+    bool next() override {
+        const auto idx = *magic_enum::enum_index(i);
+        const auto nextOpt = magic_enum::enum_cast<E>(idx + 1ul);
+        if (!nextOpt) {
+            return false;
+        }
+        i = *nextOpt;
+        return true;
+    }
+    [[nodiscard]] std::string stringifyImpl() const override {
+        return std::string(magic_enum::enum_name(get()));
+    }
+
+protected:
+    E i = *magic_enum::enum_cast<E>(0);
+};
+
+template<typename E>
+Catch::Generators::GeneratorWrapper<E> enumGenerator() {
+    return {Catch::Detail::make_unique<MagicEnumGenerator<E>>() /*new MagicEnumGenerator<E>()*/};
 }

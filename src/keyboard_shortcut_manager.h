@@ -1,5 +1,8 @@
 #pragma once
 
+#include "gui/windows/windows.h"
+#include "magic_enum.hpp"
+#include <array>
 #include <optional>
 #include <string>
 #include <vector>
@@ -10,10 +13,11 @@ namespace bricksim::user_actions {
 
 namespace bricksim::keyboard_shortcut_manager {
     enum class Event : uint8_t {
+        ON_RELEASE = 0 /*GLFW_RELEASE*/,
         ON_PRESS = 1 /*GLFW_PRESS*/,
         ON_REPEAT = 2 /*GLFW_REPEAT*/,
-        ON_RELEASE = 0 /*GLFW_RELEASE*/,
     };
+    constexpr std::array<const char* const, magic_enum::enum_count<Event>()> EVENT_DISPLAY_NAMES = {"On Release", "On Press", "On Repeat"};
 
     using modifier_t = std::byte;
     using key_t = int;
@@ -24,9 +28,10 @@ namespace bricksim::keyboard_shortcut_manager {
         key_t key;
         modifier_t modifiers;
         Event event;
+        std::optional<gui::windows::Id> windowScope;
         [[nodiscard]] std::string getDisplayName() const;
         KeyboardShortcut();
-        KeyboardShortcut(user_actions::Action action, int key, modifier_t modifiers, Event event);
+        KeyboardShortcut(user_actions::Action action, int key, modifier_t modifiers, Event event, std::optional<gui::windows::Id> windowScope = std::nullopt);
         KeyboardShortcut(const KeyboardShortcut& other) = default;
         KeyboardShortcut(KeyboardShortcut&& other) = default;
         KeyboardShortcut& operator=(const KeyboardShortcut& other) = default;
@@ -37,6 +42,7 @@ namespace bricksim::keyboard_shortcut_manager {
     void shortcutPressed(key_t key, int keyAction, modifier_t modifiers, bool isCapturedByGui);
     std::vector<KeyboardShortcut>& getAllShortcuts();
     void replaceAllShortcuts(const std::vector<KeyboardShortcut>& newShortcuts);
+    void resetToDefault();
     const std::string& getShortcutForAction(user_actions::Action action);
 
     void setCatchNextShortcut(bool doCatch);

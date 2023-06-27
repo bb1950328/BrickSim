@@ -73,7 +73,7 @@ namespace bricksim::graphics {
         unsigned int getSelectionPixel(framebuffer_size_t x, framebuffer_size_t y);
         unsigned int getSelectionPixel(glm::usvec2 coords);
         void updateImage();
-        [[nodiscard]] glm::usvec2 worldToScreenCoordinates(glm::vec3 worldCoords) const;
+        [[nodiscard]] glm::vec3 worldToScreenCoordinates(glm::vec3 worldCoords) const;
         [[nodiscard]] Ray3 screenCoordinatesToWorldRay(glm::usvec2 screenCoords) const;
 
         [[nodiscard]] const std::shared_ptr<etree::Node>& getRootNode() const;

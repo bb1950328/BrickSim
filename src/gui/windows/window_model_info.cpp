@@ -3,6 +3,7 @@
 #include "../../controller.h"
 #include "../../helpers/stringutil.h"
 #include "../../info_providers/price_guide_provider.h"
+#include "../gui.h"
 #include "../gui_internal.h"
 #include <imgui.h>
 #include <inttypes.h>
@@ -70,6 +71,7 @@ namespace bricksim::gui::windows::model_info {
 
     void draw(bricksim::gui::windows::Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
+            collectWindowInfo(data.id);
             static std::weak_ptr<Editor> selectedEditor;
             gui_internal::drawEditorSelectionCombo(selectedEditor, "Model");
             auto selectedLocked = selectedEditor.lock();

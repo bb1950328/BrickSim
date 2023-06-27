@@ -21,6 +21,7 @@ namespace bricksim::gui::windows::orientation_cube {
 
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
+            collectWindowInfo(data.id);
             const ImVec2& cursorPos = ImGui::GetCursorScreenPos();
 
             const auto renderedSize = getSize();

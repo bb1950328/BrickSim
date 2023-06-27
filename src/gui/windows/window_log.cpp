@@ -39,6 +39,7 @@ namespace bricksim::gui::windows::log {
 
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
+            collectWindowInfo(data.id);
             static int minLevel;
             static float fontSize = ImGui::GetFontSize();
             ImGui::PushStyleColor(ImGuiCol_FrameBg, levelToColor(minLevel));

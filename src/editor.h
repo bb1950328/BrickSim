@@ -8,6 +8,7 @@
 
 namespace bricksim {
 
+    //todo move this to separate file
     class SelectionVisualizationNode : public etree::MeshNode {
     public:
         explicit SelectionVisualizationNode(const std::shared_ptr<Node>& parent);
@@ -60,10 +61,10 @@ namespace bricksim {
         bool isNodeClickable(const std::shared_ptr<etree::Node>& node);
         void nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed);
 
-        bool isNodeDraggable(const std::shared_ptr<etree::Node>& node);
-        void startNodeDrag(std::shared_ptr<etree::Node>& draggedNode, const glm::svec2& initialCursorPos);
-        void updateNodeDragDelta(glm::usvec2 delta);
-        void endNodeDrag();
+        void startTransformingSelectedNodes();
+        void endNodeTransformation();
+        void cancelNodeTransformation();
+        void updateCursorPos(const std::optional<glm::svec2>& value);
 
         void setStandard3dView(int i);//todo refactor this into enum
         void rotateViewUp();
@@ -109,17 +110,14 @@ namespace bricksim {
         scene_id_t sceneId{};
         std::shared_ptr<graphics::Scene> scene;
         std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;
-        uint64_t lastSavedVersion = 0;
         uomap_t<std::shared_ptr<etree::ModelNode>, etree::Node::version_t> lastSavedVersions;
-        uomap_t<std::shared_ptr<etree::Node>, uint64_t> selectedNodes;//value is last version, use to check if selected node was modified in the meantime
+        ///value is last version, use to check if selected node was modified in the meantime
+        uomap_t<std::shared_ptr<etree::Node>, uint64_t> selectedNodes;
         std::shared_ptr<SelectionVisualizationNode> selectionVisualizationNode;
         std::shared_ptr<graphics::CadCamera> camera;
+        ///empty means cursor is outside window
+        std::optional<glm::svec2> cursorPos;
 
-        enum class DraggingNodeType {
-            NONE,
-            TRANSFORM_GIZMO,
-        };
-        DraggingNodeType currentlyDraggingNodeType = DraggingNodeType::NONE;//todo change this to object oriented design
         void addConnectorDataVisualization(const std::shared_ptr<etree::Node>& node) const;
         [[nodiscard]] bool isModified(const std::shared_ptr<etree::ModelNode>& model) const;
         void setAsActiveEditor();

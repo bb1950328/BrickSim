@@ -4,10 +4,10 @@
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../../user_actions.h"
 #include "../gui.h"
-#include <glm/glm.hpp>
 #include <vector>
 
 #include "window_settings.h"
+#include <spdlog/fmt/fmt.h>
 
 namespace bricksim::gui::windows::settings {
     namespace {
@@ -206,9 +206,18 @@ namespace bricksim::gui::windows::settings {
             bool shouldOpenSelectKeyModal = false;
             static bool isWaitingOnKeyCatch = false;
             if (ImGui::BeginTabItem(ICON_FA_KEYBOARD " Shortcuts")) {
-                if (ImGui::BeginTable("##key_shortucts", 3)) {
+                if (ImGui::BeginTable("##key_shortucts", 5, ImGuiTableFlags_Borders)) {
+                    ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthStretch);
+                    ImGui::TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch);
+                    ImGui::TableSetupColumn("Event", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("Scope", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableHeadersRow();
+
                     auto shortcut = allShortcuts.begin();
                     while (shortcut != allShortcuts.end()) {
+                        const auto* shortcutId = static_cast<void*>(&*shortcut);
+                        ImGui::PushID(shortcutId);
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
                         const char* actionName = user_actions::getName(shortcut->action);
@@ -221,25 +230,70 @@ namespace bricksim::gui::windows::settings {
                             currentlyEditingShortcut = *shortcut;
                             shouldOpenSelectKeyModal = true;
                         }
+
                         ImGui::TableNextColumn();
-                        std::string btnName = ICON_FA_TRASH + std::string("##") + shortcut->getDisplayName() + actionName;
-                        if (ImGui::Button(btnName.c_str())) {
+                        const auto currentEventDisplayName = *(keyboard_shortcut_manager::EVENT_DISPLAY_NAMES.cbegin() + *magic_enum::enum_index(shortcut->event));
+                        ImGui::PushItemWidth(175.f * config::get(config::GUI_SCALE));
+
+                        if (ImGui::BeginCombo("##eventCombo", currentEventDisplayName)) {
+                            auto it = keyboard_shortcut_manager::EVENT_DISPLAY_NAMES.cbegin();
+                            for (const auto& event: magic_enum::enum_values<keyboard_shortcut_manager::Event>()) {
+                                if (ImGui::Selectable(*it, shortcut->event == event)) {
+                                    shortcut->event = event;
+                                }
+                                ++it;
+                            }
+                            ImGui::EndCombo();
+                        }
+                        ImGui::PopItemWidth();
+
+                        ImGui::TableNextColumn();
+                        ImGui::PushItemWidth(250.f * config::get(config::GUI_SCALE));
+                        const auto currentScopeDisplayName = shortcut->windowScope.has_value()
+                                                                     ? gui::windows::getName(*shortcut->windowScope)
+                                                                     : "All Windows";
+                        if (ImGui::BeginCombo("##scopeCombo", currentScopeDisplayName)) {
+                            if (ImGui::Selectable("All Windows", !shortcut->windowScope.has_value())) {
+                                shortcut->windowScope = std::nullopt;
+                            }
+                            for (const auto& id: magic_enum::enum_values<gui::windows::Id>()) {
+                                if (ImGui::Selectable(windows::getName(id), shortcut->windowScope == id)) {
+                                    shortcut->windowScope = id;
+                                }
+                            }
+                            ImGui::EndCombo();
+                        }
+                        ImGui::PopItemWidth();
+
+                        ImGui::TableNextColumn();
+                        std::string btnName = ICON_FA_TRASH_CAN;
+                        ImGui::PushStyleColor(ImGuiCol_Text, 0xff0000ff);
+                        if (ImGui::Selectable(btnName.c_str())) {
                             allShortcuts.erase(shortcut);
                         } else {
                             ++shortcut;
                         }
+                        ImGui::PopStyleColor();
+
+                        ImGui::PopID();
                     }
                     ImGui::EndTable();
                 }
                 if (ImGui::Button(ICON_FA_PLUS " Add new")) {
                     allShortcuts.emplace_back(user_actions::DO_NOTHING, 0, keyboard_shortcut_manager::modifier_t(0), keyboard_shortcut_manager::Event::ON_PRESS);
                 }
+                ImGui::SameLine();
+                if (ImGui::Button(ICON_FA_ARROW_ROTATE_LEFT " Reset all to default")) {
+                    keyboard_shortcut_manager::resetToDefault();
+                    allShortcuts = keyboard_shortcut_manager::getAllShortcuts();
+                }
                 ImGui::EndTabItem();
             }
             if (shouldOpenSelectActionModal) {
                 ImGui::OpenPopup("Select action");
             }
-            if (ImGui::BeginPopupModal("Select action", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            bool popupOpen = true;
+            if (ImGui::BeginPopupModal("Select action", &popupOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
                 constexpr int searchBufSize = 32;
                 static char searchBuf[searchBufSize];
                 static user_actions::Action currentlySelectedAction = user_actions::DO_NOTHING;
@@ -251,7 +305,9 @@ namespace bricksim::gui::windows::settings {
                     for (const auto& action: user_actions::findActionsByName(searchBuf)) {
                         const bool is_selected = (action == currentlySelectedAction);
                         if (ImGui::Selectable(user_actions::getName(action), is_selected)) {
-                            currentlySelectedAction = action;
+                            currentlyEditingShortcut.value().get().action = action;
+                            currentlyEditingShortcut = {};
+                            ImGui::CloseCurrentPopup();
                         }
 
                         if (is_selected) {
@@ -259,16 +315,6 @@ namespace bricksim::gui::windows::settings {
                         }
                     }
                     ImGui::EndListBox();
-                }
-                if (ImGui::Button(ICON_FA_CHECK " OK##actionChooser")) {
-                    currentlyEditingShortcut.value().get().action = currentlySelectedAction;
-                    currentlyEditingShortcut = {};
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(ICON_FA_RECTANGLE_XMARK " Cancel##actionChooser")) {
-                    currentlyEditingShortcut = {};
-                    ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
             }
@@ -282,6 +328,7 @@ namespace bricksim::gui::windows::settings {
                 if (caught.has_value()) {
                     ImGui::Text("Currently selected: %s", caught->getDisplayName().c_str());
                 } else {
+                    //todo crash here
                     ImGui::Text("Currently selected: %s", currentlyEditingShortcut.value().get().getDisplayName().c_str());
                 }
 
@@ -311,6 +358,7 @@ namespace bricksim::gui::windows::settings {
 
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
+            collectWindowInfo(data.id);
             static bool firstTime = true;
             static float buttonLineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 5 + 1;
             if (firstTime) {
@@ -339,6 +387,7 @@ namespace bricksim::gui::windows::settings {
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_RETWEET " Restore Defaults")) {
                 config::resetAllToDefault();
+                keyboard_shortcut_manager::resetToDefault();
                 load();
             }
         }

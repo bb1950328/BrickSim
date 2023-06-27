@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 env:
   BUILD_TYPE: Release
-  INSTALLBUILDER_VERSION: 23.1.0
+  INSTALLBUILDER_VERSION: 23.4.0
 jobs:
   buildLinux:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip linux ci')"
@@ -190,7 +190,7 @@ jobs:
         working-directory: ${{ runner.workspace }}
         #WARNING: if you change the version here, also change it in the cache key
         run: |
-          wget https://releases.bitrock.com/installbuilder/installbuilder-enterprise-${{ env.INSTALLBUILDER_VERSION }}-linux-x64-installer.run -O installbuilder_installer.run
+          wget https://releases.installbuilder.com/installbuilder/installbuilder-enterprise-${{ env.INSTALLBUILDER_VERSION }}-linux-x64-installer.run -O installbuilder_installer.run
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         run: |
@@ -317,7 +317,7 @@ jobs:
         working-directory: ${{ runner.workspace }}
         shell: powershell
         #WARNING: if you change the version here, also change it in the cache key
-        run: Invoke-WebRequest -Uri https://releases.bitrock.com/installbuilder/installbuilder-enterprise-${{ env.INSTALLBUILDER_VERSION }}-windows-x64-installer.exe -OutFile installbuilder_installer.exe
+        run: Invoke-WebRequest -Uri https://releases.installbuilder.com/installbuilder/installbuilder-enterprise-${{ env.INSTALLBUILDER_VERSION }}-windows-x64-installer.exe -OutFile installbuilder_installer.exe
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}
         shell: powershell
@@ -550,7 +550,7 @@ jobs:
         #WARNING: if you change the version here, also change it in the cache key
         run: |
           brew install wget
-          wget -nv https://releases.bitrock.com/installbuilder/installbuilder-enterprise-${{ env.INSTALLBUILDER_VERSION }}-osx-installer.dmg -O installbuilder_installer.dmg
+          wget -nv https://releases.installbuilder.com/installbuilder/installbuilder-enterprise-${{ env.INSTALLBUILDER_VERSION }}-osx-installer.dmg -O installbuilder_installer.dmg
 
       - name: Install InstallBuilder
         working-directory: ${{ runner.workspace }}

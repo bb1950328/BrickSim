@@ -138,8 +138,8 @@ namespace bricksim::connection::engine {
                     if (pa.type != CylindricalShapeType::ROUND && pa.type == pb.type) {
                         rotationPossible = false;
                     }
-                    if ((aCursor >= aBoundaries.size() - 2 && aBoundaries[aCursor + 1] < bBoundaries[bCursor])
-                        || (bCursor >= bBoundaries.size() - 2 && bBoundaries[bCursor + 1] < aBoundaries[aCursor])) {
+                    if ((static_cast<unsigned int>(aCursor) >= aBoundaries.size() - 2 && aBoundaries[aCursor + 1] < bBoundaries[bCursor])
+                        || (static_cast<unsigned int>(bCursor) >= bBoundaries.size() - 2 && bBoundaries[bCursor + 1] < aBoundaries[aCursor])) {
                         //no more common parts
                         break;
                     }
@@ -325,10 +325,10 @@ namespace bricksim::connection::engine {
             }
             manager.collide(&result, collisionCallback);
         } else {
-            for (int i = 0; i < flat.size(); ++i) {
+            for (size_t i = 0; i < flat.size(); ++i) {
                 const auto a = flat[i];
                 const auto aAABB = meshCollection.getAbsoluteAABB(a);
-                for (int j = 0; j < i; ++j) {
+                for (size_t j = 0; j < i; ++j) {
                     const auto b = flat[j];
                     const auto bAABB = meshCollection.getAbsoluteAABB(b);
                     if (aAABB.intersects(bAABB)) {

@@ -28,7 +28,7 @@ namespace bricksim::graphics {
         uomap_t<thumbnail_file_key_t, std::shared_ptr<Texture>> images;
         std::list<thumbnail_file_key_t> lastAccessed;
         glm::mat4 projection = glm::perspective(glm::radians(50.0f), 1.0f, 0.001f, 1000.0f);
-        int maxCachedThumbnails;
+        size_t maxCachedThumbnails;
         int framebufferSize = 0;
         [[nodiscard]] unsigned int copyImageToTexture() const;
         glm::vec3 renderedRotationDegrees;
@@ -42,7 +42,7 @@ namespace bricksim::graphics {
         std::optional<std::shared_ptr<Texture>> getThumbnailNonBlocking(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color);
         bool isThumbnailAvailable(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color);
 
-        void discardOldestImages(int reserve_space_for = 1);
+        void discardOldestImages(size_t reserve_space_for = 1);
         void discardAllImages();
 
         bool workOnRenderQueue();

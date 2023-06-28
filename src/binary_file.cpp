@@ -13,7 +13,7 @@ namespace bricksim {
         FILE* f = fopen(path.string().c_str(), "rb");
         if (f) {
             fseek(f, 0, SEEK_END);
-            long length = ftell(f);
+            unsigned long length = ftell(f);
             fseek(f, 0, SEEK_SET);
             data.resize(length);
             size_t bytesRead = fread(&data[0], 1, length, f);

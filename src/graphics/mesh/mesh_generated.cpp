@@ -169,7 +169,7 @@ namespace bricksim::mesh::generated {
         //         |    \  |
         // i2 -----+-------+
         for (uint16_t i0 = 0, i1 = 1; i0 < NUM_CORNERS; ++i0, i1 = (i0 + 1) % NUM_CORNERS) {
-            for (int vtx0 = 0, vtx1 = 1; vtx1 < baseVertexCount; ++vtx0, ++vtx1) {
+            for (size_t vtx0 = 0, vtx1 = 1; vtx1 < baseVertexCount; ++vtx0, ++vtx1) {
                 triangleData.addRawIndex(firstIndex + i0 * baseVertexCount + vtx0);
                 triangleData.addRawIndex(firstIndex + i0 * baseVertexCount + vtx1 + secondIdxDelta);
                 triangleData.addRawIndex(firstIndex + i1 * baseVertexCount + vtx1 + thirdIdxDelta);

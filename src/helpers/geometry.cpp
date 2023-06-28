@@ -360,14 +360,14 @@ namespace bricksim::geometry {
     }
     std::vector<glm::vec2> convertPolygonWithHoleToC(const std::vector<glm::vec2>& outerPoly, const std::vector<glm::vec2>& holePoly) {
         size_t maxXinHoleIndex = 0;
-        for (int i = 1; i < holePoly.size(); ++i) {
+        for (size_t i = 1; i < holePoly.size(); ++i) {
             if (holePoly[maxXinHoleIndex].x < holePoly[i].x) {
                 maxXinHoleIndex = i;
             }
         }
         const auto maxXinHole = holePoly[maxXinHoleIndex].x;
         size_t nextLargerXinOuter = 0;
-        for (int i = 1; i < outerPoly.size(); ++i) {
+        for (size_t i = 1; i < outerPoly.size(); ++i) {
             if (outerPoly[nextLargerXinOuter].x < maxXinHole || (outerPoly[nextLargerXinOuter].x > outerPoly[i].x && outerPoly[i].x >= maxXinHole)) {
                 nextLargerXinOuter = i;
             }

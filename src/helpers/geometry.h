@@ -134,7 +134,7 @@ namespace bricksim::geometry {
 
     template<glm::length_t L>
     int findPointInPolygonEpsilon(std::vector<glm::vec<L, float, glm::defaultp>> poly, glm::vec<L, float, glm::defaultp> point) {
-        for (int i = 0; i < poly.size(); ++i) {
+        for (size_t i = 0; i < poly.size(); ++i) {
             if (util::vectorSum(glm::abs(poly[i] - point)) < 0.0003f) {
                 return i;
             }
@@ -183,7 +183,7 @@ namespace bricksim::geometry {
                         currentPoly.insert(currentPoly.begin() + std::max(ia, ib), additionalCoord);
                         tri = triangles.erase(tri);
                         break;
-                    } else if (foundOne && std::min(ia, ib) == 0 && std::max(ia, ib) == currentPoly.size() - 1) {
+                    } else if (foundOne && std::min(ia, ib) == 0 && static_cast<size_t>(std::max(ia, ib)) == currentPoly.size() - 1) {
                         currentPoly.push_back(additionalCoord);
                         tri = triangles.erase(tri);
                         break;

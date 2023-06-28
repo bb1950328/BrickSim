@@ -211,7 +211,7 @@ namespace bricksim::ldr {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
         std::from_chars(&line[start], &line[end], color.code);
-        for (int n = 0; n < std::size(numbers); ++n) {
+        for (size_t n = 0; n < std::size(numbers); ++n) {
             parseNextFloat(line, start, end, numbers[n]);
         }
         filename = stringutil::trim(line.substr(end + 1));
@@ -221,7 +221,7 @@ namespace bricksim::ldr {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
         std::from_chars(&line[start], &line[end], color.code);
-        for (int n = 0; n < std::size(coords); ++n) {
+        for (size_t n = 0; n < std::size(coords); ++n) {
             parseNextFloat(line, start, end, coords[n]);
         }
     }
@@ -265,7 +265,7 @@ namespace bricksim::ldr {
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
         std::from_chars(&line[start], &line[end], color.code);
 
-        for (int i = 0; i < std::size(coords); ++i) {
+        for (size_t i = 0; i < std::size(coords); ++i) {
             parseNextFloat(line, start, end, coords[i]);
         }
     }

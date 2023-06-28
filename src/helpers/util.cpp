@@ -261,7 +261,7 @@ namespace bricksim::util {
         FILE* f = fopen(path.string().c_str(), "rb");
         if (f) {
             fseek(f, 0, SEEK_END);
-            long length = ftell(f);
+            unsigned long length = ftell(f);
             fseek(f, 0, SEEK_SET);
             std::string buffer;
             buffer.resize(length);
@@ -295,7 +295,7 @@ namespace bricksim::util {
         std::mt19937 rng(rd());
         std::uniform_int_distribution<> distribution(0, static_cast<int>(ALPHANUM_CHARS.size()) - 1);
 
-        for (int i = 0; i < length; ++i) {
+        for (size_t i = 0; i < length; ++i) {
             result += ALPHANUM_CHARS[distribution(rng)];
         }
 

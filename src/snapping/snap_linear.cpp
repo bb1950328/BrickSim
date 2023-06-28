@@ -12,7 +12,7 @@ namespace bricksim::snap {
         }
         const int configXZ = config::get(config::LINEAR_SNAP_STEP_XZ);
         const int configY = config::get(config::LINEAR_SNAP_STEP_Y);
-        for (int i = 0; i < presets.size(); ++i) {
+        for (size_t i = 0; i < presets.size(); ++i) {
             if (presets[i].stepXZ == configXZ && presets[i].stepY == configY) {
                 currentPresetIndex = i;
                 break;

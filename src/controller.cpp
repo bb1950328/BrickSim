@@ -187,7 +187,7 @@ namespace bricksim::controller {
         }
 
         void window_size_callback([[maybe_unused]] GLFWwindow* _, int width, int height) {
-            if (windowWidth != width || windowHeight != height) {
+            if (windowWidth != static_cast<unsigned int>(width) || windowHeight != static_cast<unsigned int>(height)) {
                 windowWidth = width;
                 windowHeight = height;
                 controller::executeOpenGL([&]() {
@@ -299,7 +299,7 @@ namespace bricksim::controller {
             };
 
             constexpr float progressStep = 1.0f / initSteps.size();
-            for (int i = 0; i < initSteps.size(); ++i) {
+            for (std::size_t i = 0; i < initSteps.size(); ++i) {
                 auto& currentStep = initSteps[i];
                 currentStep.startThread();
                 while (!currentStep.isDone()) {

@@ -628,7 +628,7 @@ namespace bricksim::overlay2d {
             return firstVertexLocation;
         }
         Vertex* nextVertexLocation = firstVertexLocation;
-        for (int i = 0; i < points.size() - 1; ++i) {
+        for (size_t i = 0; i < points.size() - 1; ++i) {
             const auto& p1 = points[i];
             const auto& p2 = points[i + 1];
             const glm::vec2 delta = p2 - p1;

@@ -121,7 +121,7 @@ namespace bricksim::gui::windows::mesh_inspector {
                             ImGui::TableHeadersRow();
 
                             if (currentMode == 0) {
-                                for (int index = 0; index < triangleData.getVertices().size(); ++index) {
+                                for (size_t index = 0; index < triangleData.getVertices().size(); ++index) {
                                     drawVertexRow(index, triangleData.getVertices()[index]);
                                 }
                             } else {

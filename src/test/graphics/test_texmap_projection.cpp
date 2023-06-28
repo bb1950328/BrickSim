@@ -37,7 +37,7 @@ TEST_CASE("texmap_projection::splitPolygonBiggerThanTexturePlanar 1") {
     const glm::vec3 is4(0.4610677426426f, -2.5095727909081f, 2.132337680395f);
 
     std::vector<std::array<glm::vec3, 3>> texturedVertexCoords;
-    for (int i = 0; i < texturedVertices.size(); i += 3) {
+    for (size_t i = 0; i < texturedVertices.size(); i += 3) {
         texturedVertexCoords.push_back({
                 texturedVertices[i].position,
                 texturedVertices[i + 1].position,
@@ -50,7 +50,7 @@ TEST_CASE("texmap_projection::splitPolygonBiggerThanTexturePlanar 1") {
     //todo check UV coordinates
 
     std::vector<std::array<glm::vec3, 3>> plainVertexCoords;
-    for (int i = 0; i < plainIndices.size(); i += 3) {
+    for (size_t i = 0; i < plainIndices.size(); i += 3) {
         plainVertexCoords.push_back({
                 plainVertices[plainIndices[i]].position,
                 plainVertices[plainIndices[i + 1]].position,

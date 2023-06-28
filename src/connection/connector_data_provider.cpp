@@ -108,7 +108,7 @@ namespace bricksim::connection {
                                 sec.length,
                         });
                     }
-                    for (int i = 0; i < cylCommand->secs.size(); ++i) {
+                    for (size_t i = 0; i < cylCommand->secs.size(); ++i) {
                         const auto& sec = cylCommand->secs[i];
                         auto& part = result->parts[i];
                         switch (sec.variant) {
@@ -125,7 +125,7 @@ namespace bricksim::connection {
                                 break;
                         }
                     }
-                    for (int i = 0; i < cylCommand->secs.size(); ++i) {
+                    for (size_t i = 0; i < cylCommand->secs.size(); ++i) {
                         const auto& sec = cylCommand->secs[i];
                         auto& part = result->parts[i];
                         switch (sec.variant) {
@@ -238,8 +238,8 @@ namespace bricksim::connection {
                                      const ldcad_meta::Grid& grid) {
             float xStart = grid.centerX ? (static_cast<float>(grid.countX - 1) / -2.f) * grid.spacingX : 0;
             float zStart = grid.centerZ ? (static_cast<float>(grid.countZ - 1) / -2.f) * grid.spacingZ : 0;
-            for (int ix = 0; ix < grid.countX; ++ix) {
-                for (int iz = 0; iz < grid.countZ; ++iz) {
+            for (uint32_t ix = 0; ix < grid.countX; ++ix) {
+                for (uint32_t iz = 0; iz < grid.countZ; ++iz) {
                     float dx = xStart + static_cast<float>(ix) * grid.spacingX;
                     float dz = zStart + static_cast<float>(iz) * grid.spacingZ;
                     for (const auto& cn: base) {

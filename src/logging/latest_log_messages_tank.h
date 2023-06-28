@@ -19,7 +19,7 @@ namespace bricksim::logging::latest_messages_tank {
 
     namespace {
         constexpr unsigned char minLevelForAlwaysKeeping = spdlog::level::warn;
-        int numLastMessages;
+        uint64_t numLastMessages;
 
         std::vector<LogMessage> alwaysKeepingMessages;
         std::list<LogMessage> lastNMessages;

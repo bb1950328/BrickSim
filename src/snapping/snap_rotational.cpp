@@ -30,7 +30,7 @@ namespace bricksim::snap {
             presets.emplace_back(item["name"].GetString(), item["step"].GetFloat());
         }
         const float configStep = config::get(config::ROTATIONAL_SNAP_STEP);
-        for (int i = 0; i < presets.size(); ++i) {
+        for (size_t i = 0; i < presets.size(); ++i) {
             if (std::fabs(presets[i].stepDeg - configStep) < .01f) {
                 currentPresetIndex = i;
                 break;

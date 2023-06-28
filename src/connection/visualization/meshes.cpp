@@ -46,8 +46,8 @@ namespace bricksim::connection::visualization {
         auto& lineData = mesh->getLineData();
         const auto color = getRGBFromSimpleLineColor(lineColor).asGlmVector();
         const auto basePoints = generateShape();
-        for (int i1 = 0; i1 < basePoints.size(); ++i1) {
-            const int i2 = (i1 + 1) % static_cast<int>(basePoints.size());
+        for (size_t i1 = 0; i1 < basePoints.size(); ++i1) {
+            const auto i2 = (i1 + 1ul) % basePoints.size();
 
             //shape circumfence
             lineData.addVertex({{basePoints[i1].x, basePoints[i1].y, 0.f}, color});

@@ -35,9 +35,11 @@ namespace bricksim::ldr::file_repo {
             int errCode;
             struct zip* zArchive = zip_open(path.string().c_str(), 0, &errCode);
             if (zArchive == nullptr) {
-                char errMessageBuffer[100];
-                zip_error_to_str(errMessageBuffer, sizeof(errMessageBuffer), errCode, errno);//todo this function is deprecated
-                throw std::invalid_argument(std::string("can't open .io file! Error ") + std::to_string(errCode) + ": " + std::string(errMessageBuffer));
+                zip_error_t zipError;
+                zip_error_init_with_code(&zipError, errCode);
+                const auto msg = fmt::format("can't open .io file! Error {}: {}", errCode, zip_error_strerror(&zipError));
+                zip_error_fini(&zipError);
+                throw std::invalid_argument(msg);
             }
 
             struct zip_stat fileStat {};
@@ -313,9 +315,9 @@ namespace bricksim::ldr::file_repo {
             const auto numCores = std::thread::hardware_concurrency();
             const auto filesPerThread = numFiles / numCores;
             std::vector<std::thread> threads;
-            for (int threadNum = 0; threadNum < numCores; ++threadNum) {
-                const long iStart = threadNum * filesPerThread;                                    //inclusive
-                const long iEnd = (threadNum == numCores - 1) ? numFiles : iStart + filesPerThread;//exclusive
+            for (size_t threadNum = 0; threadNum < numCores; ++threadNum) {
+                const size_t iStart = threadNum * filesPerThread;                                    //inclusive
+                const size_t iEnd = (threadNum == numCores - 1) ? numFiles : iStart + filesPerThread;//exclusive
                 threads.emplace_back([this,
                                       iStart,
                                       iEnd,
@@ -371,7 +373,7 @@ namespace bricksim::ldr::file_repo {
             auto after = std::chrono::high_resolution_clock::now();
             auto durationMs = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.0;
 
-            if (numFiles != db::fileList::getSize()) {
+            if (numFiles != static_cast<size_t>(db::fileList::getSize())) {
                 spdlog::error("had {} fileNames, but only {} are in db", numFiles, db::fileList::getSize());
             }
             spdlog::info("filled fileList in {} ms using {} threads. Size: {}", durationMs, numCores, numFiles);

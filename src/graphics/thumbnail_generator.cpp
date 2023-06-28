@@ -62,7 +62,7 @@ namespace bricksim::graphics {
         lastAccessed.clear();
     }
 
-    void ThumbnailGenerator::discardOldestImages(int reserve_space_for) {
+    void ThumbnailGenerator::discardOldestImages(size_t reserve_space_for) {
         controller::executeOpenGL([this, &reserve_space_for]() {
             int deletedCount = 0;
             while (lastAccessed.size() > maxCachedThumbnails - reserve_space_for) {

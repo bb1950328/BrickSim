@@ -101,7 +101,9 @@ message(STATUS "BrickSim parsed version:        ${BrickSim_VERSION_MAJOR}.${Bric
 
 add_library(BrickSimLib STATIC)
 
-target_compile_options(BrickSimLib PUBLIC -Werror=sign-compare)
+if (NOT MSVC)
+    target_compile_options(BrickSimLib PUBLIC -Werror=sign-compare)
+endif ()
 
 option(BRICKSIM_USE_ASAN "Use address sanitizer" OFF) # enabling this makes the program around 40% slower
 if (BRICKSIM_USE_ASAN)

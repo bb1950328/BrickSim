@@ -384,15 +384,14 @@ namespace bricksim::gui {
                 if (ImGui::BeginMenu(ICON_FA_RULER_COMBINED " Linear snap steps")) {
                     auto& linearHandler = handler.getLinear();
                     const auto& presets = linearHandler.getPresets();
-                    for (int i = 0; i < presets.size(); ++i) {
-                        const auto txt = fmt::format("{} XZ={} Y={}", presets[i].name, presets[i].stepXZ, presets[i].stepY);
+                    static_assert(snap::LinearHandler::TEMPORARY_PRESET_INDEX == -1);
+                    for (int i = -1; i < static_cast<int>(presets.size()); ++i) {
+                        const auto& preset = i >= 0 ? presets[i] : linearHandler.getTemporaryPreset();
+                        const std::string& name = i >= 0 ? preset.name : "Custom";
+                        const auto txt = fmt::format("{} XZ={} Y={}", name, preset.stepXZ, preset.stepY);
                         if (ImGui::MenuItem(txt.c_str(), nullptr, linearHandler.getCurrentPresetIndex() == i)) {
                             linearHandler.setCurrentPresetIndex(i);
                         }
-                    }
-                    const auto txt = fmt::format("Custom XZ={} Y={}", linearHandler.getTemporaryPreset().stepXZ, linearHandler.getTemporaryPreset().stepY);
-                    if (ImGui::MenuItem(txt.c_str(), nullptr, linearHandler.getCurrentPresetIndex() == snap::LinearHandler::TEMPORARY_PRESET_INDEX)) {
-                        linearHandler.setCurrentPresetIndex(snap::LinearHandler::TEMPORARY_PRESET_INDEX);
                     }
                     if (ImGui::BeginMenu(ICON_FA_PENCIL " Edit Custom")) {
                         static int xz;
@@ -404,6 +403,34 @@ namespace bricksim::gui {
                             linearHandler.setTemporaryPreset({"",
                                                               std::clamp(xz, 1, 20000),
                                                               std::clamp(y, 1, 20000)});
+                        }
+                        ImGui::EndMenu();
+                    }
+                    ImGui::EndMenu();
+                }
+                if (ImGui::BeginMenu(ICON_FA_ARROWS_SPIN " Rotational snap steps")) {
+                    auto& rotationalHandler = handler.getRotational();
+                    const auto& presets = rotationalHandler.getPresets();
+                    static_assert(snap::RotationalHandler::TEMPORARY_PRESET_INDEX == -1);
+                    for (int i = -1; i < static_cast<int>(presets.size()); ++i) {
+                        const std::string& name = i >= 0
+                                                          ? presets[i].name
+                                                          : "Custom";
+                        const float stepDeg = i >= 0
+                                                      ? presets[i].stepDeg
+                                                      : rotationalHandler.getTemporaryPreset().stepDeg;
+
+                        const auto txt = fmt::format("{}: {:g}°", name, stepDeg);
+                        if (ImGui::MenuItem(txt.c_str(), nullptr, rotationalHandler.getCurrentPresetIndex() == i)) {
+                            rotationalHandler.setCurrentPresetIndex(i);
+                        }
+                    }
+                    if (ImGui::BeginMenu(ICON_FA_PENCIL " Edit Custom")) {
+                        static float step;
+                        auto& tmpPreset = rotationalHandler.getTemporaryPreset();
+                        step = tmpPreset.stepDeg;
+                        if (ImGui::InputFloat("##step", &step, 1.f, 10.f, "%.2f°")) {
+                            rotationalHandler.setTemporaryPreset({"", std::clamp(step, 0.f, 360.f)});
                         }
                         ImGui::EndMenu();
                     }

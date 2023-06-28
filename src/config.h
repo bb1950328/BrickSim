@@ -187,4 +187,6 @@ namespace bricksim::config {
     const Key<int> LINEAR_SNAP_STEP_Y("linearSnapStepY", 20);
     const Key<std::string> LINEAR_SNAP_PRESETS("linearSnapPresets", snap::DEFAULT_LINEAR_SNAP_DISTANCE_PRESETS);
     const Key<bool> SNAP_ENABLED("snapEnabled", true);
+    const Key<std::string> ROTATIONAL_SNAP_PRESETS("rotationalSnapPresets", snap::DEFAULT_ROTATIONAL_SNAP_PRESETS);
+    const Key<float> ROTATIONAL_SNAP_STEP("rotationalSnapStep", 90.f);
 }

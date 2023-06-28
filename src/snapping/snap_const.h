@@ -8,4 +8,10 @@ namespace bricksim::snap {
                                                           R"({"name":"Plate/Half Brick", "xz": 10, "y": 8},)"
                                                           R"({"name":"Half Technic", "xz": 10, "y": 10})"
                                                           "]";
+    constexpr auto DEFAULT_ROTATIONAL_SNAP_PRESETS = "["
+                                                     R"({"name": "1/4", "step": 90},)"
+                                                     R"({"name": "1/6", "step": 60},)"
+                                                     R"({"name": "1/8", "step": 45},)"
+                                                     R"({"name": "1/16", "step": 22.5})"
+                                                     "]";
 }

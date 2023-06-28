@@ -65,6 +65,31 @@ namespace bricksim::util {
         return res;
     }
 
+    template<typename V, typename M>
+        requires std::is_arithmetic_v<V> && std::is_arithmetic_v<M>
+    V roundToNearestMultiple(V value, M multiple) {
+        return std::round(value / static_cast<V>(multiple)) * static_cast<V>(multiple);
+    }
+
+    template<glm::length_t L, typename T, glm::qualifier Q, typename M>
+        requires std::is_arithmetic_v<M>
+    glm::vec<L, T, Q> roundToNearestMultiple(const glm::vec<L, T, Q>& value, M multiple) {
+        glm::vec<L, T, Q> result;
+        for (int i = 0; i < L; ++i) {
+            result[i] = roundToNearestMultiple(value[i], multiple);
+        }
+        return result;
+    }
+
+    template<glm::length_t L, typename TV, typename TM, glm::qualifier Q>
+    glm::vec<L, TV, Q> roundToNearestMultiple(const glm::vec<L, TV, Q>& value, const glm::vec<L, TM, Q>& multiple) {
+        glm::vec<L, TV, Q> result;
+        for (int i = 0; i < L; ++i) {
+            result[i] = roundToNearestMultiple<TV, TM>(value[i], multiple[i]);
+        }
+        return result;
+    }
+
     template<glm::length_t L1, glm::length_t L2, typename T, glm::qualifier Q>
     bool matEpsilonEqual(const glm::mat<L1, L2, T, Q>& mat1, const glm::mat<L1, L2, T, Q>& mat2, T epsilon) {
         bool result = true;

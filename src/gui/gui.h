@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../graphics/texture.h"
+#include "windows/windows.h"
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <magic_enum.hpp>
@@ -68,4 +69,12 @@ namespace bricksim::gui {
     const std::shared_ptr<graphics::Texture>& getLogoTexture();
 
     void drawWaitMessage(const std::string& message, float progress);
+
+    /**
+     * This function must be called in each window somewhere between {@code ImGui::Begin()} and {@code ImGui::End()}
+     * @param id the id of the current window
+     */
+    void collectWindowInfo(windows::Id id);
+
+    [[nodiscard]] std::optional<windows::Id> getCurrentlyFocusedWindow();
 }

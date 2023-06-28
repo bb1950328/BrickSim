@@ -37,6 +37,7 @@ namespace bricksim::controller {
         std::shared_ptr<graphics::ThumbnailGenerator> thumbnailGenerator;
         std::list<std::shared_ptr<Editor>> editors;
         std::shared_ptr<Editor> activeEditor = nullptr;
+        snap::Handler snapHandler;
 
         unsigned int windowWidth;
         unsigned int windowHeight;
@@ -44,8 +45,6 @@ namespace bricksim::controller {
         bool openGlInitialized = false;
 
         bool userWantsToExit = false;
-
-        transform_gizmo::RotationState transformGizmoRotationState = transform_gizmo::RotationState::WORLD;
 
         uomap_t<unsigned int, Task> backgroundTasks;
         std::queue<Task> foregroundTasks;
@@ -275,7 +274,7 @@ namespace bricksim::controller {
                 }
             }
 
-            std::array<Task, 8> initSteps{{
+            std::array<Task, 10> initSteps{{
                     {"load color definitions", ldr::color_repo::initialize},
                     {"initialize shadow file repo", ldr::file_repo::initializeShadowFileRepo},
                     {"initialize file list", [](float* progress) { ldr::file_repo::get().initialize(progress); spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().string()); }},
@@ -284,6 +283,8 @@ namespace bricksim::controller {
                     {"initialize BrickLink constants", info_providers::bricklink_constants::initialize},
                     {"initialize keyboard shortcuts", keyboard_shortcut_manager::initialize},
                     {"initialize orientation cube generator", graphics::orientation_cube::initialize},
+                    {"initialize snap handler", []() { snapHandler.init(); }},
+                    {"initialize user actions", []() { user_actions::init(); }},
             }};
 
             const auto drawWaitMessageInFrame = [](const std::string& message, float progress) {
@@ -334,6 +335,7 @@ namespace bricksim::controller {
             }
             spdlog::info("all background tasks finished, exiting now");
             gui::cleanup();
+            snapHandler.cleanup();
             graphics::orientation_cube::cleanup();
             graphics::connection_visualization::cleanupIfNeeded();
             graphics::Texture::deleteCached();
@@ -376,6 +378,9 @@ namespace bricksim::controller {
         }
 
         void glfwErrorCallback(int code, const char* message) {
+            if (std::strstr(message, "Invalid scancode -1") != nullptr) {
+                return;
+            }
             spdlog::error("GLFW Error: {} {}", code, message);
         }
     }
@@ -391,11 +396,11 @@ namespace bricksim::controller {
 
         //openFile("test_files/bricks_test.ldr");
         //openFile("test_files/triangle_test.ldr");
-        //openFile("test_files/mpd_test.mpd");
+        openFile("test_files/mpd_test.mpd");
         //openFile("test_files/texmap_planar.ldr");
         //openFile("test_files/texmap_planar3.ldr");
         //openFile("test_files/texmap_planar_perpendicular.ldr");
-        openFile("test_files/omr/arocs.mpd");
+        //openFile("test_files/omr/arocs.mpd");
         //openFile("test_files/omr/chiron.mpd");
         //openFile("test_files/connection_info_problem_parts.ldr");
         //openFile("test_files/two_bricks_stacked.ldr");
@@ -564,15 +569,8 @@ namespace bricksim::controller {
         glfwMakeContextCurrent(nullptr);
     }
 
-    transform_gizmo::RotationState getTransformGizmoRotationState() {
-        return transformGizmoRotationState;
-    }
-
     void toggleTransformGizmoRotationState() {
-        transformGizmoRotationState =
-                transformGizmoRotationState == transform_gizmo::RotationState::WORLD
-                        ? transform_gizmo::RotationState::SELECTED_ELEMENT
-                        : transform_gizmo::RotationState::WORLD;
+        //todo implement
     }
 
     std::list<std::shared_ptr<Editor>>& getEditors() {
@@ -598,6 +596,9 @@ namespace bricksim::controller {
     }
     std::shared_ptr<efsw::FileWatcher> getFileWatcher() {
         return fileWatcher;
+    }
+    snap::Handler& getSnapHandler() {
+        return snapHandler;
     }
 
 #ifdef BRICKSIM_USE_RENDERDOC

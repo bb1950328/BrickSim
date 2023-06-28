@@ -49,6 +49,7 @@ namespace bricksim::gui::windows::element_tree {
 
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
+            collectWindowInfo(data.id);
             for (auto& editor: controller::getEditors()) {
                 drawElementTreeNode(editor->getRootNode(), editor);
             }

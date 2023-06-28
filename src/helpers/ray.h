@@ -13,13 +13,15 @@ namespace bricksim {
 
         Ray(const glm::vec<N, float, glm::defaultp>& origin, const glm::vec<N, float, glm::defaultp>& direction) :
             origin(origin), direction(direction) {}
+        Ray(const Ray& other) = default;
+        Ray& operator=(const Ray& other) = default;
 
         friend std::ostream& operator<<(std::ostream& os, const Ray& ray) {
             return os << "Ray" << N << "(origin=" << ray.origin << ", direction=" << ray.direction << ")";
         }
 
         Ray<N> operator*(const glm::mat<N + 1, N + 1, glm::f32, glm::defaultp>& transformation) {
-            Ray<N> result = this;
+            Ray<N> result(*this);
             result *= transformation;
             return result;
         }

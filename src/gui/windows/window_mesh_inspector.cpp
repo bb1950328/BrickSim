@@ -279,6 +279,7 @@ namespace bricksim::gui::windows::mesh_inspector {
 
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible, ImGuiWindowFlags_None)) {
+            collectWindowInfo(data.id);
             if (currentlyInspectingMesh == nullptr) {
                 ImGui::Text("Currently there's no mesh selected for inspection. Select one in the debug window.");
             } else if (ImGui::BeginTabBar("##meshInspectorTabs")) {

@@ -10,9 +10,9 @@
 #include <vector>
 
 namespace bricksim::overlay2d {
-    typedef glm::usvec2 coord_t;
+    typedef glm::vec2 coord_t;
 
-    typedef short length_t;
+    typedef float length_t;
 
     class Vertex {
     public:
@@ -91,6 +91,29 @@ namespace bricksim::overlay2d {
         void setWidth(float value);
         const color::RGB& getColor() const;
         void setColor(const color::RGB& value);
+    };
+
+    class DashedLineElement : public Element {
+    private:
+        std::vector<coord_t> points;
+        length_t spaceBetweenDashes;
+        length_t width;
+        color::RGB color;
+        void validatePoints();
+
+    public:
+        DashedLineElement(const std::vector<coord_t>& points, length_t spaceBetweenDashes, length_t width, const color::RGB& color);
+        bool isPointInside(coord_t point) override;
+        unsigned int getVertexCount() override;
+        Vertex* writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) override;
+        const std::vector<coord_t>& getPoints() const;
+        void setPoints(const std::vector<coord_t>& newPoints);
+        length_t getSpaceBetweenDashes() const;
+        void setSpaceBetweenDashes(length_t newSpaceBetweenDashes);
+        length_t getWidth() const;
+        void setWidth(length_t newWidth);
+        const color::RGB& getColor() const;
+        void setColor(const color::RGB& newColor);
     };
 
     class TriangleElement : public Element {
@@ -222,7 +245,8 @@ namespace bricksim::overlay2d {
         constexpr unsigned int getVertexCountForQuad();
 
         constexpr glm::vec2 toNDC(coord_t coord, coord_t viewportSize);
-        constexpr glm::vec2 toNDC(glm::vec2 coord, coord_t viewportSize);
+        constexpr bool isNDConScreen(glm::vec2 ndc);
+
         template<class T>
         constexpr glm::vec2 toNDC(T coord, coord_t viewportSize) = delete;//disable automatic conversion
     }

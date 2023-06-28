@@ -23,6 +23,7 @@ namespace bricksim::gui::windows::view3d {
 
     void draw(Data& data) {
         ImGuiDockNode* lastDockNode = nullptr;
+        bool windowInfoCollected = false;
         for (auto& editor: controller::getEditors()) {
             const bool isActiveEditor = editor->isActive();
             const auto windowTitle = editor->getFilename();
@@ -43,6 +44,10 @@ namespace bricksim::gui::windows::view3d {
                 ImGui::PopStyleColor();
             }
             if (windowOpen) {
+                if (!windowInfoCollected) {
+                    collectWindowInfo(data.id);
+                    windowInfoCollected = true;
+                }
                 ImGui::BeginChild("3DRender");
                 const ImVec2& regionAvail = ImGui::GetContentRegionAvail();
                 const auto& scene = editor->getScene();
@@ -92,6 +97,8 @@ namespace bricksim::gui::windows::view3d {
                     const bool currentlyAnyMouseDown = currentLeftMouseDown || currentMiddleMouseDown || currentRightMouseDown;
                     static bool lastAnyMouseDown = currentlyAnyMouseDown;
 
+                    editor->updateCursorPos(currentCursorPos);
+
                     if (currentlyAnyMouseDown && dragMode == NOT_DRAGGING && (deltaCursorPos.x != 0 || deltaCursorPos.y != 0)) {
                         //drag just started
                         //todo handle multiple buttons pressed
@@ -102,9 +109,9 @@ namespace bricksim::gui::windows::view3d {
                             dragMode = ROTATE_CAMERA;
                         } else {
                             std::shared_ptr<etree::Node> nodeUnderCursor = getNodeUnderCursor(scene, relCursorPos);
-                            if (nodeUnderCursor && editor->isNodeDraggable(nodeUnderCursor)) {
+                            if (nodeUnderCursor && editor->getSelectedNodes().contains(nodeUnderCursor)) {
                                 dragMode = DRAG_ELEMENT;
-                                editor->startNodeDrag(nodeUnderCursor, relCursorPos);
+                                editor->startTransformingSelectedNodes();
                             } else {
                                 dragMode = ROTATE_CAMERA;
                             }
@@ -113,6 +120,9 @@ namespace bricksim::gui::windows::view3d {
                     }
 
                     if (lastAnyMouseDown && !currentlyAnyMouseDown && dragMode == NOT_DRAGGING) {
+                        if (editor->getTransformGizmo()->isActive()) {
+                            editor->endNodeTransformation();
+                        }
                         //user just ended click without dragging
                         auto nodeUnderCursor = getNodeUnderCursor(scene, relCursorPos);
                         if (nodeUnderCursor) {
@@ -135,9 +145,6 @@ namespace bricksim::gui::windows::view3d {
                             totalDragDelta += deltaCursorPos;
                         } else {
                             //dragging just stopped
-                            if (dragMode == DRAG_ELEMENT) {
-                                editor->endNodeDrag();
-                            }
                             dragMode = NOT_DRAGGING;
                         }
                     }
@@ -152,7 +159,6 @@ namespace bricksim::gui::windows::view3d {
                             camera->mousePan(deltaCursorPos);
                             break;
                         case DRAG_ELEMENT:
-                            editor->updateNodeDragDelta(totalDragDelta);
                             break;
                     }
 
@@ -166,6 +172,8 @@ namespace bricksim::gui::windows::view3d {
                     lastRightMouseDown = currentRightMouseDown;
                     lastCursorPos = currentCursorPos;
                     lastAnyMouseDown = currentlyAnyMouseDown;
+                } else {
+                    editor->updateCursorPos(std::nullopt);
                 }
                 scene->setImageSize({regionAvail.x, regionAvail.y});
                 ImTextureID texture3dView;

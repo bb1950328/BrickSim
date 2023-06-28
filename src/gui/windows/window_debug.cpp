@@ -402,6 +402,7 @@ namespace bricksim::gui::windows::debug {
 
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
+            collectWindowInfo(data.id);
             if (ImGui::BeginTabBar("##debugTabBar")) {
                 drawGeneralTab();
                 drawPerformanceTab();

@@ -370,7 +370,7 @@ namespace bricksim::ldr {
     }
 }
 
-namespace robin_hood {
+namespace ankerl::unordered_dense {
     template<>
     struct hash<bricksim::ldr::TexmapStartCommand> {
         size_t operator()(bricksim::ldr::TexmapStartCommand const& value) const noexcept {

@@ -184,4 +184,33 @@ namespace bricksim::mesh {
     bool TriangleData::isDataAlreadyDeleted() const {
         return dataAlreadyDeleted;
     }
+    TriangleData::TriangleData(TriangleData&& other) noexcept :
+        color(other.color),
+        vertices(std::move(other.vertices)),
+        indices(std::move(other.indices)),
+        VAO(other.VAO),
+        vertexVBO(other.vertexVBO),
+        instanceVBO(other.instanceVBO),
+        EBO(other.EBO),
+        instanceCount(other.instanceCount),
+        lastInstanceBufferSize(other.lastInstanceBufferSize),
+        dataAlreadyDeleted(other.dataAlreadyDeleted),
+        uploadedVertexCount(other.uploadedVertexCount),
+        uploadedIndexCount(other.uploadedIndexCount) {
+    }
+    TriangleData& TriangleData::operator=(TriangleData&& other) noexcept {
+        color = other.color;
+        vertices = std::move(other.vertices);
+        indices = std::move(other.indices);
+        VAO = other.VAO;
+        vertexVBO = other.vertexVBO;
+        instanceVBO = other.instanceVBO;
+        EBO = other.EBO;
+        instanceCount = other.instanceCount;
+        lastInstanceBufferSize = other.lastInstanceBufferSize;
+        dataAlreadyDeleted = other.dataAlreadyDeleted;
+        uploadedVertexCount = other.uploadedVertexCount;
+        uploadedIndexCount = other.uploadedIndexCount;
+        return *this;
+    }
 }

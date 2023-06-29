@@ -160,7 +160,7 @@ namespace bricksim::gui::windows::debug {
                         if (mesh == currentlyInspectingMesh) {
                             ImGui::Text(ICON_FA_CHECK " Inspecting");
                         } else {
-                            snprintf(buf, MESHES_TAB_BUF_SIZE, ICON_FA_INFO " Inspect##%zu", robin_hood::hash<std::string>()(mesh->name));
+                            snprintf(buf, MESHES_TAB_BUF_SIZE, ICON_FA_INFO " Inspect##%zu", hash<std::string>()(mesh->name));
                             if (ImGui::Button(buf)) {
                                 mesh_inspector::setCurrentlyInspectingMesh(mesh);
                                 *isVisible(Id::MESH_INSPECTOR) = true;

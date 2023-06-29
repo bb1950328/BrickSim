@@ -3,9 +3,9 @@
 #ifdef BRICKSIM_PLATFORM_MACOS
     #include <filesystem>
 #endif
+#include <ankerl/unordered_dense.h>
 #include <glm/fwd.hpp>
 #include <map>
-#include <robin_hood.h>
 #include <set>
 
 namespace bricksim {
@@ -19,13 +19,16 @@ namespace bricksim {
     template<typename K, typename V>
     using omap_t = std::map<K, V>;
     template<typename K, typename V>
-    using uomap_t = robin_hood::unordered_map<K, V>;
+    using uomap_t = ankerl::unordered_dense::map<K, V>;
 
     template<typename T>
     using oset_t = std::set<T>;
 
     template<typename T>
-    using uoset_t = robin_hood::unordered_set<T>;
+    using uoset_t = ankerl::unordered_dense::set<T>;
+
+    template<typename T>
+    using hash = ankerl::unordered_dense::hash<T>;
 }
 namespace glm {
     using usvec1 = vec<1, unsigned short, defaultp>;

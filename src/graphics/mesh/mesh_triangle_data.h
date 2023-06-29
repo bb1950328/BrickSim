@@ -7,7 +7,9 @@ namespace bricksim::mesh {
     public:
         explicit TriangleData(const ldr::ColorReference& color);
         TriangleData(const TriangleData&) = delete;
+        TriangleData(TriangleData&& other) noexcept;
         TriangleData& operator=(const TriangleData&) = delete;
+        TriangleData& operator=(TriangleData&& other) noexcept;
         void initBuffers(const std::vector<MeshInstance>& instances);
         void freeBuffers() const;
         void draw(const std::optional<InstanceRange>& sceneLayerInstanceRange) const;

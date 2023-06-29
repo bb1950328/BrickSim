@@ -44,9 +44,6 @@
 [submodule "src/lib/fast_float"]
 	path = src/lib/fast_float
 	url = https://github.com/fastfloat/fast_float.git
-[submodule "src/lib/robin-hood-hashing"]
-	path = src/lib/robin-hood-hashing
-	url = https://github.com/martinus/robin-hood-hashing.git
 [submodule "src/lib/palenteer"]
 	path = src/lib/palanteer
 	url = https://www.github.com/dfeneyrou/palanteer.git
@@ -59,3 +56,6 @@
 [submodule "src/lib/fcl"]
 	path = src/lib/fcl
 	url = https://github.com/bb1950328/fcl
+[submodule "src/lib/unordered_dense"]
+	path = src/lib/unordered_dense
+	url = https://github.com/martinus/unordered_dense.git

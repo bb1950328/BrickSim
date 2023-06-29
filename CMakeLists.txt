@@ -238,9 +238,9 @@ target_link_libraries(BrickSimLib PUBLIC magic_enum::magic_enum)
 add_subdirectory(src/lib/fast_float)
 target_link_libraries(BrickSimLib PRIVATE fast_float)
 
-#robin-hood-hashing
-add_subdirectory(src/lib/robin-hood-hashing)
-target_link_libraries(BrickSimLib PUBLIC robin_hood::robin_hood)
+#unordered_dense
+add_subdirectory(src/lib/unordered_dense)
+target_link_libraries(BrickSimLib PUBLIC unordered_dense::unordered_dense)
 
 #esfw
 set(CXX11 ON CACHE BOOL "Build efsw with C++11" FORCE)

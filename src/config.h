@@ -178,7 +178,7 @@ namespace bricksim::config {
     const Key<float> TRANSFORM_GIZMO_SIZE("transformGizmoSize", 1.0);
     const Key<bool> FACE_CULLING_ENABLED("faceCullingEnabled", true);
     const Key<bool> THREADING_ENABLED("threadingEnabled", true);
-    const Key<bool> USE_EULER_ANGLES("useEulerAngles", false);
+    const Key<bool> USE_EULER_ANGLES("useEulerAngles", true);
     const Key<bool> DELETE_VERTEX_DATA_AFTER_UPLOADING("deleteVertexDataAfterUploading", true);
     const Key<bool> ENABLE_TEXMAP_SUPPORT("enableTexmapSupport", true);
     const Key<bool> DISPLAY_CONNECTOR_DATA_IN_3D_VIEW("displayConnectorDataIn3DView", false);

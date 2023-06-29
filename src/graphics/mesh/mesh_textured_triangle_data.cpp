@@ -113,4 +113,25 @@ namespace bricksim::mesh {
     void TexturedTriangleData::addVertex(const TexturedTriangleVertex& vertex) {
         vertices.push_back(vertex);
     }
+    TexturedTriangleData::TexturedTriangleData(TexturedTriangleData&& other) noexcept :
+        texture(std::move(other.texture)),
+        vertices(std::move(other.vertices)),
+        VAO(other.VAO),
+        vertexVBO(other.vertexVBO),
+        instanceVBO(other.instanceVBO),
+        verticesAlreadyDeleted(other.verticesAlreadyDeleted),
+        uploadedVertexCount(other.uploadedVertexCount),
+        uploadedInstanceCount(other.uploadedInstanceCount) {
+    }
+    TexturedTriangleData& TexturedTriangleData::operator=(TexturedTriangleData&& other) noexcept {
+        texture = std::move(other.texture);
+        vertices = std::move(other.vertices);
+        VAO = other.VAO;
+        vertexVBO = other.vertexVBO;
+        instanceVBO = other.instanceVBO;
+        verticesAlreadyDeleted = other.verticesAlreadyDeleted;
+        uploadedVertexCount = other.uploadedVertexCount;
+        uploadedInstanceCount = other.uploadedInstanceCount;
+        return *this;
+    }
 }

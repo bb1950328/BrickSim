@@ -15,7 +15,7 @@ namespace bricksim::mesh {
                 windingOrderInverse,
                 texmap == nullptr
                         ? 0
-                        : robin_hood::hash<ldr::TexmapStartCommand>()(*texmap),
+                        : hash<ldr::TexmapStartCommand>()(*texmap),
         };
     }
 

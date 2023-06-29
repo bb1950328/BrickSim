@@ -7,7 +7,9 @@ namespace bricksim::mesh {
     public:
         explicit TexturedTriangleData(std::shared_ptr<graphics::Texture> texture);
         TexturedTriangleData(const TexturedTriangleData&) = delete;
+        TexturedTriangleData(TexturedTriangleData&& other) noexcept;
         TexturedTriangleData& operator=(const TexturedTriangleData&) = delete;
+        TexturedTriangleData& operator=(TexturedTriangleData&& other) noexcept;
         void initBuffers(const std::vector<TexturedTriangleInstance>& instances);
         void rewriteInstanceBuffer(const std::vector<TexturedTriangleInstance>& instances);
         void freeBuffers() const;

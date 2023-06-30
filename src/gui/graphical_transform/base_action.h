@@ -50,6 +50,8 @@ namespace bricksim::graphical_transform {
 
         std::vector<std::shared_ptr<etree::Node>> nodes;
         std::vector<glm::mat4> initialRelativeTransformations;
+        glm::vec3 initialNodeCenter;
+
         std::array<bool, 3> lockedAxes = {false, false, false};
         State state = State::READY;
         glm::svec2 initialCursorPos;

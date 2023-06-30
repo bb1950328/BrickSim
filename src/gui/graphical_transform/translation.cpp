@@ -9,11 +9,6 @@ namespace bricksim::graphical_transform {
 
     Translation::Translation(Editor& editor, const std::vector<std::shared_ptr<etree::Node>>& nodes) :
         BaseAction(editor, nodes) {
-        glm::vec4 center(0.f);
-        for (const auto& item: nodes) {
-            center += (glm::transpose(item->getAbsoluteTransformation()) * glm::vec4(0.f, 0.f, 0.f, 1.f));
-        }
-        initialNodeCenter = center / center.w;
         currentNodeCenter = initialNodeCenter;
     }
 

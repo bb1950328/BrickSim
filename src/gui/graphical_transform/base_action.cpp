@@ -16,6 +16,11 @@ namespace bricksim::graphical_transform {
                        [](const auto& node) {
                            return glm::transpose(node->getRelativeTransformation());
                        });
+        glm::vec4 center(0.f);
+        for (const auto& item: nodes) {
+            center += (glm::transpose(item->getAbsoluteTransformation()) * glm::vec4(0.f, 0.f, 0.f, 1.f));
+        }
+        initialNodeCenter = center / center.w;
     }
     BaseAction::~BaseAction() {
         if (state != State::FINISHED) {

@@ -7,11 +7,14 @@ namespace bricksim::graphical_transform {
     public:
         Rotation(Editor& editor, const std::vector<std::shared_ptr<etree::Node>>& nodes);
         ~Rotation() override;
-        constexpr GraphicalTransformationType getType() const override;
+        [[nodiscard]] constexpr GraphicalTransformationType getType() const override;
 
     protected:
         void startImpl() override;
         void updateImpl() override;
         void endImpl() override;
+
+    private:
+        std::pair<uint8_t, glm::vec3> findBestPointOnPlanes(glm::usvec2 cursorPos);
     };
 }

@@ -12,7 +12,7 @@ namespace bricksim::graphical_transform {
         explicit Translation(Editor& editor, const std::vector<std::shared_ptr<etree::Node>>& nodes);
         ~Translation() override;
 
-        constexpr GraphicalTransformationType getType() const override;
+        [[nodiscard]] constexpr GraphicalTransformationType getType() const override;
 
     protected:
         void startImpl() override;
@@ -22,7 +22,6 @@ namespace bricksim::graphical_transform {
     private:
         std::array<std::shared_ptr<o2d::DashedLineElement>, 3> axisLines;
 
-        glm::vec3 initialNodeCenter;
         glm::vec3 currentNodeCenter;
 
         glm::vec3 startPoint;

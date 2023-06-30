@@ -7,6 +7,7 @@
 #include "connection/engine.h"
 #include "connection/visualization/connector_data_visualizer.h"
 #include "controller.h"
+#include "gui/graphical_transform/translation.h"
 #include "ldr/file_repo.h"
 #include "ldr/file_writer.h"
 #include "palanteer.h"
@@ -52,7 +53,6 @@ namespace bricksim {
         scene->setRootNode(rootNode);
         camera = std::make_shared<graphics::CadCamera>();
         scene->setCamera(camera);
-        transformGizmo = std::make_unique<transform_gizmo::TransformGizmo>(*this);
 
         if (filePath.has_value()) {
             efsw::WatchID watchId = controller::getFileWatcher()->addWatch(filePath->parent_path().string(), this);
@@ -121,8 +121,8 @@ namespace bricksim {
     std::shared_ptr<graphics::Scene>& Editor::getScene() {
         return scene;
     }
-    std::unique_ptr<transform_gizmo::TransformGizmo>& Editor::getTransformGizmo() {
-        return transformGizmo;
+    std::unique_ptr<graphical_transform::BaseAction>& Editor::getCurrentTransformAction() {
+        return currentTransformAction;
     }
 
     void Editor::writeTo(const std::filesystem::path& mainFilePath) {
@@ -181,7 +181,7 @@ namespace bricksim {
             auto after = std::chrono::high_resolution_clock::now();
 
             const auto timeUs = static_cast<float>(std::chrono::duration_cast<std::chrono::nanoseconds>(after - before).count()) / 1000.f;
-            spdlog::info("written {} files to {} in {}µs (mainFile={}, subfiles={})", 1 + filesValue.size(), pathKey.string(), timeUs, mainFile->metaInfo.name, fileNamesList);
+            spdlog::info("written {} files to {} in {}ï¿½s (mainFile={}, subfiles={})", 1 + filesValue.size(), pathKey.string(), timeUs, mainFile->metaInfo.name, fileNamesList);
         }
         enableFileAutoReload = enableAutoReloadBackup;
     }
@@ -392,28 +392,40 @@ namespace bricksim {
     }
 
     void Editor::endNodeTransformation() {
-        if (transformGizmo->isActive()) {
-            transformGizmo->end();
+        if (currentTransformAction != nullptr) {
+            currentTransformAction->end();
+            currentTransformAction = nullptr;
         }
     }
-    void Editor::startTransformingSelectedNodes() {
+    void Editor::startTransformingSelectedNodes(graphical_transform::GraphicalTransformationType type) {
+        std::optional<glm::svec2> realInitialCursorPos = std::nullopt;
+        if (currentTransformAction != nullptr) {
+            if (currentTransformAction->getType() == type) {
+                return;
+            } else {
+                realInitialCursorPos = currentTransformAction->getInitialCursorPos();
+                currentTransformAction->cancel();
+                currentTransformAction = nullptr;
+            }
+        }
         std::vector<std::shared_ptr<etree::Node>> selectedNodesVec;
         selectedNodesVec.reserve(selectedNodes.size());
         std::transform(selectedNodes.cbegin(), selectedNodes.cend(),
                        std::back_inserter(selectedNodesVec),
                        [](const auto& item) { return item.first; });
-        transformGizmo->start(selectedNodesVec);
-        if (cursorPos) {
-            transformGizmo->initCursorData(*cursorPos);
+        currentTransformAction = graphical_transform::createAction(type, *this, selectedNodesVec);
+        if (realInitialCursorPos.has_value()) {
+            currentTransformAction->start(*realInitialCursorPos);
         }
+        updateCursorPos(cursorPos);
     }
     void Editor::updateCursorPos(const std::optional<glm::svec2>& value) {
         cursorPos = value;
-        if (cursorPos.has_value() && transformGizmo->isActive()) {
-            if (transformGizmo->isCursorDataInitialized()) {
-                transformGizmo->updateCursorPos(*cursorPos);
+        if (currentTransformAction != nullptr && cursorPos.has_value()) {
+            if (currentTransformAction->getState() == graphical_transform::BaseAction::State::ACTIVE) {
+                currentTransformAction->update(*cursorPos);
             } else {
-                transformGizmo->initCursorData(*cursorPos);
+                currentTransformAction->start(*cursorPos);
             }
         }
     }
@@ -500,7 +512,6 @@ namespace bricksim {
     }
 
     void Editor::update() {
-        transformGizmo->update();
         for (const auto& item: selectedNodes) {
             if (item.first->getVersion() != item.second) {
                 updateSelectionVisualization();
@@ -602,8 +613,9 @@ namespace bricksim {
         }
     }
     void Editor::cancelNodeTransformation() {
-        if (transformGizmo->isActive()) {
-            transformGizmo->cancel();
+        if (currentTransformAction != nullptr) {
+            currentTransformAction->cancel();
+            currentTransformAction = nullptr;
         }
     }
 

@@ -160,4 +160,13 @@ namespace bricksim::util {
     }
 
     std::string randomAlphanumString(uint64_t length);
+
+    class NoCopyNoMove {
+    public:
+        NoCopyNoMove() = default;
+        NoCopyNoMove(const NoCopyNoMove&) = delete;
+        NoCopyNoMove(NoCopyNoMove&&) = delete;
+        NoCopyNoMove& operator=(const NoCopyNoMove&) = delete;
+        NoCopyNoMove& operator=(NoCopyNoMove&&) = delete;
+    };
 }

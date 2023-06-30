@@ -111,7 +111,7 @@ namespace bricksim::gui::windows::view3d {
                             std::shared_ptr<etree::Node> nodeUnderCursor = getNodeUnderCursor(scene, relCursorPos);
                             if (nodeUnderCursor && editor->getSelectedNodes().contains(nodeUnderCursor)) {
                                 dragMode = DRAG_ELEMENT;
-                                editor->startTransformingSelectedNodes();
+                                editor->startTransformingSelectedNodes(graphical_transform::GraphicalTransformationType::TRANSLATE);
                             } else {
                                 dragMode = ROTATE_CAMERA;
                             }
@@ -120,9 +120,7 @@ namespace bricksim::gui::windows::view3d {
                     }
 
                     if (lastAnyMouseDown && !currentlyAnyMouseDown && dragMode == NOT_DRAGGING) {
-                        if (editor->getTransformGizmo()->isActive()) {
-                            editor->endNodeTransformation();
-                        }
+                        editor->endNodeTransformation();
                         //user just ended click without dragging
                         auto nodeUnderCursor = getNodeUnderCursor(scene, relCursorPos);
                         if (nodeUnderCursor) {

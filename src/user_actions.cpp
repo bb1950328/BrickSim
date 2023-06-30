@@ -244,46 +244,52 @@ namespace bricksim::user_actions {
                         []() { controller::getActiveEditor()->inlineSelectedElements(); },
                 },
                 {
-                        START_TRANSFORMING_SELECTED_NODES,
-                        ICON_FA_UP_DOWN_LEFT_RIGHT " Start transforming selected Elements",
-                        EnableCondition::ALWAYS,
-                        []() { controller::getActiveEditor()->startTransformingSelectedNodes(); },
+                        START_TRANSLATING_SELECTED_NODES,
+                        ICON_FA_UP_DOWN_LEFT_RIGHT " Start translating selected Elements",
+                        EnableCondition::HAS_SELECTED_NODES,
+                        []() { controller::getActiveEditor()->startTransformingSelectedNodes(graphical_transform::GraphicalTransformationType::TRANSLATE); },
+                },
+                {
+                        START_ROTATING_SELECTED_NODES,
+                        ICON_FA_UP_DOWN_LEFT_RIGHT " Start rotating selected Elements",
+                        EnableCondition::HAS_SELECTED_NODES,
+                        []() { controller::getActiveEditor()->startTransformingSelectedNodes(graphical_transform::GraphicalTransformationType::ROTATE); },
                 },
                 {
                         TRANSFORMATION_LOCK_X,
                         ICON_FA_RULER_HORIZONTAL " Restrict transformation to X axis",
                         EnableCondition::TRANSFORM_IN_PROGRESS,
-                        []() { controller::getActiveEditor()->getTransformGizmo()->toggleAxisLock(true, false, false); },
+                        []() { controller::getActiveEditor()->getCurrentTransformAction()->toggleAxisLock(true, false, false); },
                 },
                 {
                         TRANSFORMATION_LOCK_Y,
                         ICON_FA_RULER_VERTICAL " Restrict transformation to Y axis",
                         EnableCondition::TRANSFORM_IN_PROGRESS,
-                        []() { controller::getActiveEditor()->getTransformGizmo()->toggleAxisLock(false, true, false); },
+                        []() { controller::getActiveEditor()->getCurrentTransformAction()->toggleAxisLock(false, true, false); },
                 },
                 {
                         TRANSFORMATION_LOCK_Z,
                         ICON_FA_RULER " Restrict transformation to Z axis",
                         EnableCondition::TRANSFORM_IN_PROGRESS,
-                        []() { controller::getActiveEditor()->getTransformGizmo()->toggleAxisLock(false, false, true); },
+                        []() { controller::getActiveEditor()->getCurrentTransformAction()->toggleAxisLock(false, false, true); },
                 },
                 {
                         TRANSFORMATION_LOCK_XY,
                         ICON_FA_RULER_COMBINED " Restrict transformation to X and Y axes",
                         EnableCondition::TRANSFORM_IN_PROGRESS,
-                        []() { controller::getActiveEditor()->getTransformGizmo()->toggleAxisLock(true, true, false); },
+                        []() { controller::getActiveEditor()->getCurrentTransformAction()->toggleAxisLock(true, true, false); },
                 },
                 {
                         TRANSFORMATION_LOCK_XZ,
                         ICON_FA_RULER_COMBINED " Restrict transformation to X and Z axes",
                         EnableCondition::TRANSFORM_IN_PROGRESS,
-                        []() { controller::getActiveEditor()->getTransformGizmo()->toggleAxisLock(true, false, true); },
+                        []() { controller::getActiveEditor()->getCurrentTransformAction()->toggleAxisLock(true, false, true); },
                 },
                 {
                         TRANSFORMATION_LOCK_YZ,
                         ICON_FA_RULER_COMBINED " Restrict transformation to Y and Z axes",
                         EnableCondition::TRANSFORM_IN_PROGRESS,
-                        []() { controller::getActiveEditor()->getTransformGizmo()->toggleAxisLock(false, true, true); },
+                        []() { controller::getActiveEditor()->getCurrentTransformAction()->toggleAxisLock(false, true, true); },
                 },
                 {
                         END_TRANSFORMATION,
@@ -312,7 +318,7 @@ namespace bricksim::user_actions {
         switch (getData(action).enableCondition) {
             case EnableCondition::ALWAYS: return true;
             case EnableCondition::HAS_ACTIVE_EDITOR: return hasActiveEditor();
-            case EnableCondition::TRANSFORM_IN_PROGRESS: return hasActiveEditor() && controller::getActiveEditor()->getTransformGizmo()->isActive();
+            case EnableCondition::TRANSFORM_IN_PROGRESS: return hasActiveEditor() && controller::getActiveEditor()->getCurrentTransformAction() != nullptr;
             case EnableCondition::HAS_SELECTED_NODES: return hasActiveEditor() && !controller::getActiveEditor()->getSelectedNodes().empty();
             default: return false;
         }

@@ -7,4 +7,5 @@ target_sources(BrickSimLib PRIVATE
         modals.h
         )
 add_subdirectory(context_menu)
+add_subdirectory(graphical_transform)
 add_subdirectory(windows)

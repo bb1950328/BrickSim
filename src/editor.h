@@ -2,8 +2,8 @@
 
 #include "element_tree.h"
 #include "graphics/scene.h"
+#include "gui/graphical_transform/provider.h"
 #include "ldr/file_repo.h"
-#include "transform_gizmo.h"
 #include <efsw/efsw.hpp>
 
 namespace bricksim {
@@ -41,7 +41,7 @@ namespace bricksim {
         std::shared_ptr<ldr::FileNamespace>& getFileNamespace();
         [[nodiscard]] bool isModified() const;
         std::shared_ptr<graphics::Scene>& getScene();
-        std::unique_ptr<transform_gizmo::TransformGizmo>& getTransformGizmo();
+        std::unique_ptr<graphical_transform::BaseAction>& getCurrentTransformAction();
         [[nodiscard]] const std::shared_ptr<graphics::CadCamera>& getCamera() const;
         [[nodiscard]] const uomap_t<std::shared_ptr<etree::Node>, uint64_t>& getSelectedNodes() const;
 
@@ -61,7 +61,7 @@ namespace bricksim {
         bool isNodeClickable(const std::shared_ptr<etree::Node>& node);
         void nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed);
 
-        void startTransformingSelectedNodes();
+        void startTransformingSelectedNodes(graphical_transform::GraphicalTransformationType type);
         void endNodeTransformation();
         void cancelNodeTransformation();
         void updateCursorPos(const std::optional<glm::svec2>& value);
@@ -109,7 +109,7 @@ namespace bricksim {
         std::shared_ptr<ldr::FileNamespace> fileNamespace;
         scene_id_t sceneId{};
         std::shared_ptr<graphics::Scene> scene;
-        std::unique_ptr<transform_gizmo::TransformGizmo> transformGizmo;
+        std::unique_ptr<graphical_transform::BaseAction> currentTransformAction = nullptr;
         uomap_t<std::shared_ptr<etree::ModelNode>, etree::Node::version_t> lastSavedVersions;
         ///value is last version, use to check if selected node was modified in the meantime
         uomap_t<std::shared_ptr<etree::Node>, uint64_t> selectedNodes;

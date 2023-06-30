@@ -161,14 +161,15 @@ endif ()
 # libzip
 set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)# https://github.com/nih-at/libzip/issues/66
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
-set(ENABLE_BZIP2 OFF)
-set(ENABLE_LZMA OFF)
-set(ENABLE_ZSTD OFF)
+set(ENABLE_BZIP2 OFF CACHE BOOL "Enable use of BZip2" FORCE)
+set(ENABLE_LZMA OFF CACHE BOOL "Enable use of LZMA" FORCE)
+set(ENABLE_ZSTD OFF CACHE BOOL "Enable use of Zstandard" FORCE)
+set(BUILD_REGRESS OFF CACHE BOOL "Build regression tests" FORCE)
 add_subdirectory(src/lib/libzip)
 target_link_libraries(BrickSimLib PUBLIC libzip::zip)
 if (NOT MSVC)
     target_compile_options(zip PRIVATE -Wno-nullability-completeness)
-endif()
+endif ()
 
 # SqliteCpp
 set(SQLITECPP_USE_STACK_PROTECTION OFF)

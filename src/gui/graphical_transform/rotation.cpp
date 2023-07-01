@@ -1,10 +1,8 @@
 #include "rotation.h"
 #include "../../config.h"
 #include "../../controller.h"
-#include "../../editor.h"
 #include "../../helpers/geometry.h"
 #include "spdlog/fmt/ostr.h"
-#include "spdlog/spdlog.h"
 #include <glm/gtx/string_cast.hpp>
 
 namespace bricksim::graphical_transform {
@@ -19,12 +17,15 @@ namespace bricksim::graphical_transform {
         scene->getOverlayCollection().addElement(arc);
     }
     void Rotation::updateImpl() {
-        const auto [axis, initialPoint] = findBestPointOnPlanes(initialCursorPos);
-
-        const auto worldRay = editor.getScene()->screenCoordinatesToWorldRay(currentCursorPos) * constants::OPENGL_TO_LDU;
+        const auto initialWorldRay = editor.getScene()->screenCoordinatesToWorldRay(initialCursorPos) * constants::OPENGL_TO_LDU;
+        const auto axis = findRotationAxis(initialWorldRay.direction);
         glm::vec3 axisVec(0.f);
         axisVec[axis] = 1;
-        auto currentPoint = geometry::rayPlaneIntersection(worldRay, Ray3(initialNodeCenter, axisVec)).value_or(initialPoint);
+        const auto initialPoint = geometry::rayPlaneIntersection(initialWorldRay, Ray3(initialNodeCenter, axisVec)).value_or(glm::vec3(0.f));
+
+        const auto currentWorldRay = editor.getScene()->screenCoordinatesToWorldRay(currentCursorPos) * constants::OPENGL_TO_LDU;
+        auto currentPoint = geometry::rayPlaneIntersection(currentWorldRay, Ray3(initialNodeCenter, axisVec)).value_or(initialPoint);
+
         const auto arcRadius = glm::length(currentPoint - initialNodeCenter);
         const auto initialPointScaled = initialNodeCenter + arcRadius * glm::normalize(initialPoint - initialNodeCenter);
         const auto relInitialPointScaled = initialPointScaled - initialNodeCenter;
@@ -34,10 +35,6 @@ namespace bricksim::graphical_transform {
             const auto snapPreset = glm::radians(controller::getSnapHandler().getRotational().getCurrentPreset().stepDeg);
             rotationAngle = util::roundToNearestMultiple(rotationAngle, snapPreset);
             currentPoint = initialNodeCenter + glm::angleAxis(rotationAngle, axisVec) * relInitialPointScaled;
-        }
-
-        if (lastRotationAngle == rotationAngle) {
-            return;
         }
 
         const auto color = constants::AXIS_COLORS[axis];
@@ -51,6 +48,10 @@ namespace bricksim::graphical_transform {
         const auto arcAngles = getArcAngles(rotationAngle);
         arc->setPoints(getPointsForArc(arcAngles, axisVec, relInitialPointScaled));
 
+        if (lastRotationAngle == rotationAngle) {
+            return;
+        }
+
         setAllNodeTransformations([this, rotationAngle, &axisVec](const glm::mat4& initialRelTransf) {
             return glm::translate(glm::mat4(1.f), initialNodeCenter)
                    * glm::rotate(glm::mat4(1.f), rotationAngle, axisVec)
@@ -58,19 +59,6 @@ namespace bricksim::graphical_transform {
                    * initialRelTransf;
         });
 
-        auto nodeIt = nodes.begin();
-        auto transfIt = initialRelativeTransformations.begin();
-        while (nodeIt != nodes.end()) {
-            auto newTransf = glm::translate(glm::mat4(1.f), initialNodeCenter)
-                             * glm::rotate(glm::mat4(1.f), rotationAngle, axisVec)
-                             * glm::translate(glm::mat4(1.f), -initialNodeCenter)
-                             * (*transfIt);
-            (*nodeIt)->setRelativeTransformation(glm::transpose(newTransf));
-            (*nodeIt)->incrementVersion();
-
-            ++nodeIt;
-            ++transfIt;
-        }
         lastRotationAngle = rotationAngle;
     }
     std::vector<std::pair<float, float>> Rotation::getArcAngles(float& rotationAngle) {
@@ -99,25 +87,26 @@ namespace bricksim::graphical_transform {
     constexpr GraphicalTransformationType Rotation::getType() const {
         return GraphicalTransformationType::ROTATE;
     }
-    std::pair<uint8_t, glm::vec3> Rotation::findBestPointOnPlanes(glm::usvec2 cursorPos) {
-        const auto worldRay = editor.getScene()->screenCoordinatesToWorldRay(cursorPos) * constants::OPENGL_TO_LDU;
-
-        std::array<float, 3> angles{};
+    uint8_t Rotation::findRotationAxis(glm::vec3 worldRayDirection) const {
+        std::array<float, 3> scores{};
         for (int i = 0; i < 3; ++i) {
             glm::vec3 axis(0.f);
             axis[i] = 1;
-            auto angleToAxis = geometry::getAngleBetweenTwoVectors(axis, worldRay.direction);
+            auto angleToAxis = geometry::getAngleBetweenTwoVectors(axis, worldRayDirection);
             if (angleToAxis > M_PI_2) {
                 angleToAxis = M_PI - angleToAxis;
             }
-            angles[i] = lockedAxes[i] ? angleToAxis : 0;
+            float penalty = 0.f;
+            if (angleToAxis > glm::radians(85.f)) {
+                penalty += 20;
+            }
+            if (lockedAxes[i]) {
+                penalty += 10;
+            }
+            scores[i] = penalty + angleToAxis;
         }
-        const auto minAxis = static_cast<uint8_t>(std::distance(angles.begin(), std::min_element(angles.begin(), angles.end())));
-        glm::vec3 axis(0.f);
-        axis[minAxis] = 1;
 
-        const auto intersectionPoint = geometry::rayPlaneIntersection(worldRay, Ray3(initialNodeCenter, axis));
-        return {minAxis, intersectionPoint.value_or(glm::vec3(0.f))};
+        return std::distance(scores.begin(), std::min_element(scores.begin(), scores.end()));
     }
     overlay2d::DashedPolyLineElement::points_t Rotation::getPointsForArc(const std::vector<std::pair<float, float>>& arcAngles, glm::vec3 axisVec, glm::vec3 relInitialPointScaled) const {
         std::vector<std::vector<overlay2d::coord_t>> coords2d;
@@ -133,7 +122,6 @@ namespace bricksim::graphical_transform {
             const auto pEnd = angleToPoint2d(endAngle);
             const auto stepCount = static_cast<int>(glm::length(pEnd - pBegin) / 10);
             const auto stepAngle = (endAngle - beginAngle) / static_cast<float>((stepCount + 2));
-            spdlog::debug("stepCount={}, stepAngle={}", stepCount, stepAngle);
             auto& line2d = coords2d.emplace_back();
             line2d.reserve(stepCount + 2);
             line2d.push_back(pBegin);

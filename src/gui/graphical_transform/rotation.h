@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../graphics/overlay_2d.h"
 #include "base_action.h"
 
 namespace bricksim::graphical_transform {
@@ -15,6 +16,8 @@ namespace bricksim::graphical_transform {
         void endImpl() override;
 
     private:
+        std::shared_ptr<overlay2d::LineElement> startLine;
+
         std::pair<uint8_t, glm::vec3> findBestPointOnPlanes(glm::usvec2 cursorPos);
     };
 }

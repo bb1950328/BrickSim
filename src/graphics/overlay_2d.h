@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <vector>
 //todo split this into multiple files
@@ -138,6 +139,7 @@ namespace bricksim::overlay2d {
         unsigned int getVertexCount() override;
         Vertex* writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) override;
         ~DashedPolyLineElement() override;
+        std::pair<size_t, std::optional<glm::vec2>> cutStartEnd(const std::vector<glm::vec2>& origLine, bool start);
     };
 
     class TriangleElement : public Element {

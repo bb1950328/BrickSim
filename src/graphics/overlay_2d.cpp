@@ -1,12 +1,11 @@
 #include "overlay_2d.h"
 #include "../controller.h"
 #include "../helpers/geometry.h"
-#include "../helpers/util.h"
-#include "glm/gtx/string_cast.hpp"
-#include "spdlog/spdlog.h"
 #include <cmath>
 #include <glad/glad.h>
+#include <numeric>
 #include <palanteer.h>
+#include <spdlog/spdlog.h>
 
 namespace bricksim::overlay2d {
     namespace {
@@ -138,22 +137,23 @@ namespace bricksim::overlay2d {
             return -1.f <= ndc.x && ndc.x <= 1.f && -1.f <= ndc.y && ndc.y <= 1.f;
         }
 
+        std::pair<glm::vec2, glm::vec2> calculatePolyLineCornerPoints(length_t width, glm::vec2 point, glm::vec2 dirToLast, glm::vec2 dirToNext) {
+            //https://math.stackexchange.com/a/1849845/945069
+            const auto beta = geometry::getAngleBetweenTwoVectors(dirToLast, dirToNext);
+            glm::vec2 uvSum;
+            if (beta > M_PI - .01f) {
+                //special case when beta is almost 180°
+                uvSum = glm::normalize(glm::vec2(dirToLast.y, -dirToLast.x)) * (width / 2.f);
+            } else {
+                const auto uvLength = width / (2 * std::sin(beta));
+                const auto u = glm::normalize(dirToLast) * uvLength;
+                const auto v = glm::normalize(dirToNext) * uvLength;
+                uvSum = u + v;
+            }
+            return std::make_pair(point + uvSum, point - uvSum);
+        }
+
         Vertex* generateVerticesForPolyLine(Vertex* firstVertexLocation, const std::vector<coord_t>& points, length_t width, color::RGB color, coord_t viewportSize) {
-            const auto calcPoints = [width](glm::vec2 point, glm::vec2 dirToLast, glm::vec2 dirToNext) {
-                //https://math.stackexchange.com/a/1849845/945069
-                const auto beta = geometry::getAngleBetweenTwoVectors(dirToLast, dirToNext);
-                glm::vec2 uvSum;
-                if (beta > M_PI - .01f) {
-                    //special case when beta is almost 180°
-                    uvSum = glm::normalize(glm::vec2(dirToLast.y, -dirToLast.x)) * (width / 2.f);
-                } else {
-                    const auto uvLength = width / (2 * std::sin(beta));
-                    const auto u = glm::normalize(dirToLast) * uvLength;
-                    const auto v = glm::normalize(dirToNext) * uvLength;
-                    uvSum = u + v;
-                }
-                return std::make_pair(point + uvSum, point - uvSum);
-            };
             std::pair<glm::vec2, glm::vec2> lastPoints{};
             for (size_t i = 0; i < points.size(); ++i) {
                 const auto sToLast = i == 0
@@ -164,7 +164,7 @@ namespace bricksim::overlay2d {
                                              : (points[i + 1] - points[i]);
                 const auto fToLast = glm::normalize(glm::vec2(sToLast));
                 const auto fToNext = glm::normalize(glm::vec2(sToNext));
-                auto currentPoints = calcPoints(points[i], fToLast, fToNext);
+                auto currentPoints = calculatePolyLineCornerPoints(width, points[i], fToLast, fToNext);
                 if (i != 0) {
                     // last              current
                     // .first-------------.first
@@ -741,41 +741,44 @@ namespace bricksim::overlay2d {
     }
     DashedPolyLineElement::~DashedPolyLineElement() = default;
 
+    std::pair<size_t, std::optional<glm::vec2>> DashedPolyLineElement::cutStartEnd(const std::vector<glm::vec2>& origLine, bool start) {
+        auto remaining = spaceBetweenDashes / 2;
+        auto iStep = start ? 1 : -1;
+        size_t i = start ? 0 : (origLine.size() - 1);
+        std::optional<glm::vec2> additionalPoint = std::nullopt;
+        while (remaining > 0) {
+            const auto segment = origLine[i + iStep] - origLine[i];
+            const auto segmentLength = glm::length(segment);
+            if (segmentLength < remaining) {
+                additionalPoint = origLine[i] + segment / segmentLength * remaining;
+            }
+            i += iStep;
+            remaining -= segmentLength;
+        }
+        return {i, additionalPoint};
+    }
+
     void DashedPolyLineElement::setPoints(const points_t& origPoints) {
         this->points.clear();
         this->points.reserve(origPoints.size());
         for (size_t i = 0; i < origPoints.size(); ++i) {
             const auto& origLine = origPoints[i];
+            const auto [iFirstToCopy, firstPoint] = i > 0
+                                                            ? cutStartEnd(origLine, true)
+                                                            : std::make_pair(0, std::nullopt);
+            const auto [iLastToCopy, lastPoint] = i < origPoints.size() - 1
+                                                          ? cutStartEnd(origLine, false)
+                                                          : std::make_pair(origLine.size() - 1, std::nullopt);
+
             std::vector<coord_t> newLine;
             newLine.reserve(origLine.size());
-            auto toRemoveStart = i == 0 ? 0.f : spaceBetweenDashes / 2;
-            auto it = origLine.cbegin();
-            while (toRemoveStart > 0) {
-                const auto segment = *(it + 1) - *it;
-                const auto segmentLength = glm::length(segment);
-                if (segmentLength < toRemoveStart) {
-                    newLine.push_back(*it + segment / segmentLength * toRemoveStart);
-                }
-                ++it;
-                toRemoveStart -= segmentLength;
-            }
-            const auto firstToCopy = it;
 
-            auto toRemoveEnd = i == origPoints.size() - 1 ? 0.f : spaceBetweenDashes / 2;
-            it = origLine.cend() - 1;
-            std::optional<glm::vec2> lastPoint = std::nullopt;
-            while (toRemoveEnd > 0) {
-                const auto segment = *(it - 1) - *it;
-                const auto segmentLength = glm::length(segment);
-                if (segmentLength < toRemoveEnd) {
-                    lastPoint = *it + segment / segmentLength * toRemoveEnd;
-                }
-                --it;
-                toRemoveEnd -= segmentLength;
+            if (firstPoint.has_value()) {
+                newLine.push_back(*firstPoint);
             }
-            const auto lastToCopy = it;
-
-            std::copy(firstToCopy, lastToCopy + 1, std::back_inserter(newLine));
+            for (size_t j = iFirstToCopy; j <= iLastToCopy; ++j) {
+                newLine.push_back(origLine[j]);
+            }
             if (lastPoint.has_value()) {
                 newLine.push_back(*lastPoint);
             }

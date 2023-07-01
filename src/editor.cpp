@@ -181,7 +181,7 @@ namespace bricksim {
             auto after = std::chrono::high_resolution_clock::now();
 
             const auto timeUs = static_cast<float>(std::chrono::duration_cast<std::chrono::nanoseconds>(after - before).count()) / 1000.f;
-            spdlog::info("written {} files to {} in {}�s (mainFile={}, subfiles={})", 1 + filesValue.size(), pathKey.string(), timeUs, mainFile->metaInfo.name, fileNamesList);
+            spdlog::info("written {} files to {} in {}µs (mainFile={}, subfiles={})", 1 + filesValue.size(), pathKey.string(), timeUs, mainFile->metaInfo.name, fileNamesList);
         }
         enableFileAutoReload = enableAutoReloadBackup;
     }

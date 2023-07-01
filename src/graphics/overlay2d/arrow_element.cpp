@@ -26,7 +26,7 @@ namespace bricksim::overlay2d {
         return 5 * vertex_generator::getVertexCountForTriangle();
     }
 
-    Vertex* ArrowElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
+    void ArrowElement::writeVertices(std::vector<Vertex>::iterator& buffer, coord_t viewportSize) {
         //               5
         //               |  \
         // 1-------------3      \
@@ -52,13 +52,11 @@ namespace bricksim::overlay2d {
         const glm::vec2 p5 = normalLineEnd - halfEdge * tipWidthFactor;
         const glm::vec2 p6 = normalLineEnd + halfEdge * tipWidthFactor;
 
-        firstVertexLocation = vertex_generator::generateVerticesForCCWTriangle(firstVertexLocation, p5, p3, end, color, viewportSize);
-        firstVertexLocation = vertex_generator::generateVerticesForCCWTriangle(firstVertexLocation, p3, p1, end, color, viewportSize);
-        firstVertexLocation = vertex_generator::generateVerticesForCCWTriangle(firstVertexLocation, p1, p2, end, color, viewportSize);
-        firstVertexLocation = vertex_generator::generateVerticesForCCWTriangle(firstVertexLocation, p2, p4, end, color, viewportSize);
-        firstVertexLocation = vertex_generator::generateVerticesForCCWTriangle(firstVertexLocation, p4, p6, end, color, viewportSize);
-
-        return firstVertexLocation;
+        vertex_generator::generateVerticesForCCWTriangle(buffer, p5, p3, end, color, viewportSize);
+        vertex_generator::generateVerticesForCCWTriangle(buffer, p3, p1, end, color, viewportSize);
+        vertex_generator::generateVerticesForCCWTriangle(buffer, p1, p2, end, color, viewportSize);
+        vertex_generator::generateVerticesForCCWTriangle(buffer, p2, p4, end, color, viewportSize);
+        vertex_generator::generateVerticesForCCWTriangle(buffer, p4, p6, end, color, viewportSize);
     }
 
     float ArrowElement::calculateTipLength() const {

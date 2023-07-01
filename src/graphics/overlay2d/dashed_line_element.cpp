@@ -11,11 +11,10 @@ namespace bricksim::overlay2d {
     unsigned int DashedLineElement::getVertexCount() {
         return points.empty() ? 0 : vertex_generator::getVertexCountForLine() * (points.size() - 1);
     }
-    Vertex* DashedLineElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
+    void DashedLineElement::writeVertices(std::vector<Vertex>::iterator& buffer, coord_t viewportSize) {
         if (points.empty()) {
-            return firstVertexLocation;
+            return;
         }
-        Vertex* nextVertexLocation = firstVertexLocation;
         for (size_t i = 0; i < points.size() - 1; ++i) {
             const auto& p1 = points[i];
             const auto& p2 = points[i + 1];
@@ -23,9 +22,8 @@ namespace bricksim::overlay2d {
             const glm::vec2 halfGap(delta * (spaceBetweenDashes / glm::length(delta) / 2.f));
             const coord_t lineStart = p1 + halfGap;
             const coord_t lineEnd = p2 - halfGap;
-            nextVertexLocation = vertex_generator::generateVerticesForLine(nextVertexLocation, lineStart, lineEnd, width, color, viewportSize);
+            vertex_generator::generateVerticesForLine(buffer, lineStart, lineEnd, width, color, viewportSize);
         }
-        return nextVertexLocation;
     }
     const std::vector<coord_t>& DashedLineElement::getPoints() const {
         return points;

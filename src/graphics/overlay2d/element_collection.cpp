@@ -15,7 +15,6 @@ namespace bricksim::overlay2d {
         if (hasChangedElements() || viewportSizeChanged) {
             bool needToRewriteEverything = false;
             std::vector<VertexRange> changedRanges;
-            auto firstVertex = vertices.begin();
             for (const auto& elem: elementsToUpdate) {
                 auto vertexRangesIt = vertexRanges.find(elem);
                 const bool elementIsNew = vertexRangesIt == vertexRanges.end();
@@ -43,16 +42,16 @@ namespace bricksim::overlay2d {
                     range.start = static_cast<unsigned int>(vertices.size());
                     range.count = newVertexCount;
                     vertices.resize(vertices.size() + newVertexCount);
-                    auto firstVertexLocation = &vertices[range.start];
-                    auto lastVertexLocation = elem->writeVertices(firstVertexLocation, viewportSize);
-                    assert(lastVertexLocation - firstVertexLocation == elem->getVertexCount() && "Element::writeVertices() must increment vertex pointer by vertexCount");
-                } else {
-                    auto firstVertexLocation = &vertices[range.start];
-                    auto lastVertexLocation = elem->writeVertices(firstVertexLocation, viewportSize);
-                    assert(lastVertexLocation - firstVertexLocation == elem->getVertexCount() && "Element::writeVertices() must increment vertex pointer by vertexCount");
-                    if (!needToRewriteEverything) {
-                        changedRanges.push_back(range);
-                    }
+                }
+                if (!elementIsDeleted) {
+                    const auto firstVertex = vertices.begin() + range.start;
+                    auto it = firstVertex;
+                    elem->writeVertices(it, viewportSize);
+                    const auto effectiveVertexCount = std::distance(firstVertex, it);
+                    assert(effectiveVertexCount == range.count && "Element::writeVertices() must increment vertex pointer by vertexCount");
+                }
+                if (!needToAppendAtEnd && !needToRewriteEverything) {
+                    changedRanges.push_back(range);
                 }
             }
             controller::executeOpenGL([this, needToRewriteEverything, &changedVerticesCount, &changedRanges]() {

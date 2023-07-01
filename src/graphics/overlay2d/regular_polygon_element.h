@@ -14,7 +14,7 @@ namespace bricksim::overlay2d {
 
         bool isPointInside(coord_t point) override;
         unsigned int getVertexCount() override;
-        Vertex* writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) override;
+        void writeVertices(std::vector<Vertex>::iterator& buffer, coord_t viewportSize) override;
 
         const coord_t& getCenter() const;
         void setCenter(const coord_t& value);

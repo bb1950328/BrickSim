@@ -27,7 +27,7 @@ namespace bricksim::overlay2d {
         DashedLineElement(const std::vector<coord_t>& points, length_t spaceBetweenDashes, length_t width, const color::RGB& color);
         bool isPointInside(coord_t point) override;
         unsigned int getVertexCount() override;
-        Vertex* writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) override;
+        void writeVertices(std::vector<Vertex>::iterator& buffer, coord_t viewportSize) override;
         const std::vector<coord_t>& getPoints() const;
         void setPoints(const std::vector<coord_t>& newPoints);
         ~DashedLineElement() override;

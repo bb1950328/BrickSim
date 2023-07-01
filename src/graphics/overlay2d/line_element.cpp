@@ -10,8 +10,8 @@ namespace bricksim::overlay2d {
         return vertex_generator::getVertexCountForLine();
     }
 
-    Vertex* LineElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
-        return vertex_generator::generateVerticesForLine(firstVertexLocation, start, end, width, color, viewportSize);
+    void LineElement::writeVertices(std::vector<Vertex>::iterator& buffer, coord_t viewportSize) {
+        vertex_generator::generateVerticesForLine(buffer, start, end, width, color, viewportSize);
     }
 
     LineElement::LineElement(coord_t start, coord_t end, length_t width, color::RGB color) :

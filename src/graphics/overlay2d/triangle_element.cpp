@@ -17,8 +17,8 @@ namespace bricksim::overlay2d {
         return vertex_generator::getVertexCountForTriangle();
     }
 
-    Vertex* TriangleElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
-        return vertex_generator::generateVerticesForTriangle(firstVertexLocation, p0, p1, p2, color, viewportSize);
+    void TriangleElement::writeVertices(std::vector<Vertex>::iterator& buffer, coord_t viewportSize) {
+        vertex_generator::generateVerticesForTriangle(buffer, p0, p1, p2, color, viewportSize);
     }
 
     const coord_t& TriangleElement::getP0() const {

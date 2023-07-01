@@ -3,33 +3,33 @@
 #include "data.h"
 
 namespace bricksim::overlay2d::vertex_generator {
-    Vertex* generateVerticesForLine(Vertex* firstVertexLocation, coord_t start, coord_t end, length_t width, color::RGB color, coord_t viewportSize);
+    void generateVerticesForLine(std::vector<Vertex>::iterator& buffer, coord_t start, coord_t end, length_t width, color::RGB color, coord_t viewportSize);
     constexpr unsigned int getVertexCountForLine() {
         return 6;
     }
 
-    Vertex* generateVerticesForCCWTriangle(Vertex* firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize);
-    Vertex* generateVerticesForTriangle(Vertex* firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize);
+    void generateVerticesForCCWTriangle(std::vector<Vertex>::iterator& buffer, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize);
+    void generateVerticesForTriangle(std::vector<Vertex>::iterator& buffer, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize);
     constexpr unsigned int getVertexCountForTriangle() {
         return 3;
     }
 
-    Vertex* generateVerticesForSquare(Vertex* firstVertexLocation, coord_t center, length_t sideLength, color::RGB color, coord_t viewportSize);
+    void generateVerticesForSquare(std::vector<Vertex>::iterator& buffer, coord_t center, length_t sideLength, color::RGB color, coord_t viewportSize);
     constexpr unsigned int getVertexCountForSquare() {
         return 6;
     }
 
-    Vertex* generateVerticesForRegularPolygon(Vertex* firstVertexLocation, coord_t center, length_t radius, short numEdges, color::RGB color, coord_t viewportSize);
+    void generateVerticesForRegularPolygon(std::vector<Vertex>::iterator& buffer, coord_t center, length_t radius, short numEdges, color::RGB color, coord_t viewportSize);
     constexpr unsigned int getVertexCountForRegularPolygon(short numEdges) {
         return (numEdges - 2) * 3;
     }
 
-    Vertex* generateVerticesForQuad(Vertex* firstVertexLocation, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& p4, color::RGB color, coord_t viewportSize);
+    void generateVerticesForQuad(std::vector<Vertex>::iterator& buffer, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& p4, color::RGB color, coord_t viewportSize);
     constexpr unsigned int getVertexCountForQuad() {
         return 6;
     }
 
-    Vertex* generateVerticesForPolyLine(Vertex* firstVertexLocation, const std::vector<coord_t>& points, length_t width, color::RGB color, coord_t viewportSize);
+    void generateVerticesForPolyLine(std::vector<Vertex>::iterator& buffer, const std::vector<coord_t>& points, length_t width, color::RGB color, coord_t viewportSize);
     constexpr unsigned int getVertexCountForPolyLine(uint64_t numPoints) {
         return (numPoints - 1) * getVertexCountForQuad();
     }

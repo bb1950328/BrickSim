@@ -10,7 +10,7 @@ namespace bricksim::overlay2d {
         void setPoints(const points_t& origPoints);
         bool isPointInside(coord_t point) override;
         unsigned int getVertexCount() override;
-        Vertex* writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) override;
+        void writeVertices(std::vector<Vertex>::iterator& buffer, coord_t viewportSize) override;
         ~DashedPolyLineElement() override;
 
     private:

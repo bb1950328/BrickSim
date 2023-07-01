@@ -12,8 +12,8 @@ namespace bricksim::overlay2d {
         return vertex_generator::getVertexCountForSquare();
     }
 
-    Vertex* SquareElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
-        return vertex_generator::generateVerticesForSquare(firstVertexLocation, center, sideLength, color, viewportSize);
+    void SquareElement::writeVertices(std::vector<Vertex>::iterator& buffer, coord_t viewportSize) {
+        vertex_generator::generateVerticesForSquare(buffer, center, sideLength, color, viewportSize);
     }
 
     const coord_t& SquareElement::getCenter() const {

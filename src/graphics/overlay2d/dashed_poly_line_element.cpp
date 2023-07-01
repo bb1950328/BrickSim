@@ -17,11 +17,10 @@ namespace bricksim::overlay2d {
                                          return vertex_generator::getVertexCountForPolyLine(line.size());
                                      });
     }
-    Vertex* DashedPolyLineElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
+    void DashedPolyLineElement::writeVertices(std::vector<Vertex>::iterator& buffer, coord_t viewportSize) {
         for (const auto& item: points) {
-            firstVertexLocation = vertex_generator::generateVerticesForPolyLine(firstVertexLocation, item, width, color, viewportSize);
+            vertex_generator::generateVerticesForPolyLine(buffer, item, width, color, viewportSize);
         }
-        return firstVertexLocation;
     }
     DashedPolyLineElement::~DashedPolyLineElement() = default;
 

@@ -2,6 +2,7 @@
 
 #include "data.h"
 #include <memory>
+#include <vector>
 namespace bricksim::overlay2d {
 
     class Element : private std::enable_shared_from_this<Element> {
@@ -14,7 +15,7 @@ namespace bricksim::overlay2d {
         void setVerticesHaveChanged(bool value);
         virtual bool isPointInside(coord_t point) = 0;
         virtual unsigned int getVertexCount() = 0;
-        virtual Vertex* writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) = 0;//todo change firstVertexLocation to non-const reference to an iterator and return type to void
+        virtual void writeVertices(std::vector<Vertex>::iterator& buffer, coord_t viewportSize) = 0;
         virtual ~Element();
     };
 }

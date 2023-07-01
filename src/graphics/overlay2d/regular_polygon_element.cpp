@@ -16,8 +16,8 @@ namespace bricksim::overlay2d {
         return vertex_generator::getVertexCountForRegularPolygon(numEdges);
     }
 
-    Vertex* RegularPolygonElement::writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) {
-        return vertex_generator::generateVerticesForRegularPolygon(firstVertexLocation, center, radius, numEdges, color, viewportSize);
+    void RegularPolygonElement::writeVertices(std::vector<Vertex>::iterator& buffer, coord_t viewportSize) {
+        vertex_generator::generateVerticesForRegularPolygon(buffer, center, radius, numEdges, color, viewportSize);
     }
 
     const coord_t& RegularPolygonElement::getCenter() const {

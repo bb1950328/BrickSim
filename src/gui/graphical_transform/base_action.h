@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../graphics/overlay_2d.h"
+#include "../../graphics/overlay2d/data.h"
 #include "../../helpers/util.h"
 namespace bricksim {
     class Editor;

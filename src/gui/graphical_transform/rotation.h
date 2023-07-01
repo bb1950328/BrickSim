@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../../graphics/overlay_2d.h"
+#include "../../graphics/overlay2d/dashed_poly_line_element.h"
+#include "../../graphics/overlay2d/line_element.h"
 #include "base_action.h"
 
 namespace bricksim::graphical_transform {

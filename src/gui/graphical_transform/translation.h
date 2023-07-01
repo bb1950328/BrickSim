@@ -1,5 +1,6 @@
 #pragma once
 #include "../../element_tree.h"
+#include "../../graphics/overlay2d/dashed_line_element.h"
 #include "../../graphics/scene.h"
 #include "base_action.h"
 #include <memory>

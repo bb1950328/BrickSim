@@ -7,8 +7,6 @@ target_sources(BrickSimLib PRIVATE
         opengl_native_or_replacement.h
         orientation_cube.cpp
         orientation_cube.h
-        overlay_2d.cpp
-        overlay_2d.h
         scene.cpp
         scene.h
         shaders.cpp
@@ -22,3 +20,4 @@ target_sources(BrickSimLib PRIVATE
         )
 
 add_subdirectory(mesh)
+add_subdirectory(overlay2d)

@@ -106,7 +106,13 @@ namespace bricksim::geometry {
 
     float getAngleBetweenThreePointsUnsigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
     float getAngleBetweenThreePointsSigned(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& planeNormal);
-    float getAngleBetweenTwoVectors(const glm::vec3& a, const glm::vec3& b);
+
+    template<int N>
+        requires(2 <= N && N <= 3)
+    float getAngleBetweenTwoVectors(const glm::vec<N, float>& a, const glm::vec<N, float>& b) {
+        //because of float imprecision, the arg for arccos can be slightly out of the domain of [-1;1], so clamp is needed
+        return std::acos(std::clamp(glm::dot(a, b) / (glm::length(a) * glm::length(b)), -1.f, 1.f));
+    }
 
     float getDistanceBetweenPointAndPlane(const Ray3& planeNormal, const glm::vec3& point);
 
@@ -131,10 +137,11 @@ namespace bricksim::geometry {
 
     float getSignedPolygonArea(const std::vector<glm::vec2>& polygon);
     bool is2dPolygonClockwise(const std::vector<glm::vec2>& polygon);
+    bool is2dTriangleClockwise(const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2);
 
     template<glm::length_t L>
     int findPointInPolygonEpsilon(std::vector<glm::vec<L, float, glm::defaultp>> poly, glm::vec<L, float, glm::defaultp> point) {
-        for (int i = 0; i < poly.size(); ++i) {
+        for (size_t i = 0; i < poly.size(); ++i) {
             if (util::vectorSum(glm::abs(poly[i] - point)) < 0.0003f) {
                 return i;
             }
@@ -183,7 +190,7 @@ namespace bricksim::geometry {
                         currentPoly.insert(currentPoly.begin() + std::max(ia, ib), additionalCoord);
                         tri = triangles.erase(tri);
                         break;
-                    } else if (foundOne && std::min(ia, ib) == 0 && std::max(ia, ib) == currentPoly.size() - 1) {
+                    } else if (foundOne && std::min(ia, ib) == 0 && static_cast<size_t>(std::max(ia, ib)) == currentPoly.size() - 1) {
                         currentPoly.push_back(additionalCoord);
                         tri = triangles.erase(tri);
                         break;

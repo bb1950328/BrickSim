@@ -97,8 +97,7 @@ namespace bricksim::keyboard_shortcut_manager {
                 GLFW_KEY_SLASH,
         };
 
-        const std::array<KeyboardShortcut, 17> DEFAULT_SHORTCUTS = {{
-                // NOLINT(cert-err58-cpp)
+        const auto DEFAULT_SHORTCUTS = std::to_array<KeyboardShortcut>({
                 {user_actions::COPY, GLFW_KEY_C, modifier::CTRL, Event::ON_PRESS},
                 {user_actions::CUT, GLFW_KEY_X, modifier::CTRL, Event::ON_PRESS},
                 {user_actions::PASTE, GLFW_KEY_V, modifier::CTRL, Event::ON_PRESS},
@@ -107,7 +106,8 @@ namespace bricksim::keyboard_shortcut_manager {
                 {user_actions::SELECT_ALL, GLFW_KEY_A, modifier::CTRL, Event::ON_PRESS},
                 {user_actions::SELECT_NOTHING, GLFW_KEY_A, modifier::CTRL | modifier::SHIFT, Event::ON_PRESS},
                 {user_actions::UNDO, GLFW_KEY_Z, modifier::CTRL, Event::ON_PRESS},
-                {user_actions::START_TRANSFORMING_SELECTED_NODES, GLFW_KEY_T, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
+                {user_actions::START_TRANSLATING_SELECTED_NODES, GLFW_KEY_T, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
+                {user_actions::START_ROTATING_SELECTED_NODES, GLFW_KEY_R, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
                 {user_actions::TRANSFORMATION_LOCK_XY, GLFW_KEY_Z, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
                 {user_actions::TRANSFORMATION_LOCK_XZ, GLFW_KEY_Y, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
                 {user_actions::TRANSFORMATION_LOCK_YZ, GLFW_KEY_X, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
@@ -117,7 +117,7 @@ namespace bricksim::keyboard_shortcut_manager {
                 {user_actions::END_TRANSFORMATION, GLFW_KEY_ENTER, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
                 {user_actions::CANCEL_TRANSFORMATION, GLFW_KEY_ESCAPE, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
                 //todo add more
-        }};
+        });
 
         std::vector<KeyboardShortcut> shortcuts;
 

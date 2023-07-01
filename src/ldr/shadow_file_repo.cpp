@@ -61,7 +61,7 @@ namespace bricksim::ldr::file_repo {
         zip_file_t* file = zip_fopen_index(archive, stat.index, 0);
         std::string result;
         result.resize(stat.size);
-        const auto readBytes = zip_fread(file, &result[0], stat.size);
+        const uint64_t readBytes = zip_fread(file, &result[0], stat.size);
         if (readBytes != stat.size) {
             spdlog::warn("file {} in zip shadow library has reported size of {} bytes, but only {} bytes read.", pathRelativeToBase, stat.size, readBytes);
             result.resize(std::max(static_cast<decltype(readBytes)>(0), readBytes));

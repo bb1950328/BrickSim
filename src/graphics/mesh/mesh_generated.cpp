@@ -169,7 +169,7 @@ namespace bricksim::mesh::generated {
         //         |    \  |
         // i2 -----+-------+
         for (uint16_t i0 = 0, i1 = 1; i0 < NUM_CORNERS; ++i0, i1 = (i0 + 1) % NUM_CORNERS) {
-            for (int vtx0 = 0, vtx1 = 1; vtx1 < baseVertexCount; ++vtx0, ++vtx1) {
+            for (size_t vtx0 = 0, vtx1 = 1; vtx1 < baseVertexCount; ++vtx0, ++vtx1) {
                 triangleData.addRawIndex(firstIndex + i0 * baseVertexCount + vtx0);
                 triangleData.addRawIndex(firstIndex + i0 * baseVertexCount + vtx1 + secondIdxDelta);
                 triangleData.addRawIndex(firstIndex + i1 * baseVertexCount + vtx1 + thirdIdxDelta);
@@ -430,11 +430,12 @@ namespace bricksim::mesh::generated {
     }
     void XYZLineNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         auto& lineData = mesh->getLineData();
-        lineData.addVertex({{0.f, 0.f, 0.f}, color::RED.asGlmVector()});
-        lineData.addVertex({{1.f, 0.f, 0.f}, color::RED.asGlmVector()});
-        lineData.addVertex({{0.f, 0.f, 0.f}, color::GREEN.asGlmVector()});
-        lineData.addVertex({{0.f, 1.f, 0.f}, color::GREEN.asGlmVector()});
-        lineData.addVertex({{0.f, 0.f, 0.f}, color::BLUE.asGlmVector()});
-        lineData.addVertex({{0.f, 0.f, 1.f}, color::BLUE.asGlmVector()});
+        for (int i = 0; i < 3; ++i) {
+            const auto& color = constants::AXIS_COLORS[0].asGlmVector();
+            glm::vec3 vec(0.f);
+            vec[i] = 1.f;
+            lineData.addVertex({{0.f, 0.f, 0.f}, color});
+            lineData.addVertex({vec, color});
+        }
     }
 }

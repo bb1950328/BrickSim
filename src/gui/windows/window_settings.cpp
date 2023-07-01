@@ -104,7 +104,7 @@ namespace bricksim::gui::windows::settings {
             }
             auto settingCurrencyCode = config::get(config::BRICKLINK_CURRENCY_CODE);
             currencyCodeIndex = 0;
-            for (int j = 0; j < currencyCodeStrings.size(); j += 4) {
+            for (size_t j = 0; j < currencyCodeStrings.size(); j += 4) {
                 if (settingCurrencyCode[0] == currencyCodeStrings[j]
                     && settingCurrencyCode[1] == currencyCodeStrings[j + 1]
                     && settingCurrencyCode[2] == currencyCodeStrings[j + 2]) {

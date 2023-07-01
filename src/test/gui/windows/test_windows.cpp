@@ -5,9 +5,9 @@ namespace bricksim {
     TEST_CASE("windowDataCorrect") {
         const auto& data = gui::windows::getData();
         const auto idCount = magic_enum::enum_count<gui::windows::Id>();
-        for (int i = 0; i < idCount; ++i) {
+        for (size_t i = 0; i < idCount; ++i) {
             const auto id = magic_enum::enum_value<gui::windows::Id>(i);
-            CHECK(i == magic_enum::enum_integer(id));
+            CHECK(static_cast<int>(i) == magic_enum::enum_integer(id));
             CHECK(data[i].id == id);
             CHECK(data[i].drawFunction != nullptr);
             CHECK(&data[i].visible == gui::windows::isVisible(id));

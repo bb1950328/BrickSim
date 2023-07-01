@@ -178,7 +178,7 @@ namespace bricksim::config {
     const Key<float> TRANSFORM_GIZMO_SIZE("transformGizmoSize", 1.0);
     const Key<bool> FACE_CULLING_ENABLED("faceCullingEnabled", true);
     const Key<bool> THREADING_ENABLED("threadingEnabled", true);
-    const Key<bool> USE_EULER_ANGLES("useEulerAngles", false);
+    const Key<bool> USE_EULER_ANGLES("useEulerAngles", true);
     const Key<bool> DELETE_VERTEX_DATA_AFTER_UPLOADING("deleteVertexDataAfterUploading", true);
     const Key<bool> ENABLE_TEXMAP_SUPPORT("enableTexmapSupport", true);
     const Key<bool> DISPLAY_CONNECTOR_DATA_IN_3D_VIEW("displayConnectorDataIn3DView", false);
@@ -187,4 +187,6 @@ namespace bricksim::config {
     const Key<int> LINEAR_SNAP_STEP_Y("linearSnapStepY", 20);
     const Key<std::string> LINEAR_SNAP_PRESETS("linearSnapPresets", snap::DEFAULT_LINEAR_SNAP_DISTANCE_PRESETS);
     const Key<bool> SNAP_ENABLED("snapEnabled", true);
+    const Key<std::string> ROTATIONAL_SNAP_PRESETS("rotationalSnapPresets", snap::DEFAULT_ROTATIONAL_SNAP_PRESETS);
+    const Key<float> ROTATIONAL_SNAP_STEP("rotationalSnapStep", 90.f);
 }

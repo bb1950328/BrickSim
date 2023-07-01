@@ -30,7 +30,7 @@ namespace bricksim::connection::ldcad_meta::parse {
     std::array<float, N> stringViewsToFloatArray(const std::vector<std::string_view>& strings) {
         assert(strings.size() >= N);
         std::array<float, N> result{};
-        for (int i = 0; i < N; ++i) {
+        for (size_t i = 0; i < N; ++i) {
             floatFromString(strings[i], result[i]);
         }
         return result;

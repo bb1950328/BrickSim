@@ -1,14 +1,14 @@
-#ifndef BRICKSIM_OVERLAY_2D_H
-#define BRICKSIM_OVERLAY_2D_H
+#pragma once
 
 #include "../helpers/color.h"
 #include "../types.h"
 #include <glm/glm.hpp>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <vector>
-
+//todo split this into multiple files
 namespace bricksim::overlay2d {
     typedef glm::vec2 coord_t;
 
@@ -67,7 +67,7 @@ namespace bricksim::overlay2d {
         void setVerticesHaveChanged(bool value);
         virtual bool isPointInside(coord_t point) = 0;
         virtual unsigned int getVertexCount() = 0;
-        virtual Vertex* writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) = 0;
+        virtual Vertex* writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) = 0;//todo change firstVertexLocation to non-const reference to an iterator and return type to void
         virtual ~Element();
     };
 
@@ -93,12 +93,26 @@ namespace bricksim::overlay2d {
         void setColor(const color::RGB& value);
     };
 
-    class DashedLineElement : public Element {
-    private:
-        std::vector<coord_t> points;
+    class BaseDashedLineElement : public Element {
+    protected:
         length_t spaceBetweenDashes;
         length_t width;
         color::RGB color;
+        BaseDashedLineElement(length_t spaceBetweenDashes, length_t width, const color::RGB& color);
+
+    public:
+        length_t getSpaceBetweenDashes() const;
+        void setSpaceBetweenDashes(length_t newSpaceBetweenDashes);
+        length_t getWidth() const;
+        void setWidth(length_t newWidth);
+        const color::RGB& getColor() const;
+        void setColor(const color::RGB& newColor);
+        ~BaseDashedLineElement() override;
+    };
+
+    class DashedLineElement : public BaseDashedLineElement {
+    private:
+        std::vector<coord_t> points;
         void validatePoints();
 
     public:
@@ -108,12 +122,24 @@ namespace bricksim::overlay2d {
         Vertex* writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) override;
         const std::vector<coord_t>& getPoints() const;
         void setPoints(const std::vector<coord_t>& newPoints);
-        length_t getSpaceBetweenDashes() const;
-        void setSpaceBetweenDashes(length_t newSpaceBetweenDashes);
-        length_t getWidth() const;
-        void setWidth(length_t newWidth);
-        const color::RGB& getColor() const;
-        void setColor(const color::RGB& newColor);
+        ~DashedLineElement() override;
+    };
+
+    class DashedPolyLineElement : public BaseDashedLineElement {
+    public:
+        using points_t = std::vector<std::vector<coord_t>>;
+
+    private:
+        points_t points;
+
+    public:
+        DashedPolyLineElement(length_t spaceBetweenDashes, length_t width, const color::RGB& color);
+        void setPoints(const points_t& origPoints);
+        bool isPointInside(coord_t point) override;
+        unsigned int getVertexCount() override;
+        Vertex* writeVertices(Vertex* firstVertexLocation, coord_t viewportSize) override;
+        ~DashedPolyLineElement() override;
+        std::pair<size_t, std::optional<glm::vec2>> cutStartEnd(const std::vector<glm::vec2>& origLine, bool start);
     };
 
     class TriangleElement : public Element {
@@ -232,6 +258,7 @@ namespace bricksim::overlay2d {
         Vertex* generateVerticesForLine(Vertex* firstVertexLocation, coord_t start, coord_t end, length_t width, color::RGB color, coord_t viewportSize);
         constexpr unsigned int getVertexCountForLine();
 
+        Vertex* generateVerticesForCCWTriangle(Vertex* firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize);
         Vertex* generateVerticesForTriangle(Vertex* firstVertexLocation, coord_t p0, coord_t p1, coord_t p2, color::RGB color, coord_t viewportSize);
         constexpr unsigned int getVertexCountForTriangle();
 
@@ -244,6 +271,9 @@ namespace bricksim::overlay2d {
         Vertex* generateVerticesForQuad(Vertex* firstVertexLocation, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& p4, color::RGB color, coord_t viewportSize);
         constexpr unsigned int getVertexCountForQuad();
 
+        Vertex* generateVerticesForPolyLine(Vertex* firstVertexLocation, const std::vector<coord_t>& points, length_t width, color::RGB color, coord_t viewportSize);
+        constexpr unsigned int getVertexCountForPolyLine(uint64_t numPoints);
+
         constexpr glm::vec2 toNDC(coord_t coord, coord_t viewportSize);
         constexpr bool isNDConScreen(glm::vec2 ndc);
 
@@ -251,4 +281,3 @@ namespace bricksim::overlay2d {
         constexpr glm::vec2 toNDC(T coord, coord_t viewportSize) = delete;//disable automatic conversion
     }
 }
-#endif//BRICKSIM_OVERLAY_2D_H

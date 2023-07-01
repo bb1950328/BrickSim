@@ -187,7 +187,7 @@ namespace bricksim::controller {
         }
 
         void window_size_callback([[maybe_unused]] GLFWwindow* _, int width, int height) {
-            if (windowWidth != width || windowHeight != height) {
+            if (windowWidth != static_cast<unsigned int>(width) || windowHeight != static_cast<unsigned int>(height)) {
                 windowWidth = width;
                 windowHeight = height;
                 controller::executeOpenGL([&]() {
@@ -299,7 +299,7 @@ namespace bricksim::controller {
             };
 
             constexpr float progressStep = 1.0f / initSteps.size();
-            for (int i = 0; i < initSteps.size(); ++i) {
+            for (std::size_t i = 0; i < initSteps.size(); ++i) {
                 auto& currentStep = initSteps[i];
                 currentStep.startThread();
                 while (!currentStep.isDone()) {
@@ -396,7 +396,7 @@ namespace bricksim::controller {
 
         //openFile("test_files/bricks_test.ldr");
         //openFile("test_files/triangle_test.ldr");
-        //openFile("test_files/mpd_test.mpd");
+        openFile("test_files/mpd_test.mpd");
         //openFile("test_files/texmap_planar.ldr");
         //openFile("test_files/texmap_planar3.ldr");
         //openFile("test_files/texmap_planar_perpendicular.ldr");
@@ -409,7 +409,7 @@ namespace bricksim::controller {
         //openFile("car.ldr");
         //openFile("~/ldraw/models/car_fixed.ldr");
         //openFile("10197.dat");
-        openFile("~/Downloads/datsville.ldr");
+        //openFile("~/Downloads/datsville.ldr");
         //openFile("~/Downloads/42131_Bulldozer.mpd");
 
         std::vector<uint64_t> lastEditorRootNodeVersions;

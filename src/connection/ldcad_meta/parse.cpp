@@ -8,7 +8,7 @@ namespace bricksim::connection::ldcad_meta::parse {
     }
     std::vector<float> stringViewsToFloatVector(const std::vector<std::string_view>& strings) {
         std::vector<float> result(strings.size());
-        for (int i = 0; i < strings.size(); ++i) {
+        for (size_t i = 0; i < strings.size(); ++i) {
             floatFromString(strings[i], result[i]);
         }
         return result;
@@ -84,7 +84,7 @@ namespace bricksim::connection::ldcad_meta::parse {
         if (it != parameters.end()) {
             const auto words = stringutil::splitByChar(it->second, ' ');
             std::vector<CylShapeBlock> result;
-            for (int i = 0; i < words.size(); i += 3) {
+            for (size_t i = 0; i < words.size(); i += 3) {
                 CylShapeBlock block{};
                 block.variant = magic_enum::enum_cast<CylShapeVariant>(words[i]).value();
                 floatFromString(words[i + 1], block.radius);

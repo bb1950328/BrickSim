@@ -100,7 +100,7 @@ namespace bricksim::mesh {
         auto& texturedData = getTexturedTriangleData(texture);
         if (allUVsInsideImage) {
             if (pointCount == 3) {
-                for (int i = 0; i < pointCount; ++i) {
+                for (size_t i = 0; i < pointCount; ++i) {
                     texturedData.addVertex({transformedPoints[i], UVs[i]});
                 }
             } else if (pointCount == 4) {
@@ -289,7 +289,7 @@ namespace bricksim::mesh {
     std::vector<glm::mat4> Mesh::getInstancesForLineData() {
         std::vector<glm::mat4> instancesArray;
         instancesArray.resize(instances.size());
-        for (int i = 0; i < instances.size(); ++i) {
+        for (size_t i = 0; i < instances.size(); ++i) {
             instancesArray[i] = glm::transpose(instances[i].transformation * constants::LDU_TO_OPENGL);
             instancesArray[i][2][3] = instances[i].selected;
         }

@@ -37,9 +37,9 @@
     <mapping directory="$PROJECT_DIR$/src/lib/palanteer" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/rapidjson" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/rapidjson/thirdparty/gtest" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/src/lib/robin-hood-hashing" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/spdlog" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/stb" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/tinyfiledialogs" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/unordered_dense" vcs="Git" />
   </component>
 </project>

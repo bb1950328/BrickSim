@@ -128,7 +128,7 @@ namespace bricksim::gui::modals {
         }
         ImGui::Separator();
         ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x - totalButtonWidth);
-        for (int i = 0; i < answers.size(); ++i) {
+        for (size_t i = 0; i < answers.size(); ++i) {
             const auto& answ = answers[i];
             if (answ.buttonColor.has_value()) {
                 ImGui::PushStyleColor(ImGuiCol_Button, answ.buttonColor.value());

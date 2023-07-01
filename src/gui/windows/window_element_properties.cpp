@@ -32,7 +32,7 @@ namespace bricksim::gui::windows::element_properties {
             if (nodeHasChanged || transformationHasChanged) {
                 lastTreePosition = inputPosition = decomposedTreeTransf.translation;
             }
-            ImGui::DragFloat3(ICON_FA_LOCATION_DOT " Position", &inputPosition[0], 1.0f, -1e9, 1e9, "%.0fLDU");
+            ImGui::DragFloat3(ICON_FA_LOCATION_DOT " Position", &inputPosition[0], 10.f, -1e9, 1e9, "%.0fLDU");
             translationChanged = glm::any(glm::epsilonNotEqual(decomposedTreeTransf.translation, inputPosition, 0.01f));
         }
 
@@ -41,28 +41,23 @@ namespace bricksim::gui::windows::element_properties {
         static glm::vec3 inputQuatAxis;
         static float inputQuatAngleDeg;
         if (useEulerAngles) {
-            static glm::vec3 lastTreeEulerAnglesRad;
-            auto currentTreeAnglesRad = glm::eulerAngles(decomposedTreeTransf.orientation);
-            if (nodeHasChanged || transformationHasChanged) {
-                lastTreeEulerAnglesRad = currentTreeAnglesRad;
-                inputEulerAnglesDeg = glm::degrees(currentTreeAnglesRad);
+            if (nodeHasChanged) {
+                inputEulerAnglesDeg = glm::degrees(glm::eulerAngles(decomposedTreeTransf.orientation));
             }
-            ImGui::DragFloat3(ICON_FA_ARROWS_ROTATE " Rotation", &inputEulerAnglesDeg[0], 1.0f, -180, 180, "%.1f°");
-            rotationChanged = glm::any(glm::epsilonNotEqual(glm::radians(inputEulerAnglesDeg), lastTreeEulerAnglesRad, 0.0001f));
+            const auto lastValue = inputEulerAnglesDeg;
+            ImGui::DragFloat3(ICON_FA_ARROWS_ROTATE " Rotation", &inputEulerAnglesDeg[0], 1.f, -180, 180, "%.1f°");
+
+            rotationChanged = glm::any(glm::epsilonNotEqual(inputEulerAnglesDeg, lastValue, 0.0001f));
         } else {
-            static glm::vec3 lastTreeQuatAxis;
-            const glm::vec3 currentQuatAxis = glm::axis(decomposedTreeTransf.orientation);
-            static float lastTreeQuatAngleDeg;
-            const float currentTreeAngleDeg = glm::angle(decomposedTreeTransf.orientation);
-            if (nodeHasChanged || transformationHasChanged) {
-                lastTreeQuatAngleDeg = currentTreeAngleDeg;
-                inputQuatAngleDeg = currentTreeAngleDeg;
-                lastTreeQuatAxis = currentQuatAxis;
-                inputQuatAxis = currentQuatAxis;
+            if (nodeHasChanged) {
+                inputQuatAngleDeg = glm::angle(decomposedTreeTransf.orientation);
+                inputQuatAxis = glm::axis(decomposedTreeTransf.orientation);
             }
+            const auto lastValueAxis = inputQuatAxis;
+            const auto lastValueAngleDeg = inputQuatAngleDeg;
             ImGui::DragFloat3(ICON_FA_LOCATION_ARROW " Rotation Axis", &inputQuatAxis[0], 0.01f, -1e9, +1e9, "%.2f");
             ImGui::DragFloat(ICON_FA_ARROWS_ROTATE " Rotation Angle", &inputQuatAngleDeg, 1.0f, 0, 360, "%.0f °");
-            rotationChanged = std::abs(lastTreeQuatAngleDeg - inputQuatAngleDeg) > 0.01 || glm::any(glm::epsilonNotEqual(inputQuatAxis, lastTreeQuatAxis, 0.001f));
+            rotationChanged = std::abs(lastValueAngleDeg - inputQuatAngleDeg) > 0.01 || glm::any(glm::epsilonNotEqual(inputQuatAxis, lastValueAxis, 0.001f));
         }
 
         static glm::vec3 inputScalePercent;

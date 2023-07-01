@@ -334,7 +334,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                 ImGui::TableSetupColumn("##listbox", ImGuiTableColumnFlags_NoReorder
                                                              | ImGuiTableColumnFlags_NoResize);
                 ImGui::TableNextColumn();
-                for (int i = 0; i < magic_enum::enum_count<ldr::FileType>(); ++i) {
+                for (size_t i = 0; i < magic_enum::enum_count<ldr::FileType>(); ++i) {
                     const auto type = static_cast<const ldr::FileType>(i);
                     const auto typeName = magic_enum::enum_name<ldr::FileType>(type);
                     ImGui::Checkbox(typeName.data(), &showTypes[i]);

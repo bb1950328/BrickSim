@@ -14,9 +14,10 @@ namespace bricksim::ldr::file_repo {
         zip_t* za = zip_open(basePath.string().c_str(), 0, &err);
         bool valid;
         if (za == nullptr) {
-            char errBuf[100];
-            zip_error_to_str(errBuf, sizeof(errBuf), err, errno);
-            spdlog::warn("cannot open .zip file: {}", errBuf);
+            zip_error_t zipError;
+            zip_error_init_with_code(&zipError, err);
+            spdlog::warn("cannot open .zip file: {}", zip_error_strerror(&zipError));
+            zip_error_fini(&zipError);
             valid = false;
         } else if (zip_get_num_entries(za, 0) > 0) {
             const std::string rootFolder = getZipRootFolder(za);
@@ -64,9 +65,10 @@ namespace bricksim::ldr::file_repo {
         rootFolderName = getZipRootFolder(zipArchive);
 
         if (zipArchive == nullptr) {
-            char errorMessage[100];
-            zip_error_to_str(errorMessage, sizeof(errorMessage), errorCode, errno);
-            spdlog::error("can't open zip library with path {}: {} {}", basePath.string(), errorCode, errorMessage);
+            zip_error_t zipError;
+            zip_error_init_with_code(&zipError, errorCode);
+            spdlog::error("can't open zip library with path {}: {} {}", basePath.string(), errorCode, zip_error_strerror(&zipError));
+            zip_error_fini(&zipError);
             return;
         }
     }
@@ -89,7 +91,7 @@ namespace bricksim::ldr::file_repo {
 
         std::string result;
         result.resize(stat.size);
-        const auto readBytes = zip_fread(file, &result[0], stat.size);
+        const uint64_t readBytes = zip_fread(file, &result[0], stat.size);
         if (readBytes != stat.size) {
             spdlog::warn("file {} in zip library has reported size of {} bytes, but only {} bytes read. error={}", nameRelativeToRoot, stat.size, readBytes, zip_error_strerror(&file->error));
             result.resize(std::max(static_cast<decltype(readBytes)>(0), readBytes));
@@ -135,7 +137,7 @@ namespace bricksim::ldr::file_repo {
 
         auto result = std::make_shared<BinaryFile>(nameRelativeToRoot);
         result->data.resize(stat.size);
-        const auto readBytes = zip_fread(file, &result->data[0], stat.size);
+        const uint64_t readBytes = zip_fread(file, &result->data[0], stat.size);
         if (readBytes != stat.size) {
             spdlog::warn("file {} in zip library has reported size of {} bytes, but only {} bytes read", nameRelativeToRoot, stat.size, readBytes);
             result->data.resize(std::max(static_cast<decltype(readBytes)>(0), readBytes));

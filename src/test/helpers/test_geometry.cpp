@@ -312,15 +312,20 @@ namespace bricksim {
     }
 
     TEST_CASE("geometry::getAngleBetweenTwoVectors") {
-        CHECK(geometry::getAngleBetweenTwoVectors({1, 0, 0}, {0, 1, 0}) == Catch::Approx(M_PI / 2));
-        CHECK(geometry::getAngleBetweenTwoVectors({1, 0, 1}, {-1, 0, -1}) == Catch::Approx(M_PI));
+        CHECK(geometry::getAngleBetweenTwoVectors<3>({1, 0, 0}, {0, 1, 0}) == Catch::Approx(M_PI / 2));
+        CHECK(geometry::getAngleBetweenTwoVectors<3>({1, 0, 1}, {-1, 0, -1}) == Catch::Approx(M_PI));
 
-        CHECK(geometry::getAngleBetweenTwoVectors({0, 0, 1}, {0, 1, 0}) == Catch::Approx(M_PI / 2));
-        CHECK(geometry::getAngleBetweenTwoVectors({0, 0, 1}, {0, 0, 1}) == Catch::Approx(0));
-        CHECK(geometry::getAngleBetweenTwoVectors({0, 0, 1}, {0, 0, -1}) == Catch::Approx(M_PI));
-        CHECK(geometry::getAngleBetweenTwoVectors({0, 0, 1}, {0, 1, 1}) == Catch::Approx(M_PI / 4));
+        CHECK(geometry::getAngleBetweenTwoVectors<3>({0, 0, 1}, {0, 1, 0}) == Catch::Approx(M_PI / 2));
+        CHECK(geometry::getAngleBetweenTwoVectors<3>({0, 0, 1}, {0, 0, 1}) == Catch::Approx(0));
+        CHECK(geometry::getAngleBetweenTwoVectors<3>({0, 0, 1}, {0, 0, -1}) == Catch::Approx(M_PI));
 
-        CHECK(geometry::getAngleBetweenTwoVectors({0, 0, 3}, {0, 7, 7}) == Catch::Approx(M_PI / 4));
+        CHECK(geometry::getAngleBetweenTwoVectors<3>({0, 0, 1}, {0, 1, 1}) == Catch::Approx(M_PI / 4));
+        CHECK(geometry::getAngleBetweenTwoVectors<3>({0, 0, 3}, {0, 7, 7}) == Catch::Approx(M_PI / 4));
+    }
+
+    TEST_CASE("geometry::is2dTriangleClockwise") {
+        CHECK(geometry::is2dTriangleClockwise({0, 0}, {0, 1}, {1, 0}));
+        CHECK_FALSE(geometry::is2dTriangleClockwise({0, 0}, {1, 0}, {0, 1}));
     }
 
     //todo tests for geometry::getAngleBetweenThreePointsSigned

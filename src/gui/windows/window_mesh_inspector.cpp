@@ -1,4 +1,5 @@
 #include "window_mesh_inspector.h"
+#include "../../constant_data/constants.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../gui.h"
 #include <imgui.h>
@@ -77,30 +78,24 @@ namespace bricksim::gui::windows::mesh_inspector {
                         ImGui::Text("%u", index);
 
                         ImGui::TableNextColumn();
-                        ImGui::PushStyleColor(ImGuiCol_Text, color::RED);
-                        ImGui::Text("%.2f", vertex.position.x);
-                        ImGui::PopStyleColor();
-                        ImGui::PushStyleColor(ImGuiCol_Text, color::GREEN);
-                        ImGui::SameLine();
-                        ImGui::Text("%.2f", vertex.position.y);
-                        ImGui::PopStyleColor();
-                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4, 0.5, 1, 1));
-                        ImGui::SameLine();
-                        ImGui::Text("%.2f", vertex.position.z);
-                        ImGui::PopStyleColor();
+                        for (int i = 0; i < 3; ++i) {
+                            if (i != 0) {
+                                ImGui::SameLine();
+                            }
+                            ImGui::PushStyleColor(ImGuiCol_Text, constants::AXIS_COLORS[0]);
+                            ImGui::Text("%.2f", vertex.position[i]);
+                            ImGui::PopStyleColor();
+                        }
 
                         ImGui::TableNextColumn();
-                        ImGui::PushStyleColor(ImGuiCol_Text, color::RED);
-                        ImGui::Text("%.2f", vertex.normal.x);
-                        ImGui::PopStyleColor();
-                        ImGui::PushStyleColor(ImGuiCol_Text, color::GREEN);
-                        ImGui::SameLine();
-                        ImGui::Text("%.2f", vertex.normal.y);
-                        ImGui::PopStyleColor();
-                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4, 0.5, 1, 1));
-                        ImGui::SameLine();
-                        ImGui::Text("%.2f", vertex.normal.z);
-                        ImGui::PopStyleColor();
+                        for (int i = 0; i < 3; ++i) {
+                            if (i != 0) {
+                                ImGui::SameLine();
+                            }
+                            ImGui::PushStyleColor(ImGuiCol_Text, constants::AXIS_COLORS[0]);
+                            ImGui::Text("%.2f", vertex.normal[i]);
+                            ImGui::PopStyleColor();
+                        }
 
                         ImGui::PopItemWidth();
 
@@ -121,7 +116,7 @@ namespace bricksim::gui::windows::mesh_inspector {
                             ImGui::TableHeadersRow();
 
                             if (currentMode == 0) {
-                                for (int index = 0; index < triangleData.getVertices().size(); ++index) {
+                                for (size_t index = 0; index < triangleData.getVertices().size(); ++index) {
                                     drawVertexRow(index, triangleData.getVertices()[index]);
                                 }
                             } else {

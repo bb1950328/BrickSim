@@ -325,7 +325,7 @@ namespace bricksim {
 
     TEST_CASE("geometry::is2dTriangleClockwise") {
         CHECK(geometry::is2dTriangleClockwise({0, 0}, {0, 1}, {1, 0}));
-        CHECK(geometry::is2dTriangleClockwise({0, 0}, {1, 0}, {0, 1}));
+        CHECK_FALSE(geometry::is2dTriangleClockwise({0, 0}, {1, 0}, {0, 1}));
     }
 
     //todo tests for geometry::getAngleBetweenThreePointsSigned

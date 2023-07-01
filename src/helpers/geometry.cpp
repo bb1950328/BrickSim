@@ -114,11 +114,6 @@ namespace bricksim::geometry {
         return std::atan2(glm::dot(glm::cross(ab, cb), glm::normalize(planeNormal)), glm::dot(ab, cb));
     }
 
-    float getAngleBetweenTwoVectors(const glm::vec3& a, const glm::vec3& b) {
-        //because of float imprecision, the arg for arccos can be slightly out of the domain of [-1;1], so clamp is needed
-        return std::acos(std::clamp(glm::dot(a, b) / (glm::length(a) * glm::length(b)), -1.f, 1.f));
-    }
-
     glm::quat quaternionRotationFromOneVectorToAnother(const glm::vec3& v1, const glm::vec3& v2) {
         //https://stackoverflow.com/a/11741520/8733066 second solution
         const auto v1n = glm::normalize(v1);
@@ -230,8 +225,7 @@ namespace bricksim::geometry {
     }
 
     bool is2dPolygonClockwise(const std::vector<glm::vec2>& polygon) {
-        float signedArea = getSignedPolygonArea(polygon);
-        return signedArea < 0;
+        return getSignedPolygonArea(polygon) < 0;
     }
 
     float getSignedPolygonArea(const std::vector<glm::vec2>& polygon) {
@@ -378,5 +372,8 @@ namespace bricksim::geometry {
         result.insert(result.end(), holePoly.begin(), holePoly.begin() + maxXinHoleIndex + 1);
         result.insert(result.end(), outerPoly.begin() + nextLargerXinOuter, outerPoly.end());
         return result;
+    }
+    bool is2dTriangleClockwise(const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2) {
+        return ((p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y)) < 0;
     }
 }

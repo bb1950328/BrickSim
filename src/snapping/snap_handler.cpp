@@ -28,5 +28,11 @@ namespace bricksim::snap {
     RotationalHandler& Handler::getRotational() {
         return rotational;
     }
+    const LinearHandler& Handler::getLinear() const {
+        return linear;
+    }
+    const RotationalHandler& Handler::getRotational() const {
+        return rotational;
+    }
     Handler::Handler() = default;
 }

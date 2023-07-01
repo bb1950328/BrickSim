@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../graphics/overlay_2d.h"
 #include "../../helpers/util.h"
 namespace bricksim {
     class Editor;
@@ -60,5 +61,8 @@ namespace bricksim::graphical_transform {
         virtual void startImpl();
         virtual void updateImpl();
         virtual void endImpl();
+
+        [[nodiscard]] overlay2d::coord_t worldToO2DCoords(glm::vec3 worldCoords) const;
+        void setAllNodeTransformations(const std::function<glm::mat4(const glm::mat4&)>& transformationProvider);
     };
 }

@@ -17,7 +17,15 @@ namespace bricksim::graphical_transform {
 
     private:
         std::shared_ptr<overlay2d::LineElement> startLine;
+        std::shared_ptr<overlay2d::LineElement> currentLine;
+        std::shared_ptr<overlay2d::DashedPolyLineElement> arc;
+
+        float lastRotationAngle = NAN;
 
         std::pair<uint8_t, glm::vec3> findBestPointOnPlanes(glm::usvec2 cursorPos);
+        [[nodiscard]] static std::vector<std::pair<float, float>> getArcAngles(float& rotationAngle);
+        [[nodiscard]] overlay2d::DashedPolyLineElement::points_t getPointsForArc(const std::vector<std::pair<float, float>>& arcAngles,
+                                                                                 glm::vec3 axisVec,
+                                                                                 glm::vec3 relInitialPointScaled) const;
     };
 }

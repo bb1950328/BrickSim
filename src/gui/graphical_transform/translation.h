@@ -28,6 +28,8 @@ namespace bricksim::graphical_transform {
         glm::vec3 currentPoint;
         float distanceToCamera;
 
+        glm::vec3 lastTranslation = {NAN, NAN, NAN};
+
         void addAxisLines();
         void removeAxisLines();
         void updateAxisLines();

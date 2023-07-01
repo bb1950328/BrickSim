@@ -1,4 +1,5 @@
 #pragma once
+#include "../helpers/color.h"
 #include "../helpers/platform_detection.h"
 #include "../types.h"
 
@@ -37,4 +38,6 @@ namespace bricksim::constants {
 
     constexpr float pInf = std::numeric_limits<float>::infinity();
     constexpr float nInf = -pInf;
+
+    constexpr auto AXIS_COLORS = std::to_array({color::RED, color::GREEN, color::BLUE});
 }

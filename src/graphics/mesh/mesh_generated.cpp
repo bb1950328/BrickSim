@@ -430,11 +430,12 @@ namespace bricksim::mesh::generated {
     }
     void XYZLineNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         auto& lineData = mesh->getLineData();
-        lineData.addVertex({{0.f, 0.f, 0.f}, color::RED.asGlmVector()});
-        lineData.addVertex({{1.f, 0.f, 0.f}, color::RED.asGlmVector()});
-        lineData.addVertex({{0.f, 0.f, 0.f}, color::GREEN.asGlmVector()});
-        lineData.addVertex({{0.f, 1.f, 0.f}, color::GREEN.asGlmVector()});
-        lineData.addVertex({{0.f, 0.f, 0.f}, color::BLUE.asGlmVector()});
-        lineData.addVertex({{0.f, 0.f, 1.f}, color::BLUE.asGlmVector()});
+        for (int i = 0; i < 3; ++i) {
+            const auto& color = constants::AXIS_COLORS[0].asGlmVector();
+            glm::vec3 vec(0.f);
+            vec[i] = 1.f;
+            lineData.addVertex({{0.f, 0.f, 0.f}, color});
+            lineData.addVertex({vec, color});
+        }
     }
 }

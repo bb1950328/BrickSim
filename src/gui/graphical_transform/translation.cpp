@@ -52,7 +52,7 @@ namespace bricksim::graphical_transform {
     void Translation::addAxisLines() {
         static auto lineWidth = static_cast<o2d::length_t>(8 * config::get(config::GUI_SCALE));
         auto it = axisLines.begin();
-        for (const auto color: {color::RED, color::GREEN, color::BLUE}) {
+        for (const auto color: constants::AXIS_COLORS) {
             if (*it == nullptr) {
                 *it = std::make_shared<o2d::DashedLineElement>(std::vector<o2d::coord_t>{o2d::coord_t(0, 0), o2d::coord_t(0, 0)}, lineWidth, lineWidth, color);
                 scene->getOverlayCollection().addElement(*it);
@@ -107,6 +107,10 @@ namespace bricksim::graphical_transform {
             translation = util::roundToNearestMultiple(translation, linearSnapPreset.stepXYZ());
         }
 
+        if (glm::length(lastTranslation - translation) < 0.1f) {
+            return;
+        }
+
         const auto oldNodeCenter = currentNodeCenter;
         currentNodeCenter = initialNodeCenter + translation;
         if (glm::length(currentNodeCenter - oldNodeCenter) > 1.f) {
@@ -114,17 +118,12 @@ namespace bricksim::graphical_transform {
         }
         currentPoint = startPoint + translation;
 
-        auto nodeIt = nodes.begin();
-        auto transfIt = initialRelativeTransformations.begin();
-        while (nodeIt != nodes.end()) {
-            auto newTransf = *transfIt;
+        setAllNodeTransformations([&translation](const glm::mat4& initialRelTransf) {
+            auto newTransf = initialRelTransf;
             newTransf[3] += glm::vec4(translation, 0.f);
-            (*nodeIt)->setRelativeTransformation(glm::transpose(newTransf));
-            (*nodeIt)->incrementVersion();
-
-            ++nodeIt;
-            ++transfIt;
-        }
+            return newTransf;
+        });
+        lastTranslation = translation;
     }
     void Translation::endImpl() {
         removeAxisLines();

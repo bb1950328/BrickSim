@@ -90,4 +90,19 @@ namespace bricksim::graphical_transform {
     const glm::svec2& BaseAction::getCurrentCursorPos() const {
         return currentCursorPos;
     }
+    overlay2d::coord_t BaseAction::worldToO2DCoords(glm::vec3 worldCoords) const {
+        return scene->worldToScreenCoordinates(glm::vec4(worldCoords, 1.f) * constants::LDU_TO_OPENGL);
+    }
+    void BaseAction::setAllNodeTransformations(const std::function<glm::mat4(const glm::mat4&)>& transformationProvider) {
+        auto nodeIt = nodes.begin();
+        auto transfIt = initialRelativeTransformations.begin();
+        while (nodeIt != nodes.end()) {
+            auto newTransf = transformationProvider(*transfIt);
+            (*nodeIt)->setRelativeTransformation(glm::transpose(newTransf));
+            (*nodeIt)->incrementVersion();
+
+            ++nodeIt;
+            ++transfIt;
+        }
+    }
 }

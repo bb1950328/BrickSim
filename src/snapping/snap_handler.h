@@ -15,6 +15,8 @@ namespace bricksim::snap {
     public:
         [[nodiscard]] LinearHandler& getLinear();
         [[nodiscard]] RotationalHandler& getRotational();
+        [[nodiscard]] const LinearHandler& getLinear() const;
+        [[nodiscard]] const RotationalHandler& getRotational() const;
         [[nodiscard]] bool isEnabled() const;
         [[nodiscard]] bool* isEnabledPtr();
 

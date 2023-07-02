@@ -22,7 +22,7 @@ namespace bricksim::connection::visualization {
         return root;
     }
     void addVisualization(const std::string& partName, const std::shared_ptr<etree::Node>& root) {
-        for (const auto& conn: getConnectorsOfPart(partName)) {
+        for (const auto& conn: *getConnectorsOfPart(partName)) {
             const auto cylConn = std::dynamic_pointer_cast<CylindricalConnector>(conn);
             const auto clipConn = std::dynamic_pointer_cast<ClipConnector>(conn);
             const auto fgrConn = std::dynamic_pointer_cast<FingerConnector>(conn);

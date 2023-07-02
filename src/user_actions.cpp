@@ -256,6 +256,12 @@ namespace bricksim::user_actions {
                         []() { controller::getActiveEditor()->startTransformingSelectedNodes(graphical_transform::GraphicalTransformationType::ROTATE); },
                 },
                 {
+                        START_MOVING_SELECTED_NODES,
+                        ICON_FA_UP_DOWN_LEFT_RIGHT " Start moving selected Elements",
+                        EnableCondition::HAS_SELECTED_NODES,
+                        []() { controller::getActiveEditor()->startTransformingSelectedNodes(graphical_transform::GraphicalTransformationType::MOVE); },
+                },
+                {
                         TRANSFORMATION_LOCK_X,
                         ICON_FA_RULER_HORIZONTAL " Restrict transformation to X axis",
                         EnableCondition::TRANSFORM_IN_PROGRESS,

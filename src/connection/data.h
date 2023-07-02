@@ -162,6 +162,8 @@ namespace bricksim::connection {
         void removeConnection(const node_t& a, const node_t& b, const edge_t& edge);
 
         void removeAllConnections(const node_t& a, const node_t& b);
+        void removeAllConnections(const node_t& a);
+        void removeAllConnections(const uoset_t<node_t>& toRemove);
 
         [[nodiscard]] const std::vector<edge_t>& getConnections(const node_t& a, const node_t& b) const;
         [[nodiscard]] const uomap_t<node_t, std::vector<edge_t>>& getConnections(const node_t& node) const;

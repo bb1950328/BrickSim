@@ -16,6 +16,7 @@ namespace bricksim::graphical_transform {
     enum class GraphicalTransformationType {
         TRANSLATE,
         ROTATE,
+        MOVE,
     };
     class BaseAction : public util::NoCopyNoMove {
     public:

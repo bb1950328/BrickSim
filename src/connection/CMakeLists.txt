@@ -7,6 +7,8 @@ target_sources(BrickSimLib PRIVATE
         data.h
         engine.cpp
         engine.h
+        pair_checker.cpp
+        pair_checker.h
         )
 
 add_subdirectory(ldcad_meta)

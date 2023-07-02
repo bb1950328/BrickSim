@@ -2,50 +2,58 @@
 
 #include "../graphics/mesh/mesh_collection.h"
 #include "data.h"
-namespace bricksim::connection::engine {
-    namespace {
-        constexpr float PARALLELITY_ANGLE_TOLERANCE = .001f;
-        constexpr float COLINEARITY_TOLERANCE_LDU = .1f;
-        constexpr float POSITION_TOLERANCE_LDU = .1f;
-        constexpr float CONNECTION_RADIUS_TOLERANCE = 1.f;
+#include "fcl/broadphase/broadphase_dynamic_AABB_tree.h"
 
-        struct ConnectorCheckData {
-            glm::mat4 absTransformation;
-            glm::vec3 absStart;
-            glm::vec3 absEnd;//=absStart for connectors that do not have a length
-            glm::vec3 absDirection;
-            std::shared_ptr<Connector> connector;
-            std::shared_ptr<ConnectorWithLength> connectorWithLength;
-            std::shared_ptr<ClipConnector> clip;
-            std::shared_ptr<CylindricalConnector> cyl;
-            std::shared_ptr<FingerConnector> finger;
-            std::shared_ptr<GenericConnector> generic;
+namespace bricksim {
+    class Editor;
+}
+namespace bricksim::connection {
 
-            ConnectorCheckData(const std::shared_ptr<etree::LdrNode>& node, const std::shared_ptr<Connector>& connector);
+    class Engine {
+    private:
+        struct NodeData {
+            etree::Node::version_t lastUpdatedVersion;
+            etree::Node::version_t lastUpdatedSelfVersion;
+            std::unique_ptr<fcl::CollisionObjectf> collisionObj;
+            uoset_t<std::shared_ptr<etree::Node>> children;
         };
 
-        class ConnectionChecker {
-            const ConnectorCheckData a;
-            const ConnectorCheckData b;
-            std::vector<std::shared_ptr<Connection>>& result;
-            const float absoluteDirectionAngleDifference;
-            const bool sameDir;
-            const bool oppositeDir;
+        Editor& editor;
+        fcl::DynamicAABBTreeCollisionManagerf manager;
+        uomap_t<std::shared_ptr<etree::Node>, NodeData> nodeData;
+        ConnectionGraph graph;
+        uoset_t<std::shared_ptr<etree::LdrNode>> outdatedInGraph;
 
-            bool findGenericGeneric();
-            bool findCylCyl();
-            bool findFingerFinger();
-            bool findClipCyl();
+        void updateCollisionData();
+        void updateGraph();
 
-            std::optional<float> projectConnectorsWithLength();
+        void resetData();
 
-        public:
-            ConnectionChecker(ConnectorCheckData a, ConnectorCheckData b, std::vector<std::shared_ptr<Connection>>& result);
-            void findConnections();
-        };
-    }
-    std::vector<std::shared_ptr<Connection>> findConnections(const std::shared_ptr<etree::LdrNode>& a, const std::shared_ptr<etree::LdrNode>& b);
-    ConnectionGraph findConnections(const std::shared_ptr<etree::Node>& node, const mesh::SceneMeshCollection& meshCollection);
-    ConnectionGraph findConnections(const std::shared_ptr<etree::LdrNode>& activeNode, const std::shared_ptr<etree::Node>& passiveNode, const mesh::SceneMeshCollection& meshCollection);
-    void findConnections(const std::shared_ptr<etree::LdrNode>& activeNode, const std::shared_ptr<etree::Node>& passiveNode, const mesh::SceneMeshCollection& meshCollection, ConnectionGraph& result);
+        //todo try to improve manager.registerObject, manager.update and manager.unregisterObject calls
+        // so that the binary tree is only balanced once (check if performance is better)
+        /**
+         * updates @param node in the manager recursively
+         */
+        void updateNodeData(const std::shared_ptr<etree::Node>& node);
+        /**
+         * updates @param node in the manager recursively
+         * @param it is the iterator to the corresponding element in @a nodeData
+         */
+        void updateNodeData(const std::shared_ptr<etree::Node>& node, decltype(nodeData)::iterator it);
+        /**
+         * removes data of @param node from the manager
+         */
+        void removeNodeData(const std::shared_ptr<etree::Node>& node);
+
+        const std::shared_ptr<etree::Node>& convertRawNodePtr(void* rawPtr) const;
+        fcl::Transform3f getCollisionBoxTransform(const std::shared_ptr<etree::LdrNode>& node) const;
+
+    public:
+        explicit Engine(Editor& editor);
+
+        void update();
+
+        const ConnectionGraph& getGraph() const;
+        bool fclCallback(fcl::CollisionObjectf* o0, fcl::CollisionObjectf* o1);
+    };
 }

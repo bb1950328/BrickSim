@@ -1,5 +1,6 @@
 #pragma once
 
+#include "connection/engine.h"
 #include "element_tree.h"
 #include "graphics/scene.h"
 #include "gui/graphical_transform/provider.h"
@@ -43,6 +44,7 @@ namespace bricksim {
         std::shared_ptr<graphics::Scene>& getScene();
         std::unique_ptr<graphical_transform::BaseAction>& getCurrentTransformAction();
         [[nodiscard]] const std::shared_ptr<graphics::CadCamera>& getCamera() const;
+        [[nodiscard]] connection::Engine& getConnectionEngine();
         [[nodiscard]] const uomap_t<std::shared_ptr<etree::Node>, uint64_t>& getSelectedNodes() const;
 
         [[nodiscard]] std::string getFilename() const;
@@ -115,6 +117,7 @@ namespace bricksim {
         uomap_t<std::shared_ptr<etree::Node>, uint64_t> selectedNodes;
         std::shared_ptr<SelectionVisualizationNode> selectionVisualizationNode;
         std::shared_ptr<graphics::CadCamera> camera;
+        connection::Engine connectionEngine{*this};
         ///empty means cursor is outside window
         std::optional<glm::svec2> cursorPos;
 

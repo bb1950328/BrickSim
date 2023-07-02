@@ -308,6 +308,12 @@ namespace bricksim::gui::windows::debug {
                 if (activeEditor == nullptr) {
                     ImGui::Text("Make an editor active and select a part to see its connections");
                 } else {
+                    auto& engine = activeEditor->getConnectionEngine();
+
+                    if (ImGui::Button(ICON_FA_ROTATE " Update Connection Engine")) {
+                        engine.update();
+                    }
+
                     const auto selectedNodes = activeEditor->getSelectedNodes();
                     std::vector<std::shared_ptr<etree::LdrNode>> ldrNodes;
                     for (const auto& node: selectedNodes) {
@@ -318,16 +324,12 @@ namespace bricksim::gui::windows::debug {
                     }
                     if (ldrNodes.size() == 1) {
                         const auto node = ldrNodes[0];
-                        connection::ConnectionGraph connectionGraph;
-                        float time = 999999999999.f;
-                        for (int i = 0; i < 10; ++i) {
-                            const auto before = std::chrono::high_resolution_clock::now();
-                            connectionGraph = connection::engine::findConnections(node, activeEditor->getEditingModel(), activeEditor->getScene()->getMeshCollection());
-                            const auto after = std::chrono::high_resolution_clock::now();
-                            time = std::min(time, static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.0f);
+                        const auto& connectionsToNode = engine.getGraph().getConnections(node);
+                        size_t totalConnections = 0;
+                        for (const auto& [_, conns]: connectionsToNode) {
+                            totalConnections += conns.size();
                         }
-                        const auto& connectionsToNode = connectionGraph.getConnections(node);
-                        ImGui::Text("%lu connections between selected part and all other parts found in %.3fms", connectionGraph.countTotalConnections(), time);
+                        ImGui::Text("Selected Part is connected to %zu other parts via %zu connections", connectionsToNode.size(), totalConnections);
                         for (const auto& c: connectionsToNode) {
                             std::string id = fmt::format("{} {}", c.first->ldrFile->metaInfo.name, glm::to_string(c.first->getAbsoluteTransformation()));
                             if (ImGui::TreeNode(id.c_str(), "%s", c.first->displayName.c_str())) {
@@ -352,11 +354,8 @@ namespace bricksim::gui::windows::debug {
                             }
                         }
                     } else if (ldrNodes.size() == 2) {
-                        const auto before = std::chrono::high_resolution_clock::now();
-                        const auto connections = connection::engine::findConnections(ldrNodes[0], ldrNodes[1]);
-                        const auto after = std::chrono::high_resolution_clock::now();
-                        const auto time = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.0f;
-                        ImGui::Text("%lu connections between the two selected parts found in %.3fms", connections.size(), time);
+                        const auto connections = engine.getGraph().getConnections(ldrNodes[0], ldrNodes[1]);
+                        ImGui::Text("%lu connections between the two selected parts", connections.size());
                         for (const auto& c: connections) {
                             ImGui::BulletText("%s <-> %s", c->connectorA->infoStr().c_str(), c->connectorB->infoStr().c_str());
                         }
@@ -373,11 +372,9 @@ namespace bricksim::gui::windows::debug {
                                     nullptr);
                             if (outputPathChars != nullptr) {
                                 std::filesystem::path outputFile = outputPathChars;
-                                controller::getForegroundTasks().emplace("Export Connections with GraphViz", [outputFile, activeEditor](auto* progress) {
+                                controller::getForegroundTasks().emplace("Export Connections with GraphViz", [outputFile, activeEditor, &engine](auto* progress) {
                                     *progress = .0f;
-                                    const auto graph = connection::engine::findConnections(activeEditor->getEditingModel(), activeEditor->getScene()->getMeshCollection());
-                                    *progress = .2f;
-                                    const auto graphvizCode = connection::visualization::generateGraphviz(graph);
+                                    const auto graphvizCode = connection::visualization::generateGraphviz(engine.getGraph());
                                     *progress = .3f;
                                     graphvizCode.renderToFile(outputFile);
                                     *progress = 1.f;

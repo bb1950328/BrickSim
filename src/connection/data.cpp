@@ -18,6 +18,26 @@ namespace bricksim::connection {
         adjacencyLists[a].erase(b);
         adjacencyLists[b].erase(a);
     }
+    void ConnectionGraph::removeAllConnections(const ConnectionGraph::node_t& a) {
+        adjacencyLists.erase(a);
+        for (auto& [x, adj]: adjacencyLists) {
+            adj.erase(a);
+        }
+    }
+    void ConnectionGraph::removeAllConnections(const uoset_t<ConnectionGraph::node_t>& toRemove) {
+        if (toRemove.empty()) {
+            return;
+        }
+        for (const auto& a: toRemove) {
+            adjacencyLists.erase(a);
+        }
+        for (auto& [x, adj]: adjacencyLists) {
+            for (const auto& a: toRemove) {
+                adj.erase(a);
+            }
+        }
+    }
+
     const std::vector<ConnectionGraph::edge_t>& ConnectionGraph::getConnections(const ConnectionGraph::node_t& a, const ConnectionGraph::node_t& b) const {
         const auto it = adjacencyLists.find(a);
         if (it != adjacencyLists.end()) {
@@ -58,7 +78,6 @@ namespace bricksim::connection {
         }
         return total / 2;
     }
-
     CylindricalConnector::CylindricalConnector(const std::string& group,
                                                const glm::vec3& start,
                                                const glm::vec3& direction,

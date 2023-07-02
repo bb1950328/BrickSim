@@ -21,6 +21,7 @@ namespace bricksim::aabb {
         void includeOBB(const OBB& bbox);
 
         [[nodiscard]] AABB transform(const glm::mat4& transformation) const;
+        [[nodiscard]] glm::mat4 getUnitBoxTransformation() const;
 
         [[nodiscard]] bool isDefined() const;
 
@@ -28,7 +29,7 @@ namespace bricksim::aabb {
         [[nodiscard]] glm::vec3 getSize() const;
         [[nodiscard]] float getSurfaceArea() const;
         [[nodiscard]] float getVolume() const;
-        bool intersects(const AABB& other) const;
+        [[nodiscard]] bool intersects(const AABB& other) const;
     };
 
     template<typename UserData>

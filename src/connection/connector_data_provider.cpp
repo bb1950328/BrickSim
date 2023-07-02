@@ -10,7 +10,7 @@
 #include "spdlog/spdlog.h"
 namespace bricksim::connection {
     namespace {
-        uomap_t<std::string, std::vector<std::shared_ptr<Connector>>> cache;
+        uomap_t<std::string, std::shared_ptr<std::vector<std::shared_ptr<Connector>>>> cache;
 
         void multiplyConnectorByGrid(std::vector<std::shared_ptr<Connector>>& connectors, const std::vector<std::shared_ptr<Connector>>& base, const ldcad_meta::Grid& grid);
 
@@ -252,13 +252,22 @@ namespace bricksim::connection {
         }
 
     }
-    const std::vector<std::shared_ptr<Connector>>& getConnectorsOfPart(const std::string& name) {
+    std::shared_ptr<std::vector<std::shared_ptr<Connector>>> getConnectorsOfPart(const std::string& name) {
         if (const auto it = cache.find(name); it != cache.end()) {
             return it->second;
         }
-        auto& result = cache.insert({name, std::vector<std::shared_ptr<Connector>>()}).first->second;
+
         const auto file = ldr::file_repo::get().getFile(nullptr, name);
-        createConnectors(result, file, glm::mat4(1.f), {});
+        auto result = std::make_shared<std::vector<std::shared_ptr<Connector>>>();
+        createConnectors(*result, file, glm::mat4(1.f), {});
+        cache.insert({name, result});
         return result;
+    }
+    std::shared_ptr<std::vector<std::shared_ptr<Connector>>> getConnectorsOfNode(const std::shared_ptr<etree::LdrNode>& node) {
+        if (node->getType() == etree::NodeType::TYPE_PART) {
+            return getConnectorsOfPart(node->ldrFile->metaInfo.name);
+        }
+        static const auto empty = std::make_shared<std::vector<std::shared_ptr<Connector>>>();
+        return empty;
     }
 }

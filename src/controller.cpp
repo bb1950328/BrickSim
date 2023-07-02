@@ -395,8 +395,9 @@ namespace bricksim::controller {
         }
 
         //openFile("test_files/bricks_test.ldr");
+        openFile("test_files/connections.ldr");
         //openFile("test_files/triangle_test.ldr");
-        openFile("test_files/mpd_test.mpd");
+        //openFile("test_files/mpd_test.mpd");
         //openFile("test_files/texmap_planar.ldr");
         //openFile("test_files/texmap_planar3.ldr");
         //openFile("test_files/texmap_planar_perpendicular.ldr");

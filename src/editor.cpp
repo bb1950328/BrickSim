@@ -269,20 +269,12 @@ namespace bricksim {
     }
 
     void Editor::nodeSelectConnected() {
-        connection::ConnectionGraph graph;
-        for (const auto& item: selectedNodes) {
-            const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(item.first);
+        connectionEngine.update();
+        for (const auto& [node, version]: selectedNodes) {
+            const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
             if (ldrNode != nullptr) {
-                connection::engine::findConnections(ldrNode, editingModel, graphics::scenes::get(sceneId)->getMeshCollection(), graph);
-            }
-        }
-        for (const auto& item: selectedNodes) {
-            const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(item.first);
-            if (ldrNode != nullptr) {
-                for (const auto& edge: graph.getConnections(ldrNode)) {
-                    if (!edge.second.empty()) {
-                        selectedNodes.emplace(edge.first, edge.first->getVersion());
-                    }
+                for (const auto& [connectedNode, edges]: connectionEngine.getGraph().getConnections(ldrNode)) {
+                    selectedNodes.emplace(connectedNode, connectedNode->getVersion());
                 }
             }
         }
@@ -617,6 +609,9 @@ namespace bricksim {
             currentTransformAction->cancel();
             currentTransformAction = nullptr;
         }
+    }
+    connection::Engine& Editor::getConnectionEngine() {
+        return connectionEngine;
     }
 
     SelectionVisualizationNode::SelectionVisualizationNode(const std::shared_ptr<Node>& parent) :

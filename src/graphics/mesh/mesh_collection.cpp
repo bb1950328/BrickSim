@@ -184,7 +184,6 @@ namespace bricksim::mesh {
 
     aabb::AABB SceneMeshCollection::getRelativeAABB(const std::shared_ptr<const etree::MeshNode>& node) const {
         //todo something here is wrong for subfile instances
-        glm::mat4 absoluteTransformation = node->getAbsoluteTransformation();
         auto it = allMeshes.find({node->getMeshIdentifier(), false});
         if (it == allMeshes.end()) {
             it = allMeshes.find({node->getMeshIdentifier(), true});

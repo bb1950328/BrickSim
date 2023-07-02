@@ -108,6 +108,7 @@ namespace bricksim::keyboard_shortcut_manager {
                 {user_actions::UNDO, GLFW_KEY_Z, modifier::CTRL, Event::ON_PRESS},
                 {user_actions::START_TRANSLATING_SELECTED_NODES, GLFW_KEY_T, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
                 {user_actions::START_ROTATING_SELECTED_NODES, GLFW_KEY_R, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
+                {user_actions::START_MOVING_SELECTED_NODES, GLFW_KEY_M, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
                 {user_actions::TRANSFORMATION_LOCK_XY, GLFW_KEY_Z, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
                 {user_actions::TRANSFORMATION_LOCK_XZ, GLFW_KEY_Y, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
                 {user_actions::TRANSFORMATION_LOCK_YZ, GLFW_KEY_X, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},

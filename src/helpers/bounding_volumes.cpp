@@ -69,6 +69,11 @@ namespace bricksim::aabb {
         }
         return result;
     }
+    glm::mat4 AABB::getUnitBoxTransformation() const {
+        glm::mat4 transf = glm::scale(glm::mat4(1.f), getSize() / 2.f);
+        transf[3] = glm::vec4(getCenter(), 1.f);
+        return transf;
+    }
 
     glm::mat4 OBB::getUnitBoxTransformation() const {
         glm::mat4 transf(1.f);

@@ -94,12 +94,16 @@ namespace bricksim::etree {
             ++node->version;
             node = node->parent.lock().get();
         } while (node != nullptr);
+        ++selfVersion;
     }
     bool Node::isDirectChildOfTypeAllowed(NodeType potentialChildType) const {
         return true;
     }
     void Node::removeChildIf(std::function<bool(const std::shared_ptr<Node>&)> predicate) {
         std::erase_if(children, std::move(predicate));
+    }
+    Node::version_t Node::getSelfVersion() const {
+        return selfVersion;
     }
 
     Node::~Node() = default;

@@ -1,4 +1,6 @@
 #pragma once
+#include <glm/glm.hpp>
+#include <spdlog/fmt/fmt.h>
 #include <string>
 #include <vector>
 
@@ -22,4 +24,43 @@ namespace bricksim::stringutil {
     bool equalsAlphanum(std::string_view a, std::string_view b);
     std::vector<std::string_view> splitByChar(std::string_view string, char delimiter);
     std::string repeat(const std::string& str, unsigned int times);
+
+    template<glm::length_t L, typename T>
+    std::string formatGLM(const glm::vec<L, T>& vec);
+    template<typename T>
+    std::string formatGLM(const glm::vec<2, T>& vec) {
+        return fmt::format("vec2({:g}, {:g})", vec.x, vec.y);
+    }
+    template<typename T>
+    std::string formatGLM(const glm::vec<3, T>& vec) {
+        return fmt::format("vec3({:g}, {:g}, {:g})", vec.x, vec.y, vec.z);
+    }
+    template<typename T>
+    std::string formatGLM(const glm::vec<4, T>& vec) {
+        return fmt::format("vec4({:g}, {:g}, {:g}, {:g})", vec.x, vec.y, vec.z, vec.w);
+    }
+
+    template<glm::length_t L, typename T>
+    std::string formatGLM(const glm::mat<L, L, T>& mat);
+    template<typename T>
+    std::string formatGLM(const glm::mat<2, 2, T>& mat) {
+        return fmt::format("mat2(({:g}, {:g}), ({:g}, {:g}))",
+                           mat[0][0], mat[0][1],
+                           mat[1][0], mat[1][1]);
+    }
+    template<typename T>
+    std::string formatGLM(const glm::mat<3, 3, T>& mat) {
+        return fmt::format("vec3(({:g}, {:g}, {:g}), ({:g}, {:g}, {:g}), ({:g}, {:g}, {:g}))",
+                           mat[0][0], mat[0][1], mat[0][2],
+                           mat[1][0], mat[1][1], mat[1][2],
+                           mat[2][0], mat[2][1], mat[2][2]);
+    }
+    template<typename T>
+    std::string formatGLM(const glm::mat<4, 4, T>& mat) {
+        return fmt::format("vec4(({:g}, {:g}, {:g}, {:g}), ({:g}, {:g}, {:g}, {:g}), ({:g}, {:g}, {:g}, {:g}), ({:g}, {:g}, {:g}, {:g}))",
+                           mat[0][0], mat[0][1], mat[0][2], mat[0][3],
+                           mat[1][0], mat[1][1], mat[1][2], mat[1][3],
+                           mat[2][0], mat[2][1], mat[2][2], mat[2][3],
+                           mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+    }
 }

@@ -331,7 +331,7 @@ namespace bricksim::gui::windows::debug {
                         }
                         ImGui::Text("Selected Part is connected to %zu other parts via %zu connections", connectionsToNode.size(), totalConnections);
                         for (const auto& c: connectionsToNode) {
-                            std::string id = fmt::format("{} {}", c.first->ldrFile->metaInfo.name, glm::to_string(c.first->getAbsoluteTransformation()));
+                            std::string id = fmt::format("{} {}", c.first->ldrFile->metaInfo.name, stringutil::formatGLM(c.first->getAbsoluteTransformation()));
                             if (ImGui::TreeNode(id.c_str(), "%s", c.first->displayName.c_str())) {
                                 uint64_t i = 1;
                                 for (const auto& item: c.second) {
@@ -340,11 +340,11 @@ namespace bricksim::gui::windows::debug {
                                         ImGui::BulletText("B: %s", item->connectorB->infoStr().c_str());
                                         for (const auto& ra: item->degreesOfFreedom.rotationPossibilities) {
                                             ImGui::BulletText("Rotation possibility: origin=%s, axis=%s",
-                                                              glm::to_string(ra.origin).c_str(),
-                                                              glm::to_string(ra.axis).c_str());
+                                                              stringutil::formatGLM(ra.origin).c_str(),
+                                                              stringutil::formatGLM(ra.axis).c_str());
                                         }
                                         for (const auto& sd: item->degreesOfFreedom.slideDirections) {
-                                            ImGui::BulletText("Slide direction: %s", glm::to_string(sd).c_str());
+                                            ImGui::BulletText("Slide direction: %s", stringutil::formatGLM(sd).c_str());
                                         }
                                         ImGui::TreePop();
                                     }

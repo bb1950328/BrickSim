@@ -1,7 +1,7 @@
 #include "data.h"
 #include "magic_enum.hpp"
+#include <glm/gtx/string_cast.hpp>
 #include <spdlog/fmt/fmt.h>
-#include <spdlog/fmt/ostr.h>
 #include <spdlog/fmt/ranges.h>
 
 #include <numeric>
@@ -129,7 +129,7 @@ namespace bricksim::connection {
         }
         pstr.pop_back();
         pstr.pop_back();
-        return fmt::format("cylindrical[parts=[{}], group={}, openStart={}, openEnd={}, slide={}, start={}, direction={}]", pstr, group, openStart, openEnd, slide, start, direction);
+        return fmt::format("cylindrical[parts=[{}], group={}, openStart={}, openEnd={}, slide={}, start={}, direction={}]", pstr, group, openStart, openEnd, slide, stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
 
     Connector::Connector(std::string group, const glm::vec3& start, const glm::vec3& direction) :
@@ -139,7 +139,7 @@ namespace bricksim::connection {
         return std::make_shared<Connector>(*this);
     }
     std::string Connector::infoStr() {
-        return fmt::format("connector[group={}, start={}, direction={}]", group, start, direction);
+        return fmt::format("connector[group={}, start={}, direction={}]", group, stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
 
     ClipConnector::ClipConnector(const std::string& group,
@@ -157,7 +157,7 @@ namespace bricksim::connection {
         return std::make_shared<ClipConnector>(*this);
     }
     std::string ClipConnector::infoStr() {
-        return fmt::format("clip[group={}, radius={}, width={}, slide={}, start={}, direction={}]", group, radius, width, slide, start, direction);
+        return fmt::format("clip[group={}, radius={}, width={}, slide={}, start={}, direction={}]", group, radius, width, slide, stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
     float ClipConnector::getTotalLength() const {
         return width;
@@ -177,7 +177,7 @@ namespace bricksim::connection {
         fingerWidths(fingerWidths) {
     }
     std::string FingerConnector::infoStr() {
-        return fmt::format("finger[group={}, firstFingerGender={}, radius={}, fingerWidths={}, start={}, direction={}]", group, magic_enum::enum_name(firstFingerGender), radius, fingerWidths, start, direction);
+        return fmt::format("finger[group={}, firstFingerGender={}, radius={}, fingerWidths={}, start={}, direction={}]", group, magic_enum::enum_name(firstFingerGender), radius, fingerWidths, stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
     float FingerConnector::getTotalLength() const {
         return std::reduce(fingerWidths.begin(), fingerWidths.end());
@@ -196,7 +196,7 @@ namespace bricksim::connection {
         bounding(bounding) {
     }
     std::string GenericConnector::infoStr() {
-        return fmt::format("generic[group={}, gender={}, bounding={}, start={}, direction={}]", group, magic_enum::enum_name(gender), bounding.index(), start, direction);
+        return fmt::format("generic[group={}, gender={}, bounding={}, start={}, direction={}]", group, magic_enum::enum_name(gender), bounding.index(), stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
     DegreesOfFreedom::DegreesOfFreedom(const std::vector<glm::vec3>& slideDirections,
                                        const std::vector<RotationPossibility>& rotationPossibilities) :

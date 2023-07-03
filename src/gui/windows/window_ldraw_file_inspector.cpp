@@ -102,14 +102,14 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                         name = "Generic";
                     }
                     if (ImGui::TreeNode((void*)(nodeId++), "%s", name.c_str())) {
-                        ImGui::BulletText("start=%s", glm::to_string(item->start).c_str());
+                        ImGui::BulletText("start=%s", stringutil::formatGLM(item->start).c_str());
                         if (clipConn != nullptr) {
-                            ImGui::BulletText("direction=%s", glm::to_string(clipConn->direction).c_str());
+                            ImGui::BulletText("direction=%s", stringutil::formatGLM(clipConn->direction).c_str());
                             ImGui::BulletText("radius=%f", clipConn->radius);
                             ImGui::BulletText("width=%f", clipConn->width);
                             ImGui::BulletText("slide=%s", std::to_string(clipConn->slide).c_str());
                         } else if (cylConn != nullptr) {
-                            ImGui::BulletText("direction=%s", glm::to_string(cylConn->direction).c_str());
+                            ImGui::BulletText("direction=%s", stringutil::formatGLM(cylConn->direction).c_str());
                             ImGui::BulletText("gender=%s", magic_enum::enum_name(cylConn->gender).data());
                             if (ImGui::TreeNode("Parts")) {
                                 for (const auto& part: cylConn->parts) {
@@ -125,7 +125,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                             ImGui::BulletText("openEnd=%s", std::to_string(cylConn->openEnd).c_str());
                             ImGui::BulletText("slide=%s", std::to_string(cylConn->slide).c_str());
                         } else if (fgrConn != nullptr) {
-                            ImGui::BulletText("direction=%s", glm::to_string(fgrConn->direction).c_str());
+                            ImGui::BulletText("direction=%s", stringutil::formatGLM(fgrConn->direction).c_str());
                             ImGui::BulletText("gender=%s", magic_enum::enum_name(fgrConn->firstFingerGender).data());
                             ImGui::BulletText("radius=%f", fgrConn->radius);
                             if (ImGui::TreeNode("Finger Widths")) {

@@ -209,7 +209,6 @@ namespace bricksim::mesh {
             }
         }
 
-        //std::cout << node->displayName << fmt::format("{}", glm::to_string(aabb.getSize())) << std::endl;
         return aabb;
     }
 

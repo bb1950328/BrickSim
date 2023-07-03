@@ -50,7 +50,7 @@ namespace bricksim::helpers::system_info {
         const cpuinfo_cluster* cluster = processor->cluster;
         result.emplace_back("CPU vendor:", magic_enum::enum_name(cluster->vendor).substr(15));
         result.emplace_back("CPU package name: ", cluster->package->name);
-        result.emplace_back("CPU microarchitecture code: ", fmt::format("{:#08x}", cluster->uarch));
+        result.emplace_back("CPU microarchitecture code: ", fmt::format("{:#08x}", static_cast<uint64_t>(cluster->uarch)));
 
         result.emplace_back("ImGui::GetFontSize():", std::to_string(ImGui::GetFontSize()));
         result.emplace_back("ImGui::GetWindowDpiScale():", std::to_string(ImGui::GetWindowDpiScale()));

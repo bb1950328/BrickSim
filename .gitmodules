@@ -46,7 +46,7 @@
 	url = https://github.com/fastfloat/fast_float.git
 [submodule "src/lib/palenteer"]
 	path = src/lib/palanteer
-	url = https://www.github.com/dfeneyrou/palanteer.git
+	url = https://github.com/dfeneyrou/palanteer.git
 [submodule "src/lib/earcut.hpp"]
 	path = src/lib/earcut.hpp
 	url = https://github.com/mapbox/earcut.hpp.git

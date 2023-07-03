@@ -80,10 +80,10 @@ cd ../rapidjson || exit 1
 git checkout master
 git pull
 
-echo -e "\033[0;32mINFO: Updating robin-hood-hashing\033[0m"
-cd ../robin-hood-hashing || exit 1
+echo -e "\033[0;32mINFO: Updating unordered_dense\033[0m"
+cd ../unordered_dense || exit 1
 git fetch --tags
-git checkout "$(get_latest_release martinus/robin-hood-hashing)"
+git checkout "$(get_latest_release martinus/unordered_dense)"
 
 echo -e "\033[0;32mINFO: Updating spdlog\033[0m"
 cd ../spdlog || exit 1

@@ -46,7 +46,6 @@ namespace bricksim::connection {
         void removeNodeData(const std::shared_ptr<etree::Node>& node);
 
         const std::shared_ptr<etree::Node>& convertRawNodePtr(void* rawPtr) const;
-        fcl::Transform3f getCollisionBoxTransform(const std::shared_ptr<etree::LdrNode>& node) const;
 
     public:
         explicit Engine(Editor& editor);
@@ -54,6 +53,5 @@ namespace bricksim::connection {
         void update();
 
         const ConnectionGraph& getGraph() const;
-        bool fclCallback(fcl::CollisionObjectf* o0, fcl::CollisionObjectf* o1);
     };
 }

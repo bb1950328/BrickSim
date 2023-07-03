@@ -1,5 +1,6 @@
 #include "bounding_volumes.h"
 #include "../../constant_data/constants.h"
+#include "geometry.h"
 #include "util.h"
 
 namespace bricksim::aabb {
@@ -12,10 +13,30 @@ namespace bricksim::aabb {
     }
 
     AABB AABB::transform(const glm::mat4& transformation) const {
-        const glm::vec3 p1 = transformation * glm::vec4(pMin, 1.0f);
-        const glm::vec3 p2 = transformation * glm::vec4(pMax, 1.0f);
-        return {util::cwiseMin(p1, p2),
-                util::cwiseMax(p1, p2)};
+        if (geometry::doesTransformationLeaveAxisParallels(transformation)) {
+            const glm::vec3 p0 = transformation * glm::vec4(pMin, 1.0f);
+            const glm::vec3 p1 = transformation * glm::vec4(pMax, 1.0f);
+            return {util::cwiseMin(p0, p1),
+                    util::cwiseMax(p0, p1)};
+        } else {
+            const auto corners = std::to_array({
+                    transformation * glm::vec4(pMin.x, pMin.y, pMin.z, 1.f),
+                    transformation * glm::vec4(pMin.x, pMin.y, pMax.z, 1.f),
+                    transformation * glm::vec4(pMin.x, pMax.y, pMin.z, 1.f),
+                    transformation * glm::vec4(pMin.x, pMax.y, pMax.z, 1.f),
+                    transformation * glm::vec4(pMax.x, pMin.y, pMin.z, 1.f),
+                    transformation * glm::vec4(pMax.x, pMin.y, pMax.z, 1.f),
+                    transformation * glm::vec4(pMax.x, pMax.y, pMin.z, 1.f),
+                    transformation * glm::vec4(pMax.x, pMax.y, pMax.z, 1.f),
+            });
+            glm::vec3 min(INFINITY);
+            glm::vec3 max(-INFINITY);
+            for (const auto& c: corners) {
+                min = util::cwiseMin(min, glm::vec3(c));
+                max = util::cwiseMax(max, glm::vec3(c));
+            }
+            return {min, max};
+        }
     }
 
     bool AABB::isDefined() const {

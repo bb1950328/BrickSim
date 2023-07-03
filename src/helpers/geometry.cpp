@@ -343,12 +343,11 @@ namespace bricksim::geometry {
 
     bool doesTransformationLeaveAxisParallels(const glm::quat& quaternion) {
         const auto eulerAngles = glm::eulerAngles(glm::normalize(quaternion));
-        constexpr float epsilon = .0001f;
+        constexpr float epsilon = .01f;
         bool res = true;
         for (int i = 0; i < 3; ++i) {
-            res &= (std::fabs(eulerAngles[i]) < epsilon
-                    || std::fabs(eulerAngles[i] - 1.f) < epsilon
-                    || std::fabs(eulerAngles[i] + 1.f) < epsilon);
+            float factor = eulerAngles[i] / M_PI_2;
+            res &= std::abs(std::round(factor) - factor) < epsilon;
         }
         return res;
     }

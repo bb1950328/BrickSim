@@ -1,12 +1,14 @@
 #include "engine.h"
 
 #include "../editor.h"
+#include "../helpers/custom_hash.h"
 #include "../helpers/glm_eigen_conversion.h"
 #include "connector_data_provider.h"
 #include "pair_checker.h"
 #include "spdlog/fmt/ostr.h"
 #include "spdlog/spdlog.h"
 #include <fcl/broadphase/broadphase_dynamic_AABB_tree.h>
+#include <glm/gtx/string_cast.hpp>
 #include <utility>
 
 namespace bricksim::connection {
@@ -46,9 +48,10 @@ namespace bricksim::connection {
         for (const auto& item: objs) {
             std::string& title = static_cast<etree::LdrNode*>(item->getUserData())->ldrFile->metaInfo.title;
             const auto& aabb = item->getAABB();
-            std::cout << fmt::format("{}\t[{}, {}, {}]\t[{}, {}, {}]", title, aabb.min_.x(), aabb.min_.y(), aabb.min_.z(), aabb.max_.x(), aabb.max_.y(), aabb.max_.z()) << std::endl;
+            std::cout << fmt::format("[\"{}\", Vector(({}, {}, {})), Vector(({}, {}, {}))],", title, aabb.min_.x(), aabb.min_.y(), aabb.min_.z(), aabb.max_.x(), aabb.max_.y(), aabb.max_.z()) << std::endl;
         }
     }
+
     void Engine::updateNodeData(const std::shared_ptr<etree::Node>& node) {
         auto it = nodeData.find(node);
         if (it != nodeData.end()) {
@@ -57,8 +60,9 @@ namespace bricksim::connection {
             std::unique_ptr<fcl::CollisionObjectf> collisionObject;
             const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
             if (ldrNode != nullptr) {
-                const auto box = std::make_shared<fcl::Boxf>(fcl::Vector3f(2.f, 2.f, 2.f));//todo try to use one instance for all objects
-                collisionObject = std::make_unique<fcl::CollisionObjectf>(box, getCollisionBoxTransform(ldrNode));
+                const auto aabb = editor.getScene()->getMeshCollection().getAbsoluteAABB(ldrNode);
+                const auto box = std::make_shared<fcl::Boxf>(glm2eigen(aabb.getSize()));
+                collisionObject = std::make_unique<fcl::CollisionObjectf>(box, fcl::Matrix3f::Identity(), glm2eigen(aabb.getCenter()));
                 collisionObject->setUserData(node.get());
                 manager.registerObject(collisionObject.get());
                 outdatedInGraph.insert(ldrNode);
@@ -83,8 +87,18 @@ namespace bricksim::connection {
             const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
             if (ldrNode != nullptr) {
                 const auto aabb = editor.getScene()->getMeshCollection().getAbsoluteAABB(ldrNode);
-                data.collisionObj->setTransform(getCollisionBoxTransform(ldrNode));
-                manager.update(it->second.collisionObj.get());
+                const auto sizeDifference = std::dynamic_pointer_cast<const fcl::Boxf>(data.collisionObj->collisionGeometry())->side - glm2eigen(aabb.getSize());
+                if (sizeDifference.squaredNorm() > .01f) {
+                    manager.unregisterObject(data.collisionObj.get());
+                    const auto box = std::make_shared<fcl::Boxf>(glm2eigen(aabb.getSize()));
+                    data.collisionObj = std::make_unique<fcl::CollisionObjectf>(box, fcl::Matrix3f::Identity(), glm2eigen(aabb.getCenter()));//todo share this with initial obj creation
+                    data.collisionObj->setUserData(node.get());
+                    manager.registerObject(data.collisionObj.get());
+                } else {
+                    data.collisionObj->setTranslation(glm2eigen(aabb.getCenter()));
+                    data.collisionObj->computeAABB();
+                    manager.update(data.collisionObj.get());
+                }
                 outdatedInGraph.insert(ldrNode);
             }
             data.lastUpdatedSelfVersion = node->getSelfVersion();
@@ -121,14 +135,39 @@ namespace bricksim::connection {
     }
 
     bool updateCallback(fcl::CollisionObjectf* o0, fcl::CollisionObjectf* o1, void* cdata) {
-        return static_cast<Engine*>(cdata)->fclCallback(o0, o1);
+        if (o0 != o1) {
+            auto& set = *static_cast<uoset_t<std::array<fcl::CollisionObjectf*, 2>>*>(cdata);
+            set.insert(std::to_array({
+                    std::min(o0, o1),//because [a,b] is the same as [b,a] duplicates must be filtered
+                    std::max(o0, o1),
+            }));
+        }
+        return false;
     }
 
     void Engine::updateGraph() {
         graph.removeAllConnections(outdatedInGraph);
+        uoset_t<std::array<fcl::CollisionObjectf*, 2>> broadphaseCollisions;
         for (const auto& item: outdatedInGraph) {
             const auto& data = nodeData.find(item)->second;
-            manager.collide(data.collisionObj.get(), static_cast<void*>(this), updateCallback);
+            manager.collide(data.collisionObj.get(), static_cast<void*>(&broadphaseCollisions), updateCallback);
+        }
+        for (const auto& item: broadphaseCollisions) {
+            const auto ldrNode0 = std::dynamic_pointer_cast<etree::LdrNode>(convertRawNodePtr(item[0]->getUserData()));
+            const auto ldrNode1 = std::dynamic_pointer_cast<etree::LdrNode>(convertRawNodePtr(item[1]->getUserData()));
+            const auto& connectorsA = getConnectorsOfNode(ldrNode0);
+            const auto& connectorsB = getConnectorsOfNode(ldrNode1);
+
+            spdlog::debug("{} <--> {}", ldrNode0->ldrFile->metaInfo.title, ldrNode1->ldrFile->metaInfo.title);
+
+            for (const auto& ca: *connectorsA) {
+                const PairCheckData aData(ldrNode0, ca);
+                for (const auto& cb: *connectorsB) {
+                    const PairCheckData bData(ldrNode1, cb);
+                    PairChecker checker(aData, bData, graph);
+                    checker.findConnections();
+                }
+            }
         }
         outdatedInGraph.clear();
     }
@@ -139,34 +178,8 @@ namespace bricksim::connection {
         updateCollisionData();
         updateGraph();
     }
-    bool Engine::fclCallback(fcl::CollisionObjectf* o0, fcl::CollisionObjectf* o1) {
-        if (o0 == o1) {
-            return false;
-        }
-        const auto ldrNode0 = std::dynamic_pointer_cast<etree::LdrNode>(convertRawNodePtr(o0->getUserData()));
-        const auto ldrNode1 = std::dynamic_pointer_cast<etree::LdrNode>(convertRawNodePtr(o1->getUserData()));
-        const auto& connectorsA = getConnectorsOfNode(ldrNode0);
-        const auto& connectorsB = getConnectorsOfNode(ldrNode1);
-
-        spdlog::debug("{} <--> {}", ldrNode0->ldrFile->metaInfo.title, ldrNode1->ldrFile->metaInfo.title);
-
-        for (const auto& ca: *connectorsA) {
-            const PairCheckData aData(ldrNode0, ca);
-            for (const auto& cb: *connectorsB) {
-                const PairCheckData bData(ldrNode1, cb);
-                PairChecker checker(aData, bData, graph);
-                checker.findConnections();
-            }
-        }
-        return false;
-    }
     const std::shared_ptr<etree::Node>& Engine::convertRawNodePtr(void* rawPtr) const {
         std::shared_ptr<etree::Node> key0(static_cast<etree::Node*>(rawPtr), [](auto*) {});
         return nodeData.find(key0)->first;
-    }
-    fcl::Transform3f Engine::getCollisionBoxTransform(const std::shared_ptr<etree::LdrNode>& node) const {
-        const auto aabb = editor.getScene()->getMeshCollection().getAbsoluteAABB(node);
-        const auto transformation = aabb.getUnitBoxTransformation();
-        return fcl::Transform3f(glm2eigen(transformation));
     }
 }

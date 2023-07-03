@@ -3,6 +3,8 @@ target_sources(BrickSimLib PRIVATE
         bounding_volumes.h
         color.cpp
         color.h
+        custom_hash.cpp
+        custom_hash.h
         debug_nodes.cpp
         debug_nodes.h
         fraction.cpp

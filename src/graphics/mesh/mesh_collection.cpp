@@ -3,6 +3,7 @@
 #include "../../helpers/geometry.h"
 #include "../../metrics.h"
 #include "../texmap_projection.h"
+#include <glm/gtx/string_cast.hpp>
 #include <palanteer.h>
 #include <spdlog/spdlog.h>
 
@@ -179,7 +180,7 @@ namespace bricksim::mesh {
     }
 
     aabb::AABB SceneMeshCollection::getAbsoluteAABB(const std::shared_ptr<const etree::MeshNode>& node) const {
-        return getRelativeAABB(node).transform(node->getAbsoluteTransformation());
+        return getRelativeAABB(node).transform(glm::transpose(node->getAbsoluteTransformation()));
     }
 
     aabb::AABB SceneMeshCollection::getRelativeAABB(const std::shared_ptr<const etree::MeshNode>& node) const {
@@ -208,7 +209,7 @@ namespace bricksim::mesh {
             }
         }
 
-        //std::cout << node->displayName << ": (" << x1 << ", " << y1 << ", " << z1 << "), (" << x2 << ", " << y2 << ", " << z2 << ")" << std::endl;
+        //std::cout << node->displayName << fmt::format("{}", glm::to_string(aabb.getSize())) << std::endl;
         return aabb;
     }
 

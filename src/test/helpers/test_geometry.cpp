@@ -328,5 +328,26 @@ namespace bricksim {
         CHECK_FALSE(geometry::is2dTriangleClockwise({0, 0}, {1, 0}, {0, 1}));
     }
 
+    TEST_CASE("geometry::doesTransformationLeaveAxisParallels 0") {
+        const float angle = GENERATE(0.f,
+                                     static_cast<float>(M_PI_2),
+                                     static_cast<float>(M_PI),
+                                     static_cast<float>(M_PI * 2));
+        const glm::vec3 axis = GENERATE(glm::vec3(1.f, 0.f, 0.f),
+                                        glm::vec3(0.f, 1.f, 0.f),
+                                        glm::vec3(0.f, 0.f, 1.f));
+        CHECK(geometry::doesTransformationLeaveAxisParallels(glm::rotate(glm::mat4(1.f), angle, axis)));
+    }
+    TEST_CASE("geometry::doesTransformationLeaveAxisParallels 1") {
+        const float angle = GENERATE(1.f, 2.f, 3.f);
+        const glm::vec3 axis = GENERATE(glm::vec3(1.f, 0.f, 0.f),
+                                        glm::vec3(0.f, 1.f, 0.f),
+                                        glm::vec3(0.f, 0.f, 1.f),
+                                        glm::vec3(0.7071f, 0.7071f, 0.f),
+                                        glm::vec3(0.7071f, 0.f, 0.7071f),
+                                        glm::vec3(0.f, 0.7071f, 0.7071f));
+        CHECK_FALSE(geometry::doesTransformationLeaveAxisParallels(glm::rotate(glm::mat4(1.f), angle, axis)));
+    }
+
     //todo tests for geometry::getAngleBetweenThreePointsSigned
 }

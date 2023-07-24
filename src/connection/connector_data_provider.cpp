@@ -8,11 +8,12 @@
 #include "ldcad_meta/gen_command.h"
 #include "ldcad_meta/incl_command.h"
 #include "spdlog/spdlog.h"
+
 namespace bricksim::connection {
     namespace {
-        uomap_t<std::string, std::shared_ptr<std::vector<std::shared_ptr<Connector>>>> cache;
+        uomap_t<std::string, std::shared_ptr<connector_container_t>> cache;
 
-        void multiplyConnectorByGrid(std::vector<std::shared_ptr<Connector>>& connectors, const std::vector<std::shared_ptr<Connector>>& base, const ldcad_meta::Grid& grid);
+        void multiplyConnectorByGrid(connector_container_t& connectors, const connector_container_t& base, const ldcad_meta::Grid& grid);
 
         template<typename T>
         [[nodiscard]] glm::mat4 combinePosOri(const std::shared_ptr<T>& command) {
@@ -38,8 +39,28 @@ namespace bricksim::connection {
             }
             return transf;
         }
+        std::size_t removeDuplicates(connector_container_t& connectors) {
+            connector_container_t result;
+            result.reserve(connectors.size());
+            std::size_t duplicateCount = 0;
+            for (const auto& c: connectors) {
+                bool add = true;
+                for (const auto& r: result) {
+                    if (*r == *c) {
+                        add = false;
+                        ++duplicateCount;
+                        break;
+                    }
+                }
+                if (add) {
+                    result.push_back(c);
+                }
+            }
+            connectors.assign(result.begin(), result.end());
+            return duplicateCount;
+        }
 
-        void createConnectors(std::vector<std::shared_ptr<Connector>>& connectors,
+        void createConnectors(connector_container_t& connectors,
                               const std::shared_ptr<ldr::File>& file,
                               glm::mat4 const& transformation,
                               uoset_t<std::string> clearIDs) {
@@ -66,7 +87,7 @@ namespace bricksim::connection {
                     const auto includedFile = ldr::file_repo::get().getFile(nullptr, inclCommand->ref);
 
                     if (inclCommand->grid.has_value()) {
-                        std::vector<std::shared_ptr<Connector>> base;
+                        connector_container_t base;
                         createConnectors(base, includedFile, transf * transformation, clearIDs);
                         const auto& grid = *inclCommand->grid;
                         multiplyConnectorByGrid(connectors, base, grid);
@@ -171,7 +192,7 @@ namespace bricksim::connection {
                     }
 
                     if (cylCommand->grid.has_value()) {
-                        std::vector<std::shared_ptr<Connector>> base{result};
+                        connector_container_t base{result};
                         const auto& grid = *cylCommand->grid;
                         multiplyConnectorByGrid(connectors, base, grid);
                     } else {
@@ -233,8 +254,8 @@ namespace bricksim::connection {
             }
         }
 
-        void multiplyConnectorByGrid(std::vector<std::shared_ptr<Connector>>& connectors,
-                                     const std::vector<std::shared_ptr<Connector>>& base,
+        void multiplyConnectorByGrid(connector_container_t& connectors,
+                                     const connector_container_t& base,
                                      const ldcad_meta::Grid& grid) {
             float xStart = grid.centerX ? (static_cast<float>(grid.countX - 1) / -2.f) * grid.spacingX : 0;
             float zStart = grid.centerZ ? (static_cast<float>(grid.countZ - 1) / -2.f) * grid.spacingZ : 0;
@@ -250,24 +271,27 @@ namespace bricksim::connection {
                 }
             }
         }
-
     }
-    std::shared_ptr<std::vector<std::shared_ptr<Connector>>> getConnectorsOfPart(const std::string& name) {
+    std::shared_ptr<connector_container_t> getConnectorsOfPart(const std::string& name) {
         if (const auto it = cache.find(name); it != cache.end()) {
             return it->second;
         }
 
         const auto file = ldr::file_repo::get().getFile(nullptr, name);
-        auto result = std::make_shared<std::vector<std::shared_ptr<Connector>>>();
+        auto result = std::make_shared<connector_container_t>();
         createConnectors(*result, file, glm::mat4(1.f), {});
+        const auto dupeCount = removeDuplicates(*result);
+        if (dupeCount > 0) {
+            spdlog::warn("Part {} {} has {} duplicate connectors", name, file->metaInfo.title, dupeCount);
+        }
         cache.insert({name, result});
         return result;
     }
-    std::shared_ptr<std::vector<std::shared_ptr<Connector>>> getConnectorsOfNode(const std::shared_ptr<etree::LdrNode>& node) {
+    std::shared_ptr<connector_container_t> getConnectorsOfNode(const std::shared_ptr<etree::LdrNode>& node) {
         if (node->getType() == etree::NodeType::TYPE_PART) {
             return getConnectorsOfPart(node->ldrFile->metaInfo.name);
         }
-        static const auto empty = std::make_shared<std::vector<std::shared_ptr<Connector>>>();
+        static const auto empty = std::make_shared<connector_container_t>();
         return empty;
     }
 }

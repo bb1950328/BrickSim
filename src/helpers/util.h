@@ -169,4 +169,33 @@ namespace bricksim::util {
         NoCopyNoMove& operator=(const NoCopyNoMove&) = delete;
         NoCopyNoMove& operator=(NoCopyNoMove&&) = delete;
     };
+
+    template<typename Iterator>
+        requires std::is_floating_point_v<typename std::iterator_traits<Iterator>::value_type>
+    constexpr bool floatRangeEpsilonEqual(Iterator aBegin, Iterator aEnd, Iterator bBegin, Iterator bEnd, float epsilon) {
+        return std::distance(aBegin, aEnd) == std::distance(bBegin, bEnd)
+               && std::equal(aBegin, aEnd, bBegin, [epsilon](const auto& a, const auto& b) { return std::fabs(a - b) < epsilon; });
+    }
+
+    template<glm::length_t L, typename T>
+    constexpr bool vecVecEpsilonEqual(const std::vector<glm::vec<L, T>>& a, const std::vector<glm::vec<L, T>>& b, float epsilon) {
+        return a.size() == b.size()
+               && std::equal(a.cbegin(), a.cend(), b.cbegin(), [epsilon](const auto& va, const auto& vb) { return glm::all(glm::epsilonEqual(va, vb, epsilon)); });
+    }
+
+    template<typename ForwardIterator>
+    ForwardIterator removeDuplicates(ForwardIterator first, ForwardIterator last) {
+        //https://stackoverflow.com/a/49863804/8733066
+        auto newLast = first;
+
+        for (auto current = first; current != last; ++current) {
+            if (std::find(first, newLast, *current) == newLast) {
+                if (newLast != current)
+                    *newLast = *current;
+                ++newLast;
+            }
+        }
+
+        return newLast;
+    }
 }

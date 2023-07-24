@@ -3,6 +3,12 @@
 #include "../ldr/files.h"
 #include "data.h"
 namespace bricksim::connection {
-    std::shared_ptr<std::vector<std::shared_ptr<Connector>>> getConnectorsOfPart(const std::string& name);
-    std::shared_ptr<std::vector<std::shared_ptr<Connector>>> getConnectorsOfNode(const std::shared_ptr<etree::LdrNode>& node);
+    struct SharedPtrConnectorValueHash {
+        uint64_t operator()(const std::shared_ptr<Connector>& connector) const {
+            return std::hash<Connector>()(*connector);
+        }
+    };
+    using connector_container_t = std::vector<std::shared_ptr<Connector>>;//ankerl::unordered_dense::set<std::shared_ptr<Connector>, SharedPtrConnectorValueHash>;
+    std::shared_ptr<connector_container_t> getConnectorsOfPart(const std::string& name);
+    std::shared_ptr<connector_container_t> getConnectorsOfNode(const std::shared_ptr<etree::LdrNode>& node);
 }

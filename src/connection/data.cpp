@@ -7,6 +7,15 @@
 #include <numeric>
 #include <utility>
 
+namespace std {
+    template<>
+    struct hash<bricksim::connection::CylindricalShapePart> {
+        std::size_t operator()(const bricksim::connection::CylindricalShapePart& value) const {
+            return bricksim::util::combinedHash(value.type, value.length, value.radius, value.flexibleRadius);
+        }
+    };
+}
+
 namespace bricksim::connection {
 
     void ConnectionGraph::addConnection(const ConnectionGraph::node_t& a, const ConnectionGraph::node_t& b, const ConnectionGraph::edge_t& edge) {
@@ -122,7 +131,7 @@ namespace bricksim::connection {
         }
         return parts.back();
     }
-    std::string CylindricalConnector::infoStr() {
+    std::string CylindricalConnector::infoStr() const {
         std::string pstr;
         for (const auto& p: parts) {
             pstr.append(fmt::format("{}[r={}, fr={}, l={}], ", magic_enum::enum_name(p.type), p.radius, p.flexibleRadius, p.length));
@@ -131,6 +140,20 @@ namespace bricksim::connection {
         pstr.pop_back();
         return fmt::format("cylindrical[parts=[{}], group={}, openStart={}, openEnd={}, slide={}, start={}, direction={}]", pstr, group, openStart, openEnd, slide, stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
+    bool CylindricalConnector::operator==(const CylindricalConnector& rhs) const {
+        return static_cast<const bricksim::connection::ConnectorWithLength&>(*this) == static_cast<const bricksim::connection::ConnectorWithLength&>(rhs)
+               && gender == rhs.gender
+               && parts == rhs.parts
+               && openStart == rhs.openStart
+               && openEnd == rhs.openEnd
+               && slide == rhs.slide;
+    }
+    bool CylindricalConnector::operator!=(const CylindricalConnector& rhs) const {
+        return !(rhs == *this);
+    }
+    size_t CylindricalConnector::hash() const {
+        return util::combinedHash(Connector::hash(), gender, parts, openStart, openEnd, slide);
+    }
 
     Connector::Connector(std::string group, const glm::vec3& start, const glm::vec3& direction) :
         group(std::move(group)), start(start), direction(direction) {}
@@ -138,8 +161,19 @@ namespace bricksim::connection {
     std::shared_ptr<Connector> Connector::clone() {
         return std::make_shared<Connector>(*this);
     }
-    std::string Connector::infoStr() {
+    std::string Connector::infoStr() const {
         return fmt::format("connector[group={}, start={}, direction={}]", group, stringutil::formatGLM(start), stringutil::formatGLM(direction));
+    }
+    std::size_t Connector::hash() const {
+        return util::combinedHash(group, stringutil::formatGLM(start), stringutil::formatGLM(direction));
+    }
+    bool Connector::operator==(const Connector& rhs) const {
+        return group == rhs.group
+               && glm::all(glm::epsilonEqual(start, rhs.start, .1f))
+               && glm::all(glm::epsilonEqual(direction, rhs.direction, .1f));
+    }
+    bool Connector::operator!=(const Connector& rhs) const {
+        return !(rhs == *this);
     }
 
     ClipConnector::ClipConnector(const std::string& group,
@@ -156,11 +190,20 @@ namespace bricksim::connection {
     std::shared_ptr<Connector> ClipConnector::clone() {
         return std::make_shared<ClipConnector>(*this);
     }
-    std::string ClipConnector::infoStr() {
+    std::string ClipConnector::infoStr() const {
         return fmt::format("clip[group={}, radius={}, width={}, slide={}, start={}, direction={}]", group, radius, width, slide, stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
     float ClipConnector::getTotalLength() const {
         return width;
+    }
+    bool ClipConnector::operator==(const ClipConnector& rhs) const {
+        return static_cast<const bricksim::connection::ConnectorWithLength&>(*this) == static_cast<const bricksim::connection::ConnectorWithLength&>(rhs)
+               && std::fabs(radius - rhs.radius) < .1f
+               && std::fabs(width - rhs.width) < .1f
+               && slide == rhs.slide;
+    }
+    bool ClipConnector::operator!=(const ClipConnector& rhs) const {
+        return !(rhs == *this);
     }
     std::shared_ptr<Connector> FingerConnector::clone() {
         return std::make_shared<FingerConnector>(*this);
@@ -176,11 +219,20 @@ namespace bricksim::connection {
         radius(radius),
         fingerWidths(fingerWidths) {
     }
-    std::string FingerConnector::infoStr() {
+    std::string FingerConnector::infoStr() const {
         return fmt::format("finger[group={}, firstFingerGender={}, radius={}, fingerWidths={}, start={}, direction={}]", group, magic_enum::enum_name(firstFingerGender), radius, fingerWidths, stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
     float FingerConnector::getTotalLength() const {
         return std::reduce(fingerWidths.begin(), fingerWidths.end());
+    }
+    bool FingerConnector::operator==(const FingerConnector& rhs) const {
+        return static_cast<const bricksim::connection::ConnectorWithLength&>(*this) == static_cast<const bricksim::connection::ConnectorWithLength&>(rhs)
+               && firstFingerGender == rhs.firstFingerGender
+               && std::fabs(radius - rhs.radius) < .1f
+               && util::floatRangeEpsilonEqual(fingerWidths.cbegin(), fingerWidths.cend(), rhs.fingerWidths.cbegin(), rhs.fingerWidths.cend(), .1f);
+    }
+    bool FingerConnector::operator!=(const FingerConnector& rhs) const {
+        return !(rhs == *this);
     }
 
     std::shared_ptr<Connector> GenericConnector::clone() {
@@ -195,13 +247,28 @@ namespace bricksim::connection {
         gender(gender),
         bounding(bounding) {
     }
-    std::string GenericConnector::infoStr() {
+    std::string GenericConnector::infoStr() const {
         return fmt::format("generic[group={}, gender={}, bounding={}, start={}, direction={}]", group, magic_enum::enum_name(gender), bounding.index(), stringutil::formatGLM(start), stringutil::formatGLM(direction));
+    }
+    bool GenericConnector::operator==(const GenericConnector& rhs) const {
+        return static_cast<const bricksim::connection::Connector&>(*this) == static_cast<const bricksim::connection::Connector&>(rhs)
+               && gender == rhs.gender
+               && bounding == rhs.bounding;
+    }
+    bool GenericConnector::operator!=(const GenericConnector& rhs) const {
+        return !(rhs == *this);
     }
     DegreesOfFreedom::DegreesOfFreedom(const std::vector<glm::vec3>& slideDirections,
                                        const std::vector<RotationPossibility>& rotationPossibilities) :
         slideDirections(slideDirections),
         rotationPossibilities(rotationPossibilities) {
+    }
+    bool DegreesOfFreedom::operator==(const DegreesOfFreedom& rhs) const {
+        return util::vecVecEpsilonEqual(slideDirections, rhs.slideDirections, .01f)
+               && rotationPossibilities == rhs.rotationPossibilities;
+    }
+    bool DegreesOfFreedom::operator!=(const DegreesOfFreedom& rhs) const {
+        return !(rhs == *this);
     }
     DegreesOfFreedom::DegreesOfFreedom() = default;
     Connection::Connection(const std::shared_ptr<Connector>& connectorA,
@@ -217,6 +284,12 @@ namespace bricksim::connection {
         connectorB(connectorB),
         degreesOfFreedom() {
     }
+    bool Connection::operator==(const Connection& rhs) const {
+        return connectorA == rhs.connectorA && connectorB == rhs.connectorB && degreesOfFreedom == rhs.degreesOfFreedom;
+    }
+    bool Connection::operator!=(const Connection& rhs) const {
+        return !(rhs == *this);
+    }
     glm::vec3 ConnectorWithLength::getEnd() const {
         return start + glm::normalize(direction) * getTotalLength();
     }
@@ -226,4 +299,12 @@ namespace bricksim::connection {
         Connector(group, start, direction) {}
     RotationPossibility::RotationPossibility(const glm::vec3& origin, const glm::vec3& axis) :
         origin(origin), axis(axis) {}
+    bool RotationPossibility::operator==(const RotationPossibility& rhs) const {
+        return glm::all(glm::epsilonEqual(origin, rhs.origin, .1f))
+               && glm::all(glm::epsilonEqual(axis, rhs.axis, .01f));
+    }
+    bool RotationPossibility::operator!=(const RotationPossibility& rhs) const {
+        return !(rhs == *this);
+    }
+    bool CylindricalShapePart::operator==(const CylindricalShapePart& rhs) const = default;
 }

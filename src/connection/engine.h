@@ -24,6 +24,8 @@ namespace bricksim::connection {
         ConnectionGraph graph;
         uoset_t<std::shared_ptr<etree::LdrNode>> outdatedInGraph;
 
+        static constexpr bool partNodeCollsionOnly = true;
+
         void updateCollisionData();
         void updateGraph();
 

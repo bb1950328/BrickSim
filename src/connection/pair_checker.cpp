@@ -91,9 +91,10 @@ namespace bricksim::connection {
         //const float maxLengthCursorValue = std::max(aBoundaries.back(), bBoundaries.back());
         int aCursor = -1;
         int bCursor = -1;
-        if (aBoundaries.front() < bBoundaries.front()) {
+        if (aBoundaries.front() <= bBoundaries.front()) {
             aCursor = 0;
-        } else {
+        }
+        if (aBoundaries.front() >= bBoundaries.front()) {
             bCursor = 0;
         }
         bool radialCollision = false;
@@ -121,9 +122,10 @@ namespace bricksim::connection {
                     break;
                 }
             }
-            if (aBoundaries[aCursor + 1] < bBoundaries[bCursor + 1]) {
+            if (aBoundaries[aCursor + 1] <= bBoundaries[bCursor + 1]) {
                 ++aCursor;
-            } else {
+            }
+            if (aBoundaries[aCursor + 1] >= bBoundaries[bCursor + 1]) {
                 ++bCursor;
             }
         }

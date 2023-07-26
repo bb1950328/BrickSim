@@ -58,7 +58,12 @@ namespace bricksim::connection {
             updateNodeData(node, it);
         } else {
             std::unique_ptr<fcl::CollisionObjectf> collisionObject;
-            const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
+            std::shared_ptr<etree::LdrNode> ldrNode;
+            if constexpr (partNodeCollsionOnly) {
+                ldrNode = std::dynamic_pointer_cast<etree::PartNode>(node);
+            } else {
+                ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
+            }
             if (ldrNode != nullptr) {
                 const auto aabb = editor.getScene()->getMeshCollection().getAbsoluteAABB(ldrNode);
                 const auto box = std::make_shared<fcl::Boxf>(glm2eigen(aabb.getSize()));
@@ -158,7 +163,7 @@ namespace bricksim::connection {
             const auto& connectorsA = getConnectorsOfNode(ldrNode0);
             const auto& connectorsB = getConnectorsOfNode(ldrNode1);
 
-            spdlog::debug("{} <--> {}", ldrNode0->ldrFile->metaInfo.title, ldrNode1->ldrFile->metaInfo.title);
+            spdlog::debug("broadphase collision {} <--> {}", ldrNode0->ldrFile->metaInfo.title, ldrNode1->ldrFile->metaInfo.title);
 
             for (const auto& ca: *connectorsA) {
                 const PairCheckData aData(ldrNode0, ca);

@@ -24,7 +24,7 @@ namespace bricksim::connection::visualization {
         };
 
         dot += "graph G {\n";
-        for (const auto& [node, adj]: graph.adjacencyLists) {
+        for (const auto& [node, adj]: graph.getAdjacencyLists()) {
             const auto thumbnailPath = result.tmpDirectory / fmt::format("{}_{}.png", node->ldrFile->metaInfo.name, node->getDisplayColor().code);
             if (!std::filesystem::exists(thumbnailPath)) {
                 thumbnailGenerator->getThumbnail(node->ldrFile, node->getDisplayColor())->saveToFile(thumbnailPath);
@@ -32,7 +32,7 @@ namespace bricksim::connection::visualization {
             dot += fmt::format("\t{} [label=\"{}\" image=\"{}\" shape=box imagepos=tc labelloc=b]\n", getNodeId(node), node->ldrFile->metaInfo.title, thumbnailPath.string());
         }
 
-        for (const auto& [node1, adj]: graph.adjacencyLists) {
+        for (const auto& [node1, adj]: graph.getAdjacencyLists()) {
             for (const auto& [node2, connections]: adj) {
                 if (node1.get() < node2.get()) {
                     for (const auto& conn: connections) {

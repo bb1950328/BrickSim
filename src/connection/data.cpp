@@ -87,6 +87,40 @@ namespace bricksim::connection {
         }
         return total / 2;
     }
+    const bricksim::connection::ConnectionGraph::adjacency_list_t& ConnectionGraph::getAdjacencyLists() const {
+        return adjacencyLists;
+    }
+    void ConnectionGraph::findRestOfClique(uoset_t<ConnectionGraph::node_t>& nodes, const ConnectionGraph::node_t& current) const {
+        nodes.insert(current);
+
+        const auto& currentNeighbors = adjacencyLists.find(current)->second;
+        for (const auto& n: currentNeighbors) {
+            if (!n.second.empty() && !nodes.contains(n.first)) {
+                findRestOfClique(nodes, n.first);
+            }
+        }
+    }
+    std::vector<uoset_t<ConnectionGraph::node_t>> ConnectionGraph::findAllCliques() const {
+        std::vector<uoset_t<node_t>> result;
+        uoset_t<node_t> unprocessed;
+        unprocessed.reserve(adjacencyLists.size());
+        std::transform(adjacencyLists.cbegin(), adjacencyLists.cend(),
+                       std::inserter(unprocessed, unprocessed.end()),
+                       [](auto entry) { return entry.first; });
+
+        while (!unprocessed.empty()) {
+            const auto& n = *unprocessed.erase(unprocessed.begin()).base();
+            uoset_t<node_t> clique;
+            findRestOfClique(clique, n);
+            for (const auto& c: clique) {
+                unprocessed.erase(c);
+            }
+            result.push_back(clique);
+        }
+
+        return result;
+    }
+
     CylindricalConnector::CylindricalConnector(const std::string& group,
                                                const glm::vec3& start,
                                                const glm::vec3& direction,
@@ -306,5 +340,14 @@ namespace bricksim::connection {
     bool RotationPossibility::operator!=(const RotationPossibility& rhs) const {
         return !(rhs == *this);
     }
-    bool CylindricalShapePart::operator==(const CylindricalShapePart& rhs) const = default;
+
+    bool CylindricalShapePart::operator==(const CylindricalShapePart& rhs) const {
+        return type == rhs.type
+               && flexibleRadius == rhs.flexibleRadius
+               && radius == rhs.radius
+               && length == rhs.length;
+    }
+    bool CylindricalShapePart::operator!=(const CylindricalShapePart& rhs) const {
+        return !(rhs == *this);
+    }
 }

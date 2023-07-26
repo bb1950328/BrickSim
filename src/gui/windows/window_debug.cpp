@@ -360,6 +360,55 @@ namespace bricksim::gui::windows::debug {
                             ImGui::BulletText("%s <-> %s", c->connectorA->infoStr().c_str(), c->connectorB->infoStr().c_str());
                         }
                     } else {
+                        if (ImGui::BeginTable("General Stats:", 2)) {
+                            {
+                                ImGui::TableNextRow();
+                                ImGui::TableNextColumn();
+                                ImGui::Text("Node count:");
+
+                                ImGui::TableNextColumn();
+                                ImGui::Text("%zu", engine.getGraph().getAdjacencyLists().size());
+                            }
+                            {
+                                ImGui::TableNextRow();
+                                ImGui::TableNextColumn();
+                                ImGui::Text("Total connection count:");
+
+                                ImGui::TableNextColumn();
+                                ImGui::Text("%zu", engine.getGraph().countTotalConnections());
+                            }
+                            {
+                                ImGui::TableNextRow();
+                                ImGui::TableNextColumn();
+                                ImGui::Text("Clique count:");
+
+                                ImGui::TableNextColumn();
+                                static uint64_t cliqueCount = 0;
+                                ImGui::Text("%zu", cliqueCount);
+                                ImGui::SameLine();
+                                if (ImGui::Button(ICON_FA_ROTATE "##1")) {
+                                    cliqueCount = engine.getGraph().findAllCliques().size();
+                                }
+                            }
+                            {
+                                ImGui::TableNextRow();
+                                ImGui::TableNextColumn();
+                                ImGui::Text("Largest Clique size:");
+
+                                ImGui::TableNextColumn();
+                                static uint64_t largestCliqueSize = 0;
+                                ImGui::Text("%zu", largestCliqueSize);
+                                ImGui::SameLine();
+                                if (ImGui::Button(ICON_FA_ROTATE "##2")) {
+                                    largestCliqueSize = 0;
+                                    for (const auto& item: engine.getGraph().findAllCliques()) {
+                                        largestCliqueSize = std::max(largestCliqueSize, item.size());
+                                    }
+                                }
+                            }
+                            ImGui::EndTable();
+                        }
+                        ImGui::Spacing();
                         ImGui::Text("select one or two parts to see its connections");
                     }
                     if (graphviz_wrapper::isAvailable()) {

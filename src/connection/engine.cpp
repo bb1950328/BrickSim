@@ -7,6 +7,7 @@
 #include "pair_checker.h"
 #include "spdlog/fmt/ostr.h"
 #include "spdlog/spdlog.h"
+#include "spdlog/stopwatch.h"
 #include <fcl/broadphase/broadphase_dynamic_AABB_tree.h>
 #include <glm/gtx/string_cast.hpp>
 #include <utility>
@@ -34,6 +35,7 @@ namespace bricksim::connection {
         editor(editor) {
     }
     void Engine::updateCollisionData() {
+        //todo also include subfile instances
         const auto& rootNode = editor.getEditingModel();
         const auto it = nodeData.find(rootNode);
         if (it == nodeData.end()) {
@@ -41,14 +43,6 @@ namespace bricksim::connection {
             updateNodeData(rootNode);
         } else {
             updateNodeData(rootNode, it);
-        }
-
-        std::vector<fcl::CollisionObjectf*> objs;
-        manager.getObjects(objs);
-        for (const auto& item: objs) {
-            std::string& title = static_cast<etree::LdrNode*>(item->getUserData())->ldrFile->metaInfo.title;
-            const auto& aabb = item->getAABB();
-            std::cout << fmt::format("[\"{}\", Vector(({}, {}, {})), Vector(({}, {}, {}))],", title, aabb.min_.x(), aabb.min_.y(), aabb.min_.z(), aabb.max_.x(), aabb.max_.y(), aabb.max_.z()) << std::endl;
         }
     }
 
@@ -163,7 +157,7 @@ namespace bricksim::connection {
             const auto& connectorsA = getConnectorsOfNode(ldrNode0);
             const auto& connectorsB = getConnectorsOfNode(ldrNode1);
 
-            spdlog::debug("broadphase collision {} <--> {}", ldrNode0->ldrFile->metaInfo.title, ldrNode1->ldrFile->metaInfo.title);
+            //spdlog::debug("broadphase collision {} <--> {}", ldrNode0->ldrFile->metaInfo.title, ldrNode1->ldrFile->metaInfo.title);
 
             for (const auto& ca: *connectorsA) {
                 const PairCheckData aData(ldrNode0, ca);
@@ -180,8 +174,19 @@ namespace bricksim::connection {
         return graph;
     }
     void Engine::update() {
+        spdlog::stopwatch sw;
+
         updateCollisionData();
+
+        const auto between = sw.elapsed();
+
         updateGraph();
+
+        const auto after = sw.elapsed();
+        spdlog::info("Updated collision data in {}+{}={}ms",
+                     std::chrono::duration_cast<std::chrono::microseconds>(between).count() / 1000.f,
+                     std::chrono::duration_cast<std::chrono::microseconds>(after - between).count() / 1000.f,
+                     std::chrono::duration_cast<std::chrono::microseconds>(after).count() / 1000.f);
     }
     const std::shared_ptr<etree::Node>& Engine::convertRawNodePtr(void* rawPtr) const {
         std::shared_ptr<etree::Node> key0(static_cast<etree::Node*>(rawPtr), [](auto*) {});

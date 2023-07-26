@@ -155,6 +155,8 @@ namespace bricksim::etree {
         [[nodiscard]] bool isDisplayNameUserEditable() const override;
         bool isTransformationUserEditable() const override;
         bool isColorUserEditable() const override;
+
+        [[nodiscard]] std::vector<std::shared_ptr<ModelInstanceNode>> findInstances() const;
     };
 
     class PartNode : public LdrNode {

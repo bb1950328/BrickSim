@@ -109,7 +109,8 @@ namespace bricksim::connection {
                        [](auto entry) { return entry.first; });
 
         while (!unprocessed.empty()) {
-            const auto& n = *unprocessed.erase(unprocessed.begin()).base();
+            const auto n = *unprocessed.begin();
+            unprocessed.erase(n);
             uoset_t<node_t> clique;
             findRestOfClique(clique, n);
             for (const auto& c: clique) {

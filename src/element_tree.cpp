@@ -296,6 +296,23 @@ namespace bricksim::etree {
     bool ModelNode::isColorUserEditable() const {
         return false;
     }
+    std::vector<std::shared_ptr<ModelInstanceNode>> ModelNode::findInstances() const {
+        std::vector<std::shared_ptr<ModelInstanceNode>> result;
+        for (const auto& item: parent.lock()->getChildren()) {
+            if (item != shared_from_this()) {
+                const auto otherModel = std::dynamic_pointer_cast<ModelNode>(item);
+                if (otherModel != nullptr) {
+                    for (const auto& otherChild: otherModel->getChildren()) {
+                        const auto possibleInstance = std::dynamic_pointer_cast<ModelInstanceNode>(otherChild);
+                        if (possibleInstance != nullptr && possibleInstance->modelNode == shared_from_this()) {
+                            result.push_back(possibleInstance);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
 
     bool PartNode::isDisplayNameUserEditable() const {
         return false;

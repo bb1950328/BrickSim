@@ -558,8 +558,15 @@ namespace bricksim {
                 }
             }
         } else {
-            spdlog::warn("nothing to inline on node {}", nodeToInline->getDescription());
-            return;
+            const auto modelNodeToInline = std::dynamic_pointer_cast<etree::ModelNode>(nodeToInline);
+            if (modelNodeToInline != nullptr) {
+                for (const auto& instance: modelNodeToInline->findInstances()) {
+                    inlineElement(instance, false);
+                }
+            } else {
+                spdlog::warn("nothing to inline on node {}", nodeToInline->getDescription());
+                return;
+            }
         }
         parent->removeChild(nodeToInline);
         parent->incrementVersion();

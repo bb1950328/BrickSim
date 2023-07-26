@@ -19,11 +19,17 @@ namespace bricksim::gui::node_context_menu {
                 if (drawHandler->drawAction(ICON_FA_FILE_PEN " Make Editing Model")) {
                     context.editor->setEditingModel(std::dynamic_pointer_cast<etree::ModelNode>(context.node));
                 }
+                if (drawHandler->drawAction(ICON_FA_BARS " Inline All Instances")) {
+                    context.editor->inlineElement(std::dynamic_pointer_cast<etree::ModelNode>(context.node));
+                }
             }
 
             if (context.node->type == etree::NodeType::TYPE_MODEL_INSTANCE) {
                 if (drawHandler->drawAction(ICON_FA_FILE_PEN " Edit Referenced Model")) {
                     context.editor->setEditingModel(std::dynamic_pointer_cast<etree::ModelInstanceNode>(context.node)->modelNode);
+                }
+                if (drawHandler->drawAction(ICON_FA_BARS " Inline This Instance")) {
+                    context.editor->inlineElement(std::dynamic_pointer_cast<etree::ModelInstanceNode>(context.node));
                 }
             }
 

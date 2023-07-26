@@ -189,7 +189,7 @@ namespace bricksim::connection {
         [[nodiscard]] const std::vector<edge_t>& getConnections(const node_t& a, const node_t& b) const;
         [[nodiscard]] const uomap_t<node_t, std::vector<edge_t>>& getConnections(const node_t& node) const;
 
-        [[nodiscard]] uint64_t countTotalConnections() const;
+        [[nodiscard]] std::size_t countTotalConnections() const;
         [[nodiscard]] std::vector<uoset_t<node_t>> findAllCliques() const;
 
     protected:

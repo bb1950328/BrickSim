@@ -383,7 +383,7 @@ namespace bricksim::gui::windows::debug {
                                 ImGui::Text("Clique count:");
 
                                 ImGui::TableNextColumn();
-                                static uint64_t cliqueCount = 0;
+                                static std::size_t cliqueCount = 0;
                                 ImGui::Text("%zu", cliqueCount);
                                 ImGui::SameLine();
                                 if (ImGui::Button(ICON_FA_ROTATE "##1")) {
@@ -396,7 +396,7 @@ namespace bricksim::gui::windows::debug {
                                 ImGui::Text("Largest Clique size:");
 
                                 ImGui::TableNextColumn();
-                                static uint64_t largestCliqueSize = 0;
+                                static std::size_t largestCliqueSize = 0;
                                 ImGui::Text("%zu", largestCliqueSize);
                                 ImGui::SameLine();
                                 if (ImGui::Button(ICON_FA_ROTATE "##2")) {

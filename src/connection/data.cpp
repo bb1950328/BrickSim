@@ -78,8 +78,8 @@ namespace bricksim::connection {
         }
         return it->second;
     }
-    uint64_t ConnectionGraph::countTotalConnections() const {
-        uint64_t total = 0;
+    std::size_t ConnectionGraph::countTotalConnections() const {
+        std::size_t total = 0;
         for (const auto& i: adjacencyLists) {
             for (const auto& j: i.second) {
                 total += j.second.size();

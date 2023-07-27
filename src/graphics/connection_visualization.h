@@ -6,7 +6,7 @@
 namespace bricksim::graphics::connection_visualization {
     void initializeIfNeeded();
 
-    void setVisualizedPart(const std::string &partName);
+    void setVisualizedPart(const std::shared_ptr<ldr::FileNamespace>& nameSpace, const std::string& partName);
 
     unsigned int getImage();
 

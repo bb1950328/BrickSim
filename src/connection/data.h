@@ -173,7 +173,7 @@ namespace bricksim::connection {
 
     class ConnectionGraph {
     public:
-        using node_t = std::shared_ptr<etree::LdrNode>;
+        using node_t = std::shared_ptr<etree::MeshNode>;
         using edge_t = std::shared_ptr<Connection>;
         using adjacency_list_t = uomap_t<node_t, uomap_t<node_t, std::vector<edge_t>>>;
 

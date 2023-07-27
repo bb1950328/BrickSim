@@ -13,24 +13,6 @@
 #include <utility>
 
 namespace bricksim::connection {
-    namespace {
-        std::vector<std::shared_ptr<etree::LdrNode>> getAllLdrNodesFlat(const std::shared_ptr<etree::Node>& node) {
-            std::vector<std::shared_ptr<etree::LdrNode>> flat;
-            std::function<void(const std::shared_ptr<etree::Node>&)> traverse = [&flat, &traverse](const std::shared_ptr<etree::Node>& node) {
-                const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
-                if (ldrNode != nullptr) {
-                    flat.push_back(ldrNode);
-                }
-                for (const auto& item: node->getChildren()) {
-                    traverse(item);
-                }
-            };
-            traverse(node);
-            return flat;
-        }
-
-    }
-
     Engine::Engine(Editor& editor) :
         editor(editor) {
     }
@@ -66,7 +48,11 @@ namespace bricksim::connection {
                 manager.registerObject(collisionObject.get());
                 outdatedInGraph.insert(ldrNode);
             } else {
-                collisionObject = nullptr;
+                const auto miNode = std::dynamic_pointer_cast<etree::ModelInstanceNode>(node);
+                if (miNode != nullptr) {
+                } else {
+                    collisionObject = nullptr;
+                }
             }
             nodeData.emplace(node,
                              NodeData{

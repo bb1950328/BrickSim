@@ -24,10 +24,10 @@ namespace bricksim::graphics::connection_visualization {
         initialized = true;
     }
 
-    void setVisualizedPart(const std::string &partName) {
+    void setVisualizedPart(const std::shared_ptr<ldr::FileNamespace>& nameSpace, const std::string& partName) {
         if (visualizedPart != partName) {
             visualizedPart = partName;
-            const auto rootNode = connection::visualization::generateVisualization(partName);
+            const auto rootNode = connection::visualization::generateVisualization(nameSpace, partName);
             scene->setRootNode(rootNode);
         }
     }

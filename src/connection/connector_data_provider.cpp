@@ -11,7 +11,7 @@
 
 namespace bricksim::connection {
     namespace {
-        uomap_t<std::string, std::shared_ptr<connector_container_t>> cache;
+        uomap_t<std::shared_ptr<ldr::FileNamespace>, uomap_t<std::string, std::shared_ptr<connector_container_t>>> cache;
 
         void multiplyConnectorByGrid(connector_container_t& connectors, const connector_container_t& base, const ldcad_meta::Grid& grid);
 
@@ -64,10 +64,6 @@ namespace bricksim::connection {
                               const std::shared_ptr<ldr::File>& file,
                               glm::mat4 const& transformation,
                               uoset_t<std::string> clearIDs) {
-            if (file->metaInfo.type == ldr::FileType::MODEL) {
-                return;
-            }
-
             bool clearAll = false;
             for (const auto& command: file->ldcadMetas) {
                 const auto clearCommand = std::dynamic_pointer_cast<ldcad_meta::ClearCommand>(command);
@@ -272,26 +268,32 @@ namespace bricksim::connection {
             }
         }
     }
-    std::shared_ptr<connector_container_t> getConnectorsOfPart(const std::string& name) {
-        if (const auto it = cache.find(name); it != cache.end()) {
+    std::shared_ptr<connector_container_t> getConnectorsOfPart(const std::shared_ptr<ldr::FileNamespace>& fileNamespace, const std::string& name) {
+        auto& nsCache = cache[fileNamespace];
+        if (const auto it = nsCache.find(name); it != nsCache.end()) {
             return it->second;
         }
 
-        const auto file = ldr::file_repo::get().getFile(nullptr, name);
+        const auto file = ldr::file_repo::get().getFile(fileNamespace, name);
         auto result = std::make_shared<connector_container_t>();
         createConnectors(*result, file, glm::mat4(1.f), {});
         const auto dupeCount = removeDuplicates(*result);
         if (dupeCount > 0) {
             spdlog::warn("Part {} {} has {} duplicate connectors", name, file->metaInfo.title, dupeCount);
         }
-        cache.insert({name, result});
+        nsCache.insert({name, result});
         return result;
     }
-    std::shared_ptr<connector_container_t> getConnectorsOfNode(const std::shared_ptr<etree::LdrNode>& node) {
+    std::shared_ptr<connector_container_t> getConnectorsOfNode(const std::shared_ptr<etree::MeshNode>& node) {
         if (node->getType() == etree::NodeType::TYPE_PART) {
-            return getConnectorsOfPart(node->ldrFile->metaInfo.name);
+            return getConnectorsOfLdrFile(std::dynamic_pointer_cast<etree::LdrNode>(node)->ldrFile);
+        } else if (node->getType() == etree::NodeType::TYPE_MODEL_INSTANCE) {
+            return getConnectorsOfLdrFile(std::dynamic_pointer_cast<etree::ModelInstanceNode>(node)->modelNode->ldrFile);
         }
         static const auto empty = std::make_shared<connector_container_t>();
         return empty;
+    }
+    std::shared_ptr<connector_container_t> getConnectorsOfLdrFile(const std::shared_ptr<ldr::File>& ldrFile) {
+        return getConnectorsOfPart(ldrFile->nameSpace, ldrFile->metaInfo.name);
     }
 }

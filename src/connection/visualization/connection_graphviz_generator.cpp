@@ -25,11 +25,18 @@ namespace bricksim::connection::visualization {
 
         dot += "graph G {\n";
         for (const auto& [node, adj]: graph.getAdjacencyLists()) {
-            const auto thumbnailPath = result.tmpDirectory / fmt::format("{}_{}.png", node->ldrFile->metaInfo.name, node->getDisplayColor().code);
-            if (!std::filesystem::exists(thumbnailPath)) {
-                thumbnailGenerator->getThumbnail(node->ldrFile, node->getDisplayColor())->saveToFile(thumbnailPath);
+            const auto thumbnailPath = result.tmpDirectory / fmt::format("{}_{}.png", node->displayName, node->getDisplayColor().code);
+            std::shared_ptr<ldr::File> ldrFile;
+            const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
+            if (ldrNode != nullptr) {
+                ldrFile = ldrNode->ldrFile;
+            } else {
+                ldrFile = std::dynamic_pointer_cast<etree::ModelInstanceNode>(node)->modelNode->ldrFile;
             }
-            dot += fmt::format("\t{} [label=\"{}\" image=\"{}\" shape=box imagepos=tc labelloc=b]\n", getNodeId(node), node->ldrFile->metaInfo.title, thumbnailPath.string());
+            if (!std::filesystem::exists(thumbnailPath)) {
+                thumbnailGenerator->getThumbnail(ldrFile, node->getDisplayColor())->saveToFile(thumbnailPath);
+            }
+            dot += fmt::format("\t{} [label=\"{}\" image=\"{}\" shape=box imagepos=tc labelloc=b]\n", getNodeId(node), ldrFile->metaInfo.title, thumbnailPath.string());
         }
 
         for (const auto& [node1, adj]: graph.getAdjacencyLists()) {

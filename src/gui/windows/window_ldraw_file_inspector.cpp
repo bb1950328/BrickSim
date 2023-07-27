@@ -84,7 +84,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
         void showBrickSimSnapConnectorTree() {
             if (ImGui::BeginChild("##snapConnectorTree")) {
-                const auto connectors = connection::getConnectorsOfPart(currentFile->metaInfo.name);
+                const auto connectors = connection::getConnectorsOfPart(currentFile->nameSpace, currentFile->metaInfo.name);
                 char* nodeId = 0;
                 for (const auto& item: *connectors) {
                     const auto clipConn = std::dynamic_pointer_cast<connection::ClipConnector>(item);
@@ -170,7 +170,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
         void showBrickSimConnectionVisualization() {
             constexpr ImVec2 imgButtonSize(512, 512);
             graphics::connection_visualization::initializeIfNeeded();
-            graphics::connection_visualization::setVisualizedPart(currentFile->metaInfo.name);
+            graphics::connection_visualization::setVisualizedPart(currentFile->nameSpace, currentFile->metaInfo.name);
             const auto camera = graphics::connection_visualization::getCamera();
 
             const ImVec2& windowPos = ImGui::GetWindowPos();

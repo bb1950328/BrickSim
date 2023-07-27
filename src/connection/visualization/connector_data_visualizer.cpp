@@ -7,9 +7,12 @@
 
 namespace bricksim::connection::visualization {
     std::shared_ptr<etree::Node> generateVisualization(const std::string& partName) {
+        return generateVisualization(nullptr, partName);
+    }
+    std::shared_ptr<etree::Node> generateVisualization(const std::shared_ptr<ldr::FileNamespace>& nameSpace, const std::string& partName) {
         const auto root = std::make_shared<etree::RootNode>();
 
-        const auto ldrFile = ldr::file_repo::get().getFile(nullptr, partName);
+        const auto ldrFile = ldr::file_repo::get().getFile(nameSpace, partName);
         const auto partNode = std::make_shared<etree::PartNode>(ldrFile, 1, root, nullptr);
         root->addChild(partNode);
 
@@ -17,12 +20,12 @@ namespace bricksim::connection::visualization {
         xyzLineNode->setRelativeTransformation(glm::transpose(glm::scale(glm::mat4(1.f), glm::vec3(100.f))));
         root->addChild(xyzLineNode);
 
-        addVisualization(partName, root);
+        addVisualization(nameSpace, partName, root);
 
         return root;
     }
-    void addVisualization(const std::string& partName, const std::shared_ptr<etree::Node>& root) {
-        for (const auto& conn: *getConnectorsOfPart(partName)) {
+    void addVisualization(const std::shared_ptr<ldr::FileNamespace>& nameSpace, const std::string& partName, const std::shared_ptr<etree::Node>& root) {
+        for (const auto& conn: *getConnectorsOfPart(nameSpace, partName)) {
             const auto cylConn = std::dynamic_pointer_cast<CylindricalConnector>(conn);
             const auto clipConn = std::dynamic_pointer_cast<ClipConnector>(conn);
             const auto fgrConn = std::dynamic_pointer_cast<FingerConnector>(conn);

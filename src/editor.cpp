@@ -70,8 +70,8 @@ namespace bricksim {
     void Editor::addConnectorDataVisualization(const std::shared_ptr<etree::Node>& node) const {
         for (const auto& child: node->getChildren()) {
             if (child->type == etree::NodeType::TYPE_PART) {
-                const auto& fileName = std::dynamic_pointer_cast<etree::PartNode>(child)->ldrFile->metaInfo.name;
-                connection::visualization::addVisualization(fileName, child);
+                const auto& ldrFile = std::dynamic_pointer_cast<etree::PartNode>(child)->ldrFile;
+                connection::visualization::addVisualization(ldrFile->nameSpace, ldrFile->metaInfo.name, child);
             }
             addConnectorDataVisualization(child);
         }

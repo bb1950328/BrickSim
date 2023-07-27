@@ -315,9 +315,9 @@ namespace bricksim::gui::windows::debug {
                     }
 
                     const auto selectedNodes = activeEditor->getSelectedNodes();
-                    std::vector<std::shared_ptr<etree::LdrNode>> ldrNodes;
+                    std::vector<std::shared_ptr<etree::MeshNode>> ldrNodes;
                     for (const auto& node: selectedNodes) {
-                        const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node.first);
+                        const auto ldrNode = std::dynamic_pointer_cast<etree::MeshNode>(node.first);
                         if (ldrNode != nullptr) {
                             ldrNodes.push_back(ldrNode);
                         }
@@ -331,7 +331,7 @@ namespace bricksim::gui::windows::debug {
                         }
                         ImGui::Text("Selected Part is connected to %zu other parts via %zu connections", connectionsToNode.size(), totalConnections);
                         for (const auto& c: connectionsToNode) {
-                            std::string id = fmt::format("{} {}", c.first->ldrFile->metaInfo.name, stringutil::formatGLM(c.first->getAbsoluteTransformation()));
+                            std::string id = fmt::format("{} {}", c.first->displayName, stringutil::formatGLM(c.first->getAbsoluteTransformation()));
                             if (ImGui::TreeNode(id.c_str(), "%s", c.first->displayName.c_str())) {
                                 uint64_t i = 1;
                                 for (const auto& item: c.second) {

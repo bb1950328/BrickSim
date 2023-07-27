@@ -22,7 +22,7 @@ namespace bricksim::connection {
         fcl::DynamicAABBTreeCollisionManagerf manager;
         uomap_t<std::shared_ptr<etree::Node>, NodeData> nodeData;
         ConnectionGraph graph;
-        uoset_t<std::shared_ptr<etree::LdrNode>> outdatedInGraph;
+        uoset_t<ConnectionGraph::node_t> outdatedInGraph;
 
         static constexpr bool partNodeCollsionOnly = true;
 

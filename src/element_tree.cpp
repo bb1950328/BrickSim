@@ -184,7 +184,7 @@ namespace bricksim::etree {
 
                     if (subFile->metaInfo.type == ldr::FileType::MPD_SUBFILE || subFile->metaInfo.type == ldr::FileType::MODEL || subFile->metaInfo.type == ldr::FileType::PART) {
                         const auto newNode = addModelInstanceNode(subFile, sfElement->color);
-                        newNode->setRelativeTransformation(sfElement->getTransformationMatrix());
+                        newNode->setRelativeTransformation(sfElement->getTransformationMatrixT());
                         subfileRefChildNodeSaveInfos.emplace(newNode, ChildNodeSaveInfo{newNode->getVersion(), element});
                         childrenWithOwnNode.emplace(sfElement);
                     }

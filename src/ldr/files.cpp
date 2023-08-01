@@ -291,6 +291,14 @@ namespace bricksim::ldr {
 
     glm::mat4 SubfileReference::getTransformationMatrix() const {
         return {
+                a(), d(), g(), 0.f,
+                b(), e(), h(), 0.f,
+                c(), f(), i(), 0.f,
+                x(), y(), z(), 1.f};
+    }
+
+    glm::mat4 SubfileReference::getTransformationMatrixT() const {
+        return {
                 a(), b(), c(), x(),
                 d(), e(), f(), y(),
                 g(), h(), i(), z(),

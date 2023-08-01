@@ -63,7 +63,11 @@ namespace bricksim::connection {
         void createConnectors(connector_container_t& connectors,
                               const std::shared_ptr<ldr::File>& file,
                               glm::mat4 const& transformation,
-                              uoset_t<std::string> clearIDs) {
+                              uoset_t<std::string> clearIDs,
+                              std::string parentSourceTrace) {
+            const auto sourceTrace = parentSourceTrace.empty()
+                                             ? file->metaInfo.name
+                                             : parentSourceTrace + "->" + file->metaInfo.name;
             bool clearAll = false;
             for (const auto& command: file->ldcadMetas) {
                 const auto clearCommand = std::dynamic_pointer_cast<ldcad_meta::ClearCommand>(command);
@@ -84,11 +88,11 @@ namespace bricksim::connection {
 
                     if (inclCommand->grid.has_value()) {
                         connector_container_t base;
-                        createConnectors(base, includedFile, transf * transformation, clearIDs);
+                        createConnectors(base, includedFile, transf * transformation, clearIDs, sourceTrace);
                         const auto& grid = *inclCommand->grid;
                         multiplyConnectorByGrid(connectors, base, grid);
                     } else {
-                        createConnectors(connectors, includedFile, transf * transformation, clearIDs);
+                        createConnectors(connectors, includedFile, transf * transformation, clearIDs, sourceTrace);
                     }
                 }
 
@@ -109,6 +113,7 @@ namespace bricksim::connection {
                             cylCommand->group.value_or(""),
                             cylTransf[3],
                             cylTransf * glm::vec4(0.f, -1.f, 0.f, 0.f) /*cylCommand->ori.value_or(glm::mat3(1.f))*glm::vec3(0.f, -1.f, 0.f)*/,
+                            sourceTrace,
                             cylCommand->gender == ldcad_meta::Gender::M
                                     ? Gender::M
                                     : Gender::F,
@@ -204,6 +209,7 @@ namespace bricksim::connection {
                                     "",
                                     clpTransf * glm::vec4(0.f, 0.f, 0.f, 1.f),
                                     clpTransf * glm::vec4(0.f, -1.f, 0.f, 0.f),
+                                    sourceTrace,
                                     clpCommand->radius,
                                     clpCommand->length,
                                     clpCommand->slide));
@@ -217,6 +223,7 @@ namespace bricksim::connection {
                                     fgrCommand->group.value_or(""),
                                     fgrTransf * glm::vec4(0.f, 0.f, 0.f, 1.f),
                                     fgrTransf * glm::vec4(0.f, -1.f, 0.f, 0.f),
+                                    sourceTrace,
                                     fgrCommand->genderOfs == ldcad_meta::Gender::M
                                             ? Gender::M
                                             : Gender::F,
@@ -232,6 +239,7 @@ namespace bricksim::connection {
                                     genCommand->group.value_or(""),
                                     genTransf * glm::vec4(0.f, 0.f, 0.f, 1.f),
                                     genTransf * glm::vec4(0.f, -1.f, 0.f, 0.f),
+                                    sourceTrace,
                                     genCommand->gender == ldcad_meta::Gender::M
                                             ? Gender::M
                                             : Gender::F,
@@ -243,8 +251,8 @@ namespace bricksim::connection {
                 for (const auto& item: file->elements) {
                     if (item->getType() == 1) {
                         const auto sfReference = std::dynamic_pointer_cast<ldr::SubfileReference>(item);
-                        const auto sfReferenceTransformation = glm::transpose(sfReference->getTransformationMatrix());
-                        createConnectors(connectors, sfReference->getFile(file->nameSpace), sfReferenceTransformation * transformation, clearIDs);
+                        const auto sfReferenceTransformation = sfReference->getTransformationMatrix();
+                        createConnectors(connectors, sfReference->getFile(file->nameSpace), transformation * sfReferenceTransformation, clearIDs, sourceTrace);
                     }
                 }
             }
@@ -268,20 +276,36 @@ namespace bricksim::connection {
             }
         }
     }
-    std::shared_ptr<connector_container_t> getConnectorsOfPart(const std::shared_ptr<ldr::FileNamespace>& fileNamespace, const std::string& name) {
-        auto& nsCache = cache[fileNamespace];
-        if (const auto it = nsCache.find(name); it != nsCache.end()) {
-            return it->second;
+    std::shared_ptr<connector_container_t> getConnectorsOfLdrFile(const std::shared_ptr<ldr::FileNamespace>& fileNamespace, const std::string& name) {
+        if (const auto nsCacheIt = cache.find(fileNamespace); nsCacheIt != cache.end()) {
+            if (const auto it = nsCacheIt->second.find(name); it != nsCacheIt->second.end()) {
+                return it->second;
+            }
         }
 
         const auto file = ldr::file_repo::get().getFile(fileNamespace, name);
         auto result = std::make_shared<connector_container_t>();
-        createConnectors(*result, file, glm::mat4(1.f), {});
+        if (file->metaInfo.type == ldr::FileType::MODEL || file->metaInfo.type == ldr::FileType::MPD_SUBFILE) {
+            for (const auto& item: file->elements) {
+                if (item->getType() == 1) {
+                    const auto sfReference = std::dynamic_pointer_cast<ldr::SubfileReference>(item);
+                    const auto sfReferenceTransformation = sfReference->getTransformationMatrixT();
+                    const auto partResult = getConnectorsOfLdrFile(sfReference->getFile(file->nameSpace));
+                    for (const auto& partConn: *partResult) {
+                        auto transfConn = partConn->transform(sfReferenceTransformation);
+                        transfConn->sourceTrace = file->metaInfo.name + "->" + transfConn->sourceTrace;
+                        result->push_back(transfConn);
+                    }
+                }
+            }
+        } else {
+            createConnectors(*result, file, glm::mat4(1.f), {}, "");
+        }
         const auto dupeCount = removeDuplicates(*result);
         if (dupeCount > 0) {
             spdlog::warn("Part {} {} has {} duplicate connectors", name, file->metaInfo.title, dupeCount);
         }
-        nsCache.insert({name, result});
+        cache[fileNamespace].insert({name, result});
         return result;
     }
     std::shared_ptr<connector_container_t> getConnectorsOfNode(const std::shared_ptr<etree::MeshNode>& node) {
@@ -294,6 +318,6 @@ namespace bricksim::connection {
         return empty;
     }
     std::shared_ptr<connector_container_t> getConnectorsOfLdrFile(const std::shared_ptr<ldr::File>& ldrFile) {
-        return getConnectorsOfPart(ldrFile->nameSpace, ldrFile->metaInfo.name);
+        return getConnectorsOfLdrFile(ldrFile->nameSpace, ldrFile->metaInfo.name);
     }
 }

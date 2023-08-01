@@ -19,10 +19,15 @@ namespace bricksim::connection {
         std::string group;
         glm::vec3 start;
         glm::vec3 direction;
+        std::string sourceTrace;
 
-        Connector(std::string group, const glm::vec3& start, const glm::vec3& direction);
+        Connector(std::string group,
+                  const glm::vec3& start,
+                  const glm::vec3& direction,
+                  std::string sourceTrace);
 
         virtual std::shared_ptr<Connector> clone();
+        virtual std::shared_ptr<Connector> transform(const glm::mat4& transformation);
         virtual std::string infoStr() const;
         virtual std::size_t hash() const;
         virtual ~Connector() = default;
@@ -32,7 +37,10 @@ namespace bricksim::connection {
 
     class ConnectorWithLength : public Connector {
     public:
-        ConnectorWithLength(const std::string& group, const glm::vec3& start, const glm::vec3& direction);
+        ConnectorWithLength(const std::string& group,
+                            const glm::vec3& start,
+                            const glm::vec3& direction,
+                            std::string sourceTrace);
         [[nodiscard]] virtual float getTotalLength() const = 0;
         [[nodiscard]] glm::vec3 getEnd() const;
     };
@@ -51,6 +59,7 @@ namespace bricksim::connection {
         float length;
         bool operator==(const CylindricalShapePart& rhs) const;
         bool operator!=(const CylindricalShapePart& rhs) const;
+        CylindricalShapePart(CylindricalShapeType type, bool flexibleRadius, float radius, float length);
     };
 
     class CylindricalConnector : public ConnectorWithLength {
@@ -64,6 +73,7 @@ namespace bricksim::connection {
         CylindricalConnector(const std::string& group,
                              const glm::vec3& start,
                              const glm::vec3& direction,
+                             std::string sourceTrace,
                              Gender gender,
                              std::vector<CylindricalShapePart> parts,
                              bool openStart,
@@ -79,6 +89,7 @@ namespace bricksim::connection {
         [[nodiscard]] const CylindricalShapePart& getPartAt(float offsetFromStart) const;
         [[nodiscard]] float getRadiusAt(float offsetFromStart) const;
         std::shared_ptr<Connector> clone() override;
+        std::shared_ptr<Connector> transform(const glm::mat4& transformation) override;
         std::string infoStr() const override;
         size_t hash() const override;
         bool operator==(const CylindricalConnector& rhs) const;
@@ -94,10 +105,12 @@ namespace bricksim::connection {
         ClipConnector(const std::string& group,
                       const glm::vec3& start,
                       const glm::vec3& direction,
+                      std::string sourceTrace,
                       float radius,
                       float width,
                       bool slide);
         std::shared_ptr<Connector> clone() override;
+        std::shared_ptr<Connector> transform(const glm::mat4& transformation) override;
         std::string infoStr() const override;
         [[nodiscard]] float getTotalLength() const override;
         bool operator==(const ClipConnector& rhs) const;
@@ -113,10 +126,12 @@ namespace bricksim::connection {
         FingerConnector(const std::string& group,
                         const glm::vec3& start,
                         const glm::vec3& direction,
+                        std::string sourceTrace,
                         Gender firstFingerGender,
                         float radius,
                         const std::vector<float>& fingerWidths);
         std::shared_ptr<Connector> clone() override;
+        std::shared_ptr<Connector> transform(const glm::mat4& transformation) override;
         std::string infoStr() const override;
         [[nodiscard]] float getTotalLength() const override;
         bool operator==(const FingerConnector& rhs) const;
@@ -131,9 +146,11 @@ namespace bricksim::connection {
         GenericConnector(const std::string& group,
                          const glm::vec3& start,
                          const glm::vec3& direction,
+                         std::string sourceTrace,
                          Gender gender,
                          const bounding_variant_t& bounding);
         std::shared_ptr<Connector> clone() override;
+        std::shared_ptr<Connector> transform(const glm::mat4& transformation) override;
         std::string infoStr() const override;
         bool operator==(const GenericConnector& rhs) const;
         bool operator!=(const GenericConnector& rhs) const;

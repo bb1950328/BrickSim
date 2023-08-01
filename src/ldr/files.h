@@ -113,6 +113,7 @@ namespace bricksim::ldr {
         [[nodiscard]] int getType() const override;
         [[nodiscard]] std::string getLdrLine() const override;
         [[nodiscard]] glm::mat4 getTransformationMatrix() const;
+        [[nodiscard]] glm::mat4 getTransformationMatrixT() const;
         void setTransformationMatrix(const glm::mat4& matrix);
         std::shared_ptr<File> getFile(const std::shared_ptr<FileNamespace>& fileNamespace);
 

@@ -42,7 +42,7 @@ namespace bricksim::mesh {
     }
 
     void Mesh::addLdrSubfileReference(const std::shared_ptr<ldr::FileNamespace>& fileNamespace, ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
-        auto sub_transformation = sfElement->getTransformationMatrix();
+        auto sub_transformation = sfElement->getTransformationMatrixT();
         const auto color = sfElement->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : sfElement->color;
         addLdrFile(color, sfElement->getFile(fileNamespace), sub_transformation * transformation, sfElement->bfcInverted ^ bfcInverted, sfElement->directTexmap != nullptr ? sfElement->directTexmap : texmap);
     }

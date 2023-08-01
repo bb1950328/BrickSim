@@ -84,7 +84,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
         void showBrickSimSnapConnectorTree() {
             if (ImGui::BeginChild("##snapConnectorTree")) {
-                const auto connectors = connection::getConnectorsOfPart(currentFile->nameSpace, currentFile->metaInfo.name);
+                const auto connectors = connection::getConnectorsOfLdrFile(currentFile->nameSpace, currentFile->metaInfo.name);
                 char* nodeId = 0;
                 for (const auto& item: *connectors) {
                     const auto clipConn = std::dynamic_pointer_cast<connection::ClipConnector>(item);
@@ -103,6 +103,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                     }
                     if (ImGui::TreeNode((void*)(nodeId++), "%s", name.c_str())) {
                         ImGui::BulletText("start=%s", stringutil::formatGLM(item->start).c_str());
+                        ImGui::BulletText("sourceTrace=%s", item->sourceTrace.c_str());
                         if (clipConn != nullptr) {
                             ImGui::BulletText("direction=%s", stringutil::formatGLM(clipConn->direction).c_str());
                             ImGui::BulletText("radius=%f", clipConn->radius);
@@ -321,7 +322,9 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
             if (static bool first = true; first) {
                 first = false;
-                std::fill(showTypes.begin(), showTypes.end(), true);
+                showTypes[*magic_enum::enum_index(ldr::FileType::MODEL)] = true;
+                showTypes[*magic_enum::enum_index(ldr::FileType::MPD_SUBFILE)] = true;
+                showTypes[*magic_enum::enum_index(ldr::FileType::PART)] = true;
             }
             char partName[256] = {0};
             ImGui::InputText("Part Name", partName, sizeof(partName), ImGuiInputTextFlags_CallbackAlways,

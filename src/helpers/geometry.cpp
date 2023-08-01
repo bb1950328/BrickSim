@@ -128,7 +128,15 @@ namespace bricksim::geometry {
     }
 
     glm::vec3 getAnyPerpendicularVector(const glm::vec3& v) {
-        return {1.f, 1.f, (-v.x - v.y) / v.z};
+        if (v.x == 0.f) {
+            if (v.y == 0.f) {
+                return {1.f, 0.f, 0.f};
+            } else {
+                return glm::vec3(1.f, (-v.x - v.z) / v.y, 1.f);
+            }
+        } else {
+            return glm::vec3((-v.y - v.z) / v.x, 1.f, 1.f);
+        }
     }
 
     float getDistanceBetweenPointAndPlane(const Ray3& planeNormal, const glm::vec3& point) {

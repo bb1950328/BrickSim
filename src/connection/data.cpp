@@ -328,11 +328,12 @@ namespace bricksim::connection {
     }
     std::shared_ptr<Connector> FingerConnector::transform(const glm::mat4& transformation) {
         const auto [radiusFactor, lengthFactor] = getRadiusAndLengthFactorFromTransformation(transformation, direction);
+        const auto lengthFactorX = lengthFactor;//workaround for clang bug https://www.reddit.com/r/LLVM/comments/s0ykcj/comment/jazmf9m/?utm_source=share&utm_medium=web2x&context=3
         std::vector<float> resultFingerWidths;
         std::transform(fingerWidths.cbegin(),
                        fingerWidths.cend(),
                        resultFingerWidths.begin(),
-                       [lengthFactor](auto w) { return lengthFactor * w; });
+                       [lengthFactorX](auto w) { return lengthFactorX * w; });
         return std::make_shared<FingerConnector>(group,
                                                  glm::vec4(start, 1.f) * transformation,
                                                  glm::vec4(direction, 0.f) * transformation,

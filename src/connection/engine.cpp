@@ -149,7 +149,7 @@ namespace bricksim::connection {
                 const PairCheckData aData(ldrNode0, ca);
                 for (const auto& cb: *connectorsB) {
                     const PairCheckData bData(ldrNode1, cb);
-                    PairChecker checker(aData, bData, graph);
+                    ConnectionGraphPairChecker checker(aData, bData, graph);
                     checker.findConnections();
                 }
             }

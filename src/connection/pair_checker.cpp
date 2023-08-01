@@ -2,32 +2,31 @@
 #include "../helpers/geometry.h"
 
 namespace bricksim::connection {
-    PairChecker::PairChecker(PairCheckData a, PairCheckData b, ConnectionGraph& result) :
+    PairChecker::PairChecker(PairCheckData a, PairCheckData b) :
         a(std::move(a)),
         b(std::move(b)),
-        result(result),
         absoluteDirectionAngleDifference(geometry::getAngleBetweenTwoVectors(a.absDirection, b.absDirection)),
         sameDir(absoluteDirectionAngleDifference < PARALLELITY_ANGLE_TOLERANCE),
         oppositeDir(absoluteDirectionAngleDifference > M_PI - PARALLELITY_ANGLE_TOLERANCE) {
     }
     void PairChecker::findConnections() {
-        if (a.generic != nullptr || b.generic != nullptr) {
-            if (a.generic != nullptr && b.generic != nullptr) {
-                findGenericGeneric();
-            }
-            return;
-        }
         if (a.cyl != nullptr && b.cyl != nullptr) {
             findCylCyl();
-            return;
-        }
-        if (a.finger != nullptr && b.finger != nullptr) {
-            findFingerFinger();
             return;
         }
         if ((a.cyl != nullptr && b.clip != nullptr)
             || (a.clip != nullptr && b.cyl != nullptr)) {
             findClipCyl();
+        }
+        if (a.finger != nullptr && b.finger != nullptr) {
+            findFingerFinger();
+            return;
+        }
+        if (a.generic != nullptr || b.generic != nullptr) {
+            if (a.generic != nullptr && b.generic != nullptr) {
+                findGenericGeneric();
+            }
+            return;
         }
     }
     bool PairChecker::findGenericGeneric() {
@@ -38,7 +37,7 @@ namespace bricksim::connection {
             //todo maybe check bounding shapes, but documentation is unclear
             // is it a connection when the two bounding shapes touch
             // or is it only a connection when the shapes have the same dimensions and the orientation matches too?
-            result.addConnection(a.node, b.node, std::make_shared<Connection>(a.connector, b.connector));
+            addConnection(a.connector, b.connector, {});
             return true;
         }
         return false;
@@ -139,7 +138,7 @@ namespace bricksim::connection {
         if (rotationPossible) {
             dof.rotationPossibilities.emplace_back(a.absStart, a.absDirection);
         }
-        result.addConnection(a.node, b.node, std::make_shared<Connection>(a.connector, b.connector, dof));
+        addConnection(a.connector, b.connector, dof);
         return true;
     }
     bool PairChecker::findFingerFinger() {
@@ -192,7 +191,7 @@ namespace bricksim::connection {
         }
         DegreesOfFreedom dof;
         dof.rotationPossibilities.emplace_back(a.absStart, a.absDirection);
-        result.addConnection(a.node, b.node, std::make_shared<Connection>(a.connector, b.connector, dof));
+        addConnection(a.connector, b.connector, dof);
         return true;
     }
     std::optional<float> PairChecker::projectConnectorsWithLength() {
@@ -250,12 +249,14 @@ namespace bricksim::connection {
         if (cyl->slide && clip->slide) {
             dof.slideDirections.push_back(cylData.absDirection);
         }
-        result.addConnection(a.node, b.node, std::make_shared<Connection>(a.connector, b.connector, dof));
+        addConnection(a.connector, b.connector, dof);
         return true;
     }
-    PairCheckData::PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const std::shared_ptr<Connector>& connector) :
+    PairCheckData::PairCheckData(const std::shared_ptr<etree::LdrNode>& node,
+                                 const glm::mat4& absTransformation,
+                                 const std::shared_ptr<Connector>& connector) :
         node(node),
-        absTransformation(glm::transpose(node->getAbsoluteTransformation())),
+        absTransformation(absTransformation),
         absStart(absTransformation * glm::vec4(connector->start, 1.f)),
         absEnd(absStart),
         absDirection(absTransformation * glm::vec4(connector->direction, 0.f)),
@@ -275,4 +276,116 @@ namespace bricksim::connection {
             absEnd = absTransformation * glm::vec4(connectorWithLength->getEnd(), 1.f);
         }
     }
+
+    PairCheckData::PairCheckData(const std::shared_ptr<etree::LdrNode>& node,
+                                 const glm::mat4& absTransformation,
+                                 const std::shared_ptr<ClipConnector>& connector) :
+        node(node),
+        absTransformation(absTransformation),
+        absStart(absTransformation * glm::vec4(connector->start, 1.f)),
+        absEnd(absStart),
+        absDirection(absTransformation * glm::vec4(connector->direction, 0.f)),
+        connector(connector),
+        connectorWithLength(connector),
+        clip(connector),
+        cyl(nullptr),
+        finger(nullptr),
+        generic(nullptr) {
+    }
+    PairCheckData::PairCheckData(const std::shared_ptr<etree::LdrNode>& node,
+                                 const glm::mat4& absTransformation,
+                                 const std::shared_ptr<CylindricalConnector>& connector) :
+        node(node),
+        absTransformation(absTransformation),
+        absStart(absTransformation * glm::vec4(connector->start, 1.f)),
+        absEnd(absStart),
+        absDirection(absTransformation * glm::vec4(connector->direction, 0.f)),
+        connector(connector),
+        connectorWithLength(connector),
+        clip(nullptr),
+        cyl(connector),
+        finger(nullptr),
+        generic(nullptr) {
+    }
+    PairCheckData::PairCheckData(const std::shared_ptr<etree::LdrNode>& node,
+                                 const glm::mat4& absTransformation,
+                                 const std::shared_ptr<FingerConnector>& connector) :
+        node(node),
+        absTransformation(absTransformation),
+        absStart(absTransformation * glm::vec4(connector->start, 1.f)),
+        absEnd(absStart),
+        absDirection(absTransformation * glm::vec4(connector->direction, 0.f)),
+        connector(connector),
+        connectorWithLength(connector),
+        clip(nullptr),
+        cyl(nullptr),
+        finger(connector),
+        generic(nullptr) {
+    }
+    PairCheckData::PairCheckData(const std::shared_ptr<etree::LdrNode>& node,
+                                 const glm::mat4& absTransformation,
+                                 const std::shared_ptr<GenericConnector>& connector) :
+        node(node),
+        absTransformation(absTransformation),
+        absStart(absTransformation * glm::vec4(connector->start, 1.f)),
+        absEnd(absStart),
+        absDirection(absTransformation * glm::vec4(connector->direction, 0.f)),
+        connector(connector),
+        connectorWithLength(nullptr),
+        clip(nullptr),
+        cyl(nullptr),
+        finger(nullptr),
+        generic(connector) {
+    }
+    PairCheckData::PairCheckData(const std::shared_ptr<etree::LdrNode>& node,
+                                 const std::shared_ptr<Connector>& connector) :
+        PairCheckData(node, glm::transpose(node->getAbsoluteTransformation()), connector) {
+    }
+    PairCheckData::PairCheckData(const std::shared_ptr<etree::LdrNode>& node,
+                                 const std::shared_ptr<ClipConnector>& connector) :
+        PairCheckData(node, glm::transpose(node->getAbsoluteTransformation()), connector) {
+    }
+    PairCheckData::PairCheckData(const std::shared_ptr<etree::LdrNode>& node,
+                                 const std::shared_ptr<CylindricalConnector>& connector) :
+        PairCheckData(node, glm::transpose(node->getAbsoluteTransformation()), connector) {
+    }
+    PairCheckData::PairCheckData(const std::shared_ptr<etree::LdrNode>& node,
+                                 const std::shared_ptr<FingerConnector>& connector) :
+        PairCheckData(node, glm::transpose(node->getAbsoluteTransformation()), connector) {
+    }
+    PairCheckData::PairCheckData(const std::shared_ptr<etree::LdrNode>& node,
+                                 const std::shared_ptr<GenericConnector>& connector) :
+        PairCheckData(node, glm::transpose(node->getAbsoluteTransformation()), connector) {
+    }
+    PairCheckData::PairCheckData(const glm::mat4& absTransformation,
+                                 const std::shared_ptr<Connector>& connector) :
+        PairCheckData(nullptr, absTransformation, connector) {
+    }
+    PairCheckData::PairCheckData(const glm::mat4& absTransformation,
+                                 const std::shared_ptr<ClipConnector>& connector) :
+        PairCheckData(nullptr, absTransformation, connector) {
+    }
+    PairCheckData::PairCheckData(const glm::mat4& absTransformation,
+                                 const std::shared_ptr<CylindricalConnector>& connector) :
+        PairCheckData(nullptr, absTransformation, connector) {
+    }
+    PairCheckData::PairCheckData(const glm::mat4& absTransformation,
+                                 const std::shared_ptr<FingerConnector>& connector) :
+        PairCheckData(nullptr, absTransformation, connector) {
+    }
+    PairCheckData::PairCheckData(const glm::mat4& absTransformation,
+                                 const std::shared_ptr<GenericConnector>& connector) :
+        PairCheckData(nullptr, absTransformation, connector) {
+    }
+    ConnectionGraphPairChecker::ConnectionGraphPairChecker(PairCheckData a, PairCheckData b, ConnectionGraph& result) :
+        PairChecker(a, b), result(result) {
+    }
+    void ConnectionGraphPairChecker::addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) {
+        result.addConnection(a.node, b.node, std::make_shared<Connection>(connectorA, connectorB, dof));
+    }
+    void VectorPairChecker::addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) {
+        result.push_back({connectorA, connectorB});
+    }
+    VectorPairChecker::VectorPairChecker(const PairCheckData& a, const PairCheckData& b, std::vector<std::array<std::shared_ptr<Connector>, 2>>& result) :
+        PairChecker(a, b), result(result) {}
 }

@@ -16,21 +16,29 @@ namespace bricksim::connection {
         std::shared_ptr<FingerConnector> finger;
         std::shared_ptr<GenericConnector> generic;
 
+        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const glm::mat4& absTransformation, const std::shared_ptr<Connector>& connector);
+        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const glm::mat4& absTransformation, const std::shared_ptr<ClipConnector>& connector);
+        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const glm::mat4& absTransformation, const std::shared_ptr<CylindricalConnector>& connector);
+        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const glm::mat4& absTransformation, const std::shared_ptr<FingerConnector>& connector);
+        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const glm::mat4& absTransformation, const std::shared_ptr<GenericConnector>& connector);
+
         PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const std::shared_ptr<Connector>& connector);
+        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const std::shared_ptr<ClipConnector>& connector);
+        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const std::shared_ptr<CylindricalConnector>& connector);
+        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const std::shared_ptr<FingerConnector>& connector);
+        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const std::shared_ptr<GenericConnector>& connector);
+
+        PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<Connector>& connector);
+        PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<ClipConnector>& connector);
+        PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<CylindricalConnector>& connector);
+        PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<FingerConnector>& connector);
+        PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<GenericConnector>& connector);
     };
 
     /**
      * this class checks if two specific connectors of two specific parts are connected
      */
     class PairChecker {
-        constexpr static float PARALLELITY_ANGLE_TOLERANCE = .001f;
-        constexpr static float COLINEARITY_TOLERANCE_LDU = .1f;
-        constexpr static float POSITION_TOLERANCE_LDU = .1f;
-        constexpr static float CONNECTION_RADIUS_TOLERANCE = 1.f;
-
-        const PairCheckData a;
-        const PairCheckData b;
-        ConnectionGraph& result;
         const float absoluteDirectionAngleDifference;
         const bool sameDir;
         const bool oppositeDir;
@@ -42,8 +50,33 @@ namespace bricksim::connection {
 
         std::optional<float> projectConnectorsWithLength();
 
+    protected:
+        const PairCheckData a;
+        const PairCheckData b;
+        virtual void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) = 0;
+
     public:
-        PairChecker(PairCheckData a, PairCheckData b, ConnectionGraph& result);
+        PairChecker(PairCheckData a, PairCheckData b);
         void findConnections();
+    };
+
+    class ConnectionGraphPairChecker : public PairChecker {
+        ConnectionGraph& result;
+
+    protected:
+        void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) override;
+
+    public:
+        ConnectionGraphPairChecker(PairCheckData a, PairCheckData b, ConnectionGraph& result);
+    };
+
+    class VectorPairChecker : public PairChecker {
+        std::vector<std::array<std::shared_ptr<Connector>, 2>>& result;
+
+    protected:
+        void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) override;
+
+    public:
+        VectorPairChecker(const PairCheckData& a, const PairCheckData& b, std::vector<std::array<std::shared_ptr<Connector>, 2>>& result);
     };
 }

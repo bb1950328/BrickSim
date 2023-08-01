@@ -230,7 +230,7 @@ namespace bricksim::connection {
     }
 
     Connector::Connector(std::string group, const glm::vec3& start, const glm::vec3& direction, std::string sourceTrace) :
-        group(std::move(group)), start(start), direction(direction), sourceTrace(sourceTrace) {}
+        group(std::move(group)), start(start), direction(glm::normalize(direction)), sourceTrace(sourceTrace) {}
 
     std::shared_ptr<Connector> Connector::clone() {
         return std::make_shared<Connector>(*this);

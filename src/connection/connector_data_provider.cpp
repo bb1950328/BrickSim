@@ -1,6 +1,7 @@
 #include "connector_data_provider.h"
 #include "../helpers/geometry.h"
 #include "../ldr/file_repo.h"
+#include "connection_check.h"
 #include "ldcad_meta/clear_command.h"
 #include "ldcad_meta/clp_command.h"
 #include "ldcad_meta/cyl_command.h"
@@ -39,6 +40,24 @@ namespace bricksim::connection {
             }
             return transf;
         }
+
+        void removeConnected(connector_container_t& connectors) {
+            const auto connected = getConnectedConnectors(connectors);
+            uoset_t<std::shared_ptr<Connector>> connectedSet;
+            connectedSet.reserve(connected.size());
+            for (const auto& item: connected) {
+                for (const auto& c: item) {
+                    connectedSet.insert(c);
+                }
+            }
+            connectors.erase(std::remove_if(connectors.begin(),
+                                            connectors.end(),
+                                            [&connectedSet](const auto c) {
+                                                return connectedSet.contains(c);
+                                            }),
+                             connectors.end());
+        }
+
         std::size_t removeDuplicates(connector_container_t& connectors) {
             connector_container_t result;
             result.reserve(connectors.size());
@@ -298,12 +317,13 @@ namespace bricksim::connection {
                     }
                 }
             }
+            removeConnected(*result);
         } else {
             createConnectors(*result, file, glm::mat4(1.f), {}, "");
-        }
-        const auto dupeCount = removeDuplicates(*result);
-        if (dupeCount > 0) {
-            spdlog::warn("Part {} {} has {} duplicate connectors", name, file->metaInfo.title, dupeCount);
+            const auto duplicateCount = removeDuplicates(*result);
+            if (duplicateCount > 0) {
+                spdlog::warn("Part {} {} has {} duplicate connectors", name, file->metaInfo.title, duplicateCount);
+            }
         }
         cache[fileNamespace].insert({name, result});
         return result;

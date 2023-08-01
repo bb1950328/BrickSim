@@ -3,6 +3,8 @@ target_sources(BrickSimLib PRIVATE
         connector_data_provider.h
         bounding.cpp
         bounding.h
+        connection_check.cpp
+        connection_check.h
         data.cpp
         data.h
         engine.cpp

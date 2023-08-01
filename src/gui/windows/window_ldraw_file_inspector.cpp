@@ -85,6 +85,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
         void showBrickSimSnapConnectorTree() {
             if (ImGui::BeginChild("##snapConnectorTree")) {
                 const auto connectors = connection::getConnectorsOfLdrFile(currentFile->nameSpace, currentFile->metaInfo.name);
+                ImGui::Text("%zu Connectors:", connectors->size());
                 char* nodeId = 0;
                 for (const auto& item: *connectors) {
                     const auto clipConn = std::dynamic_pointer_cast<connection::ClipConnector>(item);

@@ -36,6 +36,30 @@ namespace bricksim::db {
         oset_t<std::string> getAllPartsForCategory(const std::string& category);
         std::optional<std::string> containsFile(const std::string& name);
         std::optional<Entry> findFile(const std::string& name);
+        void deleteAllEntries();
+    }
+
+    namespace valueCache {
+        constexpr auto LAST_INDEX_LDCONFIG_HASH = "LAST_INDEX_LDCONFIG_HASH";
+        template<typename T>
+        std::optional<T> get(const char* key);
+
+        template<>
+        std::optional<std::string> get(const char* key);
+
+        template<>
+        std::optional<long long> get(const char* key);
+
+        template<>
+        std::optional<double> get(const char* key);
+
+        template<typename T>
+        void set(const char* key, T value) {
+            set<std::string>(key, std::to_string(value));
+        }
+
+        template<>
+        void set(const char* key, std::string value);
     }
 
     namespace config {

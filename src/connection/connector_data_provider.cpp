@@ -8,7 +8,9 @@
 #include "ldcad_meta/fgr_command.h"
 #include "ldcad_meta/gen_command.h"
 #include "ldcad_meta/incl_command.h"
+#include "spdlog/fmt/chrono.h"
 #include "spdlog/spdlog.h"
+#include "spdlog/stopwatch.h"
 
 namespace bricksim::connection {
     namespace {
@@ -305,6 +307,7 @@ namespace bricksim::connection {
         const auto file = ldr::file_repo::get().getFile(fileNamespace, name);
         auto result = std::make_shared<connector_container_t>();
         if (file->metaInfo.type == ldr::FileType::MODEL || file->metaInfo.type == ldr::FileType::MPD_SUBFILE) {
+            spdlog::stopwatch sw;
             for (const auto& item: file->elements) {
                 if (item->getType() == 1) {
                     const auto sfReference = std::dynamic_pointer_cast<ldr::SubfileReference>(item);
@@ -318,6 +321,10 @@ namespace bricksim::connection {
                 }
             }
             removeConnected(*result);
+            if (result->size() > 1000) {
+                const auto time = std::chrono::duration_cast<std::chrono::milliseconds>(sw.elapsed());
+                spdlog::debug("connector data provider: provided {} connectors for {} in {}", result->size(), name, time);
+            }
         } else {
             createConnectors(*result, file, glm::mat4(1.f), {}, "");
             const auto duplicateCount = removeDuplicates(*result);

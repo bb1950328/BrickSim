@@ -12,6 +12,7 @@
 #include <thread>
 #include <utility>
 #include <zip.h>
+#include <zlib.h>
 
 namespace bricksim::ldr::file_repo {
     const char* PSEUDO_CATEGORY_SUBPART = "__SUBPART";
@@ -305,9 +306,21 @@ namespace bricksim::ldr::file_repo {
         return {ldr::FileType::MODEL, pathRelativeToBase};
     }
 
+    constexpr const auto LDCONFIG_FILE_NAME = "LDConfig.ldr";
     void FileRepo::initialize(float* progress) {
-        if (db::fileList::getSize() == 0) {
+        auto currentLDConfigContent = getLibraryLdrFileContent(LDCONFIG_FILE_NAME);
+        const auto currentHash = fmt::format("{:x}", adler32(1, reinterpret_cast<unsigned char*>(currentLDConfigContent.data()), currentLDConfigContent.size()));
+        const auto lastIndexHash = db::valueCache::get<std::string>(db::valueCache::LAST_INDEX_LDCONFIG_HASH);
+        bool needFill = false;
+        if (currentHash != lastIndexHash) {
+            needFill = true;
+            spdlog::info("FileRepo: Hash of {} changed ({}!={}), going to refill file list", LDCONFIG_FILE_NAME, lastIndexHash.value_or("?"), currentHash);
+            db::fileList::deleteAllEntries();
+        } else if (db::fileList::getSize() == 0) {
+            needFill = true;
             spdlog::info("FileRepo: file list in db is empty, going to fill it");
+        }
+        if (needFill) {
             auto before = std::chrono::high_resolution_clock::now();
 
             auto fileNames = listAllFileNames(progress);
@@ -369,6 +382,8 @@ namespace bricksim::ldr::file_repo {
             for (auto& t: threads) {
                 t.join();
             }
+
+            db::valueCache::set<std::string>(db::valueCache::LAST_INDEX_LDCONFIG_HASH, currentHash);
 
             auto after = std::chrono::high_resolution_clock::now();
             auto durationMs = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.0;

@@ -9,7 +9,7 @@ namespace bricksim::db {
         std::optional<SQLite::Database> cacheDb;
 
         const int NEWEST_CONFIG_DB_VERSION = 2;
-        const int NEWEST_CACHE_DB_VERSION = 1;
+        const int NEWEST_CACHE_DB_VERSION = 2;
 
         void upgradeConfigDbToVersion(int newVersion) {
             spdlog::info("Upgrading config.db3 to version {}", newVersion);
@@ -32,6 +32,14 @@ namespace bricksim::db {
         void upgradeCacheDbToVersion(int newVersion) {
             spdlog::info("Upgrading cache.db3 to version {}", newVersion);
             switch (newVersion) {
+                case 2: {
+                    SQLite::Statement createSt(cacheDb.value(), "create table \"values\"\n"
+                                                                "(\n"
+                                                                "    key   TEXT PRIMARY KEY,\n"
+                                                                "    value TEXT NOT NULL\n"
+                                                                ");");
+                    createSt.exec();
+                }
                 default:
                     break;
             }
@@ -191,6 +199,40 @@ namespace bricksim::db {
         }
     }
 
+    namespace valueCache {
+        template<>
+        std::optional<std::string> get(const char* key) {
+            SQLite::Statement query(cacheDb.value(), "SELECT value FROM \"values\" WHERE key=?");
+            query.bind(1, key);
+            if (query.executeStep()) {
+                return std::make_optional<std::string>(query.getColumn(0).getString());
+            }
+            return std::nullopt;
+        }
+        template<>
+        std::optional<long long> get(const char* key) {
+            const auto stringValue = get<std::string>(key);
+            return stringValue.has_value()
+                           ? std::make_optional<long long>(std::stoll(*stringValue))
+                           : std::nullopt;
+        }
+        template<>
+        std::optional<double> get(const char* key) {
+            const auto stringValue = get<std::string>(key);
+            return stringValue.has_value()
+                           ? std::make_optional<double>(std::stod(*stringValue))
+                           : std::nullopt;
+        }
+
+        template<>
+        void set(const char* key, std::string value) {
+            SQLite::Statement query(cacheDb.value(), "REPLACE INTO \"values\" (key, value) VALUES (?, ?)");
+            query.bind(1, key);
+            query.bind(2, value);
+            query.exec();
+        }
+    }
+
     namespace config {
         std::optional<std::string> getString(const char* key) {
             SQLite::Statement query(configDb.value(), "SELECT value FROM strings WHERE key=?");
@@ -336,6 +378,10 @@ namespace bricksim::db {
             command.pop_back();//last comma
             command.push_back(';');
             SQLite::Statement stmt(cacheDb.value(), command);
+            stmt.exec();
+        }
+        void deleteAllEntries() {
+            SQLite::Statement stmt(cacheDb.value(), "DELETE FROM files;");
             stmt.exec();
         }
     }

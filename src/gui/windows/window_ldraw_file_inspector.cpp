@@ -12,6 +12,7 @@
 #include "TextEditor.h"
 #include "glm/gtx/string_cast.hpp"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "spdlog/fmt/bundled/format.h"
 #include "spdlog/spdlog.h"
 #include <sstream>
@@ -19,6 +20,8 @@
 namespace bricksim::gui::windows::ldraw_file_inspector {
     namespace {
         using namespace std::literals;
+        std::stack<std::shared_ptr<ldr::File>> backwardHistory;
+        std::stack<std::shared_ptr<ldr::File>> forwardHistory;
         std::shared_ptr<ldr::File> currentFile = nullptr;
         std::string content;
         std::string shadowContent;
@@ -376,7 +379,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                         while (!std::isspace(*outEnd) && outEnd < inEnd) {
                             ++outEnd;
                         }
-                        std::string_view currentWord(outBegin, outEnd);
+                        std::string_view currentWord(outBegin, outEnd - outBegin);
                         if (startOfLine) {
                             lineType = -2;
                             std::from_chars(outBegin, outEnd, lineType);
@@ -433,7 +436,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                 lastText = fileContent;
             }
             editor.SetReadOnly(true);
-            editor.Render(magic_enum::enum_name(type).cbegin());
+            editor.Render(magic_enum::enum_name(type).data());
             if (editor.HasSelection()) {
                 const auto selectedText = editor.GetSelectedText();
                 if (selectedText != currentFile->metaInfo.name) {
@@ -449,7 +452,29 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
     void setCurrentFile(const std::shared_ptr<ldr::File>& newFile) {
         if (currentFile != newFile) {
+            if (currentFile != nullptr) {
+                backwardHistory.push(currentFile);
+            }
+            forwardHistory = {};
             currentFile = newFile;
+            currentFileChanged();
+        }
+    }
+
+    void historyBrowseBack() {
+        if (!backwardHistory.empty()) {
+            forwardHistory.push(currentFile);
+            currentFile = backwardHistory.top();
+            backwardHistory.pop();
+            currentFileChanged();
+        }
+    }
+
+    void historyBrowseForward() {
+        if (!forwardHistory.empty()) {
+            backwardHistory.push(currentFile);
+            currentFile = forwardHistory.top();
+            forwardHistory.pop();
             currentFileChanged();
         }
     }
@@ -510,8 +535,25 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
             if (currentFile != nullptr) {
                 ImGui::Separator();
 
-                //todo display back/forward buttons like in browser
-                // save file history in double linked list (namespace and filename only)
+                if (backwardHistory.empty()) {
+                    ImGui::BeginDisabled();
+                    ImGui::Button(ICON_FA_ARROW_LEFT);
+                    ImGui::EndDisabled();
+                } else if (ImGui::Button(ICON_FA_ARROW_LEFT)) {
+                    historyBrowseBack();
+                }
+
+                ImGui::SameLine();
+                if (forwardHistory.empty()) {
+                    ImGui::BeginDisabled();
+                    ImGui::Button(ICON_FA_ARROW_RIGHT);
+                    ImGui::EndDisabled();
+                } else if (ImGui::Button(ICON_FA_ARROW_RIGHT)) {
+                    historyBrowseForward();
+                }
+
+                ImGui::SameLine();
+
                 ImGui::Text("Inspecting %s: %s", currentFile->metaInfo.name.c_str(), currentFile->metaInfo.title.c_str());
 
                 if (ImGui::BeginTabBar("##fileInspectorTabBar", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {

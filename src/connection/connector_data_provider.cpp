@@ -16,7 +16,7 @@ namespace bricksim::connection {
     namespace {
         uomap_t<std::shared_ptr<ldr::FileNamespace>, uomap_t<std::string, std::shared_ptr<connector_container_t>>> cache;
 
-        void multiplyConnectorByGrid(connector_container_t& connectors, const connector_container_t& base, const ldcad_meta::Grid& grid);
+        void multiplyConnectorByGrid(connector_container_t& connectors, const connector_container_t& base, const ldcad_meta::Grid& grid, const glm::mat3& orientation);
 
         template<typename T>
         [[nodiscard]] glm::mat4 combinePosOri(const std::shared_ptr<T>& command) {
@@ -111,7 +111,7 @@ namespace bricksim::connection {
                         connector_container_t base;
                         createConnectors(base, includedFile, transf * transformation, clearIDs, sourceTrace);
                         const auto& grid = *inclCommand->grid;
-                        multiplyConnectorByGrid(connectors, base, grid);
+                        multiplyConnectorByGrid(connectors, base, grid, inclCommand->ori.value_or(glm::mat3(1.f)));
                     } else {
                         createConnectors(connectors, includedFile, transf * transformation, clearIDs, sourceTrace);
                     }
@@ -216,7 +216,7 @@ namespace bricksim::connection {
                     if (cylCommand->grid.has_value()) {
                         connector_container_t base{result};
                         const auto& grid = *cylCommand->grid;
-                        multiplyConnectorByGrid(connectors, base, grid);
+                        multiplyConnectorByGrid(connectors, base, grid, cylCommand->ori.value_or(glm::mat3(1.f)));
                     } else {
                         connectors.push_back(result);
                     }
@@ -281,7 +281,8 @@ namespace bricksim::connection {
 
         void multiplyConnectorByGrid(connector_container_t& connectors,
                                      const connector_container_t& base,
-                                     const ldcad_meta::Grid& grid) {
+                                     const ldcad_meta::Grid& grid,
+                                     const glm::mat3& orientation) {
             float xStart = grid.centerX ? (static_cast<float>(grid.countX - 1) / -2.f) * grid.spacingX : 0;
             float zStart = grid.centerZ ? (static_cast<float>(grid.countZ - 1) / -2.f) * grid.spacingZ : 0;
             for (uint32_t ix = 0; ix < grid.countX; ++ix) {
@@ -290,7 +291,7 @@ namespace bricksim::connection {
                     float dz = zStart + static_cast<float>(iz) * grid.spacingZ;
                     for (const auto& cn: base) {
                         auto clone = cn->clone();
-                        clone->start += glm::vec3(dx, 0, dz);
+                        clone->start += (glm::vec3(dx, 0, dz) * orientation);
                         connectors.push_back(clone);
                     }
                 }

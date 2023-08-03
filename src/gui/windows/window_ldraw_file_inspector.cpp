@@ -9,6 +9,7 @@
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../gui.h"
 #include "../gui_internal.h"
+#include "TextEditor.h"
 #include "glm/gtx/string_cast.hpp"
 #include "imgui.h"
 #include "spdlog/fmt/bundled/format.h"
@@ -17,6 +18,7 @@
 
 namespace bricksim::gui::windows::ldraw_file_inspector {
     namespace {
+        using namespace std::literals;
         std::shared_ptr<ldr::File> currentFile = nullptr;
         std::string content;
         std::string shadowContent;
@@ -307,6 +309,142 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                 ImGui::EndDisabled();
             }*/
         }
+
+        enum class LDrawFileContentType {
+            REGULAR,
+            SHADOW,
+        };
+
+        static const uoset_t<std::string_view> META_WORDS = {
+                "STEP"sv,
+                "WRITE"sv,
+                "PRINT"sv,
+                "CLEAR"sv,
+                "PAUSE"sv,
+                "SAVE"sv,
+                "!LDRAW_ORG"sv,
+                "LDRAW_ORG"sv,
+                "!LICENSE"sv,
+                "!HELP"sv,
+                "BFC"sv,
+                "!CATEGORY"sv,
+                "!KEYWORDS"sv,
+                "!HISTORY"sv,
+                "FILE"sv,
+                "Name:"sv,
+                "Author:"sv,
+        };
+
+        static const TextEditor::PaletteIndex PI_XVALUE = TextEditor::PaletteIndex::Number;
+        static const TextEditor::PaletteIndex PI_YVALUE = TextEditor::PaletteIndex::Identifier;
+        static const TextEditor::PaletteIndex PI_ZVALUE = TextEditor::PaletteIndex::Punctuation;
+        static const std::array<TextEditor::PaletteIndex, 3> PIS_AXISVALUE = {{PI_XVALUE, PI_YVALUE, PI_ZVALUE}};
+        void showLDrawFileContent(LDrawFileContentType type, const std::string& fileContent) {
+            static std::array<TextEditor, magic_enum::enum_count<LDrawFileContentType>()> allEditors;
+            static std::array<std::string, magic_enum::enum_count<LDrawFileContentType>()> allLastTexts;
+            auto& editor = allEditors[*magic_enum::enum_index(type)];
+            auto& lastText = allLastTexts[*magic_enum::enum_index(type)];
+
+            static bool initialized = false;
+            if (!initialized) {
+                TextEditor::LanguageDefinition langDef;
+                langDef.mTokenize = [](const char* inBegin, const char* inEnd, const char*& outBegin, const char*& outEnd, TextEditor::PaletteIndex& paletteIndex) -> bool {
+                    static bool startOfLine = true;
+
+                    static int lineType = -1;
+                    static int progress = 0;
+                    if (startOfLine) {
+                        lineType = -1;
+                        progress = 0;
+                    }
+
+                    paletteIndex = TextEditor::PaletteIndex::Max;
+                    if (std::isblank(*inBegin)) {
+                        outBegin = inBegin;
+                        outEnd = outBegin + 1;
+                        while (outEnd < inEnd && std::isblank(*outEnd)) {
+                            ++outEnd;
+                        }
+                        paletteIndex = TextEditor::PaletteIndex::Default;
+                    } else if (inBegin == inEnd) {
+                        outBegin = inEnd;
+                        outEnd = inEnd;
+                        paletteIndex = TextEditor::PaletteIndex::Default;
+                    } else {
+                        outBegin = inBegin;
+                        outEnd = outBegin + 1;
+                        while (!std::isspace(*outEnd) && outEnd < inEnd) {
+                            ++outEnd;
+                        }
+                        std::string_view currentWord(outBegin, outEnd);
+                        if (startOfLine) {
+                            lineType = -2;
+                            std::from_chars(outBegin, outEnd, lineType);
+                            paletteIndex = TextEditor::PaletteIndex::Keyword;
+                        } else if (lineType == 0) {
+                            if (progress == 0) {
+                                if (META_WORDS.contains(currentWord)) {
+                                    paletteIndex = TextEditor::PaletteIndex::PreprocIdentifier;
+                                    progress = 1;
+                                } else {
+                                    paletteIndex = TextEditor::PaletteIndex::Comment;
+                                    outEnd = inEnd;
+                                }
+                            } else {
+                                paletteIndex = TextEditor::PaletteIndex::Preprocessor;
+                                outEnd = inEnd;
+                            }
+                        } else {
+                            if (progress == 0) {
+                                paletteIndex = TextEditor::PaletteIndex::KnownIdentifier;
+                                progress = 1;
+                            } else if (lineType == 1 && progress == 13) {
+                                paletteIndex = ldr::file_repo::get().getFileOrNull(currentFile->nameSpace, std::string(currentWord)) != nullptr
+                                                       ? TextEditor::PaletteIndex::KnownIdentifier
+                                                       : TextEditor::PaletteIndex::ErrorMarker;
+                            } else {
+                                const auto axis = (progress - 1) % 3;
+                                paletteIndex = PIS_AXISVALUE[axis];
+                                ++progress;
+                            }
+                        }
+                    }
+
+                    startOfLine = outEnd == inEnd;
+                    return paletteIndex != TextEditor::PaletteIndex::Max;
+                };
+
+                langDef.mCaseSensitive = false;
+                langDef.mAutoIndentation = false;
+                langDef.mName = "LDraw";
+
+                for (auto& item: allEditors) {
+                    item.SetLanguageDefinition(langDef);
+                    auto palette = item.GetPalette();
+                    palette[static_cast<unsigned>(PI_XVALUE)] = 0xaa0000ff;
+                    palette[static_cast<unsigned>(PI_YVALUE)] = 0xaa00cc00;
+                    palette[static_cast<unsigned>(PI_ZVALUE)] = 0xffff2020;
+                    item.SetPalette(palette);
+                }
+                initialized = true;
+            }
+            if (lastText != fileContent) {
+                editor.SetText(fileContent);
+                lastText = fileContent;
+            }
+            editor.SetReadOnly(true);
+            editor.Render(magic_enum::enum_name(type).cbegin());
+            if (editor.HasSelection()) {
+                const auto selectedText = editor.GetSelectedText();
+                if (selectedText != currentFile->metaInfo.name) {
+                    const auto selectedFile = ldr::file_repo::get().getFileOrNull(currentFile->nameSpace, selectedText);
+                    if (selectedFile != nullptr) {
+                        setCurrentFile(ldr::file_repo::get().getFile(currentFile->nameSpace, selectedText));
+                        editor.SetSelection(TextEditor::Coordinates(0, 0), TextEditor::Coordinates(0, 0));
+                    }
+                }
+            }
+        }
     }
 
     void setCurrentFile(const std::shared_ptr<ldr::File>& newFile) {
@@ -372,22 +510,17 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
             if (currentFile != nullptr) {
                 ImGui::Separator();
 
-                ImGui::Text("Inspecting %s: %s", currentFile->metaInfo.name.c_str(),
-                            currentFile->metaInfo.title.c_str());
+                //todo display back/forward buttons like in browser
+                // save file history in double linked list (namespace and filename only)
+                ImGui::Text("Inspecting %s: %s", currentFile->metaInfo.name.c_str(), currentFile->metaInfo.title.c_str());
 
                 if (ImGui::BeginTabBar("##fileInspectorTabBar", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
                     if (ImGui::BeginTabItem("Raw Content")) {
-                        if (ImGui::BeginChild("Content", ImVec2(0, 0), true, ImGuiWindowFlags_None)) {
-                            ImGui::TextUnformatted(content.c_str());
-                        }
-                        ImGui::EndChild();
+                        showLDrawFileContent(LDrawFileContentType::REGULAR, content);
                         ImGui::EndTabItem();
                     }
                     if (ImGui::BeginTabItem("Shadow Content")) {
-                        if (ImGui::BeginChild("shadowContent", ImVec2(0, 0), true, ImGuiWindowFlags_None)) {
-                            ImGui::TextUnformatted(shadowContent.c_str());
-                        }
-                        ImGui::EndChild();
+                        showLDrawFileContent(LDrawFileContentType::SHADOW, shadowContent);
                         ImGui::EndTabItem();
                     }
                     if (ImGui::BeginTabItem("Meta Snap Info")) {

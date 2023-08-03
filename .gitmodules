@@ -59,3 +59,6 @@
 [submodule "src/lib/unordered_dense"]
 	path = src/lib/unordered_dense
 	url = https://github.com/martinus/unordered_dense.git
+[submodule "src/lib/ImGuiColorTextEdit"]
+	path = src/lib/ImGuiColorTextEdit
+	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git

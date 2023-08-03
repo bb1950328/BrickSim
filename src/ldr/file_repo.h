@@ -39,6 +39,7 @@ namespace bricksim::ldr::file_repo {
         void initialize(float* progress);
 
         std::shared_ptr<File> getFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name);
+        std::shared_ptr<File> getFileOrNull(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name);
         std::shared_ptr<BinaryFile> getBinaryFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, BinaryFileSearchPath searchPath = BinaryFileSearchPath::DEFAULT);
         bool hasFileCached(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name);
         [[nodiscard]] const uomap_t<std::shared_ptr<FileNamespace>, uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>>>& getAllFilesInMemory() const;

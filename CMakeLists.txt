@@ -270,6 +270,17 @@ target_link_libraries(BrickSimLib PRIVATE fcl)
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)
 target_link_libraries(BrickSimLib PRIVATE Eigen3::Eigen)
 
+#ImGuiColorTextEdit
+add_library(ImGuiColorTextEdit)
+target_sources(ImGuiColorTextEdit PRIVATE
+        src/lib/ImGuiColorTextEdit/TextEditor.cpp
+        src/lib/ImGuiColorTextEdit/TextEditor.h
+)
+target_include_directories(ImGuiColorTextEdit PRIVATE src/lib/imgui)
+target_include_directories(ImGuiColorTextEdit INTERFACE src/lib/ImGuiColorTextEdit)
+
+target_link_libraries(BrickSimLib PRIVATE ImGuiColorTextEdit)
+
 add_subdirectory(src)
 
 if (WIN32)

@@ -486,6 +486,13 @@ namespace bricksim::ldr::file_repo {
         }
         return nullptr;
     }
+    std::shared_ptr<File> FileRepo::getFileOrNull(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name) {
+        try {
+            return getFile(fileNamespace, name);
+        } catch (std::invalid_argument ia) {
+            return nullptr;
+        }
+    }
 
     FileRepo::~FileRepo() = default;
 

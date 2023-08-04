@@ -120,20 +120,24 @@ namespace bricksim::connection {
                 const auto cylCommand = std::dynamic_pointer_cast<ldcad_meta::CylCommand>(command);
                 if (cylCommand != nullptr && (!cylCommand->id.has_value() || !clearIDs.contains(*cylCommand->id))) {
                     //TODO check cylCommand->scale
-                    const auto cylTransf = combinePosOri(cylCommand) * transformation;
+                    auto cylTransf = transformation * combinePosOri(cylCommand);
 
                     if (geometry::doesTransformationInverseWindingOrder(cylTransf)) {
                         if (cylCommand->mirror == ldcad_meta::MirrorType::NONE) {
                             continue;
                         } else {
                             //todo handle COR
+                            // documentation is a bit unclear
                         }
                     }
 
+                    const glm::vec3 direction = cylTransf * glm::vec4(0.f, -1.f, 0.f, 0.f);
+                    const float lengthScale = glm::length(direction);
+                    const float radiusScale = glm::length(glm::vec3(cylTransf * glm::vec4(1.f, 0.f, 0.f, 0.f)));
                     auto result = std::make_shared<CylindricalConnector>(
                             cylCommand->group.value_or(""),
                             cylTransf[3],
-                            cylTransf * glm::vec4(0.f, -1.f, 0.f, 0.f) /*cylCommand->ori.value_or(glm::mat3(1.f))*glm::vec3(0.f, -1.f, 0.f)*/,
+                            direction /*cylCommand->ori.value_or(glm::mat3(1.f))*glm::vec3(0.f, -1.f, 0.f)*/,
                             sourceTrace,
                             cylCommand->gender == ldcad_meta::Gender::M
                                     ? Gender::M
@@ -147,8 +151,8 @@ namespace bricksim::connection {
                         result->parts.push_back({
                                 CylindricalShapeType::ROUND,
                                 false,
-                                sec.radius,//todo scale these values
-                                sec.length,
+                                sec.radius * radiusScale,
+                                sec.length * lengthScale,
                         });
                     }
                     for (size_t i = 0; i < cylCommand->secs.size(); ++i) {
@@ -291,7 +295,7 @@ namespace bricksim::connection {
                     float dz = zStart + static_cast<float>(iz) * grid.spacingZ;
                     for (const auto& cn: base) {
                         auto clone = cn->clone();
-                        clone->start += (glm::vec3(dx, 0, dz) * orientation);
+                        clone->start += (orientation * glm::vec3(dx, 0, dz));
                         connectors.push_back(clone);
                     }
                 }

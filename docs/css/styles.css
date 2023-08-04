@@ -1,8 +1,0 @@
-a {
-    text-decoration: underline !important;
-    color: blue;
-}
-
-a:visited {
-    color: blueviolet;
-}

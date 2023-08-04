@@ -104,13 +104,13 @@ namespace bricksim::connection::ldcad_meta::parse {
                 return BoundingPnt();
             } else if (words[0] == "box") {
                 BoundingBox box{};
-                floatFromString(words[1], box.x);
-                floatFromString(words[2], box.y);
-                floatFromString(words[3], box.z);
+                floatFromString(words[1], box.radius.x);
+                floatFromString(words[2], box.radius.y);
+                floatFromString(words[3], box.radius.z);
                 return box;
             } else if (words[0] == "cube") {
                 BoundingCube cube{};
-                floatFromString(words[1], cube.size);
+                floatFromString(words[1], cube.radius);
                 return cube;
             } else if (words[0] == "cyl") {
                 BoundingCyl cyl{};

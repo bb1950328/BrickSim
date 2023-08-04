@@ -263,7 +263,7 @@ namespace bricksim::connection {
                             std::make_shared<GenericConnector>(
                                     genCommand->group.value_or(""),
                                     genTransf * glm::vec4(0.f, 0.f, 0.f, 1.f),
-                                    genTransf * glm::vec4(0.f, -1.f, 0.f, 0.f),
+                                    genTransf * glm::vec4(1.f, 0.f, 0.f, 0.f),
                                     sourceTrace,
                                     genCommand->gender == ldcad_meta::Gender::M
                                             ? Gender::M
@@ -277,7 +277,16 @@ namespace bricksim::connection {
                     if (item->getType() == 1) {
                         const auto sfReference = std::dynamic_pointer_cast<ldr::SubfileReference>(item);
                         const auto sfReferenceTransformation = sfReference->getTransformationMatrix();
-                        createConnectors(connectors, sfReference->getFile(file->nameSpace), transformation * sfReferenceTransformation, clearIDs, sourceTrace);
+                        const auto referencedFile = sfReference->getFile(file->nameSpace);
+                        const auto combinedTransformation = transformation * sfReferenceTransformation;
+                        if (referencedFile->metaInfo.type != ldr::FileType::PRIMITIVE && referencedFile->metaInfo.type != ldr::FileType::SUBPART) {
+                            //use temporary container so clear commands do not wipe the entire hierarchy
+                            connector_container_t referencedPartConnectors;
+                            createConnectors(referencedPartConnectors, referencedFile, combinedTransformation, clearIDs, sourceTrace);
+                            connectors.insert(connectors.end(), referencedPartConnectors.cbegin(), referencedPartConnectors.cend());
+                        } else {
+                            createConnectors(connectors, referencedFile, combinedTransformation, clearIDs, sourceTrace);
+                        }
                     }
                 }
             }

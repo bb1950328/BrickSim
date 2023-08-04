@@ -34,8 +34,8 @@ namespace bricksim::connection::visualization {
             const auto clipConn = std::dynamic_pointer_cast<ClipConnector>(conn);
             const auto fgrConn = std::dynamic_pointer_cast<FingerConnector>(conn);
             const auto genConn = std::dynamic_pointer_cast<GenericConnector>(conn);
+            const glm::vec3 direction = conn->direction;
             if (cylConn != nullptr) {
-                const glm::vec3 direction = cylConn->direction;
                 const auto directionAsQuat = geometry::quaternionRotationFromOneVectorToAnother({0.f, 0.f, 1.f}, direction);
                 const glm::vec3 start = cylConn->start;
                 const float totalLength = cylConn->getTotalLength();
@@ -67,6 +67,38 @@ namespace bricksim::connection::visualization {
             } else if (clipConn != nullptr) {
             } else if (fgrConn != nullptr) {
             } else if (genConn != nullptr) {
+                const auto directionAsQuat = geometry::quaternionRotationFromOneVectorToAnother({1.f, 0.f, 0.f}, direction);
+                auto transf = glm::mat4(1.f);
+                transf = glm::toMat4(directionAsQuat) * transf;
+                transf = glm::translate(transf, genConn->start * directionAsQuat);
+
+                std::shared_ptr<etree::MeshNode> marker;
+
+                if (std::holds_alternative<BoundingPnt>(genConn->bounding)) {
+                    marker = std::make_shared<PointMarkerNode>(root, SimpleLineColor::RED);
+                    transf = glm::scale(transf, glm::vec3(10.f, 10.f, 10.f));
+                } else if (std::holds_alternative<BoundingBox>(genConn->bounding)) {
+                    const auto box = std::get<BoundingBox>(genConn->bounding);
+                    marker = std::make_shared<LineBoxNode>(root, SimpleLineColor::RED);
+                    transf = glm::scale(transf, box.radius * 2.f);
+                } else if (std::holds_alternative<BoundingCube>(genConn->bounding)) {
+                    const auto cube = std::get<BoundingCube>(genConn->bounding);
+                    marker = std::make_shared<LineBoxNode>(root, SimpleLineColor::RED);
+                    transf = glm::scale(transf, glm::vec3(cube.radius, cube.radius, cube.radius) * 2.f);
+                } else if (std::holds_alternative<BoundingCyl>(genConn->bounding)) {
+                    const auto cyl = std::get<BoundingCyl>(genConn->bounding);
+                    marker = std::make_shared<LineCylinderNode>(root, SimpleLineColor::RED);
+                    transf = glm::scale(transf, glm::vec3(2 * cyl.radius, cyl.length, 2 * cyl.radius));
+                } else if (std::holds_alternative<BoundingSph>(genConn->bounding)) {
+                    const auto sph = std::get<BoundingSph>(genConn->bounding);
+                    marker = std::make_shared<LineUVSphereNode>(root, SimpleLineColor::RED);
+                    transf = glm::scale(transf, glm::vec3(sph.radius, sph.radius, sph.radius));
+                }
+
+                if (marker != nullptr) {
+                    marker->setRelativeTransformation(glm::transpose(transf));
+                    root->addChild(marker);
+                }
             }
         }
 

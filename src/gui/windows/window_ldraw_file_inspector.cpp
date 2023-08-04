@@ -142,6 +142,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                                 ImGui::TreePop();
                             }
                         } else if (genConn != nullptr) {
+                            ImGui::BulletText("direction=%s", stringutil::formatGLM(genConn->direction).c_str());
                             ImGui::BulletText("gender=%s", magic_enum::enum_name(genConn->gender).data());
                             if (std::holds_alternative<connection::BoundingPnt>(genConn->bounding)) {
                                 const auto& bounding = std::get<connection::BoundingPnt>(genConn->bounding);
@@ -149,13 +150,11 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                             } else if (std::holds_alternative<connection::BoundingBox>(genConn->bounding)) {
                                 const auto& bounding = std::get<connection::BoundingBox>(genConn->bounding);
                                 ImGui::BulletText("bounding=box");
-                                ImGui::BulletText("x=%f", bounding.x);
-                                ImGui::BulletText("y=%f", bounding.y);
-                                ImGui::BulletText("z=%f", bounding.z);
+                                ImGui::BulletText("radius=%s", stringutil::formatGLM(bounding.radius).c_str());
                             } else if (std::holds_alternative<connection::BoundingCube>(genConn->bounding)) {
                                 const auto& bounding = std::get<connection::BoundingCube>(genConn->bounding);
                                 ImGui::BulletText("bounding=cube");
-                                ImGui::BulletText("size=%f", bounding.size);
+                                ImGui::BulletText("radius=%f", bounding.radius);
                             } else if (std::holds_alternative<connection::BoundingCyl>(genConn->bounding)) {
                                 const auto& bounding = std::get<connection::BoundingCyl>(genConn->bounding);
                                 ImGui::BulletText("bounding=cyl");

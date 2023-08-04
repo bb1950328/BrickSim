@@ -1,19 +1,19 @@
 #pragma once
 
+#include <glm/vec3.hpp>
 #include <variant>
 namespace bricksim::connection {
     struct BoundingPnt {
         bool operator==(const BoundingPnt& rhs) const = default;
     };
+
     struct BoundingBox {
-        float x;
-        float y;
-        float z;
+        glm::vec3 radius;
 
         bool operator==(const BoundingBox& rhs) const = default;
     };
     struct BoundingCube {
-        float size;
+        float radius;
 
         bool operator==(const BoundingCube& rhs) const = default;
     };

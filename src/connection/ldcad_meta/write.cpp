@@ -94,10 +94,10 @@ namespace bricksim::connection::ldcad_meta::write {
             return "pnt";
         } else if (std::holds_alternative<BoundingBox>(bounding)) {
             const auto& box = std::get<BoundingBox>(bounding);
-            return fmt::format("box {:g} {:g} {:g}", box.x, box.y, box.z);
+            return fmt::format("box {:g} {:g} {:g}", box.radius.x, box.radius.y, box.radius.z);
         } else if (std::holds_alternative<BoundingCube>(bounding)) {
             const auto& cube = std::get<BoundingCube>(bounding);
-            return fmt::format("cube {:g}", cube.size);
+            return fmt::format("cube {:g}", cube.radius);
         } else if (std::holds_alternative<BoundingCyl>(bounding)) {
             const auto& cyl = std::get<BoundingCyl>(bounding);
             return fmt::format("cyl {:g} {:g}", cyl.radius, cyl.length);

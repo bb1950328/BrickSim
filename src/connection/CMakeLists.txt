@@ -5,6 +5,8 @@ target_sources(BrickSimLib PRIVATE
         bounding.h
         connection_check.cpp
         connection_check.h
+        connector_conversion.cpp
+        connector_conversion.h
         data.cpp
         data.h
         engine.cpp

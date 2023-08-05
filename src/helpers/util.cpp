@@ -22,6 +22,8 @@
     #ifdef max
         #undef max
     #endif
+#elif defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)
+    #include <pthread.h>
 #endif
 
 namespace bricksim::util {
@@ -311,6 +313,16 @@ namespace bricksim::util {
             idx = result.find_first_of(constants::DISALLOWED_FILENAME_CHARS, idx);
         }
         return result;
+    }
+    void setThreadName(const char* threadName) {
+#ifdef BRICKSIM_PLATFORM_LINUX
+        pthread_setname_np(pthread_self(), threadName);
+#elif defined(BRICKSIM_PLATFORM_MACOS)
+        pthread_setname_np(threadName);
+#endif
+#ifdef USE_PL
+        plDeclareThreadDyn(threadName);
+#endif
     }
 
     glm::mat4 DecomposedTransformation::orientationAsMat4() const {

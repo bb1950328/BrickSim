@@ -334,15 +334,11 @@ namespace bricksim::ldr::file_repo {
                 threads.emplace_back([this,
                                       iStart,
                                       iEnd,
-#ifdef USE_PL
                                       &threadNum,
-#endif
                                       &fileNames,
                                       progress]() {
-#ifdef USE_PL
-                    std::string threadName = "FileList filler #" + std::to_string(threadNum);
-                    plDeclareThreadDyn(threadName.c_str());
-#endif
+                    std::string threadName = fmt::format("FileList filler #", threadNum);
+                    util::setThreadName(threadName.c_str());
                     std::vector<db::fileList::Entry> entries;
                     for (auto fileName = fileNames.cbegin() + iStart; fileName < fileNames.cbegin() + iEnd; ++fileName) {
                         auto [type, name] = getTypeAndNameFromPathRelativeToBase(*fileName);

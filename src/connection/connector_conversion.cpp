@@ -217,7 +217,7 @@ namespace bricksim::connection {
 
         //TODO mirror
         if (command->center) {
-            connector->start += connector->direction * (connector->getTotalLength() * -.5f);
+            connector->start += connector->direction * (connector->totalLength * -.5f);
         }
 
         if (command->grid.has_value()) {

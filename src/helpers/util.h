@@ -200,4 +200,6 @@ namespace bricksim::util {
     }
 
     std::string escapeFilename(const std::string& original);
+
+    void setThreadName(const char* threadName);
 }

@@ -25,10 +25,8 @@ namespace bricksim {
         spdlog::info("starting task {}", name);
         thread = std::thread([this]() {
             spdlog::debug("thread of task {} started", name);
-#ifdef USE_PL
-            const std::string plName = "Tasks/"+name;
-            plDeclareThreadDyn(plName.c_str());
-#endif
+            const std::string plName = fmt::format("Tasks/", name);
+            util::setThreadName(plName.c_str());
 
             auto before = std::chrono::high_resolution_clock::now();
             function(&progress);

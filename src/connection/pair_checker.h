@@ -4,13 +4,12 @@
 namespace bricksim::connection {
 
     struct PairCheckData {
-        std::shared_ptr<etree::LdrNode> node;
+        const std::shared_ptr<etree::LdrNode>& node;
         glm::mat4 absTransformation;
         glm::vec3 absStart;
         glm::vec3 absEnd;//=absStart for connectors that do not have a length
         glm::vec3 absDirection;
         std::shared_ptr<Connector> connector;
-        std::shared_ptr<ConnectorWithLength> connectorWithLength;
         std::shared_ptr<ClipConnector> clip;
         std::shared_ptr<CylindricalConnector> cyl;
         std::shared_ptr<FingerConnector> finger;
@@ -48,7 +47,7 @@ namespace bricksim::connection {
         bool findFingerFinger();
         bool findClipCyl(const PairCheckData& clipData, const PairCheckData& cylData);
 
-        std::optional<float> projectConnectorsWithLength();
+        std::optional<float> projectConnectorsWithLength(float aLength, float bLength);
 
     protected:
         const PairCheckData& a;

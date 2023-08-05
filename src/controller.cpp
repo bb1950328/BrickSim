@@ -246,7 +246,7 @@ namespace bricksim::controller {
 
         bool initialize() {
             plInitAndStart("BrickSim");
-            plDeclareThread("Main Thread");
+            util::setThreadName("Main Thread");
             plFunction();
             logging::initialize();
 

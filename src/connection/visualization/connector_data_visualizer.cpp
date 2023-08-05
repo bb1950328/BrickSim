@@ -66,15 +66,13 @@ namespace bricksim::connection::visualization {
 
     void VisualizationGenerator::generateCylindrical(std::shared_ptr<CylindricalConnector> connector) {
         const auto directionAsQuat = geometry::quaternionRotationFromOneVectorToAnother({0.f, 0.f, 1.f}, connector->direction);
-        const glm::vec3 start = connector->start;
-        const float totalLength = connector->getTotalLength();
-        const glm::vec3 end = start + connector->direction * totalLength;
+        const glm::vec3 end = connector->start + connector->direction * connector->totalLength;
         {
-            const glm::vec3 center = (start + end) / 2.f;
+            const glm::vec3 center = (connector->start + end) / 2.f;
             glm::mat4 transf(1.f);
             transf = glm::toMat4(directionAsQuat) * transf;
             transf = glm::translate(transf, center * directionAsQuat);
-            transf = glm::scale(transf, {1.f, 1.f, totalLength});
+            transf = glm::scale(transf, {1.f, 1.f, connector->totalLength});
             const auto centerCylinder = std::make_shared<mesh::generated::CylinderNode>(4, root);
             centerCylinder->setRelativeTransformation(glm::transpose(transf));
             root->addChild(centerCylinder);
@@ -116,15 +114,13 @@ namespace bricksim::connection::visualization {
     }
     void VisualizationGenerator::generateFinger(std::shared_ptr<FingerConnector> connector) {
         const auto directionAsQuat = geometry::quaternionRotationFromOneVectorToAnother({0.f, 0.f, 1.f}, connector->direction);
-        const glm::vec3 start = connector->start;
-        const float totalLength = connector->getTotalLength();
-        const glm::vec3 end = start + connector->direction * totalLength;
+        const glm::vec3 end = connector->start + connector->direction * connector->totalWidth;
         {
-            const glm::vec3 center = (start + end) / 2.f;
+            const glm::vec3 center = (connector->start + end) / 2.f;
             glm::mat4 transf(1.f);
             transf = glm::toMat4(directionAsQuat) * transf;
             transf = glm::translate(transf, center * directionAsQuat);
-            transf = glm::scale(transf, {1.f, 1.f, totalLength});
+            transf = glm::scale(transf, {1.f, 1.f, connector->totalWidth});
             const auto centerCylinder = std::make_shared<mesh::generated::CylinderNode>(4, root);
             centerCylinder->setRelativeTransformation(glm::transpose(transf));
             root->addChild(centerCylinder);

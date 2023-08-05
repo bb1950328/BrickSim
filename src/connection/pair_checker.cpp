@@ -45,7 +45,7 @@ namespace bricksim::connection {
             || a.cyl->gender == b.cyl->gender) {
             return false;
         }
-        const auto startOffset = projectConnectorsWithLength();
+        const auto startOffset = projectConnectorsWithLength(a.cyl->totalLength, b.cyl->totalLength);
         if (!startOffset.has_value()) {
             return false;
         }
@@ -75,7 +75,7 @@ namespace bricksim::connection {
                 bParts.push_back(item);
             }
         } else {
-            offset = startOffset.value() - b.cyl->getTotalLength();
+            offset = startOffset.value() - b.cyl->totalLength;
             bBoundaries.push_back(offset);
             for (auto it = b.cyl->parts.rbegin(); it < b.cyl->parts.rend(); ++it) {
                 offset += it->length;
@@ -139,20 +139,33 @@ namespace bricksim::connection {
         addConnection(a.connector, b.connector, dof);
         return true;
     }
+    std::optional<float> PairChecker::projectConnectorsWithLength(float aLength, float bLength) {
+        const auto projOnA = geometry::normalProjectionOnLine<3>(a.absStart, a.absEnd, b.absStart, false);
+
+        if ((sameDir && projOnA.projectionLength > aLength)                 // Aaaaaaa   Bbbbbbbbb
+            || (sameDir && projOnA.projectionLength < -bLength)             // Bbbbbb  Aaaaaa
+            || (oppositeDir && projOnA.projectionLength > aLength + bLength)// Aaaaaaa  bbbbbbbbB
+            || (oppositeDir && projOnA.projectionLength < 0)                // bbbbbbB   Aaaaaaaa
+            || projOnA.distancePointToLine >= COLINEARITY_TOLERANCE_LDU) {  //a and b aren't colinear
+            return std::nullopt;
+        } else {
+            return {projOnA.projectionLength};
+        }
+    }
     bool PairChecker::findFingerFinger() {
         if ((!sameDir && !oppositeDir)
             || a.finger->group != b.finger->group
             || std::abs(a.finger->radius - b.finger->radius) > CONNECTION_RADIUS_TOLERANCE) {
             return false;
         }
-        const auto startOffsetOpt = projectConnectorsWithLength();
+        const auto startOffsetOpt = projectConnectorsWithLength(a.finger->totalWidth, b.finger->totalWidth);
         if (!startOffsetOpt.has_value()) {
             return false;
         }
         int aCursorIdx = 0;
         int bCursorIdx = sameDir ? 0 : static_cast<int>(b.finger->fingerWidths.size()) - 1;
         const int bCursorStep = sameDir ? 1 : -1;
-        const float aOffset = sameDir ? startOffsetOpt.value() : startOffsetOpt.value() - b.finger->getTotalLength();
+        const float aOffset = sameDir ? startOffsetOpt.value() : startOffsetOpt.value() - b.finger->totalWidth;
 
         if (aOffset < -POSITION_TOLERANCE_LDU) {
             float offset = -aOffset;
@@ -191,21 +204,6 @@ namespace bricksim::connection {
         dof.rotationPossibilities.emplace_back(a.absStart, a.absDirection);
         addConnection(a.connector, b.connector, dof);
         return true;
-    }
-    std::optional<float> PairChecker::projectConnectorsWithLength() {
-        const auto projOnA = geometry::normalProjectionOnLine<3>(a.absStart, a.absEnd, b.absStart, false);
-        const float aLength = a.connectorWithLength->getTotalLength();
-        const float bLength = b.connectorWithLength->getTotalLength();
-
-        if ((sameDir && projOnA.projectionLength > aLength)                 // Aaaaaaa   Bbbbbbbbb
-            || (sameDir && projOnA.projectionLength < -bLength)             // Bbbbbb  Aaaaaa
-            || (oppositeDir && projOnA.projectionLength > aLength + bLength)// Aaaaaaa  bbbbbbbbB
-            || (oppositeDir && projOnA.projectionLength < 0)                // bbbbbbB   Aaaaaaaa
-            || projOnA.distancePointToLine >= COLINEARITY_TOLERANCE_LDU) {  //a and b aren't colinear
-            return std::nullopt;
-        } else {
-            return {projOnA.projectionLength};
-        }
     }
     bool PairChecker::findClipCyl(const PairCheckData& clipData, const PairCheckData& cylData) {
         const auto clip = clipData.clip;
@@ -260,20 +258,19 @@ namespace bricksim::connection {
         switch (connector->type) {
             case Connector::Type::CYLINDRICAL:
                 cyl = std::dynamic_pointer_cast<CylindricalConnector>(connector);
+                absEnd = absStart + absDirection * cyl->totalLength;
                 break;
             case Connector::Type::CLIP:
                 clip = std::dynamic_pointer_cast<ClipConnector>(connector);
+                absEnd = absStart + absDirection * clip->width;
                 break;
             case Connector::Type::FINGER:
                 finger = std::dynamic_pointer_cast<FingerConnector>(connector);
+                absEnd = absStart + absDirection * finger->totalWidth;
                 break;
             case Connector::Type::GENERIC:
                 generic = std::dynamic_pointer_cast<GenericConnector>(connector);
                 break;
-        }
-        if (generic == nullptr) {
-            connectorWithLength = std::dynamic_pointer_cast<ConnectorWithLength>(connector);
-            absEnd = absTransformation * glm::vec4(connectorWithLength->getEnd(), 1.f);
         }
     }
 
@@ -286,7 +283,6 @@ namespace bricksim::connection {
         absEnd(absStart),
         absDirection(absTransformation * glm::vec4(connector->direction, 0.f)),
         connector(connector),
-        connectorWithLength(connector),
         clip(connector),
         cyl(nullptr),
         finger(nullptr),
@@ -301,7 +297,6 @@ namespace bricksim::connection {
         absEnd(absStart),
         absDirection(absTransformation * glm::vec4(connector->direction, 0.f)),
         connector(connector),
-        connectorWithLength(connector),
         clip(nullptr),
         cyl(connector),
         finger(nullptr),
@@ -316,7 +311,6 @@ namespace bricksim::connection {
         absEnd(absStart),
         absDirection(absTransformation * glm::vec4(connector->direction, 0.f)),
         connector(connector),
-        connectorWithLength(connector),
         clip(nullptr),
         cyl(nullptr),
         finger(connector),
@@ -331,7 +325,6 @@ namespace bricksim::connection {
         absEnd(absStart),
         absDirection(absTransformation * glm::vec4(connector->direction, 0.f)),
         connector(connector),
-        connectorWithLength(nullptr),
         clip(nullptr),
         cyl(nullptr),
         finger(nullptr),

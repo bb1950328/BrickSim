@@ -138,12 +138,6 @@ namespace bricksim::connection {
             const auto& data = nodeData.find(item)->second;
             manager.collide(data.collisionObj.get(), static_cast<void*>(&intersections), updateCallback);
         }
-        std::vector<broadphase_collision_pair_t> i2;
-        i2.reserve(intersections.size());
-        i2.insert(i2.end(), intersections.begin(), intersections.end());
-        std::sort(i2.begin(), i2.end(), [](const auto& a, const auto& b) {
-            return a[0] < b[0];
-        });
 
         *progress = progressStart;
         const auto threadCount = std::thread::hardware_concurrency();
@@ -165,22 +159,18 @@ namespace bricksim::connection {
             std::vector<std::thread> threads;
             for (std::size_t i = 0; i < threadCount; ++i) {
                 threads.emplace_back([this,
-#ifdef USE_PL
-                                      &threadNum,
-#endif
+                                      &i,
                                       &getNewWorkUnit,
-                                      &i2]() {
-#ifdef USE_PL
-                    std::string threadName = fmt::format("Narrowphase collision checker #{}", threadNum);
-                    plDeclareThreadDyn(threadName.c_str());
-#endif
+                                      &intersections]() {
+                    std::string threadName = fmt::format("Narrowphase collision checker #{}", i);
+                    util::setThreadName(threadName.c_str());
                     while (true) {
                         const auto [iStart, iEnd] = getNewWorkUnit();
                         if (iStart == iEnd) {
                             break;
                         }
-                        auto it = i2.begin() + iStart;
-                        const auto end = i2.begin() + iEnd;
+                        auto it = intersections.begin() + iStart;
+                        const auto end = intersections.begin() + iEnd;
                         while (it < end) {
                             handleBroadphaseCollision(*it);
                             ++it;

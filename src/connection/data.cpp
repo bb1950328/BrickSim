@@ -154,20 +154,18 @@ namespace bricksim::connection {
                                                bool openStart,
                                                bool openEnd,
                                                bool slide) :
-        ConnectorWithLength(Type::CYLINDRICAL, group, start, direction, sourceTrace),
+        Connector(Type::CYLINDRICAL, group, start, direction, sourceTrace),
         gender(gender),
         parts(std::move(parts)),
         openStart(openStart),
         openEnd(openEnd),
-        slide(slide) {}
-
-    float CylindricalConnector::getTotalLength() const {
-        float result = 0;
-        for (const auto& item: parts) {
-            result += item.length;
-        }
-        return result;
+        slide(slide),
+        totalLength(std::accumulate(this->parts.cbegin(), this->parts.cend(), 0.f,
+                                    [](float x, const CylindricalShapePart& p) {
+                                        return x + p.length;
+                                    })) {
     }
+
     std::shared_ptr<Connector> CylindricalConnector::clone() {
         return std::make_shared<CylindricalConnector>(*this);
     }
@@ -200,7 +198,7 @@ namespace bricksim::connection {
         return fmt::format("cylindrical[parts=[{}], group={}, openStart={}, openEnd={}, slide={}, start={}, direction={}]", pstr, group, openStart, openEnd, slide, stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
     bool CylindricalConnector::operator==(const CylindricalConnector& rhs) const {
-        return static_cast<const bricksim::connection::ConnectorWithLength&>(*this) == static_cast<const bricksim::connection::ConnectorWithLength&>(rhs)
+        return static_cast<const bricksim::connection::Connector&>(*this) == static_cast<const bricksim::connection::Connector&>(rhs)
                && gender == rhs.gender
                && parts == rhs.parts
                && openStart == rhs.openStart
@@ -278,7 +276,7 @@ namespace bricksim::connection {
                                  float width,
                                  bool slide,
                                  const glm::vec3& openingDirection) :
-        ConnectorWithLength(Type::CLIP, group, start, direction, sourceTrace),
+        Connector(Type::CLIP, group, start, direction, sourceTrace),
         radius(radius),
         width(width),
         slide(slide),
@@ -290,11 +288,8 @@ namespace bricksim::connection {
     std::string ClipConnector::infoStr() const {
         return fmt::format("clip[group={}, radius={}, width={}, slide={}, start={}, direction={}]", group, radius, width, slide, stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
-    float ClipConnector::getTotalLength() const {
-        return width;
-    }
     bool ClipConnector::operator==(const ClipConnector& rhs) const {
-        return static_cast<const bricksim::connection::ConnectorWithLength&>(*this) == static_cast<const bricksim::connection::ConnectorWithLength&>(rhs)
+        return static_cast<const bricksim::connection::Connector&>(*this) == static_cast<const bricksim::connection::Connector&>(rhs)
                && std::fabs(radius - rhs.radius) < .1f
                && std::fabs(width - rhs.width) < .1f
                && slide == rhs.slide;
@@ -323,19 +318,17 @@ namespace bricksim::connection {
                                      Gender firstFingerGender,
                                      float radius,
                                      const std::vector<float>& fingerWidths) :
-        ConnectorWithLength(Type::FINGER, group, start, direction, sourceTrace),
+        Connector(Type::FINGER, group, start, direction, sourceTrace),
         firstFingerGender(firstFingerGender),
         radius(radius),
-        fingerWidths(fingerWidths) {
+        fingerWidths(fingerWidths),
+        totalWidth(std::reduce(fingerWidths.begin(), fingerWidths.end())) {
     }
     std::string FingerConnector::infoStr() const {
         return fmt::format("finger[group={}, firstFingerGender={}, radius={}, fingerWidths={}, start={}, direction={}]", group, magic_enum::enum_name(firstFingerGender), radius, fingerWidths, stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
-    float FingerConnector::getTotalLength() const {
-        return std::reduce(fingerWidths.begin(), fingerWidths.end());
-    }
     bool FingerConnector::operator==(const FingerConnector& rhs) const {
-        return static_cast<const bricksim::connection::ConnectorWithLength&>(*this) == static_cast<const bricksim::connection::ConnectorWithLength&>(rhs)
+        return static_cast<const Connector&>(*this) == static_cast<const Connector&>(rhs)
                && firstFingerGender == rhs.firstFingerGender
                && std::fabs(radius - rhs.radius) < .1f
                && util::floatRangeEpsilonEqual(fingerWidths.cbegin(), fingerWidths.cend(), rhs.fingerWidths.cbegin(), rhs.fingerWidths.cend(), .1f);
@@ -424,15 +417,6 @@ namespace bricksim::connection {
     bool Connection::operator!=(const Connection& rhs) const {
         return !(rhs == *this);
     }
-    glm::vec3 ConnectorWithLength::getEnd() const {
-        return start + glm::normalize(direction) * getTotalLength();
-    }
-    ConnectorWithLength::ConnectorWithLength(Connector::Type type,
-                                             const std::string& group,
-                                             const glm::vec3& start,
-                                             const glm::vec3& direction,
-                                             std::string sourceTrace) :
-        Connector(type, group, start, direction, sourceTrace) {}
     RotationPossibility::RotationPossibility(const glm::vec3& origin, const glm::vec3& axis) :
         origin(origin), axis(axis) {}
     bool RotationPossibility::operator==(const RotationPossibility& rhs) const {

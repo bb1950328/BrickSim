@@ -326,6 +326,7 @@ namespace bricksim::gui::windows::debug {
                     } else {
                         if (ImGui::Button(ICON_FA_ROTATE " Update Connection Engine")) {
                             updateThread = std::async(std::launch::async, [&engine] {
+                                util::setThreadName("Debug Window / Connection Engine Update");
                                 engine.update(&progress);
                                 return true;
                             });

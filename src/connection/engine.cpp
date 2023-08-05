@@ -16,16 +16,17 @@ namespace bricksim::connection {
     Engine::Engine(Editor& editor) :
         editor(editor) {
     }
-    void Engine::updateCollisionData() {
-        //todo also include subfile instances
+    void Engine::updateCollisionData(float* progress, float progressMultiplicator) {
         const auto& rootNode = editor.getEditingModel();
         const auto it = nodeData.find(rootNode);
+        *progress = 0.f;
         if (it == nodeData.end()) {
             resetData();
             updateNodeData(rootNode);
         } else {
             updateNodeData(rootNode, it);
         }
+        *progress = progressMultiplicator;
     }
 
     void Engine::updateNodeData(const std::shared_ptr<etree::Node>& node) {
@@ -130,43 +131,105 @@ namespace bricksim::connection {
         return false;
     }
 
-    void Engine::updateGraph() {
+    void Engine::updateGraph(float* progress, float progressStart) {
         graph.removeAllConnections(outdatedInGraph);
-        uoset_t<std::array<fcl::CollisionObjectf*, 2>> broadphaseCollisions;
+        uoset_t<broadphase_collision_pair_t> intersections;
         for (const auto& item: outdatedInGraph) {
             const auto& data = nodeData.find(item)->second;
-            manager.collide(data.collisionObj.get(), static_cast<void*>(&broadphaseCollisions), updateCallback);
+            manager.collide(data.collisionObj.get(), static_cast<void*>(&intersections), updateCallback);
         }
-        for (const auto& item: broadphaseCollisions) {
-            const auto ldrNode0 = std::dynamic_pointer_cast<etree::LdrNode>(convertRawNodePtr(item[0]->getUserData()));
-            const auto ldrNode1 = std::dynamic_pointer_cast<etree::LdrNode>(convertRawNodePtr(item[1]->getUserData()));
-            const auto& connectorsA = getConnectorsOfNode(ldrNode0);
-            const auto& connectorsB = getConnectorsOfNode(ldrNode1);
+        std::vector<broadphase_collision_pair_t> i2;
+        i2.reserve(intersections.size());
+        i2.insert(i2.end(), intersections.begin(), intersections.end());
+        std::sort(i2.begin(), i2.end(), [](const auto& a, const auto& b) {
+            return a[0] < b[0];
+        });
 
-            //spdlog::debug("broadphase collision {} <--> {}", ldrNode0->ldrFile->metaInfo.title, ldrNode1->ldrFile->metaInfo.title);
+        *progress = progressStart;
+        const auto threadCount = std::thread::hardware_concurrency();
+        if (intersections.size() > threadCount * 100) {
+            std::mutex lock;
+            std::size_t nextStart = 0;
+            std::size_t intersectionsCount = intersections.size();
 
-            for (const auto& ca: *connectorsA) {
-                const PairCheckData aData(ldrNode0, ca);
-                for (const auto& cb: *connectorsB) {
-                    const PairCheckData bData(ldrNode1, cb);
-                    ConnectionGraphPairChecker checker(aData, bData, graph);
-                    checker.findConnections();
-                }
+            spdlog::debug("Using {} threads to handle {} detected part intersections", threadCount, intersections.size());
+
+            const auto getNewWorkUnit = [&lock, &nextStart, &progress, progressStart, intersectionsCount]() -> std::pair<std::size_t, std::size_t> {
+                std::lock_guard<std::mutex> lg(lock);
+                *progress = progressStart + (1.f - progressStart) * nextStart / intersectionsCount;
+                const auto start = nextStart;
+                nextStart = std::min(intersectionsCount, start + 100);
+                return {start, nextStart};
+            };
+
+            std::vector<std::thread> threads;
+            for (std::size_t i = 0; i < threadCount; ++i) {
+                threads.emplace_back([this,
+#ifdef USE_PL
+                                      &threadNum,
+#endif
+                                      &getNewWorkUnit,
+                                      &i2]() {
+#ifdef USE_PL
+                    std::string threadName = fmt::format("Narrowphase collision checker #{}", threadNum);
+                    plDeclareThreadDyn(threadName.c_str());
+#endif
+                    while (true) {
+                        const auto [iStart, iEnd] = getNewWorkUnit();
+                        if (iStart == iEnd) {
+                            break;
+                        }
+                        auto it = i2.begin() + iStart;
+                        const auto end = i2.begin() + iEnd;
+                        while (it < end) {
+                            handleBroadphaseCollision(*it);
+                            ++it;
+                        }
+                    }
+                });
+            }
+
+            for (auto& t: threads) {
+                t.join();
+            }
+        } else {
+            std::size_t i = 0;
+            for (auto it = intersections.cbegin(); it != intersections.end(); ++i, ++it) {
+                handleBroadphaseCollision(*it);
+                *progress = progressStart + (1.f - progressStart) * i / intersections.size();
             }
         }
+        *progress = 1.f;
         outdatedInGraph.clear();
+    }
+    void Engine::handleBroadphaseCollision(const broadphase_collision_pair_t& item) {
+        const auto ldrNode0 = std::dynamic_pointer_cast<etree::LdrNode>(convertRawNodePtr(item[0]->getUserData()));
+        const auto ldrNode1 = std::dynamic_pointer_cast<etree::LdrNode>(convertRawNodePtr(item[1]->getUserData()));
+        const auto& connectorsA = getConnectorsOfNode(ldrNode0);
+        const auto& connectorsB = getConnectorsOfNode(ldrNode1);
+
+        //spdlog::debug("broadphase collision {} <--> {}", ldrNode0->ldrFile->metaInfo.title, ldrNode1->ldrFile->metaInfo.title);
+
+        for (const auto& ca: *connectorsA) {
+            const PairCheckData aData(ldrNode0, ca);
+            for (const auto& cb: *connectorsB) {
+                const PairCheckData bData(ldrNode1, cb);
+                ConnectionGraphPairChecker checker(aData, bData, graph);
+                checker.findConnections();
+            }
+        }
     }
     const ConnectionGraph& Engine::getGraph() const {
         return graph;
     }
-    void Engine::update() {
+    void Engine::update(float* progress) {
         spdlog::stopwatch sw;
 
-        updateCollisionData();
+        updateCollisionData(progress, .2f);
 
         const auto between = sw.elapsed();
 
-        updateGraph();
+        updateGraph(progress, .2f);
 
         const auto after = sw.elapsed();
         spdlog::info("Updated collision data in {}+{}={}ms",
@@ -177,5 +240,9 @@ namespace bricksim::connection {
     const std::shared_ptr<etree::Node>& Engine::convertRawNodePtr(void* rawPtr) const {
         std::shared_ptr<etree::Node> key0(static_cast<etree::Node*>(rawPtr), [](auto*) {});
         return nodeData.find(key0)->first;
+    }
+    void Engine::update() {
+        float ignoredProgress;
+        update(&ignoredProgress);
     }
 }

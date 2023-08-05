@@ -4,6 +4,7 @@
 
 namespace bricksim::connection::ldcad_meta {
     CylCommand::CylCommand(const parsed_param_container& parameters) :
+        MetaCommand(CommandType::SNAP_CYL),
         id(parse::optionalStringParameter(parameters, "id")),
         group(parse::optionalStringParameter(parameters, "group")),
         pos(parse::optionalVec3Parameter(parameters, "pos")),
@@ -47,8 +48,5 @@ namespace bricksim::connection::ldcad_meta {
         write::boolParameter(result, "center", center, false);
         write::boolParameter(result, "slide", slide, false);
         return result;
-    }
-    const char* CylCommand::getName() const {
-        return NAME;
     }
 }

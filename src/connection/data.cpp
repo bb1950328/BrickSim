@@ -37,21 +37,25 @@ namespace bricksim::connection {
     }
 
     void ConnectionGraph::addConnection(const ConnectionGraph::node_t& a, const ConnectionGraph::node_t& b, const ConnectionGraph::edge_t& edge) {
+        std::lock_guard<std::mutex> lg(lock);
         for (auto& vec: getBothVectors(a, b)) {
             vec.get().push_back(edge);
         }
     }
     void ConnectionGraph::removeAllConnections(const ConnectionGraph::node_t& a, const ConnectionGraph::node_t& b) {
+        std::lock_guard<std::mutex> lg(lock);
         adjacencyLists[a].erase(b);
         adjacencyLists[b].erase(a);
     }
     void ConnectionGraph::removeAllConnections(const ConnectionGraph::node_t& a) {
+        std::lock_guard<std::mutex> lg(lock);
         adjacencyLists.erase(a);
         for (auto& [x, adj]: adjacencyLists) {
             adj.erase(a);
         }
     }
     void ConnectionGraph::removeAllConnections(const uoset_t<ConnectionGraph::node_t>& toRemove) {
+        std::lock_guard<std::mutex> lg(lock);
         if (toRemove.empty()) {
             return;
         }
@@ -77,6 +81,7 @@ namespace bricksim::connection {
         return empty;
     }
     void ConnectionGraph::removeConnection(const ConnectionGraph::node_t& a, const ConnectionGraph::node_t& b, const ConnectionGraph::edge_t& edge) {
+        std::lock_guard<std::mutex> lg(lock);
         for (auto& vec_wrapper: getBothVectors(a, b)) {
             auto& vec = vec_wrapper.get();
             const auto it = std::find(vec.begin(), vec.end(), edge);
@@ -149,7 +154,7 @@ namespace bricksim::connection {
                                                bool openStart,
                                                bool openEnd,
                                                bool slide) :
-        ConnectorWithLength(group, start, direction, sourceTrace),
+        ConnectorWithLength(Type::CYLINDRICAL, group, start, direction, sourceTrace),
         gender(gender),
         parts(std::move(parts)),
         openStart(openStart),
@@ -229,8 +234,16 @@ namespace bricksim::connection {
                                                       slide);
     }
 
-    Connector::Connector(std::string group, const glm::vec3& start, const glm::vec3& direction, std::string sourceTrace) :
-        group(std::move(group)), start(start), direction(glm::normalize(direction)), sourceTrace(sourceTrace) {}
+    Connector::Connector(Type type,
+                         std::string group,
+                         const glm::vec3& start,
+                         const glm::vec3& direction,
+                         std::string sourceTrace) :
+        type(type),
+        group(std::move(group)),
+        start(start),
+        direction(glm::normalize(direction)),
+        sourceTrace(sourceTrace) {}
 
     std::shared_ptr<Connector> Connector::clone() {
         return std::make_shared<Connector>(*this);
@@ -250,7 +263,8 @@ namespace bricksim::connection {
         return !(rhs == *this);
     }
     std::shared_ptr<Connector> Connector::transform(const glm::mat4& transformation) {
-        return std::make_shared<Connector>(group,
+        return std::make_shared<Connector>(type,
+                                           group,
                                            glm::vec4(start, 1.f) * transformation,
                                            glm::vec4(direction, 0.f) * transformation,
                                            sourceTrace);
@@ -264,7 +278,7 @@ namespace bricksim::connection {
                                  float width,
                                  bool slide,
                                  const glm::vec3& openingDirection) :
-        ConnectorWithLength(group, start, direction, sourceTrace),
+        ConnectorWithLength(Type::CLIP, group, start, direction, sourceTrace),
         radius(radius),
         width(width),
         slide(slide),
@@ -309,7 +323,7 @@ namespace bricksim::connection {
                                      Gender firstFingerGender,
                                      float radius,
                                      const std::vector<float>& fingerWidths) :
-        ConnectorWithLength(group, start, direction, sourceTrace),
+        ConnectorWithLength(Type::FINGER, group, start, direction, sourceTrace),
         firstFingerGender(firstFingerGender),
         radius(radius),
         fingerWidths(fingerWidths) {
@@ -355,7 +369,7 @@ namespace bricksim::connection {
                                        std::string sourceTrace,
                                        Gender gender,
                                        const bounding_variant_t& bounding) :
-        Connector(group, start, direction, sourceTrace),
+        Connector(Connector::Type::GENERIC, group, start, direction, sourceTrace),
         gender(gender),
         bounding(bounding) {
     }
@@ -413,11 +427,12 @@ namespace bricksim::connection {
     glm::vec3 ConnectorWithLength::getEnd() const {
         return start + glm::normalize(direction) * getTotalLength();
     }
-    ConnectorWithLength::ConnectorWithLength(const std::string& group,
+    ConnectorWithLength::ConnectorWithLength(Connector::Type type,
+                                             const std::string& group,
                                              const glm::vec3& start,
                                              const glm::vec3& direction,
                                              std::string sourceTrace) :
-        Connector(group, start, direction, sourceTrace) {}
+        Connector(type, group, start, direction, sourceTrace) {}
     RotationPossibility::RotationPossibility(const glm::vec3& origin, const glm::vec3& axis) :
         origin(origin), axis(axis) {}
     bool RotationPossibility::operator==(const RotationPossibility& rhs) const {

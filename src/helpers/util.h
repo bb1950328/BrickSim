@@ -198,4 +198,6 @@ namespace bricksim::util {
 
         return newLast;
     }
+
+    std::string escapeFilename(const std::string& original);
 }

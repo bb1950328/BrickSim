@@ -4,7 +4,6 @@
 namespace bricksim::connection::ldcad_meta {
     class ClpCommand : public MetaCommand {
     public:
-        constexpr const static char* const NAME = "SNAP_CLP";
         explicit ClpCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
         std::optional<glm::vec3> pos;
@@ -20,6 +19,5 @@ namespace bricksim::connection::ldcad_meta {
 
     protected:
         [[nodiscard]] written_param_container getParameters() const override;
-        [[nodiscard]] const char* getName() const override;
     };
 }

@@ -4,6 +4,7 @@
 
 namespace bricksim::connection::ldcad_meta {
     GenCommand::GenCommand(const parsed_param_container& parameters) :
+        MetaCommand(CommandType::SNAP_GEN),
         id(parse::optionalStringParameter(parameters, "id")),
         group(parse::optionalStringParameter(parameters, "group")),
         pos(parse::optionalVec3Parameter(parameters, "pos")),
@@ -35,8 +36,5 @@ namespace bricksim::connection::ldcad_meta {
         write::enumParameter(result, "scale", scale, ScaleType::NONE);
         write::enumParameter(result, "mirror", mirror, MirrorType::NONE);
         return result;
-    }
-    const char* GenCommand::getName() const {
-        return NAME;
     }
 }

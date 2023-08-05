@@ -46,17 +46,17 @@ namespace bricksim::connection {
         bool findGenericGeneric();
         bool findCylCyl();
         bool findFingerFinger();
-        bool findClipCyl();
+        bool findClipCyl(const PairCheckData& clipData, const PairCheckData& cylData);
 
         std::optional<float> projectConnectorsWithLength();
 
     protected:
-        const PairCheckData a;
-        const PairCheckData b;
+        const PairCheckData& a;
+        const PairCheckData& b;
         virtual void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) = 0;
 
     public:
-        PairChecker(PairCheckData a, PairCheckData b);
+        PairChecker(const PairCheckData& a, const PairCheckData& b);
         void findConnections();
     };
 
@@ -67,7 +67,7 @@ namespace bricksim::connection {
         void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) override;
 
     public:
-        ConnectionGraphPairChecker(PairCheckData a, PairCheckData b, ConnectionGraph& result);
+        ConnectionGraphPairChecker(const PairCheckData& a, const PairCheckData& b, ConnectionGraph& result);
     };
 
     class VectorPairChecker : public PairChecker {

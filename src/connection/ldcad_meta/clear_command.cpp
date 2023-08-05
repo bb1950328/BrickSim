@@ -4,6 +4,7 @@
 
 namespace bricksim::connection::ldcad_meta {
     ClearCommand::ClearCommand(const parsed_param_container& parameters) :
+        MetaCommand(CommandType::SNAP_CLEAR),
         id(parse::optionalStringParameter(parameters, "id")) {
     }
     bool ClearCommand::operator==(const ClearCommand& rhs) const {
@@ -13,8 +14,5 @@ namespace bricksim::connection::ldcad_meta {
         written_param_container result;
         write::optionalStringParameter(result, "id", id);
         return result;
-    }
-    const char* ClearCommand::getName() const {
-        return NAME;
     }
 }

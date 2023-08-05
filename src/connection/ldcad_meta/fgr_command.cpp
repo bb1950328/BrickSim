@@ -4,6 +4,7 @@
 
 namespace bricksim::connection::ldcad_meta {
     FgrCommand::FgrCommand(const parsed_param_container& parameters) :
+        MetaCommand(CommandType::SNAP_FGR),
         id(parse::optionalStringParameter(parameters, "id")),
         group(parse::optionalStringParameter(parameters, "group")),
         pos(parse::optionalVec3Parameter(parameters, "pos")),
@@ -41,8 +42,5 @@ namespace bricksim::connection::ldcad_meta {
         write::enumParameter(result, "scale", scale, ScaleType::NONE);
         write::enumParameter(result, "mirror", mirror, MirrorType::NONE);
         return result;
-    }
-    const char* FgrCommand::getName() const {
-        return NAME;
     }
 }

@@ -4,7 +4,6 @@
 namespace bricksim::connection::ldcad_meta {
     class FgrCommand : public MetaCommand {
     public:
-        constexpr const static char* const NAME = "SNAP_FGR";
         explicit FgrCommand(const parsed_param_container& parameters);
         std::optional<std::string> id;
         std::optional<std::string> group;
@@ -21,6 +20,5 @@ namespace bricksim::connection::ldcad_meta {
 
     protected:
         [[nodiscard]] written_param_container getParameters() const override;
-        [[nodiscard]] const char* getName() const override;
     };
 }

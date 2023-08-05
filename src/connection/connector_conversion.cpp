@@ -51,28 +51,42 @@ namespace bricksim::connection {
                                          ? file->metaInfo.name
                                          : parentSourceTrace + "->" + file->metaInfo.name;
         for (const auto& command: file->ldcadMetas) {
-            if (const auto clearCommand = std::dynamic_pointer_cast<ldcad_meta::ClearCommand>(command);
-                clearCommand != nullptr) {
-                handleClearCommand(clearCommand);
-            } else if (const auto inclCommand = std::dynamic_pointer_cast<ldcad_meta::InclCommand>(command);
-                       inclCommand != nullptr) {
-                convertInclCommand(transformation, sourceTrace, inclCommand);
-            } else if (const auto cylCommand = std::dynamic_pointer_cast<ldcad_meta::CylCommand>(command);
-                       cylCommand != nullptr
-                       && idNotCleared(cylCommand->id)) {
-                convertCylCommand(transformation, sourceTrace, cylCommand);
-            } else if (const auto clpCommand = std::dynamic_pointer_cast<ldcad_meta::ClpCommand>(command);
-                       clpCommand != nullptr
-                       && idNotCleared(clpCommand->id)) {
-                convertClpCommand(transformation, sourceTrace, clpCommand);
-            } else if (const auto fgrCommand = std::dynamic_pointer_cast<ldcad_meta::FgrCommand>(command);
-                       fgrCommand != nullptr
-                       && idNotCleared(fgrCommand->id)) {
-                convertFgrCommand(transformation, sourceTrace, fgrCommand);
-            } else if (const auto genCommand = std::dynamic_pointer_cast<ldcad_meta::GenCommand>(command);
-                       genCommand != nullptr
-                       && idNotCleared(genCommand->id)) {
-                convertGenCommand(transformation, sourceTrace, genCommand);
+            switch (command->type) {
+                case ldcad_meta::CommandType::SNAP_CLEAR:
+                    handleClearCommand(std::dynamic_pointer_cast<ldcad_meta::ClearCommand>(command));
+                    break;
+                case ldcad_meta::CommandType::SNAP_INCL:
+                    convertInclCommand(transformation, sourceTrace, std::dynamic_pointer_cast<ldcad_meta::InclCommand>(command));
+                    break;
+                case ldcad_meta::CommandType::SNAP_CYL: {
+                    const auto cylCommand = std::dynamic_pointer_cast<ldcad_meta::CylCommand>(command);
+                    if (idNotCleared(cylCommand->id)) {
+                        convertCylCommand(transformation, sourceTrace, cylCommand);
+                    }
+                    break;
+                }
+                case ldcad_meta::CommandType::SNAP_CLP: {
+                    const auto clpCommand = std::dynamic_pointer_cast<ldcad_meta::ClpCommand>(command);
+                    if (idNotCleared(clpCommand->id)) {
+                        convertClpCommand(transformation, sourceTrace, clpCommand);
+                    }
+                    break;
+                }
+                case ldcad_meta::CommandType::SNAP_FGR: {
+                    const auto fgrCommand = std::dynamic_pointer_cast<ldcad_meta::FgrCommand>(command);
+                    if (idNotCleared(fgrCommand->id)) {
+                        convertFgrCommand(transformation, sourceTrace, fgrCommand);
+                    }
+                    break;
+                }
+                case ldcad_meta::CommandType::SNAP_GEN: {
+                    const auto genCommand = std::dynamic_pointer_cast<ldcad_meta::GenCommand>(command);
+                    if (idNotCleared(genCommand->id)) {
+                        convertGenCommand(transformation, sourceTrace, genCommand);
+                    }
+                    break;
+                }
+                default: break;
             }
         }
 

@@ -4,6 +4,7 @@
 
 namespace bricksim::connection::ldcad_meta {
     ClpCommand::ClpCommand(const parsed_param_container& parameters) :
+        MetaCommand(CommandType::SNAP_CLP),
         id(parse::optionalStringParameter(parameters, "id")),
         pos(parse::optionalVec3Parameter(parameters, "pos")),
         ori(parse::optionalMat3Parameter(parameters, "ori")),
@@ -37,8 +38,5 @@ namespace bricksim::connection::ldcad_meta {
         write::enumParameter(result, "scale", scale, ScaleType::NONE);
         write::enumParameter(result, "mirror", mirror, MirrorType::NONE);
         return result;
-    }
-    const char* ClpCommand::getName() const {
-        return NAME;
     }
 }

@@ -15,6 +15,7 @@
 #include "spdlog/spdlog.h"
 #include "window_debug.h"
 #include "window_mesh_inspector.h"
+#include <future>
 #include <sstream>
 #include <tinyfiledialogs.h>
 
@@ -310,8 +311,25 @@ namespace bricksim::gui::windows::debug {
                 } else {
                     auto& engine = activeEditor->getConnectionEngine();
 
-                    if (ImGui::Button(ICON_FA_ROTATE " Update Connection Engine")) {
-                        engine.update();
+                    static std::optional<std::future<bool>> updateThread;
+                    static float progress;
+                    if (updateThread.has_value()) {
+                        ImGui::BeginDisabled();
+                        ImGui::Button(ICON_FA_ROTATE " Update Connection Engine");
+                        ImGui::EndDisabled();
+                        ImGui::SameLine();
+                        ImGui::ProgressBar(progress);
+                        const auto status = updateThread->wait_for(std::chrono::milliseconds(0));
+                        if (status == std::future_status::ready) {
+                            updateThread = std::nullopt;
+                        }
+                    } else {
+                        if (ImGui::Button(ICON_FA_ROTATE " Update Connection Engine")) {
+                            updateThread = std::async(std::launch::async, [&engine] {
+                                engine.update(&progress);
+                                return true;
+                            });
+                        }
                     }
 
                     const auto selectedNodes = activeEditor->getSelectedNodes();

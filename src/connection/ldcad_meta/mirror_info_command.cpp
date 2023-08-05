@@ -4,6 +4,7 @@
 namespace bricksim::connection::ldcad_meta {
 
     MirrorInfoCommand::MirrorInfoCommand(const parsed_param_container& parameters) :
+        MetaCommand(CommandType::MIRROR_INFO),
         baseFlip(parse::optionalEnumParameter<Axis>(parameters, "baseflip")),
         corOri(parse::optionalMat3Parameter(parameters, "corori")),
         counterPart(parse::optionalStringParameter(parameters, "counterpart")),
@@ -25,8 +26,5 @@ namespace bricksim::connection::ldcad_meta {
         write::optionalVec3Parameter(result, "posCor", posCor);
         write::optionalBoolParameter(result, "inheritable", inheritable);
         return result;
-    }
-    const char* MirrorInfoCommand::getName() const {
-        return NAME;
     }
 }

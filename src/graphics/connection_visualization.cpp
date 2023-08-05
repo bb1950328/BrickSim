@@ -27,8 +27,11 @@ namespace bricksim::graphics::connection_visualization {
     void setVisualizedPart(const std::shared_ptr<ldr::FileNamespace>& nameSpace, const std::string& partName) {
         if (visualizedPart != partName) {
             visualizedPart = partName;
-            const auto rootNode = connection::visualization::generateVisualization(nameSpace, partName);
-            scene->setRootNode(rootNode);
+            connection::visualization::VisualizationGenerator generator(std::make_shared<etree::RootNode>(), nameSpace, partName);
+            generator.addFileNode();
+            generator.addXYZLineNode();
+            generator.addConnectorNodes();
+            scene->setRootNode(generator.getContainer());
         }
     }
 

@@ -361,11 +361,11 @@ namespace bricksim::ldr {
         if (firstLine) {
             title = stringutil::trim(line);
             firstLine = false;
-        } else if (line.starts_with("Name:")) {
+        } else if (name.empty() && line.starts_with("Name:")) {
             name = stringutil::trim(line.substr(5));
-        } else if (line.starts_with("Author:")) {
+        } else if (author.empty() && line.starts_with("Author:")) {
             author = stringutil::trim(line.substr(7));
-        } else if (line.starts_with("!CATEGORY")) {
+        } else if (headerCategory->empty() && line.starts_with("!CATEGORY")) {
             headerCategory = stringutil::trim(line.substr(9));
         } else if (line.starts_with("!KEYWORDS")) {
             size_t i = 9;
@@ -380,11 +380,11 @@ namespace bricksim::ldr {
             }
         } else if (line.starts_with("!HISTORY")) {
             history.push_back(line.substr(line.find_first_not_of(LDR_WHITESPACE, 8)));
-        } else if (line.starts_with("!LICENSE")) {
+        } else if (license.empty() && line.starts_with("!LICENSE")) {
             license = line.substr(line.find_first_not_of(LDR_WHITESPACE, 8));
-        } else if (line.starts_with("!THEME")) {
+        } else if (theme.empty() && line.starts_with("!THEME")) {
             theme = line.substr(line.find_first_not_of(LDR_WHITESPACE, 6));
-        } else if (line.starts_with("!LDRAW_ORG")) {
+        } else if (fileTypeLine.empty() && line.starts_with("!LDRAW_ORG")) {
             fileTypeLine = line.substr(line.find_first_not_of(LDR_WHITESPACE, 10));//standard says "In general, parsers should consider this line to be case-insensitive and free-format."
         } else {
             return false;

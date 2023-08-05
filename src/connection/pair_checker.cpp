@@ -2,31 +2,29 @@
 #include "../helpers/geometry.h"
 
 namespace bricksim::connection {
-    PairChecker::PairChecker(PairCheckData a, PairCheckData b) :
-        a(std::move(a)),
-        b(std::move(b)),
+    PairChecker::PairChecker(const PairCheckData& a, const PairCheckData& b) :
+        a(a),
+        b(b),
         absoluteDirectionAngleDifference(geometry::getAngleBetweenTwoVectors(a.absDirection, b.absDirection)),
         sameDir(absoluteDirectionAngleDifference < PARALLELITY_ANGLE_TOLERANCE),
         oppositeDir(absoluteDirectionAngleDifference > M_PI - PARALLELITY_ANGLE_TOLERANCE) {
     }
     void PairChecker::findConnections() {
-        if (a.cyl != nullptr && b.cyl != nullptr) {
-            findCylCyl();
-            return;
-        }
-        if ((a.cyl != nullptr && b.clip != nullptr)
-            || (a.clip != nullptr && b.cyl != nullptr)) {
-            findClipCyl();
-        }
-        if (a.finger != nullptr && b.finger != nullptr) {
-            findFingerFinger();
-            return;
-        }
-        if (a.generic != nullptr || b.generic != nullptr) {
-            if (a.generic != nullptr && b.generic != nullptr) {
-                findGenericGeneric();
+        using Type = Connector::Type;
+        const auto bType = b.connector->type;
+        const auto aType = a.connector->type;
+        if (aType == Type::CYLINDRICAL) {
+            if (bType == Type::CYLINDRICAL) {
+                findCylCyl();
+            } else if (bType == Type::CLIP) {
+                findClipCyl(b, a);
             }
-            return;
+        } else if (aType == Type::CLIP && bType == Type::CYLINDRICAL) {
+            findClipCyl(a, b);
+        } else if (aType == Type::FINGER && bType == Type::FINGER) {
+            findFingerFinger();
+        } else if (aType == Type::GENERIC && bType == Type::GENERIC) {
+            findGenericGeneric();
         }
     }
     bool PairChecker::findGenericGeneric() {
@@ -209,9 +207,7 @@ namespace bricksim::connection {
             return {projOnA.projectionLength};
         }
     }
-    bool PairChecker::findClipCyl() {
-        const auto clipData = a.clip != nullptr ? a : b;
-        const auto cylData = a.cyl != nullptr ? a : b;
+    bool PairChecker::findClipCyl(const PairCheckData& clipData, const PairCheckData& cylData) {
         const auto clip = clipData.clip;
         const auto cyl = cylData.cyl;
         if ((!sameDir && !oppositeDir)
@@ -261,15 +257,19 @@ namespace bricksim::connection {
         absEnd(absStart),
         absDirection(absTransformation * glm::vec4(connector->direction, 0.f)),
         connector(connector) {
-        clip = std::dynamic_pointer_cast<ClipConnector>(connector);
-        if (clip == nullptr) {
-            cyl = std::dynamic_pointer_cast<CylindricalConnector>(connector);
-            if (cyl == nullptr) {
+        switch (connector->type) {
+            case Connector::Type::CYLINDRICAL:
+                cyl = std::dynamic_pointer_cast<CylindricalConnector>(connector);
+                break;
+            case Connector::Type::CLIP:
+                clip = std::dynamic_pointer_cast<ClipConnector>(connector);
+                break;
+            case Connector::Type::FINGER:
                 finger = std::dynamic_pointer_cast<FingerConnector>(connector);
-                if (finger == nullptr) {
-                    generic = std::dynamic_pointer_cast<GenericConnector>(connector);
-                }
-            }
+                break;
+            case Connector::Type::GENERIC:
+                generic = std::dynamic_pointer_cast<GenericConnector>(connector);
+                break;
         }
         if (generic == nullptr) {
             connectorWithLength = std::dynamic_pointer_cast<ConnectorWithLength>(connector);
@@ -377,7 +377,7 @@ namespace bricksim::connection {
                                  const std::shared_ptr<GenericConnector>& connector) :
         PairCheckData(nullptr, absTransformation, connector) {
     }
-    ConnectionGraphPairChecker::ConnectionGraphPairChecker(PairCheckData a, PairCheckData b, ConnectionGraph& result) :
+    ConnectionGraphPairChecker::ConnectionGraphPairChecker(const PairCheckData& a, const PairCheckData& b, ConnectionGraph& result) :
         PairChecker(a, b), result(result) {
     }
     void ConnectionGraphPairChecker::addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) {

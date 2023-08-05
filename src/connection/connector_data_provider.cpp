@@ -8,6 +8,7 @@
 namespace bricksim::connection {
     namespace {
         uomap_t<std::shared_ptr<ldr::FileNamespace>, uomap_t<std::string, std::shared_ptr<connector_container_t>>> cache;
+        std::mutex cacheLock;
 
         void removeConnected(connector_container_t& connectors) {
             const auto connected = getConnectedConnectors(connectors);
@@ -49,9 +50,12 @@ namespace bricksim::connection {
     }
 
     std::shared_ptr<connector_container_t> getConnectorsOfLdrFile(const std::shared_ptr<ldr::FileNamespace>& fileNamespace, const std::string& name) {
-        if (const auto nsCacheIt = cache.find(fileNamespace); nsCacheIt != cache.end()) {
-            if (const auto it = nsCacheIt->second.find(name); it != nsCacheIt->second.end()) {
-                return it->second;
+        {
+            std::lock_guard<std::mutex> lg(cacheLock);
+            if (const auto nsCacheIt = cache.find(fileNamespace); nsCacheIt != cache.end()) {
+                if (const auto it = nsCacheIt->second.find(name); it != nsCacheIt->second.end()) {
+                    return it->second;
+                }
             }
         }
 
@@ -86,7 +90,10 @@ namespace bricksim::connection {
             }
             result = conversion.getResult();
         }
-        cache[fileNamespace].insert({name, result});
+        {
+            std::lock_guard<std::mutex> lg(cacheLock);
+            cache[fileNamespace].insert({name, result});
+        }
         return result;
     }
 

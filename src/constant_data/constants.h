@@ -44,4 +44,6 @@ namespace bricksim::constants {
     constexpr float nInf = -pInf;
 
     constexpr auto AXIS_COLORS = std::to_array({color::RED, color::GREEN, color::BLUE});
+
+    static constexpr const auto DISALLOWED_FILENAME_CHARS = "/\\<>:\"|?*";
 }

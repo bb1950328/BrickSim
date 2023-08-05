@@ -1,5 +1,6 @@
 #include "util.h"
 #include "../config.h"
+#include "../constant_data/constants.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "platform_detection.h"
 #include "stringutil.h"
@@ -299,6 +300,16 @@ namespace bricksim::util {
             result += ALPHANUM_CHARS[distribution(rng)];
         }
 
+        return result;
+    }
+
+    std::string escapeFilename(const std::string& original) {
+        std::string result = original;
+        auto idx = result.find_first_of(constants::DISALLOWED_FILENAME_CHARS);
+        while (idx != std::string::npos) {
+            result[idx] = '_';
+            idx = result.find_first_of(constants::DISALLOWED_FILENAME_CHARS, idx);
+        }
         return result;
     }
 

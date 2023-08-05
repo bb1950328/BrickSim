@@ -69,14 +69,26 @@ namespace bricksim::connection::ldcad_meta {
         Z,
     };
 
+    enum class CommandType {
+        SNAP_CLEAR,
+        SNAP_CLP,
+        SNAP_CYL,
+        SNAP_FGR,
+        SNAP_GEN,
+        SNAP_INCL,
+        MIRROR_INFO,
+    };
+
     class MetaCommand {
     public:
         [[nodiscard]] std::string to_string() const;
         virtual ~MetaCommand();
+        const CommandType type;
 
     protected:
         [[nodiscard]] virtual written_param_container getParameters() const = 0;
-        [[nodiscard]] virtual const char* getName() const = 0;
+        [[nodiscard]] const std::string_view getName() const;
+        explicit MetaCommand(const CommandType type);
     };
 
     class Reader {

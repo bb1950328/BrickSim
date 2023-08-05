@@ -21,12 +21,21 @@ namespace bricksim::connection {
 
     class Connector {
     public:
+        enum class Type {
+            CYLINDRICAL,
+            CLIP,
+            FINGER,
+            GENERIC,
+        };
+
+        const Type type;
         std::string group;
         glm::vec3 start;
         glm::vec3 direction;
         std::string sourceTrace;
 
-        Connector(std::string group,
+        Connector(Type type,
+                  std::string group,
                   const glm::vec3& start,
                   const glm::vec3& direction,
                   std::string sourceTrace);
@@ -42,7 +51,8 @@ namespace bricksim::connection {
 
     class ConnectorWithLength : public Connector {
     public:
-        ConnectorWithLength(const std::string& group,
+        ConnectorWithLength(Type type,
+                            const std::string& group,
                             const glm::vec3& start,
                             const glm::vec3& direction,
                             std::string sourceTrace);
@@ -195,7 +205,7 @@ namespace bricksim::connection {
         bool operator!=(const Connection& rhs) const;
     };
 
-    class ConnectionGraph {
+    class ConnectionGraph {//todo move to separate file
     public:
         using node_t = std::shared_ptr<etree::MeshNode>;
         using edge_t = std::shared_ptr<Connection>;
@@ -218,10 +228,14 @@ namespace bricksim::connection {
 
     protected:
         adjacency_list_t adjacencyLists;
+        std::mutex lock;
 
         void findRestOfClique(uoset_t<node_t>& nodes, const ConnectionGraph::node_t& current) const;
 
     private:
+        /**
+         * Not thread-safe on its own, make sure that `adjacencyLists` is locked!
+         */
         std::array<std::reference_wrapper<std::vector<ConnectionGraph::edge_t>>, 2> getBothVectors(const node_t& a, const node_t& b);
     };
 }

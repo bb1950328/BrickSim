@@ -71,7 +71,8 @@ namespace bricksim {
         for (const auto& child: node->getChildren()) {
             if (child->type == etree::NodeType::TYPE_PART) {
                 const auto& ldrFile = std::dynamic_pointer_cast<etree::PartNode>(child)->ldrFile;
-                connection::visualization::addVisualization(ldrFile->nameSpace, ldrFile->metaInfo.name, child);
+                connection::visualization::VisualizationGenerator generator(child, ldrFile->nameSpace, ldrFile->metaInfo.name);
+                generator.addConnectorNodes();
             }
             addConnectorDataVisualization(child);
         }

@@ -7,7 +7,6 @@ namespace bricksim::connection::ldcad_meta {
      */
     class MirrorInfoCommand : public MetaCommand {
     public:
-        constexpr const static char* const NAME = "MIRROR_INFO";
         explicit MirrorInfoCommand(const parsed_param_container& parameters);
         std::optional<Axis> baseFlip;
         std::optional<glm::mat3> corOri;
@@ -19,6 +18,5 @@ namespace bricksim::connection::ldcad_meta {
 
     protected:
         [[nodiscard]] written_param_container getParameters() const override;
-        [[nodiscard]] const char* getName() const override;
     };
 }

@@ -17,6 +17,7 @@ namespace bricksim::connection {
             std::unique_ptr<fcl::CollisionObjectf> collisionObj;
             uoset_t<std::shared_ptr<etree::Node>> children;
         };
+        using broadphase_collision_pair_t = std::array<fcl::CollisionObjectf*, 2>;
 
         Editor& editor;
         fcl::DynamicAABBTreeCollisionManagerf manager;
@@ -26,8 +27,10 @@ namespace bricksim::connection {
 
         static constexpr bool partNodeCollsionOnly = true;
 
-        void updateCollisionData();
-        void updateGraph();
+        void updateCollisionData(float* progress, float progressMultiplicator);
+        void updateGraph(float* progress, float progressStart);
+
+        void handleBroadphaseCollision(const broadphase_collision_pair_t& item);
 
         void resetData();
 
@@ -52,6 +55,7 @@ namespace bricksim::connection {
     public:
         explicit Engine(Editor& editor);
 
+        void update(float* progress);
         void update();
 
         const ConnectionGraph& getGraph() const;

@@ -11,7 +11,7 @@ namespace bricksim::connection {
                 return d < p.first;
             }
         };
-        void checkDirectionalGenderedBruteForce(std::vector<std::array<std::shared_ptr<Connector>, 2>>& result, const std::array<std::vector<std::shared_ptr<ConnectorWithLength>>, 2>& conns) {
+        void checkDirectionalGenderedBruteForce(std::vector<std::array<std::shared_ptr<Connector>, 2>>& result, const std::array<std::vector<std::shared_ptr<Connector>>, 2>& conns) {
             const auto& mConns = conns[*magic_enum::enum_index(Gender::M)];
             const auto& fConns = conns[*magic_enum::enum_index(Gender::F)];
             for (const auto& m: mConns) {
@@ -35,11 +35,11 @@ namespace bricksim::connection {
                 }
             }
         }
-        void checkDirectionalGenderedAdvanced(size_t directionIdx, std::vector<std::array<std::shared_ptr<Connector>, 2>>& result, const std::array<std::vector<std::shared_ptr<ConnectorWithLength>>, 2>& conns) {
+        void checkDirectionalGenderedAdvanced(size_t directionIdx, std::vector<std::array<std::shared_ptr<Connector>, 2>>& result, const std::array<std::vector<std::shared_ptr<Connector>>, 2>& conns) {
             const auto iSmaller = conns[0].size() < conns[1].size() ? 0 : 1;
             const auto& cSmaller = conns[iSmaller];
             const auto& cLarger = conns[1 - iSmaller];
-            uomap_t<int64_t, uomap_t<int64_t, std::vector<std::shared_ptr<ConnectorWithLength>>>> connsByStart;
+            uomap_t<int64_t, uomap_t<int64_t, std::vector<std::shared_ptr<Connector>>>> connsByStart;
             const auto ia = directionIdx == 0 ? 1 : 0;
             const auto ib = directionIdx == 2 ? 1 : 2;
             for (const auto& item: cSmaller) {
@@ -72,7 +72,7 @@ namespace bricksim::connection {
                 }
             }
         }
-        void checkDirectionalGendered(std::vector<std::array<std::shared_ptr<Connector>, 2>>& result, std::vector<std::pair<glm::vec3, std::array<std::vector<std::shared_ptr<ConnectorWithLength>>, 2>>>& cylConnectors) {
+        void checkDirectionalGendered(std::vector<std::array<std::shared_ptr<Connector>, 2>>& result, std::vector<std::pair<glm::vec3, std::array<std::vector<std::shared_ptr<Connector>>, 2>>>& cylConnectors) {
             for (std::size_t i = 0; i < cylConnectors.size(); ++i) {
                 const auto& conns = cylConnectors[i].second;
                 if (i > 2 || conns[0].size() * conns[1].size() < 16) {
@@ -96,7 +96,7 @@ namespace bricksim::connection {
     std::vector<std::array<std::shared_ptr<Connector>, 2>> getConnectedConnectors(const std::vector<std::shared_ptr<Connector>>& connectors) {
         std::vector<std::array<std::shared_ptr<Connector>, 2>> result;
 
-        std::vector<std::pair<glm::vec3, std::array<std::vector<std::shared_ptr<ConnectorWithLength>>, 2>>> directionalGenderedConnectors = {
+        std::vector<std::pair<glm::vec3, std::array<std::vector<std::shared_ptr<Connector>>, 2>>> directionalGenderedConnectors = {
                 {glm::vec3(1.f, 0.f, 0.f), {}},
                 {glm::vec3(0.f, 1.f, 0.f), {}},
                 {glm::vec3(0.f, 0.f, 1.f), {}},
@@ -109,32 +109,44 @@ namespace bricksim::connection {
         std::vector<std::shared_ptr<Connector>> genericConnectors;
 
         for (const auto& conn: connectors) {
-            const auto cylConn = std::dynamic_pointer_cast<CylindricalConnector>(conn);
-            const auto clipConn = cylConn != nullptr ? nullptr : std::dynamic_pointer_cast<ClipConnector>(conn);
-            if (cylConn != nullptr || clipConn != nullptr) {
-                for (auto& [dir, connsWithDir]: directionalGenderedConnectors) {
-                    if (glm::length(glm::cross(dir, conn->direction)) < PARALLELITY_ANGLE_TOLERANCE) {
-                        //add clips to Gender::F because they only match with male cylinders
-                        connsWithDir[*magic_enum::enum_index(cylConn != nullptr ? cylConn->gender : Gender::F)].push_back(cylConn);
-                        break;
+            auto gender = Gender::F;
+            bool foundDir = false;
+            switch (conn->type) {
+                case Connector::Type::CYLINDRICAL:
+                    gender = std::dynamic_pointer_cast<CylindricalConnector>(conn)->gender;
+                case Connector::Type::CLIP:
+                    for (auto& [dir, connsWithDir]: directionalGenderedConnectors) {
+                        if (glm::length(glm::cross(dir, conn->direction)) < PARALLELITY_ANGLE_TOLERANCE) {
+                            //add clips to Gender::F because they only match with male cylinders
+                            connsWithDir[*magic_enum::enum_index(gender)].push_back(conn);
+                            foundDir = true;
+                            break;
+                        }
                     }
-                }
-                continue;
-            }
-
-            const auto fingerConn = std::dynamic_pointer_cast<FingerConnector>(conn);
-            if (fingerConn != nullptr) {
-                for (auto& [dir, connsWithDir]: directionalUngenderedConnectors) {
-                    if (glm::length(glm::cross(dir, conn->direction)) < PARALLELITY_ANGLE_TOLERANCE) {
-                        //add clips to Gender::F because they only match with male cylinders
-                        connsWithDir.push_back(fingerConn);
-                        break;
+                    if (!foundDir) {
+                        directionalGenderedConnectors.push_back({conn->direction, {}});
+                        directionalGenderedConnectors.back().second[*magic_enum::enum_index(gender)].push_back(conn);
                     }
-                }
-                continue;
+                    break;
+                case Connector::Type::FINGER:
+                    for (auto& [dir, connsWithDir]: directionalUngenderedConnectors) {
+                        if (glm::length(glm::cross(dir, conn->direction)) < PARALLELITY_ANGLE_TOLERANCE) {
+                            connsWithDir.push_back(std::dynamic_pointer_cast<FingerConnector>(conn));
+                            foundDir = true;
+                            break;
+                        }
+                    }
+                    if (!foundDir) {
+                        directionalUngenderedConnectors.push_back({conn->direction, {}});
+                        directionalUngenderedConnectors.back().second.push_back(std::dynamic_pointer_cast<FingerConnector>(conn));
+                    }
+                    break;
+                case Connector::Type::GENERIC:
+                    genericConnectors.push_back(conn);
+                    break;
+                default:
+                    break;
             }
-
-            genericConnectors.push_back(conn);
         }
 
         checkDirectionalGendered(result, directionalGenderedConnectors);

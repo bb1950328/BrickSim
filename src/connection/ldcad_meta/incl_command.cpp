@@ -4,6 +4,7 @@
 
 namespace bricksim::connection::ldcad_meta {
     InclCommand::InclCommand(const parsed_param_container& parameters) :
+        MetaCommand(CommandType::SNAP_INCL),
         id(parse::optionalStringParameter(parameters, "id")),
         pos(parse::optionalVec3Parameter(parameters, "pos")),
         ori(parse::optionalMat3Parameter(parameters, "ori")),
@@ -29,8 +30,5 @@ namespace bricksim::connection::ldcad_meta {
         write::stringParameter(result, "ref", ref);
         write::optionalGridParameter(result, "grid", grid);
         return result;
-    }
-    const char* InclCommand::getName() const {
-        return NAME;
     }
 }

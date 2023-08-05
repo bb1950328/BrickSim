@@ -71,20 +71,18 @@ namespace bricksim::connection::ldcad_meta {
             const std::string_view value = stringutil::trim(line.substr(middle + 1, end - middle - 1));
             parameters.insert({stringutil::asLower(key), value});
         }
-        if (line.starts_with(ClearCommand::NAME)) {
-            return std::make_shared<ClearCommand>(parameters);
-        } else if (line.starts_with(InclCommand::NAME)) {
-            return std::make_shared<InclCommand>(parameters);
-        } else if (line.starts_with(CylCommand::NAME)) {
-            return std::make_shared<CylCommand>(parameters);
-        } else if (line.starts_with(ClpCommand::NAME)) {
-            return std::make_shared<ClpCommand>(parameters);
-        } else if (line.starts_with(FgrCommand::NAME)) {
-            return std::make_shared<FgrCommand>(parameters);
-        } else if (line.starts_with(GenCommand::NAME)) {
-            return std::make_shared<GenCommand>(parameters);
-        } else if (line.starts_with(MirrorInfoCommand::NAME)) {
-            return std::make_shared<MirrorInfoCommand>(parameters);
+        auto commandTypeOpt = magic_enum::enum_cast<CommandType>(line.substr(0, line.find_first_of(" \t\r\n")));
+        if (commandTypeOpt.has_value()) {
+            switch (*commandTypeOpt) {
+                case CommandType::SNAP_CLEAR: return std::make_shared<ClearCommand>(parameters);
+                case CommandType::SNAP_CLP: return std::make_shared<ClpCommand>(parameters);
+                case CommandType::SNAP_CYL: return std::make_shared<CylCommand>(parameters);
+                case CommandType::SNAP_FGR: return std::make_shared<FgrCommand>(parameters);
+                case CommandType::SNAP_GEN: return std::make_shared<GenCommand>(parameters);
+                case CommandType::SNAP_INCL: return std::make_shared<InclCommand>(parameters);
+                case CommandType::MIRROR_INFO: return std::make_shared<MirrorInfoCommand>(parameters);
+                default: return nullptr;
+            }
         } else {
             return nullptr;
         }
@@ -110,6 +108,11 @@ namespace bricksim::connection::ldcad_meta {
             result.push_back(']');
         }
         return result;
+    }
+    MetaCommand::MetaCommand(const CommandType type) :
+        type(type) {}
+    const std::string_view MetaCommand::getName() const {
+        return magic_enum::enum_name(type);
     }
     MetaCommand::~MetaCommand() = default;
 }

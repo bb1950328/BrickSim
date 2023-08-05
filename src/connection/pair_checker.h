@@ -10,10 +10,10 @@ namespace bricksim::connection {
         glm::vec3 absEnd;//=absStart for connectors that do not have a length
         glm::vec3 absDirection;
         const std::shared_ptr<Connector>& connector;
-        std::shared_ptr<ClipConnector> clip;
-        std::shared_ptr<CylindricalConnector> cyl;
-        std::shared_ptr<FingerConnector> finger;
-        std::shared_ptr<GenericConnector> generic;
+        ClipConnector* clip;
+        CylindricalConnector* cyl;
+        FingerConnector* finger;
+        GenericConnector* generic;
 
         PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const glm::mat4& absTransformation, const std::shared_ptr<Connector>& connector);
 

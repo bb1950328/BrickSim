@@ -258,19 +258,19 @@ namespace bricksim::connection {
         connector(connector) {
         switch (connector->type) {
             case Connector::Type::CYLINDRICAL:
-                cyl = std::dynamic_pointer_cast<CylindricalConnector>(connector);
+                cyl = dynamic_cast<CylindricalConnector*>(connector.get());
                 absEnd = absStart + absDirection * cyl->totalLength;
                 break;
             case Connector::Type::CLIP:
-                clip = std::dynamic_pointer_cast<ClipConnector>(connector);
+                clip = dynamic_cast<ClipConnector*>(connector.get());
                 absEnd = absStart + absDirection * clip->width;
                 break;
             case Connector::Type::FINGER:
-                finger = std::dynamic_pointer_cast<FingerConnector>(connector);
+                finger = dynamic_cast<FingerConnector*>(connector.get());
                 absEnd = absStart + absDirection * finger->totalWidth;
                 break;
             case Connector::Type::GENERIC:
-                generic = std::dynamic_pointer_cast<GenericConnector>(connector);
+                generic = dynamic_cast<GenericConnector*>(connector.get());
                 break;
         }
     }

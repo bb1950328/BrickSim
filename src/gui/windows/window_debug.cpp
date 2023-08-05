@@ -442,9 +442,12 @@ namespace bricksim::gui::windows::debug {
                                 std::filesystem::path outputFile = outputPathChars;
                                 controller::getForegroundTasks().emplace("Export Connections with GraphViz", [outputFile, activeEditor, &engine](auto* progress) {
                                     *progress = .0f;
-                                    const auto graphvizCode = connection::visualization::generateGraphviz(engine.getGraph());
+                                    auto graphvizCode = connection::visualization::generateGraphviz(engine.getGraph());
                                     *progress = .3f;
                                     graphvizCode.renderToFile(outputFile);
+                                    if (outputFile.extension() == ".svg") {
+                                        graphvizCode.deleteTmpFiles = false;
+                                    }
                                     *progress = 1.f;
                                 });
                             }

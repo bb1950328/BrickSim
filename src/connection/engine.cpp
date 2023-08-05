@@ -17,15 +17,23 @@ namespace bricksim::connection {
         editor(editor) {
     }
     void Engine::updateCollisionData(float* progress, float progressMultiplicator) {
-        const auto& rootNode = editor.getEditingModel();
-        const auto it = nodeData.find(rootNode);
         *progress = 0.f;
-        if (it == nodeData.end()) {
+        const auto editingModel = editor.getEditingModel();
+        if (lastEditingModel != editingModel && editingModel->getType() == etree::NodeType::TYPE_MODEL) {
             resetData();
-            updateNodeData(rootNode);
-        } else {
-            updateNodeData(rootNode, it);
         }
+        const auto& nodes = editingModel->getChildren();
+        for (std::size_t i = 0; i < nodes.size(); ++i) {
+            const auto it = nodeData.find(nodes[i]);
+            if (it == nodeData.end()) {
+                updateNodeData(nodes[i]);
+            } else {
+                updateNodeData(nodes[i], it);
+            }
+            *progress = progressMultiplicator * i / nodes.size();
+        }
+
+        lastEditingModel = editingModel;
         *progress = progressMultiplicator;
     }
 
@@ -35,25 +43,19 @@ namespace bricksim::connection {
             updateNodeData(node, it);
         } else {
             std::unique_ptr<fcl::CollisionObjectf> collisionObject;
-            std::shared_ptr<etree::LdrNode> ldrNode;
+            std::shared_ptr<etree::MeshNode> meshNode;
             if constexpr (partNodeCollsionOnly) {
-                ldrNode = std::dynamic_pointer_cast<etree::PartNode>(node);
+                meshNode = std::dynamic_pointer_cast<etree::PartNode>(node);
             } else {
-                ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
+                meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node);
             }
-            if (ldrNode != nullptr) {
-                const auto aabb = editor.getScene()->getMeshCollection().getAbsoluteAABB(ldrNode);
+            if (meshNode != nullptr) {
+                const auto aabb = editor.getScene()->getMeshCollection().getAbsoluteAABB(meshNode);
                 const auto box = std::make_shared<fcl::Boxf>(glm2eigen(aabb.getSize()));
                 collisionObject = std::make_unique<fcl::CollisionObjectf>(box, fcl::Matrix3f::Identity(), glm2eigen(aabb.getCenter()));
                 collisionObject->setUserData(node.get());
                 manager.registerObject(collisionObject.get());
-                outdatedInGraph.insert(ldrNode);
-            } else {
-                const auto miNode = std::dynamic_pointer_cast<etree::ModelInstanceNode>(node);
-                if (miNode != nullptr) {
-                } else {
-                    collisionObject = nullptr;
-                }
+                outdatedInGraph.insert(meshNode);
             }
             nodeData.emplace(node,
                              NodeData{
@@ -70,9 +72,9 @@ namespace bricksim::connection {
     void Engine::updateNodeData(const std::shared_ptr<etree::Node>& node, decltype(nodeData)::iterator it) {
         auto& data = it->second;
         if (data.lastUpdatedSelfVersion != node->getSelfVersion()) {
-            const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
-            if (ldrNode != nullptr) {
-                const auto aabb = editor.getScene()->getMeshCollection().getAbsoluteAABB(ldrNode);
+            const auto meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node);
+            if (meshNode != nullptr) {
+                const auto aabb = editor.getScene()->getMeshCollection().getAbsoluteAABB(meshNode);
                 const auto sizeDifference = std::dynamic_pointer_cast<const fcl::Boxf>(data.collisionObj->collisionGeometry())->side - glm2eigen(aabb.getSize());
                 if (sizeDifference.squaredNorm() > .01f) {
                     manager.unregisterObject(data.collisionObj.get());
@@ -85,7 +87,7 @@ namespace bricksim::connection {
                     data.collisionObj->computeAABB();
                     manager.update(data.collisionObj.get());
                 }
-                outdatedInGraph.insert(ldrNode);
+                outdatedInGraph.insert(meshNode);
             }
             data.lastUpdatedSelfVersion = node->getSelfVersion();
         }
@@ -109,7 +111,7 @@ namespace bricksim::connection {
         if (it != nodeData.end()) {
             if (it->second.collisionObj != nullptr) {
                 manager.unregisterObject(it->second.collisionObj.get());
-                outdatedInGraph.insert(std::dynamic_pointer_cast<etree::LdrNode>(it->first));
+                outdatedInGraph.insert(std::dynamic_pointer_cast<etree::MeshNode>(it->first));
             }
             nodeData.erase(it);
         }
@@ -135,8 +137,12 @@ namespace bricksim::connection {
         graph.removeAllConnections(outdatedInGraph);
         uoset_t<broadphase_collision_pair_t> intersections;
         for (const auto& item: outdatedInGraph) {
-            const auto& data = nodeData.find(item)->second;
-            manager.collide(data.collisionObj.get(), static_cast<void*>(&intersections), updateCallback);
+            const auto it = nodeData.find(item);
+            assert(it != nodeData.end());
+            const auto& data = it->second;
+            if (data.collisionObj != nullptr) {
+                manager.collide(data.collisionObj.get(), static_cast<void*>(&intersections), updateCallback);
+            }
         }
 
         *progress = progressStart;
@@ -193,17 +199,18 @@ namespace bricksim::connection {
         outdatedInGraph.clear();
     }
     void Engine::handleBroadphaseCollision(const broadphase_collision_pair_t& item) {
-        const auto ldrNode0 = std::dynamic_pointer_cast<etree::LdrNode>(convertRawNodePtr(item[0]->getUserData()));
-        const auto ldrNode1 = std::dynamic_pointer_cast<etree::LdrNode>(convertRawNodePtr(item[1]->getUserData()));
-        const auto& connectorsA = getConnectorsOfNode(ldrNode0);
-        const auto& connectorsB = getConnectorsOfNode(ldrNode1);
+        const auto nodeA = std::dynamic_pointer_cast<etree::MeshNode>(convertRawNodePtr(item[0]->getUserData()));
+        const auto nodeB = std::dynamic_pointer_cast<etree::MeshNode>(convertRawNodePtr(item[1]->getUserData()));
+        const auto& connectorsA = getConnectorsOfNode(nodeA);
+        const auto& connectorsB = getConnectorsOfNode(nodeB);
 
-        //spdlog::debug("broadphase collision {} <--> {}", ldrNode0->ldrFile->metaInfo.title, ldrNode1->ldrFile->metaInfo.title);
+        //spdlog::debug("broadphase collision {} <--> {}", nodeA->displayName, nodeB->displayName);
 
+        //todo use algorithm in connection_check.cpp for this (measure performance impact)
         for (const auto& ca: *connectorsA) {
-            const PairCheckData aData(ldrNode0, ca);
+            const PairCheckData aData(nodeA, ca);
             for (const auto& cb: *connectorsB) {
-                const PairCheckData bData(ldrNode1, cb);
+                const PairCheckData bData(nodeB, cb);
                 ConnectionGraphPairChecker checker(aData, bData, graph);
                 checker.findConnections();
             }

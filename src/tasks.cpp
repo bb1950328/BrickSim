@@ -23,7 +23,7 @@ namespace bricksim {
 
     void Task::startThread() {
         spdlog::info("starting task {}", name);
-        thread = std::thread([this]() {
+        thread = std::thread([this]() {//todo try to convert this to std::future
             spdlog::debug("thread of task {} started", name);
             const std::string plName = fmt::format("Tasks/", name);
             util::setThreadName(plName.c_str());

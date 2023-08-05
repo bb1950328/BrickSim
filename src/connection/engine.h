@@ -24,8 +24,9 @@ namespace bricksim::connection {
         uomap_t<std::shared_ptr<etree::Node>, NodeData> nodeData;
         ConnectionGraph graph;
         uoset_t<ConnectionGraph::node_t> outdatedInGraph;
+        std::shared_ptr<etree::Node> lastEditingModel;
 
-        static constexpr bool partNodeCollsionOnly = true;
+        static constexpr bool partNodeCollsionOnly = false;
 
         void updateCollisionData(float* progress, float progressMultiplicator);
         void updateGraph(float* progress, float progressStart);

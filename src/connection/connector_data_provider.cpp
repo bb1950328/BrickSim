@@ -11,6 +11,8 @@ namespace bricksim::connection {
         std::mutex cacheLock;
 
         void removeConnected(connector_container_t& connectors) {
+            //todo handle partially used connectors
+            // for example the two dark gray 3L pins on the 911 hood
             const auto connected = getConnectedConnectors(connectors);
             uoset_t<std::shared_ptr<Connector>> connectedSet;
             connectedSet.reserve(connected.size());

@@ -402,7 +402,7 @@ namespace bricksim::controller {
         //openFile("test_files/texmap_planar3.ldr");
         //openFile("test_files/texmap_planar_perpendicular.ldr");
         //openFile("test_files/omr/arocs.mpd");
-        //openFile("test_files/omr/911.mpd");
+        openFile("test_files/omr/911.mpd");
         //openFile("test_files/omr/chiron.mpd");
         //openFile("test_files/connection_info_problem_parts.ldr");
         //openFile("test_files/two_bricks_stacked.ldr");
@@ -411,7 +411,7 @@ namespace bricksim::controller {
         //openFile("car.ldr");
         //openFile("~/ldraw/models/car_fixed.ldr");
         //openFile("10197.dat");
-        openFile("~/Downloads/datsville.ldr");
+        //openFile("~/Downloads/datsville.ldr");
         //openFile("~/Downloads/42131_Bulldozer.mpd");
 
         std::vector<uint64_t> lastEditorRootNodeVersions;
@@ -504,6 +504,9 @@ namespace bricksim::controller {
         const auto absPath = std::filesystem::absolute(util::extendHomeDirPath(path));
         foregroundTasks.emplace(fmt::format("Open {}", absPath.string()), [absPath]() {
             editors.emplace_back(Editor::openFile(absPath));
+            if (editors.size() == 1) {
+                setActiveEditor(editors.back());
+            }
         });
     }
 

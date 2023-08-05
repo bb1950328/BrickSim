@@ -9,6 +9,7 @@
 #include <curl/curl.h>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <magic_enum.hpp>
+#include <palanteer.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
 #include <stb_image.h>

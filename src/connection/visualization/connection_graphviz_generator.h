@@ -7,6 +7,7 @@ namespace bricksim::connection::visualization {
     public:
         std::string dotCode;
         std::filesystem::path tmpDirectory;
+        bool deleteTmpFiles = true;
 
         GraphVizResult();
         virtual ~GraphVizResult();

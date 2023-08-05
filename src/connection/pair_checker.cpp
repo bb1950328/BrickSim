@@ -26,7 +26,7 @@ namespace bricksim::connection {
             findGenericGeneric();
         }
     }
-    bool PairChecker::findGenericGeneric() {
+    void PairChecker::findGenericGeneric() {
         if (a.generic->group == b.generic->group
             && a.generic->gender != b.generic->gender
             //&& a.generic->bounding == b.generic->bounding
@@ -34,19 +34,17 @@ namespace bricksim::connection {
             //todo maybe check bounding shapes, but documentation is unclear
             // is it a connection when the two bounding shapes touch
             // or is it only a connection when the shapes have the same dimensions and the orientation matches too?
-            addConnection(a.connector, b.connector, {});
-            return true;
+            addConnection({});
         }
-        return false;
     }
-    bool PairChecker::findCylCyl() {
+    void PairChecker::findCylCyl() {
         if ((!sameDir && !oppositeDir)
             || a.cyl->gender == b.cyl->gender) {
-            return false;
+            return;
         }
         const auto startOffset = projectConnectorsWithLength(a.cyl->totalLength, b.cyl->totalLength);
         if (!startOffset.has_value()) {
-            return false;
+            return;
         }
 
         const int maleIdx = a.cyl->gender == Gender::M ? 0 : 1;
@@ -126,7 +124,7 @@ namespace bricksim::connection {
             }
         }
         if (radialCollision || !contact) {
-            return false;
+            return;
         }
         DegreesOfFreedom dof;
         if (slidePossible) {
@@ -135,8 +133,7 @@ namespace bricksim::connection {
         if (rotationPossible) {
             dof.rotationPossibilities.emplace_back(a.absStart, a.absDirection);
         }
-        addConnection(a.connector, b.connector, dof);
-        return true;
+        addConnection(dof);
     }
     std::optional<float> PairChecker::projectConnectorsWithLength(float aLength, float bLength) {
         const auto startDiff = b.absStart - a.absStart;
@@ -153,15 +150,15 @@ namespace bricksim::connection {
             return {projectionLength};
         }
     }
-    bool PairChecker::findFingerFinger() {
+    void PairChecker::findFingerFinger() {
         if ((!sameDir && !oppositeDir)
             || a.finger->group != b.finger->group
             || std::abs(a.finger->radius - b.finger->radius) > CONNECTION_RADIUS_TOLERANCE) {
-            return false;
+            return;
         }
         const auto startOffsetOpt = projectConnectorsWithLength(a.finger->totalWidth, b.finger->totalWidth);
         if (!startOffsetOpt.has_value()) {
-            return false;
+            return;
         }
         int aCursorIdx = 0;
         int bCursorIdx = sameDir ? 0 : static_cast<int>(b.finger->fingerWidths.size()) - 1;
@@ -175,7 +172,7 @@ namespace bricksim::connection {
                 bCursorIdx += bCursorStep;
             }
             if (offset < -POSITION_TOLERANCE_LDU) {
-                return false;
+                return;
             }
         } else if (aOffset > POSITION_TOLERANCE_LDU) {
             float offset = aOffset;
@@ -184,38 +181,37 @@ namespace bricksim::connection {
                 ++aCursorIdx;
             }
             if (offset < -POSITION_TOLERANCE_LDU) {
-                return false;
+                return;
             }
         }
         if ((std::abs(aCursorIdx - bCursorIdx) % 2 == 0
              && a.finger->firstFingerGender == b.finger->firstFingerGender)
             || (std::abs(aCursorIdx - bCursorIdx) % 2 == 1
                 && a.finger->firstFingerGender != b.finger->firstFingerGender)) {
-            return false;
+            return;
         }
         while (aCursorIdx < static_cast<int>(a.finger->fingerWidths.size())
                && bCursorIdx < static_cast<int>(b.finger->fingerWidths.size())) {
             if (std::abs(a.finger->fingerWidths[aCursorIdx] - b.finger->fingerWidths[bCursorIdx]) > POSITION_TOLERANCE_LDU) {
-                return false;
+                return;
             }
             ++aCursorIdx;
             bCursorIdx += bCursorStep;
         }
         DegreesOfFreedom dof;
         dof.rotationPossibilities.emplace_back(a.absStart, a.absDirection);
-        addConnection(a.connector, b.connector, dof);
-        return true;
+        addConnection(dof);
     }
-    bool PairChecker::findClipCyl(const PairCheckData& clipData, const PairCheckData& cylData) {
+    void PairChecker::findClipCyl(const PairCheckData& clipData, const PairCheckData& cylData) {
         const auto clip = clipData.clip;
         const auto cyl = cylData.cyl;
         if ((!sameDir && !oppositeDir)
             || cyl->gender != Gender::M) {
-            return false;
+            return;
         }
         const auto projOnA = geometry::normalProjectionOnLine<3>(cylData.absStart, cylData.absEnd, clipData.absStart, false);
         if (projOnA.distancePointToLine > POSITION_TOLERANCE_LDU) {
-            return false;
+            return;
         }
         float offset = projOnA.projectionLength;
         if (oppositeDir) {
@@ -230,24 +226,26 @@ namespace bricksim::connection {
         while (offset > -clip->width) {
             float radiusDiff = cyl->parts[i].radius - clip->radius;
             if (radiusDiff > CONNECTION_RADIUS_TOLERANCE) {
-                return false;
+                return;
             }
             touching |= radiusDiff > -CONNECTION_RADIUS_TOLERANCE;
             offset -= cyl->parts[i].length;
             ++i;
         }
         if (!touching) {
-            return false;
+            return;
         }
         DegreesOfFreedom dof;
         dof.rotationPossibilities.emplace_back(cylData.absStart, cylData.absDirection);
         if (cyl->slide && clip->slide) {
             dof.slideDirections.push_back(cylData.absDirection);
         }
-        addConnection(a.connector, b.connector, dof);
-        return true;
+        addConnection(dof);
     }
-    PairCheckData::PairCheckData(const std::shared_ptr<etree::LdrNode>& node,
+    void PairChecker::addConnection(DegreesOfFreedom dof) {
+        addConnection(a.connector, b.connector, dof);
+    }
+    PairCheckData::PairCheckData(const std::shared_ptr<etree::MeshNode>& node,
                                  const glm::mat4& absTransformation,
                                  const std::shared_ptr<Connector>& connector) :
         node(node),
@@ -275,7 +273,7 @@ namespace bricksim::connection {
         }
     }
 
-    PairCheckData::PairCheckData(const std::shared_ptr<etree::LdrNode>& node,
+    PairCheckData::PairCheckData(const std::shared_ptr<etree::MeshNode>& node,
                                  const std::shared_ptr<Connector>& connector) :
         PairCheckData(node, glm::transpose(node->getAbsoluteTransformation()), connector) {
     }

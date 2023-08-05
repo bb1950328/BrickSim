@@ -25,7 +25,6 @@ namespace bricksim::connection::visualization {
 
         dot += "graph G {\n";
         for (const auto& [node, adj]: graph.getAdjacencyLists()) {
-            const auto thumbnailPath = result.tmpDirectory / fmt::format("{}_{}.png", util::escapeFilename(node->displayName), node->getDisplayColor().code);
             std::shared_ptr<ldr::File> ldrFile;
             const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
             if (ldrNode != nullptr) {
@@ -33,6 +32,7 @@ namespace bricksim::connection::visualization {
             } else {
                 ldrFile = std::dynamic_pointer_cast<etree::ModelInstanceNode>(node)->modelNode->ldrFile;
             }
+            const auto thumbnailPath = result.tmpDirectory / fmt::format("{}_{}.png", util::escapeFilename(ldrFile->metaInfo.name), node->getDisplayColor().code);
             if (!std::filesystem::exists(thumbnailPath)) {
                 thumbnailGenerator->getThumbnail(ldrFile, node->getDisplayColor())->saveToFile(thumbnailPath);
             }
@@ -42,9 +42,7 @@ namespace bricksim::connection::visualization {
         for (const auto& [node1, adj]: graph.getAdjacencyLists()) {
             for (const auto& [node2, connections]: adj) {
                 if (node1.get() < node2.get()) {
-                    for (const auto& conn: connections) {
-                        dot += fmt::format("\t{} -- {}\n", getNodeId(node1), getNodeId(node2));
-                    }
+                    dot += stringutil::repeat(fmt::format("\t{} -- {}\n", getNodeId(node1), getNodeId(node2)), connections.size());
                 }
             }
         }
@@ -58,7 +56,9 @@ namespace bricksim::connection::visualization {
         std::filesystem::create_directory(tmpDirectory);
     }
     GraphVizResult::~GraphVizResult() {
-        std::filesystem::remove_all(tmpDirectory);
+        if (deleteTmpFiles) {
+            std::filesystem::remove_all(tmpDirectory);
+        }
     }
     void GraphVizResult::renderToFile(const std::filesystem::path& outFile) const {
         graphviz_wrapper::renderDot(outFile, dotCode);

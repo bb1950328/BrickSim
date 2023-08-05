@@ -36,7 +36,7 @@ namespace bricksim::connection::visualization {
             if (!std::filesystem::exists(thumbnailPath)) {
                 thumbnailGenerator->getThumbnail(ldrFile, node->getDisplayColor())->saveToFile(thumbnailPath);
             }
-            dot += fmt::format("\t{} [label=\"{}\" image=\"{}\" shape=box imagepos=tc labelloc=b]\n", getNodeId(node), ldrFile->metaInfo.title, thumbnailPath.string());
+            dot += fmt::format("\t{} [label=\"{}\" image=\"{}\" shape=box imagepos=tc labelloc=b tooltip=\"{}\"]\n", getNodeId(node), ldrFile->metaInfo.title, thumbnailPath.string(), ldrFile->metaInfo.title);
         }
 
         for (const auto& [node1, adj]: graph.getAdjacencyLists()) {

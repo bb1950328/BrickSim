@@ -3,6 +3,8 @@
     <option name="FORMATTER_TAGS_ENABLED" value="true" />
     <Objective-C>
       <option name="KEEP_CASE_EXPRESSIONS_IN_ONE_LINE" value="true" />
+      <option name="INTRODUCE_CONST_VARS" value="true" />
+      <option name="INTRODUCE_AUTO_VARS" value="true" />
     </Objective-C>
     <Objective-C-extensions>
       <rules>

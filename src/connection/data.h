@@ -106,6 +106,7 @@ namespace bricksim::connection {
         float radius;
         float width;
         bool slide;
+        glm::vec3 openingDirection;
 
         ClipConnector(const std::string& group,
                       const glm::vec3& start,
@@ -113,7 +114,8 @@ namespace bricksim::connection {
                       std::string sourceTrace,
                       float radius,
                       float width,
-                      bool slide);
+                      bool slide,
+                      const glm::vec3& openingDirection);
         std::shared_ptr<Connector> clone() override;
         std::shared_ptr<Connector> transform(const glm::mat4& transformation) override;
         std::string infoStr() const override;

@@ -262,11 +262,13 @@ namespace bricksim::connection {
                                  std::string sourceTrace,
                                  float radius,
                                  float width,
-                                 bool slide) :
+                                 bool slide,
+                                 const glm::vec3& openingDirection) :
         ConnectorWithLength(group, start, direction, sourceTrace),
         radius(radius),
         width(width),
-        slide(slide) {
+        slide(slide),
+        openingDirection(openingDirection) {
     }
     std::shared_ptr<Connector> ClipConnector::clone() {
         return std::make_shared<ClipConnector>(*this);
@@ -294,7 +296,8 @@ namespace bricksim::connection {
                                                sourceTrace,
                                                radiusFactor * radius,
                                                lengthFactor * width,
-                                               slide);
+                                               slide,
+                                               glm::vec4(openingDirection, 0.f) * transformation);
     }
     std::shared_ptr<Connector> FingerConnector::clone() {
         return std::make_shared<FingerConnector>(*this);

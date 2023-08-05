@@ -93,7 +93,7 @@ namespace bricksim::connection::visualization {
     void PointMarkerNode::addToMesh(mesh::LineData& lineData, const glm::vec3& color) {
         for (int axis = 0; axis < 3; ++axis) {
             for (int step = 0; step < 10; ++step) {
-                double angle = step / 5.f * std::numbers::pi;
+                double angle = step / 5.f * M_PI;
                 const int a0 = axis == 0 ? 1 : 0;
                 const int a1 = axis == 2 ? 1 : 2;
                 glm::vec3 pos(0.f, 0.f, 0.f);
@@ -137,7 +137,7 @@ namespace bricksim::connection::visualization {
         }
     }
     glm::vec3 LineUVSphereNode::getPointOnSphere(int iLat, int iLon) {
-        constexpr float stepToAngle = 2 * std::numbers::pi / steps;
+        constexpr float stepToAngle = 2 * M_PI / steps;
         return {
                 std::cos(iLon * stepToAngle) * std::sin(iLat * stepToAngle),
                 std::sin(iLon * stepToAngle) * std::sin(iLat * stepToAngle),
@@ -164,7 +164,7 @@ namespace bricksim::connection::visualization {
         float z0 = radius;
         for (int i0 = 0; i0 < steps; ++i0) {
             const int i1 = (i0 + 1) % steps;
-            const float angle1 = 2.f * i1 / steps * std::numbers::pi;
+            const float angle1 = 2.f * i1 / steps * M_PI;
             const float x1 = radius * std::sin(angle1);
             const float z1 = radius * std::cos(angle1);
 

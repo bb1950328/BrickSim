@@ -43,7 +43,10 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
         }
 
         int partNameInputCallback(ImGuiInputTextCallbackData* data) {
-            const auto ns = controller::getActiveEditor()->getFileNamespace();
+            const auto& activeEditor = controller::getActiveEditor();
+            const auto ns = activeEditor != nullptr
+                                    ? activeEditor->getFileNamespace()
+                                    : nullptr;
             auto& fileRepo = ldr::file_repo::get();
             if (fileRepo.hasFileCached(ns, data->Buf)) {
                 setCurrentFile(fileRepo.getFile(ns, data->Buf));
@@ -101,22 +104,23 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                     if (clipConn != nullptr) {
                         name = "Clip";
                     } else if (cylConn != nullptr) {
-                        name = fmt::format("Cylinder {:g} {:g} {:g} {}", cylConn->start.x, cylConn->start.y, cylConn->start.z, magic_enum::enum_name(cylConn->gender));
+                        name = fmt::format("Cylinder {}", magic_enum::enum_name(cylConn->gender));
                     } else if (fgrConn != nullptr) {
                         name = "Finger";
                     } else if (genConn != nullptr) {
                         name = "Generic";
                     }
+                    name += fmt::format(" {:g} {:g} {:g}", item->start.x, item->start.y, item->start.z);
                     if (ImGui::TreeNode((void*)(nodeId++), "%s", name.c_str())) {
                         ImGui::BulletText("start=%s", stringutil::formatGLM(item->start).c_str());
+                        ImGui::BulletText("direction=%s", stringutil::formatGLM(item->direction).c_str());
                         ImGui::BulletText("sourceTrace=%s", item->sourceTrace.c_str());
                         if (clipConn != nullptr) {
-                            ImGui::BulletText("direction=%s", stringutil::formatGLM(clipConn->direction).c_str());
                             ImGui::BulletText("radius=%f", clipConn->radius);
                             ImGui::BulletText("width=%f", clipConn->width);
                             ImGui::BulletText("slide=%s", std::to_string(clipConn->slide).c_str());
+                            ImGui::BulletText("openingDirection=%s", stringutil::formatGLM(clipConn->openingDirection).c_str());
                         } else if (cylConn != nullptr) {
-                            ImGui::BulletText("direction=%s", stringutil::formatGLM(cylConn->direction).c_str());
                             ImGui::BulletText("gender=%s", magic_enum::enum_name(cylConn->gender).data());
                             if (ImGui::TreeNode("Parts")) {
                                 for (const auto& part: cylConn->parts) {
@@ -132,7 +136,6 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                             ImGui::BulletText("openEnd=%s", std::to_string(cylConn->openEnd).c_str());
                             ImGui::BulletText("slide=%s", std::to_string(cylConn->slide).c_str());
                         } else if (fgrConn != nullptr) {
-                            ImGui::BulletText("direction=%s", stringutil::formatGLM(fgrConn->direction).c_str());
                             ImGui::BulletText("gender=%s", magic_enum::enum_name(fgrConn->firstFingerGender).data());
                             ImGui::BulletText("radius=%f", fgrConn->radius);
                             if (ImGui::TreeNode("Finger Widths")) {
@@ -142,10 +145,8 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                                 ImGui::TreePop();
                             }
                         } else if (genConn != nullptr) {
-                            ImGui::BulletText("direction=%s", stringutil::formatGLM(genConn->direction).c_str());
                             ImGui::BulletText("gender=%s", magic_enum::enum_name(genConn->gender).data());
                             if (std::holds_alternative<connection::BoundingPnt>(genConn->bounding)) {
-                                const auto& bounding = std::get<connection::BoundingPnt>(genConn->bounding);
                                 ImGui::BulletText("bounding=point");
                             } else if (std::holds_alternative<connection::BoundingBox>(genConn->bounding)) {
                                 const auto& bounding = std::get<connection::BoundingBox>(genConn->bounding);

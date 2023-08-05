@@ -137,7 +137,7 @@ namespace bricksim::connection {
                     auto result = std::make_shared<CylindricalConnector>(
                             cylCommand->group.value_or(""),
                             cylTransf[3],
-                            direction /*cylCommand->ori.value_or(glm::mat3(1.f))*glm::vec3(0.f, -1.f, 0.f)*/,
+                            direction, /*cylCommand->ori.value_or(glm::mat3(1.f))*glm::vec3(0.f, -1.f, 0.f)*/
                             sourceTrace,
                             cylCommand->gender == ldcad_meta::Gender::M
                                     ? Gender::M
@@ -228,26 +228,39 @@ namespace bricksim::connection {
 
                 const auto clpCommand = std::dynamic_pointer_cast<ldcad_meta::ClpCommand>(command);
                 if (clpCommand != nullptr && (!clpCommand->id.has_value() || !clearIDs.contains(*clpCommand->id))) {
-                    const auto clpTransf = combinePosOri(clpCommand) * transformation;
+                    const auto clpTransf = transformation * combinePosOri(clpCommand);
+                    const glm::vec3 direction = clpTransf * glm::vec4(0.f, -1.f, 0.f, 0.f);
+                    const glm::vec3 openingDirection = clpTransf * glm::vec4(0.f, 0.f, -1.f, 0.f);
+                    glm::vec3 start = clpTransf[3];
+                    if (clpCommand->center) {
+                        start -= direction * clpCommand->length * .5f;
+                    }
                     connectors.push_back(
                             std::make_shared<ClipConnector>(
                                     "",
-                                    clpTransf * glm::vec4(0.f, 0.f, 0.f, 1.f),
-                                    clpTransf * glm::vec4(0.f, -1.f, 0.f, 0.f),
+                                    start,
+                                    direction,
                                     sourceTrace,
                                     clpCommand->radius,
                                     clpCommand->length,
-                                    clpCommand->slide));
+                                    clpCommand->slide,
+                                    openingDirection));
                 }
 
                 const auto fgrCommand = std::dynamic_pointer_cast<ldcad_meta::FgrCommand>(command);
                 if (fgrCommand != nullptr && (!fgrCommand->id.has_value() || !clearIDs.contains(*fgrCommand->id))) {
-                    const auto fgrTransf = combinePosOri(fgrCommand) * transformation;
+                    const auto fgrTransf = transformation * combinePosOri(fgrCommand);
+                    const glm::vec3 direction = fgrTransf * glm::vec4(0.f, -1.f, 0.f, 0.f);
+                    glm::vec3 start = fgrTransf[3];
+                    if (fgrCommand->center) {
+                        const auto totalLength = std::accumulate(fgrCommand->seq.cbegin(), fgrCommand->seq.cend(), 0.f);
+                        start -= direction * totalLength * .5f;
+                    }
                     connectors.push_back(
                             std::make_shared<FingerConnector>(
                                     fgrCommand->group.value_or(""),
-                                    fgrTransf * glm::vec4(0.f, 0.f, 0.f, 1.f),
-                                    fgrTransf * glm::vec4(0.f, -1.f, 0.f, 0.f),
+                                    start,
+                                    direction,
                                     sourceTrace,
                                     fgrCommand->genderOfs == ldcad_meta::Gender::M
                                             ? Gender::M

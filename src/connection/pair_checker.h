@@ -9,36 +9,23 @@ namespace bricksim::connection {
         glm::vec3 absStart;
         glm::vec3 absEnd;//=absStart for connectors that do not have a length
         glm::vec3 absDirection;
-        std::shared_ptr<Connector> connector;
+        const std::shared_ptr<Connector>& connector;
         std::shared_ptr<ClipConnector> clip;
         std::shared_ptr<CylindricalConnector> cyl;
         std::shared_ptr<FingerConnector> finger;
         std::shared_ptr<GenericConnector> generic;
 
         PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const glm::mat4& absTransformation, const std::shared_ptr<Connector>& connector);
-        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const glm::mat4& absTransformation, const std::shared_ptr<ClipConnector>& connector);
-        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const glm::mat4& absTransformation, const std::shared_ptr<CylindricalConnector>& connector);
-        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const glm::mat4& absTransformation, const std::shared_ptr<FingerConnector>& connector);
-        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const glm::mat4& absTransformation, const std::shared_ptr<GenericConnector>& connector);
 
         PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const std::shared_ptr<Connector>& connector);
-        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const std::shared_ptr<ClipConnector>& connector);
-        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const std::shared_ptr<CylindricalConnector>& connector);
-        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const std::shared_ptr<FingerConnector>& connector);
-        PairCheckData(const std::shared_ptr<etree::LdrNode>& node, const std::shared_ptr<GenericConnector>& connector);
 
         PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<Connector>& connector);
-        PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<ClipConnector>& connector);
-        PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<CylindricalConnector>& connector);
-        PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<FingerConnector>& connector);
-        PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<GenericConnector>& connector);
     };
 
     /**
      * this class checks if two specific connectors of two specific parts are connected
      */
     class PairChecker {
-        const float absoluteDirectionAngleDifference;
         const bool sameDir;
         const bool oppositeDir;
 

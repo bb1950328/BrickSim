@@ -14,7 +14,8 @@ namespace bricksim::connection {
         F,
     };
 
-    constexpr static float PARALLELITY_ANGLE_TOLERANCE = .001f;
+    constexpr static float PARALLELITY_ANGLE_TOLERANCE = .01f;
+    constexpr static float PARALLELITY_ANGLE_TOLERANCE_SQUARED = PARALLELITY_ANGLE_TOLERANCE * PARALLELITY_ANGLE_TOLERANCE;
     constexpr static float COLINEARITY_TOLERANCE_LDU = .1f;
     constexpr static float POSITION_TOLERANCE_LDU = .1f;
     constexpr static float CONNECTION_RADIUS_TOLERANCE = 1.f;

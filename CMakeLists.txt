@@ -268,7 +268,7 @@ target_link_libraries(BrickSimLib PRIVATE fcl)
 
 #eigen
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)
-target_link_libraries(BrickSimLib PRIVATE Eigen3::Eigen)
+target_link_libraries(BrickSimLib PUBLIC Eigen3::Eigen)
 
 #ImGuiColorTextEdit
 add_library(ImGuiColorTextEdit)

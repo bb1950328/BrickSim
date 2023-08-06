@@ -1,17 +1,45 @@
 #include "tasks.h"
 #include "config.h"
-#include <palanteer.h>
 #include <spdlog/spdlog.h>
 
 namespace bricksim {
+    RunningTask::RunningTask(const std::function<void(float*)>& func, float* progress, const std::string& name) :
+        future(std::async(std::launch::async, [&name, progress, &func]() {
+            const auto plName = fmt::format("Tasks/", name);
+            util::setThreadName(plName.c_str());
+
+            spdlog::debug("Task \"{}\" started", name);
+            const auto before = std::chrono::high_resolution_clock::now();
+            func(progress);
+            const auto after = std::chrono::high_resolution_clock::now();
+            spdlog::debug("Task \"{}\" finished", name);
+
+            *progress = 1.f;
+            return std::chrono::duration_cast<std::chrono::microseconds>(after - before);
+        })) {
+    }
+
+    bool RunningTask::isDone() const {
+        return future.wait_for(std::chrono::microseconds(0)) == std::future_status::ready;
+    }
+
+    std::chrono::microseconds RunningTask::finish() {
+        return future.get();
+    }
+
     Task::Task(std::string name, const std::function<void()>& taskFunctionNoProgress, bool autostart) :
         Task(
-                std::move(name), [taskFunctionNoProgress](float* ignore) { taskFunctionNoProgress(); }, autostart) {
+                std::move(name),
+                [taskFunctionNoProgress](float* ignore) {
+                    taskFunctionNoProgress();
+                },
+                autostart) {
         progress = 0.5;
     }
 
     Task::Task(std::string name, std::function<void(float*)> taskFunction, bool autostart) :
-        name(std::move(name)), function(std::move(taskFunction)) {
+        name(std::move(name)),
+        function(std::move(taskFunction)) {
         if (autostart) {
             startThread();
         }
@@ -22,39 +50,24 @@ namespace bricksim {
     }
 
     void Task::startThread() {
-        spdlog::info("starting task {}", name);
-        thread = std::thread([this]() {//todo try to convert this to std::future
-            spdlog::debug("thread of task {} started", name);
-            const std::string plName = fmt::format("Tasks/", name);
-            util::setThreadName(plName.c_str());
+        runningTask = std::make_optional<RunningTask>(function, &progress, name);
 
-            auto before = std::chrono::high_resolution_clock::now();
-            function(&progress);
-            auto after = std::chrono::high_resolution_clock::now();
-            spdlog::debug("thread of task {} ready for join", name);
-
-            progress = 1;
-            duration_us.store(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count());
-            is_done.store(true);
-        });
         if (!config::get(config::THREADING_ENABLED)) {
-            while (!isDone()) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            }
+            joinThread();
         }
     }
 
     void Task::joinThread() {
-        thread->join();
-        spdlog::info("thread of task {} joined. task used {}ms.", name, static_cast<float>(duration_us) / 1000.f);
+        const auto duration = runningTask->finish();
+        spdlog::info("thread of task {} joined. task used {}ms.", name, static_cast<float>(duration.count()) / 1000.f);
     }
 
     bool Task::isStarted() const {
-        return thread.has_value();
+        return runningTask.has_value();
     }
 
     bool Task::isDone() const {
-        return is_done;
+        return runningTask->isDone();
     }
 
     float Task::getProgress() const {
@@ -68,17 +81,13 @@ namespace bricksim {
     Task::Task(Task&& other) noexcept :
         name(std::move(other.name)),
         function(std::move(other.function)),
-        thread(std::move(other.thread)),
-        is_done(other.is_done.load()),
-        duration_us(other.duration_us.load()),
+        runningTask(std::move(other.runningTask)),
         progress(other.progress) {}
 
     Task& Task::operator=(Task&& other) noexcept {
         name = std::move(other.name);
         function = std::move(other.function);
-        thread = std::move(other.thread);
-        is_done = other.is_done.load();
-        duration_us = other.duration_us.load();
+        runningTask = std::move(other.runningTask);
         progress = other.progress;
         return *this;
     }

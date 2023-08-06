@@ -3,9 +3,16 @@
 #include <functional>
 #include <optional>
 #include <string>
-#include <thread>
+#include <future>
 
 namespace bricksim {
+    class RunningTask {
+        std::future<std::chrono::microseconds> future;
+    public:
+        bool isDone() const;
+        std::chrono::microseconds finish();
+        RunningTask(const std::function<void(float*)>& func, float* progress, const std::string& name);
+    };
     class Task {
     public:
         Task(std::string name, std::function<void(float*)> taskFunction, bool autostart = false);
@@ -26,9 +33,9 @@ namespace bricksim {
     private:
         std::string name;
         std::function<void(float*)> function;
-        std::optional<std::thread> thread;
-        std::atomic<bool> is_done{false};
-        std::atomic<long> duration_us{0};
+        std::optional<RunningTask> runningTask;
+        //std::atomic<bool> is_done{false};
+        //std::atomic<long> duration_us{0};
         float progress = 0;
     };
 }

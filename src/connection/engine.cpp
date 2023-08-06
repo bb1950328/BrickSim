@@ -3,6 +3,7 @@
 #include "../editor.h"
 #include "../helpers/custom_hash.h"
 #include "../helpers/glm_eigen_conversion.h"
+#include "connection_check.h"
 #include "connector_data_provider.h"
 #include "pair_checker.h"
 #include "spdlog/fmt/ostr.h"
@@ -201,20 +202,12 @@ namespace bricksim::connection {
     void Engine::handleBroadphaseCollision(const broadphase_collision_pair_t& item) {
         const auto nodeA = std::dynamic_pointer_cast<etree::MeshNode>(convertRawNodePtr(item[0]->getUserData()));
         const auto nodeB = std::dynamic_pointer_cast<etree::MeshNode>(convertRawNodePtr(item[1]->getUserData()));
-        const auto& connectorsA = getConnectorsOfNode(nodeA);
-        const auto& connectorsB = getConnectorsOfNode(nodeB);
 
         //spdlog::debug("broadphase collision {} <--> {}", nodeA->displayName, nodeB->displayName);
 
-        //todo use algorithm in connection_check.cpp for this (measure performance impact)
-        for (const auto& ca: *connectorsA) {
-            const PairCheckData aData(nodeA, ca);
-            for (const auto& cb: *connectorsB) {
-                const PairCheckData bData(nodeB, cb);
-                ConnectionGraphPairChecker checker(aData, bData, graph);
-                checker.findConnections();
-            }
-        }
+        ConnectionGraphPairCheckResultConsumer result(nodeA, nodeB, graph);
+        ConnectionCheck connCheck(result);
+        connCheck.checkForConnected(nodeA, nodeB);
     }
     const ConnectionGraph& Engine::getGraph() const {
         return graph;

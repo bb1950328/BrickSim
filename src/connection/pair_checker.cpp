@@ -2,11 +2,12 @@
 #include "../helpers/geometry.h"
 
 namespace bricksim::connection {
-    PairChecker::PairChecker(const PairCheckData& a, const PairCheckData& b) :
+    PairChecker::PairChecker(const PairCheckData& a, const PairCheckData& b, PairCheckResultConsumer& resultConsumer) :
         a(a),
         b(b),
         sameDir(glm::length2(glm::cross(a.absDirection, b.absDirection)) < PARALLELITY_ANGLE_TOLERANCE_SQUARED),
-        oppositeDir(!sameDir && glm::length2(glm::cross(-a.absDirection, b.absDirection)) < PARALLELITY_ANGLE_TOLERANCE_SQUARED) {
+        oppositeDir(!sameDir && glm::length2(glm::cross(-a.absDirection, b.absDirection)) < PARALLELITY_ANGLE_TOLERANCE_SQUARED),
+        resultConsumer(resultConsumer) {
     }
     void PairChecker::findConnections() {
         using Type = Connector::Type;
@@ -243,7 +244,7 @@ namespace bricksim::connection {
         addConnection(dof);
     }
     void PairChecker::addConnection(DegreesOfFreedom dof) {
-        addConnection(a.connector, b.connector, dof);
+        resultConsumer.addConnection(a.connector, b.connector, dof);
     }
     PairCheckData::PairCheckData(const std::shared_ptr<etree::MeshNode>& node,
                                  const glm::mat4& absTransformation,
@@ -282,15 +283,17 @@ namespace bricksim::connection {
                                  const std::shared_ptr<Connector>& connector) :
         PairCheckData(nullptr, absTransformation, connector) {
     }
-    ConnectionGraphPairChecker::ConnectionGraphPairChecker(const PairCheckData& a, const PairCheckData& b, ConnectionGraph& result) :
-        PairChecker(a, b), result(result) {
+
+    void ConnectionGraphPairCheckResultConsumer::addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) {
+        result.addConnection(nodeA, nodeB, std::make_shared<Connection>(connectorA, connectorB, dof));
     }
-    void ConnectionGraphPairChecker::addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) {
-        result.addConnection(a.node, b.node, std::make_shared<Connection>(connectorA, connectorB, dof));
-    }
-    void VectorPairChecker::addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) {
+    ConnectionGraphPairCheckResultConsumer::ConnectionGraphPairCheckResultConsumer(const ConnectionGraph::node_t& nodeA, const ConnectionGraph::node_t& nodeB, ConnectionGraph& result) :
+        nodeA(nodeA), nodeB(nodeB), result(result) {}
+    void VectorPairCheckResultConsumer::addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) {
         result.push_back({connectorA, connectorB});
     }
-    VectorPairChecker::VectorPairChecker(const PairCheckData& a, const PairCheckData& b, std::vector<std::array<std::shared_ptr<Connector>, 2>>& result) :
-        PairChecker(a, b), result(result) {}
+
+    const std::vector<std::array<std::shared_ptr<Connector>, 2>>& VectorPairCheckResultConsumer::getResult() const {
+        return result;
+    }
 }

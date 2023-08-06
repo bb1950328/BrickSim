@@ -22,12 +22,18 @@ namespace bricksim::connection {
         PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<Connector>& connector);
     };
 
+    class PairCheckResultConsumer {
+    public:
+        virtual void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) = 0;
+    };
+
     /**
      * this class checks if two specific connectors of two specific parts are connected
      */
     class PairChecker {
         const bool sameDir;
         const bool oppositeDir;
+        PairCheckResultConsumer& resultConsumer;
 
         void findGenericGeneric();
         void findCylCyl();
@@ -40,30 +46,31 @@ namespace bricksim::connection {
         const PairCheckData& a;
         const PairCheckData& b;
         void addConnection(DegreesOfFreedom dof);
-        virtual void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) = 0;
 
     public:
-        PairChecker(const PairCheckData& a, const PairCheckData& b);
+        PairChecker(const PairCheckData& a, const PairCheckData& b, PairCheckResultConsumer& resultConsumer);
         void findConnections();
     };
 
-    class ConnectionGraphPairChecker : public PairChecker {
+    class ConnectionGraphPairCheckResultConsumer : public PairCheckResultConsumer {
+        const ConnectionGraph::node_t& nodeA;
+        const ConnectionGraph::node_t& nodeB;
         ConnectionGraph& result;
 
     protected:
         void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) override;
 
     public:
-        ConnectionGraphPairChecker(const PairCheckData& a, const PairCheckData& b, ConnectionGraph& result);
+        ConnectionGraphPairCheckResultConsumer(const ConnectionGraph::node_t& nodeA, const ConnectionGraph::node_t& nodeB, ConnectionGraph& result);
     };
 
-    class VectorPairChecker : public PairChecker {
-        std::vector<std::array<std::shared_ptr<Connector>, 2>>& result;
+    class VectorPairCheckResultConsumer : public PairCheckResultConsumer {
+        std::vector<std::array<std::shared_ptr<Connector>, 2>> result;
 
     protected:
         void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) override;
 
     public:
-        VectorPairChecker(const PairCheckData& a, const PairCheckData& b, std::vector<std::array<std::shared_ptr<Connector>, 2>>& result);
+        const std::vector<std::array<std::shared_ptr<Connector>, 2>>& getResult() const;
     };
 }

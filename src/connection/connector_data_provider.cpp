@@ -13,10 +13,12 @@ namespace bricksim::connection {
         void removeConnected(connector_container_t& connectors) {
             //todo handle partially used connectors
             // for example the two dark gray 3L pins on the 911 hood
-            const auto connected = getConnectedConnectors(connectors);
+            VectorPairCheckResultConsumer result;
+            ConnectionCheck connCheck(result);
+            connCheck.checkForConnected(connectors);
             uoset_t<std::shared_ptr<Connector>> connectedSet;
-            connectedSet.reserve(connected.size());
-            for (const auto& item: connected) {
+            connectedSet.reserve(result.getResult().size());
+            for (const auto& item: result.getResult()) {
                 for (const auto& c: item) {
                     connectedSet.insert(c);
                 }

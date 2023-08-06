@@ -15,6 +15,7 @@
 #include "spdlog/spdlog.h"
 #include "window_debug.h"
 #include "window_mesh_inspector.h"
+#include <fstream>
 #include <future>
 #include <sstream>
 #include <tinyfiledialogs.h>
@@ -431,7 +432,7 @@ namespace bricksim::gui::windows::debug {
                         ImGui::Text("select one or two parts to see its connections");
                     }
                     if (graphviz_wrapper::isAvailable()) {
-                        if (ImGui::Button("Export all Connections with GraphViz")) {
+                        if (ImGui::Button(ICON_FA_DIAGRAM_PROJECT " Export all Connections with GraphViz")) {
                             char const* outputPathChars = tinyfd_saveFileDialog(
                                     "Export Connection Graph",
                                     "connections.png",
@@ -453,14 +454,31 @@ namespace bricksim::gui::windows::debug {
                             }
                         }
                     } else {
-                        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-                        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * .5f);
+                        ImGui::BeginDisabled();
                         ImGui::Button("Export all Connections with GraphViz");
                         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
                             ImGui::SetTooltip("GraphViz could not be detected");
                         }
-                        ImGui::PopItemFlag();
-                        ImGui::PopStyleVar();
+                        ImGui::EndDisabled();
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button(ICON_FA_CLIPBOARD_LIST " Export all Connections to CSV")) {
+                        const char* filterPatterns = {".csv"};
+                        char const* outputPathChars = tinyfd_saveFileDialog(
+                                "Export Connection Data",
+                                "connections.csv",
+                                1,
+                                &filterPatterns,
+                                nullptr);
+                        std::ofstream csv(outputPathChars);
+                        for (const auto& [nA, listA]: engine.getGraph().getAdjacencyLists()) {
+                            for (const auto& [nB, listB]: listA) {
+                                for (const auto& edge: listB) {
+                                    csv << fmt::format("{};{};", fmt::ptr(nA.get()), fmt::ptr(nB.get()));
+                                    csv << fmt::format("{} {}\n", edge->connectorA->infoStr(), edge->connectorB->infoStr());
+                                }
+                            }
+                        }
                     }
                 }
                 ImGui::EndTabItem();

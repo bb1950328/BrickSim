@@ -120,10 +120,15 @@ namespace bricksim::ldr::file_repo {
 
     std::shared_ptr<File> FileRepo::getFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name) {
         plFunction();
-        auto nsFiles = ldrFiles[fileNamespace];
-        auto it = nsFiles.find(stringutil::asLower(name));
-        if (it != nsFiles.end()) {
-            return it->second.second;
+        {
+            plLockWait("FileRepo::ldrFilesMtx");
+            std::scoped_lock<std::mutex> lg(ldrFilesMtx);
+            plLockScopeState("FileRepo::ldrFilesMtx", true);
+            auto nsFiles = ldrFiles[fileNamespace];
+            auto it = nsFiles.find(stringutil::asLower(name));
+            if (it != nsFiles.end()) {
+                return it->second.second;
+            }
         }
         if (fileNamespace == nullptr) {
             if (db::fileList::getSize() == 0) {
@@ -442,11 +447,17 @@ namespace bricksim::ldr::file_repo {
     }
 
     bool FileRepo::hasFileCached(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name) {
+        plLockWait("FileRepo::ldrFilesMtx");
+        std::scoped_lock<std::mutex> lg(ldrFilesMtx);
+        plLockScopeState("FileRepo::ldrFilesMtx", true);
         auto nsFiles = ldrFiles[fileNamespace];
         return nsFiles.find(name) != nsFiles.end() || (fileNamespace != nullptr && hasFileCached(nullptr, name));
     }
 
     void FileRepo::changeFileName(const std::shared_ptr<FileNamespace>& fileNamespace, const std::shared_ptr<File>& file, const std::string& newName) {
+        plLockWait("FileRepo::ldrFilesMtx");
+        std::scoped_lock<std::mutex> lg(ldrFilesMtx);
+        plLockScopeState("FileRepo::ldrFilesMtx", true);
         auto nsFiles = ldrFiles[fileNamespace];
         auto it = nsFiles.find(file->metaInfo.name);
         if (it == nsFiles.end()) {
@@ -461,6 +472,9 @@ namespace bricksim::ldr::file_repo {
     }
 
     std::shared_ptr<File> FileRepo::reloadFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name) {
+        plLockWait("FileRepo::ldrFilesMtx");
+        std::scoped_lock<std::mutex> lg(ldrFilesMtx);
+        plLockScopeState("FileRepo::ldrFilesMtx", true);
         auto nsFiles = ldrFiles[fileNamespace];
         auto it = nsFiles.find(name);
         if (it != nsFiles.end()) {
@@ -473,6 +487,9 @@ namespace bricksim::ldr::file_repo {
         return ldrFiles;
     }
     std::shared_ptr<FileNamespace> FileRepo::getNamespace(const std::string& name) {
+        plLockWait("FileRepo::ldrFilesMtx");
+        std::scoped_lock<std::mutex> lg(ldrFilesMtx);
+        plLockScopeState("FileRepo::ldrFilesMtx", true);
         for (const auto& [key, map]: ldrFiles) {
             if (key->name == name) {
                 return key;

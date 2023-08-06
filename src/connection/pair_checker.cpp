@@ -246,14 +246,14 @@ namespace bricksim::connection {
     void PairChecker::addConnection(DegreesOfFreedom dof) {
         resultConsumer.addConnection(a.connector, b.connector, dof);
     }
-    PairCheckData::PairCheckData(const std::shared_ptr<etree::MeshNode>& node,
-                                 const glm::mat4& absTransformation,
-                                 const std::shared_ptr<Connector>& connector) :
-        node(node),
+    PairCheckData::PairCheckData(const glm::mat4& absTransformation,
+                                 const std::shared_ptr<Connector>& connector,
+                                 const glm::vec3 absStart,
+                                 const glm::vec3 absDirection) :
         absTransformation(absTransformation),
-        absStart(absTransformation * glm::vec4(connector->start, 1.f)),
+        absStart(absStart),
         absEnd(absStart),
-        absDirection(absTransformation * glm::vec4(connector->direction, 0.f)),
+        absDirection(absDirection),
         connector(connector) {
         switch (connector->type) {
             case Connector::Type::CYLINDRICAL:
@@ -276,12 +276,13 @@ namespace bricksim::connection {
 
     PairCheckData::PairCheckData(const std::shared_ptr<etree::MeshNode>& node,
                                  const std::shared_ptr<Connector>& connector) :
-        PairCheckData(node, glm::transpose(node->getAbsoluteTransformation()), connector) {
+        PairCheckData(glm::transpose(node->getAbsoluteTransformation()), connector) {
     }
-
-    PairCheckData::PairCheckData(const glm::mat4& absTransformation,
-                                 const std::shared_ptr<Connector>& connector) :
-        PairCheckData(nullptr, absTransformation, connector) {
+    PairCheckData::PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<Connector>& connector) :
+        PairCheckData(absTransformation,
+                      connector,
+                      absTransformation * glm::vec4(connector->start, 1.f),
+                      absTransformation * glm::vec4(connector->direction, 0.f)) {
     }
 
     void ConnectionGraphPairCheckResultConsumer::addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) {

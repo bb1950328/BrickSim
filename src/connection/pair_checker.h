@@ -4,7 +4,6 @@
 namespace bricksim::connection {
 
     struct PairCheckData {
-        const std::shared_ptr<etree::MeshNode>& node;
         glm::mat4 absTransformation;
         glm::vec3 absStart;
         glm::vec3 absEnd;//=absStart for connectors that do not have a length
@@ -15,11 +14,15 @@ namespace bricksim::connection {
         FingerConnector* finger;
         GenericConnector* generic;
 
-        PairCheckData(const std::shared_ptr<etree::MeshNode>& node, const glm::mat4& absTransformation, const std::shared_ptr<Connector>& connector);
+        PairCheckData(const glm::mat4& absTransformation,
+                      const std::shared_ptr<Connector>& connector,
+                      const glm::vec3 absStart,
+                      const glm::vec3 absDirection);
+        PairCheckData(const glm::mat4& absTransformation,
+                      const std::shared_ptr<Connector>& connector);
 
-        PairCheckData(const std::shared_ptr<etree::MeshNode>& node, const std::shared_ptr<Connector>& connector);
-
-        PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<Connector>& connector);
+        PairCheckData(const std::shared_ptr<etree::MeshNode>& node,
+                      const std::shared_ptr<Connector>& connector);
     };
 
     class PairCheckResultConsumer {

@@ -361,8 +361,12 @@ namespace bricksim::ldr {
         if (firstLine) {
             title = stringutil::trim(line);
             firstLine = false;
-        } else if (name.empty() && line.starts_with("Name:")) {
-            name = stringutil::trim(line.substr(5));
+        } else if (line.starts_with("Name:")) {
+            const auto lineName = stringutil::trim(line.substr(5));
+            if (name.empty()) {
+                name = lineName;
+            }
+            return lineName == name;
         } else if (author.empty() && line.starts_with("Author:")) {
             author = stringutil::trim(line.substr(7));
         } else if (headerCategory->empty() && line.starts_with("!CATEGORY")) {

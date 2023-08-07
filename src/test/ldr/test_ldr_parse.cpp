@@ -119,7 +119,7 @@ TEST_CASE("ldr::readSimpleFile with MetaInfo") {
                                      "",
                                      FileType::PART,
                                      "0 TitleXYZ\n"
-                                     "0 Name: NameXYZ\n"
+                                     "0 Name: filename.ldr\n"
                                      "0 Author: AuthorXYZ\n"
                                      "0 !LDRAW_ORG Part UPDATE 2021-123\n"
                                      "0 !LICENSE LicenseXYZ\n"
@@ -131,7 +131,7 @@ TEST_CASE("ldr::readSimpleFile with MetaInfo") {
                                      "0 Content",
                                      {});
     CHECK(file->metaInfo.title == "TitleXYZ");
-    CHECK(file->metaInfo.name == "NameXYZ");
+    CHECK(file->metaInfo.name == "filename.ldr");
     CHECK(file->metaInfo.author == "AuthorXYZ");
     CHECK(file->metaInfo.fileTypeLine == "Part UPDATE 2021-123");
     CHECK(file->metaInfo.license == "LicenseXYZ");

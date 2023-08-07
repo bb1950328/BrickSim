@@ -67,7 +67,7 @@ namespace bricksim::connection {
         }
         pstr.pop_back();
         pstr.pop_back();
-        return fmt::format("cylindrical[parts=[{}], group={}, openStart={}, openEnd={}, slide={}, start={}, direction={}]", pstr, group, openStart, openEnd, slide, stringutil::formatGLM(start), stringutil::formatGLM(direction));
+        return fmt::format("cylindrical[gender={}, group={}, openStart={}, openEnd={}, slide={}, start={}, direction={}, parts=[{}]]", magic_enum::enum_name(gender), group, openStart, openEnd, slide, stringutil::formatGLM(start), stringutil::formatGLM(direction), pstr);
     }
     bool CylindricalConnector::operator==(const CylindricalConnector& rhs) const {
         return static_cast<const bricksim::connection::Connector&>(*this) == static_cast<const bricksim::connection::Connector&>(rhs)

@@ -23,14 +23,17 @@ namespace bricksim::connection {
         }
         BaseConnectorGrouping::BaseConnectorGrouping(DirectionsContainer& directions) :
             directions(directions) {}
+
         void BaseConnectorGrouping::addGendered(const std::shared_ptr<Connector>& connector, Gender gender) {
-            const auto dirIdx = directions.gendered.getIndex(transformation * glm::vec4(connector->direction, 0.f));
+            const auto absDir = transformation * glm::vec4(connector->direction, 0.f);
+            const auto dirIdx = directions.gendered.getIndex(absDir);
             updateContainers();
             auto& v = gendered[*magic_enum::enum_index(gender)];
             v[dirIdx].push_back(connector);
         }
         void BaseConnectorGrouping::addUngendered(const std::shared_ptr<Connector>& connector) {
-            const auto dirIdx = directions.gendered.getIndex(transformation * glm::vec4(connector->direction, 0.f));
+            const auto absDir = transformation * glm::vec4(connector->direction, 0.f);
+            const auto dirIdx = directions.gendered.getIndex(absDir);
             updateContainers();
             ungendered[dirIdx].push_back(connector);
         }
@@ -70,14 +73,13 @@ namespace bricksim::connection {
             }) {
         }
         std::size_t DirectionSet::getIndex(const glm::vec3& direction) {
-            std::size_t dirIdx = 0;
-            while (dirIdx < size() && geometry::isAlmostColinear(at(dirIdx), direction)) {
-                ++dirIdx;
+            for (std::size_t i = 0; i < size(); ++i) {
+                if (geometry::isAlmostColinear(at(i), direction)) {
+                    return i;
+                }
             }
-            if (dirIdx == size()) {
-                push_back(direction);
-            }
-            return dirIdx;
+            push_back(direction);
+            return size() - 1;
         }
     }
 

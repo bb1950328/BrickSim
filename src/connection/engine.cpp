@@ -4,7 +4,6 @@
 #include "../helpers/custom_hash.h"
 #include "../helpers/glm_eigen_conversion.h"
 #include "connection_check.h"
-#include "connector_data_provider.h"
 #include "pair_checker.h"
 #include "spdlog/fmt/ostr.h"
 #include "spdlog/spdlog.h"
@@ -23,7 +22,7 @@ namespace bricksim::connection {
         if (lastEditingModel != editingModel && editingModel->getType() == etree::NodeType::TYPE_MODEL) {
             resetData();
         }
-        const auto& nodes = editingModel->getChildren();
+        /*const auto& nodes = editingModel->getChildren();
         for (std::size_t i = 0; i < nodes.size(); ++i) {
             const auto it = nodeData.find(nodes[i]);
             if (it == nodeData.end()) {
@@ -32,7 +31,8 @@ namespace bricksim::connection {
                 updateNodeData(nodes[i], it);
             }
             *progress = progressMultiplicator * i / nodes.size();
-        }
+        }*/
+        updateNodeData(editingModel);//todo update progress
 
         lastEditingModel = editingModel;
         *progress = progressMultiplicator;
@@ -140,10 +140,11 @@ namespace bricksim::connection {
         uoset_t<broadphase_collision_pair_t> newIntersections;
         for (const auto& item: outdatedInGraphs) {
             const auto it = nodeData.find(item);
-            assert(it != nodeData.end());
-            const auto& data = it->second;
-            if (data.collisionObj != nullptr) {
-                manager.collide(data.collisionObj.get(), static_cast<void*>(&newIntersections), updateCallback);
+            if (it != nodeData.end()) {
+                const auto& data = it->second;
+                if (data.collisionObj != nullptr) {
+                    manager.collide(data.collisionObj.get(), static_cast<void*>(&newIntersections), updateCallback);
+                }
             }
         }
 

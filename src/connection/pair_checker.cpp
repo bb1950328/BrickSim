@@ -92,6 +92,8 @@ namespace bricksim::connection {
         if (aBoundaries.front() >= bBoundaries.front()) {
             bCursor = 0;
         }
+        bool completelyUsedA = aBoundaries.front() > bBoundaries.front();
+        bool completelyUsedB = bBoundaries.front() > aBoundaries.front();
         bool radialCollision = false;
         bool rotationPossible = true;
         bool contact = false;
@@ -127,8 +129,8 @@ namespace bricksim::connection {
         if (radialCollision || !contact) {
             return;
         }
-        const auto completelyUsedA = static_cast<unsigned int>(aCursor) >= aBoundaries.size() - 2;
-        const auto completelyUsedB = static_cast<unsigned int>(bCursor) >= bBoundaries.size() - 2;
+        completelyUsedA &= static_cast<unsigned int>(aCursor) >= aBoundaries.size() - 2;
+        completelyUsedB &= static_cast<unsigned int>(bCursor) >= bBoundaries.size() - 2;
         DegreesOfFreedom dof;
         if (slidePossible) {
             dof.slideDirections.push_back(a.absDirection);

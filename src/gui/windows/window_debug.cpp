@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 
+#include "../../connection/connection_check.h"
 #include "../../connection/visualization/connection_graphviz_generator.h"
 #include "../../helpers/graphviz_wrapper.h"
 #include "imgui_internal.h"
@@ -304,6 +305,28 @@ namespace bricksim::gui::windows::debug {
             }
         }
 
+        void drawConnections(const std::vector<std::shared_ptr<connection::Connection>>& connsToOtherNode) {
+            uint64_t i = 1;
+            for (const auto& item: connsToOtherNode) {
+                if (ImGui::TreeNode(fmt::format("Connection {}", i).c_str())) {
+                    ImGui::BulletText("A: %s", item->connectorA->infoStr().c_str());
+                    ImGui::BulletText("B: %s", item->connectorB->infoStr().c_str());
+                    for (const auto& ra: item->degreesOfFreedom.rotationPossibilities) {
+                        ImGui::BulletText("Rotation possibility: origin=%s, axis=%s",
+                                          stringutil::formatGLM(ra.origin).c_str(),
+                                          stringutil::formatGLM(ra.axis).c_str());
+                    }
+                    for (const auto& sd: item->degreesOfFreedom.slideDirections) {
+                        ImGui::BulletText("Slide direction: %s", stringutil::formatGLM(sd).c_str());
+                    }
+                    ImGui::BulletText("Completely used: %s%s",
+                                      item->completelyUsedConnector[0] ? "A" : "",
+                                      item->completelyUsedConnector[1] ? "B" : "");
+                    ImGui::TreePop();
+                }
+                ++i;
+            }
+        }
         void drawConnectionTab() {
             if (ImGui::BeginTabItem("Connections")) {
                 const auto activeEditor = controller::getActiveEditor();
@@ -358,23 +381,7 @@ namespace bricksim::gui::windows::debug {
                         for (const auto& [otherNode, connsToOtherNode]: connectionsToNode) {
                             std::string id = fmt::format("{} {}", otherNode->displayName, stringutil::formatGLM(otherNode->getAbsoluteTransformation()));
                             if (ImGui::TreeNode(id.c_str(), "%p %s", otherNode.get(), otherNode->displayName.c_str())) {
-                                uint64_t i = 1;
-                                for (const auto& item: connsToOtherNode) {
-                                    if (ImGui::TreeNode(fmt::format("Connection {}", i).c_str())) {
-                                        ImGui::BulletText("A: %s", item->connectorA->infoStr().c_str());
-                                        ImGui::BulletText("B: %s", item->connectorB->infoStr().c_str());
-                                        for (const auto& ra: item->degreesOfFreedom.rotationPossibilities) {
-                                            ImGui::BulletText("Rotation possibility: origin=%s, axis=%s",
-                                                              stringutil::formatGLM(ra.origin).c_str(),
-                                                              stringutil::formatGLM(ra.axis).c_str());
-                                        }
-                                        for (const auto& sd: item->degreesOfFreedom.slideDirections) {
-                                            ImGui::BulletText("Slide direction: %s", stringutil::formatGLM(sd).c_str());
-                                        }
-                                        ImGui::TreePop();
-                                    }
-                                    ++i;
-                                }
+                                drawConnections(connsToOtherNode);
                                 ImGui::TreePop();
                             }
                         }
@@ -382,14 +389,19 @@ namespace bricksim::gui::windows::debug {
                         const auto intersects = engine.getIntersections().hasEdge(ldrNodes[0], ldrNodes[1]);
                         const auto& connections = engine.getConnections().getConnections(ldrNodes[0], ldrNodes[1]);
                         if (connections.empty()) {
-                            ImGui::Text(intersects
-                                                ? "The two selected nodes intersect, but have no connections."
-                                                : "The two selected nodes do not intersect.");
+                            if (intersects) {
+                                ImGui::Text("The two selected nodes intersect, but have no connections.");
+                                if (ImGui::Button("Recheck...")) {
+                                    connection::VectorPairCheckResultConsumer resCon;
+                                    connection::ConnectionCheck check(resCon);
+                                    check.checkForConnected(ldrNodes[0], ldrNodes[1]);
+                                }
+                            } else {
+                                ImGui::Text("The two selected nodes do not intersect.");
+                            }
                         } else {
                             ImGui::Text("%lu connections between the two selected parts", connections.size());
-                            for (const auto& c: connections) {
-                                ImGui::BulletText("%s <-> %s", c->connectorA->infoStr().c_str(), c->connectorB->infoStr().c_str());
-                            }
+                            drawConnections(connections);
                         }
                     } else {
                         if (ImGui::TreeNodeEx("Intersections")) {

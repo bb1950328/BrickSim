@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <memory>
+#include <string>
 
 namespace bricksim::connection {
     enum class Gender {

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "../graphics/mesh/mesh_collection.h"
-#include "data.h"
+#include "connection.h"
+#include "connection_graph.h"
 #include "fcl/broadphase/broadphase_dynamic_AABB_tree.h"
 
 namespace bricksim {

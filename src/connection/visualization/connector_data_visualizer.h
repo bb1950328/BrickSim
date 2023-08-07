@@ -1,7 +1,11 @@
 #pragma once
 
 #include "../../element_tree.h"
-#include "../data.h"
+#include "../connection.h"
+#include "../connector/clip.h"
+#include "../connector/cylindrical.h"
+#include "../connector/finger.h"
+#include "../connector/generic.h"
 
 namespace bricksim::connection::visualization {
     class VisualizationGenerator {

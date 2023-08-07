@@ -1,4 +1,8 @@
 #include "window_ldraw_file_inspector.h"
+#include "../../connection/connector/clip.h"
+#include "../../connection/connector/cylindrical.h"
+#include "../../connection/connector/finger.h"
+#include "../../connection/connector/generic.h"
 #include "../../connection/connector_data_provider.h"
 #include "../../controller.h"
 #include "../../element_tree.h"

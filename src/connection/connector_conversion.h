@@ -1,5 +1,6 @@
 #pragma once
-#include "data.h"
+#include "../ldr/files.h"
+#include "connection.h"
 #include "ldcad_meta/clear_command.h"
 #include "ldcad_meta/clp_command.h"
 #include "ldcad_meta/cyl_command.h"

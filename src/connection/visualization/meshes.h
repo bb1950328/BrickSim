@@ -1,7 +1,8 @@
 #pragma once
 
 #include "../../graphics/mesh/mesh_generated.h"
-#include "../data.h"
+#include "../connection.h"
+#include "../connector/cylindrical.h"
 #include <cstdint>
 
 namespace bricksim::connection::visualization {

@@ -1,6 +1,10 @@
 #include "connector_conversion.h"
 #include "../helpers/geometry.h"
 #include "../ldr/file_repo.h"
+#include "connector/clip.h"
+#include "connector/cylindrical.h"
+#include "connector/finger.h"
+#include "connector/generic.h"
 #include <numeric>
 
 namespace bricksim::connection {

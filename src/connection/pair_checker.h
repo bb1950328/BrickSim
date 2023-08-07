@@ -1,6 +1,11 @@
 #pragma once
 
-#include "data.h"
+#include "connection.h"
+#include "connection_graph.h"
+#include "connector/clip.h"
+#include "connector/cylindrical.h"
+#include "connector/finger.h"
+#include "connector/generic.h"
 namespace bricksim::connection {
 
     struct PairCheckData {

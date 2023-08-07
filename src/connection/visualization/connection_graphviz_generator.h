@@ -1,7 +1,9 @@
 #pragma once
 
-#include "../data.h"
+#include "../connection.h"
+#include "../connection_graph.h"
 #include <string>
+
 namespace bricksim::connection::visualization {
     class GraphVizResult {
     public:

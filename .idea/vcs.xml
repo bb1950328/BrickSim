@@ -29,6 +29,7 @@
     <mapping directory="$PROJECT_DIR$/src/lib/esfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/fast_float" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/fcl" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/figcone" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/glfw" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/glm" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/imgui" vcs="Git" />
@@ -37,7 +38,6 @@
     <mapping directory="$PROJECT_DIR$/src/lib/palanteer" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/rapidjson" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/rapidjson/thirdparty/gtest" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/src/lib/robin-hood-hashing" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/spdlog" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/stb" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/tinyfiledialogs" vcs="Git" />

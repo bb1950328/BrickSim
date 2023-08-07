@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data.h"
+#include "connection.h"
 #include "magic_enum.hpp"
 #include "pair_checker.h"
 #include <array>

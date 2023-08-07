@@ -4,7 +4,6 @@
 #include "../helpers/custom_hash.h"
 #include "../helpers/glm_eigen_conversion.h"
 #include "connection_check.h"
-#include "connector_data_provider.h"
 #include "pair_checker.h"
 #include "spdlog/fmt/ostr.h"
 #include "spdlog/spdlog.h"

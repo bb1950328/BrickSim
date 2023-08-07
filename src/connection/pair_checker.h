@@ -32,7 +32,10 @@ namespace bricksim::connection {
 
     class PairCheckResultConsumer {
     public:
-        virtual void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) = 0;
+        virtual void addConnection(const std::shared_ptr<Connector>& connectorA,
+                                   const std::shared_ptr<Connector>& connectorB,
+                                   DegreesOfFreedom dof,
+                                   const std::array<bool, 2>& completelyUsedConnector) = 0;
     };
 
     /**
@@ -53,7 +56,7 @@ namespace bricksim::connection {
     protected:
         const PairCheckData& a;
         const PairCheckData& b;
-        void addConnection(DegreesOfFreedom dof);
+        void addConnection(DegreesOfFreedom dof, const std::array<bool, 2>& completelyUsedConnector);
 
     public:
         PairChecker(const PairCheckData& a, const PairCheckData& b, PairCheckResultConsumer& resultConsumer);
@@ -66,19 +69,18 @@ namespace bricksim::connection {
         ConnectionGraph& result;
 
     protected:
-        void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) override;
+        void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof, const std::array<bool, 2>& completelyUsedConnector) override;
 
     public:
         ConnectionGraphPairCheckResultConsumer(const ConnectionGraph::node_t& nodeA, const ConnectionGraph::node_t& nodeB, ConnectionGraph& result);
     };
 
     class VectorPairCheckResultConsumer : public PairCheckResultConsumer {
-        std::vector<std::array<std::shared_ptr<Connector>, 2>> result;
+    public:
+        const std::vector<Connection>& getResult() const;
 
     protected:
-        void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) override;
-
-    public:
-        const std::vector<std::array<std::shared_ptr<Connector>, 2>>& getResult() const;
+        std::vector<Connection> result;
+        void addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof, const std::array<bool, 2>& completelyUsedConnector) override;
     };
 }

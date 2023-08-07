@@ -11,22 +11,25 @@ namespace bricksim::connection {
         std::mutex cacheLock;
 
         void removeConnected(connector_container_t& connectors) {
-            //todo handle partially used connectors
-            // for example the two dark gray 3L pins on the 911 hood
             VectorPairCheckResultConsumer result;
             ConnectionCheck connCheck(result);
             connCheck.checkForConnected(connectors);
-            uoset_t<std::shared_ptr<Connector>> connectedSet;
-            connectedSet.reserve(result.getResult().size());
+            uoset_t<std::shared_ptr<Connector>> fullyConnectedSet;
+            fullyConnectedSet.reserve(result.getResult().size());
             for (const auto& item: result.getResult()) {
-                for (const auto& c: item) {
-                    connectedSet.insert(c);
+                if (item.completelyUsedConnector[0]) {
+                    fullyConnectedSet.insert(item.connectorA);
                 }
+                if (item.completelyUsedConnector[1]) {
+                    fullyConnectedSet.insert(item.connectorB);
+                }
+                //todo if the connector is only partially used, create a new connector of the part which is still free
+                // but this will be a complex algorithm
             }
             connectors.erase(std::remove_if(connectors.begin(),
                                             connectors.end(),
-                                            [&connectedSet](const auto c) {
-                                                return connectedSet.contains(c);
+                                            [&fullyConnectedSet](const auto c) {
+                                                return fullyConnectedSet.contains(c);
                                             }),
                              connectors.end());
         }

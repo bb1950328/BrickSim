@@ -35,7 +35,7 @@ namespace bricksim::connection {
             //todo maybe check bounding shapes, but documentation is unclear
             // is it a connection when the two bounding shapes touch
             // or is it only a connection when the shapes have the same dimensions and the orientation matches too?
-            addConnection({});
+            addConnection({}, {true, true});
         }
     }
     void PairChecker::findCylCyl() {
@@ -127,6 +127,8 @@ namespace bricksim::connection {
         if (radialCollision || !contact) {
             return;
         }
+        const auto completelyUsedA = static_cast<unsigned int>(aCursor) >= aBoundaries.size() - 2;
+        const auto completelyUsedB = static_cast<unsigned int>(bCursor) >= bBoundaries.size() - 2;
         DegreesOfFreedom dof;
         if (slidePossible) {
             dof.slideDirections.push_back(a.absDirection);
@@ -134,7 +136,7 @@ namespace bricksim::connection {
         if (rotationPossible) {
             dof.rotationPossibilities.emplace_back(a.absStart, a.absDirection);
         }
-        addConnection(dof);
+        addConnection(dof, {completelyUsedA, completelyUsedB});
     }
     std::optional<float> PairChecker::projectConnectorsWithLength(float aLength, float bLength) {
         const auto startDiff = b.absStart - a.absStart;
@@ -161,8 +163,12 @@ namespace bricksim::connection {
         if (!startOffsetOpt.has_value()) {
             return;
         }
+        bool completelyUsedA = true;
+        bool completelyUsedB = true;
+        const auto aFingerCount = static_cast<int>(a.finger->fingerWidths.size());
+        const auto bFingerCount = static_cast<int>(b.finger->fingerWidths.size());
         int aCursorIdx = 0;
-        int bCursorIdx = sameDir ? 0 : static_cast<int>(b.finger->fingerWidths.size()) - 1;
+        int bCursorIdx = sameDir ? 0 : bFingerCount - 1;
         const int bCursorStep = sameDir ? 1 : -1;
         const float aOffset = sameDir ? startOffsetOpt.value() : startOffsetOpt.value() - b.finger->totalWidth;
 
@@ -175,6 +181,7 @@ namespace bricksim::connection {
             if (offset < -POSITION_TOLERANCE_LDU) {
                 return;
             }
+            completelyUsedB = false;
         } else if (aOffset > POSITION_TOLERANCE_LDU) {
             float offset = aOffset;
             while (offset > POSITION_TOLERANCE_LDU) {
@@ -184,6 +191,7 @@ namespace bricksim::connection {
             if (offset < -POSITION_TOLERANCE_LDU) {
                 return;
             }
+            completelyUsedA = false;
         }
         if ((std::abs(aCursorIdx - bCursorIdx) % 2 == 0
              && a.finger->firstFingerGender == b.finger->firstFingerGender)
@@ -191,17 +199,25 @@ namespace bricksim::connection {
                 && a.finger->firstFingerGender != b.finger->firstFingerGender)) {
             return;
         }
-        while (aCursorIdx < static_cast<int>(a.finger->fingerWidths.size())
-               && bCursorIdx < static_cast<int>(b.finger->fingerWidths.size())) {
+        while (aCursorIdx < aFingerCount
+               && bCursorIdx < bFingerCount
+               && bCursorIdx >= 0) {
             if (std::abs(a.finger->fingerWidths[aCursorIdx] - b.finger->fingerWidths[bCursorIdx]) > POSITION_TOLERANCE_LDU) {
                 return;
             }
             ++aCursorIdx;
             bCursorIdx += bCursorStep;
         }
+        if (aCursorIdx < aFingerCount) {
+            completelyUsedA = false;
+        }
+        if ((sameDir && bCursorIdx < bFingerCount)
+            || (!sameDir && bCursorIdx >= 0)) {
+            completelyUsedB = false;
+        }
         DegreesOfFreedom dof;
         dof.rotationPossibilities.emplace_back(a.absStart, a.absDirection);
-        addConnection(dof);
+        addConnection(dof, {completelyUsedA, completelyUsedB});
     }
     void PairChecker::findClipCyl(const PairCheckData& clipData, const PairCheckData& cylData) {
         const auto clip = clipData.clip;
@@ -223,8 +239,11 @@ namespace bricksim::connection {
             offset -= cyl->parts[i].length;
             ++i;
         }
+        bool cylCompletelyUsed = i == 0;
+
         bool touching = false;
-        while (offset > -clip->width) {
+        const auto cylPartsCount = static_cast<int>(cyl->parts.size());
+        while (offset > -clip->width && i < cylPartsCount) {
             float radiusDiff = cyl->parts[i].radius - clip->radius;
             if (radiusDiff > CONNECTION_RADIUS_TOLERANCE) {
                 return;
@@ -233,6 +252,8 @@ namespace bricksim::connection {
             offset -= cyl->parts[i].length;
             ++i;
         }
+        cylCompletelyUsed &= i >= cylPartsCount - 1;
+        bool clipCompletelyUsed = offset < -clip->width;
         if (!touching) {
             return;
         }
@@ -241,11 +262,15 @@ namespace bricksim::connection {
         if (cyl->slide && clip->slide) {
             dof.slideDirections.push_back(cylData.absDirection);
         }
-        addConnection(dof);
+        const auto aCompletelyUsed = &cylData == &a ? cylCompletelyUsed : clipCompletelyUsed;
+        const auto bCompletelyUsed = &cylData == &a ? clipCompletelyUsed : cylCompletelyUsed;
+        addConnection(dof, {aCompletelyUsed, bCompletelyUsed});
     }
-    void PairChecker::addConnection(DegreesOfFreedom dof) {
-        resultConsumer.addConnection(a.connector, b.connector, dof);
+
+    void PairChecker::addConnection(DegreesOfFreedom dof, const std::array<bool, 2>& completelyUsedConnector) {
+        resultConsumer.addConnection(a.connector, b.connector, dof, completelyUsedConnector);
     }
+
     PairCheckData::PairCheckData(const glm::mat4& absTransformation,
                                  const std::shared_ptr<Connector>& connector,
                                  const glm::vec3 absStart,
@@ -278,6 +303,7 @@ namespace bricksim::connection {
                                  const std::shared_ptr<Connector>& connector) :
         PairCheckData(glm::transpose(node->getAbsoluteTransformation()), connector) {
     }
+
     PairCheckData::PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<Connector>& connector) :
         PairCheckData(absTransformation,
                       connector,
@@ -285,16 +311,26 @@ namespace bricksim::connection {
                       absTransformation * glm::vec4(connector->direction, 0.f)) {
     }
 
-    void ConnectionGraphPairCheckResultConsumer::addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) {
-        result.addConnection(nodeA, nodeB, std::make_shared<Connection>(connectorA, connectorB, dof));
-    }
-    ConnectionGraphPairCheckResultConsumer::ConnectionGraphPairCheckResultConsumer(const ConnectionGraph::node_t& nodeA, const ConnectionGraph::node_t& nodeB, ConnectionGraph& result) :
-        nodeA(nodeA), nodeB(nodeB), result(result) {}
-    void VectorPairCheckResultConsumer::addConnection(const std::shared_ptr<Connector>& connectorA, const std::shared_ptr<Connector>& connectorB, DegreesOfFreedom dof) {
-        result.push_back({connectorA, connectorB});
+    void ConnectionGraphPairCheckResultConsumer::addConnection(const std::shared_ptr<Connector>& connectorA,
+                                                               const std::shared_ptr<Connector>& connectorB,
+                                                               DegreesOfFreedom dof,
+                                                               const std::array<bool, 2>& completelyUsedConnector) {
+        result.addConnection(nodeA, nodeB, std::make_shared<Connection>(connectorA, connectorB, dof, completelyUsedConnector));
     }
 
-    const std::vector<std::array<std::shared_ptr<Connector>, 2>>& VectorPairCheckResultConsumer::getResult() const {
+    ConnectionGraphPairCheckResultConsumer::ConnectionGraphPairCheckResultConsumer(const ConnectionGraph::node_t& nodeA,
+                                                                                   const ConnectionGraph::node_t& nodeB,
+                                                                                   ConnectionGraph& result) :
+        nodeA(nodeA),
+        nodeB(nodeB), result(result) {}
+
+    void VectorPairCheckResultConsumer::addConnection(const std::shared_ptr<Connector>& connectorA,
+                                                      const std::shared_ptr<Connector>& connectorB,
+                                                      DegreesOfFreedom dof,
+                                                      const std::array<bool, 2>& completelyUsedConnector) {
+        result.push_back({connectorA, connectorB, dof, completelyUsedConnector});
+    }
+    const std::vector<Connection>& VectorPairCheckResultConsumer::getResult() const {
         return result;
     }
 }

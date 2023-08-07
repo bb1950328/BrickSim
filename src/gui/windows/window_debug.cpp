@@ -432,7 +432,7 @@ namespace bricksim::gui::windows::debug {
                         ImGui::Text("select one or two parts to see its connections");
                     }
                     if (graphviz_wrapper::isAvailable()) {
-                        if (ImGui::Button(ICON_FA_DIAGRAM_PROJECT " Export all Connections with GraphViz")) {
+                        if (ImGui::Button(ICON_FA_DIAGRAM_PROJECT " Render all Connections with GraphViz")) {
                             char const* outputPathChars = tinyfd_saveFileDialog(
                                     "Export Connection Graph",
                                     "connections.png",
@@ -461,7 +461,21 @@ namespace bricksim::gui::windows::debug {
                         }
                         ImGui::EndDisabled();
                     }
-                    ImGui::SameLine();
+
+                    if (ImGui::Button(ICON_FA_DOWNLOAD " Export all Connections as .dot")) {
+                        const char* filterPatterns = {".dot"};
+                        char const* outputPathChars = tinyfd_saveFileDialog(
+                                "Export Connection Data",
+                                "connections.dot",
+                                1,
+                                &filterPatterns,
+                                nullptr);
+                        auto graphvizCode = connection::visualization::generateGraphviz(engine.getGraph());
+                        graphvizCode.deleteTmpFiles = false;
+                        std::ofstream file(outputPathChars);
+                        file << graphvizCode.dotCode;
+                    }
+
                     if (ImGui::Button(ICON_FA_CLIPBOARD_LIST " Export all Connections to CSV")) {
                         const char* filterPatterns = {".csv"};
                         char const* outputPathChars = tinyfd_saveFileDialog(

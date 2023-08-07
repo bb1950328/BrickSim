@@ -13,6 +13,8 @@ target_sources(BrickSimLib PRIVATE
         connection.h
         engine.cpp
         engine.h
+        intersection_graph.cpp
+        intersection_graph.h
         pair_checker.cpp
         pair_checker.h
         )

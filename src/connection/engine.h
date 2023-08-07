@@ -4,6 +4,7 @@
 #include "connection.h"
 #include "connection_graph.h"
 #include "fcl/broadphase/broadphase_dynamic_AABB_tree.h"
+#include "intersection_graph.h"
 
 namespace bricksim {
     class Editor;
@@ -23,8 +24,9 @@ namespace bricksim::connection {
         Editor& editor;
         fcl::DynamicAABBTreeCollisionManagerf manager;
         uomap_t<std::shared_ptr<etree::Node>, NodeData> nodeData;
-        ConnectionGraph graph;
-        uoset_t<ConnectionGraph::node_t> outdatedInGraph;
+        IntersectionGraph intersections;
+        ConnectionGraph connections;
+        uoset_t<ConnectionGraph::node_t> outdatedInGraphs;
         std::shared_ptr<etree::Node> lastEditingModel;
 
         static constexpr bool partNodeCollsionOnly = false;
@@ -32,7 +34,7 @@ namespace bricksim::connection {
         void updateCollisionData(float* progress, float progressMultiplicator);
         void updateGraph(float* progress, float progressStart);
 
-        void handleBroadphaseCollision(const broadphase_collision_pair_t& item);
+        void handleNewIntersection(const broadphase_collision_pair_t& item);
 
         void resetData();
 
@@ -60,6 +62,10 @@ namespace bricksim::connection {
         void update(float* progress);
         void update();
 
-        const ConnectionGraph& getGraph() const;
+        const IntersectionGraph& getIntersections() const;
+        const ConnectionGraph& getConnections() const;
+
+        friend bool updateCallback(fcl::CollisionObjectf* o0, fcl::CollisionObjectf* o1, void* cdata);
+        void findConnectionsOfIntersectionRange(size_t iStart, size_t iEnd);
     };
 }

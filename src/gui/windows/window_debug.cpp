@@ -344,17 +344,22 @@ namespace bricksim::gui::windows::debug {
                     }
                     if (ldrNodes.size() == 1) {
                         const auto node = ldrNodes[0];
-                        const auto& connectionsToNode = engine.getGraph().getConnections(node);
+                        const auto& intersections = engine.getIntersections().getConnected(ldrNodes[0]);
+                        ImGui::Text("Selected node intersects %zu other nodes", intersections.size());
+                        for (const auto& item: intersections) {
+                            ImGui::BulletText("%p %s", item.get(), item->displayName.c_str());
+                        }
+                        const auto& connectionsToNode = engine.getConnections().getConnections(node);
                         size_t totalConnections = 0;
                         for (const auto& [_, conns]: connectionsToNode) {
                             totalConnections += conns.size();
                         }
-                        ImGui::Text("Selected Part is connected to %zu other parts via %zu connections", connectionsToNode.size(), totalConnections);
-                        for (const auto& c: connectionsToNode) {
-                            std::string id = fmt::format("{} {}", c.first->displayName, stringutil::formatGLM(c.first->getAbsoluteTransformation()));
-                            if (ImGui::TreeNode(id.c_str(), "%s", c.first->displayName.c_str())) {
+                        ImGui::Text("Selected node is connected to %zu other parts via %zu connections", connectionsToNode.size(), totalConnections);
+                        for (const auto& [otherNode, connsToOtherNode]: connectionsToNode) {
+                            std::string id = fmt::format("{} {}", otherNode->displayName, stringutil::formatGLM(otherNode->getAbsoluteTransformation()));
+                            if (ImGui::TreeNode(id.c_str(), "%p %s", otherNode.get(), otherNode->displayName.c_str())) {
                                 uint64_t i = 1;
-                                for (const auto& item: c.second) {
+                                for (const auto& item: connsToOtherNode) {
                                     if (ImGui::TreeNode(fmt::format("Connection {}", i).c_str())) {
                                         ImGui::BulletText("A: %s", item->connectorA->infoStr().c_str());
                                         ImGui::BulletText("B: %s", item->connectorB->infoStr().c_str());
@@ -374,62 +379,94 @@ namespace bricksim::gui::windows::debug {
                             }
                         }
                     } else if (ldrNodes.size() == 2) {
-                        const auto connections = engine.getGraph().getConnections(ldrNodes[0], ldrNodes[1]);
-                        ImGui::Text("%lu connections between the two selected parts", connections.size());
-                        for (const auto& c: connections) {
-                            ImGui::BulletText("%s <-> %s", c->connectorA->infoStr().c_str(), c->connectorB->infoStr().c_str());
+                        const auto intersects = engine.getIntersections().hasEdge(ldrNodes[0], ldrNodes[1]);
+                        const auto& connections = engine.getConnections().getConnections(ldrNodes[0], ldrNodes[1]);
+                        if (connections.empty()) {
+                            ImGui::Text(intersects
+                                                ? "The two selected nodes intersect, but have no connections."
+                                                : "The two selected nodes do not intersect.");
+                        } else {
+                            ImGui::Text("%lu connections between the two selected parts", connections.size());
+                            for (const auto& c: connections) {
+                                ImGui::BulletText("%s <-> %s", c->connectorA->infoStr().c_str(), c->connectorB->infoStr().c_str());
+                            }
                         }
                     } else {
-                        if (ImGui::BeginTable("General Stats:", 2)) {
-                            {
-                                ImGui::TableNextRow();
-                                ImGui::TableNextColumn();
-                                ImGui::Text("Node count:");
+                        if (ImGui::TreeNodeEx("Intersections")) {
+                            if (ImGui::BeginTable("General Stats:##Intersections", 2)) {
+                                {
+                                    ImGui::TableNextRow();
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("Node count:");
 
-                                ImGui::TableNextColumn();
-                                ImGui::Text("%zu", engine.getGraph().getAdjacencyLists().size());
-                            }
-                            {
-                                ImGui::TableNextRow();
-                                ImGui::TableNextColumn();
-                                ImGui::Text("Total connection count:");
-
-                                ImGui::TableNextColumn();
-                                ImGui::Text("%zu", engine.getGraph().countTotalConnections());
-                            }
-                            {
-                                ImGui::TableNextRow();
-                                ImGui::TableNextColumn();
-                                ImGui::Text("Clique count:");
-
-                                ImGui::TableNextColumn();
-                                static std::size_t cliqueCount = 0;
-                                ImGui::Text("%zu", cliqueCount);
-                                ImGui::SameLine();
-                                if (ImGui::Button(ICON_FA_ROTATE "##1")) {
-                                    cliqueCount = engine.getGraph().findAllCliques().size();
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("%zu", engine.getIntersections().getNodeCount());
                                 }
-                            }
-                            {
-                                ImGui::TableNextRow();
-                                ImGui::TableNextColumn();
-                                ImGui::Text("Largest Clique size:");
+                                {
+                                    ImGui::TableNextRow();
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("Total intersection count:");
 
-                                ImGui::TableNextColumn();
-                                static std::size_t largestCliqueSize = 0;
-                                ImGui::Text("%zu", largestCliqueSize);
-                                ImGui::SameLine();
-                                if (ImGui::Button(ICON_FA_ROTATE "##2")) {
-                                    largestCliqueSize = 0;
-                                    for (const auto& item: engine.getGraph().findAllCliques()) {
-                                        largestCliqueSize = std::max(largestCliqueSize, item.size());
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("%zu", engine.getIntersections().getEdgeCount());
+                                }
+                                ImGui::EndTable();
+                            }
+                            ImGui::TreePop();
+                        }
+                        if (ImGui::TreeNodeEx("Connections")) {
+                            if (ImGui::BeginTable("General Stats:##Connections", 2)) {
+                                {
+                                    ImGui::TableNextRow();
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("Node count:");
+
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("%zu", engine.getConnections().getAdjacencyLists().size());
+                                }
+                                {
+                                    ImGui::TableNextRow();
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("Total connection count:");
+
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("%zu", engine.getConnections().countTotalConnections());
+                                }
+                                {
+                                    ImGui::TableNextRow();
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("Clique count:");
+
+                                    ImGui::TableNextColumn();
+                                    static std::size_t cliqueCount = 0;
+                                    ImGui::Text("%zu", cliqueCount);
+                                    ImGui::SameLine();
+                                    if (ImGui::Button(ICON_FA_ROTATE "##1")) {
+                                        cliqueCount = engine.getConnections().findAllCliques().size();
                                     }
                                 }
+                                {
+                                    ImGui::TableNextRow();
+                                    ImGui::TableNextColumn();
+                                    ImGui::Text("Largest Clique size:");
+
+                                    ImGui::TableNextColumn();
+                                    static std::size_t largestCliqueSize = 0;
+                                    ImGui::Text("%zu", largestCliqueSize);
+                                    ImGui::SameLine();
+                                    if (ImGui::Button(ICON_FA_ROTATE "##2")) {
+                                        largestCliqueSize = 0;
+                                        for (const auto& item: engine.getConnections().findAllCliques()) {
+                                            largestCliqueSize = std::max(largestCliqueSize, item.size());
+                                        }
+                                    }
+                                }
+                                ImGui::EndTable();
                             }
-                            ImGui::EndTable();
+                            ImGui::TreePop();
                         }
                         ImGui::Spacing();
-                        ImGui::Text("select one or two parts to see its connections");
+                        ImGui::Text("select one or two parts to see its intersections/connections");
                     }
                     if (graphviz_wrapper::isAvailable()) {
                         if (ImGui::Button(ICON_FA_DIAGRAM_PROJECT " Render all Connections with GraphViz")) {
@@ -443,7 +480,7 @@ namespace bricksim::gui::windows::debug {
                                 std::filesystem::path outputFile = outputPathChars;
                                 controller::getForegroundTasks().emplace("Export Connections with GraphViz", [outputFile, activeEditor, &engine](auto* progress) {
                                     *progress = .0f;
-                                    auto graphvizCode = connection::visualization::generateGraphviz(engine.getGraph());
+                                    auto graphvizCode = connection::visualization::generateGraphviz(engine.getConnections());
                                     *progress = .3f;
                                     graphvizCode.renderToFile(outputFile);
                                     if (outputFile.extension() == ".svg") {
@@ -470,7 +507,7 @@ namespace bricksim::gui::windows::debug {
                                 1,
                                 &filterPatterns,
                                 nullptr);
-                        auto graphvizCode = connection::visualization::generateGraphviz(engine.getGraph());
+                        auto graphvizCode = connection::visualization::generateGraphviz(engine.getConnections());
                         graphvizCode.deleteTmpFiles = false;
                         std::ofstream file(outputPathChars);
                         file << graphvizCode.dotCode;
@@ -485,7 +522,7 @@ namespace bricksim::gui::windows::debug {
                                 &filterPatterns,
                                 nullptr);
                         std::ofstream csv(outputPathChars);
-                        for (const auto& [nA, listA]: engine.getGraph().getAdjacencyLists()) {
+                        for (const auto& [nA, listA]: engine.getConnections().getAdjacencyLists()) {
                             for (const auto& [nB, listB]: listA) {
                                 for (const auto& edge: listB) {
                                     csv << fmt::format("{};{};", fmt::ptr(nA.get()), fmt::ptr(nB.get()));

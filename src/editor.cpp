@@ -274,7 +274,7 @@ namespace bricksim {
         for (const auto& [node, version]: selectedNodes) {
             const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
             if (ldrNode != nullptr) {
-                for (const auto& [connectedNode, edges]: connectionEngine.getGraph().getConnections(ldrNode)) {
+                for (const auto& [connectedNode, edges]: connectionEngine.getConnections().getConnections(ldrNode)) {
                     selectedNodes.emplace(connectedNode, connectedNode->getVersion());
                 }
             }

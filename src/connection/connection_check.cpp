@@ -93,39 +93,27 @@ namespace bricksim::connection {
     }
     void ConnectionCheck::checkForConnected(const std::shared_ptr<etree::MeshNode>& nodeA,
                                             const std::shared_ptr<etree::MeshNode>& nodeB) {
-        const auto& connectorsA = getConnectorsOfNode(nodeA);
-        const auto& connectorsB = getConnectorsOfNode(nodeB);
+        checkForConnected(*getConnectorsOfNode(nodeA),
+                          *getConnectorsOfNode(nodeB),
+                          glm::transpose(nodeA->getAbsoluteTransformation()),
+                          glm::transpose(nodeB->getAbsoluteTransformation()));
+    }
+    void ConnectionCheck::checkForConnected(const std::vector<std::shared_ptr<Connector>>& connectorsA,
+                                            const std::vector<std::shared_ptr<Connector>>& connectorsB,
+                                            const glm::mat4& transfA,
+                                            const glm::mat4& transfB) {
         DoubleConnectorGrouping grouping;
-        grouping.a.transformation = glm::transpose(nodeA->getAbsoluteTransformation());
-        grouping.b.transformation = glm::transpose(nodeB->getAbsoluteTransformation());
-        grouping.a.addAll(*connectorsA);
-        grouping.b.addAll(*connectorsB);
+        grouping.a.transformation = transfA;
+        grouping.b.transformation = transfB;
+        grouping.a.addAll(connectorsA);
+        grouping.b.addAll(connectorsB);
         grouping.a.updateContainers();
         grouping.b.updateContainers();
 
         checkDirectionalAvsB(grouping.directions.gendered, grouping.a.gendered[M_IDX], grouping.b.gendered[F_IDX], grouping.a.transformation, grouping.b.transformation);
         checkDirectionalAvsB(grouping.directions.gendered, grouping.b.gendered[M_IDX], grouping.a.gendered[F_IDX], grouping.b.transformation, grouping.a.transformation);
-        /*for (std::size_t i = 0; i < grouping.directions.gendered.size(); ++i) {
-            checkBruteForceAvsB(grouping.a.gendered[M_IDX][i], grouping.b.gendered[F_IDX][i], grouping.a.transformation, grouping.b.transformation);
-            checkBruteForceAvsB(grouping.b.gendered[M_IDX][i], grouping.a.gendered[F_IDX][i], grouping.b.transformation, grouping.a.transformation);
-        }*/
         checkDirectionalAvsB(grouping.directions.ungendered, grouping.a.ungendered, grouping.b.ungendered, grouping.a.transformation, grouping.b.transformation);
         checkBruteForceAvsB(grouping.a.undirected, grouping.b.undirected, grouping.a.transformation, grouping.b.transformation);
-
-        /*std::string g = "[";
-        std::string ug = "[";
-        for (const auto& item: grouping.directions.gendered) {
-            g += stringutil::formatGLM(item);
-            g += ", ";
-        }
-        g += "]";
-        for (const auto& item: grouping.directions.ungendered) {
-            ug += stringutil::formatGLM(item);
-            ug += ", ";
-        }
-        ug += "]";
-
-        spdlog::debug("{}\n{}", g, ug);*/
     }
     void ConnectionCheck::checkDirectionalAvsA(const DirectionSet& directions,
                                                const std::vector<std::vector<std::shared_ptr<Connector>>>& connectors) {

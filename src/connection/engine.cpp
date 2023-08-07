@@ -4,6 +4,7 @@
 #include "../helpers/custom_hash.h"
 #include "../helpers/glm_eigen_conversion.h"
 #include "connection_check.h"
+#include "connector_data_provider.h"
 #include "pair_checker.h"
 #include "spdlog/fmt/ostr.h"
 #include "spdlog/spdlog.h"
@@ -55,7 +56,7 @@ namespace bricksim::connection {
                 collisionObject = std::make_unique<fcl::CollisionObjectf>(box, fcl::Matrix3f::Identity(), glm2eigen(aabb.getCenter()));
                 collisionObject->setUserData(node.get());
                 manager.registerObject(collisionObject.get());
-                outdatedInGraph.insert(meshNode);
+                outdatedInGraphs.insert(meshNode);
             }
             nodeData.emplace(node,
                              NodeData{
@@ -87,7 +88,7 @@ namespace bricksim::connection {
                     data.collisionObj->computeAABB();
                     manager.update(data.collisionObj.get());
                 }
-                outdatedInGraph.insert(meshNode);
+                outdatedInGraphs.insert(meshNode);
             }
             data.lastUpdatedSelfVersion = node->getSelfVersion();
         }
@@ -111,7 +112,7 @@ namespace bricksim::connection {
         if (it != nodeData.end()) {
             if (it->second.collisionObj != nullptr) {
                 manager.unregisterObject(it->second.collisionObj.get());
-                outdatedInGraph.insert(std::dynamic_pointer_cast<etree::MeshNode>(it->first));
+                outdatedInGraphs.insert(std::dynamic_pointer_cast<etree::MeshNode>(it->first));
             }
             nodeData.erase(it);
         }
@@ -134,31 +135,32 @@ namespace bricksim::connection {
     }
 
     void Engine::updateGraph(float* progress, float progressStart) {
-        graph.removeAllConnections(outdatedInGraph);
-        uoset_t<broadphase_collision_pair_t> intersections;
-        for (const auto& item: outdatedInGraph) {
+        intersections.removeAllNodes(outdatedInGraphs);
+        connections.removeAllConnections(outdatedInGraphs);
+        uoset_t<broadphase_collision_pair_t> newIntersections;
+        for (const auto& item: outdatedInGraphs) {
             const auto it = nodeData.find(item);
             assert(it != nodeData.end());
             const auto& data = it->second;
             if (data.collisionObj != nullptr) {
-                manager.collide(data.collisionObj.get(), static_cast<void*>(&intersections), updateCallback);
+                manager.collide(data.collisionObj.get(), static_cast<void*>(&newIntersections), updateCallback);
             }
         }
 
         *progress = progressStart;
         const auto threadCount = std::thread::hardware_concurrency();
-        if (intersections.size() > threadCount * 100) {
+        const auto newIntersectionsCount = newIntersections.size();
+        if (newIntersectionsCount > threadCount * 100) {
             std::mutex lock;
             std::size_t nextStart = 0;
-            std::size_t intersectionsCount = intersections.size();
 
-            spdlog::debug("Using {} threads to handle {} detected part intersections", threadCount, intersections.size());
+            spdlog::debug("Using {} threads to handle {} detected part intersections", threadCount, newIntersectionsCount);
 
-            const auto getNewWorkUnit = [&lock, &nextStart, &progress, progressStart, intersectionsCount]() -> std::pair<std::size_t, std::size_t> {
+            const auto getNewWorkUnit = [&lock, &nextStart, &progress, progressStart, newIntersectionsCount]() -> std::pair<std::size_t, std::size_t> {
                 std::lock_guard<std::mutex> lg(lock);
-                *progress = progressStart + (1.f - progressStart) * nextStart / intersectionsCount;
+                *progress = progressStart + (1.f - progressStart) * nextStart / newIntersectionsCount;
                 const auto start = nextStart;
-                nextStart = std::min(intersectionsCount, start + 100);
+                nextStart = std::min(newIntersectionsCount, start + 100);
                 return {start, nextStart};
             };
 
@@ -167,7 +169,7 @@ namespace bricksim::connection {
                 threads.emplace_back([this,
                                       &i,
                                       &getNewWorkUnit,
-                                      &intersections]() {
+                                      &newIntersections]() {
                     std::string threadName = fmt::format("Narrowphase collision checker #{}", i);
                     util::setThreadName(threadName.c_str());
                     while (true) {
@@ -175,10 +177,10 @@ namespace bricksim::connection {
                         if (iStart == iEnd) {
                             break;
                         }
-                        auto it = intersections.begin() + iStart;
-                        const auto end = intersections.begin() + iEnd;
+                        auto it = newIntersections.begin() + iStart;
+                        const auto end = newIntersections.begin() + iEnd;
                         while (it < end) {
-                            handleBroadphaseCollision(*it);
+                            handleNewIntersection(*it);
                             ++it;
                         }
                     }
@@ -190,26 +192,28 @@ namespace bricksim::connection {
             }
         } else {
             std::size_t i = 0;
-            for (auto it = intersections.cbegin(); it != intersections.end(); ++i, ++it) {
-                handleBroadphaseCollision(*it);
-                *progress = progressStart + (1.f - progressStart) * i / intersections.size();
+            for (auto it = newIntersections.cbegin(); it != newIntersections.end(); ++i, ++it) {
+                handleNewIntersection(*it);
+                *progress = progressStart + (1.f - progressStart) * i / newIntersectionsCount;
             }
         }
         *progress = 1.f;
-        outdatedInGraph.clear();
+        outdatedInGraphs.clear();
     }
-    void Engine::handleBroadphaseCollision(const broadphase_collision_pair_t& item) {
+
+    void Engine::handleNewIntersection(const broadphase_collision_pair_t& item) {
         const auto nodeA = std::dynamic_pointer_cast<etree::MeshNode>(convertRawNodePtr(item[0]->getUserData()));
         const auto nodeB = std::dynamic_pointer_cast<etree::MeshNode>(convertRawNodePtr(item[1]->getUserData()));
 
         //spdlog::debug("broadphase collision {} <--> {}", nodeA->displayName, nodeB->displayName);
 
-        ConnectionGraphPairCheckResultConsumer result(nodeA, nodeB, graph);
+        ConnectionGraphPairCheckResultConsumer result(nodeA, nodeB, connections);
         ConnectionCheck connCheck(result);
         connCheck.checkForConnected(nodeA, nodeB);
+        intersections.addEdge(nodeA, nodeB);
     }
-    const ConnectionGraph& Engine::getGraph() const {
-        return graph;
+    const ConnectionGraph& Engine::getConnections() const {
+        return connections;
     }
     void Engine::update(float* progress) {
         spdlog::stopwatch sw;
@@ -227,11 +231,15 @@ namespace bricksim::connection {
                      std::chrono::duration_cast<std::chrono::microseconds>(after).count() / 1000.f);
     }
     const std::shared_ptr<etree::Node>& Engine::convertRawNodePtr(void* rawPtr) const {
-        std::shared_ptr<etree::Node> key0(static_cast<etree::Node*>(rawPtr), [](auto*) {});
+        auto* typedPtr = static_cast<etree::Node*>(rawPtr);
+        std::shared_ptr<etree::Node> key0(typedPtr, [](auto*) {});
         return nodeData.find(key0)->first;
     }
     void Engine::update() {
         float ignoredProgress;
         update(&ignoredProgress);
+    }
+    const IntersectionGraph& Engine::getIntersections() const {
+        return intersections;
     }
 }

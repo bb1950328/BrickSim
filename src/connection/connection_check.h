@@ -51,6 +51,10 @@ namespace bricksim::connection {
         explicit ConnectionCheck(PairCheckResultConsumer& resultConsumer);
         void checkForConnected(const std::vector<std::shared_ptr<Connector>>& connectors);
         void checkForConnected(const std::shared_ptr<etree::MeshNode>& nodeA, const std::shared_ptr<etree::MeshNode>& nodeB);
+        void checkForConnected(const std::vector<std::shared_ptr<Connector>>& connectorsA,
+                               const std::vector<std::shared_ptr<Connector>>& connectorsB,
+                               const glm::mat4& transfA,
+                               const glm::mat4& transfB);
 
     protected:
         void checkBruteForceAvsA(const std::vector<std::shared_ptr<Connector>>& conns);

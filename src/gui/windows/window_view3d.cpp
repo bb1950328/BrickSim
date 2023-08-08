@@ -128,7 +128,7 @@ namespace bricksim::gui::windows::view3d {
                                     editor->nodeClicked(nodeUnderCursor, imGuiIo.KeyCtrl, imGuiIo.KeyShift);
                                 }
                                 if (lastRightMouseDown) {
-                                    node_context_menu::openContextMenu({editor, nodeUnderCursor});
+                                    editor->openNodeContextMenuSelectedOrClicked(nodeUnderCursor);
                                 }
                             }
                             //todo add something useful when middle click

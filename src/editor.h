@@ -63,6 +63,8 @@ namespace bricksim {
         bool isNodeClickable(const std::shared_ptr<etree::Node>& node);
         void nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed);
 
+        void openNodeContextMenuSelectedOrClicked(const std::shared_ptr<etree::Node>& clickedNode);
+
         void startTransformingSelectedNodes(graphical_transform::GraphicalTransformationType type);
         void endNodeTransformation();
         void cancelNodeTransformation();

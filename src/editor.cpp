@@ -7,6 +7,7 @@
 #include "connection/engine.h"
 #include "connection/visualization/connector_data_visualizer.h"
 #include "controller.h"
+#include "gui/context_menu/node_context_menu.h"
 #include "gui/graphical_transform/translation.h"
 #include "ldr/file_repo.h"
 #include "ldr/file_writer.h"
@@ -620,6 +621,19 @@ namespace bricksim {
     }
     connection::Engine& Editor::getConnectionEngine() {
         return connectionEngine;
+    }
+    void Editor::openNodeContextMenuSelectedOrClicked(const std::shared_ptr<etree::Node>& clickedNode) {
+        const auto& selectedNodesMap = getSelectedNodes();
+        if (selectedNodesMap.contains(clickedNode)) {
+            std::vector<std::shared_ptr<etree::Node>> selectedNodesVec;
+            std::transform(selectedNodesMap.cbegin(),
+                           selectedNodesMap.cend(),
+                           std::back_inserter(selectedNodesVec),
+                           [](const auto& entry) { return entry.first; });
+            gui::node_context_menu::openContextMenu({shared_from_this(), selectedNodesVec});
+        } else {
+            gui::node_context_menu::openContextMenu({shared_from_this(), {clickedNode}});
+        }
     }
 
     SelectionVisualizationNode::SelectionVisualizationNode(const std::shared_ptr<Node>& parent) :

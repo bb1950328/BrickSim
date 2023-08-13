@@ -368,22 +368,27 @@ namespace bricksim::gui::windows::debug {
                     if (ldrNodes.size() == 1) {
                         const auto node = ldrNodes[0];
                         const auto& intersections = engine.getIntersections().getConnected(ldrNodes[0]);
-                        ImGui::Text("Selected node intersects %zu other nodes", intersections.size());
-                        for (const auto& item: intersections) {
-                            ImGui::BulletText("%p %s", item.get(), item->displayName.c_str());
+                        if (ImGui::TreeNode("##IntersectionList", "Selected node intersects %zu other nodes", intersections.size())) {
+                            for (const auto& item: intersections) {
+                                ImGui::BulletText("%p %s", item.get(), item->displayName.c_str());
+                            }
+                            ImGui::TreePop();
                         }
                         const auto& connectionsToNode = engine.getConnections().getConnections(node);
                         size_t totalConnections = 0;
                         for (const auto& [_, conns]: connectionsToNode) {
                             totalConnections += conns.size();
                         }
-                        ImGui::Text("Selected node is connected to %zu other parts via %zu connections", connectionsToNode.size(), totalConnections);
-                        for (const auto& [otherNode, connsToOtherNode]: connectionsToNode) {
-                            std::string id = fmt::format("{} {}", otherNode->displayName, stringutil::formatGLM(otherNode->getAbsoluteTransformation()));
-                            if (ImGui::TreeNode(id.c_str(), "%p %s", otherNode.get(), otherNode->displayName.c_str())) {
-                                drawConnections(connsToOtherNode);
-                                ImGui::TreePop();
+
+                        if (ImGui::TreeNodeEx("##ConnectionsList", ImGuiTreeNodeFlags_DefaultOpen, "Selected node is connected to %zu other parts via %zu connections", connectionsToNode.size(), totalConnections)) {
+                            for (const auto& [otherNode, connsToOtherNode]: connectionsToNode) {
+                                std::string id = fmt::format("{} {}", otherNode->displayName, stringutil::formatGLM(otherNode->getAbsoluteTransformation()));
+                                if (ImGui::TreeNode(id.c_str(), "%p %s", otherNode.get(), otherNode->displayName.c_str())) {
+                                    drawConnections(connsToOtherNode);
+                                    ImGui::TreePop();
+                                }
                             }
+                            ImGui::TreePop();
                         }
                     } else if (ldrNodes.size() == 2) {
                         const auto intersects = engine.getIntersections().hasEdge(ldrNodes[0], ldrNodes[1]);

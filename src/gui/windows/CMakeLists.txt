@@ -27,7 +27,8 @@ target_sources(BrickSimLib PRIVATE
         window_ldraw_file_inspector.h
         window_system_info.cpp
         window_system_info.h
-
+        window_toolbar.cpp
+        window_toolbar.h
         windows.cpp
         windows.h
         )

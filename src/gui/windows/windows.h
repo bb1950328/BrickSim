@@ -20,6 +20,7 @@ namespace bricksim::gui::windows {
         MODEL_INFO,
         EDITOR_META_INFO,
         LDRAW_FILE_INSPECTOR,
+        TOOLBAR,
     };
     struct Data {
         const Id id;

@@ -21,6 +21,7 @@
 #include "window_part_palette.h"
 #include "window_settings.h"
 #include "window_system_info.h"
+#include "window_toolbar.h"
 #include "window_view3d.h"
 #include "windows.h"
 
@@ -48,6 +49,7 @@ namespace bricksim::gui::windows {
                     {Id::MODEL_INFO, ICON_FA_INFO " Model Info", false, model_info::draw},
                     {Id::EDITOR_META_INFO, ICON_FA_RECEIPT " Meta-Info", false, editor_meta_info::draw},
                     {Id::LDRAW_FILE_INSPECTOR, ICON_FA_EYE " LDraw File Inspector", false, ldraw_file_inspector::draw},
+                    {Id::TOOLBAR, ICON_FA_SCREWDRIVER_WRENCH " Toolbar", true, toolbar::draw},
             }};
 
     void drawAll() {

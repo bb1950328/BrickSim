@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+import os
 import re
 from pathlib import Path
+from typing import Iterable
 
 indent_level = 0
 
@@ -43,22 +45,24 @@ def to_valid_identifier(name):
     return re.sub(r'\W+|^(?=\d)', '_', name)
 
 
+def is_not_blacklisted(name: str) -> bool:
+    return not any([re.search(item, name) for item in BLACKLIST])
+
+
 def walk_directory(path: Path):
-    for child in sorted(path.iterdir()):
-        if any([re.search(item, str(child)) for item in BLACKLIST]):
-            continue
-        if child.is_dir():
-            namespace_decl = f"{indent()}namespace {to_valid_identifier(child.name)} {{\n"
-            h_file.write(namespace_decl)
-            cpp_file.write(namespace_decl)
-            global indent_level
-            indent_level += 1
-            walk_directory(child)
-            indent_level -= 1
-            h_file.write(indent() + "}\n")
-            cpp_file.write(indent() + "}\n")
-        else:
-            dump_file(child)
+    _, subdirs, filenames = next(os.walk(path))
+    for di in sorted(filter(is_not_blacklisted, subdirs)):
+        namespace_decl = f"{indent()}namespace {to_valid_identifier(di)} {{\n"
+        h_file.write(namespace_decl)
+        cpp_file.write(namespace_decl)
+        global indent_level
+        indent_level += 1
+        walk_directory(path / di)
+        indent_level -= 1
+        h_file.write(indent() + "}\n")
+        cpp_file.write(indent() + "}\n")
+    for fi in sorted(filter(is_not_blacklisted, filenames)):
+        dump_file(path / fi)
 
 
 if __name__ == '__main__':

@@ -3,6 +3,8 @@ target_sources(BrickSimLib PRIVATE
         gui.h
         gui_internal.cpp
         gui_internal.h
+        icons.cpp
+        icons.h
         modals.cpp
         modals.h
         )

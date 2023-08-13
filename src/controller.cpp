@@ -9,6 +9,7 @@
 #include "graphics/shaders.h"
 #include "gui/context_menu/node_context_menu.h"
 #include "gui/gui.h"
+#include "gui/icons.h"
 #include "gui/modals.h"
 #include "helpers/util.h"
 #include "info_providers/bricklink_constants_provider.h"
@@ -274,7 +275,7 @@ namespace bricksim::controller {
                 }
             }
 
-            std::array<Task, 10> initSteps{{
+            std::array<Task, 11> initSteps{{
                     {"load color definitions", ldr::color_repo::initialize},
                     {"initialize shadow file repo", ldr::file_repo::initializeShadowFileRepo},
                     {"initialize file list", [](float* progress) { ldr::file_repo::get().initialize(progress); spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().string()); }},
@@ -285,6 +286,7 @@ namespace bricksim::controller {
                     {"initialize orientation cube generator", graphics::orientation_cube::initialize},
                     {"initialize snap handler", []() { snapHandler.init(); }},
                     {"initialize user actions", []() { user_actions::init(); }},
+                    {"initialize icons", []() { gui::icons::initialize(); }},
             }};
 
             const auto drawWaitMessageInFrame = [](const std::string& message, float progress) {
@@ -337,6 +339,7 @@ namespace bricksim::controller {
             gui::cleanup();
             snapHandler.cleanup();
             graphics::orientation_cube::cleanup();
+            gui::icons::cleanup();
             graphics::connection_visualization::cleanupIfNeeded();
             graphics::Texture::deleteCached();
             graphics::shaders::cleanup();

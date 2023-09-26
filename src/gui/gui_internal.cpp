@@ -122,12 +122,20 @@ namespace bricksim::gui_internal {
     }
 
     void actionMenuItem(const user_actions::Action& action) {
-        actionMenuItem(action, user_actions::getName(action));
+        actionMenuItem(action, std::shared_ptr<Editor>(nullptr));
+    }
+
+    void actionMenuItem(const user_actions::Action& action, const std::shared_ptr<Editor>& editorContext) {
+        actionMenuItem(action, user_actions::getName(action).data(), editorContext);
     }
 
     void actionMenuItem(const user_actions::Action& action, const char* alternativeDescription) {
+        actionMenuItem(action, alternativeDescription, nullptr);
+    }
+
+    void actionMenuItem(const user_actions::Action& action, const char* alternativeDescription, const std::shared_ptr<Editor>& editorContext) {
         if (ImGui::MenuItem(alternativeDescription, gui_internal::getShortcutText(action), false, user_actions::isEnabled(action))) {
-            user_actions::execute(action);
+            user_actions::execute(action, editorContext);
         }
     }
 

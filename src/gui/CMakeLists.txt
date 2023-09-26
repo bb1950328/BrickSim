@@ -1,10 +1,14 @@
 target_sources(BrickSimLib PRIVATE
+        dialogs.cpp
+        dialogs.h
         gui.cpp
         gui.h
         gui_internal.cpp
         gui_internal.h
         icons.cpp
         icons.h
+        main_menu_bar.cpp
+        main_menu_bar.h
         modals.cpp
         modals.h
         )

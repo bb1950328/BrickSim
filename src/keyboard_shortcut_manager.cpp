@@ -1,4 +1,5 @@
 #include "keyboard_shortcut_manager.h"
+#include "config.h"
 #include "db.h"
 #include "gui/gui.h"
 #include "helpers/stringutil.h"
@@ -97,6 +98,7 @@ namespace bricksim::keyboard_shortcut_manager {
                 GLFW_KEY_SLASH,
         };
 
+        /// IMPORTANT: always append new shortcuts at the end, otherwise existing configs aren't updated correctly
         const auto DEFAULT_SHORTCUTS = std::to_array<KeyboardShortcut>({
                 {user_actions::COPY, GLFW_KEY_C, modifier::CTRL, Event::ON_PRESS},
                 {user_actions::CUT, GLFW_KEY_X, modifier::CTRL, Event::ON_PRESS},
@@ -117,7 +119,8 @@ namespace bricksim::keyboard_shortcut_manager {
                 {user_actions::TRANSFORMATION_LOCK_Z, GLFW_KEY_Z, modifier::SHIFT, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
                 {user_actions::END_TRANSFORMATION, GLFW_KEY_ENTER, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
                 {user_actions::CANCEL_TRANSFORMATION, GLFW_KEY_ESCAPE, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
-                //todo add more
+                {user_actions::OPEN_FILE, GLFW_KEY_O, modifier::CTRL, Event::ON_PRESS},
+                {user_actions::TAKE_SCREENSHOT, GLFW_KEY_PRINT_SCREEN, modifier::CTRL | modifier::SHIFT, Event::ON_PRESS},
         });
 
         std::vector<KeyboardShortcut> shortcuts;
@@ -125,9 +128,15 @@ namespace bricksim::keyboard_shortcut_manager {
         bool shouldCatchNextShortcut;
         std::optional<KeyboardShortcut> caughtShortcut;
 
-        void saveDefaultToDb() {
-            for (const auto& shortcut: DEFAULT_SHORTCUTS) {
-                db::key_shortcuts::saveShortcut({shortcut.action, shortcut.key, static_cast<uint8_t>(shortcut.modifiers), static_cast<uint8_t>(shortcut.event)});
+        void saveNewDefaultsToDB() {
+            const std::size_t inDB = config::get(config::DEFAULT_KEYBOARD_SHORTCUT_COUNT);
+            if (inDB < DEFAULT_SHORTCUTS.size()) {
+                for (std::size_t i = inDB; i < DEFAULT_SHORTCUTS.size(); ++i) {
+                    const auto& shortcut = DEFAULT_SHORTCUTS[i];
+                    db::key_shortcuts::saveShortcut({shortcut.action, shortcut.key, static_cast<uint8_t>(shortcut.modifiers), static_cast<uint8_t>(shortcut.event)});
+                }
+                spdlog::info("saved {} new keyboard shortcuts to config", DEFAULT_SHORTCUTS.size() - inDB);
+                config::set(config::DEFAULT_KEYBOARD_SHORTCUT_COUNT, DEFAULT_SHORTCUTS.size());
             }
         }
 
@@ -176,19 +185,13 @@ namespace bricksim::keyboard_shortcut_manager {
     }
 
     void initialize() {
-        auto dbShortcuts = db::key_shortcuts::loadShortcuts();
-        if (dbShortcuts.empty()) {
-            saveDefaultToDb();
-            shortcuts.insert(shortcuts.end(), DEFAULT_SHORTCUTS.begin(), DEFAULT_SHORTCUTS.end());
-            spdlog::info("key_shortcuts were empty in DB, load default shortcuts");
-        } else {
-            for (const auto& [action, key, modifier, event]: dbShortcuts) {
-                shortcuts.emplace_back(
-                        static_cast<user_actions::Action>(action),
-                        key,
-                        static_cast<modifier_t>(modifier),
-                        static_cast<Event>(event));
-            }
+        saveNewDefaultsToDB();
+        for (const auto& [action, key, modifier, event]: db::key_shortcuts::loadShortcuts()) {
+            shortcuts.emplace_back(
+                    static_cast<user_actions::Action>(action),
+                    key,
+                    static_cast<modifier_t>(modifier),
+                    static_cast<Event>(event));
         }
     }
 
@@ -215,7 +218,7 @@ namespace bricksim::keyboard_shortcut_manager {
                     && user_actions::isEnabled(shortcut.action)) {
                     spdlog::debug("event {} {} matched shortcut, executing action {}", magic_enum::enum_name(event), shortcut.getDisplayName(), user_actions::getName(shortcut.action));
                     try {
-                        user_actions::execute(shortcut.action);
+                        user_actions::execute(shortcut.action, nullptr);
                     } catch (const std::invalid_argument& ex) {
                         spdlog::warn("could not execute action because {}", ex.what());
                     }
@@ -265,7 +268,8 @@ namespace bricksim::keyboard_shortcut_manager {
     }
     void resetToDefault() {
         db::key_shortcuts::deleteAll();
-        saveDefaultToDb();
+        config::set(config::DEFAULT_KEYBOARD_SHORTCUT_COUNT, 0);
+        saveNewDefaultsToDB();
         shortcuts.clear();
         shortcuts.insert(shortcuts.end(), DEFAULT_SHORTCUTS.begin(), DEFAULT_SHORTCUTS.end());
     }

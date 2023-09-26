@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "editor.h"
 #include <functional>
 #include <magic_enum.hpp>
 #include <string>
@@ -65,22 +66,13 @@ namespace bricksim::user_actions {
         HAS_SELECTED_NODES,
     };
 
-    struct ActionData {
-        Action action;
-        const char* name;
-        EnableCondition enableCondition;
-        std::function<void()> function;
-        ActionData(Action action, const char* name, EnableCondition enableCondition, const std::function<void()>& function);
-    };
-
     constexpr size_t getCount();
-    void execute(Action action);
-    void executeUnchecked(Action action);
+    void execute(Action action, std::shared_ptr<Editor> editorContext);
+    void executeUnchecked(Action action, std::shared_ptr<Editor> editorContext);
     bool isEnabled(Action action);
     bool isInFilter(Action action, const std::string& filter);
     const std::vector<Action>& findActionsByName(const std::string& name);
-    const char* getName(const Action& action);
-    const ActionData& getData(const Action& action);
+    std::string_view getName(const Action& action);
     void init();
 }
 

@@ -43,17 +43,6 @@ namespace bricksim::gui {
     void drawMainWindows();
     void endFrame();
 
-    void showOpenFileDialog();
-    void showSaveFileAsDialog();
-    void showSaveFileAsDialog(const std::shared_ptr<Editor>& editor);
-    void showSaveCopyAsDialog();
-    void showSaveCopyAsDialog(const std::shared_ptr<Editor>& editor);
-    void showScreenshotDialog();
-    void showScreenshotDialog(const std::shared_ptr<Editor>& editor);
-    void showExecuteActionByNameDialog();
-
-    void drawDocumentMenu(const std::shared_ptr<Editor>& editor);
-
     void applyDefaultWindowLayout();
 
     void cleanup();

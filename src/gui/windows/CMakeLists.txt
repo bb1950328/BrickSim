@@ -33,4 +33,4 @@ target_sources(BrickSimLib PRIVATE
         windows.h
         )
 
-add_subdirectory(tools)
+add_subdirectory(utilities)

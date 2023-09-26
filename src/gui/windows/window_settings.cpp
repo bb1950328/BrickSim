@@ -220,7 +220,7 @@ namespace bricksim::gui::windows::settings {
                         ImGui::PushID(shortcutId);
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
-                        const char* actionName = user_actions::getName(shortcut->action);
+                        const char* actionName = user_actions::getName(shortcut->action).data();
                         if (ImGui::Button(actionName)) {
                             currentlyEditingShortcut = *shortcut;
                             shouldOpenSelectActionModal = true;
@@ -304,7 +304,7 @@ namespace bricksim::gui::windows::settings {
                 if (ImGui::BeginListBox("##actionListBox")) {
                     for (const auto& action: user_actions::findActionsByName(searchBuf)) {
                         const bool is_selected = (action == currentlySelectedAction);
-                        if (ImGui::Selectable(user_actions::getName(action), is_selected)) {
+                        if (ImGui::Selectable(user_actions::getName(action).data(), is_selected)) {
                             currentlyEditingShortcut.value().get().action = action;
                             currentlyEditingShortcut = {};
                             ImGui::CloseCurrentPopup();

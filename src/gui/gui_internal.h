@@ -38,6 +38,8 @@ namespace bricksim::gui_internal {
     const char* getShortcutText(const user_actions::Action& action);
 
     void actionMenuItem(const user_actions::Action& action);
+    void actionMenuItem(const user_actions::Action& action, const std::shared_ptr<Editor>& editorContext);
     void actionMenuItem(const user_actions::Action& action, const char* alternativeDescription);
+    void actionMenuItem(const user_actions::Action& action, const char* alternativeDescription, const std::shared_ptr<Editor>& editorContext);
     void windowMenuItem(gui::windows::Id id);
 }

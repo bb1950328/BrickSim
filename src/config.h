@@ -189,4 +189,5 @@ namespace bricksim::config {
     const Key<bool> SNAP_ENABLED("snapEnabled", true);
     const Key<std::string> ROTATIONAL_SNAP_PRESETS("rotationalSnapPresets", snap::DEFAULT_ROTATIONAL_SNAP_PRESETS);
     const Key<float> ROTATIONAL_SNAP_STEP("rotationalSnapStep", 90.f);
+    const Key<int> DEFAULT_KEYBOARD_SHORTCUT_COUNT("defaultKeyboardShortcutCount", 0);
 }

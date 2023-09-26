@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "../../metrics.h"
-#include "tools/window_gear_ratio_calculator.h"
+#include "utilities/window_gear_ratio_calculator.h"
 #include "window_about.h"
 #include "window_debug.h"
 #include "window_editor_meta_info.h"

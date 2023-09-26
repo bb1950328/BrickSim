@@ -92,8 +92,8 @@ git pull
 
 echo -e "\033[0;32mINFO: Updating SQLiteCpp\033[0m"
 cd ../SQLiteCpp || exit 1
-git checkout master
-git submodule update --recursive
+git checkout "$(get_latest_release SRombauts/SQLiteCpp)"
+#git submodule update --recursive
 git pull
 
 echo -e "\033[0;32mINFO: Updating stb\033[0m"

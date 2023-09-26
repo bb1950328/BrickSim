@@ -11,6 +11,8 @@ target_sources(BrickSimLib PRIVATE
         main_menu_bar.h
         modals.cpp
         modals.h
+        style.cpp
+        style.h
         )
 add_subdirectory(context_menu)
 add_subdirectory(graphical_transform)

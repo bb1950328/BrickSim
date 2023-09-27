@@ -1,4 +1,4 @@
-#include "../../tools/gears.h"
+#include "../../utilities/gears.h"
 #include "catch2/catch_test_macros.hpp"
 
 namespace bricksim {

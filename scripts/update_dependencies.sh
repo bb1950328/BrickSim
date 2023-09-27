@@ -28,8 +28,8 @@ git fetch --tags
 git checkout "$(get_latest_release mapbox/earcut.hpp)"
 git submodule update --recursive
 
-echo -e "\033[0;32mINFO: Updating esfw\033[0m"
-cd ../esfw || exit 1
+echo -e "\033[0;32mINFO: Updating efsw\033[0m"
+cd ../efsw || exit 1
 git checkout master
 git pull
 

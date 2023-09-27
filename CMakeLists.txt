@@ -247,7 +247,7 @@ target_link_libraries(BrickSimLib PUBLIC unordered_dense::unordered_dense)
 set(CXX11 ON CACHE BOOL "Build efsw with C++11" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build efsw as a shared library" FORCE)
 set(EFSW_INSTALL OFF CACHE BOOL "Add efsw install targets" FORCE)
-add_subdirectory(src/lib/esfw)
+add_subdirectory(src/lib/efsw)
 target_link_libraries(BrickSimLib PRIVATE efsw)
 #target_include_directories(BrickSimLib PRIVATE src/lib/esfw/include)
 

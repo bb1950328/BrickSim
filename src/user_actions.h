@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "editor.h"
+#include "editor/editor.h"
 #include <functional>
 #include <magic_enum.hpp>
 #include <string>

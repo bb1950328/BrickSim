@@ -1,5 +1,5 @@
 #pragma once
-#include "../editor.h"
+#include "../editor/editor.h"
 #include "GLFW/glfw3.h"
 
 namespace bricksim::gui::dialogs {

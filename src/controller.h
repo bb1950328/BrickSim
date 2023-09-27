@@ -1,6 +1,6 @@
 #pragma once
 
-#include "editor.h"
+#include "editor/editor.h"
 #include "element_tree.h"
 #include "graphics/thumbnail_generator.h"
 #include "ldr/files.h"

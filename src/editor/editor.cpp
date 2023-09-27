@@ -1,16 +1,16 @@
 #include "editor.h"
-#include <magic_enum.hpp>
+#include "magic_enum.hpp"
+#include "spdlog/spdlog.h"
 #include <numeric>
-#include <spdlog/spdlog.h>
 
-#include "config.h"
-#include "connection/engine.h"
-#include "connection/visualization/connector_data_visualizer.h"
-#include "controller.h"
-#include "gui/context_menu/node_context_menu.h"
-#include "gui/graphical_transform/translation.h"
-#include "ldr/file_repo.h"
-#include "ldr/file_writer.h"
+#include "../config.h"
+#include "../connection/engine.h"
+#include "../connection/visualization/connector_data_visualizer.h"
+#include "../controller.h"
+#include "../gui/context_menu/node_context_menu.h"
+#include "../gui/graphical_transform/translation.h"
+#include "../ldr/file_repo.h"
+#include "../ldr/file_writer.h"
 #include "palanteer.h"
 #include "spdlog/fmt/bundled/format.h"
 

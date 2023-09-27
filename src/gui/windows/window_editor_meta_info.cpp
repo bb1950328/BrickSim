@@ -1,5 +1,5 @@
 #include "window_editor_meta_info.h"
-#include "../../editor.h"
+#include "../../editor/editor.h"
 #include "../gui.h"
 #include "../gui_internal.h"
 #include <imgui.h>

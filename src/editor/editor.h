@@ -1,11 +1,11 @@
 #pragma once
 
-#include "connection/engine.h"
-#include "element_tree.h"
-#include "graphics/scene.h"
-#include "gui/graphical_transform/provider.h"
-#include "ldr/file_repo.h"
-#include <efsw/efsw.hpp>
+#include "../connection/engine.h"
+#include "../element_tree.h"
+#include "../graphics/scene.h"
+#include "../gui/graphical_transform/provider.h"
+#include "../ldr/file_repo.h"
+#include "efsw/efsw.hpp"
 
 namespace bricksim {
 

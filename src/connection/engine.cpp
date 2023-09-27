@@ -1,6 +1,6 @@
 #include "engine.h"
 
-#include "../editor.h"
+#include "../editor/editor.h"
 #include "../helpers/custom_hash.h"
 #include "../helpers/glm_eigen_conversion.h"
 #include "connection_check.h"

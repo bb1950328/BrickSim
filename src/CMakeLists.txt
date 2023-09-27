@@ -8,8 +8,6 @@ target_sources(BrickSimLib PRIVATE
         custom_imconfig.h
         db.cpp
         db.h
-        editor.cpp
-        editor.h
         element_tree.cpp
         element_tree.h
         keyboard_shortcut_manager.cpp
@@ -39,4 +37,5 @@ add_subdirectory(lib)
 add_subdirectory(logging)
 add_subdirectory(snapping)
 add_subdirectory(test)
-add_subdirectory(tools)
+add_subdirectory(utilities)
+add_subdirectory(editor)

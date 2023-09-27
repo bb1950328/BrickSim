@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../editor.h"
+#include "../../editor/editor.h"
 #include "../../element_tree.h"
 namespace bricksim::gui::node_context_menu {
 

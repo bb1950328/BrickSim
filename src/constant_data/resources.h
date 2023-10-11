@@ -54,6 +54,5 @@ namespace bricksim::resources {
         extern const std::array<uint8_t, 870> triangle_shader_vsh;
     }
     extern const std::array<uint8_t, 12> _gitignore;
-    extern const std::array<uint8_t, 16734> icons_png;
     extern const std::array<uint8_t, 55379> orientation_cube_png;
 }

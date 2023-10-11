@@ -81,6 +81,8 @@ if __name__ == '__main__':
         h_file.write(comment)
         cpp_file.write(comment)
         cpp_file.write("#include \"resources.h\"\n")
+        cpp_file.write("//@formatter:off\n")
+        cpp_file.write("// clang-format off\n")
         h_file.write("#include <array>\n#include <cstdint>\n")
         h_file.write("namespace bricksim::resources {\n")
         cpp_file.write("namespace bricksim::resources {\n")
@@ -91,4 +93,6 @@ if __name__ == '__main__':
         indent_level -= 1
 
         cpp_file.write("}\n")
+        cpp_file.write("// clang-format on\n")
+        cpp_file.write("//@formatter:on\n")
         h_file.write("}\n")

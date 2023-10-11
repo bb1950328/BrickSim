@@ -18,12 +18,13 @@ namespace bricksim::gui {
         NOT_ALLOWED = GLFW_NOT_ALLOWED_CURSOR,
     };
 
-    class MouseCursor : public util::NoCopyNoMove {
+    class MouseCursor : public util::NoCopy {
     private:
         GLFWcursor* cursor;
 
     public:
         explicit MouseCursor(GLFWcursor* cursor);
+        MouseCursor(MouseCursor&& other);
         virtual ~MouseCursor();
         void activate(GLFWwindow* window);
     };
@@ -41,7 +42,7 @@ namespace bricksim::gui {
         static GLFWcursor* createCursor(icons::IconType type);
     };
 
-    class MouseCursorHandler : public util::NoCopyNoMove {
+    class MouseCursorHandler : public util::NoCopy {
     private:
         uomap_t<StandardCursorType, StandardMouseCursor> standardCursors;
         uomap_t<icons::IconType, IconMouseCursor> iconCursors;

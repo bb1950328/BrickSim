@@ -10,6 +10,9 @@ namespace bricksim::gui {
     void MouseCursor::activate(GLFWwindow* window) {
         glfwSetCursor(window, cursor);
     }
+    MouseCursor::MouseCursor(MouseCursor&& other) :
+        cursor(other.cursor) {
+    }
     StandardMouseCursor::StandardMouseCursor(StandardCursorType type) :
         MouseCursor(type == StandardCursorType::STANDARD ? nullptr : glfwCreateStandardCursor(static_cast<std::underlying_type_t<StandardCursorType>>(type))) {
     }

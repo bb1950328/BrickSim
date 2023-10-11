@@ -177,13 +177,23 @@ namespace bricksim::util {
 
     std::string randomAlphanumString(uint64_t length);
 
-    class NoCopyNoMove {
+    class NoCopy {
+    public:
+        NoCopy() = default;
+        NoCopy(const NoCopy&) = delete;
+        NoCopy& operator=(const NoCopy&) = delete;
+    };
+
+    class NoMove {
+    public:
+        NoMove() = default;
+        NoMove(NoMove&&) = delete;
+        NoMove& operator=(NoMove&&) = delete;
+    };
+
+    class NoCopyNoMove : public NoCopy, public NoMove {
     public:
         NoCopyNoMove() = default;
-        NoCopyNoMove(const NoCopyNoMove&) = delete;
-        NoCopyNoMove(NoCopyNoMove&&) = delete;
-        NoCopyNoMove& operator=(const NoCopyNoMove&) = delete;
-        NoCopyNoMove& operator=(NoCopyNoMove&&) = delete;
     };
 
     template<typename Iterator>

@@ -11,6 +11,7 @@ indent_level = 0
 BLACKLIST_REGEX = [
     ".*drawio",
     ".*svg",
+    ".*\\.gitignore",
     "logo_fit\\.png",
     "logo_fit_314x163",
     "logo_fit_highres",

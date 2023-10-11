@@ -5,7 +5,9 @@
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <optional>
+#include <span>
 #include <string>
+//#include <CImg.h>
 
 namespace bricksim::util {
 
@@ -116,7 +118,21 @@ namespace bricksim::util {
     // texture/image functions
     std::string translateBrickLinkColorNameToLDraw(std::string colorName);
     std::string translateLDrawColorNameToBricklink(std::string colorName);
+
+    struct RawImage {
+        int width;
+        int height;
+        int channels;
+        std::vector<unsigned char> data;
+
+        unsigned char* getPixel(uint16_t x, uint16_t y);
+    };
+    RawImage readImage(std::span<const uint8_t> fileData);
+
+    bool writeImage(const char* path, const RawImage& image);
+
     bool writeImage(const char* path, const unsigned char* pixels, int width, int height, int channels = 3);
+    /*bool writeImage(const char* path, cimg_library::CImg<unsigned char> img);*/
 
     bool isStbiFlipVertically();
     void setStbiFlipVertically(bool value);
@@ -202,4 +218,20 @@ namespace bricksim::util {
     std::string escapeFilename(const std::string& original);
 
     void setThreadName(const char* threadName);
+
+    template<typename T>
+    struct ScopeVarBackup {
+        T backup;
+        T& ref;
+        ScopeVarBackup(T& ref) :
+            backup(ref), ref(ref) {
+        }
+        ScopeVarBackup(T& ref, T newValue) :
+            ScopeVarBackup(ref) {
+            ref = newValue;
+        }
+        ~ScopeVarBackup() {
+            ref = backup;
+        }
+    };
 }

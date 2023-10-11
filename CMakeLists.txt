@@ -9,7 +9,7 @@ endforeach ()
 
 if (MSVC)
     message(WARNING "getting git version info currently not implemented on MSVC")
-else()
+else ()
     #bash executable
     if (EXISTS "C:\\msys64\\usr\\bin\\bash.exe")
         set(BASH_EXECUTABLE "C:\\msys64\\usr\\bin\\bash.exe")
@@ -30,7 +30,7 @@ else()
         set(GIT_COMMIT_COUNT "0")
         set(TOTAL_HOURS "0.0")
         set(GIT_VERSION_TAG "v0.0.0")
-    else()
+    else ()
         if (NOT DEFINED GIT_COMMIT_HASH)
             execute_process(
                     COMMAND ${BASH_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/get_git_commit_hash.sh"
@@ -192,9 +192,9 @@ set(CURL_USE_LIBSSH2 OFF)
 set(CURL_DISABLE_TESTS ON)
 if (APPLE)
     set(CURL_USE_SECTRANSP ON CACHE BOOL "enable Apple OS native SSL/TLS" FORCE)
-elseif(WIN32)
+elseif (WIN32)
     set(CURL_USE_SCHANNEL ON CACHE BOOL "enable Windows native SSL/TLS" FORCE)
-endif()
+endif ()
 add_subdirectory(src/lib/curl)
 target_link_libraries(BrickSimLib PUBLIC CURL::libcurl)
 
@@ -284,6 +284,10 @@ target_include_directories(ImGuiColorTextEdit INTERFACE src/lib/ImGuiColorTextEd
 
 target_link_libraries(BrickSimLib PRIVATE ImGuiColorTextEdit)
 
+#CImg
+target_include_directories(BrickSimLib PUBLIC src/lib/CImg)
+target_compile_definitions(BrickSimLib PUBLIC cimg_display=0)
+
 add_subdirectory(src)
 
 if (WIN32)
@@ -309,11 +313,11 @@ if (BRICKSIM_USE_OPTIMIZED_VARIANTS)
     target_compile_definitions(BrickSimLib PUBLIC BRICKSIM_USE_OPTIMIZED_VARIANTS)
 endif ()
 
-if(MSVC)
+if (MSVC)
     target_compile_definitions(BrickSimLib PUBLIC _USE_MATH_DEFINES)
     target_compile_options(BrickSimLib PUBLIC /wd4068)# warning C4068: unknown pragma
     set_property(TARGET BrickSim PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-endif()
+endif ()
 
 target_include_directories(BrickSimLib PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>

@@ -4,10 +4,13 @@ import re
 from pathlib import Path
 from typing import Iterable
 
+from scripts import svg_to_png
+
 indent_level = 0
 
-BLACKLIST = [
+BLACKLIST_REGEX = [
     ".*drawio",
+    ".*svg",
     "logo_fit\\.png",
     "logo_fit_314x163",
     "logo_fit_highres",
@@ -46,7 +49,7 @@ def to_valid_identifier(name):
 
 
 def is_not_blacklisted(name: str) -> bool:
-    return not any([re.search(item, name) for item in BLACKLIST])
+    return not any([re.search(item, name) for item in BLACKLIST_REGEX])
 
 
 def walk_directory(path: Path):
@@ -69,6 +72,8 @@ if __name__ == '__main__':
     res_dir = Path("./resources")
     if not res_dir.exists():
         raise FileNotFoundError("please change the working directory to the parent of the resources directory")
+
+    svg_to_png.convert_all()
 
     with open("./src/constant_data/resources.h", "w") as h_file, \
             open("./src/constant_data/resources.cpp", "w") as cpp_file:

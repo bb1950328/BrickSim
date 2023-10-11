@@ -120,32 +120,6 @@ namespace bricksim::util {
         return result;
     }
 
-    bool writeImage(const char* path, const unsigned char* pixels, int width, int height, int channels) {
-        auto path_lower = stringutil::asLower(std::string_view(path));
-        stbi_flip_vertically_on_write(true);
-        if (path_lower.ends_with(".png")) {
-            return stbi_write_png(path, width, height, channels, pixels, width * channels) != 0;
-        } else if (path_lower.ends_with(".jpg") || path_lower.ends_with(".jpeg")) {
-            const int quality = std::min(100, std::max(5, config::get(config::JPG_SCREENSHOT_QUALITY)));
-            return stbi_write_jpg(path, width, height, channels, pixels, quality) != 0;
-        } else if (path_lower.ends_with(".bmp")) {
-            return stbi_write_bmp(path, width, height, channels, pixels) != 0;
-        } else if (path_lower.ends_with(".tga")) {
-            return stbi_write_tga(path, width, height, channels, pixels) != 0;
-        } else {
-            return false;
-        }
-    }
-
-    bool isStbiFlipVertically() {
-        return isStbiVerticalFlipEnabled;
-    }
-
-    void setStbiFlipVertically(bool value) {
-        isStbiVerticalFlipEnabled = value;
-        stbi_set_flip_vertically_on_load(value ? 1 : 0);
-    }
-
     size_t oldWriteFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
         data->append((char*)ptr, size * nmemb);
         return size * nmemb;
@@ -324,6 +298,51 @@ namespace bricksim::util {
 #ifdef USE_PL
         plDeclareThreadDyn(threadName);
 #endif
+    }
+    bool isStbiFlipVertically() {
+        return isStbiVerticalFlipEnabled;
+    }
+
+    void setStbiFlipVertically(bool value) {
+        isStbiVerticalFlipEnabled = value;
+        stbi_set_flip_vertically_on_load(value ? 1 : 0);
+    }
+
+    unsigned char* RawImage::getPixel(uint16_t x, uint16_t y) {
+        return data.data() + x + width * y;
+    }
+
+    RawImage readImage(std::span<const uint8_t> fileData) {
+        const auto vFlipBackup = isStbiFlipVertically();
+        setStbiFlipVertically(false);
+
+        RawImage result;
+        auto* rawData = stbi_load_from_memory(fileData.data(), fileData.size(), &result.width, &result.height, &result.channels, 0);
+        result.data.assign(rawData, rawData + result.width * result.height * result.channels);
+
+        stbi_image_free(rawData);
+        setStbiFlipVertically(vFlipBackup);
+        return result;
+    }
+    bool writeImage(const char* path, const RawImage& image) {
+        return writeImage(path, image.data.data(), image.width, image.height, image.channels);
+    }
+
+    bool writeImage(const char* path, const unsigned char* pixels, int width, int height, int channels) {
+        auto path_lower = stringutil::asLower(std::string_view(path));
+        stbi_flip_vertically_on_write(true);
+        if (path_lower.ends_with(".png")) {
+            return stbi_write_png(path, width, height, channels, pixels, width * channels) != 0;
+        } else if (path_lower.ends_with(".jpg") || path_lower.ends_with(".jpeg")) {
+            const int quality = std::min(100, std::max(5, config::get(config::JPG_SCREENSHOT_QUALITY)));
+            return stbi_write_jpg(path, width, height, channels, pixels, quality) != 0;
+        } else if (path_lower.ends_with(".bmp")) {
+            return stbi_write_bmp(path, width, height, channels, pixels) != 0;
+        } else if (path_lower.ends_with(".tga")) {
+            return stbi_write_tga(path, width, height, channels, pixels) != 0;
+        } else {
+            return false;
+        }
     }
 
     glm::mat4 DecomposedTransformation::orientationAsMat4() const {

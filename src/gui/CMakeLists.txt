@@ -11,6 +11,8 @@ target_sources(BrickSimLib PRIVATE
         main_menu_bar.h
         modals.cpp
         modals.h
+        mouse_cursor_handler.cpp
+        mouse_cursor_handler.h
         style.cpp
         style.h
         )

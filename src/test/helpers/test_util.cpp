@@ -1,8 +1,9 @@
 #include "../../helpers/platform_detection.h"
 #include "../../helpers/util.h"
-#include "catch2/catch_test_macros.hpp"
-#include "catch2/catch_template_test_macros.hpp"
 #include "catch2/catch_approx.hpp"
+#include "catch2/catch_template_test_macros.hpp"
+#include "catch2/catch_test_macros.hpp"
+#include "catch2/generators/catch_generators.hpp"
 #include <fstream>
 #include <glm/gtc/epsilon.hpp>
 #include <iostream>
@@ -104,5 +105,27 @@ namespace bricksim {
 
         CHECK(util::combinedHash(123, 456, 789) != util::combinedHash(123, 456));
         CHECK(util::combinedHash(123, 456, 789) != util::combinedHash(456, 789));
+    }
+
+    TEST_CASE("util::ScopeVarBackup1") {
+        const int initialValue = GENERATE(2, 3);
+        const int temporaryValue = GENERATE(3, 4);
+        int var = initialValue;
+        {
+            util::ScopeVarBackup backup(var);
+            var = temporaryValue;
+        }
+        CHECK(var == initialValue);
+    }
+
+    TEST_CASE("util::ScopeVarBackup2") {
+        const int initialValue = GENERATE(2, 3);
+        const int temporaryValue = GENERATE(3, 4);
+        int var = initialValue;
+        {
+            util::ScopeVarBackup backup(var, temporaryValue);
+            CHECK(var == temporaryValue);
+        }
+        CHECK(var == initialValue);
     }
 }

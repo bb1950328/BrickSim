@@ -10,10 +10,12 @@ namespace bricksim::gui::windows::toolbar {
     }
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse)) {
-            static auto scale = config::get(config::GUI_SCALE);
+            static const auto scale = config::get(config::GUI_SCALE);
+            static const ImVec2 buttonDimensions = {buttonSize * scale, buttonSize * scale};
+
             static bool horizontal = true;
             for (const auto& [icon, _]: magic_enum::enum_entries<icons::IconType>()) {
-                if (icons::drawButton(icon, buttonSize * scale)) {
+                if (ImGui::Button(icons::getGlyph(icon, icons::Icon48), buttonDimensions)) {
                 }
                 if (horizontal) {
                     ImGui::SameLine();

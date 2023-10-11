@@ -7,6 +7,23 @@ namespace bricksim::resources {
         extern const std::array<uint8_t, 86908> RobotoMono_Regular_ttf;
         extern const std::array<uint8_t, 394628> fa_solid_900_ttf;
     }
+    namespace icons {
+        namespace _16x16 {
+            extern const std::array<uint8_t, 207> select_png;
+            extern const std::array<uint8_t, 409> select_connected_png;
+            extern const std::array<uint8_t, 334> select_strongly_connected_png;
+        }
+        namespace _36x36 {
+            extern const std::array<uint8_t, 435> select_png;
+            extern const std::array<uint8_t, 762> select_connected_png;
+            extern const std::array<uint8_t, 607> select_strongly_connected_png;
+        }
+        namespace _48x48 {
+            extern const std::array<uint8_t, 525> select_png;
+            extern const std::array<uint8_t, 1057> select_connected_png;
+            extern const std::array<uint8_t, 739> select_strongly_connected_png;
+        }
+    }
     namespace licenses {
         extern const std::array<uint8_t, 11323> Apache2_txt;
         extern const std::array<uint8_t, 35128> GPLv3_txt;
@@ -16,7 +33,6 @@ namespace bricksim::resources {
         extern const std::array<uint8_t, 855> zlib_txt;
     }
     namespace logos {
-        extern const std::array<uint8_t, 91911> logo_svg;
         extern const std::array<uint8_t, 67248> logo_fit_nobg_png;
         extern const std::array<uint8_t, 79933> logo_icon_icns;
         extern const std::array<uint8_t, 21573> logo_icon_ico;
@@ -37,6 +53,7 @@ namespace bricksim::resources {
         extern const std::array<uint8_t, 967> triangle_shader_fsh;
         extern const std::array<uint8_t, 870> triangle_shader_vsh;
     }
+    extern const std::array<uint8_t, 12> _gitignore;
     extern const std::array<uint8_t, 16734> icons_png;
     extern const std::array<uint8_t, 55379> orientation_cube_png;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../graphics/texture.h"
+#include "mouse_cursor_handler.h"
 #include "windows/windows.h"
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -64,4 +65,6 @@ namespace bricksim::gui {
     void collectWindowInfo(windows::Id id);
 
     [[nodiscard]] std::optional<windows::Id> getCurrentlyFocusedWindow();
+
+    [[nodiscard]] MouseCursorHandler& getCursorHandler();
 }

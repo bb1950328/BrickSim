@@ -1,5 +1,6 @@
 #include "../../config.h"
 #include "../../controller.h"
+#include "../../editor/tools.h"
 #include "../../graphics/scene.h"
 #include "../../types.h"
 #include "../gui_internal.h"
@@ -21,9 +22,17 @@ namespace bricksim::gui::windows::view3d {
         return nodeUnderCursor;
     }
 
+    void setCursor(const std::shared_ptr<Editor>& editor) {
+        //todo getCursorHandler().getIconCursor(tools::SELECT.icon).activate(getWindow());
+    }
+    void resetCursor() {
+        getCursorHandler().getStandardCursor().activate(getWindow());
+    }
+
     void draw(Data& data) {
         ImGuiDockNode* lastDockNode = nullptr;
         bool windowInfoCollected = false;
+        bool cursorSet = false;
         for (auto& editor: controller::getEditors()) {
             const bool isActiveEditor = editor->isActive();
             const auto windowTitle = editor->getFilename();
@@ -63,6 +72,10 @@ namespace bricksim::gui::windows::view3d {
                                    && mousePos.x <= windowPos.x + regionMax.x
                                    && windowPos.y + regionMin.y <= mousePos.y
                                    && mousePos.y <= windowPos.y + regionMax.y);
+                if (isInWindow) {
+                    setCursor(editor);
+                    cursorSet = true;
+                }
                 enum DragMode {
                     NOT_DRAGGING,
                     ROTATE_CAMERA,
@@ -194,6 +207,9 @@ namespace bricksim::gui::windows::view3d {
                 ImGui::EndChild();
             }
             ImGui::End();
+        }
+        if (!cursorSet) {
+            resetCursor();
         }
     }
 }

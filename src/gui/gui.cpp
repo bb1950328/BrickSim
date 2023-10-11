@@ -8,6 +8,7 @@
 #include "dialogs.h"
 #include "gui_internal.h"
 #include "main_menu_bar.h"
+#include "stb_image_write.h"
 #include "style.h"
 #include "windows/windows.h"
 #include <backends/imgui_impl_glfw.h>
@@ -27,6 +28,7 @@ namespace bricksim::gui {
         GLFWwindow* window;
         double lastScrollDeltaY;
 
+        std::unique_ptr<MouseCursorHandler> cursorHandler;
 
         std::shared_ptr<graphics::Texture> logoTexture;
 
@@ -51,7 +53,7 @@ namespace bricksim::gui {
             }
             ImFontConfig fontConfig;
             fontConfig.FontDataOwnedByAtlas = false;//otherwise ImGui tries to free() the data which causes a crash because the data is const
-            io.Fonts->AddFontFromMemoryTTF((void*)fontData, static_cast<int>(fontDataLength), 13.f * scaleFactor, &fontConfig, nullptr);
+            const auto font = io.Fonts->AddFontFromMemoryTTF((void*)fontData, static_cast<int>(fontDataLength), 13.f * scaleFactor, &fontConfig, nullptr);
 
             // merge in icons from Font Awesome
             static const std::array<ImWchar, 3> icons_ranges = {ICON_MIN_FA, ICON_MAX_FA, 0};
@@ -61,6 +63,54 @@ namespace bricksim::gui {
             iconsConfig.FontDataOwnedByAtlas = false;
             io.Fonts->AddFontFromMemoryTTF((void*)resources::fonts::fa_solid_900_ttf.data(), resources::fonts::fa_solid_900_ttf.size(),
                                            13.f * scaleFactor, &iconsConfig, icons_ranges.data());
+
+            std::array<util::RawImage, icons::GLYPH_COUNT> rawIconImages;
+            std::array<int, icons::GLYPH_COUNT> rectIds;
+
+            for (const auto size: magic_enum::enum_values<icons::IconSize>()) {
+                for (const auto type: magic_enum::enum_values<icons::IconType>()) {
+                    const auto i = icons::getGlyphIndex(type, size);
+                    rawIconImages[i] = icons::getRawImage(type, size);
+                    rectIds[i] = io.Fonts->AddCustomRectFontGlyph(font, icons::getGlyphCodepoint(type, size), rawIconImages[i].width, rawIconImages[i].height, rawIconImages[i].width + 1);
+                }
+            }
+
+            unsigned char* tex_pixels = nullptr;
+            int tex_width, tex_height;
+            io.Fonts->GetTexDataAsRGBA32(&tex_pixels, &tex_width, &tex_height);
+
+            for (std::size_t i = 0; i < icons::GLYPH_COUNT; ++i) {
+                const auto* rect = io.Fonts->GetCustomRectByIndex(rectIds[i]);
+                const auto& src = rawIconImages[i];
+                assert(rect->Width == src.width && rect->Height == src.height && "icon resize not implemented");
+                const auto* srcData = src.data.data();
+                const auto srcLineByteSize = src.width * src.channels;
+                for (int y = 0; y < rect->Height; y++) {
+                    ImU32* const destLineStart = (ImU32*)tex_pixels + (rect->Y + y) * tex_width + (rect->X);
+                    const auto* const srcLineStart = srcData + y * srcLineByteSize;
+                    if (src.channels == 4) {
+                        std::memcpy(destLineStart, srcLineStart, srcLineByteSize);
+                    } else {
+                        auto* d = destLineStart;
+                        auto* s = srcLineStart;
+                        if (src.channels == 1) {
+                            for (int x = 0; x < rect->Width; x++) {
+                                *d++ = IM_COL32(s[0], s[0], s[0], 255);
+                                s += src.channels;
+                            }
+                        } else if (src.channels >= 3) {
+                            for (int x = 0; x < rect->Width; x++) {
+                                *d++ = IM_COL32(s[0], s[1], s[2], 255);
+                                s += src.channels;
+                            }
+                        } else {
+                            throw std::invalid_argument(fmt::format("cannot copy image for IconType::{} with {} channels", magic_enum::enum_name(magic_enum::enum_value<icons::IconType>(i)), src.channels));
+                        }
+                    }
+                }
+            }
+
+            stbi_write_png("/tmp/atlas.png", tex_width, tex_height, 4, tex_pixels, sizeof(ImU32) * tex_width);
         }
 
         void setupStyle() {
@@ -127,6 +177,8 @@ namespace bricksim::gui {
         setupStyle();
 
         logoTexture = std::make_shared<graphics::Texture>(resources::logos::logo_fit_nobg_png.data(), resources::logos::logo_fit_nobg_png.size());
+
+        cursorHandler = std::make_unique<MouseCursorHandler>();
 
         setupDone = true;
     }
@@ -206,6 +258,7 @@ namespace bricksim::gui {
 
     void cleanup() {
         logoTexture = nullptr;
+        cursorHandler = nullptr;
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
@@ -399,5 +452,8 @@ namespace bricksim::gui {
     }
     std::optional<windows::Id> getCurrentlyFocusedWindow() {
         return currentlyFocusedWindow.has_value() ? currentlyFocusedWindow : lastFocusedWindow;
+    }
+    MouseCursorHandler& getCursorHandler() {
+        return *cursorHandler;
     }
 }

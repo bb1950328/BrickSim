@@ -1,8 +1,10 @@
 #include "main_menu_bar.h"
 #include "../controller.h"
+#include "../editor/tools.h"
 #include "../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "gui.h"
 #include "gui_internal.h"
+
 namespace bricksim::gui {
     namespace {
         void drawDocumentMenu(const std::shared_ptr<Editor>& editor) {
@@ -152,6 +154,18 @@ namespace bricksim::gui {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("3D")) {
+                if (ImGui::BeginMenu("Tool")) {
+                    using namespace tools;
+                    for (const auto t: magic_enum::enum_values<Tool>()) {
+                        bool active = isActive(t);
+                        ImGui::MenuItem(getData(t).nameWithIcon.c_str(), nullptr, &active);
+                        if (active) {
+                            setActive(t);
+                        }
+                    }
+                    ImGui::EndMenu();
+                }
+                ImGui::Separator();
                 gui_internal::actionMenuItem(user_actions::VIEW_3D_FRONT, "Front");
                 gui_internal::actionMenuItem(user_actions::VIEW_3D_TOP, "Top");
                 gui_internal::actionMenuItem(user_actions::VIEW_3D_RIGHT, "Right");
@@ -173,7 +187,7 @@ namespace bricksim::gui {
                 gui_internal::actionMenuItem(user_actions::TAKE_SCREENSHOT);
                 ImGui::EndMenu();
             }
-            if (ImGui::BeginMenu("Tools")) {
+            if (ImGui::BeginMenu("Utilities")) {
                 ImGui::MenuItem(windows::getName(windows::Id::GEAR_RATIO_CALCULATOR), "", windows::isVisible(windows::Id::GEAR_RATIO_CALCULATOR));
                 ImGui::EndMenu();
             }

@@ -31,7 +31,8 @@ namespace bricksim::gui::icons {
             const auto glyph = getGlyph(type, size);
             std::u32string u32glyph;
             u32glyph.push_back(codepoint);
-            const auto expectedGlyph = utf8::utf32to8(u32glyph);
+            std::string expectedGlyph;
+            utf8::utf32to8(u32glyph.begin(), u32glyph.end(), std::back_inserter(expectedGlyph));
             CHECK(expectedGlyph == glyph);
 
             const auto utf8Bytes = getGlyphUtf8Bytes(type, size);

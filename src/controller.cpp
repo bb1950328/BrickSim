@@ -572,9 +572,20 @@ namespace bricksim::controller {
         plLockWait("OpenGL");
         std::scoped_lock<std::recursive_mutex> lg(openGlMutex);
         plLockScopeState("OpenGL", true);
-        glfwMakeContextCurrent(window);
+
+        static bool contextMadeCurrent = false;
+        const bool needToMakeContextCurrent = !contextMadeCurrent;
+        if (needToMakeContextCurrent) {
+            contextMadeCurrent = true;
+            glfwMakeContextCurrent(window);
+        }
+
         functor();
-        glfwMakeContextCurrent(nullptr);
+
+        if (needToMakeContextCurrent) {
+            glfwMakeContextCurrent(nullptr);
+            contextMadeCurrent = false;
+        }
     }
 
     void toggleTransformGizmoRotationState() {

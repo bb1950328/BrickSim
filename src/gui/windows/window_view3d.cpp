@@ -23,7 +23,9 @@ namespace bricksim::gui::windows::view3d {
     }
 
     void setCursor(const std::shared_ptr<Editor>& editor) {
-        //todo getCursorHandler().getIconCursor(tools::SELECT.icon).activate(getWindow());
+        const auto& toolData = tools::getActiveToolData();
+        auto& cursor = getCursorHandler().getIconCursor(toolData.icon);
+        cursor.activate(getWindow());
     }
     void resetCursor() {
         getCursorHandler().getStandardCursor().activate(getWindow());

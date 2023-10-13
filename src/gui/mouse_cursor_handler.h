@@ -19,7 +19,7 @@ namespace bricksim::gui {
     };
 
     class MouseCursor : public util::NoCopy {
-    private:
+    protected:
         GLFWcursor* cursor;
 
     public:
@@ -35,6 +35,9 @@ namespace bricksim::gui {
     };
 
     class IconMouseCursor : public MouseCursor {
+    protected:
+        static constexpr const auto size = icons::Icon48;
+
     public:
         explicit IconMouseCursor(icons::IconType type);
 

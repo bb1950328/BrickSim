@@ -24,9 +24,9 @@ namespace bricksim::gui::icons {
     };
 
     enum IconSize {
-        Icon16,
-        Icon36,
-        Icon48,
+        Icon16 = 16,
+        Icon36 = 36,
+        Icon48 = 48,
     };
 
     constexpr uint16_t TYPE_COUNT = magic_enum::enum_count<IconType>();
@@ -100,6 +100,8 @@ namespace bricksim::gui::icons {
     }
 
     [[nodiscard]] util::RawImage getRawImage(IconType icon, IconSize size);
+    [[nodiscard]] glm::vec2 getHotPoint(IconType icon);
+    [[nodiscard]] glm::ivec2 getHotPoint(IconType icon, IconSize size);
 
     void initialize();
     void cleanup();

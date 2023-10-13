@@ -156,17 +156,18 @@ std::vector<glm::vec<L, float, glm::defaultp>> consistentStartOfCircularList(con
 
 template<typename E>
 struct MagicEnumGenerator : public Catch::Generators::IGenerator<E> {
+    static_assert(magic_enum::enum_count<E>() > 0);
+
     const E& get() const override {
         return i;
     }
 
     bool next() override {
-        const auto idx = *magic_enum::enum_index(i);
-        const auto nextOpt = magic_enum::enum_cast<E>(idx + 1ul);
-        if (!nextOpt) {
+        const auto index = *magic_enum::enum_index(i) + 1ul;
+        if (index >= magic_enum::enum_count<E>()) {
             return false;
         }
-        i = *nextOpt;
+        i = magic_enum::enum_value<E>(index);
         return true;
     }
     [[nodiscard]] std::string stringifyImpl() const override {
@@ -174,7 +175,7 @@ struct MagicEnumGenerator : public Catch::Generators::IGenerator<E> {
     }
 
 protected:
-    E i = *magic_enum::enum_cast<E>(0);
+    E i = magic_enum::enum_value<E>(0);
 };
 
 template<typename E>

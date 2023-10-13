@@ -31,4 +31,7 @@ namespace bricksim::tools {
     Tool getActiveTool() {
         return activeTool;
     }
+    const ToolData& getActiveToolData() {
+        return getData(activeTool);
+    }
 }

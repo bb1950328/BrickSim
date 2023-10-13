@@ -22,4 +22,6 @@ namespace bricksim::tools {
     void setActive(Tool tool);
     bool isActive(Tool tool);
     Tool getActiveTool();
+    const ToolData& getActiveToolData();
+
 }

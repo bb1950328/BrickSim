@@ -660,19 +660,22 @@ jobs:
     runs-on: ubuntu-latest
     if: success() || failure()
     steps:
-      - name: Download UnitTestReport_Linux64
+      - if: needs.testLinux.result == 'success'
+        name: Download UnitTestReport_Linux64
         uses: actions/download-artifact@v3
         with:
           name: UnitTestReport_Linux64
           path: artifacts
 
-      - name: Download UnitTestReport_Windows64
+      - if: needs.testWindows.result == 'success'
+        name: Download UnitTestReport_Windows64
         uses: actions/download-artifact@v3
         with:
           name: UnitTestReport_Windows64
           path: artifacts
 
-      - name: Download UnitTestReport_Mac64
+      - if: needs.testMac.result == 'success'
+        name: Download UnitTestReport_Mac64
         uses: actions/download-artifact@v3
         with:
           name: UnitTestReport_Mac64

@@ -75,7 +75,7 @@ namespace bricksim::user_actions {
                 actionName(TAKE_SCREENSHOT, ICON_FA_CAMERA " Take screenshot"sv),
                 actionName(EXECUTE_ACTION_BY_NAME, ICON_FA_MAGNIFYING_GLASS " Find action"sv),
                 actionName(TOGGLE_TRANSFORM_GIZMO_ROTATION, "Toggle Transform Gizmo Rotation (World / Selected Element)"sv),
-                actionName(SELECT_CONNECTED, ICON_FA_PUZZLE_PIECE " Select connected"sv),
+                actionName(SELECT_CONNECTED, ICON_FA_SHARE_NODES " Select connected"sv),
                 actionName(INLINE_SELECTED_ELEMENTS, ICON_FA_BARS " Inline Selected Elements"sv),
                 actionName(START_TRANSLATING_SELECTED_NODES, ICON_FA_UP_DOWN_LEFT_RIGHT " Start translating selected Elements"sv),
                 actionName(START_ROTATING_SELECTED_NODES, ICON_FA_UP_DOWN_LEFT_RIGHT " Start rotating selected Elements"sv),

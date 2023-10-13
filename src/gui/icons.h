@@ -7,6 +7,17 @@
 
 namespace bricksim::gui::icons {
     enum IconType {
+        Brick1Side,
+        Brick1x1Top,
+        Brick2Side,
+        Brick2x2Top,
+        Pie4,
+        Pie6,
+        Pie8,
+        Pie16,
+        Plate1HalfTop,
+        Plate1Side,
+        Plate2Side,
         Select,
         SelectConnected,
         SelectStronglyConnected,
@@ -64,16 +75,22 @@ namespace bricksim::gui::icons {
     }
 
     constexpr auto PNG_FILES = std::to_array({
-            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::select_png,
-                                                     resources::icons::_36x36::select_png,
-                                                     resources::icons::_48x48::select_png}),
-            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::select_connected_png,
-                                                     resources::icons::_36x36::select_connected_png,
-                                                     resources::icons::_48x48::select_connected_png}),
-            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::select_strongly_connected_png,
-                                                     resources::icons::_36x36::select_strongly_connected_png,
-                                                     resources::icons::_48x48::select_strongly_connected_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::brick_1_side_png, resources::icons::_36x36::brick_1_side_png, resources::icons::_48x48::brick_1_side_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::brick_1x1_top_png, resources::icons::_36x36::brick_1x1_top_png, resources::icons::_48x48::brick_1x1_top_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::brick_2_side_png, resources::icons::_36x36::brick_2_side_png, resources::icons::_48x48::brick_2_side_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::brick_2x2_top_png, resources::icons::_36x36::brick_2x2_top_png, resources::icons::_48x48::brick_2x2_top_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::pie4_png, resources::icons::_36x36::pie4_png, resources::icons::_48x48::pie4_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::pie6_png, resources::icons::_36x36::pie6_png, resources::icons::_48x48::pie6_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::pie8_png, resources::icons::_36x36::pie8_png, resources::icons::_48x48::pie8_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::pie16_png, resources::icons::_36x36::pie16_png, resources::icons::_48x48::pie16_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::plate_1_half_top_png, resources::icons::_36x36::plate_1_half_top_png, resources::icons::_48x48::plate_1_half_top_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::plate_1_side_png, resources::icons::_36x36::plate_1_side_png, resources::icons::_48x48::plate_1_side_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::plate_2_side_png, resources::icons::_36x36::plate_2_side_png, resources::icons::_48x48::plate_2_side_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::select_png, resources::icons::_36x36::select_png, resources::icons::_48x48::select_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::select_connected_png, resources::icons::_36x36::select_connected_png, resources::icons::_48x48::select_connected_png}),
+            std::to_array<std::span<const uint8_t>>({resources::icons::_16x16::select_strongly_connected_png, resources::icons::_36x36::select_strongly_connected_png, resources::icons::_48x48::select_strongly_connected_png}),
     });
+    static_assert(PNG_FILES.size() == TYPE_COUNT);
 
     constexpr std::span<const uint8_t> getPNG(IconType icon, IconSize size) {
         return PNG_FILES[*magic_enum::enum_index(icon)][*magic_enum::enum_index(size)];

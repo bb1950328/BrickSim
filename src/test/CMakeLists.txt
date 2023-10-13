@@ -3,8 +3,9 @@ target_sources(BrickSimTests PRIVATE
         )
 
 add_subdirectory(connection)
+add_subdirectory(editor)
 add_subdirectory(graphics)
 add_subdirectory(gui)
 add_subdirectory(helpers)
 add_subdirectory(ldr)
-add_subdirectory(tools)
+add_subdirectory(utilities)

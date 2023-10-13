@@ -72,8 +72,25 @@ namespace bricksim::snap {
         return temporaryPreset;
     }
     LinearSnapStepPreset::LinearSnapStepPreset(std::string name, const int distanceXz, const int distanceY) :
-        name(std::move(name)), stepXZ(distanceXz), stepY(distanceY) {}
+        SnapStepPreset(name), stepXZ(distanceXz), stepY(distanceY) {}
     glm::ivec3 LinearSnapStepPreset::stepXYZ() const {
         return {stepXZ, stepY, stepXZ};
+    }
+    std::optional<gui::icons::IconType> LinearSnapStepPreset::getIcon() const {
+        using gui::icons::IconType;
+        if (stepXZ == 20) {
+            if (stepY == 24) {
+                return IconType::Brick1Side;
+            } else if (stepY == 20) {
+                return IconType::Brick1x1Top;
+            }
+        } else if (stepXZ == 10) {
+            if (stepY == 8) {
+                return IconType::Plate1Side;
+            } else if (stepY == 10) {
+                return IconType::Plate1HalfTop;
+            }
+        }
+        return std::nullopt;
     }
 }

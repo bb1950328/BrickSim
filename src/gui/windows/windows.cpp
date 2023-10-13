@@ -45,7 +45,7 @@ namespace bricksim::gui::windows {
                     {Id::IMGUI_DEMO, ICON_FA_IMAGE " ImGui Demo", false, drawImGuiDemo},
                     {Id::ORIENTATION_CUBE, ICON_FA_CUBE " Orientation Cube", true, orientation_cube::draw},
                     {Id::LOG, ICON_FA_LIST " Log", false, log::draw},
-                    {Id::GEAR_RATIO_CALCULATOR, "Gear Ratio Calculator", false, tools::gear_ratio_calculator::draw},
+                    {Id::GEAR_RATIO_CALCULATOR, ICON_FA_GEARS " Gear Ratio Calculator", false, tools::gear_ratio_calculator::draw},
                     {Id::MODEL_INFO, ICON_FA_INFO " Model Info", false, model_info::draw},
                     {Id::EDITOR_META_INFO, ICON_FA_RECEIPT " Meta-Info", false, editor_meta_info::draw},
                     {Id::LDRAW_FILE_INSPECTOR, ICON_FA_EYE " LDraw File Inspector", false, ldraw_file_inspector::draw},

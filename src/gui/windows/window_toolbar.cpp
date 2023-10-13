@@ -1,5 +1,6 @@
 #include "window_toolbar.h"
 #include "../../config.h"
+#include "../../editor/tools.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../icons.h"
 #include "imgui.h"
@@ -14,8 +15,10 @@ namespace bricksim::gui::windows::toolbar {
             static const ImVec2 buttonDimensions = {buttonSize * scale, buttonSize * scale};
 
             static bool horizontal = true;
-            for (const auto& [icon, _]: magic_enum::enum_entries<icons::IconType>()) {
-                if (ImGui::Button(icons::getGlyph(icon, icons::Icon48), buttonDimensions)) {
+
+            for (const auto& tool: magic_enum::enum_values<tools::Tool>()) {
+                const auto& toolData = tools::getData(tool);
+                if (ImGui::Button(icons::getGlyph(toolData.icon, icons::Icon48), buttonDimensions)) {
                 }
                 if (horizontal) {
                     ImGui::SameLine();

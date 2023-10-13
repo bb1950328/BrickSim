@@ -19,6 +19,14 @@
 #endif
 
 namespace bricksim::stringutil {
+    namespace {
+        constexpr bool isIconCodepoint(char16_t character) {
+            const auto isFontAwesome = ICON_MIN_FA <= character && character <= ICON_MAX_FA;
+            const auto isCustom = gui::icons::GLYPH_RANGE_START <= character && character <= gui::icons::GLYPH_RANGE_END;
+            return isFontAwesome || isCustom;
+        }
+    }
+
     std::string trim(const std::string& input) {
         auto wsbefore = std::find_if_not(input.begin(), input.end(), [](int c) { return c > 0 && c <= 0xff && std::isspace(c); });
         auto wsafter = std::find_if_not(input.rbegin(), input.rend(), [](int c) { return c > 0 && c <= 0xff && std::isspace(c); }).base();
@@ -279,5 +287,13 @@ namespace bricksim::stringutil {
             result += str;
         }
         return result;
+    }
+    std::string removeIcons(std::string_view withIcons) {
+        //todo make this constexpr
+        const auto u16with = utf8::utf8to16(withIcons);
+        std::u16string u16without;
+        u16without.reserve(u16with.size());
+        std::copy_if(u16with.cbegin(), u16with.cend(), std::back_inserter(u16without), isIconCodepoint);
+        return utf8::utf16to8(u16without);
     }
 }

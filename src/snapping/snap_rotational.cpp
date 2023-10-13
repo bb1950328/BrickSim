@@ -7,7 +7,19 @@
 
 namespace bricksim::snap {
     RotationalSnapStepPreset::RotationalSnapStepPreset(std::string name, float stepDeg) :
-        name(std::move(name)), stepDeg(stepDeg) {}
+        SnapStepPreset(name), stepDeg(stepDeg) {}
+    std::optional<gui::icons::IconType> RotationalSnapStepPreset::getIcon() const {
+        using gui::icons::IconType;
+        constexpr auto sizes = std::to_array({90.f, 60.f, 45.f, 22.5f});
+        constexpr auto icons = std::to_array({IconType::Pie4, IconType::Pie6, IconType::Pie8, IconType::Pie16});
+        static_assert(sizes.size() == icons.size());
+        const auto it = std::find_if(sizes.begin(), sizes.end(), [&](const auto& item) {
+            return std::abs(item - stepDeg) < .1f;
+        });
+        return it != sizes.end()
+                       ? std::make_optional<IconType>(icons[std::distance(sizes.begin(), it)])
+                       : std::nullopt;
+    }
     const std::vector<RotationalSnapStepPreset>& RotationalHandler::getPresets() const {
         return presets;
     }

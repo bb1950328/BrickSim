@@ -1,12 +1,13 @@
 #pragma once
+#include "snap_common.h"
 #include <string>
 #include <vector>
 
 namespace bricksim::snap {
-    struct RotationalSnapStepPreset {
-        std::string name;
+    struct RotationalSnapStepPreset : public SnapStepPreset {
         float stepDeg;
         RotationalSnapStepPreset(std::string name, float stepDeg);
+        std::optional<gui::icons::IconType> getIcon() const override;
     };
 
     class RotationalHandler {

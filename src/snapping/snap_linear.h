@@ -1,19 +1,21 @@
 #pragma once
+#include "../gui/icons.h"
+#include "snap_common.h"
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
 
 namespace bricksim::snap {
-    struct LinearSnapStepPreset {
-        std::string name;
+    struct LinearSnapStepPreset : public SnapStepPreset {
         int stepXZ;
         int stepY;
         [[nodiscard]] glm::ivec3 stepXYZ() const;
         LinearSnapStepPreset(std::string name, int distanceXz, int distanceY);
-        LinearSnapStepPreset(const LinearSnapStepPreset& other) = default;
-        LinearSnapStepPreset& operator=(const LinearSnapStepPreset& other) = default;
-        LinearSnapStepPreset(LinearSnapStepPreset&& other) = default;
-        LinearSnapStepPreset& operator=(LinearSnapStepPreset&& other) = default;
+        [[nodiscard]] std::optional<gui::icons::IconType> getIcon() const;
+        //todo remove LinearSnapStepPreset(const LinearSnapStepPreset& other) = default;
+        //todo remove LinearSnapStepPreset& operator=(const LinearSnapStepPreset& other) = default;
+        //todo remove LinearSnapStepPreset(LinearSnapStepPreset&& other) = default;
+        //todo remove LinearSnapStepPreset& operator=(LinearSnapStepPreset&& other) = default;
     };
     class LinearHandler {
         std::vector<LinearSnapStepPreset> presets;

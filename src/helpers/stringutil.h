@@ -1,7 +1,11 @@
 #pragma once
+#include "../gui/icons.h"
+#include "../lib/IconFontCppHeaders/IconsFontAwesome6.h"
+#include <algorithm>
 #include <glm/glm.hpp>
 #include <spdlog/fmt/fmt.h>
 #include <string>
+#include <utf8.h>
 #include <vector>
 
 namespace bricksim::stringutil {
@@ -50,17 +54,19 @@ namespace bricksim::stringutil {
     }
     template<typename T>
     std::string formatGLM(const glm::mat<3, 3, T>& mat) {
-        return fmt::format("vec3(({:g}, {:g}, {:g}), ({:g}, {:g}, {:g}), ({:g}, {:g}, {:g}))",
+        return fmt::format("mat3(({:g}, {:g}, {:g}), ({:g}, {:g}, {:g}), ({:g}, {:g}, {:g}))",
                            mat[0][0], mat[0][1], mat[0][2],
                            mat[1][0], mat[1][1], mat[1][2],
                            mat[2][0], mat[2][1], mat[2][2]);
     }
     template<typename T>
     std::string formatGLM(const glm::mat<4, 4, T>& mat) {
-        return fmt::format("vec4(({:g}, {:g}, {:g}, {:g}), ({:g}, {:g}, {:g}, {:g}), ({:g}, {:g}, {:g}, {:g}), ({:g}, {:g}, {:g}, {:g}))",
+        return fmt::format("mat4(({:g}, {:g}, {:g}, {:g}), ({:g}, {:g}, {:g}, {:g}), ({:g}, {:g}, {:g}, {:g}), ({:g}, {:g}, {:g}, {:g}))",
                            mat[0][0], mat[0][1], mat[0][2], mat[0][3],
                            mat[1][0], mat[1][1], mat[1][2], mat[1][3],
                            mat[2][0], mat[2][1], mat[2][2], mat[2][3],
                            mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
     }
+
+    std::string removeIcons(std::string_view withIcons);
 }

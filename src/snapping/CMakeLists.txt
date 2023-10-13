@@ -1,4 +1,6 @@
 target_sources(BrickSimLib PRIVATE
+        snap_common.cpp
+        snap_common.h
         snap_const.cpp
         snap_const.h
         snap_handler.cpp

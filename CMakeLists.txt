@@ -284,9 +284,9 @@ target_include_directories(ImGuiColorTextEdit INTERFACE src/lib/ImGuiColorTextEd
 
 target_link_libraries(BrickSimLib PRIVATE ImGuiColorTextEdit)
 
-#CImg
-target_include_directories(BrickSimLib PUBLIC src/lib/CImg)
-target_compile_definitions(BrickSimLib PUBLIC cimg_display=0)
+#UTF8-CPP
+add_subdirectory(src/lib/utfcpp)
+target_link_libraries(BrickSimLib PUBLIC utf8cpp)
 
 add_subdirectory(src)
 

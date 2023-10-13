@@ -12,7 +12,7 @@ namespace bricksim::resources {
             extern const std::array<uint8_t, 171> brick_1_side_png;
             extern const std::array<uint8_t, 304> brick_1x1_top_png;
             extern const std::array<uint8_t, 179> brick_2_side_png;
-            extern const std::array<uint8_t, 322> brick_2x2_top_png;
+            extern const std::array<uint8_t, 310> brick_2x2_top_png;
             extern const std::array<uint8_t, 249> plate_1_half_top_png;
             extern const std::array<uint8_t, 167> plate_1_side_png;
             extern const std::array<uint8_t, 180> plate_2_side_png;
@@ -21,10 +21,10 @@ namespace bricksim::resources {
             extern const std::array<uint8_t, 334> select_strongly_connected_png;
         }
         namespace _36x36 {
-            extern const std::array<uint8_t, 219> brick_1_side_png;
+            extern const std::array<uint8_t, 197> brick_1_side_png;
             extern const std::array<uint8_t, 597> brick_1x1_top_png;
-            extern const std::array<uint8_t, 221> brick_2_side_png;
-            extern const std::array<uint8_t, 798> brick_2x2_top_png;
+            extern const std::array<uint8_t, 197> brick_2_side_png;
+            extern const std::array<uint8_t, 741> brick_2x2_top_png;
             extern const std::array<uint8_t, 447> plate_1_half_top_png;
             extern const std::array<uint8_t, 201> plate_1_side_png;
             extern const std::array<uint8_t, 203> plate_2_side_png;
@@ -33,13 +33,13 @@ namespace bricksim::resources {
             extern const std::array<uint8_t, 607> select_strongly_connected_png;
         }
         namespace _48x48 {
-            extern const std::array<uint8_t, 241> brick_1_side_png;
+            extern const std::array<uint8_t, 201> brick_1_side_png;
             extern const std::array<uint8_t, 754> brick_1x1_top_png;
-            extern const std::array<uint8_t, 235> brick_2_side_png;
-            extern const std::array<uint8_t, 1024> brick_2x2_top_png;
+            extern const std::array<uint8_t, 206> brick_2_side_png;
+            extern const std::array<uint8_t, 941> brick_2x2_top_png;
             extern const std::array<uint8_t, 562> plate_1_half_top_png;
-            extern const std::array<uint8_t, 219> plate_1_side_png;
-            extern const std::array<uint8_t, 213> plate_2_side_png;
+            extern const std::array<uint8_t, 186> plate_1_side_png;
+            extern const std::array<uint8_t, 206> plate_2_side_png;
             extern const std::array<uint8_t, 525> select_png;
             extern const std::array<uint8_t, 1057> select_connected_png;
             extern const std::array<uint8_t, 739> select_strongly_connected_png;

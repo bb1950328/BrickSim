@@ -19,6 +19,7 @@ def convert_all() -> None:
             png_path.parent.mkdir(parents=True, exist_ok=True)
             print(f"convert {svg_path} to {png_path}")
             cairosvg.svg2png(url=svg_path, write_to=str(png_path), output_width=img_width, output_height=img_height)
+            os.system(f"optipng {png_path}")
             # with cairo.SVGSurface(svg_path, 32, 32) as surface:
             #     surface.write_to_png(png_path)
 

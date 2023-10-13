@@ -297,6 +297,8 @@ namespace bricksim::stringutil {
         u16without.reserve(u16with.size());
         std::copy_if(u16with.cbegin(), u16with.cend(), std::back_inserter(u16without), isIconCodepoint);
 
-        return utf8::utf16to8(u16without);
+        std::string result;
+        utf8::utf16to8(u16without.begin(), u16without.end(), std::back_inserter(result));
+        return result;
     }
 }

@@ -290,10 +290,13 @@ namespace bricksim::stringutil {
     }
     std::string removeIcons(std::string_view withIcons) {
         //todo make this constexpr
-        const auto u16with = utf8::utf8to16(withIcons);
+        std::u16string u16with;
+        utf8::utf8to16(withIcons.begin(), withIcons.end(), std::back_inserter(u16with));
+
         std::u16string u16without;
         u16without.reserve(u16with.size());
         std::copy_if(u16with.cbegin(), u16with.cend(), std::back_inserter(u16without), isIconCodepoint);
+
         return utf8::utf16to8(u16without);
     }
 }

@@ -1,4 +1,5 @@
 #include "pair_checker.h"
+#include "../helpers/almost_comparations.h"
 #include "../helpers/geometry.h"
 
 namespace bricksim::connection {
@@ -86,14 +87,14 @@ namespace bricksim::connection {
         //const float maxLengthCursorValue = std::max(aBoundaries.back(), bBoundaries.back());
         int aCursor = -1;
         int bCursor = -1;
-        if (aBoundaries.front() <= bBoundaries.front()) {
+        if (almostLess(aBoundaries.front(), bBoundaries.front(), POSITION_TOLERANCE_LDU)) {
             aCursor = 0;
         }
-        if (aBoundaries.front() >= bBoundaries.front()) {
+        if (almostGreater(aBoundaries.front(), bBoundaries.front(), POSITION_TOLERANCE_LDU)) {
             bCursor = 0;
         }
-        bool completelyUsedA = aBoundaries.front() > bBoundaries.front();
-        bool completelyUsedB = bBoundaries.front() > aBoundaries.front();
+        bool completelyUsedA = almostGreater(aBoundaries.front(), bBoundaries.front(), POSITION_TOLERANCE_LDU);
+        bool completelyUsedB = almostGreater(bBoundaries.front(), aBoundaries.front(), POSITION_TOLERANCE_LDU);
         bool radialCollision = false;
         bool rotationPossible = true;
         bool contact = false;
@@ -113,16 +114,16 @@ namespace bricksim::connection {
                 if (pa.type != CylindricalShapeType::ROUND && pa.type == pb.type) {
                     rotationPossible = false;
                 }
-                if ((static_cast<unsigned int>(aCursor) >= aBoundaries.size() - 2 && aBoundaries[aCursor + 1] < bBoundaries[bCursor])
-                    || (static_cast<unsigned int>(bCursor) >= bBoundaries.size() - 2 && bBoundaries[bCursor + 1] < aBoundaries[aCursor])) {
+                if ((static_cast<unsigned int>(aCursor) >= aBoundaries.size() - 2 && almostLess(aBoundaries[aCursor + 1], bBoundaries[bCursor]))
+                    || (static_cast<unsigned int>(bCursor) >= bBoundaries.size() - 2 && almostLess(bBoundaries[bCursor + 1], aBoundaries[aCursor]))) {
                     //no more common parts
                     break;
                 }
             }
-            if (aBoundaries[aCursor + 1] <= bBoundaries[bCursor + 1]) {
+            if (almostLess(aBoundaries[aCursor + 1], bBoundaries[bCursor + 1])) {
                 ++aCursor;
             }
-            if (aBoundaries[aCursor + 1] >= bBoundaries[bCursor + 1]) {
+            if (almostGreater(aBoundaries[aCursor + 1], bBoundaries[bCursor + 1])) {
                 ++bCursor;
             }
         }

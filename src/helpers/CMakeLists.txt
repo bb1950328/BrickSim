@@ -1,4 +1,6 @@
 target_sources(BrickSimLib PRIVATE
+        almost_comparations.cpp
+        almost_comparations.h
         bounding_volumes.cpp
         bounding_volumes.h
         color.cpp

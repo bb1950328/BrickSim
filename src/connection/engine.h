@@ -4,6 +4,7 @@
 #include "connection.h"
 #include "connection_graph.h"
 #include "fcl/broadphase/broadphase_dynamic_AABB_tree.h"
+#include "fcl/narrowphase/collision_object.h"
 #include "intersection_graph.h"
 
 namespace bricksim {

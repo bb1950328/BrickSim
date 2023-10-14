@@ -250,7 +250,7 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build efsw as a shared library" FORCE)
 set(BUILD_STATIC_LIBS ON CACHE BOOL "Build efsw as a static library" FORCE)
 set(EFSW_INSTALL OFF CACHE BOOL "Add efsw install targets" FORCE)
 add_subdirectory(src/lib/efsw)
-target_link_libraries(BrickSimLib PRIVATE efsw)
+target_link_libraries(BrickSimLib PUBLIC efsw)
 #target_include_directories(BrickSimLib PRIVATE src/lib/efsw/include)
 
 #palanteer
@@ -266,8 +266,8 @@ set(FCL_STATIC_LIBRARY ON CACHE BOOL "Whether the FCL library should be static r
 set(FCL_WITH_OCTOMAP OFF CACHE BOOL "OctoMap library support" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "Build the testing tree." FORCE)
 add_subdirectory(src/lib/fcl)
-target_link_libraries(BrickSimLib PRIVATE fcl)
-#target_include_directories(BrickSimLib PUBLIC lib/fcl/include)
+target_link_libraries(BrickSimLib PUBLIC fcl)
+#target_include_directories(BrickSimLib PUBLIC src/lib/fcl/include)
 
 #eigen
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)

@@ -11,7 +11,7 @@ namespace bricksim::gui::node_context_menu {
         Context context;
         uint64_t contextUnusedFrames = 0;
         std::unique_ptr<ContextMenuDrawHandler> drawHandler = std::make_unique<ImGuiContextMenuDrawHandler>();
-        struct ContextMenuItem {
+        struct NodeContextMenuItem {
             const char* const name;
             etree::NodeType requiredType;
             bool allowInMultiSelect;
@@ -19,7 +19,14 @@ namespace bricksim::gui::node_context_menu {
             std::optional<color::RGB> textColor;
         };
 
-        static const std::vector<ContextMenuItem> ITEMS = {
+        struct NoNodeContextMenuItem {
+            const char* const name;
+            std::function<bool(const std::shared_ptr<Editor>&)> enabler;
+            std::function<void(const std::shared_ptr<Editor>&)> action;
+            std::optional<color::RGB> textColor;
+        };
+
+        static const std::vector<NodeContextMenuItem> NODE_ITEMS = {
                 {ICON_FA_FILE_PEN " Make Editing Model",
                  etree::NodeType::TYPE_MODEL,
                  false,
@@ -58,30 +65,55 @@ namespace bricksim::gui::node_context_menu {
                      editor->centerElementIn3dView(node);
                  }},
         };
+
+        static const std::vector<NoNodeContextMenuItem> NO_NODE_ITEMS = {
+                {ICON_FA_FILE_PEN " Edit Last Model",
+                 [](const std::shared_ptr<Editor>& editor) {
+                     const auto editingModel = editor->getEditingModel();
+                     return true;
+                 },
+                 [](const std::shared_ptr<Editor>& editor) {
+                     editor->editLastModelInHistory();
+                 }},
+        };
     }
 
     void drawContextMenu() {
+        const auto editor = context.editor.lock();
+        if (editor == nullptr) {
+            return;
+        }
         if (drawHandler->beginMenu()) {
-            bool allSame = true;
-            auto sameType = context.nodes[0]->type;
-            for (const auto& item: context.nodes) {
-                if (sameType != item->type) {
-                    allSame = false;
-                    break;
+            if (context.nodes.empty()) {
+                for (const auto& item: NO_NODE_ITEMS) {
+                    if (item.enabler(editor)) {
+                        if (drawHandler->drawAction(item.name, item.textColor)) {
+                            item.action(editor);
+                        }
+                    }
                 }
-            }
-            bool multiSelect = context.nodes.size() > 1;
+            } else {
+                bool allSame = true;
+                auto sameType = context.nodes[0].lock()->type;
+                for (const auto& item: context.nodes) {
+                    if (sameType != item.lock()->type) {
+                        allSame = false;
+                        break;
+                    }
+                }
+                bool multiSelect = context.nodes.size() > 1;
 
-            for (const auto& item: ITEMS) {
-                if (multiSelect && (!item.allowInMultiSelect || !allSame)) {
-                    continue;
-                }
-                if (item.requiredType != etree::NodeType::TYPE_OTHER && item.requiredType != sameType) {
-                    continue;
-                }
-                if (drawHandler->drawAction(item.name, item.textColor)) {
-                    for (const auto& n: context.nodes) {
-                        item.action(context.editor, n);
+                for (const auto& item: NODE_ITEMS) {
+                    if (multiSelect && (!item.allowInMultiSelect || !allSame)) {
+                        continue;
+                    }
+                    if (item.requiredType != etree::NodeType::TYPE_OTHER && item.requiredType != sameType) {
+                        continue;
+                    }
+                    if (drawHandler->drawAction(item.name, item.textColor)) {
+                        for (const auto& n: context.nodes) {
+                            item.action(editor, n.lock());
+                        }
                     }
                 }
             }
@@ -99,7 +131,7 @@ namespace bricksim::gui::node_context_menu {
         context = std::move(newContext);
         ImGui::OpenPopupEx(ImGuiContextMenuDrawHandler::POPUP_ID_HASH);
         spdlog::debug("Open context menu on {}{}",
-                      context.nodes[0]->displayName,
+                      context.nodes.empty() ? "nothing" : context.nodes[0].lock()->displayName,
                       context.nodes.size() > 1
                               ? fmt::format(" and {} other nodes", context.nodes.size())
                               : "");

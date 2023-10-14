@@ -3,6 +3,7 @@
 #include "GLFW/glfw3.h"
 #include "icons.h"
 #include <vector>
+
 namespace bricksim::gui {
     enum class StandardCursorType : int {
         STANDARD = 0,
@@ -18,41 +19,23 @@ namespace bricksim::gui {
         NOT_ALLOWED = GLFW_NOT_ALLOWED_CURSOR,
     };
 
-    class MouseCursor : public util::NoCopy {
+    class MouseCursor {
     protected:
-        GLFWcursor* cursor;
+        std::shared_ptr<GLFWcursor> cursor;
 
     public:
         explicit MouseCursor(GLFWcursor* cursor);
-        MouseCursor(MouseCursor&& other);
-        virtual ~MouseCursor();
         void activate(GLFWwindow* window);
-    };
-
-    class StandardMouseCursor : public MouseCursor {
-    public:
-        explicit StandardMouseCursor(StandardCursorType type);
-    };
-
-    class IconMouseCursor : public MouseCursor {
-    protected:
-        static constexpr const auto size = icons::Icon48;
-
-    public:
-        explicit IconMouseCursor(icons::IconType type);
-
-    protected:
-        static GLFWcursor* createCursor(icons::IconType type);
     };
 
     class MouseCursorHandler : public util::NoCopy {
     private:
-        uomap_t<StandardCursorType, StandardMouseCursor> standardCursors;
-        uomap_t<icons::IconType, IconMouseCursor> iconCursors;
+        uomap_t<StandardCursorType, MouseCursor> standardCursors;
+        uomap_t<icons::IconType, MouseCursor> iconCursors;
 
     public:
-        StandardMouseCursor& getStandardCursor();
-        StandardMouseCursor& getStandardCursor(StandardCursorType type);
-        IconMouseCursor& getIconCursor(icons::IconType type);
+        MouseCursor& getStandardCursor();
+        MouseCursor& getStandardCursor(StandardCursorType type);
+        MouseCursor& getIconCursor(icons::IconType type);
     };
 }

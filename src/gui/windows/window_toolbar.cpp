@@ -18,8 +18,15 @@ namespace bricksim::gui::windows::toolbar {
 
             for (const auto& tool: magic_enum::enum_values<tools::Tool>()) {
                 const auto& toolData = tools::getData(tool);
+                const auto active = tools::isActive(tool);
+                ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(active ? ImGuiCol_ButtonActive : ImGuiCol_Button));
                 if (ImGui::Button(icons::getGlyph(toolData.icon, icons::Icon48), buttonDimensions)) {
+                    tools::setActive(tool);
                 }
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal | ImGuiHoveredFlags_NoSharedDelay)) {
+                    ImGui::SetTooltip("%s", toolData.name.data());
+                }
+                ImGui::PopStyleColor();
                 if (horizontal) {
                     ImGui::SameLine();
                 }

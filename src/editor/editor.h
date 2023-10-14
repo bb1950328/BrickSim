@@ -31,14 +31,15 @@ namespace bricksim {
         explicit Editor(const std::filesystem::path& path);
         Editor(const Editor& other) = delete;
         Editor& operator=(const Editor& other) = delete;
-        Editor(Editor&& other) noexcept = default;
-        Editor& operator=(Editor&& other) = default;
+        Editor(Editor&& other) noexcept = delete;
+        Editor& operator=(Editor&& other) = delete;
         ~Editor() override;
 
         const std::optional<std::filesystem::path>& getFilePath();
         std::shared_ptr<etree::RootNode>& getRootNode();
         std::shared_ptr<etree::ModelNode>& getEditingModel();
-        void setEditingModel(const std::shared_ptr<etree::ModelNode>& newEditingModel);
+        void setEditingModel(const std::shared_ptr<etree::ModelNode>& newEditingModel, bool saveInHistory = true);
+        void editLastModelInHistory();
         std::shared_ptr<ldr::FileNamespace>& getFileNamespace();
         [[nodiscard]] bool isModified() const;
         std::shared_ptr<graphics::Scene>& getScene();
@@ -63,7 +64,8 @@ namespace bricksim {
         bool isNodeClickable(const std::shared_ptr<etree::Node>& node);
         void nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed);
 
-        void openNodeContextMenuSelectedOrClicked(const std::shared_ptr<etree::Node>& clickedNode);
+        void openContextMenuNodeSelectedOrClicked(const std::shared_ptr<etree::Node>& clickedNode);
+        void openContextMenuNoNode();
 
         void startTransformingSelectedNodes(graphical_transform::GraphicalTransformationType type);
         void endNodeTransformation();
@@ -110,6 +112,7 @@ namespace bricksim {
         bool enableFileAutoReload = true;
         std::shared_ptr<etree::RootNode> rootNode;
         std::shared_ptr<etree::ModelNode> editingModel;
+        std::deque<std::weak_ptr<etree::ModelNode>> editingModelHistory;
         std::shared_ptr<ldr::FileNamespace> fileNamespace;
         scene_id_t sceneId{};
         std::shared_ptr<graphics::Scene> scene;

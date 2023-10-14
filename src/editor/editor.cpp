@@ -44,6 +44,7 @@ namespace bricksim {
         editingModel->createChildNodes();
         editingModel->visible = true;
         editingModel->incrementVersion();
+        editingModelHistory.push_back(editingModel);
 
         const auto& allScenes = graphics::scenes::getAll();
         sceneId = graphics::scenes::FIRST_MAIN_SCENE_ID;
@@ -441,8 +442,10 @@ namespace bricksim {
             if (filePath.has_value() && fullPath == filePath.value()) {
                 spdlog::info(R"(editor file change detected: {} fullPath="{}" oldFilename="{}")",
                              magic_enum::enum_name(action), fullPath.string(), oldFilename);
-                rootNode->removeChild(editingModel);
+                rootNode->removeChild(editingModel);//todo check if this works for MPD files (shouldn't all models be deleted?)
                 editingModel = std::make_shared<etree::ModelNode>(ldr::file_repo::get().reloadFile(fileNamespace, filePath->string()), 1, rootNode);
+                editingModelHistory.clear();
+                editingModelHistory.push_back(editingModel);
                 editingModel->createChildNodes();
                 rootNode->addChild(editingModel);
                 editingModel->visible = true;
@@ -593,7 +596,14 @@ namespace bricksim {
     bool Editor::isActive() const {
         return controller::getActiveEditor().get() == this;
     }
-    void Editor::setEditingModel(const std::shared_ptr<etree::ModelNode>& newEditingModel) {
+    void Editor::setEditingModel(const std::shared_ptr<etree::ModelNode>& newEditingModel, bool saveInHistory) {
+        if (saveInHistory) {
+            while (editingModelHistory.size() > 16) {
+                editingModelHistory.pop_front();
+            }
+            editingModelHistory.push_back(editingModel);
+        }
+
         editingModel->visible = false;
         editingModel->incrementVersion();
 
@@ -601,7 +611,19 @@ namespace bricksim {
 
         editingModel->visible = true;
         editingModel->incrementVersion();
+        nodeSelectNone();
     }
+
+    void Editor::editLastModelInHistory() {
+        if (!editingModelHistory.empty()) {
+            const auto back = editingModelHistory.back().lock();
+            if (back) {
+                setEditingModel(back, false);
+            }
+            editingModelHistory.pop_back();
+        }
+    }
+
     void Editor::setAsActiveEditor() {
         controller::setActiveEditor(shared_from_this());
     }
@@ -622,10 +644,10 @@ namespace bricksim {
     connection::Engine& Editor::getConnectionEngine() {
         return connectionEngine;
     }
-    void Editor::openNodeContextMenuSelectedOrClicked(const std::shared_ptr<etree::Node>& clickedNode) {
+    void Editor::openContextMenuNodeSelectedOrClicked(const std::shared_ptr<etree::Node>& clickedNode) {
         const auto& selectedNodesMap = getSelectedNodes();
         if (selectedNodesMap.contains(clickedNode)) {
-            std::vector<std::shared_ptr<etree::Node>> selectedNodesVec;
+            std::vector<std::weak_ptr<etree::Node>> selectedNodesVec;
             std::transform(selectedNodesMap.cbegin(),
                            selectedNodesMap.cend(),
                            std::back_inserter(selectedNodesVec),
@@ -634,6 +656,9 @@ namespace bricksim {
         } else {
             gui::node_context_menu::openContextMenu({shared_from_this(), {clickedNode}});
         }
+    }
+    void Editor::openContextMenuNoNode() {
+        gui::node_context_menu::openContextMenu({shared_from_this(), {}});
     }
 
     SelectionVisualizationNode::SelectionVisualizationNode(const std::shared_ptr<Node>& parent) :

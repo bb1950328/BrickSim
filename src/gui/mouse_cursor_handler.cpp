@@ -4,30 +4,32 @@
 #include <spdlog/spdlog.h>
 
 namespace bricksim::gui {
+    struct GLFWcursorDestroyer {
+        void operator()(GLFWcursor* cursor) {
+            controller::executeOpenGL([cursor]() {
+                glfwDestroyCursor(cursor);
+                spdlog::trace("destroyed cursor {}", fmt::ptr(cursor));
+            });
+        }
+    };
+
     MouseCursor::MouseCursor(GLFWcursor* cursor) :
-        cursor(cursor) {}
-    MouseCursor::~MouseCursor() {
-        controller::executeOpenGL([this]() {
-            glfwDestroyCursor(cursor);
-            spdlog::trace("destroyed cursor {}", fmt::ptr(cursor));
-        });
-    }
+        cursor(std::shared_ptr<GLFWcursor>(cursor, GLFWcursorDestroyer{})) {}
+
     void MouseCursor::activate(GLFWwindow* window) {
-        glfwSetCursor(window, cursor);
-    }
-    MouseCursor::MouseCursor(MouseCursor&& other) :
-        cursor(other.cursor) {
-    }
-    StandardMouseCursor::StandardMouseCursor(StandardCursorType type) :
-        MouseCursor(type == StandardCursorType::STANDARD ? nullptr : glfwCreateStandardCursor(static_cast<std::underlying_type_t<StandardCursorType>>(type))) {
-        spdlog::trace("created cursor {} StandardCursorType::{}", fmt::ptr(cursor), magic_enum::enum_name(type));
-    }
-    IconMouseCursor::IconMouseCursor(icons::IconType type) :
-        MouseCursor(createCursor(type)) {
-        spdlog::trace("created cursor {} IconType::{}", fmt::ptr(cursor), magic_enum::enum_name(type));
+        glfwSetCursor(window, cursor.get());
     }
 
-    GLFWcursor* IconMouseCursor::createCursor(icons::IconType type) {
+    MouseCursor createStandard(StandardCursorType type) {
+        auto* cursor = type == StandardCursorType::STANDARD
+                               ? nullptr
+                               : glfwCreateStandardCursor(static_cast<std::underlying_type_t<StandardCursorType>>(type));
+        spdlog::trace("created standard cursor {} StandardCursorType::{}", fmt::ptr(cursor), magic_enum::enum_name(type));
+        return MouseCursor(cursor);
+    }
+
+    MouseCursor createIcon(icons::IconType type) {
+        constexpr auto size = icons::Icon48;
         auto imageData = icons::getRawImage(type, size);
         const auto hotPoint = icons::getHotPoint(type, size);
         GLFWimage image = {
@@ -42,26 +44,27 @@ namespace bricksim::gui {
         if (cursor == nullptr) {
             throw std::invalid_argument(fmt::format("cannot create icon cursor for {}", magic_enum::enum_name(type)));
         }
-        return cursor;
+        spdlog::trace("created icon cursor {} IconType::{}", fmt::ptr(cursor), magic_enum::enum_name(type));
+        return MouseCursor(cursor);
     }
 
-    StandardMouseCursor& MouseCursorHandler::getStandardCursor() {
-        return getStandardCursor(StandardCursorType::STANDARD);
-    }
-
-    StandardMouseCursor& MouseCursorHandler::getStandardCursor(StandardCursorType type) {
+    MouseCursor& MouseCursorHandler::getStandardCursor(StandardCursorType type) {
         const auto it = standardCursors.find(type);
         if (it == standardCursors.end()) {
-            return standardCursors.emplace(type, type).first->second;
+            return standardCursors.emplace(type, createStandard(type)).first->second;
         }
         return it->second;
     }
 
-    IconMouseCursor& MouseCursorHandler::getIconCursor(icons::IconType type) {
+    MouseCursor& MouseCursorHandler::getIconCursor(icons::IconType type) {
         const auto it = iconCursors.find(type);
         if (it == iconCursors.end()) {
-            return iconCursors.emplace(type, type).first->second;
+            return iconCursors.emplace(type, createIcon(type)).first->second;
         }
         return it->second;
+    }
+
+    MouseCursor& MouseCursorHandler::getStandardCursor() {
+        return getStandardCursor(StandardCursorType::STANDARD);
     }
 }

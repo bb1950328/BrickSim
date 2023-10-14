@@ -32,7 +32,7 @@ namespace bricksim::gui::windows::element_tree {
                 const auto itemClicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
                 ImGui::PopStyleColor();
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-                    editor->openNodeContextMenuSelectedOrClicked(node);
+                    editor->openContextMenuNodeSelectedOrClicked(node);
                 }
                 if (drawChildren && !node->getChildren().empty()) {
                     for (const auto& child: node->getChildren()) {

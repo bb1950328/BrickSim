@@ -5,8 +5,8 @@
 namespace bricksim::gui::node_context_menu {
 
     struct Context {
-        std::shared_ptr<Editor> editor;
-        std::vector<std::shared_ptr<etree::Node>> nodes;
+        std::weak_ptr<Editor> editor;
+        std::vector<std::weak_ptr<etree::Node>> nodes;
     };
 
     void openContextMenu(Context newContext);

@@ -2,6 +2,7 @@
 #include "../gui.h"
 #include <memory>
 
+#include "../../editor/tools.h"
 #include "../context_menu/context_menu_handler.h"
 #include "../context_menu/node_context_menu.h"
 #include "window_element_tree.h"
@@ -41,7 +42,7 @@ namespace bricksim::gui::windows::element_tree {
                     ImGui::TreePop();
                 }
                 if (itemClicked) {
-                    editor->nodeClicked(node, ImGui::GetIO().KeyCtrl, ImGui::GetIO().KeyShift);
+                    tools::getData(tools::Tool::SELECT).handleNodeClicked->operator()(editor, node, ImGui::GetIO().KeyCtrl, ImGui::GetIO().KeyShift);
                 }
             }
         }

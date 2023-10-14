@@ -331,11 +331,13 @@ namespace bricksim::controller {
                 handleForegroundTasks();
             }
             auto& bgTasks = getBackgroundTasks();
-            spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
-            for (auto& bgTask: bgTasks) {
-                bgTask.second.joinThread();
+            if (!bgTasks.empty()) {
+                spdlog::info("waiting for {} background threads to finish...", bgTasks.size());
+                for (auto& bgTask: bgTasks) {
+                    bgTask.second.joinThread();
+                }
+                spdlog::info("all background tasks finished, exiting now");
             }
-            spdlog::info("all background tasks finished, exiting now");
             gui::cleanup();
             snapHandler.cleanup();
             graphics::orientation_cube::cleanup();

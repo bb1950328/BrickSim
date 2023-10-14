@@ -27,7 +27,6 @@ namespace bricksim::connection {
         IntersectionGraph intersections;
         ConnectionGraph connections;
         uoset_t<ConnectionGraph::node_t> outdatedInGraphs;
-        std::shared_ptr<etree::Node> lastEditingModel;
 
         static constexpr bool partNodeCollsionOnly = false;
 
@@ -66,6 +65,5 @@ namespace bricksim::connection {
         const ConnectionGraph& getConnections() const;
 
         friend bool updateCallback(fcl::CollisionObjectf* o0, fcl::CollisionObjectf* o1, void* cdata);
-        void findConnectionsOfIntersectionRange(size_t iStart, size_t iEnd);
     };
 }

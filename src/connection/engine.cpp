@@ -18,23 +18,8 @@ namespace bricksim::connection {
     }
     void Engine::updateCollisionData(float* progress, float progressMultiplicator) {
         *progress = 0.f;
-        const auto editingModel = editor.getEditingModel();
-        if (lastEditingModel != editingModel && editingModel->getType() == etree::NodeType::TYPE_MODEL) {
-            resetData();
-        }
-        /*const auto& nodes = editingModel->getChildren();
-        for (std::size_t i = 0; i < nodes.size(); ++i) {
-            const auto it = nodeData.find(nodes[i]);
-            if (it == nodeData.end()) {
-                updateNodeData(nodes[i]);
-            } else {
-                updateNodeData(nodes[i], it);
-            }
-            *progress = progressMultiplicator * i / nodes.size();
-        }*/
-        updateNodeData(editingModel);//todo update progress
+        updateNodeData(editor.getEditingModel());//todo update progress
 
-        lastEditingModel = editingModel;
         *progress = progressMultiplicator;
     }
 

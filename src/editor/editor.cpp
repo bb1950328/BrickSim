@@ -13,6 +13,7 @@
 #include "../ldr/file_writer.h"
 #include "palanteer.h"
 #include "spdlog/fmt/bundled/format.h"
+#include "tools.h"
 
 namespace bricksim {
     std::shared_ptr<Editor> Editor::createNew() {
@@ -230,6 +231,19 @@ namespace bricksim {
         setAsActiveEditor();
     }
 
+    void Editor::nodeSelectSet(const uoset_t<std::shared_ptr<etree::Node>>& nodes) {
+        for (const auto& selectedNode: selectedNodes) {
+            selectedNode.first->selected = false;
+        }
+        selectedNodes.clear();
+        for (const auto& item: nodes) {
+            item->selected = true;
+            selectedNodes.emplace(item, item->getVersion());
+        }
+        updateSelectionVisualization();
+        setAsActiveEditor();
+    }
+
     void Editor::nodeSelectUntil(const std::shared_ptr<etree::Node>& node) {
         auto rangeActive = false;
         auto keepGoing = true;
@@ -370,20 +384,6 @@ namespace bricksim {
 
     void Editor::unhideAllElements() {
         unhideElementRecursively(rootNode);
-    }
-
-    void Editor::nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed) {
-        if (ctrlPressed) {
-            nodeSelectAddRemove(clickedNode);
-        } else if (shiftPressed) {
-            nodeSelectUntil(clickedNode);
-        } else {
-            nodeSelectSet(clickedNode);
-        }
-    }
-
-    bool Editor::isNodeClickable(const std::shared_ptr<etree::Node>& node) {
-        return true;
     }
 
     void Editor::endNodeTransformation() {

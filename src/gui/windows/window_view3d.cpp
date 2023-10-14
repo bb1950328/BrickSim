@@ -138,20 +138,18 @@ namespace bricksim::gui::windows::view3d {
                         //user just ended click without dragging
                         auto nodeUnderCursor = getNodeUnderCursor(scene, relCursorPos);
                         if (nodeUnderCursor) {
-                            if (editor->isNodeClickable(nodeUnderCursor)) {
-                                if (lastLeftMouseDown || lastRightMouseDown) {
-                                    editor->nodeClicked(nodeUnderCursor, imGuiIo.KeyCtrl, imGuiIo.KeyShift);
-                                }
-                                if (lastRightMouseDown) {
-                                    editor->openContextMenuNodeSelectedOrClicked(nodeUnderCursor);
-                                }
+                            if (lastLeftMouseDown || lastRightMouseDown) {
+                                tools::getActiveToolData().handleNodeClicked->operator()(editor, nodeUnderCursor, imGuiIo.KeyCtrl, imGuiIo.KeyShift);
+                            }
+                            if (lastRightMouseDown) {
+                                editor->openContextMenuNodeSelectedOrClicked(nodeUnderCursor);
                             }
                             //todo add something useful when middle click
                         } else {
+                            tools::getActiveToolData().handleNodeClicked->operator()(editor, nullptr, imGuiIo.KeyCtrl, imGuiIo.KeyShift);
                             if (lastRightMouseDown) {
                                 editor->openContextMenuNoNode();
                             }
-                            editor->nodeSelectNone();
                         }
                     }
 

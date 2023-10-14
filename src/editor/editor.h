@@ -57,12 +57,10 @@ namespace bricksim {
         void nodeSelectAddRemove(const std::shared_ptr<etree::Node>& node);
         void nodeSelectUntil(const std::shared_ptr<etree::Node>& node);
         void nodeSelectSet(const std::shared_ptr<etree::Node>& node);
+        void nodeSelectSet(const uoset_t<std::shared_ptr<etree::Node>>& nodes);
         void nodeSelectAll();
         void nodeSelectNone();
         void nodeSelectConnected();
-
-        bool isNodeClickable(const std::shared_ptr<etree::Node>& node);
-        void nodeClicked(const std::shared_ptr<etree::Node>& clickedNode, bool ctrlPressed, bool shiftPressed);
 
         void openContextMenuNodeSelectedOrClicked(const std::shared_ptr<etree::Node>& clickedNode);
         void openContextMenuNoNode();

@@ -451,7 +451,7 @@ namespace bricksim::ldr::file_repo {
         std::scoped_lock<std::mutex> lg(ldrFilesMtx);
         plLockScopeState("FileRepo::ldrFilesMtx", true);
         auto nsFiles = ldrFiles[fileNamespace];
-        return nsFiles.find(name) != nsFiles.end() || (fileNamespace != nullptr && hasFileCached(nullptr, name));
+        return nsFiles.find(name) != nsFiles.end() || (fileNamespace != nullptr && ldrFiles[nullptr].find(name) != ldrFiles[nullptr].end());
     }
 
     void FileRepo::changeFileName(const std::shared_ptr<FileNamespace>& fileNamespace, const std::shared_ptr<File>& file, const std::string& newName) {

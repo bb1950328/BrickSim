@@ -1,16 +1,18 @@
 target_sources(BrickSimLib PRIVATE
-        connector_data_provider.cpp
-        connector_data_provider.h
         bounding.cpp
         bounding.h
+        connection.cpp
+        connection.h
         connection_check.cpp
         connection_check.h
         connection_graph.cpp
         connection_graph.h
         connector_conversion.cpp
         connector_conversion.h
-        connection.cpp
-        connection.h
+        connector_data_provider.cpp
+        connector_data_provider.h
+        degrees_of_freedom.cpp
+        degrees_of_freedom.h
         engine.cpp
         engine.h
         intersection_graph.cpp

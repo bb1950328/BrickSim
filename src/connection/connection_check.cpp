@@ -74,7 +74,7 @@ namespace bricksim::connection {
         }
         std::size_t DirectionSet::getIndex(const glm::vec3& direction) {
             for (std::size_t i = 0; i < size(); ++i) {
-                if (geometry::isAlmostColinear(at(i), direction)) {
+                if (geometry::isAlmostParallel(at(i), direction)) {
                     return i;
                 }
             }

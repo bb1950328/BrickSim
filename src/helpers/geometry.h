@@ -244,5 +244,5 @@ namespace bricksim::geometry {
      * both vectors should be normalized
      * @return whether the angle between the vectors is <1° or >179°
      */
-    bool isAlmostColinear(const glm::vec3& a, const glm::vec3& b);
+    bool isAlmostParallel(const glm::vec3& a, const glm::vec3& b);
 }

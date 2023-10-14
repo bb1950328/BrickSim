@@ -383,7 +383,7 @@ namespace bricksim::geometry {
     bool is2dTriangleClockwise(const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2) {
         return ((p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y)) < 0;
     }
-    bool isAlmostColinear(const glm::vec3& a, const glm::vec3& b) {
+    bool isAlmostParallel(const glm::vec3& a, const glm::vec3& b) {
         return glm::length2(glm::cross(a, b)) < (.018 * .018);
     }
 }

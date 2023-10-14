@@ -1,6 +1,7 @@
 #include "shaders.h"
 #include "../constant_data/resources.h"
 #include "../controller.h"
+#include "palanteer.h"
 #include <fstream>
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -179,6 +180,7 @@ namespace bricksim::graphics {
         }
 
         void initialize() {
+            plScope("shaders::initialize");
             if (is_directory(std::filesystem::path("./resources/shaders"))) {
                 spdlog::info("loading shaders from source files");
                 allShaders[shader_id_t::TRIANGLE] = std::make_unique<Shader>("resources/shaders/triangle_shader.vsh", "resources/shaders/triangle_shader.fsh");
@@ -192,10 +194,12 @@ namespace bricksim::graphics {
                 spdlog::info("loading shaders from embedded data");
 
                 auto createShaderVF = [](const auto& vertexShader, const auto& fragmentShader) {
+                    plScope("createShaderVF");
                     return std::make_unique<Shader>(std::string_view(reinterpret_cast<const char*>(vertexShader.data()), vertexShader.size()),
                                                     std::string_view(reinterpret_cast<const char*>(fragmentShader.data()), fragmentShader.size()));
                 };
                 auto createShaderVFG = [](const auto& vertexShader, const auto& fragmentShader, const auto& geometryShader) {
+                    plScope("createShaderVFG");
                     return std::make_unique<Shader>(std::string_view(reinterpret_cast<const char*>(vertexShader.data()), vertexShader.size()),
                                                     std::string_view(reinterpret_cast<const char*>(fragmentShader.data()), fragmentShader.size()),
                                                     std::string_view(reinterpret_cast<const char*>(geometryShader.data()), geometryShader.size()));

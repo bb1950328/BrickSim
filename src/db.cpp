@@ -1,4 +1,5 @@
 #include "db.h"
+#include "palanteer.h"
 #include <SQLiteCpp/Database.h>
 #include <filesystem>
 #include <spdlog/spdlog.h>
@@ -58,6 +59,7 @@ namespace bricksim::db {
     }
 
     void initialize() {
+        plScope("db::initialize");
         bool configDbNew = !std::filesystem::is_regular_file("config.db3");
         bool cacheDbNew = !std::filesystem::is_regular_file("cache.db3");
         configDb = SQLite::Database("config.db3", SQLite::OPEN_CREATE | SQLite::OPEN_READWRITE);

@@ -110,6 +110,7 @@ namespace bricksim::controller {
             if (openGlInitialized) {
                 throw std::invalid_argument("attempting to initialize OpenGL twice");
             }
+            plFunction();
             const auto enableDebugOutput = config::get(config::ENABLE_GL_DEBUG_OUTPUT);
             glfwSetErrorCallback(glfwErrorCallback);
             glfwInit();
@@ -153,6 +154,11 @@ namespace bricksim::controller {
                 spdlog::error("Failed to initialize GLAD");
                 return false;
             }
+
+            const auto bgColor = config::get(config::BACKGROUND_COLOR).asGlmVector();
+            glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            glfwSwapBuffers(window);
 
             glEnable(GL_DEPTH_TEST);
 

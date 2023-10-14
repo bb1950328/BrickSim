@@ -37,33 +37,8 @@ namespace bricksim::gui {
         std::optional<windows::Id> currentlyFocusedWindow;
         std::optional<windows::Id> lastFocusedWindow;
 
-        void setupFont(float scaleFactor, ImGuiIO& io) {
-            auto fontName = config::get(config::FONT);
-            const unsigned char* fontData;
-            std::size_t fontDataLength;
-            if (fontName == "Roboto") {
-                fontData = resources::fonts::Roboto_Regular_ttf.data();
-                fontDataLength = resources::fonts::Roboto_Regular_ttf.size();
-            } else {
-                if (fontName != "RobotoMono") {
-                    spdlog::warn("invalid font config: \"{}\"", fontName);
-                }
-                fontData = resources::fonts::RobotoMono_Regular_ttf.data();
-                fontDataLength = resources::fonts::RobotoMono_Regular_ttf.size();
-            }
-            ImFontConfig fontConfig;
-            fontConfig.FontDataOwnedByAtlas = false;//otherwise ImGui tries to free() the data which causes a crash because the data is const
-            const auto font = io.Fonts->AddFontFromMemoryTTF((void*)fontData, static_cast<int>(fontDataLength), 13.f * scaleFactor, &fontConfig, nullptr);
-
-            // merge in icons from Font Awesome
-            static const std::array<ImWchar, 3> icons_ranges = {ICON_MIN_FA, ICON_MAX_FA, 0};
-            ImFontConfig iconsConfig;
-            iconsConfig.MergeMode = true;
-            iconsConfig.PixelSnapH = true;
-            iconsConfig.FontDataOwnedByAtlas = false;
-            io.Fonts->AddFontFromMemoryTTF((void*)resources::fonts::fa_solid_900_ttf.data(), resources::fonts::fa_solid_900_ttf.size(),
-                                           13.f * scaleFactor, &iconsConfig, icons_ranges.data());
-
+        void addCustomIcons(ImGuiIO& io, ImFont* font) {
+            plFunction();
             std::array<util::RawImage, icons::GLYPH_COUNT> rawIconImages;
             std::array<int, icons::GLYPH_COUNT> rectIds;
 
@@ -77,7 +52,10 @@ namespace bricksim::gui {
 
             unsigned char* tex_pixels = nullptr;
             int tex_width, tex_height;
-            io.Fonts->GetTexDataAsRGBA32(&tex_pixels, &tex_width, &tex_height);
+            {
+                plScope("ImFontAtlas.GetTexDataAsRGBA32");
+                io.Fonts->GetTexDataAsRGBA32(&tex_pixels, &tex_width, &tex_height);
+            }
 
             for (std::size_t i = 0; i < icons::GLYPH_COUNT; ++i) {
                 const auto* rect = io.Fonts->GetCustomRectByIndex(rectIds[i]);
@@ -89,7 +67,7 @@ namespace bricksim::gui {
                     ImU32* const destLineStart = (ImU32*)tex_pixels + (rect->Y + y) * tex_width + (rect->X);
                     const auto* const srcLineStart = srcData + y * srcLineByteSize;
                     if (src.channels == 4) {
-                        std::memcpy(destLineStart, srcLineStart, srcLineByteSize);
+                        memcpy(destLineStart, srcLineStart, srcLineByteSize);
                     } else {
                         auto* d = destLineStart;
                         auto* s = srcLineStart;
@@ -109,8 +87,48 @@ namespace bricksim::gui {
                     }
                 }
             }
+        }
+        void addFontawesomeFont(float scaleFactor, ImGuiIO& io) {
+            plFunction();
+            static const std::array<ImWchar, 3> icons_ranges = {ICON_MIN_FA, ICON_MAX_FA, 0};
+            ImFontConfig iconsConfig;
+            iconsConfig.MergeMode = true;
+            iconsConfig.PixelSnapH = true;
+            iconsConfig.FontDataOwnedByAtlas = false;
+            io.Fonts->AddFontFromMemoryTTF((void*)resources::fonts::fa_solid_900_ttf.data(),
+                                           resources::fonts::fa_solid_900_ttf.size(),
+                                           13.f * scaleFactor,
+                                           &iconsConfig,
+                                           icons_ranges.data());
+        }
+        ImFont* createBaseFont(float scaleFactor, ImGuiIO& io) {
+            plFunction();
+            auto fontName = config::get(config::FONT);
+            const unsigned char* fontData;
+            std::size_t fontDataLength;
+            if (fontName == "Roboto") {
+                fontData = resources::fonts::Roboto_Regular_ttf.data();
+                fontDataLength = resources::fonts::Roboto_Regular_ttf.size();
+            } else {
+                if (fontName != "RobotoMono") {
+                    spdlog::warn("invalid font config: \"{}\"", fontName);
+                }
+                fontData = resources::fonts::RobotoMono_Regular_ttf.data();
+                fontDataLength = resources::fonts::RobotoMono_Regular_ttf.size();
+            }
+            ImFontConfig fontConfig;
+            fontConfig.FontDataOwnedByAtlas = false;//otherwise ImGui tries to free() the data which causes a crash because the data is const
+            const auto font = io.Fonts->AddFontFromMemoryTTF((void*)fontData, static_cast<int>(fontDataLength), 13.f * scaleFactor, &fontConfig, nullptr);
+            return font;
+        }
 
-            stbi_write_png("/tmp/atlas.png", tex_width, tex_height, 4, tex_pixels, sizeof(ImU32) * tex_width);
+        void setupFont(float scaleFactor, ImGuiIO& io) {
+            plFunction();
+            ImFont* font = createBaseFont(scaleFactor, io);
+
+            addFontawesomeFont(scaleFactor, io);
+
+            addCustomIcons(io, font);
         }
 
         void setupStyle() {
@@ -130,6 +148,7 @@ namespace bricksim::gui {
     }
 
     void initialize() {
+        plScope("gui::initialize");
         if (setupDone) {
             throw std::invalid_argument("setup called twice");
         }

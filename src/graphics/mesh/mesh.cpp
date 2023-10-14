@@ -23,7 +23,7 @@ namespace bricksim::mesh {
             switch (element->getType()) {
                 case 0: break;
                 case 1:
-                    addLdrSubfileReference(file->nameSpace, mainColor, std::dynamic_pointer_cast<ldr::SubfileReference>(element), transformation, bfcInverted, texmap);
+                    addLdrSubfileReference(file, mainColor, std::dynamic_pointer_cast<ldr::SubfileReference>(element), transformation, bfcInverted, texmap);
                     break;
                 case 2:
                     addLdrLine(mainColor, std::dynamic_pointer_cast<ldr::Line>(element), transformation);
@@ -41,10 +41,15 @@ namespace bricksim::mesh {
         }
     }
 
-    void Mesh::addLdrSubfileReference(const std::shared_ptr<ldr::FileNamespace>& fileNamespace, ldr::ColorReference mainColor, const std::shared_ptr<ldr::SubfileReference>& sfElement, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
+    void Mesh::addLdrSubfileReference(const std::shared_ptr<ldr::File>& file,
+                                      ldr::ColorReference mainColor,
+                                      const std::shared_ptr<ldr::SubfileReference>& sfElement,
+                                      const glm::mat4& transformation,
+                                      bool bfcInverted,
+                                      const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         auto sub_transformation = sfElement->getTransformationMatrixT();
         const auto color = sfElement->color.get()->code == ldr::Color::MAIN_COLOR_CODE ? mainColor : sfElement->color;
-        addLdrFile(color, sfElement->getFile(fileNamespace), sub_transformation * transformation, sfElement->bfcInverted ^ bfcInverted, sfElement->directTexmap != nullptr ? sfElement->directTexmap : texmap);
+        addLdrFile(color, sfElement->getFile(file), sub_transformation * transformation, sfElement->bfcInverted ^ bfcInverted, sfElement->directTexmap != nullptr ? sfElement->directTexmap : texmap);
     }
 
     void Mesh::addLdrTriangle(const ldr::ColorReference mainColor, const std::shared_ptr<ldr::Triangle>& triangleElement, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmapOfParent) {

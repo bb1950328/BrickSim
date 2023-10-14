@@ -38,7 +38,27 @@ namespace bricksim::ldr::file_repo {
         FileRepo(const FileRepo&) = delete;
         void initialize(float* progress);
 
+        /**
+         * @param fileNamespace the namespace or null
+         * @param name filename (relative to namespace search path or library)
+         * @return the file
+         * @throws std::invalid_argument
+         */
         std::shared_ptr<File> getFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name);
+        /**
+         * @param context the file where the name appeared
+         * @param name relative to context file
+         * @return the file
+         * @throws std::invalid_argument
+         */
+        std::shared_ptr<File> getFile(const std::shared_ptr<File>& context, const std::string& name);
+        /**
+         * @param fileNamespace the namespace or null
+         * @param name the name (relative to namespace search path or library)
+         * @param contextRelativePath directory relative to namespace search path which is the basepath for name if the file is not in the library
+         * @return
+         */
+        std::shared_ptr<File> getFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, std::optional<std::filesystem::path> contextRelativePath);
         std::shared_ptr<File> getFileOrNull(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name);
         std::shared_ptr<BinaryFile> getBinaryFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, BinaryFileSearchPath searchPath = BinaryFileSearchPath::DEFAULT);
         bool hasFileCached(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name);
@@ -74,7 +94,10 @@ namespace bricksim::ldr::file_repo {
         omap_t<std::string, oset_t<std::shared_ptr<File>>> getAllPartsGroupedByCategory();
         omap_t<std::string, oset_t<std::shared_ptr<File>>> getLoadedPartsGroupedByCategory() const;
 
-        void changeFileName(const std::shared_ptr<FileNamespace>& fileNamespace, const std::shared_ptr<File>& file, const std::string& newName);
+        void changeFileName(const std::shared_ptr<FileNamespace>& oldNamespace,
+                            const std::shared_ptr<File>& file,
+                            const std::shared_ptr<FileNamespace>& newNamespace,
+                            const std::string& newName);
 
     protected:
         static bool shouldFileBeSavedInList(const std::string& filename);

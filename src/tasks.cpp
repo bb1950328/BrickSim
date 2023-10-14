@@ -58,8 +58,13 @@ namespace bricksim {
     }
 
     void Task::joinThread() {
-        const auto duration = runningTask->finish();
-        spdlog::info("thread of task {} joined. task used {}ms.", name, static_cast<float>(duration.count()) / 1000.f);
+        try {
+            const auto duration = runningTask->finish();
+            spdlog::info("thread of task {} joined. task used {}ms.", name, static_cast<float>(duration.count()) / 1000.f);
+        } catch (...) {
+            spdlog::critical("Exception thrown in task {}", name);
+            throw;
+        }
     }
 
     bool Task::isStarted() const {

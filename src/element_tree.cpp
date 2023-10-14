@@ -123,7 +123,7 @@ namespace bricksim::etree {
                 case 1: {
                     auto sfElement = std::dynamic_pointer_cast<ldr::SubfileReference>(element);
                     if (childrenWithOwnNode.find(sfElement) == childrenWithOwnNode.end()) {
-                        mesh->addLdrSubfileReference(ldrFile->nameSpace, dummyColor, sfElement, glm::mat4(1.0f), windingInversed, texmap);
+                        mesh->addLdrSubfileReference(ldrFile, dummyColor, sfElement, glm::mat4(1.0f), windingInversed, texmap);
                     }
                 } break;
                 case 2:
@@ -180,7 +180,7 @@ namespace bricksim::etree {
                     }
                 } else if (element->getType() == 1) {
                     auto sfElement = std::dynamic_pointer_cast<ldr::SubfileReference>(element);
-                    auto subFile = sfElement->getFile(ldrFile->nameSpace);
+                    auto subFile = sfElement->getFile(ldrFile);
 
                     if (subFile->metaInfo.type == ldr::FileType::MPD_SUBFILE || subFile->metaInfo.type == ldr::FileType::MODEL || subFile->metaInfo.type == ldr::FileType::PART) {
                         const auto newNode = addModelInstanceNode(subFile, sfElement->color);
@@ -215,6 +215,21 @@ namespace bricksim::etree {
                             const auto& ldrElement = saveInfos->second.ldrElement;
                             auto subfileRefElement = std::dynamic_pointer_cast<ldr::SubfileReference>(ldrElement);
                             subfileRefElement->setTransformationMatrix(glm::transpose(item->getRelativeTransformation()));
+                            /*if (ldrFile->nameSpace != nullptr) {
+                                std::shared_ptr<ldr::FileNamespace> itemLdrFileNameSpace;
+                                const auto instanceItem = std::dynamic_pointer_cast<ModelInstanceNode>(item);
+                                if (instanceItem != nullptr) {
+                                    itemLdrFileNameSpace = instanceItem->modelNode->ldrFile->nameSpace;
+                                } else {
+                                    const auto ldrFileItem = std::dynamic_pointer_cast<LdrNode>(item);
+                                    if (ldrFileItem != nullptr) {
+                                        itemLdrFileNameSpace = instanceItem->modelNode->ldrFile->nameSpace;
+                                    }
+                                }
+                                if (itemLdrFileNameSpace != nullptr) {
+                                    subfileRefElement->filename = std::filesystem::relative(itemLdrFileNameSpace->searchPath / subfileRefElement->filename, ldrFile->nameSpace->searchPath);
+                                }
+                            }*/
                         }
                     } else {
                         auto meshItem = std::dynamic_pointer_cast<MeshNode>(item);

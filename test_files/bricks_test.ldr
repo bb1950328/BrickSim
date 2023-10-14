@@ -1,10 +1,11 @@
 0 FILE bricks_test.ldr
 0 just some bricks to test software
-0 Author: bb1950328
 0 Name: bricks_test.ldr
+0 Author: bb1950328
 0 !LDRAW_ORG Model
 0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
 0 !THEME Technic
+
 1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat
 1 5 0 0 45 1 0 0 0 1 0 0 0 1 3001.dat
 1 6 0 0 90 1 0 0 0 1 0 0 0 1 3001.dat

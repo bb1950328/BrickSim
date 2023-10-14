@@ -129,19 +129,6 @@ namespace bricksim::ldr {
         }
     }
 
-    void File::printStructure(int indent) const {
-        for (const auto& elem: elements) {
-            if (elem->getType() == 1) {
-                auto subfileRef = std::dynamic_pointer_cast<SubfileReference>(elem);
-                for (int i = 0; i < indent; ++i) {
-                    std::cout << "\t";
-                }
-                std::cout << subfileRef->filename << "\n";
-                subfileRef->getFile(nameSpace)->printStructure(indent + 1);
-            }
-        }
-    }
-
     const std::string& File::getDescription() const {
         if (!metaInfo.title.empty()) {
             return metaInfo.title;
@@ -282,13 +269,6 @@ namespace bricksim::ldr {
         return 1;
     }
 
-    std::shared_ptr<File> SubfileReference::getFile(const std::shared_ptr<FileNamespace>& fileNamespace) {
-        if (file == nullptr) {
-            file = ldr::file_repo::get().getFile(fileNamespace, filename);
-        }
-        return file;
-    }
-
     glm::mat4 SubfileReference::getTransformationMatrix() const {
         return {
                 a(), d(), g(), 0.f,
@@ -326,6 +306,12 @@ namespace bricksim::ldr {
     SubfileReference::SubfileReference(ColorReference color, const glm::mat4& transformation, bool bfcInverted) :
         bfcInverted(bfcInverted), color(color) {
         setTransformationMatrix(transformation);
+    }
+    std::shared_ptr<File> SubfileReference::getFile(const std::shared_ptr<File>& containingFile) {
+        if (file == nullptr) {
+            file = ldr::file_repo::get().getFile(containingFile, filename);
+        }
+        return file;
     }
 
     int Line::getType() const {

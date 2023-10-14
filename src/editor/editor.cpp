@@ -146,18 +146,18 @@ namespace bricksim {
         }
 
         for (auto& [pathKey, filesValue]: ldrFilesByPath) {
-            std::shared_ptr<ldr::File> mainFile = nullptr;
-            for (auto it = filesValue.begin(); it != filesValue.end(); ++it) {
-                if ((*it)->source.isMainFile) {
-                    mainFile = *it;
-                    filesValue.erase(it);
-                    break;
-                }
-            }
-            if (mainFile == nullptr) {
+            const auto it = std::find_if(filesValue.begin(), filesValue.end(), [](const auto& file) {
+                return file->source.isMainFile;
+            });
+            std::shared_ptr<ldr::File> mainFile;
+            if (it == filesValue.end()) {
                 spdlog::warn("attempting to write without mainFile to {}", pathKey.string());
                 mainFile = std::make_shared<ldr::File>();
+            } else {
+                mainFile = *it;
             }
+            filesValue.erase(it);
+
             std::sort(filesValue.begin(),
                       filesValue.end(),
                       [](const auto& a, const auto& b) {
@@ -198,9 +198,22 @@ namespace bricksim {
     }
 
     void Editor::saveAs(const std::filesystem::path& newPath) {
+        for (const auto& item: getRootNode()->getChildren()) {
+            auto model = std::dynamic_pointer_cast<etree::ModelNode>(item);
+            if (model != nullptr && model->ldrFile->source.path == filePath) {
+                model->ldrFile->source.path = newPath;
+            }
+        }
+
+        auto newName = newPath.filename().string();
+        auto newNamespace = std::make_shared<ldr::FileNamespace>(newName, newPath.parent_path());
+        ldr::file_repo::get().changeFileName(fileNamespace, editingModel->ldrFile, newNamespace, newName);
+        rootNode->displayName = newName;
+        fileNamespace = newNamespace;
+
+        lastSavedVersions.clear();
+
         filePath = newPath;
-        ldr::file_repo::get().changeFileName(fileNamespace, editingModel->ldrFile, newPath.filename().string());
-        rootNode->displayName = newPath.filename().string();
         save();
     }
 

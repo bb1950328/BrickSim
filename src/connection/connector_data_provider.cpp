@@ -75,7 +75,7 @@ namespace bricksim::connection {
                 if (item->getType() == 1) {
                     const auto sfReference = std::dynamic_pointer_cast<ldr::SubfileReference>(item);
                     const auto sfReferenceTransformation = sfReference->getTransformationMatrixT();
-                    const auto partResult = getConnectorsOfLdrFile(sfReference->getFile(file->nameSpace));
+                    const auto partResult = getConnectorsOfLdrFile(sfReference->getFile(file));
                     for (const auto& partConn: *partResult) {
                         auto transfConn = partConn->transform(sfReferenceTransformation);
                         transfConn->sourceTrace = file->metaInfo.name + "->" + transfConn->sourceTrace;

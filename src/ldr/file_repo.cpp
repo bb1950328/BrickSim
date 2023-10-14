@@ -119,6 +119,17 @@ namespace bricksim::ldr::file_repo {
         basePath(std::move(basePath)) {}
 
     std::shared_ptr<File> FileRepo::getFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name) {
+        return getFile(fileNamespace, name, std::nullopt);
+    }
+
+    std::shared_ptr<File> FileRepo::getFile(const std::shared_ptr<File>& context, const std::string& name) {
+        if (context->nameSpace != nullptr) {
+            const auto contextRelative = std::filesystem::relative(context->source.path.parent_path(), context->nameSpace->searchPath);
+            return getFile(context->nameSpace, name, contextRelative);
+        }
+        return getFile(context->nameSpace, name);
+    }
+    std::shared_ptr<File> FileRepo::getFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, std::optional<std::filesystem::path> contextRelativePath) {
         plFunction();
         {
             plLockWait("FileRepo::ldrFilesMtx");
@@ -140,7 +151,7 @@ namespace bricksim::ldr::file_repo {
             for (const auto& prefix: PART_SEARCH_PREFIXES) {
                 auto entryOpt = db::fileList::findFile(prefix + filenameWithForwardSlash);
                 if (entryOpt.has_value()) {
-                    ldr::FileType type;
+                    FileType type;
                     if (entryOpt->category == PSEUDO_CATEGORY_SUBPART) {
                         type = FileType::SUBPART;
                     } else if (entryOpt->category == PSEUDO_CATEGORY_PRIMITIVE) {
@@ -150,7 +161,7 @@ namespace bricksim::ldr::file_repo {
                     } else {
                         type = FileType::PART;
                     }
-                    const auto shadowContent = getShadowFileRepo().getContent(FileRepo::getPathRelativeToBase(type, entryOpt->name));
+                    const auto shadowContent = getShadowFileRepo().getContent(getPathRelativeToBase(type, entryOpt->name));
                     const auto realFileContent = getLibraryLdrFileContent(type, entryOpt->name);
                     return addLdrFileWithContent(nullptr, entryOpt->name, "", type, realFileContent, shadowContent);
                 }
@@ -162,15 +173,25 @@ namespace bricksim::ldr::file_repo {
             return addLdrFileWithContent(nullptr, name, extendedPath, FileType::MODEL, getContentOfLdrFile(extendedPath));
         }
 
-        const auto finalPath = fileNamespace->searchPath / name;
+        const auto finalPath = contextRelativePath.has_value()
+                                       ? fileNamespace->searchPath / *contextRelativePath / name
+                                       : fileNamespace->searchPath / name;
         if (std::filesystem::exists(finalPath)) {
             return addLdrFileWithContent(fileNamespace, name, finalPath, FileType::MODEL, getContentOfLdrFile(finalPath));
         }
 
         try {
-            return getFile(nullptr, name);
+            return getFile(std::shared_ptr<FileNamespace>(), name);
         } catch (const std::invalid_argument& e) {
             throw std::invalid_argument(fmt::format(R"(no file named "{}", neither in the namespace "{}" ({}) nor the library namespace)", name, fileNamespace->name, fileNamespace->searchPath.string()));
+        }
+    }
+
+    std::shared_ptr<File> FileRepo::getFileOrNull(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name) {
+        try {
+            return getFile(fileNamespace, name);
+        } catch (std::invalid_argument ia) {
+            return nullptr;
         }
     }
 
@@ -413,7 +434,7 @@ namespace bricksim::ldr::file_repo {
             const auto& fileNames = db::fileList::getAllPartsForCategory(categoryName);
             oset_t<std::shared_ptr<File>> result;
             for (const auto& fileName: fileNames) {
-                result.insert(getFile(nullptr, fileName));
+                result.insert(getFile(std::shared_ptr<FileNamespace>(), fileName));
             }
             partsByCategory.try_emplace(categoryName, result);
             return result;
@@ -454,21 +475,47 @@ namespace bricksim::ldr::file_repo {
         return nsFiles.find(name) != nsFiles.end() || (fileNamespace != nullptr && ldrFiles[nullptr].find(name) != ldrFiles[nullptr].end());
     }
 
-    void FileRepo::changeFileName(const std::shared_ptr<FileNamespace>& fileNamespace, const std::shared_ptr<File>& file, const std::string& newName) {
+    void FileRepo::changeFileName(const std::shared_ptr<FileNamespace>& oldNamespace,
+                                  const std::shared_ptr<File>& file,
+                                  const std::shared_ptr<FileNamespace>& newNamespace,
+                                  const std::string& newName) {
         plLockWait("FileRepo::ldrFilesMtx");
         std::scoped_lock<std::mutex> lg(ldrFilesMtx);
         plLockScopeState("FileRepo::ldrFilesMtx", true);
-        auto nsFiles = ldrFiles[fileNamespace];
-        auto it = nsFiles.find(file->metaInfo.name);
-        if (it == nsFiles.end()) {
-            it = nsFiles.begin();
-            while (it != nsFiles.end() && it->second.second != file) {
-                ++it;
+        auto oldNsFiles = ldrFiles[oldNamespace];
+        auto newNsFiles = ldrFiles[newNamespace];
+        auto it = oldNsFiles.find(file->metaInfo.name);
+        if (it == oldNsFiles.end()) {
+            it = std::find_if(oldNsFiles.begin(), oldNsFiles.end(), [&file](const auto& entry) {
+                return entry.second.second == file;
+            });
+        }
+        const auto filePair = it->second;
+        oldNsFiles.erase(it);
+        filePair.second->metaInfo.name = newName;
+        newNsFiles.emplace(newName, filePair);
+
+        for (const auto& el: file->elements) {
+            if (el->getType() == 1) {
+                const auto subfileRef = std::dynamic_pointer_cast<SubfileReference>(el);
+                const auto subIt = oldNsFiles.find(subfileRef->filename);
+                if (subIt != oldNsFiles.end()) {
+                    const auto newRef = std::filesystem::relative(oldNamespace->searchPath / subfileRef->filename, newNamespace->searchPath).generic_string();
+                    subfileRef->filename = newRef;
+                    /*const auto subFilePair = subIt->second;
+                    newNsFiles.emplace(newRef, subFilePair);
+                    oldNsFiles.erase(subIt);*/
+                }
             }
         }
-        it->second.second->metaInfo.name = newName;
-        nsFiles.emplace(newName, it->second);
-        nsFiles.erase(it);
+        for (const auto& item: oldNsFiles) {
+            const auto newRef = std::filesystem::relative(oldNamespace->searchPath / item.first, newNamespace->searchPath).generic_string();
+            newNsFiles.emplace(newRef, item.second);
+        }
+        ldrFiles.erase(oldNamespace);
+        for (const auto& item: newNsFiles) {
+            item.second.second->nameSpace = newNamespace;
+        }
     }
 
     std::shared_ptr<File> FileRepo::reloadFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name) {
@@ -496,13 +543,6 @@ namespace bricksim::ldr::file_repo {
             }
         }
         return nullptr;
-    }
-    std::shared_ptr<File> FileRepo::getFileOrNull(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name) {
-        try {
-            return getFile(fileNamespace, name);
-        } catch (std::invalid_argument ia) {
-            return nullptr;
-        }
     }
 
     FileRepo::~FileRepo() = default;

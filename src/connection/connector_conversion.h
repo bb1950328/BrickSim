@@ -24,7 +24,7 @@ namespace bricksim::connection {
         void convertGenCommand(const glm::mat4& transformation, const std::string& sourceTrace, const std::shared_ptr<ldcad_meta::GenCommand>& command);
         void convertSubfileReference(const glm::mat4& transformation,
                                      const std::string& sourceTrace,
-                                     const std::shared_ptr<ldr::FileNamespace>& fileNamespace,
+                                     const std::shared_ptr<ldr::File>& file,
                                      const std::shared_ptr<ldr::SubfileReference>& sfReference);
         void createConnectors(const std::shared_ptr<ldr::File>& file,
                               glm::mat4 const& transformation,

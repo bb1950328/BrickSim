@@ -1,0 +1,10 @@
+0 FILE file2.ldr
+0 file1.ldr
+0 Name: file2.ldr
+0 Author: bb1950328
+0 !LDRAW_ORG Model
+0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
+0 !THEME Technic
+
+0 Name: file1.ldr
+1 4 80 20 40 0 0 -1 0 1 0 1 0 0 3004.dat

@@ -97,7 +97,7 @@ namespace bricksim::connection {
         if (includeSubfileReferences) {
             for (const auto& item: file->elements) {
                 if (item->getType() == 1) {
-                    convertSubfileReference(transformation, sourceTrace, file->nameSpace, std::dynamic_pointer_cast<ldr::SubfileReference>(item));
+                    convertSubfileReference(transformation, sourceTrace, file, std::dynamic_pointer_cast<ldr::SubfileReference>(item));
                 }
             }
         }
@@ -105,7 +105,7 @@ namespace bricksim::connection {
     void ConnectorConversion::convertInclCommand(const glm::mat4& transformation, const std::string& sourceTrace, const std::shared_ptr<ldcad_meta::InclCommand>& command) {
         glm::mat4 transf = combinePosOriScale(command);
 
-        const auto includedFile = ldr::file_repo::get().getFile(nullptr, command->ref);
+        const auto includedFile = ldr::file_repo::get().getFile(std::shared_ptr<ldr::FileNamespace>(), command->ref);
 
         if (command->grid.has_value()) {
             ConnectorConversion inclConversion;
@@ -284,9 +284,9 @@ namespace bricksim::connection {
                                 : Gender::F,
                         command->bounding));
     }
-    void ConnectorConversion::convertSubfileReference(const glm::mat4& transformation, const std::string& sourceTrace, const std::shared_ptr<ldr::FileNamespace>& fileNamespace, const std::shared_ptr<ldr::SubfileReference>& sfReference) {
+    void ConnectorConversion::convertSubfileReference(const glm::mat4& transformation, const std::string& sourceTrace, const std::shared_ptr<ldr::File>& file, const std::shared_ptr<ldr::SubfileReference>& sfReference) {
         const auto sfReferenceTransformation = sfReference->getTransformationMatrix();
-        const auto referencedFile = sfReference->getFile(fileNamespace);
+        const auto referencedFile = sfReference->getFile(file);
         const auto combinedTransformation = transformation * sfReferenceTransformation;
         if (referencedFile->metaInfo.type == ldr::FileType::PRIMITIVE
             || referencedFile->metaInfo.type == ldr::FileType::SUBPART) {

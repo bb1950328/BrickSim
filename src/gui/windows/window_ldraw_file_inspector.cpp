@@ -83,7 +83,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
             for (const auto& item: file->elements) {
                 if (item->getType() == 1) {
                     const auto subfileRef = std::dynamic_pointer_cast<ldr::SubfileReference>(item);
-                    const auto subfile = subfileRef->getFile(file->nameSpace);
+                    const auto subfile = subfileRef->getFile(file);
                     if (!subfile->ldcadMetas.empty()) {
                         if (ImGui::TreeNode(subfileRef.get(), "%s", subfileRef->filename.c_str())) {
                             showSnapLineNodes(subfile, currentlySelected);

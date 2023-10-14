@@ -115,7 +115,7 @@ namespace bricksim::ldr {
         [[nodiscard]] glm::mat4 getTransformationMatrix() const;
         [[nodiscard]] glm::mat4 getTransformationMatrixT() const;
         void setTransformationMatrix(const glm::mat4& matrix);
-        std::shared_ptr<File> getFile(const std::shared_ptr<FileNamespace>& fileNamespace);
+        std::shared_ptr<File> getFile(const std::shared_ptr<File>& containingFile);
 
         inline float& x() { return numbers[0]; }
         inline float& y() { return numbers[1]; }
@@ -348,7 +348,6 @@ namespace bricksim::ldr {
         std::shared_ptr<FileNamespace> nameSpace;
         FileSource source;
 
-        void printStructure(int indent = 0) const;
         [[nodiscard]] const std::string& getDescription() const;
         [[nodiscard]] const std::size_t& getHash() const;
 

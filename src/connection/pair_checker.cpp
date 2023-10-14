@@ -5,8 +5,9 @@ namespace bricksim::connection {
     PairChecker::PairChecker(const PairCheckData& a, const PairCheckData& b, PairCheckResultConsumer& resultConsumer) :
         a(a),
         b(b),
-        sameDir(glm::length2(glm::cross(a.absDirection, b.absDirection)) < PARALLELITY_ANGLE_TOLERANCE_SQUARED),
-        oppositeDir(!sameDir && glm::length2(glm::cross(-a.absDirection, b.absDirection)) < PARALLELITY_ANGLE_TOLERANCE_SQUARED),
+        parallel(geometry::isAlmostParallel(a.absDirection, b.absDirection)),
+        sameDir(parallel && glm::dot(a.absDirection, b.absDirection) > 0),
+        oppositeDir(!sameDir && parallel),
         resultConsumer(resultConsumer) {
     }
     void PairChecker::findConnections() {
@@ -39,8 +40,7 @@ namespace bricksim::connection {
         }
     }
     void PairChecker::findCylCyl() {
-        if ((!sameDir && !oppositeDir)
-            || a.cyl->gender == b.cyl->gender) {
+        if (!parallel || a.cyl->gender == b.cyl->gender) {
             return;
         }
         const auto startOffset = projectConnectorsWithLength(a.cyl->totalLength, b.cyl->totalLength);
@@ -156,7 +156,7 @@ namespace bricksim::connection {
         }
     }
     void PairChecker::findFingerFinger() {
-        if ((!sameDir && !oppositeDir)
+        if (!parallel
             || a.finger->group != b.finger->group
             || std::abs(a.finger->radius - b.finger->radius) > CONNECTION_RADIUS_TOLERANCE) {
             return;
@@ -224,8 +224,7 @@ namespace bricksim::connection {
     void PairChecker::findClipCyl(const PairCheckData& clipData, const PairCheckData& cylData) {
         const auto clip = clipData.clip;
         const auto cyl = cylData.cyl;
-        if ((!sameDir && !oppositeDir)
-            || cyl->gender != Gender::M) {
+        if (!parallel || cyl->gender != Gender::M) {
             return;
         }
         const auto projOnA = geometry::normalProjectionOnLine<3>(cylData.absStart, cylData.absEnd, clipData.absStart, false);

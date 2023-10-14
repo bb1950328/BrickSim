@@ -42,6 +42,7 @@ namespace bricksim::connection {
      * this class checks if two specific connectors of two specific parts are connected
      */
     class PairChecker {
+        const bool parallel;
         const bool sameDir;
         const bool oppositeDir;
         PairCheckResultConsumer& resultConsumer;

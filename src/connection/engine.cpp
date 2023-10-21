@@ -13,12 +13,11 @@
 #include <utility>
 
 namespace bricksim::connection {
-    Engine::Engine(Editor& editor) :
-        editor(editor) {
-    }
-    void Engine::updateCollisionData(float* progress, float progressMultiplicator) {
+    Engine::Engine() = default;
+
+    void Engine::updateCollisionData(const std::shared_ptr<etree::Node>& rootNode, float* progress, float progressMultiplicator) {
         *progress = 0.f;
-        updateNodeData(editor.getEditingModel());//todo update progress
+        updateNodeData(rootNode);//todo update progress
 
         *progress = progressMultiplicator;
     }
@@ -36,7 +35,7 @@ namespace bricksim::connection {
                 meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node);
             }
             if (meshNode != nullptr) {
-                const auto aabb = editor.getScene()->getMeshCollection().getAbsoluteAABB(meshNode);
+                const auto aabb = scene.lock()->getMeshCollection().getAbsoluteAABB(meshNode);
                 const auto box = std::make_shared<fcl::Boxf>(glm2eigen(aabb.getSize()));
                 collisionObject = std::make_unique<fcl::CollisionObjectf>(box, fcl::Matrix3f::Identity(), glm2eigen(aabb.getCenter()));
                 collisionObject->setUserData(node.get());
@@ -60,7 +59,7 @@ namespace bricksim::connection {
         if (data.lastUpdatedSelfVersion != node->getSelfVersion()) {
             const auto meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node);
             if (meshNode != nullptr) {
-                const auto aabb = editor.getScene()->getMeshCollection().getAbsoluteAABB(meshNode);
+                const auto aabb = scene.lock()->getMeshCollection().getAbsoluteAABB(meshNode);
                 const auto sizeDifference = std::dynamic_pointer_cast<const fcl::Boxf>(data.collisionObj->collisionGeometry())->side - glm2eigen(aabb.getSize());
                 if (sizeDifference.squaredNorm() > .01f) {
                     manager.unregisterObject(data.collisionObj.get());
@@ -201,10 +200,10 @@ namespace bricksim::connection {
     const ConnectionGraph& Engine::getConnections() const {
         return connections;
     }
-    void Engine::update(float* progress) {
+    void Engine::update(const std::shared_ptr<etree::Node>& rootNode, float* progress) {
         spdlog::stopwatch sw;
 
-        updateCollisionData(progress, .2f);
+        updateCollisionData(rootNode, progress, .2f);
 
         const auto between = sw.elapsed();
 
@@ -221,11 +220,14 @@ namespace bricksim::connection {
         std::shared_ptr<etree::Node> key0(typedPtr, [](auto*) {});
         return nodeData.find(key0)->first;
     }
-    void Engine::update() {
+    void Engine::update(const std::shared_ptr<etree::Node>& rootNode) {
         float ignoredProgress;
-        update(&ignoredProgress);
+        update(rootNode, &ignoredProgress);
     }
     const IntersectionGraph& Engine::getIntersections() const {
         return intersections;
+    }
+    void Engine::setScene(const std::weak_ptr<graphics::Scene>& scene) {
+        Engine::scene = scene;
     }
 }

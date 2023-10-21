@@ -3,6 +3,8 @@ target_sources(BrickSimLib PRIVATE
         window_view3d.h
         window_about.cpp
         window_about.h
+        window_connection_visualization.cpp
+        window_connection_visualization.h
         window_debug.cpp
         window_debug.h
         window_editor_meta_info.cpp

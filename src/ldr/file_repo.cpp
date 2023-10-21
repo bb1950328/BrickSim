@@ -79,18 +79,18 @@ namespace bricksim::ldr::file_repo {
     bool checkLdrawLibraryLocation() {
         static auto found = false;
         if (!found) {
-            const auto& pathFromConfig = util::extendHomeDirPath(config::get(config::LDRAW_PARTS_LIBRARY));
+            const auto& pathFromConfig = util::replaceSpecialPaths(config::get(config::LDRAW_PARTS_LIBRARY));
             auto strPath = pathFromConfig.string();
             if (tryToInitializeWithLibraryPath(pathFromConfig)) {
                 found = true;
             } else if (strPath.ends_with(".zip")) {
                 auto zipEndingRemoved = strPath.substr(0, strPath.size() - 4);
                 if (tryToInitializeWithLibraryPath(zipEndingRemoved)) {
-                    config::set(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(zipEndingRemoved));
+                    config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(zipEndingRemoved));
                     found = true;
                 }
             } else if (tryToInitializeWithLibraryPath(strPath + ".zip")) {
-                config::set(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(strPath + ".zip"));
+                config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(strPath + ".zip"));
                 found = true;
             }
         }
@@ -168,7 +168,7 @@ namespace bricksim::ldr::file_repo {
             }
             throw std::invalid_argument(fmt::format("no file named \"{}\" in the library namespace", name));
         }
-        const auto extendedPath = util::extendHomeDirPath(name);
+        const auto extendedPath = util::replaceSpecialPaths(name);
         if (extendedPath.is_absolute() && std::filesystem::exists(extendedPath)) {
             return addLdrFileWithContent(nullptr, name, extendedPath, FileType::MODEL, getContentOfLdrFile(extendedPath));
         }
@@ -235,7 +235,7 @@ namespace bricksim::ldr::file_repo {
             }
         }
 
-        const auto extendedPath = util::extendHomeDirPath(name);
+        const auto extendedPath = util::replaceSpecialPaths(name);
         if (extendedPath.is_absolute() && std::filesystem::exists(extendedPath)) {
             return addBinaryFileWithContent(nullptr, name, std::make_shared<BinaryFile>(extendedPath));
         }

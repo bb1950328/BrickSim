@@ -349,9 +349,9 @@ namespace bricksim::gui::windows::debug {
                         }
                     } else {
                         if (ImGui::Button(ICON_FA_ROTATE " Update Connection Engine")) {
-                            updateThread = std::async(std::launch::async, [&engine] {
+                            updateThread = std::async(std::launch::async, [&engine, &activeEditor] {
                                 util::setThreadName("Debug Window / Connection Engine Update");
-                                engine.update(&progress);
+                                engine.update(activeEditor->getEditingModel(), &progress);
                                 return true;
                             });
                         }
@@ -497,7 +497,7 @@ namespace bricksim::gui::windows::debug {
                                 std::filesystem::path outputFile = outputPathChars;
                                 controller::getForegroundTasks().emplace("Export Connections with GraphViz", [outputFile, activeEditor, &engine](auto* progress) {
                                     *progress = .0f;
-                                    auto graphvizCode = connection::visualization::generateGraphviz(engine.getConnections());
+                                    auto graphvizCode = connection::visualization::generateGraphviz(engine.getConnections(), {}, nullptr);
                                     *progress = .3f;
                                     graphvizCode.renderToFile(outputFile);
                                     if (outputFile.extension() == ".svg") {
@@ -524,7 +524,7 @@ namespace bricksim::gui::windows::debug {
                                 1,
                                 &filterPatterns,
                                 nullptr);
-                        auto graphvizCode = connection::visualization::generateGraphviz(engine.getConnections());
+                        auto graphvizCode = connection::visualization::generateGraphviz(engine.getConnections(), {}, nullptr);
                         graphvizCode.deleteTmpFiles = false;
                         std::ofstream file(outputPathChars);
                         file << graphvizCode.dotCode;

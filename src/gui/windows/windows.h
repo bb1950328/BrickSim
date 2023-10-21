@@ -21,15 +21,19 @@ namespace bricksim::gui::windows {
         EDITOR_META_INFO,
         LDRAW_FILE_INSPECTOR,
         TOOLBAR,
+        CONNECTION_VISUALIZATION,
     };
     struct Data {
         const Id id;
         const char* const name;
         bool visible;
         void (*drawFunction)(Data&);
+        void (*cleanupFunction)();
     };
 
     void drawAll();
+
+    void cleanup();
 
     bool* isVisible(Id id);
 

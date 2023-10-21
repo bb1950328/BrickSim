@@ -37,7 +37,7 @@ namespace bricksim::gui::windows::view3d {
         bool cursorSet = false;
         for (auto& editor: controller::getEditors()) {
             const bool isActiveEditor = editor->isActive();
-            const auto windowTitle = editor->getFilename();
+            const auto windowTitle = editor->getDisplayName();
             bool open = true;
             ImGuiWindow* imGuiWindow = ImGui::FindWindowByName(windowTitle.c_str());
             if (imGuiWindow == nullptr) {
@@ -74,7 +74,7 @@ namespace bricksim::gui::windows::view3d {
                                    && mousePos.x <= windowPos.x + regionMax.x
                                    && windowPos.y + regionMin.y <= mousePos.y
                                    && mousePos.y <= windowPos.y + regionMax.y);
-                if (isInWindow) {
+                if (isInWindow && ImGui::IsWindowHovered(ImGuiHoveredFlags_None)) {
                     setCursor(editor);
                     cursorSet = true;
                 }

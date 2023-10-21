@@ -276,6 +276,7 @@ namespace bricksim::gui {
     }
 
     void cleanup() {
+        windows::cleanup();
         logoTexture = nullptr;
         cursorHandler = nullptr;
         ImGui_ImplOpenGL3_Shutdown();
@@ -355,7 +356,7 @@ namespace bricksim::gui {
                 }
                 //todo make button for file dialog
                 ImGui::TextDisabled("'~' will be replaced with '%s' (the current home directory)", util::extendHomeDir("~").c_str());
-                auto enteredPath = std::filesystem::path(util::extendHomeDirPath(pathBuffer));
+                auto enteredPath = std::filesystem::path(util::replaceSpecialPaths(pathBuffer));
                 static std::filesystem::path lastCheckedPath;
                 static ldr::file_repo::LibraryType libraryType;
                 if (lastCheckedPath != enteredPath) {
@@ -375,7 +376,7 @@ namespace bricksim::gui {
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_CIRCLE_CHECK " OK")) {
                     state = 'Z';
-                    config::set(config::LDRAW_PARTS_LIBRARY, util::replaceHomeDir(pathBuffer));
+                    config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(pathBuffer));
                 }
             }
             ImGui::End();

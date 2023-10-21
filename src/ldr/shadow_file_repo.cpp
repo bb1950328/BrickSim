@@ -11,7 +11,7 @@ namespace bricksim::ldr::file_repo {
     }
     ShadowFileRepo::~ShadowFileRepo() = default;
     void initializeShadowFileRepo() {
-        std::filesystem::path path = util::extendHomeDirPath(config::get(config::SHADOW_LIBRARY_PATH));
+        std::filesystem::path path = util::replaceSpecialPaths(config::get(config::SHADOW_LIBRARY_PATH));
         if (std::filesystem::is_regular_file(path) && ZipShadowFileRepo::isValidZip(path)) {
             currentShadowRepo = std::make_unique<ZipShadowFileRepo>(path);
             spdlog::info("loaded shadow library from zip: {}", path.string());

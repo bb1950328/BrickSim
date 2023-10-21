@@ -24,7 +24,7 @@ namespace bricksim {
     }
 
     Editor::Editor() {
-        const auto newFileLocation = util::extendHomeDirPath(config::get(config::NEW_FILE_LOCATION));
+        const auto newFileLocation = util::replaceSpecialPaths(config::get(config::NEW_FILE_LOCATION));
         const auto newName = getNameForNewLdrFile();
         filePath = newFileLocation / newName;
         fileNamespace = std::make_shared<ldr::FileNamespace>(newName, newFileLocation);
@@ -56,6 +56,8 @@ namespace bricksim {
         scene->setRootNode(rootNode);
         camera = std::make_shared<graphics::CadCamera>();
         scene->setCamera(camera);
+
+        connectionEngine.setScene(scene);
 
         if (filePath.has_value()) {
             efsw::WatchID watchId = controller::getFileWatcher()->addWatch(filePath->parent_path().string(), this);
@@ -299,7 +301,7 @@ namespace bricksim {
     }
 
     void Editor::nodeSelectConnected() {
-        connectionEngine.update();
+        connectionEngine.update(editingModel);
         for (const auto& [node, version]: selectedNodes) {
             const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
             if (ldrNode != nullptr) {
@@ -672,6 +674,9 @@ namespace bricksim {
     }
     void Editor::openContextMenuNoNode() {
         gui::node_context_menu::openContextMenu({shared_from_this(), {}});
+    }
+    std::string Editor::getDisplayName() const {
+        return getFilename();
     }
 
     SelectionVisualizationNode::SelectionVisualizationNode(const std::shared_ptr<Node>& parent) :

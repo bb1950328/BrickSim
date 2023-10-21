@@ -33,25 +33,27 @@ namespace bricksim::util {
     }
 
     std::string extendHomeDir(const std::string& input) {
-        return extendHomeDirPath(input).string();
+        return replaceSpecialPaths(input).string();
     }
 
-    std::string replaceHomeDir(const std::string& input) {
-        const std::string homeDir = getenv(USER_ENV_VAR);
-        if (input.starts_with(homeDir)) {
-            return '~' + input.substr(homeDir.size());
+    std::filesystem::path replaceSpecialPaths(const std::string& input) {
+        if (!input.empty()) {
+            if (input[0] == '~') {
+                if (input.size() == 1) {
+                    return {getenv(USER_ENV_VAR)};
+                }
+                if (input[1] == '/' || input[1] == '\\') {
+                    return std::filesystem::path(getenv(USER_ENV_VAR)) / std::filesystem::path(input.substr(2));
+                }
+            } else if (input.starts_with("{tmp}")) {
+                if (input.size() == 5) {
+                    return std::filesystem::temp_directory_path();
+                } else if (input[5] == '/' || input[5] == '\\') {
+                    return std::filesystem::temp_directory_path() / input.substr(6);
+                }
+            }
         }
-        return input;
-    }
-
-    std::filesystem::path extendHomeDirPath(const std::string& input) {
-        if (input[0] == '~' && (input[1] == '/' || input[1] == '\\')) {
-            return std::filesystem::path(getenv(USER_ENV_VAR)) / std::filesystem::path(input.substr(2));
-        } else if (input[0] == '~' && input.size() == 1) {
-            return {getenv(USER_ENV_VAR)};
-        } else {
-            return {input};
-        }
+        return {input};
     }
 
     void openDefaultBrowser(const std::string& link) {

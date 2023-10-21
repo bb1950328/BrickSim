@@ -150,6 +150,7 @@ namespace bricksim::gui {
                 ImGui::Separator();
                 gui_internal::windowMenuItem(windows::Id::MODEL_INFO);
                 gui_internal::windowMenuItem(windows::Id::EDITOR_META_INFO);
+                gui_internal::windowMenuItem(windows::Id::CONNECTION_VISUALIZATION);
                 ImGui::Separator();
                 gui_internal::windowMenuItem(windows::Id::SETTINGS);
                 ImGui::Separator();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../graphics/mesh/mesh_collection.h"
+#include "../graphics/scene.h"
 #include "connection.h"
 #include "connection_graph.h"
 #include "fcl/broadphase/broadphase_dynamic_AABB_tree.h"
@@ -22,7 +23,7 @@ namespace bricksim::connection {
         };
         using broadphase_collision_pair_t = std::array<fcl::CollisionObjectf*, 2>;
 
-        Editor& editor;
+        std::weak_ptr<graphics::Scene> scene;
         fcl::DynamicAABBTreeCollisionManagerf manager;
         uomap_t<std::shared_ptr<etree::Node>, NodeData> nodeData;
         IntersectionGraph intersections;
@@ -31,7 +32,7 @@ namespace bricksim::connection {
 
         static constexpr bool partNodeCollsionOnly = false;
 
-        void updateCollisionData(float* progress, float progressMultiplicator);
+        void updateCollisionData(const std::shared_ptr<etree::Node>& rootNode, float* progress, float progressMultiplicator);
         void updateGraph(float* progress, float progressStart);
 
         void handleNewIntersection(const broadphase_collision_pair_t& item);
@@ -57,10 +58,12 @@ namespace bricksim::connection {
         const std::shared_ptr<etree::Node>& convertRawNodePtr(void* rawPtr) const;
 
     public:
-        explicit Engine(Editor& editor);
+        Engine();
 
-        void update(float* progress);
-        void update();
+        void setScene(const std::weak_ptr<graphics::Scene>& scene);
+
+        void update(const std::shared_ptr<etree::Node>& rootNode, float* progress);
+        void update(const std::shared_ptr<etree::Node>& rootNode);
 
         const IntersectionGraph& getIntersections() const;
         const ConnectionGraph& getConnections() const;

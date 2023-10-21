@@ -49,6 +49,7 @@ namespace bricksim {
         [[nodiscard]] const uomap_t<std::shared_ptr<etree::Node>, uint64_t>& getSelectedNodes() const;
 
         [[nodiscard]] std::string getFilename() const;
+        [[nodiscard]] std::string getDisplayName() const;
 
         void save();
         void saveAs(const std::filesystem::path& newPath);
@@ -120,7 +121,7 @@ namespace bricksim {
         uomap_t<std::shared_ptr<etree::Node>, uint64_t> selectedNodes;
         std::shared_ptr<SelectionVisualizationNode> selectionVisualizationNode;
         std::shared_ptr<graphics::CadCamera> camera;
-        connection::Engine connectionEngine{*this};
+        connection::Engine connectionEngine;
         ///empty means cursor is outside window
         std::optional<glm::svec2> cursorPos;
 

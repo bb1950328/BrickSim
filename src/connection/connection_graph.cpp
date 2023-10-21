@@ -74,7 +74,7 @@ namespace bricksim::connection {
         }
         return total / 2;
     }
-    const bricksim::connection::ConnectionGraph::adjacency_list_t& ConnectionGraph::getAdjacencyLists() const {
+    const ConnectionGraph::adjacency_list_t& ConnectionGraph::getAdjacencyLists() const {
         return adjacencyLists;
     }
     void ConnectionGraph::findRestOfClique(uoset_t<ConnectionGraph::node_t>& nodes, const ConnectionGraph::node_t& current) const {

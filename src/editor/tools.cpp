@@ -36,7 +36,7 @@ namespace bricksim::tools {
                 uoset_t<std::shared_ptr<etree::Node>> selected = {node};
 
                 auto& engine = editor->getConnectionEngine();
-                engine.update();
+                engine.update(editor->getEditingModel());
                 addConnectionsOfNode(engine.getConnections(), selected, meshNode, shift);
 
                 editor->nodeSelectSet(selected);

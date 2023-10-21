@@ -5,6 +5,11 @@
 #include <string>
 
 namespace bricksim::connection::visualization {
+    struct GraphVizParams {
+        std::filesystem::path thumbnailDirectory;
+        bool showPartThumbnails = true;
+    };
+
     class GraphVizResult {
     public:
         std::string dotCode;
@@ -15,5 +20,5 @@ namespace bricksim::connection::visualization {
         virtual ~GraphVizResult();
         void renderToFile(const std::filesystem::path& outFile) const;
     };
-    GraphVizResult generateGraphviz(const ConnectionGraph& graph);
+    GraphVizResult generateGraphviz(const ConnectionGraph& graph, const GraphVizParams& params, const std::shared_ptr<etree::MeshNode>& parentNode);
 }

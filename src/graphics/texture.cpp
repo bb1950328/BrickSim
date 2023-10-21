@@ -3,13 +3,14 @@
 #include <glad/glad.h>
 #include <spdlog/spdlog.h>
 #include <stb_image.h>
+#include <stb_image_write.h>
 
 namespace bricksim::graphics {
 
     uomap_t<std::string, std::shared_ptr<Texture>> Texture::texturesFromBinaryFiles;
 
     Texture::Texture(const std::filesystem::path& image) {
-        unsigned char* data = stbi_load(image.string().c_str(), &width, &height, &nrChannels, 3);
+        unsigned char* data = stbi_load(image.string().c_str(), &width, &height, &nrChannels, 0);
         if (!data) {
             throw std::invalid_argument("texture not read successfully from file: " + image.string());
         }
@@ -35,11 +36,18 @@ namespace bricksim::graphics {
     unsigned int Texture::copyTextureToVram(int imgWidth, int imgHeight, int nrChannels, const unsigned char* data) {
         unsigned int textureId;
         controller::executeOpenGL([&textureId, &nrChannels, &imgWidth, &imgHeight, &data]() {
+            int maxTextureSize;
+            glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+            if (maxTextureSize < imgWidth || maxTextureSize < imgHeight) {
+                throw std::invalid_argument(fmt::format("GPU max texture size is {}x{}, but image is {}x{}", maxTextureSize, maxTextureSize, imgWidth, imgHeight));
+            }
+
             glGenTextures(1, &textureId);
             glBindTexture(GL_TEXTURE_2D, textureId);
 
             GLint format = getGlFormatFromNrChannels(nrChannels);
             glBindTexture(GL_TEXTURE_2D, textureId);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             glTexImage2D(GL_TEXTURE_2D, 0, format, imgWidth, imgHeight, 0, format, GL_UNSIGNED_BYTE, data);
             glGenerateMipmap(GL_TEXTURE_2D);
 

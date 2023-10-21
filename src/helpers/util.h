@@ -24,8 +24,8 @@ namespace bricksim::util {
 
     // path functions
     std::string extendHomeDir(const std::string& input);
-    std::string replaceHomeDir(const std::string& input);
-    std::filesystem::path extendHomeDirPath(const std::string& input);
+    //std::string replaceSpecialPaths(const std::string& input);
+    std::filesystem::path replaceSpecialPaths(const std::string& input);
     std::filesystem::path withoutBasePath(const std::filesystem::path& path, const std::filesystem::path& basePath);
 
     //os functions

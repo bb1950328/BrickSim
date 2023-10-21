@@ -6,8 +6,14 @@
 namespace bricksim::connection::visualization {
     //todo add option to export whole thing to a directory and render image for each node (https://stackoverflow.com/a/8077158/8733066)
 
-    GraphVizResult generateGraphviz(const ConnectionGraph& graph) {
+    GraphVizResult generateGraphviz(const ConnectionGraph& graph, const GraphVizParams& params, const std::shared_ptr<etree::MeshNode>& parentNode) {
         GraphVizResult result;
+        if (params.thumbnailDirectory.empty()) {
+            result.tmpDirectory = std::filesystem::temp_directory_path() / util::randomAlphanumString(16);
+            std::filesystem::create_directory(result.tmpDirectory);
+        } else {
+            result.tmpDirectory = params.thumbnailDirectory;
+        }
         auto& dot = result.dotCode;
 
         const auto thumbnailGenerator = controller::getThumbnailGenerator();
@@ -25,6 +31,9 @@ namespace bricksim::connection::visualization {
 
         dot += "graph G {\n";
         for (const auto& [node, adj]: graph.getAdjacencyLists()) {
+            if (parentNode != nullptr && !node->isChildOf(parentNode)) {
+                continue;
+            }
             std::shared_ptr<ldr::File> ldrFile;
             const auto ldrNode = std::dynamic_pointer_cast<etree::LdrNode>(node);
             if (ldrNode != nullptr) {
@@ -40,6 +49,9 @@ namespace bricksim::connection::visualization {
         }
 
         for (const auto& [node1, adj]: graph.getAdjacencyLists()) {
+            if (parentNode != nullptr && !node1->isChildOf(parentNode)) {
+                continue;
+            }
             for (const auto& [node2, connections]: adj) {
                 if (node1.get() < node2.get()) {
                     dot += stringutil::repeat(fmt::format("\t{} -- {}\n", getNodeId(node1), getNodeId(node2)), connections.size());
@@ -50,11 +62,7 @@ namespace bricksim::connection::visualization {
         dot += "}\n";
         return result;
     }
-    GraphVizResult::GraphVizResult() :
-        dotCode(),
-        tmpDirectory(std::filesystem::temp_directory_path() / util::randomAlphanumString(16)) {
-        std::filesystem::create_directory(tmpDirectory);
-    }
+    GraphVizResult::GraphVizResult() = default;
     GraphVizResult::~GraphVizResult() {
         if (deleteTmpFiles) {
             std::filesystem::remove_all(tmpDirectory);

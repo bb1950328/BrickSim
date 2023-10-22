@@ -39,11 +39,14 @@ namespace bricksim::util {
     std::filesystem::path replaceSpecialPaths(const std::string& input) {
         if (!input.empty()) {
             if (input[0] == '~') {
-                if (input.size() == 1) {
-                    return {getenv(USER_ENV_VAR)};
-                }
-                if (input[1] == '/' || input[1] == '\\') {
-                    return std::filesystem::path(getenv(USER_ENV_VAR)) / std::filesystem::path(input.substr(2));
+                const auto homeDir = getenv(USER_ENV_VAR);
+                if (homeDir != nullptr) {
+                    if (input.size() == 1) {
+                        return {homeDir};
+                    }
+                    if (input[1] == '/' || input[1] == '\\') {
+                        return std::filesystem::path(homeDir) / std::filesystem::path(input.substr(2));
+                    }
                 }
             } else if (input.starts_with("{tmp}")) {
                 if (input.size() == 5) {

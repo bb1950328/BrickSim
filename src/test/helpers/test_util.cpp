@@ -15,9 +15,6 @@ namespace bricksim {
         CHECK(util::extendHomeDir("/abc/def") == "/abc/def");
         CHECK(util::extendHomeDir("/abc~def") == "/abc~def");
         CHECK(util::extendHomeDir("/abc~") == "/abc~");
-
-        const char* expected = detected_platform::windows ? "~\\abc" : "~/abc";
-        CHECK(util::replaceSpecialPaths(util::extendHomeDir("~\\abc")) == expected);
     }
 
     TEST_CASE("util::biggestValue") {

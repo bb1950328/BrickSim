@@ -20,6 +20,7 @@ namespace bricksim::graphics {
         explicit Texture(const std::filesystem::path& image);
         Texture(const unsigned char* fileData, unsigned int dataSize);
         Texture(texture_id_t textureId, int width, int height, int nrChannels);
+        Texture(const unsigned char* data, int width, int height, int nrChannels);
         Texture& operator=(const Texture&) = delete;
         Texture(const Texture&) = delete;
         ~Texture();

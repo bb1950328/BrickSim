@@ -12,7 +12,7 @@ namespace bricksim::graphics {
     Texture::Texture(const std::filesystem::path& image) {
         unsigned char* data = stbi_load(image.string().c_str(), &width, &height, &nrChannels, 0);
         if (!data) {
-            throw std::invalid_argument("texture not read successfully from file: " + image.string());
+            throw std::invalid_argument(fmt::format("texture not read successfully from file: {}. Error: {}", image.string(), stbi_failure_reason()));
         }
         textureId = copyTextureToVram(width, height, nrChannels, data);
         stbi_image_free(data);
@@ -21,10 +21,14 @@ namespace bricksim::graphics {
     Texture::Texture(const unsigned char* fileData, unsigned int dataSize) {
         unsigned char* data = stbi_load_from_memory(fileData, dataSize, &width, &height, &nrChannels, 0);
         if (!data) {
-            throw std::invalid_argument("texture not read successfully from memory: " + std::to_string((intptr_t)fileData));
+            throw std::invalid_argument(fmt::format("texture not read successfully from memory: {}. Error: {}", fmt::ptr(fileData), stbi_failure_reason()));
         }
         textureId = copyTextureToVram(width, height, nrChannels, data);
         stbi_image_free(data);
+    }
+    Texture::Texture(const unsigned char* data, int width, int height, int nrChannels) :
+        width(width), height(height), nrChannels(nrChannels) {
+        textureId = copyTextureToVram(width, height, nrChannels, data);
     }
 
     Texture::~Texture() {

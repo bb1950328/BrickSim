@@ -51,6 +51,7 @@ namespace bricksim::connection::visualization {
         dot += fmt::format("\tlayout=\"{}\"\n", magic_enum::enum_name(params.general.layout));
         dot += fmt::format("\tdpi={}\n", params.general.dpi);
         dot += fmt::format("\tbgcolor=\"{}\"\n", bgColor);
+        dot += fmt::format("\timagepath=\"{}\"\n", result.tmpDirectory.string());
 
         for (const auto& [node, adj]: graph.getAdjacencyLists()) {
             if (parentNode != nullptr && !node->isChildOf(parentNode)) {
@@ -64,7 +65,7 @@ namespace bricksim::connection::visualization {
                 ldrFile = std::dynamic_pointer_cast<etree::ModelInstanceNode>(node)->modelNode->ldrFile;
             }
 
-            std::string thumbnailAttributes;
+            /*std::string thumbnailAttributes;
             if (params.node.showThumbnail) {
                 const auto thumbnailPath = result.tmpDirectory / fmt::format("{}_{}.png", util::escapeFilename(ldrFile->metaInfo.name), node->getDisplayColor().code);
                 if (!std::filesystem::exists(thumbnailPath)) {
@@ -73,11 +74,19 @@ namespace bricksim::connection::visualization {
                 thumbnailAttributes = fmt::format("image=\"{}\" imagepos=tc imagescale=true margin=\"0.25,0.25\"", thumbnailPath.string());
             } else {
                 thumbnailAttributes = "";
-            }
+            }*/
 
             const auto nodeId = getNodeId(node);
 
             std::vector<std::string> labelLines;
+            if (params.node.showThumbnail) {
+                const auto filename = fmt::format("{}_{}.png", util::escapeFilename(ldrFile->metaInfo.name), node->getDisplayColor().code);
+                const auto path = result.tmpDirectory / filename;
+                if (!std::filesystem::exists(path)) {
+                    thumbnailGenerator->getThumbnail({ldrFile, node->getDisplayColor(), color::RGB(bgColor)})->saveToFile(path);
+                }
+                labelLines.push_back(fmt::format("<img src=\"{}\" />", filename));
+            }
             if (params.node.showTitle) {
                 labelLines.push_back(ldrFile->metaInfo.title);
             }
@@ -94,7 +103,11 @@ namespace bricksim::connection::visualization {
             const auto color = params.node.colorBoxLikePart
                                        ? node->getDisplayColor().get()->value.asHtmlCode()
                                        : fgColor;
-            dot += fmt::format("\t{} [label=\"{}\" {} shape=box labelloc=b tooltip=\"{}\" color=\"{}\"]\n", nodeId, fmt::join(labelLines, "\n\t"), thumbnailAttributes, labelLines[0], color);
+            dot += fmt::format("\t{} [label=<<table border=\"0\"><tr><td>{}</td></tr></table>> shape=box tooltip=\"{}\" color=\"{}\"]\n",
+                               nodeId,
+                               fmt::join(labelLines, "</td></tr><tr><td>"),
+                               ldrFile->metaInfo.title,
+                               color);
         }
 
         for (const auto& [node1, adj]: graph.getAdjacencyLists()) {
@@ -138,8 +151,8 @@ namespace bricksim::connection::visualization {
             std::filesystem::remove_all(tmpDirectory);
         }
     }
-    void GraphVizResult::renderToFile(const std::filesystem::path& outFile) const {
-        graphviz_wrapper::renderDot(outFile, dotCode);
+    bool GraphVizResult::renderToFile(const std::filesystem::path& outFile) const {
+        return graphviz_wrapper::renderDot(outFile, dotCode);
     }
     GraphVizResult::GraphVizResult(GraphVizResult&& other) :
         dotCode(other.dotCode), tmpDirectory(other.tmpDirectory), deleteTmpFiles(other.deleteTmpFiles) {

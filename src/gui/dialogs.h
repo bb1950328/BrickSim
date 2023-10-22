@@ -15,4 +15,6 @@ namespace bricksim::gui::dialogs {
     std::optional<std::filesystem::path> showSaveImageDialog(std::string title);
     std::optional<std::filesystem::path> showSaveDotFileDialog(std::string title);
     void showExecuteActionByNameDialog();
+
+    void showError(const std::string& error);
 }

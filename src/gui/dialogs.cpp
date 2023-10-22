@@ -10,7 +10,11 @@ namespace bricksim::gui::dialogs {
     constexpr std::array<char const*, 4> IMAGE_FILE_FILTER_PATTERNS = {"*.png", "*.jpg", "*.bmp", "*.tga"};
     constexpr std::array<char const*, 1> DOT_FILE_FILTER_PATTERNS = {"*.dot"};
 
+    static const char* const GENERIC_ERROR_POPUP_ID = "generic_error_popup";
+
     bool openFindActionPopup = false;
+
+    std::string errorText;
 
     void showOpenFileDialog() {
         char const* fileNameChars = tinyfd_openFileDialog(
@@ -198,5 +202,17 @@ namespace bricksim::gui::dialogs {
             }
             ImGui::EndPopup();
         }
+
+        if (ImGui::BeginPopupModal(GENERIC_ERROR_POPUP_ID)) {
+            ImGui::Text("%s", errorText.c_str());
+            if (ImGui::Button("OK")) {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+    }
+    void showError(const std::string& error) {
+        errorText = error;
+        ImGui::OpenPopup(GENERIC_ERROR_POPUP_ID);
     }
 }

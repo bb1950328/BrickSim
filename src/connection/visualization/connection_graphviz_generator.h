@@ -52,7 +52,7 @@ namespace bricksim::connection::visualization {
         GraphVizResult& operator=(GraphVizResult&& other);
         GraphVizResult& operator=(const GraphVizResult& other);
         virtual ~GraphVizResult();
-        void renderToFile(const std::filesystem::path& outFile) const;
+        bool renderToFile(const std::filesystem::path& outFile) const;
     };
     GraphVizResult generateGraphviz(const ConnectionGraph& graph, const GraphVizParams& params, const std::shared_ptr<etree::MeshNode>& parentNode);
 }

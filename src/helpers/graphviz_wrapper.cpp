@@ -16,7 +16,7 @@
 
 namespace bricksim::graphviz_wrapper {
 
-    void renderDot(const std::filesystem::path& outputPath, std::string_view dot) {
+    bool renderDot(const std::filesystem::path& outputPath, std::string_view dot) {
         std::string format = "png";
         const auto outputExtension = outputPath.extension().string();
         if (outputExtension.ends_with("svg")) {
@@ -47,6 +47,7 @@ namespace bricksim::graphviz_wrapper {
 #else
     #warning "openDefaultProwser not supported on this platform"
 #endif
+        return std::filesystem::exists(outputPath);
     }
     bool isAvailable() {
         static bool checked = false;

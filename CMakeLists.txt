@@ -101,10 +101,6 @@ message(STATUS "BrickSim parsed version:        ${BrickSim_VERSION_MAJOR}.${Bric
 
 add_library(BrickSimLib STATIC)
 
-if (NOT MSVC)
-    target_compile_options(BrickSimLib PUBLIC -Werror=sign-compare)
-endif ()
-
 option(BRICKSIM_USE_ASAN "Use address sanitizer" OFF) # enabling this makes the program around 40% slower
 if (BRICKSIM_USE_ASAN)
     #these libraries have to be linked before all other libraries
@@ -223,6 +219,7 @@ target_include_directories(BrickSimLib PUBLIC src/lib/rapidjson/include)
 
 #stb
 target_include_directories(BrickSimLib PUBLIC src/lib/stb)
+target_compile_definitions(BrickSimLib PUBLIC "STBI_MAX_DIMENSIONS=(1<<31)")
 
 #cpuinfo
 set(CPUINFO_BUILD_TOOLS OFF CACHE BOOL "Build command-line tools" FORCE)

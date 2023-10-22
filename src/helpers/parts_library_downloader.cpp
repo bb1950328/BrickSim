@@ -37,7 +37,7 @@ namespace bricksim::parts_library_downloader {
         }
         spdlog::info("parts library download finished");
 
-        config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(filePath));
+        config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(filePath).string());
         status = Status::FINISHED;
     }
 

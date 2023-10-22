@@ -1,7 +1,6 @@
 #include "mesh_triangle_data.h"
 #include "../../config.h"
 #include "../../controller.h"
-#include "../../lib/Miniball.hpp"
 #include "../../metrics.h"
 #include "../opengl_native_or_replacement.h"
 #include "glm/gtx/rotate_vector.inl"
@@ -169,10 +168,9 @@ namespace bricksim::mesh {
         vertices.push_back(vertex);
     }
 
-    void TriangleData::fillVerticesForOuterDimensions(std::vector<const float*>& coords, size_t& coordCursor) const {
+    void TriangleData::addVerticesForOuterDimensions(std::vector<glm::vec3>& coords) const {
         for (auto& item: vertices) {
-            coords[coordCursor] = &item.position[0];
-            ++coordCursor;
+            coords.push_back(item.position);
         }
     }
     const std::vector<TriangleVertex>& TriangleData::getVertices() const {

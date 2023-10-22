@@ -20,6 +20,7 @@ namespace bricksim::graphics {
         bool operator>(const ThumbnailRequest& rhs) const;
         bool operator<=(const ThumbnailRequest& rhs) const;
         bool operator>=(const ThumbnailRequest& rhs) const;
+        [[nodiscard]] std::string getFilename();
     };
 
     using thumbnail_file_key_t = ThumbnailRequest;
@@ -60,6 +61,6 @@ namespace bricksim::graphics {
 
         bool workOnRenderQueue();
         [[nodiscard]] bool renderQueueEmpty() const;
-        void removeFromRenderQueue(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color);
+        void removeFromRenderQueue(ThumbnailRequest request);
     };
 }

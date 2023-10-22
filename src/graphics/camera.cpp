@@ -1,5 +1,6 @@
 #include "camera.h"
 #include "../config.h"
+#include "Seb.h"
 #include "mesh/mesh_collection.h"
 #include <glm/ext/matrix_transform.hpp>
 
@@ -132,12 +133,47 @@ namespace bricksim::graphics {
         mousePan(delta.x, delta.y);
     }
 
-    void FitContentCamera::setRootNode(const std::shared_ptr<etree::MeshNode>& node) {
-        //todo make this work for any node, not just simple parts
+    aabb::AABB getAABB(const std::shared_ptr<etree::MeshNode>& node) {
         const auto& mesh = mesh::SceneMeshCollection::getMesh(mesh::SceneMeshCollection::getMeshKey(node, false, nullptr), node, nullptr);
         const auto& outerDimensions = mesh->getOuterDimensions();
-        auto meshRadius = outerDimensions->minEnclosingBallRadius * constants::LDU_TO_OPENGL_SCALE;
-        target = glm::vec4(outerDimensions->minEnclosingBallCenter, 1.0f) * constants::LDU_TO_OPENGL;
+        auto aabb = outerDimensions->aabb;
+        for (const auto& child: node->getChildren()) {
+            const auto meshChild = std::dynamic_pointer_cast<etree::MeshNode>(child);
+            if (meshChild != nullptr) {
+                aabb.includeAABB(getAABB(meshChild));
+            }
+        }
+        return aabb;
+    }
+
+    void collectPoints(std::vector<glm::vec3>& points, const std::shared_ptr<etree::MeshNode>& node, const glm::mat4& transformation) {
+        const auto& mesh = mesh::SceneMeshCollection::getMesh(mesh::SceneMeshCollection::getMeshKey(node, false, nullptr), node, nullptr);
+        const auto& outerDimensions = mesh->getOuterDimensions();
+        for (int axis = 0; axis < 3; ++axis) {
+            for (int sign = -1; sign < 2; sign += 2) {
+                glm::vec4 point(outerDimensions->minEnclosingBallCenter, 1.f);
+                point[axis] += outerDimensions->minEnclosingBallRadius * sign;
+                points.push_back(point * transformation);
+            }
+        }
+        for (const auto& child: node->getChildren()) {
+            const auto meshChild = std::dynamic_pointer_cast<etree::MeshNode>(child);
+            if (meshChild != nullptr) {
+                collectPoints(points, meshChild, transformation * meshChild->getRelativeTransformation());
+            }
+        }
+    }
+
+    void FitContentCamera::setRootNode(const std::shared_ptr<etree::MeshNode>& node) {
+        std::vector<glm::vec3> points;
+        collectPoints(points, node, glm::mat4(1.f));
+        Seb::Smallest_enclosing_ball<float, glm::vec3> seb(3, points);
+
+        auto center = seb.center_begin();
+        const auto sebCenter = glm::vec3(center[0], center[1], center[2]);
+
+        auto meshRadius = seb.radius() * constants::LDU_TO_OPENGL_SCALE;
+        target = glm::vec4(sebCenter, 1.0f) * constants::LDU_TO_OPENGL;
 
         //todo calculate the distance from fov instead of this
         auto distance = meshRadius * 2.45f;

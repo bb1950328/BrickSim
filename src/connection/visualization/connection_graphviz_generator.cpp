@@ -44,8 +44,8 @@ namespace bricksim::connection::visualization {
             }
         };
 
-        const auto bgColor = params.general.darkTheme ? "#333333" : "white";
-        const auto fgColor = params.general.darkTheme ? "white" : "black";
+        const auto bgColor = params.general.darkTheme ? "#333333" : "#ffffff";
+        const auto fgColor = params.general.darkTheme ? "#ffffff" : "#000000";
 
         dot += "graph G {\n";
         dot += fmt::format("\tlayout=\"{}\"\n", magic_enum::enum_name(params.general.layout));
@@ -65,25 +65,16 @@ namespace bricksim::connection::visualization {
                 ldrFile = std::dynamic_pointer_cast<etree::ModelInstanceNode>(node)->modelNode->ldrFile;
             }
 
-            /*std::string thumbnailAttributes;
-            if (params.node.showThumbnail) {
-                const auto thumbnailPath = result.tmpDirectory / fmt::format("{}_{}.png", util::escapeFilename(ldrFile->metaInfo.name), node->getDisplayColor().code);
-                if (!std::filesystem::exists(thumbnailPath)) {
-                    thumbnailGenerator->getThumbnail({ldrFile, node->getDisplayColor(), color::RGB(bgColor)})->saveToFile(thumbnailPath);
-                }
-                thumbnailAttributes = fmt::format("image=\"{}\" imagepos=tc imagescale=true margin=\"0.25,0.25\"", thumbnailPath.string());
-            } else {
-                thumbnailAttributes = "";
-            }*/
-
             const auto nodeId = getNodeId(node);
 
             std::vector<std::string> labelLines;
             if (params.node.showThumbnail) {
-                const auto filename = fmt::format("{}_{}.png", util::escapeFilename(ldrFile->metaInfo.name), node->getDisplayColor().code);
+                const auto bgRGB = color::RGB(bgColor);
+                graphics::ThumbnailRequest thumbnailRequest = {ldrFile, node->getDisplayColor(), bgRGB};
+                const auto filename = thumbnailRequest.getFilename();
                 const auto path = result.tmpDirectory / filename;
                 if (!std::filesystem::exists(path)) {
-                    thumbnailGenerator->getThumbnail({ldrFile, node->getDisplayColor(), color::RGB(bgColor)})->saveToFile(path);
+                    thumbnailGenerator->getThumbnail(thumbnailRequest)->saveToFile(path);
                 }
                 labelLines.push_back(fmt::format("<img src=\"{}\" />", filename));
             }
@@ -129,12 +120,12 @@ namespace bricksim::connection::visualization {
                         const auto* color = connections.size() == 1
                                                     ? getConnectionTypeColor(connections[0]->connectorA->type, connections[0]->connectorB->type)
                                                     : fgColor;
-                        dot += fmt::format("\t{} -- {} [style=\"{}\" color=\"{}\"]\n", id1, id2, style, color);
+                        dot += fmt::format("\t{} -- {} [style=\"{}\" color=\"{}\" penwidth=4]\n", id1, id2, style, color);
                     } else {
                         for (const auto& conn: connections) {
                             const auto style = !conn->degreesOfFreedom.empty() && params.edge.nonRigidConnectionsDashed ? "dashed" : "solid";
                             const auto* color = getConnectionTypeColor(conn->connectorA->type, conn->connectorB->type);
-                            dot += fmt::format("\t{} -- {} [style=\"{}\" color=\"{}\"]\n", id1, id2, style, color);
+                            dot += fmt::format("\t{} -- {} [style=\"{}\" color=\"{}\" penwidth=4]\n", id1, id2, style, color);
                         }
                     }
                 }

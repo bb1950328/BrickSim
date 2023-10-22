@@ -93,7 +93,7 @@ namespace bricksim::gui::windows::connection_visualization {
                     int width;
                     int height;
                     int nrChannels;
-                    unsigned char* data = stbi_load(outputFile.c_str(), &width, &height, &nrChannels, 0);
+                    unsigned char* data = stbi_load(outputFile.string().c_str(), &width, &height, &nrChannels, 0);
                     if (data != nullptr) {
                         texture = std::make_shared<graphics::Texture>(data, width, height, nrChannels);
                     } else {

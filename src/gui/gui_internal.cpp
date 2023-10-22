@@ -17,7 +17,7 @@ namespace bricksim::gui_internal {
                 realThumbnailAvailable = true;
             }
         } else {
-            controller::getThumbnailGenerator()->removeFromRenderQueue(part, color);
+            controller::getThumbnailGenerator()->removeFromRenderQueue({part, color});
         }
         if (!realThumbnailAvailable) {
             ImGui::Button(part->metaInfo.name.c_str(), actualThumbSizeSquared);

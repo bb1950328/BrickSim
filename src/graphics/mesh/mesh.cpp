@@ -3,10 +3,10 @@
 #include "../../controller.h"
 #include "../../helpers/geometry.h"
 #include "../../helpers/util.h"
-#include "../../lib/Miniball.hpp"
 #include "../../metrics.h"
 #include "../opengl_native_or_replacement.h"
 #include "../texmap_projection.h"
+#include "Seb.h"
 #include "mesh_line_data.h"
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -113,7 +113,7 @@ namespace bricksim::mesh {
                 texturedData.addVertex({transformedPoints[0], UVs[0]});
                 texturedData.addVertex({transformedPoints[1], UVs[1]});
                 texturedData.addVertex({transformedPoints[2], UVs[2]});
-                
+
                 //triangle 2
                 texturedData.addVertex({transformedPoints[2], UVs[2]});
                 texturedData.addVertex({transformedPoints[3], UVs[3]});
@@ -515,29 +515,28 @@ namespace bricksim::mesh {
             vertexCount += item.second.getVertexCount();
         }
         if (vertexCount > 0) {
-            auto coords = std::vector<const float*>();
-            coords.resize(vertexCount);
-            size_t coordsCursor = 0;
+            std::vector<glm::vec3> coords;
+            coords.reserve(vertexCount);
 
             for (const auto& item: triangleData) {
-                item.second.fillVerticesForOuterDimensions(coords, coordsCursor);
+                item.second.addVerticesForOuterDimensions(coords);
             }
             for (const auto& item: texturedTriangleData) {
-                item.second.fillVerticesForOuterDimensions(coords, coordsCursor);
+                item.second.addVerticesForOuterDimensions(coords);
             }
 
-            Miniball::Miniball<Miniball::CoordAccessor<const float* const*, const float*>> mb(3, &coords[0], &coords[0] + vertexCount);
+            Seb::Smallest_enclosing_ball<float, glm::vec3> seb(3, coords);
 
             aabb::AABB aabb;
 
-            for (const float* c : coords) {
-                aabb.includePoint({c[0], c[1], c[2]});
+            for (const auto& c: coords) {
+                aabb.includePoint(c);
             }
 
             outerDimensions = OuterDimensions{
                     .aabb = aabb,
-                    .minEnclosingBallCenter = {mb.center()[0], mb.center()[1], mb.center()[2]},
-                    .minEnclosingBallRadius = std::sqrt(mb.squared_radius()),
+                    .minEnclosingBallCenter = {seb.center_begin()[0], seb.center_begin()[1], seb.center_begin()[2]},
+                    .minEnclosingBallRadius = seb.radius(),
             };
         } else {
             outerDimensions = OuterDimensions{

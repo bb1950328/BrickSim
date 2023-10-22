@@ -80,36 +80,45 @@ namespace bricksim::gui::windows::part_palette {
             //static const auto partsGrouped = ldr::file_repo::getAllPartsGroupedByCategory();
             static const auto partCategories = ldr::file_repo::get().getAllCategories();
             static uoset_t<std::string> selectedCategories = {*partCategories.begin()};//first category preselected
+            std::set<std::string> editorNames;
+            std::transform(controller::getEditors().cbegin(),
+                           controller::getEditors().cend(),
+                           std::inserter(editorNames, editorNames.begin()),
+                           [](const std::shared_ptr<Editor>& editor) {
+                               return editor->getFilename();
+                           });
 
             ImGui::BeginChild("##categorySelectTree", ImVec2(categorySelectWidth, 0));
-            for (const auto& category: partCategories) {
-                int flags = selectedCategories.find(category) != selectedCategories.end()
-                                    ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected
-                                    : ImGuiTreeNodeFlags_Leaf;
-                if (ImGui::TreeNodeEx(category.c_str(), flags)) {
-                    if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-                        if (ImGui::GetIO().KeyCtrl) {
-                            if (selectedCategories.find(category) == selectedCategories.end()) {
-                                selectedCategories.insert(category);
-                            } else {
-                                selectedCategories.erase(category);
-                            }
-                        } else if (ImGui::GetIO().KeyShift) {
-                            auto groupIt = partCategories.find(category);
-                            while (groupIt != partCategories.begin() && selectedCategories.find(*groupIt) == selectedCategories.end()) {
+            for (const auto& set: {std::cref(editorNames), std::cref(partCategories)}) {
+                for (const auto& category: set.get()) {
+                    int flags = selectedCategories.find(category) != selectedCategories.end()
+                                        ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected
+                                        : ImGuiTreeNodeFlags_Leaf;
+                    if (ImGui::TreeNodeEx(category.c_str(), flags)) {
+                        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+                            if (ImGui::GetIO().KeyCtrl) {
+                                if (selectedCategories.find(category) == selectedCategories.end()) {
+                                    selectedCategories.insert(category);
+                                } else {
+                                    selectedCategories.erase(category);
+                                }
+                            } else if (ImGui::GetIO().KeyShift) {
+                                auto groupIt = partCategories.find(category);
+                                while (groupIt != partCategories.begin() && selectedCategories.find(*groupIt) == selectedCategories.end()) {
+                                    selectedCategories.insert(*groupIt);
+                                    groupIt--;
+                                }
                                 selectedCategories.insert(*groupIt);
-                                groupIt--;
-                            }
-                            selectedCategories.insert(*groupIt);
-                        } else {
-                            bool wasOnlySelectionBefore = selectedCategories.size() == 1 && *selectedCategories.begin() == category;
-                            selectedCategories.clear();
-                            if (!wasOnlySelectionBefore) {
-                                selectedCategories.insert(category);
+                            } else {
+                                bool wasOnlySelectionBefore = selectedCategories.size() == 1 && *selectedCategories.begin() == category;
+                                selectedCategories.clear();
+                                if (!wasOnlySelectionBefore) {
+                                    selectedCategories.insert(category);
+                                }
                             }
                         }
+                        ImGui::TreePop();
                     }
-                    ImGui::TreePop();
                 }
             }
             ImGui::EndChild();
@@ -125,55 +134,67 @@ namespace bricksim::gui::windows::part_palette {
             const bool searchEmpty = searchTextBuffer[0] == '\0';
             const auto& searchPredicate = part_finder::getPredicate(searchTextBuffer);
 
-            if (selectedCategories.size() > 1) {
-                for (const auto& category: selectedCategories) {
-                    ImGui::Text("%s", category.c_str());
-                    for (const auto& part: ldr::file_repo::get().getAllFilesOfCategory(category)) {
-                        if (searchEmpty || searchPredicate.matches(*part)) {
-                            gui_internal::drawPartThumbnail(actualThumbSizeSquared, part, color->asReference());
-                            currentCol++;
-                            if (currentCol == columns) {
-                                currentCol = 0;
-                            } else {
-                                ImGui::SameLine();
+            const auto drawPart = [&actualThumbSizeSquared, &columns, &currentCol, &searchEmpty, &searchPredicate](const std::shared_ptr<ldr::File>& file) {
+                if (searchEmpty || searchPredicate.matches(*file)) {
+                    gui_internal::drawPartThumbnail(actualThumbSizeSquared, file, color->asReference());
+                    currentCol++;
+                    if (currentCol == columns) {
+                        currentCol = 0;
+                    } else {
+                        ImGui::SameLine();
+                    }
+                }
+            };
+
+            const auto drawCategory = [&editorNames, &drawPart](const std::string& category) {
+                if (editorNames.find(category) != editorNames.end()) {
+                    const auto editor = std::find_if(controller::getEditors().begin(),
+                                                     controller::getEditors().end(),
+                                                     [&category](const std::shared_ptr<Editor>& editor) {
+                                                         return editor->getFilename() == category;
+                                                     })
+                                                ->get();
+                    for (const auto& item: editor->getRootNode()->getChildren()) {
+                        const auto modelNode = std::dynamic_pointer_cast<etree::ModelNode>(item);
+                        if (modelNode != nullptr) {
+                            drawPart(modelNode->ldrFile);
+                            if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+                                editor->openContextMenuNodeSelectedOrClicked(modelNode);
                             }
                         }
                     }
+                } else {
+                    for (const auto& part: ldr::file_repo::get().getAllFilesOfCategory(category)) {
+                        drawPart(part);
+                    }
+                }
+            };
+
+            if (selectedCategories.size() > 1) {
+                for (const auto& category: selectedCategories) {
+                    ImGui::Text("%s", category.c_str());
+                    drawCategory(category);
                     if (currentCol != 0) {
                         ImGui::NewLine();
                     }
                     currentCol = 0;
                 }
             } else if (selectedCategories.size() == 1) {
-                for (const auto& part: ldr::file_repo::get().getAllFilesOfCategory(*selectedCategories.begin())) {
-                    if (searchEmpty || searchPredicate.matches(*part)) {
-                        gui_internal::drawPartThumbnail(actualThumbSizeSquared, part, color->asReference());
-                        currentCol++;
-                        if (currentCol == columns) {
-                            currentCol = 0;
-                        } else {
-                            ImGui::SameLine();
-                        }
-                    }
-                }
+                drawCategory(*selectedCategories.begin());
             } else {
                 if (ldr::file_repo::get().areAllPartsLoaded()) {
+                    for (const auto& category: editorNames) {
+                        ImGui::Text("%s", category.c_str());
+                        drawCategory(category);
+                    }
                     for (const auto& category: ldr::file_repo::get().getAllPartsGroupedByCategory()) {
                         bool textWritten = false;
                         for (const auto& part: category.second) {
-                            if (searchEmpty || searchPredicate.matches(*part)) {
-                                if (!textWritten) {
-                                    ImGui::Text("%s", category.first.c_str());
-                                    textWritten = true;
-                                }
-                                gui_internal::drawPartThumbnail(actualThumbSizeSquared, part, color->asReference());
-                                currentCol++;
-                                if (currentCol == columns) {
-                                    currentCol = 0;
-                                } else {
-                                    ImGui::SameLine();
-                                }
+                            if (!textWritten && (searchEmpty || searchPredicate.matches(*part))) {
+                                ImGui::Text("%s", category.first.c_str());
+                                textWritten = true;
                             }
+                            drawPart(part);
                         }
                         if (currentCol != 0) {
                             ImGui::NewLine();

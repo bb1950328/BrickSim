@@ -285,6 +285,9 @@ target_link_libraries(BrickSimLib PRIVATE ImGuiColorTextEdit)
 add_subdirectory(src/lib/utfcpp)
 target_link_libraries(BrickSimLib PUBLIC utf8cpp)
 
+#miniball
+target_include_directories(BrickSimLib PUBLIC src/lib/miniball/cpp/main)
+
 add_subdirectory(src)
 
 if (WIN32)

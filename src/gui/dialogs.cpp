@@ -15,6 +15,7 @@ namespace bricksim::gui::dialogs {
     bool openFindActionPopup = false;
 
     std::string errorText;
+    bool needToOpenErrorPopup = false;
 
     void showOpenFileDialog() {
         char const* fileNameChars = tinyfd_openFileDialog(
@@ -203,6 +204,10 @@ namespace bricksim::gui::dialogs {
             ImGui::EndPopup();
         }
 
+        if (needToOpenErrorPopup) {
+            ImGui::OpenPopup(GENERIC_ERROR_POPUP_ID);
+            needToOpenErrorPopup = false;
+        }
         if (ImGui::BeginPopupModal(GENERIC_ERROR_POPUP_ID)) {
             ImGui::Text("%s", errorText.c_str());
             if (ImGui::Button("OK")) {
@@ -213,6 +218,6 @@ namespace bricksim::gui::dialogs {
     }
     void showError(const std::string& error) {
         errorText = error;
-        ImGui::OpenPopup(GENERIC_ERROR_POPUP_ID);
+        needToOpenErrorPopup = true;
     }
 }

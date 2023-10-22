@@ -21,9 +21,19 @@ namespace bricksim::graphics {
             auto before = std::chrono::high_resolution_clock::now();
             scene->setImageSize({size, size});
 
-            auto partNode = std::make_shared<etree::PartNode>(request.ldrFile, request.color, nullptr, nullptr);
-            scene->setRootNode(partNode);
-            camera->setRootNode(partNode);
+            std::shared_ptr<etree::RootNode> rootNode = std::make_shared<etree::RootNode>();
+            std::shared_ptr<etree::LdrNode> ldrNode;
+            if (request.ldrFile->metaInfo.type == ldr::FileType::MODEL || request.ldrFile->metaInfo.type == ldr::FileType::MPD_SUBFILE) {
+                ldrNode = std::make_shared<etree::ModelNode>(request.ldrFile, request.color, nullptr);
+                ldrNode->visible = true;
+            } else {
+                ldrNode = std::make_shared<etree::PartNode>(request.ldrFile, request.color, nullptr, nullptr);
+            }
+            rootNode->addChild(ldrNode);
+            ldrNode->parent = rootNode;
+            ldrNode->createChildNodes();
+            scene->setRootNode(rootNode);
+            camera->setRootNode(ldrNode);
 
             scene->setBackgroundColor(request.backgroundColor.value_or(config::get(config::BACKGROUND_COLOR)));
             scene->updateImage();
@@ -141,9 +151,8 @@ namespace bricksim::graphics {
         return images.find(request) != images.end();
     }
 
-    void ThumbnailGenerator::removeFromRenderQueue(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color) {
-        thumbnail_file_key_t fileKey = {ldrFile, color};
-        auto it = std::find(renderRequests.begin(), renderRequests.end(), fileKey);
+    void ThumbnailGenerator::removeFromRenderQueue(ThumbnailRequest request) {
+        auto it = std::find(renderRequests.begin(), renderRequests.end(), request);
         if (it != renderRequests.end()) {
             renderRequests.erase(it);
         }
@@ -179,5 +188,13 @@ namespace bricksim::graphics {
     }
     bool ThumbnailRequest::operator>=(const ThumbnailRequest& rhs) const {
         return !(*this < rhs);
+    }
+    std::string ThumbnailRequest::getFilename() {
+        return util::escapeFilename(fmt::format("{}_{}_{}.png",
+                                                ldrFile->metaInfo.name,
+                                                color.code,
+                                                backgroundColor.has_value()
+                                                        ? backgroundColor->asHtmlCode()
+                                                        : ""));
     }
 }

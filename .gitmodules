@@ -65,3 +65,6 @@
 [submodule "src/lib/utfcpp"]
 	path = src/lib/utfcpp
 	url = https://github.com/nemtrif/utfcpp.git
+[submodule "src/lib/miniball"]
+	path = src/lib/miniball
+	url = https://github.com/hbf/miniball.git

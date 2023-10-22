@@ -104,10 +104,9 @@ namespace bricksim::mesh {
     size_t TexturedTriangleData::getVertexCount() const {
         return verticesAlreadyDeleted ? uploadedVertexCount : vertices.size();
     }
-    void TexturedTriangleData::fillVerticesForOuterDimensions(std::vector<const float*>& coords, size_t& coordCursor) const {
+    void TexturedTriangleData::addVerticesForOuterDimensions(std::vector<glm::vec3>& coords) const {
         for (auto& item: vertices) {
-            coords[coordCursor] = &item.position[0];
-            ++coordCursor;
+            coords.push_back(item.position);
         }
     }
     void TexturedTriangleData::addVertex(const TexturedTriangleVertex& vertex) {

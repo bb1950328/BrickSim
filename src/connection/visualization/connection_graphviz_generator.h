@@ -16,9 +16,28 @@ namespace bricksim::connection::visualization {
         patchwork,
     };
     struct GraphVizParams {
+        struct NodeParams {
+            bool showThumbnail = true;
+            bool showLocation = false;
+            bool showName = false;
+            bool showTitle = true;
+            bool colorBoxLikePart = true;
+        };
+        struct EdgeParams {
+            bool colorLineByConnectorType = true;
+            bool nonRigidConnectionsDashed = true;
+            bool oneLineBetweenNode = false;
+        };
+        struct GeneralParams {
+            LayoutEngine layout = LayoutEngine::dot;
+            int dpi = 96;
+            bool darkTheme = true;
+        };
+
         std::filesystem::path thumbnailDirectory;
-        bool showPartThumbnails = true;
-        LayoutEngine layout = LayoutEngine::dot;
+        GeneralParams general;
+        NodeParams node;
+        EdgeParams edge;
     };
 
     class GraphVizResult {
@@ -28,6 +47,10 @@ namespace bricksim::connection::visualization {
         bool deleteTmpFiles = true;
 
         GraphVizResult();
+        GraphVizResult(GraphVizResult&& other);
+        GraphVizResult(const GraphVizResult& other);
+        GraphVizResult& operator=(GraphVizResult&& other);
+        GraphVizResult& operator=(const GraphVizResult& other);
         virtual ~GraphVizResult();
         void renderToFile(const std::filesystem::path& outFile) const;
     };

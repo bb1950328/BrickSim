@@ -376,7 +376,7 @@ namespace bricksim::gui {
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_CIRCLE_CHECK " OK")) {
                     state = 'Z';
-                    config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(pathBuffer));
+                    config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(pathBuffer).string());
                 }
             }
             ImGui::End();

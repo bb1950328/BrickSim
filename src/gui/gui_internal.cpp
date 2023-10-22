@@ -10,7 +10,7 @@ namespace bricksim::gui_internal {
         bool realThumbnailAvailable = false;
         const bool visible = ImGui::IsRectVisible(actualThumbSizeSquared);
         if (visible) {
-            auto optTexId = controller::getThumbnailGenerator()->getThumbnailNonBlocking(part, color);
+            auto optTexId = controller::getThumbnailGenerator()->getThumbnailNonBlocking({part, color});
             if (optTexId.has_value()) {
                 auto texId = convertTextureId(optTexId.value()->getID());
                 ImGui::ImageButton(part->metaInfo.name.c_str(), texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0));

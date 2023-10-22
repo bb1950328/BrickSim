@@ -106,7 +106,9 @@ namespace bricksim::graphics {
     }
 
     Scene::Scene(scene_id_t sceneId) :
-        id(sceneId), meshCollection(sceneId) {
+        id(sceneId),
+        meshCollection(sceneId),
+        backgroundColor(config::get(config::BACKGROUND_COLOR)) {
         setImageSize({10, 10});
     }
 
@@ -250,7 +252,7 @@ namespace bricksim::graphics {
 #endif
                 glBindFramebuffer(GL_FRAMEBUFFER, image.getFBO());
                 glViewport(0, 0, imageSize.x, imageSize.y);
-                const auto& bgColor = config::get(config::BACKGROUND_COLOR).asGlmVector();
+                const auto& bgColor = backgroundColor.asGlmVector();
                 glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT);
 
@@ -368,6 +370,12 @@ namespace bricksim::graphics {
     }
     [[nodiscard]] bool* Scene::isDrawLines() {
         return &drawLines;
+    }
+    const color::RGB& Scene::getBackgroundColor() const {
+        return backgroundColor;
+    }
+    void Scene::setBackgroundColor(const color::RGB& backgroundColor) {
+        Scene::backgroundColor = backgroundColor;
     }
 
     namespace scenes {

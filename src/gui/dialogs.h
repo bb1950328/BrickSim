@@ -12,5 +12,7 @@ namespace bricksim::gui::dialogs {
     void showSaveCopyAsDialog(const std::shared_ptr<Editor>& editor);
     void showScreenshotDialog();
     void showScreenshotDialog(const std::shared_ptr<Editor>& editor);
+    std::optional<std::filesystem::path> showSaveImageDialog(std::string title);
+    std::optional<std::filesystem::path> showSaveDotFileDialog(std::string title);
     void showExecuteActionByNameDialog();
 }

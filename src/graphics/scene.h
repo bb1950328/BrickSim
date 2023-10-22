@@ -67,6 +67,7 @@ namespace bricksim::graphics {
         bool drawLines = true;
         bool currentImageDrawTriangles = true;
         bool currentImageDrawLines = true;
+        color::RGB backgroundColor;
 
     public:
         explicit Scene(scene_id_t sceneId);//todo make constructor private and set scenes::create as a friend
@@ -88,5 +89,7 @@ namespace bricksim::graphics {
         [[nodiscard]] overlay2d::ElementCollection& getOverlayCollection();
         [[nodiscard]] bool* isDrawTriangles();
         [[nodiscard]] bool* isDrawLines();
+        const color::RGB& getBackgroundColor() const;
+        void setBackgroundColor(const color::RGB& backgroundColor);
     };
 }

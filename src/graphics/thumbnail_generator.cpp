@@ -9,30 +9,30 @@
 
 namespace bricksim::graphics {
 
-    std::shared_ptr<Texture> ThumbnailGenerator::getThumbnail(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference color) {
+    std::shared_ptr<Texture> ThumbnailGenerator::getThumbnail(ThumbnailRequest request) {
         plFunction();
         if (renderedRotationDegrees != rotationDegrees) {
             discardAllImages();
             renderedRotationDegrees = rotationDegrees;
         }
-        thumbnail_file_key_t fileKey = {ldrFile, color};
-        auto imgIt = images.find(fileKey);
+        auto imgIt = images.find(request);
         if (imgIt == images.end()) {
-            spdlog::debug("rendering thumbnail {} in {}", ldrFile->getDescription(), color.get()->name);
+            spdlog::debug("rendering thumbnail {} in {}", request.ldrFile->getDescription(), request.color.get()->name);
             auto before = std::chrono::high_resolution_clock::now();
             scene->setImageSize({size, size});
 
-            auto partNode = std::make_shared<etree::PartNode>(ldrFile, color, nullptr, nullptr);
+            auto partNode = std::make_shared<etree::PartNode>(request.ldrFile, request.color, nullptr, nullptr);
             scene->setRootNode(partNode);
             camera->setRootNode(partNode);
 
+            scene->setBackgroundColor(request.backgroundColor.value_or(config::get(config::BACKGROUND_COLOR)));
             scene->updateImage();
 
-            const auto totalBufferSize = size * size * 3;
+            const auto totalBufferSize = size * size * 3;//todo try to make transparent background
             metrics::thumbnailBufferUsageBytes += totalBufferSize;
             std::vector<GLbyte> buffer;
             buffer.resize(totalBufferSize);
-            controller::executeOpenGL([this, &buffer, &fileKey]() {
+            controller::executeOpenGL([this, &buffer, &request]() {
                 //todo copy image directly (VRAM -> VRAM instead of VRAM -> RAM -> VRAM)
                 glBindFramebuffer(GL_READ_FRAMEBUFFER, scene->getImage().getFBO());
                 glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
@@ -47,14 +47,14 @@ namespace bricksim::graphics {
                 //glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, size, size, 0);
                 //todo this causes source=API, type=ERROR, id=1282: Error has been generated. GL error GL_INVALID_OPERATION in FramebufferTexture2D: (ID: 2333930068) Generic error
                 //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
-                images.emplace(fileKey, std::make_shared<Texture>(textureId, size, size, 3));
+                images.emplace(request, std::make_shared<Texture>(textureId, size, size, 3));
             });
             auto after = std::chrono::high_resolution_clock::now();
             metrics::lastThumbnailRenderingTimeMs = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.f;
         }
-        lastAccessed.remove(fileKey);
-        lastAccessed.push_back(fileKey);
-        return images[fileKey];
+        lastAccessed.remove(request);
+        lastAccessed.push_back(request);
+        return images[request];
     }
 
     void ThumbnailGenerator::discardAllImages() {
@@ -75,16 +75,15 @@ namespace bricksim::graphics {
         });
     }
 
-    std::optional<std::shared_ptr<Texture>> ThumbnailGenerator::getThumbnailNonBlocking(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color) {
+    std::optional<std::shared_ptr<Texture>> ThumbnailGenerator::getThumbnailNonBlocking(ThumbnailRequest request) {
         if (renderedRotationDegrees != rotationDegrees) {
             discardAllImages();
             renderedRotationDegrees = rotationDegrees;
         }
-        thumbnail_file_key_t fileKey = {ldrFile, color};
-        auto imgIt = images.find(fileKey);
+        auto imgIt = images.find(request);
         if (imgIt == images.end()) {
-            if (std::find(renderRequests.begin(), renderRequests.end(), fileKey) == renderRequests.end()) {
-                renderRequests.push_back(fileKey);
+            if (std::find(renderRequests.begin(), renderRequests.end(), request) == renderRequests.end()) {
+                renderRequests.push_back(request);
             }
             return {};
         } else {
@@ -94,8 +93,8 @@ namespace bricksim::graphics {
 
     bool ThumbnailGenerator::workOnRenderQueue() {
         if (!renderRequests.empty()) {
-            const auto& [file, color] = renderRequests.front();
-            getThumbnail(file, color);
+            const auto& request = renderRequests.front();
+            getThumbnail(request);
             renderRequests.pop_front();
         }
         return !renderRequests.empty();
@@ -138,9 +137,8 @@ namespace bricksim::graphics {
         return renderRequests.empty();
     }
 
-    bool ThumbnailGenerator::isThumbnailAvailable(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color) {
-        thumbnail_file_key_t fileKey = {ldrFile, color};
-        return images.find(fileKey) != images.end();
+    bool ThumbnailGenerator::isThumbnailAvailable(ThumbnailRequest request) {
+        return images.find(request) != images.end();
     }
 
     void ThumbnailGenerator::removeFromRenderQueue(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color) {
@@ -155,5 +153,31 @@ namespace bricksim::graphics {
         maxCachedThumbnails = config::get(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
         scene = scenes::create(scenes::THUMBNAIL_SCENE_ID);
         scene->setCamera(camera);
+    }
+    bool ThumbnailRequest::operator==(const ThumbnailRequest& rhs) const {
+        return ldrFile == rhs.ldrFile && color == rhs.color && backgroundColor == rhs.backgroundColor;
+    }
+    bool ThumbnailRequest::operator!=(const ThumbnailRequest& rhs) const {
+        return !(rhs == *this);
+    }
+    bool ThumbnailRequest::operator<(const ThumbnailRequest& rhs) const {
+        if (ldrFile < rhs.ldrFile)
+            return true;
+        if (rhs.ldrFile < ldrFile)
+            return false;
+        if (color < rhs.color)
+            return true;
+        if (rhs.color < color)
+            return false;
+        return backgroundColor < rhs.backgroundColor;
+    }
+    bool ThumbnailRequest::operator>(const ThumbnailRequest& rhs) const {
+        return rhs < *this;
+    }
+    bool ThumbnailRequest::operator<=(const ThumbnailRequest& rhs) const {
+        return !(rhs < *this);
+    }
+    bool ThumbnailRequest::operator>=(const ThumbnailRequest& rhs) const {
+        return !(*this < rhs);
     }
 }

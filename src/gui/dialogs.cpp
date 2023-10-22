@@ -8,6 +8,7 @@
 namespace bricksim::gui::dialogs {
     constexpr std::array<char const*, 4> LDRAW_FILE_FILTER_PATTERNS = {"*.ldr", "*.dat", "*.mpd", "*.io"};
     constexpr std::array<char const*, 4> IMAGE_FILE_FILTER_PATTERNS = {"*.png", "*.jpg", "*.bmp", "*.tga"};
+    constexpr std::array<char const*, 1> DOT_FILE_FILTER_PATTERNS = {"*.dot"};
 
     bool openFindActionPopup = false;
 
@@ -79,16 +80,33 @@ namespace bricksim::gui::dialogs {
     }
     void showScreenshotDialog(const std::shared_ptr<Editor>& editor) {
         std::string title = fmt::format("Save Screenshot of \"{}\"", editor->getFilename());
+        const auto path = showSaveImageDialog(title);
+        if (path) {
+            editor->getScene()->getImage().saveImage(*path);
+        }
+    }
+    std::optional<std::filesystem::path> showSaveImageDialog(std::string title) {
         char const* fileNameChars = tinyfd_saveFileDialog(
                 title.c_str(),
                 "",
                 IMAGE_FILE_FILTER_PATTERNS.size(),
                 IMAGE_FILE_FILTER_PATTERNS.data(),
                 nullptr);
-        if (fileNameChars != nullptr) {
-            std::string fileNameString(fileNameChars);
-            editor->getScene()->getImage().saveImage(fileNameString);
-        }
+        return fileNameChars != nullptr
+                       ? std::make_optional<std::filesystem::path>(fileNameChars)
+                       : std::nullopt;
+    }
+
+    std::optional<std::filesystem::path> showSaveDotFileDialog(std::string title) {
+        char const* fileNameChars = tinyfd_saveFileDialog(
+                title.c_str(),
+                "",
+                DOT_FILE_FILTER_PATTERNS.size(),
+                DOT_FILE_FILTER_PATTERNS.data(),
+                "GraphViz .dot Files");
+        return fileNameChars != nullptr
+                       ? std::make_optional<std::filesystem::path>(fileNameChars)
+                       : std::nullopt;
     }
 
     void showExecuteActionByNameDialog() {

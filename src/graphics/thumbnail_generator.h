@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../config.h"
+#include "../helpers/custom_hash.h"
 #include "../helpers/util.h"
 #include "../ldr/colors.h"
 #include "../ldr/files.h"
@@ -9,13 +10,25 @@
 #include <memory>
 
 namespace bricksim::graphics {
-    using thumbnail_file_key_t = std::pair<std::shared_ptr<ldr::File>, ldr::ColorReference>;
+    struct ThumbnailRequest {
+        std::shared_ptr<ldr::File> ldrFile;
+        ldr::ColorReference color;
+        std::optional<color::RGB> backgroundColor;
+        bool operator==(const ThumbnailRequest& rhs) const;
+        bool operator!=(const ThumbnailRequest& rhs) const;
+        bool operator<(const ThumbnailRequest& rhs) const;
+        bool operator>(const ThumbnailRequest& rhs) const;
+        bool operator<=(const ThumbnailRequest& rhs) const;
+        bool operator>=(const ThumbnailRequest& rhs) const;
+    };
+
+    using thumbnail_file_key_t = ThumbnailRequest;
 }
 namespace std {
     template<>
     struct hash<bricksim::graphics::thumbnail_file_key_t> {
         std::size_t operator()(const bricksim::graphics::thumbnail_file_key_t& value) const {
-            return bricksim::util::combinedHash(value.first, value.second);
+            return bricksim::util::combinedHash(value.ldrFile, value.color, value.backgroundColor.value_or(bricksim::color::BLACK));
         }
     };
 }
@@ -38,9 +51,9 @@ namespace bricksim::graphics {
 
         glm::vec3 rotationDegrees = glm::vec3(45, -45, 0);
         ThumbnailGenerator();
-        std::shared_ptr<Texture> getThumbnail(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color);
-        std::optional<std::shared_ptr<Texture>> getThumbnailNonBlocking(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color);
-        bool isThumbnailAvailable(const std::shared_ptr<ldr::File>& ldrFile, ldr::ColorReference color);
+        std::shared_ptr<Texture> getThumbnail(ThumbnailRequest request);
+        std::optional<std::shared_ptr<Texture>> getThumbnailNonBlocking(ThumbnailRequest request);
+        bool isThumbnailAvailable(ThumbnailRequest request);
 
         void discardOldestImages(size_t reserve_space_for = 1);
         void discardAllImages();

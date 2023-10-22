@@ -3,10 +3,12 @@
 #include "../../controller.h"
 #include "../../helpers/graphviz_wrapper.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
+#include "../dialogs.h"
 #include "../gui.h"
 #include "../gui_internal.h"
 #include "imgui.h"
 #include "spdlog/spdlog.h"
+#include <fstream>
 
 namespace bricksim::gui::windows::connection_visualization {
     namespace {
@@ -38,13 +40,17 @@ namespace bricksim::gui::windows::connection_visualization {
 
             ImGui::SetCursorPos(regionMin + (effTopLeftPx - topLeftPx) * viewport.zoom);
 
+            const auto yFlip = [](const glm::vec2& uv) {
+                return glm::vec2(uv.x, 1 - uv.y);
+            };
+
             ImGui::Image(gui_internal::convertTextureId(texture.getID()),
                          (effBottomRightPx - effTopLeftPx) * viewport.zoom,
-                         effTopLeftPx / imgSize,
-                         effBottomRightPx / imgSize);
+                         yFlip(effTopLeftPx / imgSize),
+                         yFlip(effBottomRightPx / imgSize));
 
             const float lastScrollDeltaY = getLastScrollDeltaY();
-            if (std::abs(lastScrollDeltaY) > .01f) {
+            if (std::abs(lastScrollDeltaY) > .01f && ImGui::IsWindowHovered()) {
                 const float factor = std::pow(1.1f, lastScrollDeltaY);
                 float oldZoom = viewport.zoom;
                 viewport.zoom = std::clamp(oldZoom * factor, minZoom, maxZoom);
@@ -79,7 +85,7 @@ namespace bricksim::gui::windows::connection_visualization {
                 graphvizCode.renderToFile(outputFile);
                 graphvizCode.deleteTmpFiles = false;
                 *progress = .99f;
-                util::setStbiFlipVertically(false);
+                util::setStbiFlipVertically(true);
                 texture = std::make_shared<graphics::Texture>(outputFile);
                 *progress = 1.f;
             });
@@ -124,50 +130,73 @@ namespace bricksim::gui::windows::connection_visualization {
                 }
                 ImGui::SetItemTooltip("Options");
 
-                if (ImGui::Button(ICON_FA_FILE_IMAGE, buttonSize)) {
-                    //todo implement
-                }
-                ImGui::SetItemTooltip("Copy image to clipboard");
+                if (texture != nullptr) {
+                    if (ImGui::Button(ICON_FA_FILE_IMAGE, buttonSize)) {
+                        const auto path = dialogs::showSaveImageDialog("Save Connection Visualization as Image");
+                        if (path) {
+                            texture->saveToFile(*path);
+                        }
+                    }
+                    ImGui::SetItemTooltip("Save image as");
 
-                if (ImGui::Button(ICON_FA_FILE_CODE, buttonSize)) {
-                    glfwSetClipboardString(getWindow(), graphvizCode.dotCode.c_str());
+                    if (ImGui::Button(ICON_FA_FILE_CODE, buttonSize)) {
+                        const auto path = dialogs::showSaveDotFileDialog("Save Connection Visualization .dot Code");
+                        if (path) {
+                            std::ofstream stream(*path);
+                            stream << graphvizCode.dotCode;
+                        }
+                    }
+                    ImGui::SetItemTooltip("Save .dot code as");
                 }
-                ImGui::SetItemTooltip("Copy .dot code to clipboard");
 
                 if (ImGui::BeginPopup(POPUP_ID)) {
-                    ImGui::Checkbox("Show Part Thumbnails", &params.showPartThumbnails);
-                    if (ImGui::BeginCombo("Editor", editorLocked->getDisplayName().c_str())) {
-                        for (const auto& e: controller::getEditors()) {
-                            if (ImGui::Selectable(e->getDisplayName().c_str(), e == editorLocked)) {
-                                editor = e;
-                                editorLocked = e;
-                            }
-                            if (e == editorLocked) {
-                                ImGui::SetItemDefaultFocus();
-                            }
-                        }
-                        ImGui::EndCombo();
-                    }
-
-                    if (ImGui::BeginCombo("Model", modelLocked->displayName.c_str())) {
-                        for (const auto& m: editorLocked->getRootNode()->getChildren()) {
-                            auto currentModel = std::dynamic_pointer_cast<etree::ModelNode>(m);
-                            if (currentModel != nullptr && ImGui::Selectable(currentModel->displayName.c_str(), m == modelLocked)) {
-                                model = currentModel;
-                                modelLocked = currentModel;
-                            }
-                            if (currentModel == modelLocked) {
-                                ImGui::SetItemDefaultFocus();
-                            }
-                        }
-                        ImGui::EndCombo();
-                    }
-
-                    gui_internal::drawEnumCombo("Layout", params.layout);
-
-                    if (ImGui::Button("Update")) {
+                    if (ImGui::Button(ICON_FA_ROTATE " Update")) {
                         updateImage(editorLocked, modelLocked, params);
                         ImGui::CloseCurrentPopup();
+                    }
+                    if (ImGui::CollapsingHeader("General Options", ImGuiTreeNodeFlags_DefaultOpen)) {
+                        if (ImGui::BeginCombo("Editor", editorLocked->getDisplayName().c_str())) {
+                            for (const auto& e: controller::getEditors()) {
+                                if (ImGui::Selectable(e->getDisplayName().c_str(), e == editorLocked)) {
+                                    editor = e;
+                                    editorLocked = e;
+                                }
+                                if (e == editorLocked) {
+                                    ImGui::SetItemDefaultFocus();
+                                }
+                            }
+                            ImGui::EndCombo();
+                        }
+
+                        if (ImGui::BeginCombo("Model", modelLocked->displayName.c_str())) {
+                            for (const auto& m: editorLocked->getRootNode()->getChildren()) {
+                                auto currentModel = std::dynamic_pointer_cast<etree::ModelNode>(m);
+                                if (currentModel != nullptr && ImGui::Selectable(currentModel->displayName.c_str(), m == modelLocked)) {
+                                    model = currentModel;
+                                    modelLocked = currentModel;
+                                }
+                                if (currentModel == modelLocked) {
+                                    ImGui::SetItemDefaultFocus();
+                                }
+                            }
+                            ImGui::EndCombo();
+                        }
+
+                        gui_internal::drawEnumCombo("Layout", params.general.layout);
+                        ImGui::InputInt("DPI", &params.general.dpi, 24);
+                        ImGui::Checkbox("Dark Theme", &params.general.darkTheme);
+                    }
+                    if (ImGui::CollapsingHeader("Node Options", ImGuiTreeNodeFlags_DefaultOpen)) {
+                        ImGui::Checkbox("Show Thumbnail", &params.node.showThumbnail);
+                        ImGui::Checkbox("Show Location", &params.node.showLocation);
+                        ImGui::Checkbox("Show Name", &params.node.showName);
+                        ImGui::Checkbox("Show Title", &params.node.showTitle);
+                        ImGui::Checkbox("Color Node like part", &params.node.colorBoxLikePart);
+                    }
+                    if (ImGui::CollapsingHeader("Edge Options", ImGuiTreeNodeFlags_DefaultOpen)) {
+                        ImGui::Checkbox("Only one edge between two nodes", &params.edge.oneLineBetweenNode);
+                        ImGui::Checkbox("Draw non-rigid connections dashed", &params.edge.nonRigidConnectionsDashed);
+                        ImGui::Checkbox("Color edges based on connector type", &params.edge.colorLineByConnectorType);
                     }
                     ImGui::EndPopup();
                 }

@@ -109,6 +109,13 @@ namespace bricksim::color {
             return {clampResult(this->red / other.red), clampResult(this->green / other.green), clampResult(this->blue / other.blue)};
         }
 
+        bool operator==(const RGB& rhs) const;
+        bool operator!=(const RGB& rhs) const;
+        bool operator<(const RGB& rhs) const;
+        bool operator>(const RGB& rhs) const;
+        bool operator<=(const RGB& rhs) const;
+        bool operator>=(const RGB& rhs) const;
+
     private:
         template<typename T>
             requires std::is_arithmetic_v<T>
@@ -130,6 +137,13 @@ namespace bricksim::color {
         color_component_t saturation;
         color_component_t value;
         [[nodiscard]] glm::vec3 asGlmVector() const;
+
+        bool operator==(const HSV& rhs) const;
+        bool operator!=(const HSV& rhs) const;
+        bool operator<(const HSV& rhs) const;
+        bool operator>(const HSV& rhs) const;
+        bool operator<=(const HSV& rhs) const;
+        bool operator>=(const HSV& rhs) const;
     };
 
     /**

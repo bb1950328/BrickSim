@@ -1,4 +1,5 @@
 #pragma once
+#include "color.h"
 #include <array>
 #include <functional>
 
@@ -12,6 +13,13 @@ namespace std {
                 result = result * 31 + hash<T*>()(item);
             }
             return result;
+        }
+    };
+
+    template<>
+    struct hash<bricksim::color::RGB> {
+        std::size_t operator()(const bricksim::color::RGB& value) const noexcept {
+            return value.red * 961 + value.green * 31 + value.blue;
         }
     };
 }

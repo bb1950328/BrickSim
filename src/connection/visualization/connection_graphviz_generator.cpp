@@ -30,6 +30,7 @@ namespace bricksim::connection::visualization {
         };
 
         dot += "graph G {\n";
+        dot += fmt::format("\tlayout=\"{}\"\n", magic_enum::enum_name(params.layout));
         for (const auto& [node, adj]: graph.getAdjacencyLists()) {
             if (parentNode != nullptr && !node->isChildOf(parentNode)) {
                 continue;

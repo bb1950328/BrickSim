@@ -361,6 +361,13 @@ namespace bricksim::controller {
             mesh::SceneMeshCollection::deleteAllMeshes();
             graphics::scenes::deleteAll();
             thumbnailGenerator = nullptr;
+            if (config::get(config::CLEAR_RENDERING_TMP_DIRECTORY_ON_EXIT)) {
+                const auto renderingTmpDirectory = util::replaceSpecialPaths(config::get(config::RENDERING_TMP_DIRECTORY));
+                if (std::filesystem::exists(renderingTmpDirectory)) {
+                    std::filesystem::remove_all(renderingTmpDirectory);
+                }
+            }
+
             glfwTerminate();
             openGlInitialized = false;
             spdlog::info("GLFW terminated.");
@@ -455,11 +462,11 @@ namespace bricksim::controller {
             const auto loopStart = glfwGetTime();
             auto before = std::chrono::high_resolution_clock::now();
 
-            plBegin("update transform gizmos");
+            plBegin("update editors");
             for (auto& item: editors) {
                 item->update();
             }
-            plEnd("update transform gizmos");
+            plEnd("update editors");
 
             plBegin("update editor images");
             for (auto& item: editors) {

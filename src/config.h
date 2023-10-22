@@ -191,4 +191,5 @@ namespace bricksim::config {
     const Key<float> ROTATIONAL_SNAP_STEP("rotationalSnapStep", 90.f);
     const Key<int> DEFAULT_KEYBOARD_SHORTCUT_COUNT("defaultKeyboardShortcutCount", 0);
     const Key<std::string> RENDERING_TMP_DIRECTORY("renderingTmpDirectory", "{tmp}/BrickSimRenderingTmp");
+    const Key<bool> CLEAR_RENDERING_TMP_DIRECTORY_ON_EXIT("clearRenderingTmpDirectoryOnExit", true);
 }

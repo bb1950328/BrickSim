@@ -5,9 +5,20 @@
 #include <string>
 
 namespace bricksim::connection::visualization {
+    enum class LayoutEngine {
+        dot,
+        neato,
+        fdp,
+        sfdp,
+        circo,
+        twopi,
+        osage,
+        patchwork,
+    };
     struct GraphVizParams {
         std::filesystem::path thumbnailDirectory;
         bool showPartThumbnails = true;
+        LayoutEngine layout = LayoutEngine::dot;
     };
 
     class GraphVizResult {

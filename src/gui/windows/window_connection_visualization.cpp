@@ -61,66 +61,10 @@ namespace bricksim::gui::windows::connection_visualization {
                     //viewport.uvCenter = (newUv0 + newUv1) / 2.f;
                 }
             }
-
-            /*const auto imgAspectRatio = imgSize.x / imgSize.x;
-            const auto windowAspectRatio = availableSpace.x/availableSpace.y;
-
-            const auto imgUvPerPixel = 1.f/ imgSize;
-
-            const auto naturalZoom = std::min(availableSpace.x, availableSpace.y)/std::max(imgSize.x, imgSize.y);
-
-            */
-
-            /*const auto textureSize = glm::vec2(texture.getSize());
-            const float maxZoom = std::max(8.f, util::biggestValue(textureSize / availableSpace) * 4.f);
-
-
-
-            glm::vec2 u1half = ((availableSpace / std::min(availableSpace.x, availableSpace.y)) / (textureSize / std::min(textureSize.x, textureSize.y))) / viewport.zoom / 2.f;
-
-            glm::vec2 uv0 = viewport.uvCenter - u1half;
-            glm::vec2 uv1 = viewport.uvCenter + u1half;
-
-            glm::vec2 cursorUv = uv1 + (uv0 - uv1) * (relCursorPos / availableSpace);
-            //spdlog::debug("{} {}", cursorUv.x, cursorUv.y);
-
-            const float lastScrollDeltaY = getLastScrollDeltaY();
-            if (std::abs(lastScrollDeltaY) > .01f) {
-                const float factor = std::pow(1.1f, lastScrollDeltaY);
-                float oldZoom = viewport.zoom;
-                viewport.zoom = std::clamp(oldZoom * factor, 1.f, maxZoom);
-                float realFactor = viewport.zoom / oldZoom;
-
-                if (std::abs(realFactor - 1.f) > .01f) {
-                    glm::vec2 newUv0 = cursorUv - (cursorUv - uv0) * realFactor;
-                    glm::vec2 newUv1 = cursorUv + (uv1 - cursorUv) * realFactor;
-                    const auto uvMargin = glm::vec2(.5f, .5f) / viewport.zoom;
-                    viewport.uvCenter = glm::clamp((newUv0 + newUv1) / 2.f, uvMargin, glm::vec2(1, 1) - uvMargin);
-                }
-            }
-
-            const auto effectiveUv0 = glm::clamp(uv0, {0, 0}, {1, 1});
-            const auto effectiveUv1 = glm::clamp(uv1, {0, 0}, {1, 1});
-
-            const auto uvDiff = uv1 - uv0;
-            const auto effectiveUvDiff = effectiveUv1 - effectiveUv0;
-            const auto effectiveImgSize = availableSpace / uvDiff * effectiveUvDiff;
-            //const auto uvPerPixel = uvDiff / availableSpace;
-            //const auto effectiveImgSize = glm::clamp(1.f / uvPerPixel, {0, 0}, availableSpace);
-
-            ImGui::SetCursorPos(glm::vec2(ImGui::GetWindowContentRegionMin()) */
-            /* + (availableSpace - effectiveImgSize) / 2.f*/ /*);
-
-            ImGui::Image(gui_internal::convertTextureId(texture.getID()),
-                         */
-            /*effectiveImgSize*/                             /* availableSpace,
-                         */
-            /*effectiveUv0*/                                 /* uv0,
-                         */
-            /*effectiveUv1*/                                 /* uv1);*/
         }
 
         std::shared_ptr<graphics::Texture> texture;
+        connection::visualization::GraphVizResult graphvizCode;
 
         void updateImage(std::shared_ptr<Editor>& editor, std::shared_ptr<etree::ModelNode>& model, const connection::visualization::GraphVizParams& params) {
             controller::getForegroundTasks().emplace("Visualize Connections with GraphViz", [editor, params, model](auto* progress) {
@@ -129,7 +73,7 @@ namespace bricksim::gui::windows::connection_visualization {
                 engine.update(model);
                 const auto& connectionGraph = engine.getConnections();
                 *progress = .15f;
-                auto graphvizCode = connection::visualization::generateGraphviz(connectionGraph, params, model);
+                graphvizCode = connection::visualization::generateGraphviz(connectionGraph, params, model);
                 *progress = .3f;
                 const auto outputFile = params.thumbnailDirectory / "connectionVisualization.png";
                 graphvizCode.renderToFile(outputFile);
@@ -172,10 +116,23 @@ namespace bricksim::gui::windows::connection_visualization {
                     drawImageCanvas(*texture, viewport);
                 }
 
+                ImVec2 buttonSize(ImGui::GetFontSize() * 2, ImGui::GetFontSize() * 2);
+
                 ImGui::SetCursorPos(ImGui::GetWindowContentRegionMin());
-                if (ImGui::Button(ICON_FA_SLIDERS)) {
+                if (ImGui::Button(ICON_FA_SLIDERS, buttonSize)) {
                     ImGui::OpenPopup(POPUP_ID);
                 }
+                ImGui::SetItemTooltip("Options");
+
+                if (ImGui::Button(ICON_FA_FILE_IMAGE, buttonSize)) {
+                    //todo implement
+                }
+                ImGui::SetItemTooltip("Copy image to clipboard");
+
+                if (ImGui::Button(ICON_FA_FILE_CODE, buttonSize)) {
+                    glfwSetClipboardString(getWindow(), graphvizCode.dotCode.c_str());
+                }
+                ImGui::SetItemTooltip("Copy .dot code to clipboard");
 
                 if (ImGui::BeginPopup(POPUP_ID)) {
                     ImGui::Checkbox("Show Part Thumbnails", &params.showPartThumbnails);
@@ -206,6 +163,8 @@ namespace bricksim::gui::windows::connection_visualization {
                         ImGui::EndCombo();
                     }
 
+                    gui_internal::drawEnumCombo("Layout", params.layout);
+
                     if (ImGui::Button("Update")) {
                         updateImage(editorLocked, modelLocked, params);
                         ImGui::CloseCurrentPopup();
@@ -220,5 +179,6 @@ namespace bricksim::gui::windows::connection_visualization {
     }
     void cleanup() {
         texture = nullptr;
+        graphvizCode = {};
     }
 }

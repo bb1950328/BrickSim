@@ -19,7 +19,6 @@ set(imgui_sources
         )
 set(other_libs
         glad.c
-        Miniball.hpp
         IconFontCppHeaders/IconsFontAwesome5.h
         )
 

@@ -90,7 +90,7 @@ namespace bricksim::ldr::file_repo {
                     found = true;
                 }
             } else if (tryToInitializeWithLibraryPath(strPath + ".zip")) {
-                config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(strPath + ".zip"));
+                config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(strPath + ".zip").string());
                 found = true;
             }
         }

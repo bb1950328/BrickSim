@@ -86,7 +86,7 @@ namespace bricksim::ldr::file_repo {
             } else if (strPath.ends_with(".zip")) {
                 auto zipEndingRemoved = strPath.substr(0, strPath.size() - 4);
                 if (tryToInitializeWithLibraryPath(zipEndingRemoved)) {
-                    config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(zipEndingRemoved));
+                    config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(zipEndingRemoved).string());
                     found = true;
                 }
             } else if (tryToInitializeWithLibraryPath(strPath + ".zip")) {

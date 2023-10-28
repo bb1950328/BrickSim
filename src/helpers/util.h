@@ -244,4 +244,18 @@ namespace bricksim::util {
             ref = backup;
         }
     };
+
+    template<class T1, class T2, class Predicate = std::less<T1>>
+    struct compare_pair_first {
+        bool operator()(const std::pair<T1, T2>& left, const std::pair<T1, T2>& right) {
+            return Predicate{}(left.first, right.second);
+        }
+    };
+
+    template<class T1, class T2, class Predicate = std::less<T2>>
+    struct compare_pair_second {
+        bool operator()(const std::pair<T1, T2>& left, const std::pair<T1, T2>& right) {
+            return Predicate{}(left.second, right.second);
+        }
+    };
 }

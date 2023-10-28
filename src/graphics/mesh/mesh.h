@@ -67,7 +67,7 @@ namespace bricksim::mesh {
         virtual ~Mesh();
 
         size_t getTriangleCount() const;
-        const std::optional<OuterDimensions>& getOuterDimensions();
+        const OuterDimensions& getOuterDimensions();
 
     private:
         LineData lineData{GL_LINES};

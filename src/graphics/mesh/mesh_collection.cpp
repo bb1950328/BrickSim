@@ -194,7 +194,7 @@ namespace bricksim::mesh {
         if (it != allMeshes.end()) {
             const auto& mesh = it->second;
             const auto& outerDimensions = mesh->getOuterDimensions();
-            aabb.includeAABB(outerDimensions->aabb);
+            aabb.includeAABB(outerDimensions.aabb);
         }
         bool isSubfileInstance = node->getType() == etree::NodeType::TYPE_MODEL_INSTANCE;
         const auto& children = isSubfileInstance

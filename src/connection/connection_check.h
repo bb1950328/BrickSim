@@ -49,33 +49,33 @@ namespace bricksim::connection {
     class ConnectionCheck {
     public:
         explicit ConnectionCheck(PairCheckResultConsumer& resultConsumer);
-        void checkForConnected(const std::vector<std::shared_ptr<Connector>>& connectors);
+        void checkForConnected(const connector_container_t& connectors);
         void checkForConnected(const std::shared_ptr<etree::MeshNode>& nodeA, const std::shared_ptr<etree::MeshNode>& nodeB);
-        void checkForConnected(const std::vector<std::shared_ptr<Connector>>& connectorsA,
-                               const std::vector<std::shared_ptr<Connector>>& connectorsB,
+        void checkForConnected(const connector_container_t& connectorsA,
+                               const connector_container_t& connectorsB,
                                const glm::mat4& transfA,
                                const glm::mat4& transfB);
 
     protected:
-        void checkBruteForceAvsA(const std::vector<std::shared_ptr<Connector>>& conns);
+        void checkBruteForceAvsA(const connector_container_t& conns);
 
-        void checkBruteForceAvsB(const std::vector<std::shared_ptr<Connector>>& connsA,
-                                 const std::vector<std::shared_ptr<Connector>>& connsB,
+        void checkBruteForceAvsB(const connector_container_t& connsA,
+                                 const connector_container_t& connsB,
                                  const glm::mat4& aTransf,
                                  const glm::mat4& bTransf);
         void checkDirectionalAdvancedAvsB(size_t directionIdx,
-                                          const std::vector<std::shared_ptr<Connector>>& aConns,
-                                          const std::vector<std::shared_ptr<Connector>>& bConns,
+                                          const connector_container_t& aConns,
+                                          const connector_container_t& bConns,
                                           const glm::mat4& aTransf,
                                           const glm::mat4& bTransf);
-        void checkDirectionalAdvancedAvsA(size_t directionIdx, const std::vector<std::shared_ptr<Connector>>& conns);
+        void checkDirectionalAdvancedAvsA(size_t directionIdx, const connector_container_t& conns);
         void checkDirectionalAvsB(const DirectionSet& directions,
-                                  const std::vector<std::vector<std::shared_ptr<Connector>>>& aConns,
-                                  const std::vector<std::vector<std::shared_ptr<Connector>>>& bConns,
+                                  const std::vector<connector_container_t>& aConns,
+                                  const std::vector<connector_container_t>& bConns,
                                   const glm::mat4& aTransf,
                                   const glm::mat4& bTransf);
         void checkDirectionalAvsA(const DirectionSet& directions,
-                                  const std::vector<std::vector<std::shared_ptr<Connector>>>& connectors);
+                                  const std::vector<connector_container_t>& connectors);
 
     private:
         PairCheckResultConsumer& result;

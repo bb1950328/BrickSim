@@ -136,7 +136,7 @@ namespace bricksim::graphics {
     aabb::AABB getAABB(const std::shared_ptr<etree::MeshNode>& node) {
         const auto& mesh = mesh::SceneMeshCollection::getMesh(mesh::SceneMeshCollection::getMeshKey(node, false, nullptr), node, nullptr);
         const auto& outerDimensions = mesh->getOuterDimensions();
-        auto aabb = outerDimensions->aabb;
+        auto aabb = outerDimensions.aabb;
         for (const auto& child: node->getChildren()) {
             const auto meshChild = std::dynamic_pointer_cast<etree::MeshNode>(child);
             if (meshChild != nullptr) {
@@ -151,8 +151,8 @@ namespace bricksim::graphics {
         const auto& outerDimensions = mesh->getOuterDimensions();
         for (int axis = 0; axis < 3; ++axis) {
             for (int sign = -1; sign < 2; sign += 2) {
-                glm::vec4 point(outerDimensions->minEnclosingBallCenter, 1.f);
-                point[axis] += outerDimensions->minEnclosingBallRadius * sign;
+                glm::vec4 point(outerDimensions.minEnclosingBallCenter, 1.f);
+                point[axis] += outerDimensions.minEnclosingBallRadius * sign;
                 points.push_back(point * transformation);
             }
         }

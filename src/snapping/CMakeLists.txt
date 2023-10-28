@@ -9,4 +9,6 @@ target_sources(BrickSimLib PRIVATE
         snap_linear.h
         snap_rotational.cpp
         snap_rotational.h
+        snap_to_connector.cpp
+        snap_to_connector.h
         )

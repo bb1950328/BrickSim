@@ -12,6 +12,8 @@
 #include <glm/gtx/string_cast.hpp>
 #include <utility>
 
+#include "../helpers/geometry.h"
+
 namespace bricksim::connection {
     Engine::Engine() = default;
 
@@ -55,6 +57,7 @@ namespace bricksim::connection {
         }
     }
     void Engine::updateNodeData(const std::shared_ptr<etree::Node>& node, decltype(nodeData)::iterator it) {
+        //todo i think there has to be a separate fcl collision manager per rootNode (=ModelNode)
         auto& data = it->second;
         if (data.lastUpdatedSelfVersion != node->getSelfVersion()) {
             const auto meshNode = std::dynamic_pointer_cast<etree::MeshNode>(node);
@@ -109,7 +112,7 @@ namespace bricksim::connection {
 
     bool updateCallback(fcl::CollisionObjectf* o0, fcl::CollisionObjectf* o1, void* cdata) {
         if (o0 != o1) {
-            auto& set = *static_cast<uoset_t<std::array<fcl::CollisionObjectf*, 2>>*>(cdata);
+            auto& set = *static_cast<uoset_t<broadphase_collision_pair_t>*>(cdata);
             set.insert(std::to_array({
                     std::min(o0, o1),//because [a,b] is the same as [b,a] duplicates must be filtered
                     std::max(o0, o1),
@@ -229,5 +232,35 @@ namespace bricksim::connection {
     }
     void Engine::setScene(const std::weak_ptr<graphics::Scene>& scene) {
         Engine::scene = scene;
+    }
+
+    bool rayIntersectionCallback(fcl::CollisionObjectf* o0, fcl::CollisionObjectf* o1, void* cdata) {
+        auto nodes = static_cast<std::vector<void*>*>(cdata);
+        const auto otherNodeData = o0->getUserData() != nullptr
+                                           ? o0->getUserData()
+                                           : o1->getUserData();
+        nodes->push_back(otherNodeData);
+        return false;
+    }
+    std::vector<std::pair<float, std::shared_ptr<etree::MeshNode>>> Engine::getNodesNearRay(Ray3 ray, float distanceLimit, float radiusLimit) {
+        const auto cylinder = std::make_shared<fcl::Cylinderf>(radiusLimit, distanceLimit);
+        ray.normalizeDirection();
+        const auto cylRotation = glm::toMat3(glm::rotation({0, 0, 1}, ray.direction));
+        const auto cylCenter = ray.origin + ray.direction * (distanceLimit / 2);
+        const auto collisionObj = std::make_unique<fcl::CollisionObjectf>(cylinder, glm2eigen(cylRotation), glm2eigen(cylCenter));
+        collisionObj->setUserData(nullptr);
+
+        std::vector<void*> nodes;
+        manager.registerObject(collisionObj.get());
+        manager.collide(collisionObj.get(), &nodes, rayIntersectionCallback);
+        manager.unregisterObject(collisionObj.get());
+
+        std::vector<std::pair<float, std::shared_ptr<etree::MeshNode>>> result;
+        for (const auto& item: nodes) {
+            const auto node = std::dynamic_pointer_cast<etree::MeshNode>(convertRawNodePtr(item));
+            const glm::vec3 nodeCenter = glm::transpose(node->getAbsoluteTransformation()) * glm::vec4(0, 0, 0, 1);
+            result.emplace_back(glm::distance2(ray.origin, nodeCenter), node);
+        }
+        return result;
     }
 }

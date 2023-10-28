@@ -21,10 +21,11 @@
 namespace bricksim::controller {
     namespace {
         bool initializeGL();
-        void window_size_callback(GLFWwindow* window, int width, int height);
+        void windowSizeCallback(GLFWwindow* window, int width, int height);
+        void dropCallback(GLFWwindow* _, int count, const char** paths);
         void setWindowSize(unsigned int width, unsigned int height);
         void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-        void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+        void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
         void checkForFinishedBackgroundTasks();
         void glfwErrorCallback(int code, const char* message);
         bool initialize();

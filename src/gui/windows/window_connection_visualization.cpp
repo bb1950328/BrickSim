@@ -158,7 +158,17 @@ namespace bricksim::gui::windows::connection_visualization {
                             }
                         }
                     }
-                    ImGui::SetItemTooltip("Save image as");
+                    ImGui::SetItemTooltip("Save rendered image as");
+
+                    if (ImGui::Button(ICON_FA_CAMERA, buttonSize)) {
+                        const auto path = dialogs::showSaveImageDialog("Render Connection Visualization with GraphViz");
+                        if (path) {
+                            controller::getForegroundTasks().emplace("Rerender Connection Graph with GraphViz", [&path](auto* progress) {
+                                graphviz_wrapper::renderDot(*path, graphvizCode.dotCode);
+                            });
+                        }
+                    }
+                    ImGui::SetItemTooltip("Rerender image and save as");
 
                     if (ImGui::Button(ICON_FA_FILE_CODE, buttonSize)) {
                         const auto path = dialogs::showSaveDotFileDialog("Save Connection Visualization .dot Code");

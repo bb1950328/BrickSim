@@ -301,4 +301,18 @@ namespace bricksim::stringutil {
         utf8::utf16to8(u16without.begin(), u16without.end(), std::back_inserter(result));
         return result;
     }
+    std::string escapeXml(const std::string& str) {
+        std::string result;
+        for (const auto& ch: str) {
+            switch (ch) {
+                case '&': result += "&amp;"; break;
+                case '\'': result += "&apos;"; break;
+                case '"': result += "&quot;"; break;
+                case '<': result += "&lt;"; break;
+                case '>': result += "&gt;"; break;
+                default: result += ch; break;
+            }
+        }
+        return result;
+    }
 }

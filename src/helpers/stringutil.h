@@ -29,6 +29,8 @@ namespace bricksim::stringutil {
     std::vector<std::string_view> splitByChar(std::string_view string, char delimiter);
     std::string repeat(const std::string& str, unsigned int times);
 
+    std::string escapeXml(const std::string& str);
+
     template<glm::length_t L, typename T>
     std::string formatGLM(const glm::vec<L, T>& vec);
     template<typename T>

@@ -146,8 +146,8 @@ namespace bricksim::controller {
             if (!config::get(config::ENABLE_VSYNC)) {
                 glfwSwapInterval(0);
             }
-            glfwSetFramebufferSizeCallback(window, window_size_callback);
-            glfwSetScrollCallback(window, scroll_callback);
+            glfwSetFramebufferSizeCallback(window, windowSizeCallback);
+            glfwSetScrollCallback(window, scrollCallback);
             glfwSetKeyCallback(window, keyCallback);
 
             if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -188,12 +188,14 @@ namespace bricksim::controller {
 
             graphics::opengl_native_or_replacement::initialize();
 
+            glfwSetDropCallback(window, dropCallback);
+
             spdlog::info("OpenGL initialized");
             openGlInitialized = true;
             return true;
         }
 
-        void window_size_callback([[maybe_unused]] GLFWwindow* _, int width, int height) {
+        void windowSizeCallback([[maybe_unused]] GLFWwindow* _, int width, int height) {
             if (windowWidth != static_cast<unsigned int>(width) || windowHeight != static_cast<unsigned int>(height)) {
                 windowWidth = width;
                 windowHeight = height;
@@ -203,18 +205,25 @@ namespace bricksim::controller {
             }
         }
 
+        void dropCallback(GLFWwindow* _, int count, const char** paths) {
+            for (int i = 0; i < count; ++i) {
+                std::filesystem::path p = paths[i];
+                if (std::filesystem::is_regular_file(p)) {
+                    openFile(p);
+                }
+            }
+        }
+
         void keyCallback([[maybe_unused]] GLFWwindow* _, int key, [[maybe_unused]] int scancode, int action, int mods) {
             keyboard_shortcut_manager::shortcutPressed(key, action, static_cast<keyboard_shortcut_manager::modifier_t>(mods), gui::areKeysCaptured());
         }
 
-        void scroll_callback([[maybe_unused]] GLFWwindow* _, [[maybe_unused]] double xoffset, double yoffset) {
+        void scrollCallback([[maybe_unused]] GLFWwindow* _, [[maybe_unused]] double xoffset, double yoffset) {
             //todo use xoffset to do something, maybe pan?
             gui::setLastScrollDeltaY(yoffset);
             if (ImGui::GetIO().WantCaptureMouse) {
                 return;
             }
-            //todo find out on which window the mouse is
-            //camera->moveForwardBackward((float)yoffset);
         }
 
         void checkForFinishedBackgroundTasks() {

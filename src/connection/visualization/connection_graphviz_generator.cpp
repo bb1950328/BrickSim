@@ -79,10 +79,10 @@ namespace bricksim::connection::visualization {
                 labelLines.push_back(fmt::format("<img src=\"{}\" />", filename));
             }
             if (params.node.showTitle) {
-                labelLines.push_back(ldrFile->metaInfo.title);
+                labelLines.push_back(stringutil::escapeXml(ldrFile->metaInfo.title));
             }
             if (params.node.showName) {
-                labelLines.push_back(ldrFile->metaInfo.name);
+                labelLines.push_back(stringutil::escapeXml(ldrFile->metaInfo.name));
             }
             if (params.node.showLocation) {
                 const auto location = glm::row(node->getAbsoluteTransformation(), 3);

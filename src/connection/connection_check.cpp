@@ -33,7 +33,7 @@ namespace bricksim::connection {
         }
         void BaseConnectorGrouping::addUngendered(const std::shared_ptr<Connector>& connector) {
             const auto absDir = transformation * glm::vec4(connector->direction, 0.f);
-            const auto dirIdx = directions.gendered.getIndex(absDir);
+            const auto dirIdx = directions.ungendered.getIndex(absDir);
             updateContainers();
             ungendered[dirIdx].push_back(connector);
         }

@@ -32,6 +32,7 @@ namespace bricksim::graphics::orientation_cube {
             return;
         }
         scene = scenes::create(scenes::ORIENTATION_CUBE_SCENE_ID);
+        scene->setBackgroundColor({0, 0, 0, 0});
 
         const auto& rootNode = std::make_shared<etree::RootNode>();
         scene->setRootNode(rootNode);

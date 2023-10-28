@@ -25,7 +25,7 @@ namespace bricksim::graphics {
         // create a color attachment texture
         glGenTextures(1, &textureColorbuffer);
         glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -108,7 +108,7 @@ namespace bricksim::graphics {
     Scene::Scene(scene_id_t sceneId) :
         id(sceneId),
         meshCollection(sceneId),
-        backgroundColor(config::get(config::BACKGROUND_COLOR)) {
+        backgroundColor(config::get(config::BACKGROUND_COLOR).asGlmVector(), 1.f) {
         setImageSize({10, 10});
     }
 
@@ -252,8 +252,7 @@ namespace bricksim::graphics {
 #endif
                 glBindFramebuffer(GL_FRAMEBUFFER, image.getFBO());
                 glViewport(0, 0, imageSize.x, imageSize.y);
-                const auto& bgColor = backgroundColor.asGlmVector();
-                glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.0f);
+                glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, backgroundColor.w);
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 glm::mat4 view = camera->getViewMatrix();
@@ -371,11 +370,14 @@ namespace bricksim::graphics {
     [[nodiscard]] bool* Scene::isDrawLines() {
         return &drawLines;
     }
-    const color::RGB& Scene::getBackgroundColor() const {
+    const glm::vec4& Scene::getBackgroundColor() const {
         return backgroundColor;
     }
-    void Scene::setBackgroundColor(const color::RGB& backgroundColor) {
-        Scene::backgroundColor = backgroundColor;
+    void Scene::setBackgroundColor(const color::RGB& rgbColor) {
+        Scene::backgroundColor = {rgbColor.asGlmVector(), 1.f};
+    }
+    void Scene::setBackgroundColor(const glm::vec4& newColor) {
+        Scene::backgroundColor = newColor;
     }
 
     namespace scenes {

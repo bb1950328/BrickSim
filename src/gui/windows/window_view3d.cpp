@@ -35,6 +35,7 @@ namespace bricksim::gui::windows::view3d {
         ImGuiDockNode* lastDockNode = nullptr;
         bool windowInfoCollected = false;
         bool cursorSet = false;
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
         for (auto& editor: controller::getEditors()) {
             const bool isActiveEditor = editor->isActive();
             const auto windowTitle = editor->getDisplayName();
@@ -211,6 +212,7 @@ namespace bricksim::gui::windows::view3d {
             }
             ImGui::End();
         }
+        ImGui::PopStyleVar();
         if (!cursorSet) {
             resetCursor();
         }

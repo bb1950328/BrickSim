@@ -37,6 +37,7 @@ namespace bricksim::controller {
     int run();
 
     void openFile(const std::string& path);
+    void openFile(const std::filesystem::path& absPath);
     void createNewFile();
 
     void undoLastAction();

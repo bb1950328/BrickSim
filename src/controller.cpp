@@ -529,6 +529,9 @@ namespace bricksim::controller {
 
     void openFile(const std::string& path) {
         const auto absPath = std::filesystem::absolute(util::replaceSpecialPaths(path));
+        openFile(absPath);
+    }
+    void openFile(const std::filesystem::path& absPath) {
         foregroundTasks.emplace(fmt::format("Open {}", absPath.string()), [absPath]() {
             editors.emplace_back(Editor::openFile(absPath));
             if (editors.size() == 1) {

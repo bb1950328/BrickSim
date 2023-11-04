@@ -7,22 +7,31 @@
 
 namespace bricksim::snap {
     class SnapToConnectorProcess {
-        std::shared_ptr<etree::LdrNode> subjectNode;
+        std::vector<std::shared_ptr<etree::Node>> subjectNodes;
         float subjectRadius;
-        glm::mat4 initialRelativeTransformation;
+        std::vector<glm::mat4> initialRelativeTransformations;
         glm::vec3 initialAbsoluteCenter;
+
+        glm::mat4 userTransformation;
+
+        ///already transformed to initial absolute transformation
         std::shared_ptr<connection::connector_container_t> subjectConnectors;
 
         std::shared_ptr<Editor> editor;
 
+        glm::vec2 initialCursorPos;
         glm::vec2 lastCursorPos;
         glm::vec2 cursorOffset;
+        ///pair.first is score, pair.second is transformation relative to initial transformation of node
         std::vector<std::pair<float, glm::mat4>> bestResults;
 
     public:
-        SnapToConnectorProcess(const std::shared_ptr<etree::LdrNode>& subjectNode, const std::shared_ptr<Editor>& editor, const glm::vec2& initialCursorPos);
+        SnapToConnectorProcess(const std::vector<std::shared_ptr<etree::Node>>& subjectNodes, const std::shared_ptr<Editor>& editor, const glm::vec2& initialCursorPos);
         void updateCursorPos(const glm::vec2& currentCursorPos);
-        void cancel();
+        void applyInitialTransformations();
+        void applyResultTransformation(std::size_t index);
+        [[nodiscard]] std::size_t getResultCount() const;
         std::vector<float> getPossibleCylTranslations(const std::shared_ptr<connection::CylindricalConnector> fixed, const std::shared_ptr<connection::CylindricalConnector> moving, bool sameDir);
+        void setUserTransformation(const glm::mat4& value);
     };
 }

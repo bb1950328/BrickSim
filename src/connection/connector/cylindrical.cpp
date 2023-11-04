@@ -91,8 +91,8 @@ namespace bricksim::connection {
         for (const auto& item: parts) {
             transformedParts.emplace_back(item.type, item.flexibleRadius, radiusFactor * item.radius, lengthFactor * item.length);
         }
-        const glm::vec3 transformedStart = glm::vec4(start, 1.f) * transformation;
-        const glm::vec3 transformedDirection = glm::vec4(direction, 0.f) * transformation;
+        const glm::vec3 transformedStart = transformation * glm::vec4(start, 1.f);
+        const glm::vec3 transformedDirection = transformation * glm::vec4(direction, 0.f);
         return std::make_shared<CylindricalConnector>(group,
                                                       transformedStart,
                                                       transformedDirection,

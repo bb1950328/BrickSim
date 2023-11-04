@@ -1,4 +1,5 @@
 #pragma once
+#include "../../snapping/snap_to_connector.h"
 #include "base_action.h"
 
 namespace bricksim::graphical_transform {
@@ -9,6 +10,8 @@ namespace bricksim::graphical_transform {
         [[nodiscard]] constexpr GraphicalTransformationType getType() const override;
 
     protected:
+        std::unique_ptr<snap::SnapToConnectorProcess> snapProcess;
+
         void startImpl() override;
         void updateImpl() override;
         void endImpl() override;

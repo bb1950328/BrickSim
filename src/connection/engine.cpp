@@ -236,10 +236,11 @@ namespace bricksim::connection {
 
     bool rayIntersectionCallback(fcl::CollisionObjectf* o0, fcl::CollisionObjectf* o1, void* cdata) {
         auto nodes = static_cast<std::vector<void*>*>(cdata);
-        const auto otherNodeData = o0->getUserData() != nullptr
-                                           ? o0->getUserData()
-                                           : o1->getUserData();
-        nodes->push_back(otherNodeData);
+        if (o0->getUserData() != nullptr) {
+            nodes->push_back(o0->getUserData());
+        } else if (o1->getUserData() != nullptr) {
+            nodes->push_back(o1->getUserData());
+        }
         return false;
     }
     std::vector<std::pair<float, std::shared_ptr<etree::MeshNode>>> Engine::getNodesNearRay(Ray3 ray, float distanceLimit, float radiusLimit) {

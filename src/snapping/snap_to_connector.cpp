@@ -1,7 +1,11 @@
 #include "snap_to_connector.h"
 #include "../connection/connector_data_provider.h"
 #include "../controller.h"
+#include "../graphics/overlay2d/regular_polygon_element.h"
+#include "../helpers/almost_comparations.h"
+#include "../helpers/debug_nodes.h"
 #include "../helpers/geometry.h"
+#include "Seb.h"
 
 namespace bricksim::snap {
 
@@ -10,11 +14,24 @@ namespace bricksim::snap {
             return;
         }
 
+        auto& connectionEngine = editor->getConnectionEngine();
+        connectionEngine.update(editor->getEditingModel());
         bestResults.resize(0);
-        const auto ray = editor->getScene()->screenCoordinatesToWorldRay(currentCursorPos + cursorOffset);
-        auto nodesNearRay = editor->getConnectionEngine().getNodesNearRay(ray, 50000, subjectRadius);
+
+        const auto ray = editor->getScene()->screenCoordinatesToWorldRay(currentCursorPos + cursorOffset) * constants::OPENGL_TO_LDU;
+
+        const auto rootNode = editor->getScene()->getRootNode();
+        static std::vector<std::shared_ptr<etree::Node>> debugNodes;
+        for (const auto& item: debugNodes) {
+            item->parent.lock()->removeChild(item);
+        }
+        //const auto point = std::make_shared<etree::PointDebugNode>(rootNode);
+        //rootNode->addChild(point);
+        //point->setRelativeTransformation(glm::transpose(glm::translate(glm::mat4(1.f), ray.origin + 100.f * glm::normalize(ray.direction))));
+
+        auto nodesNearRay = connectionEngine.getNodesNearRay(ray, 50000, subjectRadius);
         if (!nodesNearRay.empty()) {
-            editor->getConnectionEngine().update(editor->getEditingModel());
+            //connectionEngine.update(editor->getEditingModel());
 
             util::compare_pair_first<float, std::shared_ptr<etree::MeshNode>> distanceCompare;
             std::sort(nodesNearRay.begin(), nodesNearRay.end(), distanceCompare);
@@ -23,18 +40,20 @@ namespace bricksim::snap {
             nodesNearRay.erase(std::remove_if(nodesNearRay.begin(),
                                               nodesNearRay.end(),
                                               [this](const auto& pair) {
-                                                  return pair.second == subjectNode;
+                                                  return std::find(subjectNodes.cbegin(), subjectNodes.cend(), pair.second) != subjectNodes.cend();
                                               }),
                                nodesNearRay.end());
             connection::connector_container_t allConnectors;
-            const auto& connectionGraph = editor->getConnectionEngine().getConnections();
+            const auto& connectionGraph = connectionEngine.getConnections();
             for (const auto& [dist2, node]: nodesNearRay) {
                 const auto allNodeConnectors = connection::getConnectorsOfNode(node);
                 std::set<std::shared_ptr<connection::Connector>> nodeConnectors = {allNodeConnectors->begin(), allNodeConnectors->end()};
                 for (const auto& [otherNode, connections]: connectionGraph.getConnections(node)) {
-                    for (const auto& item: connections) {
-                        nodeConnectors.erase(item->connectorA);
-                        nodeConnectors.erase(item->connectorB);
+                    if (std::find(subjectNodes.cbegin(), subjectNodes.cend(), otherNode) == subjectNodes.end()) {
+                        for (const auto& item: connections) {
+                            nodeConnectors.erase(item->connectorA);
+                            nodeConnectors.erase(item->connectorB);
+                        }
                     }
                 }
                 for (const auto& conn: nodeConnectors) {
@@ -44,7 +63,14 @@ namespace bricksim::snap {
             }
             connection::removeConnected(allConnectors);
 
-            std::vector<glm::mat4> candidateTransformations;
+            /*for (const auto& item: allConnectors) {
+                const auto point = std::make_shared<etree::PointDebugNode>(rootNode);
+                rootNode->addChild(point);
+                point->setRelativeTransformation(glm::transpose(glm::translate(glm::mat4(1.f), item->start)));
+            }*/
+
+            constexpr std::size_t resultLimit = 10;
+            auto resultCompare = util::compare_pair_first<float, glm::mat4, std::greater<float>>();
             for (const auto& fixedConn: allConnectors) {
                 for (const auto& subjConn: *subjectConnectors) {
                     if (fixedConn->type == connection::Connector::Type::CYLINDRICAL && subjConn->type == connection::Connector::Type::CYLINDRICAL) {
@@ -56,66 +82,135 @@ namespace bricksim::snap {
                         const auto angle = geometry::getAngleBetweenTwoVectors(fixedConn->direction, subjConn->direction);
                         glm::quat rotation;
                         bool sameDir;
-                        if (angle < 46.f) {//todo configurable
+                        if (angle < glm::radians(46.f)) {//todo configurable
                             rotation = glm::rotation(subjConn->direction, fixedConn->direction);
                             sameDir = true;
-                        } else if (angle > 134.f) {
+                        } else if (angle > glm::radians(134.f)) {
                             rotation = glm::rotation(subjConn->direction, -fixedConn->direction);
                             sameDir = false;
                         } else {
                             continue;
                         }
-                        const auto rotationMat = glm::toMat4(rotation);
-                        const glm::vec3 subjStartRotated = glm::vec4(subjCyl->start, 1.f);
-                        const auto baseTransformation = glm::translate(rotationMat, fixedConn->start - subjStartRotated);
+                        const auto preTransform = glm::toMat4(rotation) * userTransformation;
+                        const glm::vec3 subjStartPreTransformed = preTransform * glm::vec4(subjCyl->start, 1.f);
+                        const auto baseTranslation = fixedConn->start - subjStartPreTransformed;
                         for (const auto& offset: getPossibleCylTranslations(otherCyl, subjCyl, sameDir)) {
-                            const auto transf = glm::translate(baseTransformation, offset * fixedConn->direction);
-                            candidateTransformations.push_back(transf);
+                            const auto offsetTranslation = offset * fixedConn->direction;
+                            const auto resultTranslation = baseTranslation + offsetTranslation;
+                            const auto resultTranslationDistance = glm::length(resultTranslation);
+                            const auto transf = glm::translate(preTransform, resultTranslation);
+                            const auto candCenter = /*glm::vec4(initialAbsoluteCenter, 0.f)+*/ initialRelativeTransformations[0] * transf * glm::vec4(0, 0, 0, 1);
+                            const auto cr = glm::cross(glm::normalize(ray.direction), glm::vec3(candCenter) - ray.origin);
+                            const auto score = -glm::length(cr);
+                            glm::vec2 candScreenCoords = editor->getScene()->worldToScreenCoordinates(candCenter * constants::LDU_TO_OPENGL) * glm::vec3(1, -1, 1);
+                            //const auto score = -glm::distance(candScreenCoords, currentCursorPos + cursorOffset);//todo use distance2
+                            //std::cout << "fixedConn->start=" << fixedConn->start << ", resultTranslationDistance=" << resultTranslationDistance << std::endl;
+
+                            const auto point = std::make_shared<etree::PointDebugNode>(rootNode);
+                            rootNode->addChild(point);
+                            point->setRelativeTransformation(glm::transpose(initialRelativeTransformations[0] * transf));
+                            debugNodes.push_back(point);
+
+                            const std::pair<float, glm::mat4> candResult(score, transf);
+                            bestResults.push_back(candResult);
+                            /*if (bestResults.empty() || bestResults.back().first <= score) {
+                                const auto it = std::lower_bound(bestResults.begin(), bestResults.end(), candResult, resultCompare);
+                                if (it != bestResults.end()) {
+                                    if (!almostEqual(it->first, score, .1f) && !almostEqual(it->second, transf, .01f)) {
+                                        bestResults.insert(it, candResult);
+                                        if (bestResults.size() > resultLimit) {
+                                            bestResults.resize(resultLimit);
+                                        }
+                                    }
+                                } else if (bestResults.size() < resultLimit) {
+                                    bestResults.push_back(candResult);
+                                }
+                            }*/
                         }
                     }
                 }
             }
-            constexpr std::size_t resultLimit = 10;
-            auto resultCompare = util::compare_pair_first<float, glm::mat4, std::greater<float>>();
-            for (const auto& candTransf: candidateTransformations) {
-                const auto candCenter = candTransf * glm::vec4(0, 0, 0, 1);
-                glm::vec2 candScreenCoords = editor->getScene()->worldToScreenCoordinates(candCenter);
-                const auto score = -glm::distance2(candScreenCoords, currentCursorPos + cursorOffset);
-                const std::pair<float, glm::mat4> candResult(score, candTransf);
-                const auto it = std::lower_bound(bestResults.begin(), bestResults.end(), candResult, resultCompare);
-                if (it != bestResults.end()) {
-                    bestResults.insert(it, candResult);
-                    if (bestResults.size() > resultLimit) {
-                        bestResults.resize(resultLimit);
+            std::sort(bestResults.begin(), bestResults.end(), resultCompare);
+            if (bestResults.size() > resultLimit) {
+                bestResults.resize(resultLimit);
+            }
+
+            //std::cout << "==============================================================================" << std::endl;
+            std::cout << "cursorPos=" << currentCursorPos << " initialCursorPos=" << initialCursorPos << std::endl;
+            for (const auto& [score, transf]: bestResults) {
+                //                const auto point = std::make_shared<etree::PointDebugNode>(rootNode);
+                //                rootNode->addChild(point);
+                //                point->setRelativeTransformation(glm::transpose(transf));
+
+                const auto candCenter = transf * glm::vec4(0, 0, 0, 1);
+                glm::vec2 candScreenCoords = editor->getScene()->worldToScreenCoordinates(candCenter * constants::LDU_TO_OPENGL) * glm::vec3(1, -1, 1);
+                //editor->getScene()->getOverlayCollection().addElement(std::make_shared<overlay2d::RegularPolygonElement>(candScreenCoords, 3, 3, color::RGB(candScreenCoords.x / 4.f, candScreenCoords.y / 4.f, 0)));
+
+                std::cout << "score=" << score << ", candScreenCoords=" << candScreenCoords << ", transf="
+                          << transf << std::endl
+                          << std::endl;
+            }
+        }
+
+        lastCursorPos = currentCursorPos;
+    }
+    SnapToConnectorProcess::SnapToConnectorProcess(const std::vector<std::shared_ptr<etree::Node>>& subjectNodes,
+                                                   const std::shared_ptr<Editor>& editor,
+                                                   const glm::vec2& initialCursorPos) :
+        subjectNodes(subjectNodes),
+        editor(editor),
+        userTransformation(1.f),
+        initialCursorPos(initialCursorPos) {
+        initialRelativeTransformations.reserve(subjectNodes.size());
+        glm::vec4 centerSum(0, 0, 0, 0);
+        subjectConnectors = std::make_shared<connection::connector_container_t>();
+        std::vector<glm::vec3> nodeAabbPoints;
+        for (const auto& subj: subjectNodes) {
+            const auto relTransf = glm::transpose(subj->getRelativeTransformation());
+            const auto absTransf = glm::transpose(subj->getAbsoluteTransformation());
+            initialRelativeTransformations.push_back(relTransf);
+            centerSum += absTransf * glm::vec4(0, 0, 0, 1);
+            const auto meshSubj = std::dynamic_pointer_cast<etree::MeshNode>(subj);
+            if (meshSubj != nullptr) {
+                for (const auto& conn: *connection::getConnectorsOfNode(meshSubj)) {
+                    subjectConnectors->push_back(conn->transform(absTransf));
+                }
+            }
+            const auto meshKey = mesh::SceneMeshCollection::getMeshKey(meshSubj, false, nullptr);
+            const auto mesh = editor->getScene()->getMeshCollection().getMesh(meshKey, meshSubj, nullptr);
+            const auto transformedAABB = mesh->getOuterDimensions().aabb.transform(absTransf);
+            for (int ix = 0; ix < 2; ++ix) {
+                for (int iy = 0; iy < 2; ++iy) {
+                    for (int iz = 0; iz < 2; ++iz) {
+                        nodeAabbPoints.emplace_back(ix == 0 ? transformedAABB.pMin.x : transformedAABB.pMax.x,
+                                                    iy == 0 ? transformedAABB.pMin.y : transformedAABB.pMax.y,
+                                                    iy == 0 ? transformedAABB.pMin.y : transformedAABB.pMax.y);
                     }
-                } else if (bestResults.size() < resultLimit) {
-                    bestResults.push_back(candResult);
                 }
             }
         }
-    }
-    SnapToConnectorProcess::SnapToConnectorProcess(const std::shared_ptr<etree::LdrNode>& subjectNode,
-                                                   const std::shared_ptr<Editor>& editor,
-                                                   const glm::vec2& initialCursorPos) :
-        subjectNode(subjectNode),
-        editor(editor),
-        initialRelativeTransformation(glm::transpose(subjectNode->getRelativeTransformation())) {
-        const auto absTransf = glm::transpose(subjectNode->getAbsoluteTransformation());
-        this->initialAbsoluteCenter = absTransf * glm::vec4(0, 0, 0, 1);
+        this->initialAbsoluteCenter = centerSum / static_cast<float>(subjectNodes.size());
+        Seb::Smallest_enclosing_ball<float, glm::vec3> seb(3, nodeAabbPoints);
+        this->subjectRadius = seb.radius();
+
         const auto nodeCenterOnScreen = editor->getScene()->worldToScreenCoordinates(initialAbsoluteCenter);
-        this->cursorOffset = glm::vec2(nodeCenterOnScreen.x, nodeCenterOnScreen.y) - initialCursorPos;
-
-        subjectConnectors = std::make_shared<connection::connector_container_t>();
-        for (const auto& conn: *connection::getConnectorsOfNode(subjectNode)) {
-            subjectConnectors->push_back(conn->transform(glm::transpose(subjectNode->parent.lock()->getAbsoluteTransformation())));
-        }
-
-        const auto meshKey = mesh::SceneMeshCollection::getMeshKey(subjectNode, false, nullptr);
-        const auto mesh = editor->getScene()->getMeshCollection().getMesh(meshKey, subjectNode, nullptr);
-        this->subjectRadius = mesh->getOuterDimensions().minEnclosingBallRadius;
+        this->cursorOffset = {0, 0};//todo glm::vec2(nodeCenterOnScreen.x, nodeCenterOnScreen.y) - initialCursorPos;
     }
-    void SnapToConnectorProcess::cancel() {
-        subjectNode->setRelativeTransformation(glm::transpose(initialRelativeTransformation));
+    void SnapToConnectorProcess::applyInitialTransformations() {
+        for (int i = 0; i < subjectNodes.size(); ++i) {
+            subjectNodes[i]->setRelativeTransformation(glm::transpose(initialRelativeTransformations[i]));
+            subjectNodes[i]->incrementVersion();
+        }
+    }
+
+    void SnapToConnectorProcess::applyResultTransformation(std::size_t index) {
+        const auto result = bestResults[index].second;
+        for (int i = 0; i < subjectNodes.size(); ++i) {
+            const auto newRelTransf = initialRelativeTransformations[i] * userTransformation * result;//todo check if multiplication order is correct
+            //const auto newRelTransf = result * userTransformation * initialRelativeTransformations[i];
+            subjectNodes[i]->setRelativeTransformation(glm::transpose(newRelTransf));
+            subjectNodes[i]->incrementVersion();
+        }
     }
 
     std::vector<float> SnapToConnectorProcess::getPossibleCylTranslations(const std::shared_ptr<connection::CylindricalConnector> fixed, const std::shared_ptr<connection::CylindricalConnector> moving, bool sameDir) {
@@ -130,10 +225,16 @@ namespace bricksim::snap {
         } else {
             startOffset = 0;
         }
-        const auto linearSnap = controller::getSnapHandler().getLinear().getCurrentPreset().stepXZ;
-        const auto minOverlap = linearSnap;//todo maybe make configurable separately
-
         std::vector<float> result;
+        if ((!movingOpenStart && !fixed->openStart) || (!movingOpenEnd && !fixed->openEnd)) {
+            return result;
+        }
+
+        result.push_back(0);
+        return result;//todo remove this after debugging
+
+        const auto linearSnap = controller::getSnapHandler().getLinear().getCurrentPreset().stepXZ;
+        const auto minOverlap = 1;//todo maybe make configurable separately
         float currentOffset = fixed->openStart ? minOverlap - moving->totalLength : 0;
         auto maxOffset = fixed->totalLength - std::max(static_cast<float>(minOverlap), fixed->openEnd ? 0 : moving->totalLength);
         while (currentOffset < maxOffset) {
@@ -146,7 +247,7 @@ namespace bricksim::snap {
             float movingNextPartBoundary = movingParts[movingPartIdx].length;
             bool possible = true;
             bool contact = false;
-            while (i < overlapMax) {
+            while (i <= overlapMax) {
                 while (fixedNextPartBoundary < i) {
                     ++fixedPartIdx;
                     fixedNextPartBoundary += fixed->parts[fixedPartIdx].length;
@@ -163,16 +264,26 @@ namespace bricksim::snap {
                     possible = false;
                     break;
                 }
-                contact |= femaleRadius - maleRadius < connection::CONNECTION_RADIUS_TOLERANCE;
+                contact |= almostEqual(femaleRadius, maleRadius, connection::CONNECTION_RADIUS_TOLERANCE);
                 i = std::min(fixedNextPartBoundary, movingNextPartBoundary) + .5f;
             }
             if (possible && contact) {
                 result.push_back(currentOffset + startOffset);
             }
 
-            currentOffset += linearSnap;
+            if (currentOffset < 0 && currentOffset + linearSnap > 0) {
+                currentOffset = 0;
+            } else {
+                currentOffset += linearSnap;
+            }
         }
 
         return result;
+    }
+    std::size_t SnapToConnectorProcess::getResultCount() const {
+        return bestResults.size();
+    }
+    void SnapToConnectorProcess::setUserTransformation(const glm::mat4& value) {
+        userTransformation = value;
     }
 }

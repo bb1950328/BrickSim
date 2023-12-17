@@ -46,13 +46,15 @@ if __name__ == '__main__':
         "ImGuiColorTextEdit": lambda: pull_branch("src/lib/ImGuiColorTextEdit", "dev"),
         "libzip": lambda: update_to_latest_release("src/lib/libzip", "nih-at/libzip"),
         "magic_enum": lambda: pull_branch("src/lib/magic_enum", "master"),
+        "miniball": lambda: pull_branch("src/lib/miniball", "fix-msvc"),
         "palanteer": lambda: update_to_latest_release("src/lib/palanteer", "dfeneyrou/palanteer"),
         "rapidjson": lambda: pull_branch("src/lib/rapidjson", "master"),
-        "unordered_dense": lambda: update_to_latest_release("src/lib/unordered_dense", "martinus/unordered_dense"),
         "spdlog": lambda: pull_branch("src/lib/spdlog", "v1.x"),
         "SQLiteCpp": lambda: update_to_latest_release("src/lib/SQLiteCpp", "SRombauts/SQLiteCpp"),
         "stb": lambda: pull_branch("src/lib/stb", "master"),
         "tinyfiledialogs": lambda: pull_branch("src/lib/tinyfiledialogs", "master"),
+        "unordered_dense": lambda: update_to_latest_release("src/lib/unordered_dense", "martinus/unordered_dense"),
+        "utfcpp": lambda: update_to_latest_release("src/lib/utfcpp", "nemtrif/utfcpp"),
     }
     if len(sys.argv) == 1:
         print("Updating all dependencies")

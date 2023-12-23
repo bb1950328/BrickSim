@@ -30,6 +30,13 @@ namespace bricksim {
     template<typename T>
     using hash = ankerl::unordered_dense::hash<T>;
 }
+
+#ifdef _MSC_VER
+    #define BRICKSIM_GLM_USVEC_CONST const
+#else
+    #define BRICKSIM_GLM_USVEC_CONST constexpr
+#endif
+
 namespace glm {
     using usvec1 = vec<1, unsigned short, defaultp>;
     using usvec2 = vec<2, unsigned short, defaultp>;
@@ -40,6 +47,8 @@ namespace glm {
     using svec3 = vec<3, short, defaultp>;
     using svec4 = vec<4, short, defaultp>;
 }
+
+
 namespace std {
 #ifdef BRICKSIM_PLATFORM_MACOS
     template<>

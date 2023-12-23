@@ -33,8 +33,8 @@ namespace bricksim::overlay2d::vertex_generator {
     constexpr unsigned int getVertexCountForPolyLine(uint64_t numPoints) {
         return (numPoints - 1) * getVertexCountForQuad();
     }
-
-    constexpr glm::vec2 toNDC(coord_t coord, coord_t viewportSize) {
+    
+    GLM_CONSTEXPR static glm::vec2 toNDC(coord_t coord, coord_t viewportSize) {
         return coord / viewportSize * 2.f - 1.f;
     }
 
@@ -43,5 +43,5 @@ namespace bricksim::overlay2d::vertex_generator {
     }
 
     template<class T>
-    constexpr glm::vec2 toNDC(T coord, coord_t viewportSize) = delete;//disable automatic conversion
+    GLM_CONSTEXPR glm::vec2 toNDC(T coord, coord_t viewportSize) = delete;//disable automatic conversion
 }

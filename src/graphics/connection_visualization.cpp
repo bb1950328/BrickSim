@@ -4,8 +4,7 @@
 
 namespace bricksim::graphics::connection_visualization {
     namespace {
-        constexpr glm::usvec2 IMAGE_SIZE{static_cast<unsigned short>(512),
-                                         static_cast<unsigned short>(512)};
+        BRICKSIM_GLM_USVEC_CONST glm::usvec2 IMAGE_SIZE{static_cast<unsigned short>(512), static_cast<unsigned short>(512)};
         std::shared_ptr<Scene> scene;
         std::shared_ptr<CadCamera> camera;
         std::string visualizedPart;

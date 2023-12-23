@@ -78,9 +78,11 @@ namespace bricksim::gui {
     }
 
     void MouseCursorHandler::enableImGuiCursor() {
-        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouseCursorChange;
-        imguiControlsCursor = true;
-        spdlog::trace("MouseCursorHandler::enableImGuiCursor");
+        if (!imguiControlsCursor) {
+            ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouseCursorChange;
+            imguiControlsCursor = true;
+            spdlog::trace("MouseCursorHandler::enableImGuiCursor");
+        }
     }
 
     MouseCursor& MouseCursorHandler::getStandardCursor() {

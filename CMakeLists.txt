@@ -10,9 +10,11 @@ endforeach ()
 if (MSVC)
     message(WARNING "getting git version info currently not implemented on MSVC")
 else ()
-    #bash executable
+    #todo automatically search for bash in $PATH
     if (EXISTS "C:\\msys64\\usr\\bin\\bash.exe")
         set(BASH_EXECUTABLE "C:\\msys64\\usr\\bin\\bash.exe")
+    elseif(EXISTS "C:\\Program Files\\Git\\bin\\bash.exe")
+        set(BASH_EXECUTABLE "C:\\Program Files\\Git\\bin\\bash.exe")
     else ()
         set(BASH_EXECUTABLE "bash")
     endif ()

@@ -355,7 +355,7 @@ namespace bricksim::ldr {
             return lineName == name;
         } else if (author.empty() && line.starts_with("Author:")) {
             author = stringutil::trim(line.substr(7));
-        } else if (headerCategory->empty() && line.starts_with("!CATEGORY")) {
+        } else if (headerCategory && headerCategory->empty() && line.starts_with("!CATEGORY")) {
             headerCategory = stringutil::trim(line.substr(9));
         } else if (line.starts_with("!KEYWORDS")) {
             size_t i = 9;

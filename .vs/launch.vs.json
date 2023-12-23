@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "BrickSim.exe",
+      "name": "BrickSim.exe",
+      "currentDir": "${workspaceRoot}"
+    }
+  ]
+}

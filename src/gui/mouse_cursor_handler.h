@@ -37,5 +37,7 @@ namespace bricksim::gui {
         MouseCursor& getStandardCursor();
         MouseCursor& getStandardCursor(StandardCursorType type);
         MouseCursor& getIconCursor(icons::IconType type);
+
+        void enableImGuiCursor();
     };
 }

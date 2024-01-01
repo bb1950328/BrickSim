@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" defaultCharsetForPropertiesFiles="UTF-8">
+    <file url="file://$PROJECT_DIR$/src/ldr/files.cpp" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/ldr/files.h" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/snapping/CMakeLists.txt" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/snapping/snap_handler.cpp" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/snapping/snap_handler.h" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/snapping/snap_linear.cpp" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/snapping/snap_linear.h" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/snapping/snap_rotational.cpp" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/snapping/snap_rotational.h" charset="UTF-8" />
+  </component>
+</project>

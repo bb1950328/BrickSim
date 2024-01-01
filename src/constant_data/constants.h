@@ -1,6 +1,5 @@
 #pragma once
 #include "../helpers/color.h"
-#include "../helpers/platform_detection.h"
 #include "../types.h"
 
 namespace bricksim::constants {
@@ -45,5 +44,11 @@ namespace bricksim::constants {
 
     constexpr auto AXIS_COLORS = std::to_array({color::RED, color::GREEN, color::BLUE});
 
-    static constexpr const auto DISALLOWED_FILENAME_CHARS = "/\\<>:\"|?*&";
+    static constexpr auto DISALLOWED_FILENAME_CHARS = "/\\<>:\"|?*&";
+
+    static constexpr auto UTF8_BOM = "\xEF\xBB\xBF";
+    static constexpr auto UTF16BE_BOM = "\xFE\xFF";
+    static constexpr auto UTF16LE_BOM = "\xFF\xFE";
+    static constexpr auto UTF32BE_BOM = "\x00\x00\xFE\xFF";
+    static constexpr auto UTF32LE_BOM = "\xFF\xFE\x00\x00";
 }

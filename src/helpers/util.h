@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../types.h"
+#include "../constant_data/constants.h"
 #include "ray.h"
 #include <filesystem>
 #include <glm/glm.hpp>
@@ -10,16 +11,15 @@
 //#include <CImg.h>
 
 namespace bricksim::util {
-
-#if _WIN32
+    #if _WIN32
     const char* const USER_ENV_VAR = "USERPROFILE";
     const char PATH_SEPARATOR = '\\';
     const char PATH_SEPARATOR_FOREIGN = '/';
-#else
+    #else
     const char* const USER_ENV_VAR = "HOME";
     const char PATH_SEPARATOR = '/';
     const char PATH_SEPARATOR_FOREIGN = '\\';
-#endif
+    #endif
     const std::string ALPHANUM_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     // path functions
@@ -111,6 +111,7 @@ namespace bricksim::util {
         [[nodiscard]] glm::mat4 translationAsMat4() const;
         [[nodiscard]] glm::mat4 scaleAsMat4() const;
     };
+
     DecomposedTransformation decomposeTransformationToStruct(const glm::mat4& transformation);
 
     bool isUvInsideImage(const glm::vec2& uv);
@@ -127,6 +128,7 @@ namespace bricksim::util {
 
         unsigned char* getPixel(uint16_t x, uint16_t y);
     };
+
     RawImage readImage(std::span<const uint8_t> fileData);
 
     bool writeImage(const char* path, const RawImage& image);
@@ -233,13 +235,15 @@ namespace bricksim::util {
     struct ScopeVarBackup {
         T backup;
         T& ref;
+
         ScopeVarBackup(T& ref) :
-            backup(ref), ref(ref) {
-        }
+            backup(ref), ref(ref) {}
+
         ScopeVarBackup(T& ref, T newValue) :
             ScopeVarBackup(ref) {
             ref = newValue;
         }
+
         ~ScopeVarBackup() {
             ref = backup;
         }
@@ -258,4 +262,12 @@ namespace bricksim::util {
             return Predicate{}(left.second, right.second);
         }
     };
+
+    struct UtfType {
+        std::uint8_t bits;
+        std::uint8_t bomLength;
+        std::endian endian;
+    };
+
+    UtfType determineUtfTypeFromBom(const std::string_view text);
 }

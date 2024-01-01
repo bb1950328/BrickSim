@@ -6,6 +6,8 @@
 #include "../helpers/debug_nodes.h"
 #include "../helpers/geometry.h"
 #include "Seb.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/stopwatch.h>
 
 namespace bricksim::snap {
 
@@ -13,6 +15,7 @@ namespace bricksim::snap {
         if (glm::distance2(currentCursorPos, lastCursorPos) < 1) {
             return;
         }
+        spdlog::stopwatch sw;
 
         auto& connectionEngine = editor->getConnectionEngine();
         connectionEngine.update(editor->getEditingModel());
@@ -21,18 +24,9 @@ namespace bricksim::snap {
         const auto ray = editor->getScene()->screenCoordinatesToWorldRay(currentCursorPos + cursorOffset) * constants::OPENGL_TO_LDU;
 
         const auto rootNode = editor->getScene()->getRootNode();
-        static std::vector<std::shared_ptr<etree::Node>> debugNodes;
-        for (const auto& item: debugNodes) {
-            item->parent.lock()->removeChild(item);
-        }
-        //const auto point = std::make_shared<etree::PointDebugNode>(rootNode);
-        //rootNode->addChild(point);
-        //point->setRelativeTransformation(glm::transpose(glm::translate(glm::mat4(1.f), ray.origin + 100.f * glm::normalize(ray.direction))));
 
         auto nodesNearRay = connectionEngine.getNodesNearRay(ray, 50000, subjectRadius);
         if (!nodesNearRay.empty()) {
-            //connectionEngine.update(editor->getEditingModel());
-
             util::compare_pair_first<float, std::shared_ptr<etree::MeshNode>> distanceCompare;
             std::sort(nodesNearRay.begin(), nodesNearRay.end(), distanceCompare);
             const float maxDist2 = std::pow(std::sqrt(nodesNearRay[0].first) + subjectRadius * 2, 2);
@@ -62,12 +56,6 @@ namespace bricksim::snap {
                 }
             }
             connection::removeConnected(allConnectors);
-
-            /*for (const auto& item: allConnectors) {
-                const auto point = std::make_shared<etree::PointDebugNode>(rootNode);
-                rootNode->addChild(point);
-                point->setRelativeTransformation(glm::transpose(glm::translate(glm::mat4(1.f), item->start)));
-            }*/
 
             constexpr std::size_t resultLimit = 10;
             auto resultCompare = util::compare_pair_first<float, glm::mat4, std::greater<float>>();
@@ -101,54 +89,20 @@ namespace bricksim::snap {
                             const auto transf = glm::translate(preTransform, resultTranslation);
                             const auto candCenter = /*glm::vec4(initialAbsoluteCenter, 0.f)+*/ initialRelativeTransformations[0] * transf * glm::vec4(0, 0, 0, 1);
                             const auto cr = glm::cross(glm::normalize(ray.direction), glm::vec3(candCenter) - ray.origin);
-                            const auto score = -glm::length(cr);
+                            const auto score = -glm::length2(cr);
                             glm::vec2 candScreenCoords = editor->getScene()->worldToScreenCoordinates(candCenter * constants::LDU_TO_OPENGL) * glm::vec3(1, -1, 1);
                             //const auto score = -glm::distance(candScreenCoords, currentCursorPos + cursorOffset);//todo use distance2
                             //std::cout << "fixedConn->start=" << fixedConn->start << ", resultTranslationDistance=" << resultTranslationDistance << std::endl;
 
-                            const auto point = std::make_shared<etree::PointDebugNode>(rootNode);
-                            rootNode->addChild(point);
-                            point->setRelativeTransformation(glm::transpose(initialRelativeTransformations[0] * transf));
-                            debugNodes.push_back(point);
-
-                            const std::pair<float, glm::mat4> candResult(score, transf);
-                            bestResults.push_back(candResult);
-                            /*if (bestResults.empty() || bestResults.back().first <= score) {
-                                const auto it = std::lower_bound(bestResults.begin(), bestResults.end(), candResult, resultCompare);
-                                if (it != bestResults.end()) {
-                                    if (!almostEqual(it->first, score, .1f) && !almostEqual(it->second, transf, .01f)) {
-                                        bestResults.insert(it, candResult);
-                                        if (bestResults.size() > resultLimit) {
-                                            bestResults.resize(resultLimit);
-                                        }
-                                    }
-                                } else if (bestResults.size() < resultLimit) {
-                                    bestResults.push_back(candResult);
-                                }
-                            }*/
+                            bestResults.push_back({score, transf});
                         }
                     }
                 }
             }
             std::sort(bestResults.begin(), bestResults.end(), resultCompare);
+            spdlog::debug("SnapToConnectorProcess: {} results in {}s", bestResults.size(), sw);
             if (bestResults.size() > resultLimit) {
                 bestResults.resize(resultLimit);
-            }
-
-            //std::cout << "==============================================================================" << std::endl;
-            std::cout << "cursorPos=" << currentCursorPos << " initialCursorPos=" << initialCursorPos << std::endl;
-            for (const auto& [score, transf]: bestResults) {
-                //                const auto point = std::make_shared<etree::PointDebugNode>(rootNode);
-                //                rootNode->addChild(point);
-                //                point->setRelativeTransformation(glm::transpose(transf));
-
-                const auto candCenter = transf * glm::vec4(0, 0, 0, 1);
-                glm::vec2 candScreenCoords = editor->getScene()->worldToScreenCoordinates(candCenter * constants::LDU_TO_OPENGL) * glm::vec3(1, -1, 1);
-                //editor->getScene()->getOverlayCollection().addElement(std::make_shared<overlay2d::RegularPolygonElement>(candScreenCoords, 3, 3, color::RGB(candScreenCoords.x / 4.f, candScreenCoords.y / 4.f, 0)));
-
-                std::cout << "score=" << score << ", candScreenCoords=" << candScreenCoords << ", transf="
-                          << transf << std::endl
-                          << std::endl;
             }
         }
 
@@ -198,18 +152,24 @@ namespace bricksim::snap {
     }
     void SnapToConnectorProcess::applyInitialTransformations() {
         for (int i = 0; i < subjectNodes.size(); ++i) {
-            subjectNodes[i]->setRelativeTransformation(glm::transpose(initialRelativeTransformations[i]));
-            subjectNodes[i]->incrementVersion();
+            setRelativeTransformationIfDifferent(i, initialRelativeTransformations[i]);
         }
     }
 
-    void SnapToConnectorProcess::applyResultTransformation(std::size_t index) {
+    void SnapToConnectorProcess::setRelativeTransformationIfDifferent(int subjectNodeIndex, const glm::mat4& newRelTransf) {
+        const auto newRelTransfTransposed = glm::transpose(newRelTransf);
+        if (!almostEqual(newRelTransfTransposed, subjectNodes[subjectNodeIndex]->getRelativeTransformation())) {
+            subjectNodes[subjectNodeIndex]->setRelativeTransformation(newRelTransfTransposed);
+            subjectNodes[subjectNodeIndex]->incrementVersion();
+        }
+    }
+
+    void SnapToConnectorProcess::applyResultTransformation(const std::size_t index) {
         const auto result = bestResults[index].second;
         for (int i = 0; i < subjectNodes.size(); ++i) {
             const auto newRelTransf = initialRelativeTransformations[i] * userTransformation * result;//todo check if multiplication order is correct
             //const auto newRelTransf = result * userTransformation * initialRelativeTransformations[i];
-            subjectNodes[i]->setRelativeTransformation(glm::transpose(newRelTransf));
-            subjectNodes[i]->incrementVersion();
+            setRelativeTransformationIfDifferent(i, newRelTransf);
         }
     }
 

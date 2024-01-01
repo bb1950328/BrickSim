@@ -33,5 +33,7 @@ namespace bricksim::snap {
         [[nodiscard]] std::size_t getResultCount() const;
         std::vector<float> getPossibleCylTranslations(const std::shared_ptr<connection::CylindricalConnector> fixed, const std::shared_ptr<connection::CylindricalConnector> moving, bool sameDir);
         void setUserTransformation(const glm::mat4& value);
+    private:
+        void setRelativeTransformationIfDifferent(int subjectNodeIndex, const glm::mat4& newRelTransf);
     };
 }

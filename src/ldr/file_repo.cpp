@@ -50,7 +50,7 @@ namespace bricksim::ldr::file_repo {
 
             std::string result;
 
-            const std::size_t previewSize = std::min(3UL, fileStat.size);
+            const std::size_t previewSize = std::min(static_cast<decltype(fileStat.size)>(3), fileStat.size);
             result.resize(previewSize);
             zip_fread(modelFile, result.data(), previewSize);
             const auto [utfBits, bomLength, sourceEndian] = util::determineUtfTypeFromBom(result);

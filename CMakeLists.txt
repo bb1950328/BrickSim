@@ -286,6 +286,9 @@ target_link_libraries(BrickSimLib PRIVATE ImGuiColorTextEdit)
 #UTF8-CPP
 add_subdirectory(src/lib/utfcpp)
 target_link_libraries(BrickSimLib PUBLIC utf8cpp)
+if ((MSVC) AND (MSVC_VERSION GREATER_EQUAL 1914))
+    target_compile_options(utf8cpp INTERFACE "/Zc:__cplusplus") # https://stackoverflow.com/a/60890947/8733066
+endif()
 
 #miniball
 target_include_directories(BrickSimLib PUBLIC src/lib/miniball/cpp/main)

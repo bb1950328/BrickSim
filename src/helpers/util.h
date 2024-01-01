@@ -8,6 +8,7 @@
 #include <optional>
 #include <span>
 #include <string>
+#include <bit>
 //#include <CImg.h>
 
 namespace bricksim::util {

@@ -27,10 +27,6 @@
 #include <pthread.h>
 #endif
 
-#ifdef BRICKSIM_PLATFORM_MACOS
-#include <machine/endian.h>
-#endif
-
 namespace bricksim::util {
     namespace {
         bool isStbiVerticalFlipEnabled = false;

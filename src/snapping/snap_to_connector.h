@@ -31,7 +31,7 @@ namespace bricksim::snap {
         void applyInitialTransformations();
         void applyResultTransformation(std::size_t index);
         [[nodiscard]] std::size_t getResultCount() const;
-        std::vector<float> getPossibleCylTranslations(const std::shared_ptr<connection::CylindricalConnector> fixed, const std::shared_ptr<connection::CylindricalConnector> moving, bool sameDir);
+        std::vector<float> getPossibleCylTranslations(const std::shared_ptr<connection::CylindricalConnector>& fixed, const std::shared_ptr<connection::CylindricalConnector>& moving, bool sameDir);
         void setUserTransformation(const glm::mat4& value);
 
     private:

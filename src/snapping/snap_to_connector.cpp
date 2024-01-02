@@ -10,12 +10,10 @@
 #include <spdlog/stopwatch.h>
 
 namespace bricksim::snap {
-
     void SnapToConnectorProcess::updateCursorPos(const glm::vec2& currentCursorPos) {
         if (glm::distance2(currentCursorPos, lastCursorPos) < 1) {
             return;
         }
-        spdlog::stopwatch sw;
 
         auto& connectionEngine = editor->getConnectionEngine();
         connectionEngine.update(editor->getEditingModel());
@@ -27,6 +25,8 @@ namespace bricksim::snap {
 
         auto nodesNearRay = connectionEngine.getNodesNearRay(ray, 50000, subjectRadius);
         if (!nodesNearRay.empty()) {
+            spdlog::stopwatch sw;
+
             util::compare_pair_first<float, std::shared_ptr<etree::MeshNode>> distanceCompare;
             std::sort(nodesNearRay.begin(), nodesNearRay.end(), distanceCompare);
             const float maxDist2 = std::pow(std::sqrt(nodesNearRay[0].first) + subjectRadius * 2, 2);
@@ -70,7 +70,8 @@ namespace bricksim::snap {
                         const auto angle = geometry::getAngleBetweenTwoVectors(fixedConn->direction, subjConn->direction);
                         glm::quat rotation;
                         bool sameDir;
-                        if (angle < glm::radians(46.f)) {//todo configurable
+                        if (angle < glm::radians(46.f)) {
+                            //todo configurable
                             rotation = glm::rotation(subjConn->direction, fixedConn->direction);
                             sameDir = true;
                         } else if (angle > glm::radians(134.f)) {
@@ -85,14 +86,10 @@ namespace bricksim::snap {
                         for (const auto& offset: getPossibleCylTranslations(otherCyl, subjCyl, sameDir)) {
                             const auto offsetTranslation = offset * fixedConn->direction;
                             const auto resultTranslation = baseTranslation + offsetTranslation;
-                            const auto resultTranslationDistance = glm::length(resultTranslation);
                             const auto transf = glm::translate(preTransform, resultTranslation);
-                            const auto candCenter = /*glm::vec4(initialAbsoluteCenter, 0.f)+*/ initialRelativeTransformations[0] * transf * glm::vec4(0, 0, 0, 1);
+                            const auto candCenter = initialRelativeTransformations[0] * transf * glm::vec4(0, 0, 0, 1);
                             const auto cr = glm::cross(glm::normalize(ray.direction), glm::vec3(candCenter) - ray.origin);
                             const auto score = -glm::length2(cr);
-                            glm::vec2 candScreenCoords = editor->getScene()->worldToScreenCoordinates(candCenter * constants::LDU_TO_OPENGL) * glm::vec3(1, -1, 1);
-                            //const auto score = -glm::distance(candScreenCoords, currentCursorPos + cursorOffset);//todo use distance2
-                            //std::cout << "fixedConn->start=" << fixedConn->start << ", resultTranslationDistance=" << resultTranslationDistance << std::endl;
 
                             bestResults.push_back({score, transf});
                         }
@@ -108,6 +105,7 @@ namespace bricksim::snap {
 
         lastCursorPos = currentCursorPos;
     }
+
     SnapToConnectorProcess::SnapToConnectorProcess(const std::vector<std::shared_ptr<etree::Node>>& subjectNodes,
                                                    const std::shared_ptr<Editor>& editor,
                                                    const glm::vec2& initialCursorPos) :
@@ -150,6 +148,7 @@ namespace bricksim::snap {
         const auto nodeCenterOnScreen = editor->getScene()->worldToScreenCoordinates(initialAbsoluteCenter);
         this->cursorOffset = {0, 0};//todo glm::vec2(nodeCenterOnScreen.x, nodeCenterOnScreen.y) - initialCursorPos;
     }
+
     void SnapToConnectorProcess::applyInitialTransformations() {
         for (int i = 0; i < subjectNodes.size(); ++i) {
             setRelativeTransformationIfDifferent(i, initialRelativeTransformations[i]);
@@ -173,7 +172,9 @@ namespace bricksim::snap {
         }
     }
 
-    std::vector<float> SnapToConnectorProcess::getPossibleCylTranslations(const std::shared_ptr<connection::CylindricalConnector> fixed, const std::shared_ptr<connection::CylindricalConnector> moving, bool sameDir) {
+    std::vector<float> SnapToConnectorProcess::getPossibleCylTranslations(const std::shared_ptr<connection::CylindricalConnector>& fixed,
+                                                                          const std::shared_ptr<connection::CylindricalConnector>& moving,
+                                                                          const bool sameDir) {
         float startOffset;
         bool movingOpenStart = moving->openStart;
         bool movingOpenEnd = moving->openEnd;
@@ -191,15 +192,14 @@ namespace bricksim::snap {
         }
 
         result.push_back(0);
-        return result;//todo remove this after debugging
 
         const auto linearSnap = controller::getSnapHandler().getLinear().getCurrentPreset().stepXZ;
-        const auto minOverlap = 1;//todo maybe make configurable separately
+        constexpr auto minOverlap = 1;//todo maybe make configurable separately
         float currentOffset = fixed->openStart ? minOverlap - moving->totalLength : 0;
-        auto maxOffset = fixed->totalLength - std::max(static_cast<float>(minOverlap), fixed->openEnd ? 0 : moving->totalLength);
+        const float maxOffset = fixed->totalLength - std::max(static_cast<float>(minOverlap), fixed->openEnd ? 0 : moving->totalLength);
         while (currentOffset < maxOffset) {
-            float overlapMin = std::max(0.f, currentOffset) + .5;
-            float overlapMax = std::min(fixed->totalLength, currentOffset + moving->totalLength) - .5;
+            const float overlapMin = std::max(0.f, currentOffset) + .5;
+            const float overlapMax = std::min(fixed->totalLength, currentOffset + moving->totalLength) - .5;
             float i = overlapMin;
             int fixedPartIdx = 0;
             int movingPartIdx = 0;
@@ -240,9 +240,11 @@ namespace bricksim::snap {
 
         return result;
     }
+
     std::size_t SnapToConnectorProcess::getResultCount() const {
         return bestResults.size();
     }
+
     void SnapToConnectorProcess::setUserTransformation(const glm::mat4& value) {
         userTransformation = value;
     }

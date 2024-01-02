@@ -123,7 +123,7 @@ namespace bricksim::gui::windows::part_palette {
             }
             ImGui::EndChild();
             ImGui::SameLine();
-            ImGui::BeginChild("##thumbnailsContainer", ImVec2(thumbnailContainerWidth, 0), ImGuiWindowFlags_AlwaysVerticalScrollbar);
+            ImGui::BeginChild("##thumbnailsContainer", ImVec2(thumbnailContainerWidth, 0), ImGuiChildFlags_None);
             const static auto thumbnailSpacing = 4;
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(thumbnailSpacing, thumbnailSpacing));
             auto actualThumbSize = std::floor(controller::getThumbnailGenerator()->size / 100.0 * thumbnailZoomPercent);

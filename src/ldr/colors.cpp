@@ -92,7 +92,7 @@ namespace bricksim::ldr {
         namespace {
             uomap_t<Color::code_t, std::shared_ptr<Color>> colors;
             uomap_t<std::string, ColorReference> pureColors;
-            std::vector<Color::code_t> hueSortedCodes;
+            std::vector<std::pair<float, Color::code_t>> hueSortedCodes;
             std::shared_ptr<LdrInstanceDummyColor> instDummyColor;
 
             Color::code_t getUnusedCode() {
@@ -122,15 +122,12 @@ namespace bricksim::ldr {
                     if (!trimmed.empty() && trimmed.rfind("0 !COLOUR", 0) == 0) {
                         auto col = std::make_shared<Color>(line.substr(10));
                         colors[col->code] = col;
-                        hueSortedCodes.push_back(col->code);
+                        hueSortedCodes.push_back({color::HSV(col->value).hue, col->code});
                     }
                 }
                 instDummyColor = std::make_shared<LdrInstanceDummyColor>();
                 colors[INSTANCE_DUMMY_COLOR_CODE] = instDummyColor;
-                std::sort(hueSortedCodes.begin(), hueSortedCodes.end(),
-                          [](const int& a, const int& b) {
-                              return color::HSV(getColor(a)->value).hue < color::HSV(getColor(b)->value).hue;
-                          });
+                std::sort(hueSortedCodes.begin(), hueSortedCodes.end(), util::compare_pair_first<float, Color::code_t>());
                 initialized = true;
             }
         }

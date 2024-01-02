@@ -10,9 +10,11 @@ endforeach ()
 if (MSVC)
     message(WARNING "getting git version info currently not implemented on MSVC")
 else ()
-    #bash executable
+    #todo automatically search for bash in $PATH
     if (EXISTS "C:\\msys64\\usr\\bin\\bash.exe")
         set(BASH_EXECUTABLE "C:\\msys64\\usr\\bin\\bash.exe")
+    elseif(EXISTS "C:\\Program Files\\Git\\bin\\bash.exe")
+        set(BASH_EXECUTABLE "C:\\Program Files\\Git\\bin\\bash.exe")
     else ()
         set(BASH_EXECUTABLE "bash")
     endif ()
@@ -284,6 +286,9 @@ target_link_libraries(BrickSimLib PRIVATE ImGuiColorTextEdit)
 #UTF8-CPP
 add_subdirectory(src/lib/utfcpp)
 target_link_libraries(BrickSimLib PUBLIC utf8cpp)
+if ((MSVC) AND (MSVC_VERSION GREATER_EQUAL 1914))
+    target_compile_options(utf8cpp INTERFACE "/Zc:__cplusplus") # https://stackoverflow.com/a/60890947/8733066
+endif()
 
 #miniball
 target_include_directories(BrickSimLib PUBLIC src/lib/miniball/cpp/main)

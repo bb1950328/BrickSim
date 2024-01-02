@@ -17,14 +17,14 @@
 
 #ifdef BRICKSIM_PLATFORM_WINDOWS
     #include <windows.h>
-    #ifdef min
+#ifdef min
         #undef min
-    #endif
-    #ifdef max
+#endif
+#ifdef max
         #undef max
-    #endif
+#endif
 #elif defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)
-    #include <pthread.h>
+#include <pthread.h>
 #endif
 
 namespace bricksim::util {
@@ -61,21 +61,21 @@ namespace bricksim::util {
 
     void openDefaultBrowser(const std::string& link) {
         spdlog::info("openDefaultBrowser(\"{}\")", link);
-#ifdef BRICKSIM_PLATFORM_WINDOWS
+        #ifdef BRICKSIM_PLATFORM_WINDOWS
         ShellExecute(nullptr, "open", link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);//todo testing
-#elif defined(BRICKSIM_PLATFORM_MACOS)
+        #elif defined(BRICKSIM_PLATFORM_MACOS)
         std::string command = std::string("open ") + link;
-#elif defined(BRICKSIM_PLATFORM_LINUX)
+        #elif defined(BRICKSIM_PLATFORM_LINUX)
         std::string command = std::string("xdg-open ") + link;
-#else
+        #else
     #warning "openDefaultProwser not supported on this platform"
-#endif
-#if defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)
+        #endif
+        #if defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)
         int exitCode = system(command.c_str());
         if (exitCode != 0) {
             spdlog::warn("command \"{}\" exited with code {}", command, exitCode);
         }
-#endif
+        #endif
     }
 
     bool memeqzero(const void* data, size_t length) {
@@ -270,6 +270,7 @@ namespace bricksim::util {
     bool isUvInsideImage(const glm::vec2& uv) {
         return 0 <= uv.x && uv.x <= 1 && 0 <= uv.y && uv.y <= 1;
     }
+
     std::string randomAlphanumString(uint64_t length) {
         std::string result;
         result.reserve(length);
@@ -294,16 +295,46 @@ namespace bricksim::util {
         }
         return result;
     }
+
     void setThreadName(const char* threadName) {
-#ifdef BRICKSIM_PLATFORM_LINUX
+        #ifdef BRICKSIM_PLATFORM_LINUX
         pthread_setname_np(pthread_self(), threadName);
-#elif defined(BRICKSIM_PLATFORM_MACOS)
+        #elif defined(BRICKSIM_PLATFORM_MACOS)
         pthread_setname_np(threadName);
-#endif
-#ifdef USE_PL
+        #endif
+        #ifdef USE_PL
         plDeclareThreadDyn(threadName);
-#endif
+        #endif
     }
+
+    UtfType determineUtfTypeFromBom(const std::string_view text) {
+        if (text.starts_with(constants::UTF8_BOM)) {
+            return {8,
+                    static_cast<std::uint8_t>(std::strlen(constants::UTF8_BOM)),
+                    std::endian::native};
+        } else if (text.starts_with(constants::UTF16BE_BOM)) {
+            return {16,
+                    static_cast<std::uint8_t>(std::strlen(constants::UTF16BE_BOM)),
+                    std::endian::big};
+        } else if (text.starts_with(constants::UTF16LE_BOM)) {
+            return {16,
+                    static_cast<std::uint8_t>(std::strlen(constants::UTF16LE_BOM)),
+                    std::endian::little};
+        } else if (text.starts_with(constants::UTF32BE_BOM)) {
+            return {32,
+                    static_cast<std::uint8_t>(std::strlen(constants::UTF32BE_BOM)),
+                    std::endian::big};
+        } else if (text.starts_with(constants::UTF32LE_BOM)) {
+            return {32,
+                    static_cast<std::uint8_t>(std::strlen(constants::UTF32LE_BOM)),
+                    std::endian::little};
+        } else {
+            return {0,
+                    0,
+                    std::endian::native};
+        }
+    }
+
     bool isStbiFlipVertically() {
         return isStbiVerticalFlipEnabled;
     }
@@ -329,6 +360,7 @@ namespace bricksim::util {
         setStbiFlipVertically(vFlipBackup);
         return result;
     }
+
     bool writeImage(const char* path, const RawImage& image) {
         return writeImage(path, image.data.data(), image.width, image.height, image.channels);
     }

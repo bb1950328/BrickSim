@@ -40,7 +40,7 @@ namespace bricksim::connection {
         void BaseConnectorGrouping::addUndirected(const std::shared_ptr<Connector>& connector) {
             undirected.push_back(connector);
         }
-        void BaseConnectorGrouping::addAll(const std::vector<std::shared_ptr<Connector>>& connectors) {
+        void BaseConnectorGrouping::addAll(const connector_container_t& connectors) {
             for (const auto& conn: connectors) {
                 auto gender = Gender::F;
                 switch (conn->type) {
@@ -85,7 +85,7 @@ namespace bricksim::connection {
 
     ConnectionCheck::ConnectionCheck(PairCheckResultConsumer& resultConsumer) :
         result(resultConsumer) {}
-    void ConnectionCheck::checkForConnected(const std::vector<std::shared_ptr<Connector>>& connectors) {
+    void ConnectionCheck::checkForConnected(const connector_container_t& connectors) {
         SingleConnectorGrouping grouping;
         grouping.addAll(connectors);
 
@@ -100,8 +100,8 @@ namespace bricksim::connection {
                           glm::transpose(nodeA->getAbsoluteTransformation()),
                           glm::transpose(nodeB->getAbsoluteTransformation()));
     }
-    void ConnectionCheck::checkForConnected(const std::vector<std::shared_ptr<Connector>>& connectorsA,
-                                            const std::vector<std::shared_ptr<Connector>>& connectorsB,
+    void ConnectionCheck::checkForConnected(const connector_container_t& connectorsA,
+                                            const connector_container_t& connectorsB,
                                             const glm::mat4& transfA,
                                             const glm::mat4& transfB) {
         DoubleConnectorGrouping grouping;
@@ -118,7 +118,7 @@ namespace bricksim::connection {
         checkBruteForceAvsB(grouping.a.undirected, grouping.b.undirected, grouping.a.transformation, grouping.b.transformation);
     }
     void ConnectionCheck::checkDirectionalAvsA(const DirectionSet& directions,
-                                               const std::vector<std::vector<std::shared_ptr<Connector>>>& connectors) {
+                                               const std::vector<connector_container_t>& connectors) {
         if (!connectors.empty()) {
             for (std::size_t i = 0; i < directions.size(); ++i) {
                 const auto& conns = connectors[i];
@@ -131,8 +131,8 @@ namespace bricksim::connection {
         }
     }
     void ConnectionCheck::checkDirectionalAvsB(const DirectionSet& directions,
-                                               const std::vector<std::vector<std::shared_ptr<Connector>>>& aConns,
-                                               const std::vector<std::vector<std::shared_ptr<Connector>>>& bConns,
+                                               const std::vector<connector_container_t>& aConns,
+                                               const std::vector<connector_container_t>& bConns,
                                                const glm::mat4& aTransf,
                                                const glm::mat4& bTransf) {
         if (!aConns.empty() && !bConns.empty()) {
@@ -146,8 +146,8 @@ namespace bricksim::connection {
         }
     }
     void ConnectionCheck::checkDirectionalAdvancedAvsA(size_t directionIdx,
-                                                       const std::vector<std::shared_ptr<Connector>>& conns) {
-        uomap_t<int64_t, uomap_t<int64_t, std::vector<std::shared_ptr<Connector>>>> connsByStart;
+                                                       const connector_container_t& conns) {
+        uomap_t<int64_t, uomap_t<int64_t, connector_container_t>> connsByStart;
         const auto ia = directionIdx == 0 ? 1 : 0;
         const auto ib = directionIdx == 2 ? 1 : 2;
         for (const auto& item: conns) {
@@ -161,8 +161,8 @@ namespace bricksim::connection {
         }
     }
     void ConnectionCheck::checkDirectionalAdvancedAvsB(size_t directionIdx,
-                                                       const std::vector<std::shared_ptr<Connector>>& aConns,
-                                                       const std::vector<std::shared_ptr<Connector>>& bConns,
+                                                       const connector_container_t& aConns,
+                                                       const connector_container_t& bConns,
                                                        const glm::mat4& aTransf,
                                                        const glm::mat4& bTransf) {
         const auto iSmaller = aConns.size() < bConns.size() ? 0 : 1;
@@ -190,7 +190,7 @@ namespace bricksim::connection {
             }
         }
     }
-    void ConnectionCheck::checkBruteForceAvsA(const std::vector<std::shared_ptr<Connector>>& conns) {
+    void ConnectionCheck::checkBruteForceAvsA(const connector_container_t& conns) {
         for (std::size_t i = 0; i < conns.size(); ++i) {
             PairCheckData iData(glm::mat4(1.f), conns[i]);
             for (std::size_t j = 0; j < i; ++j) {
@@ -200,8 +200,8 @@ namespace bricksim::connection {
             }
         }
     }
-    void ConnectionCheck::checkBruteForceAvsB(const std::vector<std::shared_ptr<Connector>>& connsA,
-                                              const std::vector<std::shared_ptr<Connector>>& connsB,
+    void ConnectionCheck::checkBruteForceAvsB(const connector_container_t& connsA,
+                                              const connector_container_t& connsB,
                                               const glm::mat4& aTransf,
                                               const glm::mat4& bTransf) {
         if (!connsA.empty() && !connsB.empty()) {

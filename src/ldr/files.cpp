@@ -9,23 +9,18 @@
 #include <iostream>
 #include <magic_enum.hpp>
 #include <spdlog/spdlog.h>
-#include <sstream>
 
 namespace bricksim::ldr {
-    WindingOrder inverseWindingOrder(WindingOrder order) {
+    WindingOrder inverseWindingOrder(const WindingOrder order) {
         return order == WindingOrder::CW ? WindingOrder::CCW : WindingOrder::CW;
     }
 
     std::shared_ptr<FileElement> FileElement::parseLine(const std::string_view line, BfcState bfcState) {
         std::string_view lineContent = line.length() > 2 ? line.substr(2) : "";
         switch (line[0] - '0') {
-            case 0: {
-                if (TexmapStartCommand::doesLineMatch(lineContent)) {
-                    return std::make_shared<TexmapStartCommand>(lineContent);
-                } else {
-                    return std::make_shared<CommentOrMetaElement>(lineContent);
-                }
-            }
+            case 0: return TexmapStartCommand::doesLineMatch(lineContent)
+                               ? std::make_shared<TexmapStartCommand>(lineContent)
+                               : std::make_shared<CommentOrMetaElement>(lineContent);
             case 1: return std::make_shared<SubfileReference>(lineContent, bfcState.invertNext);
             case 2: return std::make_shared<Line>(lineContent);
             case 3: return std::make_shared<Triangle>(lineContent, bfcState.windingOrder);
@@ -37,7 +32,7 @@ namespace bricksim::ldr {
         }
     }
 
-#ifndef NDEBUG
+    #ifndef NDEBUG
     FileElement::~FileElement() {
         //todo use std::lock_guard without breaking build
         std::scoped_lock lg(metrics::ldrFileElementInstanceCountMtx);
@@ -50,32 +45,31 @@ namespace bricksim::ldr {
         ++metrics::ldrFileElementInstanceCount;
         //std::cout << metrics::ldrFileElementInstanceCount << std::endl;
     }
-#else
+    #else
     FileElement::~FileElement() = default;
     FileElement::FileElement() = default;
-#endif
+    #endif
 
     void File::addTextLine(const std::string_view line) {
-        auto trimmed = stringutil::trim(line);
+        const auto trimmed = stringutil::trim(line);
         unsigned int currentStep = elements.empty() ? 0 : elements.back()->step;
         if (!trimmed.empty()) {
-            auto element = FileElement::parseLine(trimmed, bfcState);
-            if (element != nullptr) {
+            if (auto element = FileElement::parseLine(trimmed, bfcState); element != nullptr) {
                 bfcState.invertNext = false;
                 if (element->getType() == 0) {
-                    auto metaElement = std::dynamic_pointer_cast<CommentOrMetaElement>(element);
+                    const auto metaElement = std::dynamic_pointer_cast<CommentOrMetaElement>(element);
                     if (metaInfo.addLine(metaElement->content)) {
                         element = nullptr;
                     } else if (metaElement->content == "STEP") {
                         currentStep++;
                     } else if (metaElement->content.starts_with("BFC")) {
-                        std::string bfcCommand = stringutil::trim(metaElement->content.substr(3));
+                        const auto bfcCommand = stringutil::trim(std::string_view(metaElement->content).substr(3));
                         if (bfcCommand.starts_with("CERTIFY")) {
-                            std::string order = stringutil::trim(bfcCommand.substr(7));
+                            const auto order = stringutil::trim(bfcCommand.substr(7));
                             bfcState.windingOrder = order == "CW" ? WindingOrder::CW : WindingOrder::CCW;
                             bfcState.active = true;
                         } else if (bfcCommand.starts_with("CLIP")) {
-                            std::string order = stringutil::trim(bfcCommand.substr(4));
+                            const auto order = stringutil::trim(bfcCommand.substr(4));
                             if (order == "CW") {
                                 bfcState.windingOrder = WindingOrder::CW;
                             } else if (order == "CCW") {
@@ -94,11 +88,11 @@ namespace bricksim::ldr {
                             bfcState.invertNext = true;
                         }
                     } else if (metaElement->content.starts_with(META_COMMAND_TEXMAP) && config::get(config::ENABLE_TEXMAP_SUPPORT)) {
-                        auto startCommand = std::dynamic_pointer_cast<TexmapStartCommand>(metaElement);
+                        const auto startCommand = std::dynamic_pointer_cast<TexmapStartCommand>(metaElement);
                         if (startCommand != nullptr) {
                             texmapState.startOrNext(startCommand);
                         } else if (texmapState.isActive()) {
-                            size_t start = metaElement->content.find_first_not_of(LDR_WHITESPACE, META_COMMAND_TEXMAP_LEN);
+                            const std::size_t start = metaElement->content.find_first_not_of(LDR_WHITESPACE, META_COMMAND_TEXMAP_LEN);
                             if (metaElement->content.find("FALLBACK", start) == start) {
                                 texmapState.fallback();
                             } else if (metaElement->content.find("END", start) == start) {
@@ -107,7 +101,8 @@ namespace bricksim::ldr {
                         }
                     } else if (texmapState.isActive() && !texmapState.fallbackSectionReached) {
                         if (metaElement->content.starts_with("!:")) {
-                            auto realCommand = metaElement->content.substr(metaElement->content.find_first_not_of(LDR_WHITESPACE, 2));
+                            const std::size_t firstNonWhiteSpace = metaElement->content.find_first_not_of(LDR_WHITESPACE, 2);
+                            const auto realCommand = std::string_view(metaElement->content).substr(firstNonWhiteSpace);
                             element = FileElement::parseLine(realCommand, bfcState);
                         }
                         element->directTexmap = texmapState.startCommand;
@@ -145,6 +140,7 @@ namespace bricksim::ldr {
         }
         return hash;
     }
+
     void File::addShadowContent(const std::string& shadowContent) {
         size_t lineStart = 0;
         size_t lineEnd = 0;
@@ -166,6 +162,7 @@ namespace bricksim::ldr {
             lineStart = lineEnd;
         }
     }
+
     void File::parseLdcadMeta(const std::string_view& metaContent) {
         const std::string line(metaContent);
         const auto metaCommand = connection::ldcad_meta::Reader::readLine(line);
@@ -175,11 +172,11 @@ namespace bricksim::ldr {
             spdlog::warn("unknown/invalid ldcad snap meta in {}: {}", metaInfo.name, line);
         }
     }
+
     File::~File() = default;
 
     CommentOrMetaElement::CommentOrMetaElement(const std::string_view line) :
-        content(line) {
-    }
+        content(line) {}
 
     inline void parseNextFloat(const std::string_view line, size_t& start, size_t& end, float& result) {
         start = line.find_first_not_of(LDR_WHITESPACE, end);
@@ -193,7 +190,7 @@ namespace bricksim::ldr {
         }
     }
 
-    SubfileReference::SubfileReference(const std::string_view line, bool bfcInverted) :
+    SubfileReference::SubfileReference(const std::string_view line, const bool bfcInverted) :
         bfcInverted(bfcInverted) {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
@@ -213,7 +210,7 @@ namespace bricksim::ldr {
         }
     }
 
-    Triangle::Triangle(const std::string_view line, WindingOrder order) {
+    Triangle::Triangle(const std::string_view line, const WindingOrder order) {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
         std::from_chars(&line[start], &line[end], color.code);
@@ -229,7 +226,7 @@ namespace bricksim::ldr {
         }
     }
 
-    Quadrilateral::Quadrilateral(const std::string_view line, WindingOrder order) {
+    Quadrilateral::Quadrilateral(const std::string_view line, const WindingOrder order) {
         size_t start = line.find_first_not_of(LDR_WHITESPACE);
         size_t end = line.find_first_of(LDR_WHITESPACE, start);
         std::from_chars(&line[start], &line[end], color.code);
@@ -288,6 +285,7 @@ namespace bricksim::ldr {
     std::string SubfileReference::getLdrLine() const {
         return fmt::format("1 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:s}", color.code, x(), y(), z(), a(), b(), c(), d(), e(), f(), g(), h(), i(), filename);
     }
+
     void SubfileReference::setTransformationMatrix(const glm::mat4& matrix) {
         a() = matrix[0][0];
         b() = matrix[1][0];
@@ -303,13 +301,14 @@ namespace bricksim::ldr {
         z() = matrix[3][2];
     }
 
-    SubfileReference::SubfileReference(ColorReference color, const glm::mat4& transformation, bool bfcInverted) :
+    SubfileReference::SubfileReference(const ColorReference color, const glm::mat4& transformation, const bool bfcInverted) :
         bfcInverted(bfcInverted), color(color) {
         setTransformationMatrix(transformation);
     }
+
     std::shared_ptr<File> SubfileReference::getFile(const std::shared_ptr<File>& containingFile) {
         if (file == nullptr) {
-            file = ldr::file_repo::get().getFile(containingFile, filename);
+            file = file_repo::get().getFile(containingFile, filename);
         }
         return file;
     }
@@ -317,6 +316,7 @@ namespace bricksim::ldr {
     int Line::getType() const {
         return 2;
     }
+
     std::string Line::getLdrLine() const {
         return fmt::format("2 {:d} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1(), y1(), z1(), x2(), y2(), z2());
     }
@@ -324,6 +324,7 @@ namespace bricksim::ldr {
     int Triangle::getType() const {
         return 3;
     }
+
     std::string Triangle::getLdrLine() const {
         return fmt::format("3 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1(), y1(), z1(), x2(), y2(), z2(), x3(), y3(), z3());
     }
@@ -331,6 +332,7 @@ namespace bricksim::ldr {
     int Quadrilateral::getType() const {
         return 4;
     }
+
     std::string Quadrilateral::getLdrLine() const {
         return fmt::format("4 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1(), y1(), z1(), x2(), y2(), z2(), x3(), y3(), z3(), x4(), y4(), z4());
     }
@@ -343,7 +345,7 @@ namespace bricksim::ldr {
         return fmt::format("5 {:d} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}", color.code, x1(), y1(), z1(), x2(), y2(), z2(), controlX1(), controlY1(), controlZ1(), controlX2(), controlY2(), controlZ2());
     }
 
-    bool ldr::FileMetaInfo::addLine(const std::string& line) {
+    bool FileMetaInfo::addLine(const std::string& line) {
         if (firstLine) {
             title = stringutil::trim(line);
             firstLine = false;
@@ -360,7 +362,7 @@ namespace bricksim::ldr {
         } else if (line.starts_with("!KEYWORDS")) {
             size_t i = 9;
             while (true) {
-                size_t next = line.find(',', i);
+                const size_t next = line.find(',', i);
                 if (next == std::string::npos) {
                     keywords.insert(stringutil::trim(line.substr(i)));
                     break;
@@ -382,7 +384,7 @@ namespace bricksim::ldr {
         return true;
     }
 
-    std::ostream& operator<<(std::ostream& os, const ldr::FileMetaInfo& info) {
+    std::ostream& operator<<(std::ostream& os, const FileMetaInfo& info) {
         if (!info.title.empty()) {
             os << "0 " << info.title << LDR_NEWLINE;
         }
@@ -424,7 +426,7 @@ namespace bricksim::ldr {
                 lineWidth += kw.size();
                 if (lineWidth > 80) {
                     os << LDR_NEWLINE
-                       << "0 !KEYWORDS ";
+                            << "0 !KEYWORDS ";
                     lineWidth = 13 + kw.size();
                     first = true;
                 }
@@ -450,7 +452,7 @@ namespace bricksim::ldr {
         return os;
     }
 
-    const std::string& ldr::FileMetaInfo::getCategory() {
+    const std::string& FileMetaInfo::getCategory() {
         if (!headerCategory.has_value() || headerCategory->empty()) {
             const auto firstSpace = title.find(' ');
             auto start = 0;
@@ -463,7 +465,7 @@ namespace bricksim::ldr {
     }
 
     namespace {
-        const char* getFileTypeStr(FileType type) {
+        const char* getFileTypeStr(const FileType type) {
             switch (type) {
                 case FileType::MODEL: return "Model";
                 case FileType::MPD_SUBFILE: return "Submodel";
@@ -481,7 +483,7 @@ namespace bricksim::ldr {
         size_t end = line.find_first_of(LDR_WHITESPACE, start + 1);
         start = line.find_first_not_of(LDR_WHITESPACE, end);
         end = line.find_first_of(LDR_WHITESPACE, start);
-        auto projectionMethodStrView = std::string_view(line).substr(start, end - start);
+        const auto projectionMethodStrView = std::string_view(line).substr(start, end - start);
         projectionMethod = magic_enum::enum_cast<ProjectionMethod>(projectionMethodStrView).value_or(ProjectionMethod::PLANAR);
 
         parseNextThreeFloats(line, start, end, &coords[0]);    //p1
@@ -513,7 +515,7 @@ namespace bricksim::ldr {
 
     bool TexmapStartCommand::doesLineMatch(const std::string_view line) {
         if (line.starts_with(META_COMMAND_TEXMAP)) {
-            size_t start = line.find_first_not_of(LDR_WHITESPACE, META_COMMAND_TEXMAP_LEN);
+            const size_t start = line.find_first_not_of(LDR_WHITESPACE, META_COMMAND_TEXMAP_LEN);
             return line.find("START", start) == start;
         } else {
             return false;
@@ -538,8 +540,7 @@ namespace bricksim::ldr {
         projectionMethod(other.projectionMethod),
         coords(other.coords),
         textureFilename(other.textureFilename),
-        glossmapFileName(other.glossmapFileName) {
-    }
+        glossmapFileName(other.glossmapFileName) {}
 
     void TexmapState::startOrNext(const std::shared_ptr<TexmapStartCommand>& command) {
         this->startCommand = command;
@@ -560,9 +561,11 @@ namespace bricksim::ldr {
 
     FileNamespace::FileNamespace(std::string name, const std::filesystem::path& searchPath) :
         name(std::move(name)), searchPath(std::filesystem::absolute(searchPath)) {}
+
     bool FileNamespace::operator==(const FileNamespace& rhs) const {
         return name == rhs.name && searchPath == rhs.searchPath;
     }
+
     bool FileNamespace::operator!=(const FileNamespace& rhs) const {
         return !(rhs == *this);
     }

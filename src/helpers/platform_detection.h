@@ -27,7 +27,7 @@ namespace bricksim::detected_platform {
     constexpr Platform platform = Platform::OTHER;
     #elif TARGET_OS_MAC
     constexpr Platform platform = Platform::MACOS;
-        #define BRICKSIM_PLATFORM_MACOS
+    #define BRICKSIM_PLATFORM_MACOS
     #else
     constexpr Platform platform = Platform::OTHER;
     #endif

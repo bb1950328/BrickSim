@@ -27,9 +27,6 @@ namespace bricksim::gui::windows::view3d {
         auto& cursor = getCursorHandler().getIconCursor(toolData.icon);
         cursor.activate(getWindow());
     }
-    void resetCursor() {
-        getCursorHandler().getStandardCursor().activate(getWindow());
-    }
 
     void draw(Data& data) {
         ImGuiDockNode* lastDockNode = nullptr;
@@ -75,7 +72,7 @@ namespace bricksim::gui::windows::view3d {
                                    && mousePos.x <= windowPos.x + regionMax.x
                                    && windowPos.y + regionMin.y <= mousePos.y
                                    && mousePos.y <= windowPos.y + regionMax.y);
-                if (isInWindow && ImGui::IsWindowHovered(ImGuiHoveredFlags_None)) {
+                if (ImGui::IsWindowHovered(ImGuiHoveredFlags_None)) {
                     setCursor(editor);
                     cursorSet = true;
                 }
@@ -214,7 +211,7 @@ namespace bricksim::gui::windows::view3d {
         }
         ImGui::PopStyleVar();
         if (!cursorSet) {
-            resetCursor();
+            getCursorHandler().enableImGuiCursor();
         }
     }
 }

@@ -4,8 +4,8 @@
 #include <filesystem>
 #include <fstream>
 #include <tinyfiledialogs.h>
-
 #include "window_log.h"
+#include "../../helpers/almost_comparations.h"
 
 namespace bricksim::gui::windows::log {
     namespace {
@@ -49,16 +49,33 @@ namespace bricksim::gui::windows::log {
 
             ImGui::SameLine();
             bool copyClicked = ImGui::Button(ICON_FA_CLIPBOARD " Copy");
+
             ImGui::SameLine();
             bool saveClicked = ImGui::Button(ICON_FA_FLOPPY_DISK " Save");
+
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_BAN " Clear")) {
                 logging::latest_messages_tank::clear();
             }
 
+            ImGui::SameLine();
+            static bool scrollToEnd = true;
+            static uint8_t scrollToEndActivationDelay = 0;
+            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(scrollToEnd ? ImGuiCol_ButtonActive : ImGuiCol_Button));
+            if (ImGui::Button(ICON_FA_ARROWS_DOWN_TO_LINE" Scroll to End")) {
+                scrollToEnd = !scrollToEnd;
+            }
+            if (scrollToEnd && getLastScrollDeltaY() > 0) {
+                scrollToEnd = false;
+                scrollToEndActivationDelay = 30;
+            }
+            if (scrollToEndActivationDelay > 0) {
+                --scrollToEndActivationDelay;
+            }
+            ImGui::PopStyleColor();
+
             std::string exportResult;
-            auto tableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY;
-            if (ImGui::BeginTable("Log", 3, tableFlags)) {
+            if (ImGui::BeginTable("Log", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY)) {
                 ImGui::TableSetupColumn("Time");
                 ImGui::TableSetupColumn("Level");
                 ImGui::TableSetupColumn("Message");
@@ -91,6 +108,11 @@ namespace bricksim::gui::windows::log {
                                          + message.message
                                          + "\n");
                     }
+                }
+                if (scrollToEnd) {
+                    ImGui::SetScrollY(ImGui::GetScrollMaxY());
+                } else if (scrollToEndActivationDelay == 0 && almostEqual(ImGui::GetScrollY(), ImGui::GetScrollMaxY())) {
+                    scrollToEnd = true;
                 }
 
                 ImGui::EndTable();

@@ -1,5 +1,6 @@
 #include "file_repo.h"
 #include "../config.h"
+#include "../constant_data/constants.h"
 #include "../db.h"
 #include "../helpers/stringutil.h"
 #include "../helpers/util.h"
@@ -34,7 +35,7 @@ namespace bricksim::ldr::file_repo {
             }
 
             int errCode;
-            struct zip* zArchive = zip_open(path.string().c_str(), 0, &errCode);
+            zip* zArchive = zip_open(path.string().c_str(), 0, &errCode);
             if (zArchive == nullptr) {
                 zip_error_t zipError;
                 zip_error_init_with_code(&zipError, errCode);
@@ -43,25 +44,58 @@ namespace bricksim::ldr::file_repo {
                 throw std::invalid_argument(msg);
             }
 
-            struct zip_stat fileStat {};
+            struct zip_stat fileStat{};
             zip_stat(zArchive, "model.ldr", ZIP_FL_NOCASE, &fileStat);
-            auto modelFile = zip_fopen_index_encrypted(zArchive, fileStat.index, ZIP_FL_NOCASE, pw);
+            zip_file_t* const modelFile = zip_fopen_index_encrypted(zArchive, fileStat.index, ZIP_FL_NOCASE, pw);
 
             std::string result;
-            result.resize(fileStat.size + 1);
-            zip_fread(modelFile, result.data(), fileStat.size);
-            result[fileStat.size] = '\0';
 
+            const std::size_t previewSize = std::min(static_cast<decltype(fileStat.size)>(3), fileStat.size);
+            result.resize(previewSize);
+            zip_fread(modelFile, result.data(), previewSize);
+            const auto [utfBits, bomLength, sourceEndian] = util::determineUtfTypeFromBom(result);
+            result.erase(0, bomLength);
+
+            const std::size_t sizeWithoutPreview = fileStat.size - previewSize;
+            const std::size_t resultPreviewSize = result.size();
+            result.resize(resultPreviewSize + sizeWithoutPreview);
+            zip_fread(modelFile, result.data() + resultPreviewSize, sizeWithoutPreview);
             zip_fclose(modelFile);
             zip_close(zArchive);
+
+            if (utfBits > 8) {
+                if (utfBits == 16) {
+                    std::u16string u16string;
+                    u16string.resize(result.size() / 2);
+                    std::memcpy(u16string.data(), result.data(), result.size());
+                    if (sourceEndian != std::endian::native) {
+                        for (char16_t& ch: u16string) {
+                            ch = (ch & 0x00ff) << 8 | (ch & 0xff00) >> 8;
+                        }
+                    }
+                    result = utf8::utf16to8(u16string);
+                } else if (utfBits == 32) {
+                    std::u32string u32string;
+                    u32string.resize(result.size() / 4);
+                    std::memcpy(u32string.data(), result.data(), result.size());
+                    if (sourceEndian != std::endian::native) {
+                        for (char32_t& ch: u32string) {
+                            ch = (ch & 0x000000ff) << 24 | (ch & 0x0000ff00) << 8 | (ch & 0x00ff0000) >> 8 | (ch & 0xff000000) >> 24;
+                        }
+                    }
+                    result = utf8::utf32to8(u32string);
+                } else {
+                    throw std::invalid_argument(fmt::format("unable to perform conversion for UTF-{}", utfBits));
+                }
+            }
 
             return result;
         }
 
         std::string getContentOfLdrFile(const std::filesystem::path& path) {
             return path.extension() == ".io"
-                           ? getContentOfIoFile(path)
-                           : util::readFileToString(path);
+                       ? getContentOfIoFile(path)
+                       : util::readFileToString(path);
         }
     }
 
@@ -129,6 +163,7 @@ namespace bricksim::ldr::file_repo {
         }
         return getFile(context->nameSpace, name);
     }
+
     std::shared_ptr<File> FileRepo::getFile(const std::shared_ptr<FileNamespace>& fileNamespace, const std::string& name, std::optional<std::filesystem::path> contextRelativePath) {
         plFunction();
         {
@@ -174,8 +209,8 @@ namespace bricksim::ldr::file_repo {
         }
 
         const auto finalPath = contextRelativePath.has_value()
-                                       ? fileNamespace->searchPath / *contextRelativePath / name
-                                       : fileNamespace->searchPath / name;
+                                   ? fileNamespace->searchPath / *contextRelativePath / name
+                                   : fileNamespace->searchPath / name;
         if (std::filesystem::exists(finalPath)) {
             return addLdrFileWithContent(fileNamespace, name, finalPath, FileType::MODEL, getContentOfLdrFile(finalPath));
         }
@@ -211,8 +246,8 @@ namespace bricksim::ldr::file_repo {
             auto filenameWithForwardSlash = stringutil::replaceChar(name, '\\', '/');
             std::string nameInLibrary;
             const auto prePrefixes = searchPath == BinaryFileSearchPath::TEXMAP
-                                             ? std::vector<std::string>({"textures/", ""})
-                                             : std::vector<std::string>({""});
+                                         ? std::vector<std::string>({"textures/", ""})
+                                         : std::vector<std::string>({""});
             for (const auto& prePrefix: prePrefixes) {
                 for (const auto& prefix: PART_SEARCH_PREFIXES) {
                     auto fullName = prefix + prePrefix;
@@ -333,6 +368,7 @@ namespace bricksim::ldr::file_repo {
     }
 
     constexpr const auto LDCONFIG_FILE_NAME = "LDConfig.ldr";
+
     void FileRepo::initialize(float* progress) {
         auto currentLDConfigContent = getLibraryLdrFileContent(LDCONFIG_FILE_NAME);
         const auto currentHash = fmt::format("{:x}", adler32(1, reinterpret_cast<unsigned char*>(currentLDConfigContent.data()), currentLDConfigContent.size()));
@@ -358,47 +394,47 @@ namespace bricksim::ldr::file_repo {
                 const size_t iStart = threadNum * filesPerThread;                                    //inclusive
                 const size_t iEnd = (threadNum == numCores - 1) ? numFiles : iStart + filesPerThread;//exclusive
                 threads.emplace_back([this,
-                                      iStart,
-                                      iEnd,
-                                      &threadNum,
-                                      &fileNames,
-                                      progress]() {
-                    std::string threadName = fmt::format("FileList filler #", threadNum);
-                    util::setThreadName(threadName.c_str());
-                    std::vector<db::fileList::Entry> entries;
-                    for (auto fileName = fileNames.cbegin() + iStart; fileName < fileNames.cbegin() + iEnd; ++fileName) {
-                        auto [type, name] = getTypeAndNameFromPathRelativeToBase(*fileName);
-                        if (isBinaryFilename(name)) {
-                            entries.push_back({*fileName, name, PSEUDO_CATEGORY_BINARY_FILE});
-                        } else {
-                            auto ldrFile = addLdrFileWithContent(nullptr, name, "", type, getLibraryLdrFileContent(*fileName));
-
-                            std::string category;
-                            if (type == ldr::FileType::PART) {
-                                const char& firstChar = ldrFile->metaInfo.title[0];
-                                if ((firstChar == '~' && ldrFile->metaInfo.title[1] != '|') || firstChar == '=' || firstChar == '_') {
-                                    category = PSEUDO_CATEGORY_HIDDEN_PART;
+                            iStart,
+                            iEnd,
+                            &threadNum,
+                            &fileNames,
+                            progress]() {
+                            std::string threadName = fmt::format("FileList filler #", threadNum);
+                            util::setThreadName(threadName.c_str());
+                            std::vector<db::fileList::Entry> entries;
+                            for (auto fileName = fileNames.cbegin() + iStart; fileName < fileNames.cbegin() + iEnd; ++fileName) {
+                                auto [type, name] = getTypeAndNameFromPathRelativeToBase(*fileName);
+                                if (isBinaryFilename(name)) {
+                                    entries.push_back({*fileName, name, PSEUDO_CATEGORY_BINARY_FILE});
                                 } else {
-                                    category = ldrFile->metaInfo.getCategory();
+                                    auto ldrFile = addLdrFileWithContent(nullptr, name, "", type, getLibraryLdrFileContent(*fileName));
+
+                                    std::string category;
+                                    if (type == ldr::FileType::PART) {
+                                        const char& firstChar = ldrFile->metaInfo.title[0];
+                                        if ((firstChar == '~' && ldrFile->metaInfo.title[1] != '|') || firstChar == '=' || firstChar == '_') {
+                                            category = PSEUDO_CATEGORY_HIDDEN_PART;
+                                        } else {
+                                            category = ldrFile->metaInfo.getCategory();
+                                        }
+                                    } else if (type == ldr::FileType::SUBPART) {
+                                        category = PSEUDO_CATEGORY_SUBPART;
+                                    } else if (type == ldr::FileType::PRIMITIVE) {
+                                        category = PSEUDO_CATEGORY_PRIMITIVE;
+                                    } else if (type == ldr::FileType::MODEL) {
+                                        category = PSEUDO_CATEGORY_MODEL;
+                                    }
+                                    entries.push_back({name, ldrFile->metaInfo.title, category});
                                 }
-                            } else if (type == ldr::FileType::SUBPART) {
-                                category = PSEUDO_CATEGORY_SUBPART;
-                            } else if (type == ldr::FileType::PRIMITIVE) {
-                                category = PSEUDO_CATEGORY_PRIMITIVE;
-                            } else if (type == ldr::FileType::MODEL) {
-                                category = PSEUDO_CATEGORY_MODEL;
+                                if (iStart == 0) {
+                                    *progress = .4f * static_cast<float>(entries.size()) / static_cast<float>(iEnd) + .5f;
+                                }
                             }
-                            entries.push_back({name, ldrFile->metaInfo.title, category});
-                        }
-                        if (iStart == 0) {
-                            *progress = .4f * static_cast<float>(entries.size()) / static_cast<float>(iEnd) + .5f;
-                        }
-                    }
-                    db::fileList::put(entries);
-                    if (iStart == 0) {
-                        *progress = 1.0f;
-                    }
-                });
+                            db::fileList::put(entries);
+                            if (iStart == 0) {
+                                *progress = 1.0f;
+                            }
+                        });
             }
 
             for (auto& t: threads) {
@@ -533,6 +569,7 @@ namespace bricksim::ldr::file_repo {
     const uomap_t<std::shared_ptr<FileNamespace>, uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>>>& FileRepo::getAllFilesInMemory() const {
         return ldrFiles;
     }
+
     std::shared_ptr<FileNamespace> FileRepo::getNamespace(const std::string& name) {
         plLockWait("FileRepo::ldrFilesMtx");
         std::scoped_lock<std::mutex> lg(ldrFilesMtx);
@@ -546,5 +583,4 @@ namespace bricksim::ldr::file_repo {
     }
 
     FileRepo::~FileRepo() = default;
-
 }

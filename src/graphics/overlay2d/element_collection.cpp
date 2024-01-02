@@ -59,7 +59,7 @@ namespace bricksim::overlay2d {
                 glBindVertexArray(vao);
                 glBindBuffer(GL_ARRAY_BUFFER, vbo);
                 if (needToRewriteEverything) {
-                    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>((vertices.size() * sizeof(Vertex))), &vertices[0], GL_STATIC_DRAW);
+                    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>((vertices.size() * sizeof(Vertex))), vertices.data(), GL_STATIC_DRAW);
                     changedVerticesCount = static_cast<unsigned int>(vertices.size());
                 } else {
                     for (const auto& range: changedRanges) {

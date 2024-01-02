@@ -288,7 +288,7 @@ namespace bricksim::mesh::generated {
         4-------------5       X
          */
         constexpr float N = 0.5f;
-        constexpr std::array<glm::vec4, 8> pos = {{
+        GLM_CONSTEXPR std::array<glm::vec4, 8> pos = {{
                 {+N, -N, +N, 1.0f},//0
                 {+N, +N, +N, 1.0f},//1
                 {-N, -N, +N, 1.0f},//2

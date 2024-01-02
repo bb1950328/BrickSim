@@ -9,51 +9,51 @@ namespace bricksim::connection {
     namespace {
         uomap_t<std::shared_ptr<ldr::FileNamespace>, uomap_t<std::string, std::shared_ptr<connector_container_t>>> cache;
         std::mutex cacheLock;
+    }
 
-        void removeConnected(connector_container_t& connectors) {
-            VectorPairCheckResultConsumer result;
-            ConnectionCheck connCheck(result);
-            connCheck.checkForConnected(connectors);
-            uoset_t<std::shared_ptr<Connector>> fullyConnectedSet;
-            fullyConnectedSet.reserve(result.getResult().size());
-            for (const auto& item: result.getResult()) {
-                if (item.completelyUsedConnector[0]) {
-                    fullyConnectedSet.insert(item.connectorA);
-                }
-                if (item.completelyUsedConnector[1]) {
-                    fullyConnectedSet.insert(item.connectorB);
-                }
-                //todo if the connector is only partially used, create a new connector of the part which is still free
-                // but this will be a complex algorithm
+    void removeConnected(connector_container_t& connectors) {
+        VectorPairCheckResultConsumer result;
+        ConnectionCheck connCheck(result);
+        connCheck.checkForConnected(connectors);
+        uoset_t<std::shared_ptr<Connector>> fullyConnectedSet;
+        fullyConnectedSet.reserve(result.getResult().size());
+        for (const auto& item: result.getResult()) {
+            if (item.completelyUsedConnector[0]) {
+                fullyConnectedSet.insert(item.connectorA);
             }
-            connectors.erase(std::remove_if(connectors.begin(),
-                                            connectors.end(),
-                                            [&fullyConnectedSet](const auto c) {
-                                                return fullyConnectedSet.contains(c);
-                                            }),
-                             connectors.end());
+            if (item.completelyUsedConnector[1]) {
+                fullyConnectedSet.insert(item.connectorB);
+            }
+            //todo if the connector is only partially used, create a new connector of the part which is still free
+            // but this will be a complex algorithm
         }
+        connectors.erase(std::remove_if(connectors.begin(),
+                                        connectors.end(),
+                                        [&fullyConnectedSet](const auto c) {
+                                            return fullyConnectedSet.contains(c);
+                                        }),
+                         connectors.end());
+    }
 
-        std::size_t removeDuplicates(connector_container_t& connectors) {
-            connector_container_t result;
-            result.reserve(connectors.size());
-            std::size_t duplicateCount = 0;
-            for (const auto& c: connectors) {
-                bool add = true;
-                for (const auto& r: result) {
-                    if (*r == *c) {
-                        add = false;
-                        ++duplicateCount;
-                        break;
-                    }
-                }
-                if (add) {
-                    result.push_back(c);
+    std::size_t removeDuplicates(connector_container_t& connectors) {
+        connector_container_t result;
+        result.reserve(connectors.size());
+        std::size_t duplicateCount = 0;
+        for (const auto& c: connectors) {
+            bool add = true;
+            for (const auto& r: result) {
+                if (*r == *c) {
+                    add = false;
+                    ++duplicateCount;
+                    break;
                 }
             }
-            connectors.assign(result.begin(), result.end());
-            return duplicateCount;
+            if (add) {
+                result.push_back(c);
+            }
         }
+        connectors.assign(result.begin(), result.end());
+        return duplicateCount;
     }
 
     std::shared_ptr<connector_container_t> getConnectorsOfLdrFile(const std::shared_ptr<ldr::FileNamespace>& fileNamespace, const std::string& name) {

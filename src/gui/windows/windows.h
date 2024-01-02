@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../lib/magic_enum/include/magic_enum.hpp"
+#include "magic_enum.hpp"
 
 namespace bricksim::gui::windows {
     enum class Id {

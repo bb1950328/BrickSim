@@ -27,11 +27,10 @@ namespace bricksim::ldr {
         }
 
         size_t lineStart = 0;
-        size_t lineEnd;
         bool firstFile = true;
         bool hasMoreLines = true;
         while (hasMoreLines) {
-            lineEnd = content.find_first_of("\r\n", lineStart);
+            size_t lineEnd = content.find_first_of("\r\n", lineStart);
             if (lineEnd == std::string::npos) {
                 hasMoreLines = false;
                 lineEnd = content.size();
@@ -44,10 +43,11 @@ namespace bricksim::ldr {
                 const auto currentName = stringutil::trim(line.substr(7));
                 if (firstFile) {
                     firstFile = false;
-                    files.emplace(currentName, currentFile.value());
+                    if (currentFile.has_value()) {
+                        files.emplace(currentName, currentFile.value());
+                    }
                 } else {
-                    const auto it = files.find(currentName);
-                    if (it != files.end()) {
+                    if (const auto it = files.find(currentName); it != files.end()) {
                         currentFile = it->second;
                     } else {
                         currentFile = std::make_shared<File>();
@@ -69,9 +69,9 @@ namespace bricksim::ldr {
     }
 
     std::shared_ptr<File> readSimpleFile(const std::shared_ptr<FileNamespace>& fileNamespace,
-                                         std::string_view name,
+                                         const std::string_view name,
                                          const std::filesystem::path& source,
-                                         FileType type,
+                                         const FileType type,
                                          const std::string& content,
                                          const std::optional<std::string>& shadowContent) {
         plFunction();
@@ -81,7 +81,7 @@ namespace bricksim::ldr {
         file->nameSpace = fileNamespace;
         size_t lineStart = 0;
         size_t lineEnd = 0;
-        std::string_view contentSV = content;
+        const std::string_view contentSV = content;
         while (lineEnd < contentSV.size()) {
             lineEnd = contentSV.find_first_of("\r\n", lineStart);
             if (lineEnd == std::string::npos) {

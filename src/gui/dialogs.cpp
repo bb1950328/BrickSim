@@ -26,8 +26,8 @@ namespace bricksim::gui::dialogs {
                 nullptr,
                 0);
         if (fileNameChars != nullptr) {
-            std::string fileName(fileNameChars);
-            controller::openFile(fileName);
+            std::filesystem::path path(fileNameChars);
+            controller::openFile(path);
         }
     }
 

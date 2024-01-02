@@ -421,7 +421,7 @@ namespace bricksim::controller {
             return 1;
         }
 
-        //openFile("test_files/bricks_test.ldr");
+        openFile("test_files/bricks_test.ldr");
         //openFile("test_files/connections.ldr");
         //openFile("test_files/triangle_test.ldr");
         //openFile("test_files/mpd_test.mpd");
@@ -429,7 +429,7 @@ namespace bricksim::controller {
         //openFile("test_files/texmap_planar3.ldr");
         //openFile("test_files/texmap_planar_perpendicular.ldr");
         //openFile("test_files/omr/arocs.mpd");
-        openFile("test_files/omr/911.mpd");
+        //openFile("test_files/omr/911.mpd");
         //openFile("test_files/omr/chiron.mpd");
         //openFile("test_files/connection_info_problem_parts.ldr");
         //openFile("test_files/two_bricks_stacked.ldr");
@@ -527,8 +527,7 @@ namespace bricksim::controller {
         return glfwWindowShouldClose(window) || userWantsToExit;
     }
 
-    void openFile(const std::string& path) {
-        const auto absPath = std::filesystem::absolute(util::replaceSpecialPaths(path));
+    void openFile(const std::filesystem::path& absPath) {
         foregroundTasks.emplace(fmt::format("Open {}", absPath.string()), [absPath]() {
             editors.emplace_back(Editor::openFile(absPath));
             if (editors.size() == 1) {

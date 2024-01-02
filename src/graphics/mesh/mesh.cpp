@@ -499,11 +499,11 @@ namespace bricksim::mesh {
             item.second.draw(range);
         }
     }
-    const std::optional<OuterDimensions>& Mesh::getOuterDimensions() {
+    const OuterDimensions& Mesh::getOuterDimensions() {
         if (!outerDimensions.has_value()) {
             calculateOuterDimensions();
         }
-        return outerDimensions;
+        return *outerDimensions;
     }
 
     void Mesh::calculateOuterDimensions() {

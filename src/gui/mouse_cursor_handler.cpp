@@ -4,6 +4,11 @@
 #include <spdlog/spdlog.h>
 
 namespace bricksim::gui {
+    namespace {
+        GLFWcursor* currentCursor = nullptr;
+        bool imguiControlsCursor = true;
+    }
+
     struct GLFWcursorDestroyer {
         void operator()(GLFWcursor* cursor) {
             controller::executeOpenGL([cursor]() {
@@ -17,7 +22,15 @@ namespace bricksim::gui {
         cursor(std::shared_ptr<GLFWcursor>(cursor, GLFWcursorDestroyer{})) {}
 
     void MouseCursor::activate(GLFWwindow* window) {
-        glfwSetCursor(window, cursor.get());
+        if (currentCursor != cursor.get() || imguiControlsCursor) {
+            glfwSetCursor(window, cursor.get());
+            currentCursor = cursor.get();
+
+            ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+            imguiControlsCursor = false;
+
+            spdlog::trace("activate cursor {}", fmt::ptr(cursor.get()));
+        }
     }
 
     MouseCursor createStandard(StandardCursorType type) {
@@ -29,7 +42,7 @@ namespace bricksim::gui {
     }
 
     MouseCursor createIcon(icons::IconType type) {
-        constexpr auto size = icons::Icon48;
+        constexpr auto size = icons::Icon36;
         auto imageData = icons::getRawImage(type, size);
         const auto hotPoint = icons::getHotPoint(type, size);
         GLFWimage image = {
@@ -62,6 +75,14 @@ namespace bricksim::gui {
             return iconCursors.emplace(type, createIcon(type)).first->second;
         }
         return it->second;
+    }
+
+    void MouseCursorHandler::enableImGuiCursor() {
+        if (!imguiControlsCursor) {
+            ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouseCursorChange;
+            imguiControlsCursor = true;
+            spdlog::trace("MouseCursorHandler::enableImGuiCursor");
+        }
     }
 
     MouseCursor& MouseCursorHandler::getStandardCursor() {

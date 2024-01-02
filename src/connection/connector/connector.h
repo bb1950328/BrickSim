@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace bricksim::connection {
     enum class Gender {
@@ -42,6 +43,8 @@ namespace bricksim::connection {
     protected:
         static std::pair<float, float> getRadiusAndLengthFactorFromTransformation(const glm::mat4& transformation, const glm::vec3& direction);
     };
+
+    using connector_container_t = std::vector<std::shared_ptr<Connector>>;
 }
 namespace std {
     template<>

@@ -12,6 +12,7 @@ namespace bricksim {
     class Editor;
 }
 namespace bricksim::connection {
+    using broadphase_collision_pair_t = std::array<fcl::CollisionObjectf*, 2>;
 
     class Engine {
     private:
@@ -21,7 +22,6 @@ namespace bricksim::connection {
             std::unique_ptr<fcl::CollisionObjectf> collisionObj;
             uoset_t<std::shared_ptr<etree::Node>> children;
         };
-        using broadphase_collision_pair_t = std::array<fcl::CollisionObjectf*, 2>;
 
         std::weak_ptr<graphics::Scene> scene;
         fcl::DynamicAABBTreeCollisionManagerf manager;
@@ -65,9 +65,12 @@ namespace bricksim::connection {
         void update(const std::shared_ptr<etree::Node>& rootNode, float* progress);
         void update(const std::shared_ptr<etree::Node>& rootNode);
 
+        std::vector<std::pair<float, std::shared_ptr<etree::MeshNode>>> getNodesNearRay(Ray3 ray, float distanceLimit, float radiusLimit);
+
         const IntersectionGraph& getIntersections() const;
         const ConnectionGraph& getConnections() const;
 
         friend bool updateCallback(fcl::CollisionObjectf* o0, fcl::CollisionObjectf* o1, void* cdata);
+        friend bool rayIntersectionCallback(fcl::CollisionObjectf* o0, fcl::CollisionObjectf* o1, void* cdata);
     };
 }

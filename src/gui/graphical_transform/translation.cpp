@@ -15,7 +15,7 @@ namespace bricksim::graphical_transform {
     void Translation::updateAxisLines() {
         const auto& linearSnapPreset = controller::getSnapHandler().getLinear().getCurrentPreset();
         glm::vec3 pos = initialNodeCenter;
-        constexpr std::array<glm::vec3, 3> axes = {
+        GLM_CONSTEXPR std::array<glm::vec3, 3> axes = {
                 glm::vec3(1.f, 0.f, 0.f),
                 glm::vec3(0.f, 1.f, 0.f),
                 glm::vec3(0.f, 0.f, 1.f),

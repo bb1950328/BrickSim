@@ -8,7 +8,6 @@
 #include "ldcad_meta/gen_command.h"
 #include "ldcad_meta/incl_command.h"
 namespace bricksim::connection {
-    using connector_container_t = std::vector<std::shared_ptr<Connector>>;
     class ConnectorConversion {
     protected:
         std::shared_ptr<connector_container_t> result;

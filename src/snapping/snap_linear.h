@@ -12,10 +12,6 @@ namespace bricksim::snap {
         [[nodiscard]] glm::ivec3 stepXYZ() const;
         LinearSnapStepPreset(std::string name, int distanceXz, int distanceY);
         [[nodiscard]] std::optional<gui::icons::IconType> getIcon() const;
-        //todo remove LinearSnapStepPreset(const LinearSnapStepPreset& other) = default;
-        //todo remove LinearSnapStepPreset& operator=(const LinearSnapStepPreset& other) = default;
-        //todo remove LinearSnapStepPreset(LinearSnapStepPreset&& other) = default;
-        //todo remove LinearSnapStepPreset& operator=(LinearSnapStepPreset&& other) = default;
     };
     class LinearHandler {
         std::vector<LinearSnapStepPreset> presets;

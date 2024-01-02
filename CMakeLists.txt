@@ -293,6 +293,10 @@ endif()
 #miniball
 target_include_directories(BrickSimLib PUBLIC src/lib/miniball/cpp/main)
 
+#json_dto
+add_subdirectory(src/lib/json_dto/dev)
+target_link_libraries(BrickSimLib PUBLIC json-dto)
+
 add_subdirectory(src)
 
 if (WIN32)

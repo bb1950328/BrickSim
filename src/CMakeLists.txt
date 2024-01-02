@@ -26,6 +26,7 @@ target_sources(BrickSimLib PRIVATE
         )
 
 add_subdirectory(benchmarks)
+add_subdirectory(config)
 add_subdirectory(connection)
 add_subdirectory(constant_data)
 add_subdirectory(graphics)

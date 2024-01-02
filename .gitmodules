@@ -68,3 +68,6 @@
 [submodule "src/lib/miniball"]
 	path = src/lib/miniball
 	url = https://github.com/hbf/miniball.git
+[submodule "src/lib/json_dto"]
+	path = src/lib/json_dto
+	url = https://github.com/Stiffstream/json_dto

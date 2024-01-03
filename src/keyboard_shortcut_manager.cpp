@@ -10,7 +10,6 @@
 #include <spdlog/spdlog.h>
 
 namespace bricksim::keyboard_shortcut_manager {
-
     namespace modifier {
         constexpr auto NONE = static_cast<modifier_t>(0);
         constexpr auto CTRL = static_cast<modifier_t>(GLFW_MOD_CONTROL);
@@ -98,7 +97,7 @@ namespace bricksim::keyboard_shortcut_manager {
                 GLFW_KEY_PERIOD,
                 GLFW_KEY_SLASH,
         };
-        static_assert(SPECIAL_CHARS.size()==SPECIAL_CHAR_KEYS.size());
+        static_assert(SPECIAL_CHARS.size() == SPECIAL_CHAR_KEYS.size());
 
         /// IMPORTANT: always append new shortcuts at the end, otherwise existing configs aren't updated correctly
         const std::array DEFAULT_SHORTCUTS = {
@@ -188,7 +187,7 @@ namespace bricksim::keyboard_shortcut_manager {
         saveNewDefaultsToDB();
     }
 
-    void shortcutPressed(key_t key, uint64_t keyAction, modifier_t modifiers, bool isCapturedByGui) {
+    void shortcutPressed(int key, int keyAction, modifier_t modifiers, const bool isCapturedByGui) {
         for (const auto& modifierKey: modifier::ALL_KEYS) {
             if (modifierKey == key) {
                 return;

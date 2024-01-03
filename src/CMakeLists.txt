@@ -1,8 +1,6 @@
 target_sources(BrickSimLib PRIVATE
         binary_file.cpp
         binary_file.h
-        config.cpp
-        config.h
         controller.cpp
         controller.h
         custom_imconfig.h

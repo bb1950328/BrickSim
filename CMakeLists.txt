@@ -278,6 +278,7 @@ target_sources(ImGuiColorTextEdit PRIVATE
         src/lib/ImGuiColorTextEdit/TextEditor.cpp
         src/lib/ImGuiColorTextEdit/TextEditor.h
 )
+target_compile_definitions(ImGuiColorTextEdit PRIVATE IMGUI_DISABLE_OBSOLETE_FUNCTIONS)
 target_include_directories(ImGuiColorTextEdit PRIVATE src/lib/imgui)
 target_include_directories(ImGuiColorTextEdit INTERFACE src/lib/ImGuiColorTextEdit)
 

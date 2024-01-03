@@ -4,6 +4,7 @@
 #include "imgui_stdlib.h"
 #include "window_settings.h"
 
+#include "TextEditor.h"
 #include "imgui_internal.h"
 #include "../../info_providers/bricklink_constants_provider.h"
 
@@ -39,7 +40,7 @@ namespace bricksim::gui::windows::settings {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_FOLDER_OPEN, {promptButtonSize, promptButtonSize})) {
             char* selectedPath;
-            const auto extendedPath = util::replaceSpecialPaths(path);
+            const auto extendedPath = util::replaceSpecialPaths(path).string();
             if (isDirectory) {
                 selectedPath = tinyfd_selectFolderDialog(label, extendedPath.c_str());
             } else {
@@ -442,6 +443,12 @@ namespace bricksim::gui::windows::settings {
         return "Settings";
     }
 
+    struct JsonEditorData {
+        TextEditor editor;
+        std::string originalJson;
+        std::string errorMessage;
+    };
+
     template<typename D>
     void drawTabs(D& data) {
         if (ImGui::BeginTabBar("##settingsTabs")) {
@@ -450,9 +457,49 @@ namespace bricksim::gui::windows::settings {
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("JSON")) {
-                const auto json = json_dto::to_json(data);
-                //todo make this an ImGuiColorTextEdit
-                ImGui::Text("%s", json.c_str());
+                static uomap_t<std::size_t, JsonEditorData> allEditors;
+                auto it = allEditors.find(typeid(D).hash_code());
+                if (it == allEditors.end()) {
+                    JsonEditorData editorData;
+                    //editorData.originalJson = json_helper::to_pretty_json(data);
+                    it = allEditors.emplace(typeid(D).hash_code(), editorData).first;
+                }
+                auto& editorData = it->second;
+                auto& editor = editorData.editor;
+
+                const auto currentDataJson = json_helper::to_pretty_json(data);
+                if (currentDataJson != editorData.originalJson) {
+                    //changed outside of editor
+                    editorData.originalJson = currentDataJson;
+                    editor.SetText(currentDataJson);
+                }
+
+                if (!editorData.errorMessage.empty()) {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(color::RED));
+                    ImGui::TextWrapped(ICON_FA_TRIANGLE_EXCLAMATION" %s", editorData.errorMessage.c_str());
+                    ImGui::PopStyleColor();
+                }
+                editor.Render("##json");
+                if (editor.IsTextChanged()) {
+                    const auto currentText = editor.GetText();
+                    try {
+                        data = json_dto::from_json<D>(currentText);
+                        editorData.errorMessage.clear();
+                        editor.SetErrorMarkers({});
+                        editorData.originalJson = json_helper::to_pretty_json(data);
+                    } catch (json_dto::ex_t ex) {
+                        editorData.errorMessage = ex.what();
+                        const size_t offsetIdx = editorData.errorMessage.find("offset: ");
+                        if (offsetIdx != std::string::npos) {
+                            const auto offsetStr = editorData.errorMessage.substr(offsetIdx + 8, editorData.errorMessage.find_first_not_of("0123456789", offsetIdx));
+                            const auto offset = std::stoul(offsetStr);
+                            const auto offsetLineNo = std::count(currentText.begin(), currentText.begin() + offset, '\n');
+                            TextEditor::ErrorMarkers errorMarkers;
+                            errorMarkers.insert(std::make_pair(offsetLineNo + 1, editorData.errorMessage));
+                            editor.SetErrorMarkers(errorMarkers);
+                        }
+                    }
+                }
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
@@ -460,9 +507,9 @@ namespace bricksim::gui::windows::settings {
     }
 
     struct CategoryTreeState {
-        int currentIndex = 0;
-        int selectedIndex = -1;
-        std::function<void()> tabsFunction = [] {};
+        int currentIndex;
+        int selectedIndex;
+        std::function<void()> tabsFunction;
     };
 
     template<typename D>
@@ -563,7 +610,7 @@ namespace bricksim::gui::windows::settings {
             const float buttonHeight = (ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2);
             const float mainHeight = ImGui::GetContentRegionAvail().y - buttonHeight - ImGui::GetStyle().FramePadding.y * 4 - 1.f;
             ImGui::BeginChild("##categoryTree", {treeWidth, mainHeight});
-            static CategoryTreeState treeState;
+            static CategoryTreeState treeState{0, 1, [] {}};
             treeState.currentIndex = 0;
             drawCategoryTree(treeState, editingConfig);
             ImGui::EndChild();

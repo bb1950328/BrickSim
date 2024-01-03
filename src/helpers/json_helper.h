@@ -98,4 +98,15 @@ namespace bricksim::json_helper {
             }
         }
     };
+
+    template<typename T>
+    std::string to_pretty_json(const T& value) {
+        rapidjson::StringBuffer jsonBuffer;
+        rapidjson::PrettyWriter jsonWriter(jsonBuffer);
+        rapidjson::Document d;
+        json_dto::json_output_t jout(d, d.GetAllocator());
+        jout << value;
+        d.Accept(jsonWriter);
+        return jsonBuffer.GetString();
+    }
 }

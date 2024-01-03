@@ -65,8 +65,9 @@ namespace bricksim::json_helper {
     template<typename E>
     struct EnumSetRW {
         EnumRW<E> single;
+
         void read(uoset_t<E>& value, const rapidjson::Value& from) const {
-            for (const auto & item : from.GetArray()) {
+            for (const auto& item: from.GetArray()) {
                 E result;
                 single.read(result, item);
                 value.insert(result);
@@ -75,10 +76,25 @@ namespace bricksim::json_helper {
 
         void write(const uoset_t<E>& value, rapidjson::Value& object, rapidjson::MemoryPoolAllocator<>& allocator) const {
             object.SetArray();
-            for (const auto & item : value) {
+            for (const auto& item: value) {
                 rapidjson::Value result;
                 single.write(item, result, allocator);
                 object.GetArray().PushBack(result, allocator);
+            }
+        }
+    };
+
+    template<typename T, T minValue, T maxValue>
+    struct power_of_two_validator_t {
+        void operator()(T& value) const {
+            if (value < minValue) {
+                throw JsonValidationError(fmt::format("value must be >={}, but is {}", minValue, value));
+            }
+            if (value > maxValue) {
+                throw JsonValidationError(fmt::format("value must be <={}, but is {}", maxValue, value));
+            }
+            if (value == 0 || value & value - 1) {
+                throw JsonValidationError(fmt::format("value {} is not a power of two", value));
             }
         }
     };

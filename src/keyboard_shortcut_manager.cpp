@@ -127,14 +127,15 @@ namespace bricksim::keyboard_shortcut_manager {
         bool shouldCatchNextShortcut;
         std::optional<config::KeyboardShortcut> caughtShortcut;
 
-        void saveNewDefaultsToDB() {
-            const std::size_t inDB = config::get().keyboardShortcuts.defaultCount;
-            if (inDB < DEFAULT_SHORTCUTS.size()) {
+        void saveNewDefaultsToConfig() {
+            const std::size_t inConfig = config::get().keyboardShortcuts.defaultCount;
+            if (inConfig < DEFAULT_SHORTCUTS.size()) {
                 auto& shortcuts = config::getMutable().keyboardShortcuts.shortcuts;
-                for (std::size_t i = inDB; i < DEFAULT_SHORTCUTS.size(); ++i) {
+                for (std::size_t i = inConfig; i < DEFAULT_SHORTCUTS.size(); ++i) {
                     shortcuts.push_back(DEFAULT_SHORTCUTS[i]);
                 }
-                spdlog::info("saved {} new keyboard shortcuts to config", DEFAULT_SHORTCUTS.size() - inDB);
+                config::getMutable().keyboardShortcuts.defaultCount = DEFAULT_SHORTCUTS.size();
+                spdlog::info("saved {} new keyboard shortcuts to config", DEFAULT_SHORTCUTS.size() - inConfig);
                 config::save();
             }
         }
@@ -184,7 +185,7 @@ namespace bricksim::keyboard_shortcut_manager {
     }
 
     void initialize() {
-        saveNewDefaultsToDB();
+        saveNewDefaultsToConfig();
     }
 
     void shortcutPressed(int key, int keyAction, modifier_t modifiers, const bool isCapturedByGui) {

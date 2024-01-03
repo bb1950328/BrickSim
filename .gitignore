@@ -68,8 +68,7 @@ cmake-build-relwithdebinfo/
 /codes.txt
 /requestCache/
 
-/config.db3
-/fileList.db3
+/config.json
 /cache.db3
 .idea/sonarlint/issuestore
 .idea/sonarlint/securityhotspotstore

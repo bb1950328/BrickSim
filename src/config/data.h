@@ -8,6 +8,7 @@
 #include "../helpers/json_helper.h"
 #include "../gui/windows/windows.h"
 #include "../user_actions.h"
+#include "json_dto/validators.hpp"
 
 namespace bricksim::config {
     using namespace json_helper;
@@ -32,7 +33,7 @@ namespace bricksim::config {
         template<typename JsonIo>
         void json_io(JsonIo& io) {
             io
-                    & json_dto::optional("scale", scale, 1.5f)
+                    & json_dto::optional("scale", scale, 1.5f, json_dto::min_max_constraint(.0001f, 10000.f))
                     & json_dto::optional(json_helper::EnumRW<GuiStyle>(), "style", style, GuiStyle::BrickSim)
                     & json_dto::optional("enableImGuiViewports", enableImGuiViewports, false)
                     & json_dto::optional("font", font, "Roboto");
@@ -118,9 +119,9 @@ namespace bricksim::config {
         template<typename JsonIo>
         void json_io(JsonIo& io) {
             io
-                    & json_dto::optional("msaaSamples", msaaSamples, 16)
+                    & json_dto::optional("msaaSamples", msaaSamples, static_cast<uint16_t>(16), json_helper::power_of_two_validator_t<uint16_t, 1, 32>())
                     & json_dto::optional("background", background, color::RGB(0x36, 0x36, 0x36))
-                    & json_dto::optional("jpgScreenshotQuality", jpgScreenshotQuality, 90)
+                    & json_dto::optional("jpgScreenshotQuality", jpgScreenshotQuality, 90, json_dto::min_max_constraint(1, 100))
                     & json_dto::optional("vsync", vsync, true)
                     & json_dto::optional("faceCulling", faceCulling, true)
                     & json_dto::optional("deleteVertexDataAfterUploading", deleteVertexDataAfterUploading, true)
@@ -193,7 +194,7 @@ namespace bricksim::config {
         template<typename JsonIo>
         void json_io(JsonIo& io) {
             io
-                    & json_dto::optional("thumbnailSize", thumbnailSize, 256);
+                    & json_dto::optional("thumbnailSize", thumbnailSize, 256, json_dto::min_max_constraint(4, 2048));
         }
 
         friend bool operator==(const PartPalette& lhs, const PartPalette& rhs) { return lhs.thumbnailSize == rhs.thumbnailSize; }
@@ -275,9 +276,9 @@ namespace bricksim::config {
         template<typename JsonIo>
         void json_io(JsonIo& io) {
             io
-                    & json_dto::optional("rotate", rotate, 1.f)
-                    & json_dto::optional("pan", pan, 1.f)
-                    & json_dto::optional("zoom", zoom, 1.f);
+                    & json_dto::optional("rotate", rotate, 1.f, json_dto::min_max_constraint(.01f, 100.f))
+                    & json_dto::optional("pan", pan, 1.f, json_dto::min_max_constraint(.01f, 100.f))
+                    & json_dto::optional("zoom", zoom, 1.f, json_dto::min_max_constraint(.01f, 100.f));
         }
 
         friend bool operator==(const View3DSensitivity& lhs, const View3DSensitivity& rhs) {
@@ -361,8 +362,8 @@ namespace bricksim::config {
         void json_io(JsonIo& io) {
             io
                     & json_dto::mandatory("name", name)
-                    & json_dto::mandatory("stepXZ", stepXZ)
-                    & json_dto::mandatory("stepY", stepY);
+                    & json_dto::mandatory("stepXZ", stepXZ, json_dto::min_max_constraint<uint64_t>(1, 10000))
+                    & json_dto::mandatory("stepY", stepY, json_dto::min_max_constraint<uint64_t>(1, 10000));
         }
 
         friend bool operator==(const SnappingLinearStepPreset& lhs, const SnappingLinearStepPreset& rhs) {
@@ -389,7 +390,7 @@ namespace bricksim::config {
         void json_io(JsonIo& io) {
             io
                     & json_dto::mandatory("name", name)
-                    & json_dto::mandatory("step", step);
+                    & json_dto::mandatory("step", step, json_dto::min_max_constraint(.01f, 360.f));
         }
 
         friend bool operator==(const SnappingRotationalStepPreset& lhs, const SnappingRotationalStepPreset& rhs) {
@@ -495,7 +496,8 @@ namespace bricksim::config {
         template<typename JsonIo>
         void json_io(JsonIo& io) {
             io
-                    & json_dto::optional("defaultCount", defaultCount, 0);
+                    & json_dto::optional("defaultCount", defaultCount, 0)
+                    & json_dto::optional("shortcuts", shortcuts, std::vector<KeyboardShortcut>());
         }
 
         friend bool operator==(const KeyboardShortcuts& lhs, const KeyboardShortcuts& rhs) {

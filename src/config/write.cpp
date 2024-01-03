@@ -25,7 +25,7 @@ namespace bricksim::config {
         rapidjson::Document d;
         json_dto::json_output_t jout(d, d.GetAllocator());
         data->json_io(jout);
-        rapidjson::Writer writer(osw);
+        rapidjson::PrettyWriter writer(osw);
         d.Accept(writer);
     }
 

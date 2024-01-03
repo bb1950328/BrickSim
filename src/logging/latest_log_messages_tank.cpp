@@ -1,6 +1,6 @@
 #include "latest_log_messages_tank.h"
 
-#include "../config.h"
+#include "../config/read.h"
 #include <utility>
 
 namespace bricksim::logging::latest_messages_tank {
@@ -16,7 +16,7 @@ namespace bricksim::logging::latest_messages_tank {
     }
 
     void initialize() {
-        numLastMessages = config::get(config::NOT_IMPORTANT_LOG_MESSAGE_KEEP_COUNT);
+        numLastMessages = config::get().log.notImportantLogMessageKeepCount;
     }
 
     iterator getIterator() {

@@ -1,5 +1,5 @@
 #include "mesh_textured_triangle_data.h"
-#include "../../config.h"
+#include "../../config/read.h"
 #include "../../controller.h"
 #include "../../metrics.h"
 #include "../opengl_native_or_replacement.h"
@@ -63,7 +63,7 @@ namespace bricksim::mesh {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
 
-        if (config::get(config::DELETE_VERTEX_DATA_AFTER_UPLOADING)) {
+        if (config::get().graphics.deleteVertexDataAfterUploading) {
             verticesAlreadyDeleted = true;
             uploadedVertexCount = vertices.size();
             metrics::memorySavedByDeletingVertexData += vertices.capacity() * sizeof(TexturedTriangleVertex);

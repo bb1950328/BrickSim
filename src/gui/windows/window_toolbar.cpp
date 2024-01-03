@@ -1,5 +1,5 @@
 #include "window_toolbar.h"
-#include "../../config.h"
+#include "../../config/read.h"
 #include "../../editor/tools.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../icons.h"

@@ -65,6 +65,15 @@ namespace bricksim::color {
         green = static_cast<color_component_t>(g * 255);
         blue = static_cast<color_component_t>(b * 255);
     }
+
+    void read_json_value(RGB& value, const rapidjson::Value& from) {
+        value = RGB(from.GetString());
+    }
+
+    void write_json_value(const RGB& value, rapidjson::Value& object, rapidjson::MemoryPoolAllocator<>& allocator) {
+        object.SetString(rapidjson::StringRef(value.asHtmlCode()));
+    }
+
     bool RGB::operator==(const RGB& rhs) const {
         return red == rhs.red && green == rhs.green && blue == rhs.blue;
     }

@@ -1,5 +1,5 @@
 #include "files.h"
-#include "../config.h"
+#include "../config/read.h"
 #include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include "../metrics.h"
@@ -87,7 +87,7 @@ namespace bricksim::ldr {
                         } else if (bfcCommand == "INVERTNEXT") {
                             bfcState.invertNext = true;
                         }
-                    } else if (metaElement->content.starts_with(META_COMMAND_TEXMAP) && config::get(config::ENABLE_TEXMAP_SUPPORT)) {
+                    } else if (metaElement->content.starts_with(META_COMMAND_TEXMAP) && config::get().ldraw.enableTexmapSupport) {
                         const auto startCommand = std::dynamic_pointer_cast<TexmapStartCommand>(metaElement);
                         if (startCommand != nullptr) {
                             texmapState.startOrNext(startCommand);

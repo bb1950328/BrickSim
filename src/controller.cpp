@@ -1,7 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "controller.h"
-#include "config.h"
+#include "config/read.h"
 #include "db.h"
 #include "graphics/connection_visualization.h"
 #include "graphics/opengl_native_or_replacement.h"
@@ -20,9 +20,13 @@
 #include "logging/latest_log_messages_tank.h"
 #include "logging/logger.h"
 #include "metrics.h"
+#include "persistent_state.h"
 #include "stb_image.h"
 #include "stb_image_write.h"
 #include "user_actions.h"
+#include "config/read.h"
+#include "config/write.h"
+
 #include <glad/glad.h>
 #include <palanteer.h>
 #include <spdlog/spdlog.h>
@@ -39,9 +43,6 @@ namespace bricksim::controller {
         std::list<std::shared_ptr<Editor>> editors;
         std::shared_ptr<Editor> activeEditor = nullptr;
         snap::Handler snapHandler;
-
-        unsigned int windowWidth;
-        unsigned int windowHeight;
 
         bool openGlInitialized = false;
 
@@ -111,12 +112,12 @@ namespace bricksim::controller {
                 throw std::invalid_argument("attempting to initialize OpenGL twice");
             }
             plFunction();
-            const auto enableDebugOutput = config::get(config::ENABLE_GL_DEBUG_OUTPUT);
+            const auto enableDebugOutput = config::get().system.enableGlDebugOutput;
             glfwSetErrorCallback(glfwErrorCallback);
             glfwInit();
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-            glfwWindowHint(GLFW_SAMPLES, config::get(config::MSAA_SAMPLES));
+            glfwWindowHint(GLFW_SAMPLES, config::get().graphics.msaaSamples);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
             if (enableDebugOutput) {
@@ -128,10 +129,11 @@ namespace bricksim::controller {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-            windowWidth = std::max(25, config::get(config::SCREEN_WIDTH));
-            windowHeight = std::max(25, config::get(config::SCREEN_HEIGHT));
-
-            window = glfwCreateWindow(static_cast<int>(windowWidth), static_cast<int>(windowHeight), "BrickSim", nullptr, nullptr);
+            window = glfwCreateWindow(persisted_state::get().windowWidth,
+                                      persisted_state::get().windowHeight,
+                                      "BrickSim",
+                                      nullptr,
+                                      nullptr);
             if (window == nullptr) {
                 spdlog::critical("Failed to create GLFW window");
                 glfwTerminate();
@@ -143,7 +145,7 @@ namespace bricksim::controller {
                 glfwTerminate();
                 return false;
             }
-            if (!config::get(config::ENABLE_VSYNC)) {
+            if (!config::get().graphics.vsync) {
                 glfwSwapInterval(0);
             }
             glfwSetFramebufferSizeCallback(window, windowSizeCallback);
@@ -155,14 +157,14 @@ namespace bricksim::controller {
                 return false;
             }
 
-            const auto bgColor = config::get(config::BACKGROUND_COLOR).asGlmVector();
+            const auto bgColor = config::get().graphics.background.asGlmVector();
             glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.f);
             glClear(GL_COLOR_BUFFER_BIT);
             glfwSwapBuffers(window);
 
             glEnable(GL_DEPTH_TEST);
 
-            if (config::get(config::FACE_CULLING_ENABLED)) {
+            if (config::get().graphics.faceCulling) {
                 glEnable(GL_CULL_FACE);
                 glCullFace(GL_BACK);
             }
@@ -196,9 +198,9 @@ namespace bricksim::controller {
         }
 
         void windowSizeCallback([[maybe_unused]] GLFWwindow* _, int width, int height) {
-            if (windowWidth != static_cast<unsigned int>(width) || windowHeight != static_cast<unsigned int>(height)) {
-                windowWidth = width;
-                windowHeight = height;
+            if (persisted_state::get().windowWidth != static_cast<unsigned int>(width) || persisted_state::get().windowHeight != static_cast<unsigned int>(height)) {
+                persisted_state::get().windowWidth = width;
+                persisted_state::get().windowHeight = height;
                 controller::executeOpenGL([&]() {
                     glViewport(0, 0, width, height);
                 });
@@ -214,7 +216,7 @@ namespace bricksim::controller {
             }
         }
 
-        void keyCallback([[maybe_unused]] GLFWwindow* _, int key, [[maybe_unused]] int scancode, int action, int mods) {
+        void keyCallback([[maybe_unused]] GLFWwindow* _, const int key, [[maybe_unused]] int scancode, const int action, const int mods) {
             keyboard_shortcut_manager::shortcutPressed(key, action, static_cast<keyboard_shortcut_manager::modifier_t>(mods), gui::areKeysCaptured());
         }
 
@@ -269,6 +271,8 @@ namespace bricksim::controller {
             spdlog::info("current working directory is {}", std::filesystem::absolute(std::filesystem::current_path()).string());
 
             db::initialize();
+
+            config::initialize();
 
             if (!initializeGL()) {
                 spdlog::critical("failed to initialize OpenGL / glfw, exiting");
@@ -370,8 +374,8 @@ namespace bricksim::controller {
             mesh::SceneMeshCollection::deleteAllMeshes();
             graphics::scenes::deleteAll();
             thumbnailGenerator = nullptr;
-            if (config::get(config::CLEAR_RENDERING_TMP_DIRECTORY_ON_EXIT)) {
-                const auto renderingTmpDirectory = util::replaceSpecialPaths(config::get(config::RENDERING_TMP_DIRECTORY));
+            if (config::get().system.clearRenderingTmpDirectoryOnExit) {
+                const auto renderingTmpDirectory = util::replaceSpecialPaths(config::get().system.renderingTmpDirectory);
                 if (std::filesystem::exists(renderingTmpDirectory)) {
                     std::filesystem::remove_all(renderingTmpDirectory);
                 }
@@ -517,8 +521,6 @@ namespace bricksim::controller {
                 plEnd("glfwPollEvents");
             });
         }
-        config::set(config::SCREEN_WIDTH, windowWidth);
-        config::set(config::SCREEN_HEIGHT, windowHeight);
         cleanup();
         return 0;
     }

@@ -1,4 +1,4 @@
-#include "../../config.h"
+#include "../../config/read.h"
 #include "../../controller.h"
 #include "../../editor/tools.h"
 #include "../../graphics/scene.h"
@@ -189,7 +189,7 @@ namespace bricksim::gui::windows::view3d {
                 scene->setImageSize({regionAvail.x, regionAvail.y});
                 ImTextureID texture3dView;
                 glm::usvec2 imageSize;
-                if (config::get(config::DISPLAY_SELECTION_BUFFER)) {
+                if (config::get().graphics.debug.displaySelectionBuffer) {
                     scene->getSelectionPixel({0, 0});//to update image
                     const auto& image = scene->getSelectionImage().value();
                     imageSize = image.getSize();

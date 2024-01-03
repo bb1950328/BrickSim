@@ -18,6 +18,8 @@ target_sources(BrickSimLib PRIVATE
         metrics.h
         part_finder.cpp
         part_finder.h
+        persistent_state.cpp
+        persistent_state.h
         tasks.cpp
         tasks.h
         types.h

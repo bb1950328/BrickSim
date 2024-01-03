@@ -1,6 +1,7 @@
 #include "util.h"
-#include "../config.h"
+#include "../config/read.h"
 #include "../constant_data/constants.h"
+#include "../db.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "platform_detection.h"
 #include "stringutil.h"
@@ -371,7 +372,7 @@ namespace bricksim::util {
         if (path_lower.ends_with(".png")) {
             return stbi_write_png(path, width, height, channels, pixels, width * channels) != 0;
         } else if (path_lower.ends_with(".jpg") || path_lower.ends_with(".jpeg")) {
-            const int quality = std::min(100, std::max(5, config::get(config::JPG_SCREENSHOT_QUALITY)));
+            const int quality = std::min(100, std::max(5, config::get().graphics.jpgScreenshotQuality));
             return stbi_write_jpg(path, width, height, channels, pixels, quality) != 0;
         } else if (path_lower.ends_with(".bmp")) {
             return stbi_write_bmp(path, width, height, channels, pixels) != 0;

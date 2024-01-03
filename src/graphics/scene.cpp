@@ -1,5 +1,5 @@
 #include "scene.h"
-#include "../config.h"
+#include "../config/read.h"
 #include "../controller.h"
 #include "../metrics.h"
 #include "shaders.h"
@@ -108,7 +108,7 @@ namespace bricksim::graphics {
     Scene::Scene(scene_id_t sceneId) :
         id(sceneId),
         meshCollection(sceneId),
-        backgroundColor(config::get(config::BACKGROUND_COLOR).asGlmVector(), 1.f) {
+        backgroundColor(config::get().graphics.background.asGlmVector(), 1.f) {
         setImageSize({10, 10});
     }
 

@@ -1,5 +1,5 @@
 #include "mesh_line_data.h"
-#include "../../config.h"
+#include "../../config/read.h"
 #include "../../controller.h"
 #include "../../metrics.h"
 #include "../opengl_native_or_replacement.h"
@@ -44,7 +44,7 @@ namespace bricksim::mesh {
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>((sizeof(unsigned int) * indices.size())), indices.data(), GL_STATIC_DRAW);
             metrics::vramUsageBytes += sizeof(unsigned int) * indices.size();
 
-            if (config::get(config::DELETE_VERTEX_DATA_AFTER_UPLOADING)) {
+            if (config::get().graphics.deleteVertexDataAfterUploading) {
                 dataAlreadyDeleted = true;
                 uploadedVertexCount = vertices.size();
                 uploadedIndexCount = indices.size();

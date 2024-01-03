@@ -1,6 +1,7 @@
-#include "../../config.h"
+#include "../../config/read.h"
 #include "../../controller.h"
 #include "../../info_providers/part_color_availability_provider.h"
+#include "../../info_providers/price_guide_provider.h"
 #include "../../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "../gui_internal.h"
 #include <glm/ext/quaternion_trigonometric.hpp>
@@ -36,28 +37,33 @@ namespace bricksim::gui::windows::element_properties {
             translationChanged = glm::any(glm::epsilonNotEqual(decomposedTreeTransf.translation, inputPosition, 0.01f));
         }
 
-        const static bool useEulerAngles = config::get(config::USE_EULER_ANGLES);
+        const static auto useEulerAngles = config::get().elementProperties.angleMode;
         static glm::vec3 inputEulerAnglesDeg;
         static glm::vec3 inputQuatAxis;
         static float inputQuatAngleDeg;
-        if (useEulerAngles) {
-            if (nodeHasChanged) {
-                inputEulerAnglesDeg = glm::degrees(glm::eulerAngles(decomposedTreeTransf.orientation));
-            }
-            const auto lastValue = inputEulerAnglesDeg;
-            ImGui::DragFloat3(ICON_FA_ARROWS_ROTATE " Rotation", &inputEulerAnglesDeg[0], 1.f, -180, 180, "%.1f°");
+        switch (useEulerAngles) {
+            case config::AngleMode::Euler: {
+                if (nodeHasChanged) {
+                    inputEulerAnglesDeg = glm::degrees(glm::eulerAngles(decomposedTreeTransf.orientation));
+                }
+                const auto lastValue = inputEulerAnglesDeg;
+                ImGui::DragFloat3(ICON_FA_ARROWS_ROTATE " Rotation", &inputEulerAnglesDeg[0], 1.f, -180, 180, "%.1f°");
 
-            rotationChanged = glm::any(glm::epsilonNotEqual(inputEulerAnglesDeg, lastValue, 0.0001f));
-        } else {
-            if (nodeHasChanged) {
-                inputQuatAngleDeg = glm::angle(decomposedTreeTransf.orientation);
-                inputQuatAxis = glm::axis(decomposedTreeTransf.orientation);
+                rotationChanged = glm::any(glm::epsilonNotEqual(inputEulerAnglesDeg, lastValue, 0.0001f));
+                break;
             }
-            const auto lastValueAxis = inputQuatAxis;
-            const auto lastValueAngleDeg = inputQuatAngleDeg;
-            ImGui::DragFloat3(ICON_FA_LOCATION_ARROW " Rotation Axis", &inputQuatAxis[0], 0.01f, -1e9, +1e9, "%.2f");
-            ImGui::DragFloat(ICON_FA_ARROWS_ROTATE " Rotation Angle", &inputQuatAngleDeg, 1.0f, 0, 360, "%.0f °");
-            rotationChanged = std::abs(lastValueAngleDeg - inputQuatAngleDeg) > 0.01 || glm::any(glm::epsilonNotEqual(inputQuatAxis, lastValueAxis, 0.001f));
+            case config::AngleMode::Quaternion: {
+                if (nodeHasChanged) {
+                    inputQuatAngleDeg = glm::angle(decomposedTreeTransf.orientation);
+                    inputQuatAxis = glm::axis(decomposedTreeTransf.orientation);
+                }
+                const auto lastValueAxis = inputQuatAxis;
+                const auto lastValueAngleDeg = inputQuatAngleDeg;
+                ImGui::DragFloat3(ICON_FA_LOCATION_ARROW " Rotation Axis", &inputQuatAxis[0], 0.01f, -1e9, +1e9, "%.2f");
+                ImGui::DragFloat(ICON_FA_ARROWS_ROTATE " Rotation Angle", &inputQuatAngleDeg, 1.0f, 0, 360, "%.0f °");
+                rotationChanged = std::abs(lastValueAngleDeg - inputQuatAngleDeg) > 0.01 || glm::any(glm::epsilonNotEqual(inputQuatAxis, lastValueAxis, 0.001f));
+                break;
+            }
         }
 
         static glm::vec3 inputScalePercent;
@@ -73,10 +79,11 @@ namespace bricksim::gui::windows::element_properties {
 
         if (translationChanged || rotationChanged || scaleChanged) {
             glm::mat4 newRotation;
-            if (useEulerAngles) {
-                newRotation = glm::eulerAngleXYZ(glm::radians(inputEulerAnglesDeg.x), glm::radians(inputEulerAnglesDeg.y), glm::radians(inputEulerAnglesDeg.z));
-            } else {
-                newRotation = glm::toMat4(glm::angleAxis(glm::radians(inputQuatAngleDeg), inputQuatAxis));
+            switch (useEulerAngles) {
+                case config::AngleMode::Euler: newRotation = glm::eulerAngleXYZ(glm::radians(inputEulerAnglesDeg.x), glm::radians(inputEulerAnglesDeg.y), glm::radians(inputEulerAnglesDeg.z));
+                    break;
+                case config::AngleMode::Quaternion: newRotation = glm::toMat4(glm::angleAxis(glm::radians(inputQuatAngleDeg), inputQuatAxis));
+                    break;
             }
             auto newTranslation = glm::translate(glm::mat4(1.0f), inputPosition);
             auto newScale = glm::scale(glm::mat4(1.0f), inputScalePercent / 100.0f);
@@ -106,6 +113,7 @@ namespace bricksim::gui::windows::element_properties {
             ImGui::EndTooltip();
         }
     }
+
     void drawType(const std::shared_ptr<etree::Node>& node) {
         ImGui::PushStyleColor(ImGuiCol_Text, getColorOfType(node->getType()));
         static char typeBuffer[255];
@@ -122,13 +130,14 @@ namespace bricksim::gui::windows::element_properties {
             ImGui::EndTooltip();
         }
     }
+
     void drawPriceGuide(const std::shared_ptr<etree::Node>& node) {
         if (ImGui::TreeNodeEx(ICON_FA_MONEY_BILL_WAVE " Price Guide")) {
             auto partNode = std::dynamic_pointer_cast<etree::PartNode>(node);
             auto partCode = partNode->ldrFile->metaInfo.name;
             stringutil::replaceAll(partCode, ".dat", "");
             const auto color = partNode->getDisplayColor().get();
-            const auto currencyCode = config::get(config::BRICKLINK_CURRENCY_CODE);
+            const auto currencyCode = config::get().bricklinkIntegration.currencyCode;
             const auto colorBricklinkName = util::translateLDrawColorNameToBricklink(color->name);
             auto availableColors = info_providers::part_color_availability::getAvailableColorsForPart(partNode->ldrFile);
             if (availableColors.has_value()) {
@@ -349,6 +358,7 @@ namespace bricksim::gui::windows::element_properties {
             ImGui::TreePop();
         }
     }
+
     void drawLayerEdit(const std::shared_ptr<etree::Node>& lastSelectedNode, const std::shared_ptr<etree::Node>& node) {
         ImGui::DragScalar(ICON_FA_LAYER_GROUP " Layer", ImGuiDataType_U8, &node->layer, 0.2f, nullptr, nullptr);
         static layer_t lastLayer = node->layer;
@@ -359,6 +369,7 @@ namespace bricksim::gui::windows::element_properties {
             lastLayer = node->layer;
         }
     }
+
     void drawDeleteButton(const std::shared_ptr<Editor>& activeEditor) {
         const auto selectedNodes = activeEditor->getSelectedNodes();
         uoset_t<etree::NodeType> selectedTypes;
@@ -371,8 +382,8 @@ namespace bricksim::gui::windows::element_properties {
         if (!selectedTypes.contains(etree::NodeType::TYPE_ROOT)) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8, 0, 0, 1));
             std::string deleteButtonLabel = selectedNodes.size() > 1
-                                                    ? fmt::format(ICON_FA_TRASH_CAN " Delete {} elements", selectedNodes.size())
-                                                    : ICON_FA_TRASH_CAN " Delete element";
+                                                ? fmt::format(ICON_FA_TRASH_CAN " Delete {} elements", selectedNodes.size())
+                                                : ICON_FA_TRASH_CAN " Delete element";
             if (ImGui::Button(deleteButtonLabel.c_str())) {
                 activeEditor->deleteSelectedElements();
             }
@@ -382,6 +393,7 @@ namespace bricksim::gui::windows::element_properties {
             ImGui::PopStyleColor();
         }
     }
+
     void draw(Data& data) {
         static std::shared_ptr<etree::Node> lastSelectedNode = nullptr;
         if (ImGui::Begin(data.name, &data.visible)) {
@@ -403,8 +415,8 @@ namespace bricksim::gui::windows::element_properties {
                             const auto fileName = ldrNode->ldrFile->metaInfo.name;
                             const auto lastDot = fileName.rfind('.');
                             auto partCode = lastDot != std::string::npos
-                                                    ? fileName.substr(0, lastDot)
-                                                    : fileName;
+                                                ? fileName.substr(0, lastDot)
+                                                : fileName;
                             ImGui::InputText("Part Code", partCode.data(), partCode.size(), ImGuiInputTextFlags_ReadOnly);
                         }
                     }

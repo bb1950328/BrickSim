@@ -1,5 +1,5 @@
 #include "translation.h"
-#include "../../config.h"
+#include "../../config/read.h"
 #include "../../controller.h"
 #include "../../helpers/geometry.h"
 #include "base_action.h"
@@ -50,7 +50,7 @@ namespace bricksim::graphical_transform {
     }
 
     void Translation::addAxisLines() {
-        static auto lineWidth = static_cast<o2d::length_t>(8 * config::get(config::GUI_SCALE));
+        static auto lineWidth = static_cast<o2d::length_t>(8 * config::get().gui.scale);
         auto it = axisLines.begin();
         for (const auto color: constants::AXIS_COLORS) {
             if (*it == nullptr) {
@@ -104,7 +104,7 @@ namespace bricksim::graphical_transform {
         auto translation = projectedPoint - startPoint;
         if (controller::getSnapHandler().isEnabled()) {
             const auto& linearSnapPreset = controller::getSnapHandler().getLinear().getCurrentPreset();
-            translation = util::roundToNearestMultiple(translation, linearSnapPreset.stepXYZ());
+            translation = util::roundToNearestMultiple(translation, snap::LinearHandler::getStepXYZ(linearSnapPreset));
         }
 
         if (glm::length(lastTranslation - translation) < 0.1f) {

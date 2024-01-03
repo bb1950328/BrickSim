@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../config.h"
+#include "../config/read.h"
 #include "../helpers/custom_hash.h"
 #include "../helpers/util.h"
 #include "../ldr/colors.h"
@@ -48,7 +48,7 @@ namespace bricksim::graphics {
         glm::vec3 renderedRotationDegrees;
         std::list<thumbnail_file_key_t> renderRequests;//TODO check if this can be made a set (maybe faster)
     public:
-        int size = config::get(config::THUMBNAIL_SIZE);
+        int size = config::get().partPalette.thumbnailSize;
 
         glm::vec3 rotationDegrees = glm::vec3(45, -45, 0);
         ThumbnailGenerator();

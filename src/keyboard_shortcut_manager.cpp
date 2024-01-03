@@ -1,5 +1,6 @@
 #include "keyboard_shortcut_manager.h"
-#include "config.h"
+#include "config/read.h"
+#include "config/write.h"
 #include "db.h"
 #include "gui/gui.h"
 #include "helpers/stringutil.h"
@@ -9,6 +10,7 @@
 #include <spdlog/spdlog.h>
 
 namespace bricksim::keyboard_shortcut_manager {
+
     namespace modifier {
         constexpr auto NONE = static_cast<modifier_t>(0);
         constexpr auto CTRL = static_cast<modifier_t>(GLFW_MOD_CONTROL);
@@ -22,22 +24,22 @@ namespace bricksim::keyboard_shortcut_manager {
                 {SHIFT, "Shift"},
                 {CTRL, "Ctrl"},
                 {ALT, "Alt"},
-#ifdef BRICKSIM_PLATFORM_MACOS
+                #ifdef BRICKSIM_PLATFORM_MACOS
                 {SUPER, "Cmd"},
-#elif defined(BRICKSIM_PLATFORM_WINDOWS)
+                #elif defined(BRICKSIM_PLATFORM_WINDOWS)
                 {SUPER, "Win"},
-#else
+                #else
                 {SUPER, "Super"},
-#endif
+                #endif
                 //{static_cast<modifier_t>(GLFW_MOD_CAPS_LOCK), "CapsLock"},
                 //{static_cast<modifier_t>(GLFW_MOD_NUM_LOCK), "NumLock"}
         };
 
-        constexpr std::byte ALL_MASK = std::accumulate(ALL.begin(),
-                                                       ALL.end(),
-                                                       modifier_t(0),
-                                                       [](auto a, auto b) { return a | b; });
-        constexpr std::array<key_t, 8> ALL_KEYS = {
+        constexpr modifier_t ALL_MASK = std::accumulate(ALL.begin(),
+                                                        ALL.end(),
+                                                        static_cast<modifier_t>(0),
+                                                        [](auto a, auto b) { return a | b; });
+        constexpr std::array ALL_KEYS = {
                 GLFW_KEY_LEFT_SHIFT,
                 GLFW_KEY_RIGHT_SHIFT,
                 GLFW_KEY_LEFT_CONTROL,
@@ -50,7 +52,6 @@ namespace bricksim::keyboard_shortcut_manager {
     }
 
     namespace {
-
         const uomap_t<key_t, const char*> MISC_KEY_DISPLAY_NAMES = {
                 // NOLINT(cert-err58-cpp)
                 {GLFW_KEY_BACKSPACE, "Backspace"},
@@ -71,7 +72,7 @@ namespace bricksim::keyboard_shortcut_manager {
                 {GLFW_KEY_ESCAPE, "Esc"},
         };
 
-        constexpr std::array<char, 11> SPECIAL_CHARS = {
+        constexpr std::array SPECIAL_CHARS = {
                 '`',
                 '-',
                 '=',
@@ -84,7 +85,7 @@ namespace bricksim::keyboard_shortcut_manager {
                 '.',
                 '/',
         };
-        constexpr std::array<int, std::size(SPECIAL_CHARS)> SPECIAL_CHAR_KEYS = {
+        constexpr std::array SPECIAL_CHAR_KEYS = {
                 GLFW_KEY_GRAVE_ACCENT,
                 GLFW_KEY_MINUS,
                 GLFW_KEY_EQUAL,
@@ -97,46 +98,45 @@ namespace bricksim::keyboard_shortcut_manager {
                 GLFW_KEY_PERIOD,
                 GLFW_KEY_SLASH,
         };
+        static_assert(SPECIAL_CHARS.size()==SPECIAL_CHAR_KEYS.size());
 
         /// IMPORTANT: always append new shortcuts at the end, otherwise existing configs aren't updated correctly
-        const auto DEFAULT_SHORTCUTS = std::to_array<KeyboardShortcut>({
-                {user_actions::COPY, GLFW_KEY_C, modifier::CTRL, Event::ON_PRESS},
-                {user_actions::CUT, GLFW_KEY_X, modifier::CTRL, Event::ON_PRESS},
-                {user_actions::PASTE, GLFW_KEY_V, modifier::CTRL, Event::ON_PRESS},
-                {user_actions::SAVE_FILE, GLFW_KEY_S, modifier::CTRL, Event::ON_PRESS},
-                {user_actions::SAVE_FILE_AS, GLFW_KEY_S, modifier::CTRL | modifier::SHIFT, Event::ON_PRESS},
-                {user_actions::SELECT_ALL, GLFW_KEY_A, modifier::CTRL, Event::ON_PRESS},
-                {user_actions::SELECT_NOTHING, GLFW_KEY_A, modifier::CTRL | modifier::SHIFT, Event::ON_PRESS},
-                {user_actions::UNDO, GLFW_KEY_Z, modifier::CTRL, Event::ON_PRESS},
-                {user_actions::START_TRANSLATING_SELECTED_NODES, GLFW_KEY_T, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
-                {user_actions::START_ROTATING_SELECTED_NODES, GLFW_KEY_R, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
-                {user_actions::START_MOVING_SELECTED_NODES, GLFW_KEY_M, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
-                {user_actions::TRANSFORMATION_LOCK_XY, GLFW_KEY_Z, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
-                {user_actions::TRANSFORMATION_LOCK_XZ, GLFW_KEY_Y, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
-                {user_actions::TRANSFORMATION_LOCK_YZ, GLFW_KEY_X, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
-                {user_actions::TRANSFORMATION_LOCK_X, GLFW_KEY_X, modifier::SHIFT, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
-                {user_actions::TRANSFORMATION_LOCK_Y, GLFW_KEY_Y, modifier::SHIFT, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
-                {user_actions::TRANSFORMATION_LOCK_Z, GLFW_KEY_Z, modifier::SHIFT, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
-                {user_actions::END_TRANSFORMATION, GLFW_KEY_ENTER, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
-                {user_actions::CANCEL_TRANSFORMATION, GLFW_KEY_ESCAPE, modifier::NONE, Event::ON_PRESS, gui::windows::Id::VIEW_3D},
-                {user_actions::OPEN_FILE, GLFW_KEY_O, modifier::CTRL, Event::ON_PRESS},
-                {user_actions::TAKE_SCREENSHOT, GLFW_KEY_PRINT_SCREEN, modifier::CTRL | modifier::SHIFT, Event::ON_PRESS},
-        });
-
-        std::vector<KeyboardShortcut> shortcuts;
+        const std::array DEFAULT_SHORTCUTS = {
+                config::KeyboardShortcut{user_actions::COPY, GLFW_KEY_C, modifier::CTRL, config::KeyEvent::ON_PRESS},
+                config::KeyboardShortcut{user_actions::CUT, GLFW_KEY_X, modifier::CTRL, config::KeyEvent::ON_PRESS},
+                config::KeyboardShortcut{user_actions::PASTE, GLFW_KEY_V, modifier::CTRL, config::KeyEvent::ON_PRESS},
+                config::KeyboardShortcut{user_actions::SAVE_FILE, GLFW_KEY_S, modifier::CTRL, config::KeyEvent::ON_PRESS},
+                config::KeyboardShortcut{user_actions::SAVE_FILE_AS, GLFW_KEY_S, modifier::CTRL | modifier::SHIFT, config::KeyEvent::ON_PRESS},
+                config::KeyboardShortcut{user_actions::SELECT_ALL, GLFW_KEY_A, modifier::CTRL, config::KeyEvent::ON_PRESS},
+                config::KeyboardShortcut{user_actions::SELECT_NOTHING, GLFW_KEY_A, modifier::CTRL | modifier::SHIFT, config::KeyEvent::ON_PRESS},
+                config::KeyboardShortcut{user_actions::UNDO, GLFW_KEY_Z, modifier::CTRL, config::KeyEvent::ON_PRESS},
+                config::KeyboardShortcut{user_actions::START_TRANSLATING_SELECTED_NODES, GLFW_KEY_T, modifier::NONE, config::KeyEvent::ON_PRESS, {gui::windows::Id::VIEW_3D}},
+                config::KeyboardShortcut{user_actions::START_ROTATING_SELECTED_NODES, GLFW_KEY_R, modifier::NONE, config::KeyEvent::ON_PRESS, {gui::windows::Id::VIEW_3D}},
+                config::KeyboardShortcut{user_actions::START_MOVING_SELECTED_NODES, GLFW_KEY_M, modifier::NONE, config::KeyEvent::ON_PRESS, {gui::windows::Id::VIEW_3D}},
+                config::KeyboardShortcut{user_actions::TRANSFORMATION_LOCK_XY, GLFW_KEY_Z, modifier::NONE, config::KeyEvent::ON_PRESS, {gui::windows::Id::VIEW_3D}},
+                config::KeyboardShortcut{user_actions::TRANSFORMATION_LOCK_XZ, GLFW_KEY_Y, modifier::NONE, config::KeyEvent::ON_PRESS, {gui::windows::Id::VIEW_3D}},
+                config::KeyboardShortcut{user_actions::TRANSFORMATION_LOCK_YZ, GLFW_KEY_X, modifier::NONE, config::KeyEvent::ON_PRESS, {gui::windows::Id::VIEW_3D}},
+                config::KeyboardShortcut{user_actions::TRANSFORMATION_LOCK_X, GLFW_KEY_X, modifier::SHIFT, config::KeyEvent::ON_PRESS, {gui::windows::Id::VIEW_3D}},
+                config::KeyboardShortcut{user_actions::TRANSFORMATION_LOCK_Y, GLFW_KEY_Y, modifier::SHIFT, config::KeyEvent::ON_PRESS, {gui::windows::Id::VIEW_3D}},
+                config::KeyboardShortcut{user_actions::TRANSFORMATION_LOCK_Z, GLFW_KEY_Z, modifier::SHIFT, config::KeyEvent::ON_PRESS, {gui::windows::Id::VIEW_3D}},
+                config::KeyboardShortcut{user_actions::END_TRANSFORMATION, GLFW_KEY_ENTER, modifier::NONE, config::KeyEvent::ON_PRESS, {gui::windows::Id::VIEW_3D}},
+                config::KeyboardShortcut{user_actions::CANCEL_TRANSFORMATION, GLFW_KEY_ESCAPE, modifier::NONE, config::KeyEvent::ON_PRESS, {gui::windows::Id::VIEW_3D}},
+                config::KeyboardShortcut{user_actions::OPEN_FILE, GLFW_KEY_O, modifier::CTRL, config::KeyEvent::ON_PRESS},
+                config::KeyboardShortcut{user_actions::TAKE_SCREENSHOT, GLFW_KEY_PRINT_SCREEN, modifier::CTRL | modifier::SHIFT, config::KeyEvent::ON_PRESS},
+        };
 
         bool shouldCatchNextShortcut;
-        std::optional<KeyboardShortcut> caughtShortcut;
+        std::optional<config::KeyboardShortcut> caughtShortcut;
 
         void saveNewDefaultsToDB() {
-            const std::size_t inDB = config::get(config::DEFAULT_KEYBOARD_SHORTCUT_COUNT);
+            const std::size_t inDB = config::get().keyboardShortcuts.defaultCount;
             if (inDB < DEFAULT_SHORTCUTS.size()) {
+                auto& shortcuts = config::getMutable().keyboardShortcuts.shortcuts;
                 for (std::size_t i = inDB; i < DEFAULT_SHORTCUTS.size(); ++i) {
-                    const auto& shortcut = DEFAULT_SHORTCUTS[i];
-                    db::key_shortcuts::saveShortcut({shortcut.action, shortcut.key, static_cast<uint8_t>(shortcut.modifiers), static_cast<uint8_t>(shortcut.event)});
+                    shortcuts.push_back(DEFAULT_SHORTCUTS[i]);
                 }
                 spdlog::info("saved {} new keyboard shortcuts to config", DEFAULT_SHORTCUTS.size() - inDB);
-                config::set(config::DEFAULT_KEYBOARD_SHORTCUT_COUNT, DEFAULT_SHORTCUTS.size());
+                config::save();
             }
         }
 
@@ -179,23 +179,16 @@ namespace bricksim::keyboard_shortcut_manager {
             }
             const auto it = keyTranslation.find(translatedKey);
             return it != keyTranslation.end()
-                           ? it->second
-                           : translatedKey;
+                       ? it->second
+                       : translatedKey;
         }
     }
 
     void initialize() {
         saveNewDefaultsToDB();
-        for (const auto& [action, key, modifier, event]: db::key_shortcuts::loadShortcuts()) {
-            shortcuts.emplace_back(
-                    static_cast<user_actions::Action>(action),
-                    key,
-                    static_cast<modifier_t>(modifier),
-                    static_cast<Event>(event));
-        }
     }
 
-    void shortcutPressed(key_t key, int keyAction, modifier_t modifiers, bool isCapturedByGui) {
+    void shortcutPressed(key_t key, uint64_t keyAction, modifier_t modifiers, bool isCapturedByGui) {
         for (const auto& modifierKey: modifier::ALL_KEYS) {
             if (modifierKey == key) {
                 return;
@@ -203,20 +196,20 @@ namespace bricksim::keyboard_shortcut_manager {
         }
         key = translateKey(key);
         modifiers &= modifier::ALL_MASK;
-        const auto event = static_cast<Event>(keyAction);
+        const auto event = static_cast<config::KeyEvent>(keyAction);
         if (shouldCatchNextShortcut) {
-            caughtShortcut = std::make_optional<KeyboardShortcut>(user_actions::Action::DO_NOTHING, key, modifiers, event);
-            spdlog::debug("caught key shortcut {}", caughtShortcut->getDisplayName());
+            caughtShortcut = std::make_optional<config::KeyboardShortcut>(user_actions::Action::DO_NOTHING, key, modifiers, event);
+            spdlog::debug("caught key shortcut {}", getDisplayName(*caughtShortcut));
             return;
         }
         if (!isCapturedByGui) {
-            for (const auto& shortcut: shortcuts) {
+            for (const auto& shortcut: config::get().keyboardShortcuts.shortcuts) {
                 if (shortcut.key == key
-                    && (shortcut.event == event || shortcut.event == Event::ON_REPEAT && event == Event::ON_PRESS)
+                    && (shortcut.event == event || shortcut.event == config::KeyEvent::ON_REPEAT && event == config::KeyEvent::ON_PRESS)
                     && (shortcut.modifiers & modifiers) == shortcut.modifiers
-                    && (!shortcut.windowScope.has_value() || shortcut.windowScope == gui::getCurrentlyFocusedWindow())
+                    && (shortcut.windowScope.empty() || (gui::getCurrentlyFocusedWindow().has_value() && shortcut.windowScope.contains(*gui::getCurrentlyFocusedWindow())))
                     && user_actions::isEnabled(shortcut.action)) {
-                    spdlog::debug("event {} {} matched shortcut, executing action {}", magic_enum::enum_name(event), shortcut.getDisplayName(), user_actions::getName(shortcut.action));
+                    spdlog::debug("event {} {} matched shortcut, executing action {}", magic_enum::enum_name(event), getDisplayName(shortcut), user_actions::getName(shortcut.action));
                     try {
                         user_actions::execute(shortcut.action, nullptr);
                     } catch (const std::invalid_argument& ex) {
@@ -225,27 +218,27 @@ namespace bricksim::keyboard_shortcut_manager {
                     return;
                 }
             }
-            spdlog::trace("event {} {} did not match any shortcut (key={}, modifiers={:b})", magic_enum::enum_name(event), KeyboardShortcut(user_actions::Action::DO_NOTHING, key, modifiers, event).getDisplayName(), key, modifiers);
+            spdlog::trace("event {} {} did not match any shortcut (key={}, modifiers={:b})", magic_enum::enum_name(event), getDisplayName(config::KeyboardShortcut(user_actions::Action::DO_NOTHING, key, modifiers, event)), key, modifiers);
         }
     }
 
-    std::vector<KeyboardShortcut>& getAllShortcuts() {
-        return shortcuts;
-    }
+    /*std::vector<config::KeyboardShortcut>& getAllShortcuts() {
+        return config::get().keyboardShortcuts.shortcuts;
+    }*/
 
-    void replaceAllShortcuts(const std::vector<KeyboardShortcut>& newShortcuts) {
+    /*void replaceAllShortcuts(const std::vector<KeyboardShortcut>& newShortcuts) {
         db::key_shortcuts::deleteAll();
         for (const auto& shortcut: newShortcuts) {
             db::key_shortcuts::saveShortcut({shortcut.action, shortcut.key, static_cast<uint8_t>(shortcut.modifiers), static_cast<uint8_t>(shortcut.event)});
         }
         shortcuts = newShortcuts;
-    }
+    }*/
 
     void setCatchNextShortcut(bool doCatch) {
         shouldCatchNextShortcut = doCatch;
     }
 
-    std::optional<KeyboardShortcut>& getCaughtShortcut() {
+    std::optional<config::KeyboardShortcut>& getCaughtShortcut() {
         return caughtShortcut;
     }
 
@@ -257,42 +250,41 @@ namespace bricksim::keyboard_shortcut_manager {
         static uomap_t<int, std::string> cache;
         auto it = cache.find(action);
         if (it == cache.end()) {
-            for (const auto& shortcut: shortcuts) {
+            for (const auto& shortcut: config::get().keyboardShortcuts.shortcuts) {
                 if (shortcut.action == action) {
-                    return cache[action] = shortcut.getDisplayName();
+                    return cache[action] = getDisplayName(shortcut);
                 }
             }
             return cache[action] = "";
         }
         return it->second;
     }
+
     void resetToDefault() {
-        db::key_shortcuts::deleteAll();
-        config::set(config::DEFAULT_KEYBOARD_SHORTCUT_COUNT, 0);
-        saveNewDefaultsToDB();
-        shortcuts.clear();
-        shortcuts.insert(shortcuts.end(), DEFAULT_SHORTCUTS.begin(), DEFAULT_SHORTCUTS.end());
+        auto& cfg = config::getMutable().keyboardShortcuts;
+        cfg.defaultCount = DEFAULT_SHORTCUTS.size();
+        cfg.shortcuts = {DEFAULT_SHORTCUTS.begin(), DEFAULT_SHORTCUTS.end()};
+        config::save();
     }
 
-    std::string KeyboardShortcut::getDisplayName() const {
+    std::string getDisplayName(const config::KeyboardShortcut& shortcut) {
         std::string displayName;
         for (const auto& mod: modifier::ALL) {
-            if ((modifiers & mod) != std::byte(0)) {
+            if ((shortcut.modifiers & mod) != static_cast<modifier_t>(0)) {
                 displayName += modifier::DISPLAY_NAMES.find(mod)->second;
                 displayName += '+';
             }
         }
-        if (GLFW_KEY_KP_0 <= key && key <= GLFW_KEY_KP_EQUAL) {
+        if (GLFW_KEY_KP_0 <= shortcut.key && shortcut.key <= GLFW_KEY_KP_EQUAL) {
             displayName += "NUM";
         }
 
-        const auto* keyName = glfwGetKeyName(untranslateKey(key), 0);
-        if (keyName) {
+        if (const auto* keyName = glfwGetKeyName(untranslateKey(shortcut.key), 0)) {
             displayName += keyName;
-        } else if (GLFW_KEY_F1 <= key && key <= GLFW_KEY_F25) {
+        } else if (GLFW_KEY_F1 <= shortcut.key && shortcut.key <= GLFW_KEY_F25) {
             displayName += 'F';
-            displayName += std::to_string(key - GLFW_KEY_F1 + 1);
-        } else if (const auto miscNameIt = MISC_KEY_DISPLAY_NAMES.find(key); miscNameIt != MISC_KEY_DISPLAY_NAMES.end()) {
+            displayName += std::to_string(shortcut.key - GLFW_KEY_F1 + 1);
+        } else if (const auto miscNameIt = MISC_KEY_DISPLAY_NAMES.find(shortcut.key); miscNameIt != MISC_KEY_DISPLAY_NAMES.end()) {
             displayName += miscNameIt->second;
         } else {
             displayName += '?';
@@ -300,18 +292,4 @@ namespace bricksim::keyboard_shortcut_manager {
         stringutil::toUpperInPlace(displayName.data());
         return displayName;
     }
-
-    KeyboardShortcut::KeyboardShortcut(user_actions::Action action,
-                                       int key,
-                                       modifier_t modifiers,
-                                       Event event,
-                                       std::optional<gui::windows::Id> windowScope) :
-        action(action),
-        key(key),
-        modifiers(modifiers),
-        event(event),
-        windowScope(windowScope) {}
-
-    KeyboardShortcut::KeyboardShortcut() :
-        action(user_actions::Action::DO_NOTHING), key(0), modifiers(modifier_t(0)), event(Event::ON_PRESS), windowScope(std::nullopt) {}
 }

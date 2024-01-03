@@ -5,27 +5,12 @@
 #include <string>
 
 #include "../helpers/color.h"
-
-namespace bricksim::gui::windows {
-    enum class Id;
-}
-
-namespace bricksim::user_actions {
-    enum Action : uint32_t;
-}
+#include "../helpers/json_helper.h"
+#include "../gui/windows/windows.h"
+#include "../user_actions.h"
 
 namespace bricksim::config {
-    namespace {
-        template<typename T>
-        void init(T* this_, const char* const json) {
-            *this_ = json_dto::from_json<T>(json);
-        }
-
-        template<typename T>
-        void defaultInit(T* this_) {
-            init<T>(this_, "{}");
-        }
-    }
+    using namespace json_helper;
 
     enum class GuiStyle {
         BrickSim,
@@ -48,10 +33,19 @@ namespace bricksim::config {
         void json_io(JsonIo& io) {
             io
                     & json_dto::optional("scale", scale, 1.5f)
-                    & json_dto::optional("style", style, GuiStyle::BrickSim)
+                    & json_dto::optional(json_helper::EnumRW<GuiStyle>(), "style", style, GuiStyle::BrickSim)
                     & json_dto::optional("enableImGuiViewports", enableImGuiViewports, false)
                     & json_dto::optional("font", font, "Roboto");
         }
+
+        friend bool operator==(const Gui& lhs, const Gui& rhs) {
+            return lhs.scale == rhs.scale
+                   && lhs.style == rhs.style
+                   && lhs.enableImGuiViewports == rhs.enableImGuiViewports
+                   && lhs.font == rhs.font;
+        }
+
+        friend bool operator!=(const Gui& lhs, const Gui& rhs) { return !(lhs == rhs); }
     };
 
     struct LDraw {
@@ -69,6 +63,14 @@ namespace bricksim::config {
                     & json_dto::optional("shadowLibraryLocation", shadowLibraryLocation, "~/LDCadShadowLibrary")
                     & json_dto::optional("enableTexmapSupport", enableTexmapSupport, true);
         }
+
+        friend bool operator==(const LDraw& lhs, const LDraw& rhs) {
+            return lhs.libraryLocation == rhs.libraryLocation
+                   && lhs.shadowLibraryLocation == rhs.shadowLibraryLocation
+                   && lhs.enableTexmapSupport == rhs.enableTexmapSupport;
+        }
+
+        friend bool operator!=(const LDraw& lhs, const LDraw& rhs) { return !(lhs == rhs); }
     };
 
     struct GraphicsDebug {
@@ -89,6 +91,15 @@ namespace bricksim::config {
                     & json_dto::optional("drawMinimalEnclosingBallLines", drawMinimalEnclosingBallLines, false)
                     & json_dto::optional("displayConnectorDataIn3DView", displayConnectorDataIn3DView, false);
         }
+
+        friend bool operator==(const GraphicsDebug& lhs, const GraphicsDebug& rhs) {
+            return lhs.showNormals == rhs.showNormals
+                   && lhs.displaySelectionBuffer == rhs.displaySelectionBuffer
+                   && lhs.drawMinimalEnclosingBallLines == rhs.drawMinimalEnclosingBallLines
+                   && lhs.displayConnectorDataIn3DView == rhs.displayConnectorDataIn3DView;
+        }
+
+        friend bool operator!=(const GraphicsDebug& lhs, const GraphicsDebug& rhs) { return !(lhs == rhs); }
     };
 
     struct Graphics {
@@ -113,8 +124,20 @@ namespace bricksim::config {
                     & json_dto::optional("vsync", vsync, true)
                     & json_dto::optional("faceCulling", faceCulling, true)
                     & json_dto::optional("deleteVertexDataAfterUploading", deleteVertexDataAfterUploading, true)
-                    & json_dto::optional("debug", debug, {});
+                    & json_dto::optional("debug", debug, GraphicsDebug{});
         }
+
+        friend bool operator==(const Graphics& lhs, const Graphics& rhs) {
+            return lhs.msaaSamples == rhs.msaaSamples
+                   && lhs.background == rhs.background
+                   && lhs.jpgScreenshotQuality == rhs.jpgScreenshotQuality
+                   && lhs.vsync == rhs.vsync
+                   && lhs.faceCulling == rhs.faceCulling
+                   && lhs.deleteVertexDataAfterUploading == rhs.deleteVertexDataAfterUploading
+                   && lhs.debug == rhs.debug;
+        }
+
+        friend bool operator!=(const Graphics& lhs, const Graphics& rhs) { return !(lhs == rhs); }
     };
 
     struct NodeColors {
@@ -133,6 +156,14 @@ namespace bricksim::config {
                     & json_dto::optional("part", part, color::WHITE)
                     & json_dto::optional("model", model, color::WHITE);
         }
+
+        friend bool operator==(const NodeColors& lhs, const NodeColors& rhs) {
+            return lhs.modelInstance == rhs.modelInstance
+                   && lhs.part == rhs.part
+                   && lhs.model == rhs.model;
+        }
+
+        friend bool operator!=(const NodeColors& lhs, const NodeColors& rhs) { return !(lhs == rhs); }
     };
 
     struct ElementTree {
@@ -145,8 +176,11 @@ namespace bricksim::config {
         template<typename JsonIo>
         void json_io(JsonIo& io) {
             io
-                    & json_dto::optional("nodeColors", nodeColors, {});
+                    & json_dto::optional("nodeColors", nodeColors, NodeColors{});
         }
+
+        friend bool operator==(const ElementTree& lhs, const ElementTree& rhs) { return lhs.nodeColors == rhs.nodeColors; }
+        friend bool operator!=(const ElementTree& lhs, const ElementTree& rhs) { return !(lhs == rhs); }
     };
 
     struct PartPalette {
@@ -161,6 +195,9 @@ namespace bricksim::config {
             io
                     & json_dto::optional("thumbnailSize", thumbnailSize, 256);
         }
+
+        friend bool operator==(const PartPalette& lhs, const PartPalette& rhs) { return lhs.thumbnailSize == rhs.thumbnailSize; }
+        friend bool operator!=(const PartPalette& lhs, const PartPalette& rhs) { return !(lhs == rhs); }
     };
 
     struct BricklinkIntegration {
@@ -175,6 +212,9 @@ namespace bricksim::config {
             io
                     & json_dto::optional("currencyCode", currencyCode, "CHF");
         }
+
+        friend bool operator==(const BricklinkIntegration& lhs, const BricklinkIntegration& rhs) { return lhs.currencyCode == rhs.currencyCode; }
+        friend bool operator!=(const BricklinkIntegration& lhs, const BricklinkIntegration& rhs) { return !(lhs == rhs); }
     };
 
     struct Log {
@@ -189,6 +229,9 @@ namespace bricksim::config {
             io
                     & json_dto::optional("notImportantLogMessageKeepCount", notImportantLogMessageKeepCount, 100);
         }
+
+        friend bool operator==(const Log& lhs, const Log& rhs) { return lhs.notImportantLogMessageKeepCount == rhs.notImportantLogMessageKeepCount; }
+        friend bool operator!=(const Log& lhs, const Log& rhs) { return !(lhs == rhs); }
     };
 
     struct System {
@@ -209,6 +252,15 @@ namespace bricksim::config {
                     & json_dto::optional("renderingTmpDirectory", renderingTmpDirectory, "{tmp}/BrickSimRenderingTmp")
                     & json_dto::optional("clearRenderingTmpDirectoryOnExit", clearRenderingTmpDirectoryOnExit, true);
         }
+
+        friend bool operator==(const System& lhs, const System& rhs) {
+            return lhs.enableGlDebugOutput == rhs.enableGlDebugOutput
+                   && lhs.enableThreading == rhs.enableThreading
+                   && lhs.renderingTmpDirectory == rhs.renderingTmpDirectory
+                   && lhs.clearRenderingTmpDirectoryOnExit == rhs.clearRenderingTmpDirectoryOnExit;
+        }
+
+        friend bool operator!=(const System& lhs, const System& rhs) { return !(lhs == rhs); }
     };
 
     struct View3DSensitivity {
@@ -227,6 +279,14 @@ namespace bricksim::config {
                     & json_dto::optional("pan", pan, 1.f)
                     & json_dto::optional("zoom", zoom, 1.f);
         }
+
+        friend bool operator==(const View3DSensitivity& lhs, const View3DSensitivity& rhs) {
+            return lhs.rotate == rhs.rotate
+                   && lhs.pan == rhs.pan
+                   && lhs.zoom == rhs.zoom;
+        }
+
+        friend bool operator!=(const View3DSensitivity& lhs, const View3DSensitivity& rhs) { return !(lhs == rhs); }
     };
 
     struct View3D {
@@ -239,8 +299,11 @@ namespace bricksim::config {
         template<typename JsonIo>
         void json_io(JsonIo& io) {
             io
-                    & json_dto::optional("sensitivity", sensitivity, false);
+                    & json_dto::optional("sensitivity", sensitivity, View3DSensitivity{});
         }
+
+        friend bool operator==(const View3D& lhs, const View3D& rhs) { return lhs.sensitivity == rhs.sensitivity; }
+        friend bool operator!=(const View3D& lhs, const View3D& rhs) { return !(lhs == rhs); }
     };
 
     enum class AngleMode {
@@ -258,8 +321,11 @@ namespace bricksim::config {
         template<typename JsonIo>
         void json_io(JsonIo& io) {
             io
-                    & json_dto::optional("angleMode", angleMode, AngleMode::Euler);
+                    & json_dto::optional(json_helper::EnumRW<AngleMode>(), "angleMode", angleMode, AngleMode::Euler);
         }
+
+        friend bool operator==(const ElementProperties& lhs, const ElementProperties& rhs) { return lhs.angleMode == rhs.angleMode; }
+        friend bool operator!=(const ElementProperties& lhs, const ElementProperties& rhs) { return !(lhs == rhs); }
     };
 
     struct Editor {
@@ -274,12 +340,17 @@ namespace bricksim::config {
             io
                     & json_dto::optional("newFileLocation", newFileLocation, "~");
         }
+
+        friend bool operator==(const Editor& lhs, const Editor& rhs) { return lhs.newFileLocation == rhs.newFileLocation; }
+        friend bool operator!=(const Editor& lhs, const Editor& rhs) { return !(lhs == rhs); }
     };
 
     struct SnappingLinearStepPreset {
         std::string name;
         uint64_t stepXZ;
         uint64_t stepY;
+
+        SnappingLinearStepPreset() = default;
 
         SnappingLinearStepPreset(const std::string& name, const uint64_t step_xz, const uint64_t step_y) :
             name(name),
@@ -293,11 +364,22 @@ namespace bricksim::config {
                     & json_dto::mandatory("stepXZ", stepXZ)
                     & json_dto::mandatory("stepY", stepY);
         }
+
+        friend bool operator==(const SnappingLinearStepPreset& lhs, const SnappingLinearStepPreset& rhs) {
+            return lhs.name == rhs.name
+                   && lhs.stepXZ == rhs.stepXZ
+                   && lhs.stepY == rhs.stepY;
+        }
+
+        friend bool operator!=(const SnappingLinearStepPreset& lhs, const SnappingLinearStepPreset& rhs) { return !(lhs == rhs); }
     };
 
     struct SnappingRotationalStepPreset {
         std::string name;
+        /// in degrees
         float step;
+
+        SnappingRotationalStepPreset() = default;
 
         SnappingRotationalStepPreset(const std::string& name, const float step) :
             name(name),
@@ -309,6 +391,13 @@ namespace bricksim::config {
                     & json_dto::mandatory("name", name)
                     & json_dto::mandatory("step", step);
         }
+
+        friend bool operator==(const SnappingRotationalStepPreset& lhs, const SnappingRotationalStepPreset& rhs) {
+            return lhs.name == rhs.name
+                   && lhs.step == rhs.step;
+        }
+
+        friend bool operator!=(const SnappingRotationalStepPreset& lhs, const SnappingRotationalStepPreset& rhs) { return !(lhs == rhs); }
     };
 
 
@@ -316,18 +405,8 @@ namespace bricksim::config {
         std::vector<SnappingLinearStepPreset> linearPresets;
         std::vector<SnappingRotationalStepPreset> rotationalPresets;
 
-        constexpr static std::vector<SnappingLinearStepPreset> DEFAULT_LINEAR_PRESETS = {{
-                {"Brick", 20, 24},
-                {"Technic", 20, 20},
-                {"Plate/Half Brick", 10, 8},
-                {"Half Technic", 10, 10},
-        }};
-        constexpr static std::vector<SnappingRotationalStepPreset> DEFAULT_ROTATIONAL_PRESETS = {{
-                {"1/4", 90},
-                {"1/6", 60},
-                {"1/8", 45},
-                {"1/16", 22.5f},
-        }};
+        const static std::vector<SnappingLinearStepPreset> DEFAULT_LINEAR_PRESETS;
+        const static std::vector<SnappingRotationalStepPreset> DEFAULT_ROTATIONAL_PRESETS;
 
         Snapping() {
             defaultInit(this);
@@ -339,6 +418,13 @@ namespace bricksim::config {
                     & json_dto::optional("linearPresets", linearPresets, DEFAULT_LINEAR_PRESETS)
                     & json_dto::optional("rotationalPresets", rotationalPresets, DEFAULT_ROTATIONAL_PRESETS);
         }
+
+        friend bool operator==(const Snapping& lhs, const Snapping& rhs) {
+            return lhs.linearPresets == rhs.linearPresets
+                   && lhs.rotationalPresets == rhs.rotationalPresets;
+        }
+
+        friend bool operator!=(const Snapping& lhs, const Snapping& rhs) { return !(lhs == rhs); }
     };
 
     enum class KeyEvent : uint8_t {
@@ -365,7 +451,7 @@ namespace bricksim::config {
                          const uint64_t key,
                          const uint8_t modifiers,
                          const KeyEvent event,
-                         const uoset_t<gui::windows::Id>& window_scope) :
+                         const uoset_t<gui::windows::Id>& window_scope = {}) :
             action(action),
             key(key),
             modifiers(modifiers),
@@ -380,12 +466,22 @@ namespace bricksim::config {
         template<typename JsonIo>
         void json_io(JsonIo& io) {
             io
-                    & json_dto::mandatory("action", action)
+                    & json_dto::mandatory(json_helper::EnumRW<user_actions::Action>(), "action", action)
                     & json_dto::mandatory("key", key)
                     & json_dto::optional("modifiers", modifiers, 0)
-                    & json_dto::optional("event", event, KeyEvent::ON_PRESS)
-                    & json_dto::optional("windowScope", windowScope, {});
+                    & json_dto::optional(json_helper::EnumRW<KeyEvent>(), "event", event, KeyEvent::ON_PRESS)
+                    & json_dto::optional(json_helper::EnumSetRW<gui::windows::Id>(), "windowScope", windowScope, uoset_t<gui::windows::Id>{});
         }
+
+        friend bool operator==(const KeyboardShortcut& lhs, const KeyboardShortcut& rhs) {
+            return lhs.action == rhs.action
+                   && lhs.key == rhs.key
+                   && lhs.modifiers == rhs.modifiers
+                   && lhs.event == rhs.event
+                   && lhs.windowScope == rhs.windowScope;
+        }
+
+        friend bool operator!=(const KeyboardShortcut& lhs, const KeyboardShortcut& rhs) { return !(lhs == rhs); }
     };
 
     struct KeyboardShortcuts {
@@ -401,6 +497,13 @@ namespace bricksim::config {
             io
                     & json_dto::optional("defaultCount", defaultCount, 0);
         }
+
+        friend bool operator==(const KeyboardShortcuts& lhs, const KeyboardShortcuts& rhs) {
+            return lhs.defaultCount == rhs.defaultCount
+                   && lhs.shortcuts == rhs.shortcuts;
+        }
+
+        friend bool operator!=(const KeyboardShortcuts& lhs, const KeyboardShortcuts& rhs) { return !(lhs == rhs); }
     };
 
 
@@ -426,57 +529,39 @@ namespace bricksim::config {
         template<typename JsonIo>
         void json_io(JsonIo& io) {
             io
-                    & json_dto::optional("gui", gui, {})
-                    & json_dto::optional("ldraw", ldraw, {})
-                    & json_dto::optional("graphics", graphics, {})
-                    & json_dto::optional("elementTree", elementTree, {})
-                    & json_dto::optional("partPalette", partPalette, {})
-                    & json_dto::optional("bricklinkIntegration", bricklinkIntegration, {})
-                    & json_dto::optional("log", log, {})
-                    & json_dto::optional("system", system, {})
-                    & json_dto::optional("view3d", view3d, {})
-                    & json_dto::optional("elementProperties", elementProperties, {})
-                    & json_dto::optional("editor", editor, {})
-                    & json_dto::optional("snapping", snapping, {})
-                    & json_dto::optional("keyboardShortcuts", keyboardShortcuts, {});
-        }
-    };
-
-    struct SnappingState {
-        bool enabled;
-        uint64_t linearStepXZ;
-        uint64_t linearStepY;
-        float rotationalStep;
-
-        SnappingState() {
-            defaultInit(this);
+                    & json_dto::optional("gui", gui, Gui{})
+                    & json_dto::optional("ldraw", ldraw, LDraw{})
+                    & json_dto::optional("graphics", graphics, Graphics{})
+                    & json_dto::optional("elementTree", elementTree, ElementTree{})
+                    & json_dto::optional("partPalette", partPalette, PartPalette{})
+                    & json_dto::optional("bricklinkIntegration", bricklinkIntegration, BricklinkIntegration{})
+                    & json_dto::optional("log", log, Log{})
+                    & json_dto::optional("system", system, System{})
+                    & json_dto::optional("view3d", view3d, View3D{})
+                    & json_dto::optional("elementProperties", elementProperties, ElementProperties{})
+                    & json_dto::optional("editor", editor, Editor{})
+                    & json_dto::optional("snapping", snapping, Snapping{})
+                    & json_dto::optional("keyboardShortcuts", keyboardShortcuts, KeyboardShortcuts{});
         }
 
-        template<typename JsonIo>
-        void json_io(JsonIo& io) {
-            io
-                    & json_dto::optional("enabled", enabled, true)
-                    & json_dto::optional("linearStepXZ", linearStepXZ, 20)
-                    & json_dto::optional("linearStepY", linearStepY, 20)
-                    & json_dto::optional("rotationalStep", rotationalStep, 90.f);
-        }
-    };
-
-    struct PersistedState {
-        uint16_t windowWidth;
-        uint16_t windowHeight;
-        SnappingState snapping;
-
-        PersistedState() {
-            defaultInit(this);
+        friend bool operator==(const Config& lhs, const Config& rhs) {
+            return lhs.gui == rhs.gui
+                   && lhs.ldraw == rhs.ldraw
+                   && lhs.graphics == rhs.graphics
+                   && lhs.elementTree == rhs.elementTree
+                   && lhs.partPalette == rhs.partPalette
+                   && lhs.bricklinkIntegration == rhs.bricklinkIntegration
+                   && lhs.log == rhs.log
+                   && lhs.system == rhs.system
+                   && lhs.view3d == rhs.view3d
+                   && lhs.elementProperties == rhs.elementProperties
+                   && lhs.editor == rhs.editor
+                   && lhs.snapping == rhs.snapping
+                   && lhs.keyboardShortcuts == rhs.keyboardShortcuts;
         }
 
-        template<typename JsonIo>
-        void json_io(JsonIo& io) {
-            io
-                    & json_dto::optional("windowWidth", windowWidth, 1280)
-                    & json_dto::optional("windowHeight", windowHeight, 720)
-                    & json_dto::optional("snapping", snapping, {});
+        friend bool operator!=(const Config& lhs, const Config& rhs) {
+            return !(lhs == rhs);
         }
     };
 }

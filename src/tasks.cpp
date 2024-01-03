@@ -1,5 +1,5 @@
 #include "tasks.h"
-#include "config.h"
+#include "config/read.h"
 #include <spdlog/spdlog.h>
 
 namespace bricksim {
@@ -52,7 +52,7 @@ namespace bricksim {
     void Task::startThread() {
         runningTask = std::make_optional<RunningTask>(function, &progress, name);
 
-        if (!config::get(config::THREADING_ENABLED)) {
+        if (!config::get().system.enableThreading) {
             joinThread();
         }
     }

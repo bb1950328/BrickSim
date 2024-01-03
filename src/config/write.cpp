@@ -3,7 +3,7 @@
 
 namespace bricksim::config {
     namespace {
-        constexpr std::string JSON_FILE_NAME = "config.json";
+        const std::string JSON_FILE_NAME = "config.json";
         std::unique_ptr<Config> data;
     }
 

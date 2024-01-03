@@ -51,7 +51,7 @@ namespace bricksim::keyboard_shortcut_manager {
     }
 
     namespace {
-        const uomap_t<key_t, const char*> MISC_KEY_DISPLAY_NAMES = {
+        const uomap_t<uint64_t, const char*> MISC_KEY_DISPLAY_NAMES = {
                 // NOLINT(cert-err58-cpp)
                 {GLFW_KEY_BACKSPACE, "Backspace"},
                 {GLFW_KEY_ENTER, "Enter"},
@@ -145,12 +145,12 @@ namespace bricksim::keyboard_shortcut_manager {
          * @param keyFromGlfw for example `GLFW_KEY_Z`
          * @return for example `GLFW_KEY_Y` on a machine with QWERTZ keyboard
          */
-        key_t translateKey(key_t keyFromGlfw) {
+        uint64_t translateKey(uint64_t keyFromGlfw) {
             const char* keyName = glfwGetKeyName(keyFromGlfw, 0);
             if (keyName == nullptr) {
                 return keyFromGlfw;
             }
-            char charOnKeycap = static_cast<char>(std::tolower(static_cast<unsigned char>(keyName[0])));
+            const char charOnKeycap = static_cast<char>(std::tolower(static_cast<unsigned char>(keyName[0])));
             if (GLFW_KEY_A <= keyFromGlfw && keyFromGlfw <= GLFW_KEY_Z) {
                 return charOnKeycap - 'a' + GLFW_KEY_A;
             }
@@ -163,12 +163,12 @@ namespace bricksim::keyboard_shortcut_manager {
         }
 
         /**
-         * inverse function of translateKey(key_t)
+         * inverse function of translateKey(uint64_t)
          * @param translatedKey
          * @return
          */
-        key_t untranslateKey(key_t translatedKey) {
-            static uomap_t<key_t, key_t> keyTranslation;
+        uint64_t untranslateKey(uint64_t translatedKey) {
+            static uomap_t<uint64_t, uint64_t> keyTranslation;
             if (keyTranslation.empty()) {
                 for (int i = GLFW_KEY_SPACE; i < GLFW_KEY_LAST; ++i) {
                     keyTranslation.emplace(translateKey(i), i);
@@ -221,18 +221,6 @@ namespace bricksim::keyboard_shortcut_manager {
             spdlog::trace("event {} {} did not match any shortcut (key={}, modifiers={:b})", magic_enum::enum_name(event), getDisplayName(config::KeyboardShortcut(user_actions::Action::DO_NOTHING, key, modifiers, event)), key, modifiers);
         }
     }
-
-    /*std::vector<config::KeyboardShortcut>& getAllShortcuts() {
-        return config::get().keyboardShortcuts.shortcuts;
-    }*/
-
-    /*void replaceAllShortcuts(const std::vector<KeyboardShortcut>& newShortcuts) {
-        db::key_shortcuts::deleteAll();
-        for (const auto& shortcut: newShortcuts) {
-            db::key_shortcuts::saveShortcut({shortcut.action, shortcut.key, static_cast<uint8_t>(shortcut.modifiers), static_cast<uint8_t>(shortcut.event)});
-        }
-        shortcuts = newShortcuts;
-    }*/
 
     void setCatchNextShortcut(bool doCatch) {
         shouldCatchNextShortcut = doCatch;

@@ -15,7 +15,7 @@ namespace bricksim::keyboard_shortcut_manager {
     void shortcutPressed(int key, int keyAction, modifier_t modifiers, bool isCapturedByGui);
     //std::vector<config::KeyboardShortcut>& getAllShortcuts();
     //void replaceAllShortcuts(const std::vector<config::KeyboardShortcut>& newShortcuts);
-    void resetToDefault();
+    void resetToDefault(config::KeyboardShortcuts& cfg);
     const std::string& getShortcutForAction(user_actions::Action action);
     std::string getDisplayName(const config::KeyboardShortcut& shortcut);
 

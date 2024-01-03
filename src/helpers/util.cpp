@@ -60,6 +60,13 @@ namespace bricksim::util {
         return {input};
     }
 
+    uomap_t<std::string, std::filesystem::path> getSpecialPaths() {
+        return {
+                {"~", getenv(USER_ENV_VAR)},
+                {"{tmp}", std::filesystem::temp_directory_path()},
+        };
+    }
+
     void openDefaultBrowser(const std::string& link) {
         spdlog::info("openDefaultBrowser(\"{}\")", link);
         #ifdef BRICKSIM_PLATFORM_WINDOWS

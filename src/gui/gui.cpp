@@ -107,18 +107,15 @@ namespace bricksim::gui {
 
         ImFont* createBaseFont(float scaleFactor, ImGuiIO& io) {
             plFunction();
-            auto fontName = config::get().gui.font;
             const unsigned char* fontData;
             std::size_t fontDataLength;
-            if (fontName == "Roboto") {
-                fontData = resources::fonts::Roboto_Regular_ttf.data();
-                fontDataLength = resources::fonts::Roboto_Regular_ttf.size();
-            } else {
-                if (fontName != "RobotoMono") {
-                    spdlog::warn("invalid font config: \"{}\"", fontName);
-                }
-                fontData = resources::fonts::RobotoMono_Regular_ttf.data();
-                fontDataLength = resources::fonts::RobotoMono_Regular_ttf.size();
+            switch (config::get().gui.font) {
+                case config::GuiFont::Roboto: fontData = resources::fonts::Roboto_Regular_ttf.data();
+                    fontDataLength = resources::fonts::Roboto_Regular_ttf.size();
+                    break;
+                case config::GuiFont::RobotoMono: fontData = resources::fonts::RobotoMono_Regular_ttf.data();
+                    fontDataLength = resources::fonts::RobotoMono_Regular_ttf.size();
+                    break;
             }
             ImFontConfig fontConfig;
             fontConfig.FontDataOwnedByAtlas = false;//otherwise ImGui tries to free() the data which causes a crash because the data is const

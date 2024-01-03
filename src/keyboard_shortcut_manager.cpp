@@ -260,11 +260,9 @@ namespace bricksim::keyboard_shortcut_manager {
         return it->second;
     }
 
-    void resetToDefault() {
-        auto& cfg = config::getMutable().keyboardShortcuts;
+    void resetToDefault(config::KeyboardShortcuts& cfg) {
         cfg.defaultCount = DEFAULT_SHORTCUTS.size();
         cfg.shortcuts = {DEFAULT_SHORTCUTS.begin(), DEFAULT_SHORTCUTS.end()};
-        config::save();
     }
 
     std::string getDisplayName(const config::KeyboardShortcut& shortcut) {

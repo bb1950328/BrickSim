@@ -1,4 +1,7 @@
 #include "color.h"
+
+#include "rapidjson/fwd.h"
+
 #include <spdlog/fmt/fmt.h>
 
 namespace bricksim::color {
@@ -71,7 +74,7 @@ namespace bricksim::color {
     }
 
     void write_json_value(const RGB& value, rapidjson::Value& object, rapidjson::MemoryPoolAllocator<>& allocator) {
-        object.SetString(rapidjson::StringRef(value.asHtmlCode()));
+        object.SetString(value.asHtmlCode(), allocator);
     }
 
     bool RGB::operator==(const RGB& rhs) const {

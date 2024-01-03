@@ -27,6 +27,7 @@ namespace bricksim::util {
     std::string extendHomeDir(const std::string& input);
     //std::string replaceSpecialPaths(const std::string& input);
     std::filesystem::path replaceSpecialPaths(const std::string& input);
+    uomap_t<std::string, std::filesystem::path> getSpecialPaths();
     std::filesystem::path withoutBasePath(const std::filesystem::path& path, const std::filesystem::path& basePath);
 
     //os functions

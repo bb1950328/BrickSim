@@ -28,4 +28,5 @@ target_sources(BrickSimLib PRIVATE
         )
 
 target_include_directories(BrickSimLib PUBLIC imgui)
+target_include_directories(BrickSimLib PUBLIC imgui/misc/cpp)
 target_compile_definitions(BrickSimLib PRIVATE IMGUI_USER_CONFIG="../../custom_imconfig.h")

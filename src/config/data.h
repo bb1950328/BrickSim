@@ -20,11 +20,16 @@ namespace bricksim::config {
         ImGuiDark,
     };
 
+    enum class GuiFont {
+        Roboto,
+        RobotoMono,
+    };
+
     struct Gui {
         float scale;
-        GuiStyle style = GuiStyle::BrickSim;
+        GuiStyle style;
         bool enableImGuiViewports;
-        std::string font;
+        GuiFont font;
 
         Gui() {
             defaultInit(this);
@@ -36,7 +41,7 @@ namespace bricksim::config {
                     & json_dto::optional("scale", scale, 1.5f, json_dto::min_max_constraint(.0001f, 10000.f))
                     & json_dto::optional(json_helper::EnumRW<GuiStyle>(), "style", style, GuiStyle::BrickSim)
                     & json_dto::optional("enableImGuiViewports", enableImGuiViewports, false)
-                    & json_dto::optional("font", font, "Roboto");
+                    & json_dto::optional(json_helper::EnumRW<GuiFont>(), "font", font, GuiFont::Roboto);
         }
 
         friend bool operator==(const Gui& lhs, const Gui& rhs) {
@@ -119,7 +124,7 @@ namespace bricksim::config {
         template<typename JsonIo>
         void json_io(JsonIo& io) {
             io
-                    & json_dto::optional("msaaSamples", msaaSamples, static_cast<uint16_t>(16), json_helper::power_of_two_validator_t<uint16_t, 1, 32>())
+                    & json_dto::optional("msaaSamples", msaaSamples, static_cast<uint16_t>(16), json_helper::power_of_two_validator_t<uint16_t, 1, 16>())
                     & json_dto::optional("background", background, color::RGB(0x36, 0x36, 0x36))
                     & json_dto::optional("jpgScreenshotQuality", jpgScreenshotQuality, 90, json_dto::min_max_constraint(1, 100))
                     & json_dto::optional("vsync", vsync, true)

@@ -1,20 +1,21 @@
 #include "snap_handler.h"
 
-#include "../config.h"
+#include "../persistent_state.h"
+#include "../config/read.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include <utility>
 
 namespace bricksim::snap {
     void Handler::init() {
-        enabled = config::get(config::SNAP_ENABLED);
+        enabled = persisted_state::get().snapping.enabled;//todo inline this member
         linear.init();
         rotational.init();
     }
     void Handler::cleanup() {
         linear.cleanup();
         rotational.cleanup();
-        config::set(config::SNAP_ENABLED, enabled);
+        persisted_state::get().snapping.enabled = enabled;
     }
     bool Handler::isEnabled() const {
         return enabled;

@@ -1,10 +1,11 @@
 #include "parts_library_downloader.h"
-#include "../config.h"
+#include "../config/read.h"
 #include "util.h"
 #include <chrono>
 #include <fstream>
 #include <spdlog/spdlog.h>
 #include "../constant_data/constants.h"
+#include "../config/write.h"
 
 namespace bricksim::parts_library_downloader {
     namespace {
@@ -37,7 +38,8 @@ namespace bricksim::parts_library_downloader {
         }
         spdlog::info("parts library download finished");
 
-        config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(filePath).string());
+        config::getMutable().ldraw.libraryLocation = util::replaceSpecialPaths(filePath).string();
+        config::save();
         status = Status::FINISHED;
     }
 

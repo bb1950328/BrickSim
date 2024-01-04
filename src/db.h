@@ -28,6 +28,7 @@ namespace bricksim::db {
             std::string title;
             std::string category;
         };
+
         int getSize();
         void put(const std::string& name, const std::string& title, const std::string& category);
         void put(const std::vector<Entry>& entries);
@@ -62,22 +63,9 @@ namespace bricksim::db {
         void set(const char* key, std::string value);
     }
 
-    namespace config {
-        std::optional<std::string> getString(const char* key);
-        std::optional<int> getInt(const char* key);
-        std::optional<double> getDouble(const char* key);
-
-        void setString(const char* key, const std::string& value);
-        void setInt(const char* key, int value);
-        void setDouble(const char* key, double value);
-
-        void deleteAll();
-    }
-
-    namespace key_shortcuts {
-        using record_t = std::tuple<int, int, uint8_t, uint8_t>;
-        std::vector<record_t> loadShortcuts();
-        void saveShortcut(record_t record);
-        void deleteAll();
+    namespace state {
+        std::optional<std::string> get(int64_t key);
+        void set(int64_t key, const std::string& value);
+        void clear(int64_t key);
     }
 }

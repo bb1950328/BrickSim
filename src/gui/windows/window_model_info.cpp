@@ -1,5 +1,5 @@
 #include "window_model_info.h"
-#include "../../config.h"
+#include "../../config/read.h"
 #include "../../controller.h"
 #include "../../helpers/stringutil.h"
 #include "../../info_providers/price_guide_provider.h"
@@ -46,7 +46,7 @@ namespace bricksim::gui::windows::model_info {
             auto partCode = ldrNode->ldrFile->metaInfo.name;
             stringutil::replaceAll(partCode, ".dat", "");
             auto ldrColorName = ldr::color_repo::getColor(ldrNode->getDisplayColor().code)->name;
-            auto priceGuide = info_providers::price_guide::getPriceGuideIfCached(partCode, config::get(config::BRICKLINK_CURRENCY_CODE), util::translateLDrawColorNameToBricklink(ldrColorName));
+            auto priceGuide = info_providers::price_guide::getPriceGuideIfCached(partCode, config::get().bricklinkIntegration.currencyCode, util::translateLDrawColorNameToBricklink(ldrColorName));
             if (priceGuide.has_value()) {
                 stats.totalMinPrice += priceGuide.value().minPrice;
                 stats.totalAvgPrice += priceGuide.value().avgPrice;
@@ -136,7 +136,7 @@ namespace bricksim::gui::windows::model_info {
                     ImGui::Text("%.0f LDU", std::abs(size.z));
                 }
 
-                const auto currency = config::get(config::BRICKLINK_CURRENCY_CODE);
+                const auto currency = config::get().bricklinkIntegration.currencyCode;
                 addTableLine("Min Price*");
                 ImGui::Text("%s %.2f", currency.c_str(), partStats.totalMinPrice);
                 addTableLine("AVG Price*");

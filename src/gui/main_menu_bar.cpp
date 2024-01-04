@@ -81,11 +81,20 @@ namespace bricksim::gui {
                 ImGui::MenuItem("Enabled", nullptr, handler.isEnabledPtr());
                 if (ImGui::BeginMenu(ICON_FA_RULER_COMBINED " Linear snap steps")) {
                     auto& linearHandler = handler.getLinear();
-                    const auto& presets = linearHandler.getPresets();
+                    const auto& presets = config::get().snapping.linearPresets;
                     static_assert(snap::LinearHandler::TEMPORARY_PRESET_INDEX == -1);
                     for (int i = -1; i < static_cast<int>(presets.size()); ++i) {
                         const auto& preset = i >= 0 ? presets[i] : linearHandler.getTemporaryPreset();
-                        const std::string& name = i >= 0 ? preset.getNameWithIcon() : ICON_FA_USER_PEN " Custom";
+                        std::string name;
+                        if (i >= 0) {
+                            if (const auto icon = snap::LinearHandler::getIcon(preset)) {
+                                name = fmt::format("{} {}", icons::getGlyph(*icon, icons::Icon16), preset.name);
+                            } else {
+                                name = preset.name;
+                            }
+                        } else {
+                            name = ICON_FA_USER_PEN " Custom";
+                        }
                         const auto txt = fmt::format("{} XZ={} Y={}", name, preset.stepXZ, preset.stepY);
                         if (ImGui::MenuItem(txt.c_str(), nullptr, linearHandler.getCurrentPresetIndex() == i)) {
                             linearHandler.setCurrentPresetIndex(i);
@@ -99,8 +108,8 @@ namespace bricksim::gui {
                         y = tmpPreset.stepY;
                         if (ImGui::InputInt("XZ", &xz, 1, 20) | ImGui::InputInt("Y", &y, 1, 20)) {
                             linearHandler.setTemporaryPreset({"",
-                                                              std::clamp(xz, 1, 20000),
-                                                              std::clamp(y, 1, 20000)});
+                                                              static_cast<uint64_t>(std::clamp(xz, 1, 20000)),
+                                                              static_cast<uint64_t>(std::clamp(y, 1, 20000))});
                         }
                         ImGui::EndMenu();
                     }
@@ -108,15 +117,23 @@ namespace bricksim::gui {
                 }
                 if (ImGui::BeginMenu(ICON_FA_ARROWS_SPIN " Rotational snap steps")) {
                     auto& rotationalHandler = handler.getRotational();
-                    const auto& presets = rotationalHandler.getPresets();
+                    const auto& presets = config::get().snapping.rotationalPresets;
                     static_assert(snap::RotationalHandler::TEMPORARY_PRESET_INDEX == -1);
                     for (int i = -1; i < static_cast<int>(presets.size()); ++i) {
-                        const std::string& name = i >= 0
-                                                          ? presets[i].getNameWithIcon()
-                                                          : ICON_FA_USER_PEN " Custom";
+                        std::string name;
+                        if (i >= 0) {
+                            const auto icon = snap::RotationalHandler::getIcon(presets[i]);
+                            if (icon.has_value()) {
+                                name = fmt::format("{} {}", icons::getGlyph(*icon, icons::Icon16), presets[i].name);
+                            } else {
+                                name = presets[i].name;
+                            }
+                        } else {
+                            name = ICON_FA_USER_PEN " Custom";
+                        }
                         const float stepDeg = i >= 0
-                                                      ? presets[i].stepDeg
-                                                      : rotationalHandler.getTemporaryPreset().stepDeg;
+                                                  ? presets[i].step
+                                                  : rotationalHandler.getTemporaryPreset().step;
 
                         const auto txt = fmt::format("{}: {:g}°", name, stepDeg);
                         if (ImGui::MenuItem(txt.c_str(), nullptr, rotationalHandler.getCurrentPresetIndex() == i)) {
@@ -126,7 +143,7 @@ namespace bricksim::gui {
                     if (ImGui::BeginMenu(ICON_FA_PENCIL " Edit Custom")) {
                         static float step;
                         auto& tmpPreset = rotationalHandler.getTemporaryPreset();
-                        step = tmpPreset.stepDeg;
+                        step = tmpPreset.step;
                         if (ImGui::InputFloat("##step", &step, 1.f, 10.f, "%.2f°")) {
                             rotationalHandler.setTemporaryPreset({"", std::clamp(step, 0.f, 360.f)});
                         }

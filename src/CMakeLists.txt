@@ -1,8 +1,6 @@
 target_sources(BrickSimLib PRIVATE
         binary_file.cpp
         binary_file.h
-        config.cpp
-        config.h
         controller.cpp
         controller.h
         custom_imconfig.h
@@ -18,6 +16,8 @@ target_sources(BrickSimLib PRIVATE
         metrics.h
         part_finder.cpp
         part_finder.h
+        persistent_state.cpp
+        persistent_state.h
         tasks.cpp
         tasks.h
         types.h
@@ -26,6 +26,7 @@ target_sources(BrickSimLib PRIVATE
         )
 
 add_subdirectory(benchmarks)
+add_subdirectory(config)
 add_subdirectory(connection)
 add_subdirectory(constant_data)
 add_subdirectory(graphics)

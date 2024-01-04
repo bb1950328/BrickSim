@@ -1,49 +1,47 @@
 #include "snap_rotational.h"
-#include "../config.h"
+
+#include "../persistent_state.h"
+#include "../config/read.h"
 #include <cmath>
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
 #include <utility>
 
 namespace bricksim::snap {
-    RotationalSnapStepPreset::RotationalSnapStepPreset(std::string name, float stepDeg) :
-        SnapStepPreset(name), stepDeg(stepDeg) {}
-    std::optional<gui::icons::IconType> RotationalSnapStepPreset::getIcon() const {
+    std::optional<gui::icons::IconType> RotationalHandler::getIcon(const config::SnappingRotationalStepPreset& preset) {
         using gui::icons::IconType;
-        constexpr auto sizes = std::to_array({90.f, 60.f, 45.f, 22.5f});
-        constexpr auto icons = std::to_array({IconType::Pie4, IconType::Pie6, IconType::Pie8, IconType::Pie16});
+        constexpr std::array sizes = {90.f, 60.f, 45.f, 22.5f};
+        constexpr std::array icons = {IconType::Pie4, IconType::Pie6, IconType::Pie8, IconType::Pie16};
         static_assert(sizes.size() == icons.size());
         const auto it = std::find_if(sizes.begin(), sizes.end(), [&](const auto& item) {
-            return std::abs(item - stepDeg) < .1f;
+            return std::abs(item - preset.step) < .1f;
         });
         return it != sizes.end()
-                       ? std::make_optional<IconType>(icons[std::distance(sizes.begin(), it)])
-                       : std::nullopt;
+                   ? std::make_optional<IconType>(icons[std::distance(sizes.begin(), it)])
+                   : std::nullopt;
     }
-    const std::vector<RotationalSnapStepPreset>& RotationalHandler::getPresets() const {
-        return presets;
-    }
-    const RotationalSnapStepPreset& RotationalHandler::getTemporaryPreset() const {
+
+    const config::SnappingRotationalStepPreset& RotationalHandler::getTemporaryPreset() const {
         return temporaryPreset;
     }
+
     int RotationalHandler::getCurrentPresetIndex() const {
         return currentPresetIndex;
     }
+
     void RotationalHandler::setCurrentPresetIndex(int value) {
         currentPresetIndex = value;
     }
-    void RotationalHandler::setTemporaryPreset(const RotationalSnapStepPreset& value) {
+
+    void RotationalHandler::setTemporaryPreset(const config::SnappingRotationalStepPreset& value) {
         temporaryPreset = value;
     }
+
     void RotationalHandler::init() {
-        rapidjson::Document d;
-        d.Parse(config::get(config::ROTATIONAL_SNAP_PRESETS).c_str());
-        for (const auto& item: d.GetArray()) {
-            presets.emplace_back(item["name"].GetString(), item["step"].GetFloat());
-        }
-        const float configStep = config::get(config::ROTATIONAL_SNAP_STEP);
+        const float configStep = persisted_state::get().snapping.rotationalStep;
+        auto& presets = config::get().snapping.rotationalPresets;
         for (size_t i = 0; i < presets.size(); ++i) {
-            if (std::fabs(presets[i].stepDeg - configStep) < .01f) {
+            if (std::fabs(presets[i].step - configStep) < .01f) {
                 currentPresetIndex = static_cast<int>(i);
                 break;
             }
@@ -52,37 +50,19 @@ namespace bricksim::snap {
             setTemporaryPreset({"", configStep});
         }
     }
-    void RotationalHandler::cleanup() {
-        config::set(config::ROTATIONAL_SNAP_STEP, getCurrentPreset().stepDeg);
 
-        rapidjson::Document d;
-        rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
-        d.SetArray();
-        for (const auto& item: presets) {
-            rapidjson::Value obj(rapidjson::kObjectType);
-
-            rapidjson::Value nameVal;
-            nameVal.SetString(item.name.c_str(), item.name.length(), allocator);
-            obj.AddMember("name", nameVal, allocator);
-
-            rapidjson::Value xzVal;
-            xzVal.SetFloat(item.stepDeg);
-            obj.AddMember("step", xzVal, allocator);
-
-            d.PushBack(obj, allocator);
-        }
-        rapidjson::StringBuffer strbuf;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
-        d.Accept(writer);
-        config::set(config::ROTATIONAL_SNAP_PRESETS, strbuf.GetString());
+    void RotationalHandler::cleanup() const {
+        persisted_state::get().snapping.rotationalStep = getCurrentPreset().step;
     }
-    float RotationalHandler::getNearestValue(float initialValueDeg, float currentValueDeg) const {
-        const auto step = getCurrentPreset().stepDeg;
+
+    float RotationalHandler::getNearestValue(const float initialValueDeg, const float currentValueDeg) const {
+        const auto step = getCurrentPreset().step;
         const auto delta = currentValueDeg - initialValueDeg;
         const auto factor = std::round(delta / step);
         return std::fmod(initialValueDeg + factor * step, 360.f);
     }
-    const RotationalSnapStepPreset& RotationalHandler::getCurrentPreset() const {
-        return presets[currentPresetIndex];
+
+    const config::SnappingRotationalStepPreset& RotationalHandler::getCurrentPreset() const {
+        return config::get().snapping.rotationalPresets[currentPresetIndex];
     }
 }

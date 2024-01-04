@@ -1,5 +1,5 @@
 #include "thumbnail_generator.h"
-#include "../config.h"
+#include "../config/read.h"
 #include "../controller.h"
 #include "../metrics.h"
 #include <glad/glad.h>
@@ -35,7 +35,7 @@ namespace bricksim::graphics {
             scene->setRootNode(rootNode);
             camera->setRootNode(ldrNode);
 
-            scene->setBackgroundColor(request.backgroundColor.value_or(config::get(config::BACKGROUND_COLOR)));
+            scene->setBackgroundColor(request.backgroundColor.value_or(config::get().graphics.background));
             scene->updateImage();
 
             const auto totalBufferSize = size * size * 3;//todo try to make transparent background
@@ -159,7 +159,7 @@ namespace bricksim::graphics {
     }
 
     ThumbnailGenerator::ThumbnailGenerator() {
-        maxCachedThumbnails = config::get(config::THUMBNAIL_CACHE_SIZE_BYTES) / 3 / size / size;
+        maxCachedThumbnails = (1 << 30) / 3 / size / size;
         scene = scenes::create(scenes::THUMBNAIL_SCENE_ID);
         scene->setCamera(camera);
     }

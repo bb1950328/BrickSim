@@ -1,5 +1,5 @@
 #include "mesh.h"
-#include "../../config.h"
+#include "../../config/read.h"
 #include "../../controller.h"
 #include "../../helpers/geometry.h"
 #include "../../helpers/util.h"
@@ -81,7 +81,7 @@ namespace bricksim::mesh {
             calculateAndAddTexmapVertices(color, appliedTexmap, transformedPoints);
         }
 
-        if (config::get(config::SHOW_NORMALS)) {
+        if (config::get().graphics.debug.showNormals) {
             auto lp1 = glm::vec4(geometry::triangleCentroid(p1, p2, p3), 1.0f) * transformation;
             auto lp2 = lp1 + (transformedNormal * 5.0f);
             LineVertex lv1{lp1, transformedNormal};
@@ -180,7 +180,7 @@ namespace bricksim::mesh {
             calculateAndAddTexmapVertices(color, appliedTexmap, transformedPoints);
         }
 
-        if (config::get(config::SHOW_NORMALS)) {
+        if (config::get().graphics.debug.showNormals) {
             auto lp1 = glm::vec4(geometry::quadrilateralCentroid(p1, p2, p3, p4), 1.0f) * transformation;
             auto lp2 = lp1 + (transformedNormal * 5.0f);
             LineVertex lv1{lp1, transformedNormal};
@@ -234,7 +234,7 @@ namespace bricksim::mesh {
             if (!outerDimensions.has_value()) {
                 calculateOuterDimensions();
             }
-            if (config::get(config::DRAW_MINIMAL_ENCLOSING_BALL_LINES)) {
+            if (config::get().graphics.debug.drawMinimalEnclosingBallLines) {
                 addMinEnclosingBallLines();
             }
 

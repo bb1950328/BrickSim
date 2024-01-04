@@ -1,5 +1,6 @@
 #include "file_repo.h"
-#include "../config.h"
+#include "../config/read.h"
+#include "../config/write.h"
 #include "../constant_data/constants.h"
 #include "../db.h"
 #include "../helpers/stringutil.h"
@@ -113,18 +114,20 @@ namespace bricksim::ldr::file_repo {
     bool checkLdrawLibraryLocation() {
         static auto found = false;
         if (!found) {
-            const auto& pathFromConfig = util::replaceSpecialPaths(config::get(config::LDRAW_PARTS_LIBRARY));
-            auto strPath = pathFromConfig.string();
+            const auto& pathFromConfig = util::replaceSpecialPaths(config::get().ldraw.libraryLocation);
+            const auto strPath = pathFromConfig.string();
             if (tryToInitializeWithLibraryPath(pathFromConfig)) {
                 found = true;
             } else if (strPath.ends_with(".zip")) {
-                auto zipEndingRemoved = strPath.substr(0, strPath.size() - 4);
+                const auto zipEndingRemoved = strPath.substr(0, strPath.size() - 4);
                 if (tryToInitializeWithLibraryPath(zipEndingRemoved)) {
-                    config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(zipEndingRemoved).string());
+                    config::getMutable().ldraw.libraryLocation = util::replaceSpecialPaths(zipEndingRemoved).string();
+                    config::save();
                     found = true;
                 }
             } else if (tryToInitializeWithLibraryPath(strPath + ".zip")) {
-                config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(strPath + ".zip").string());
+                config::getMutable().ldraw.libraryLocation = util::replaceSpecialPaths(strPath + ".zip").string();
+                config::save();
                 found = true;
             }
         }

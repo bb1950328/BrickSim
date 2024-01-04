@@ -1,6 +1,9 @@
 #pragma once
 
 #include "../types.h"
+#include "rapidjson/document.h"
+#include "rapidjson/rapidjson.h"
+
 #include <glm/glm.hpp>
 #include <random>
 #include <string>
@@ -125,6 +128,9 @@ namespace bricksim::color {
 
         void assignFloat(float r, float g, float b);
     };
+
+    void read_json_value(RGB& value, const rapidjson::Value& from);
+    void write_json_value(const RGB& value, rapidjson::Value& object, rapidjson::MemoryPoolAllocator<>& allocator);
 
     class HSV {
     public:

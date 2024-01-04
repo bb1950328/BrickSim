@@ -17,6 +17,8 @@ target_sources(BrickSimLib PRIVATE
         glm_eigen_conversion.h
         graphviz_wrapper.cpp
         graphviz_wrapper.h
+        json_helper.cpp
+        json_helper.h
         palanteer_implementation.cpp
         parts_library_downloader.cpp
         parts_library_downloader.h

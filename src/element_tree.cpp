@@ -1,7 +1,7 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "misc-no-recursion"
 #include "element_tree.h"
-#include "config.h"
+#include "config/read.h"
 #include "ldr/file_repo.h"
 #include <glm/gtx/normal.hpp>
 #include <magic_enum.hpp>
@@ -14,7 +14,6 @@
 #endif
 
 namespace bricksim::etree {
-
     const glm::mat4& Node::getRelativeTransformation() const {
         return relativeTransformation;
     }
@@ -80,8 +79,8 @@ namespace bricksim::etree {
     std::shared_ptr<RootNode> Node::getRoot() {
         const auto parentSp = parent.lock();
         return parentSp == nullptr
-                       ? std::dynamic_pointer_cast<RootNode>(shared_from_this())
-                       : parentSp->getRoot();
+                   ? std::dynamic_pointer_cast<RootNode>(shared_from_this())
+                   : parentSp->getRoot();
     }
 
     Node::version_t Node::getVersion() const {
@@ -96,12 +95,15 @@ namespace bricksim::etree {
         } while (node != nullptr);
         ++selfVersion;
     }
+
     bool Node::isDirectChildOfTypeAllowed(NodeType potentialChildType) const {
         return true;
     }
+
     void Node::removeChildIf(std::function<bool(const std::shared_ptr<Node>&)> predicate) {
         std::erase_if(children, std::move(predicate));
     }
+
     Node::version_t Node::getSelfVersion() const {
         return selfVersion;
     }
@@ -125,18 +127,15 @@ namespace bricksim::etree {
                     if (childrenWithOwnNode.find(sfElement) == childrenWithOwnNode.end()) {
                         mesh->addLdrSubfileReference(ldrFile, dummyColor, sfElement, glm::mat4(1.0f), windingInversed, texmap);
                     }
-                } break;
-                case 2:
-                    mesh->addLdrLine(dummyColor, std::dynamic_pointer_cast<ldr::Line>(element), glm::mat4(1.0f));
+                }
+                break;
+                case 2: mesh->addLdrLine(dummyColor, std::dynamic_pointer_cast<ldr::Line>(element), glm::mat4(1.0f));
                     break;
-                case 3:
-                    mesh->addLdrTriangle(dummyColor, std::dynamic_pointer_cast<ldr::Triangle>(element), glm::mat4(1.0f), windingInversed, texmap);
+                case 3: mesh->addLdrTriangle(dummyColor, std::dynamic_pointer_cast<ldr::Triangle>(element), glm::mat4(1.0f), windingInversed, texmap);
                     break;
-                case 4:
-                    mesh->addLdrQuadrilateral(dummyColor, std::dynamic_pointer_cast<ldr::Quadrilateral>(element), glm::mat4(1.0f), windingInversed, texmap);
+                case 4: mesh->addLdrQuadrilateral(dummyColor, std::dynamic_pointer_cast<ldr::Quadrilateral>(element), glm::mat4(1.0f), windingInversed, texmap);
                     break;
-                case 5:
-                    mesh->addLdrOptionalLine(dummyColor, std::dynamic_pointer_cast<ldr::OptionalLine>(element), glm::mat4(1.0f));
+                case 5: mesh->addLdrOptionalLine(dummyColor, std::dynamic_pointer_cast<ldr::OptionalLine>(element), glm::mat4(1.0f));
                     break;
             }
         }
@@ -205,6 +204,7 @@ namespace bricksim::etree {
         addChild(newNode);
         return newNode;
     }
+
     void LdrNode::writeChangesToLdrFile() {
         if (version != lastSaveToLdrFileVersion) {
             for (const auto& item: children) {
@@ -256,9 +256,11 @@ namespace bricksim::etree {
     bool RootNode::isDisplayNameUserEditable() const {
         return false;
     }
+
     bool RootNode::isDirectChildOfTypeAllowed(NodeType type) const {
         return type == NodeType::TYPE_MESH || type == NodeType::TYPE_MODEL;
     }
+
     std::shared_ptr<ModelNode> RootNode::getModelNode(const std::shared_ptr<ldr::File>& ldrFile) {
         for (const auto& item: children) {
             auto modelItem = dynamic_pointer_cast<ModelNode>(item);
@@ -271,6 +273,7 @@ namespace bricksim::etree {
         addChild(newNode);
         return newNode;
     }
+
     bool RootNode::isTransformationUserEditable() const {
         return false;
     }
@@ -305,12 +308,15 @@ namespace bricksim::etree {
         LdrNode(NodeType::TYPE_MODEL, ldrFile, ldrColor, parent, nullptr) {
         visible = false;
     }
+
     bool ModelNode::isTransformationUserEditable() const {
         return false;
     }
+
     bool ModelNode::isColorUserEditable() const {
         return false;
     }
+
     std::vector<std::shared_ptr<ModelInstanceNode>> ModelNode::findInstances() const {
         std::vector<std::shared_ptr<ModelInstanceNode>> result;
         for (const auto& item: parent.lock()->getChildren()) {
@@ -334,8 +340,7 @@ namespace bricksim::etree {
     }
 
     PartNode::PartNode(const std::shared_ptr<ldr::File>& ldrFile, const ldr::ColorReference ldrColor, const std::shared_ptr<Node>& parent, const std::shared_ptr<ldr::TexmapStartCommand>& directTexmap) :
-        LdrNode(NodeType::TYPE_PART, ldrFile, ldrColor, parent, directTexmap) {
-    }
+        LdrNode(NodeType::TYPE_PART, ldrFile, ldrColor, parent, directTexmap) {}
 
     MeshNode::MeshNode(ldr::ColorReference color, const std::shared_ptr<Node>& parent, std::shared_ptr<ldr::TexmapStartCommand> directTexmap) :
         Node(parent), color(color), directTexmap(std::move(directTexmap)) {
@@ -372,6 +377,7 @@ namespace bricksim::etree {
         const static std::shared_ptr<ldr::TexmapStartCommand> null;
         return null;
     }
+
     const std::shared_ptr<ldr::TexmapStartCommand>& MeshNode::getDirectTexmap() const {
         return directTexmap;
     }
@@ -391,9 +397,9 @@ namespace bricksim::etree {
 
     color::RGB getColorOfType(const NodeType& type) {
         switch (type) {
-            case NodeType::TYPE_MODEL_INSTANCE: return config::get(config::COLOR_MPD_SUBFILE_INSTANCE);
-            case NodeType::TYPE_PART: return config::get(config::COLOR_OFFICAL_PART);//todo unoffical part
-            case NodeType::TYPE_MODEL:
+            case NodeType::TYPE_MODEL_INSTANCE: return config::get().elementTree.nodeColors.modelInstance;
+            case NodeType::TYPE_PART: return config::get().elementTree.nodeColors.part;
+            case NodeType::TYPE_MODEL: return config::get().elementTree.nodeColors.model;
             case NodeType::TYPE_OTHER:
             case NodeType::TYPE_ROOT:
             case NodeType::TYPE_MESH:
@@ -474,8 +480,7 @@ namespace bricksim::etree {
         }
     }
 
-    void TexmapNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
-    }
+    void TexmapNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {}
 
     bool TexmapNode::isDisplayNameUserEditable() const {
         return false;

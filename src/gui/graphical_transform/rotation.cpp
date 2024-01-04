@@ -1,5 +1,5 @@
 #include "rotation.h"
-#include "../../config.h"
+#include "../../config/read.h"
 #include "../../controller.h"
 #include "../../helpers/geometry.h"
 #include "spdlog/fmt/ostr.h"
@@ -7,7 +7,7 @@
 
 namespace bricksim::graphical_transform {
     void Rotation::startImpl() {
-        static auto lineWidth = static_cast<overlay2d::length_t>(8 * config::get(config::GUI_SCALE));
+        static auto lineWidth = static_cast<overlay2d::length_t>(8 * config::get().gui.scale);
         const auto nodeCenterOnScreen = worldToO2DCoords(initialNodeCenter);
         startLine = std::make_shared<overlay2d::LineElement>(nodeCenterOnScreen, overlay2d::coord_t(0, 0), lineWidth, color::BLACK);
         currentLine = std::make_shared<overlay2d::LineElement>(nodeCenterOnScreen, overlay2d::coord_t(0, 0), lineWidth, color::BLACK);
@@ -32,7 +32,7 @@ namespace bricksim::graphical_transform {
 
         auto rotationAngle = geometry::getAngleBetweenThreePointsSigned(initialPoint, initialNodeCenter, currentPoint, axisVec);
         if (controller::getSnapHandler().isEnabled()) {
-            const auto snapPreset = glm::radians(controller::getSnapHandler().getRotational().getCurrentPreset().stepDeg);
+            const auto snapPreset = glm::radians(controller::getSnapHandler().getRotational().getCurrentPreset().step);
             rotationAngle = util::roundToNearestMultiple(rotationAngle, snapPreset);
             currentPoint = initialNodeCenter + glm::angleAxis(rotationAngle, axisVec) * relInitialPointScaled;
         }
@@ -65,7 +65,7 @@ namespace bricksim::graphical_transform {
         std::vector<std::pair<float, float>> result;
         const auto& snapHandler = controller::getSnapHandler();
         if (snapHandler.isEnabled()) {
-            float snapPreset = glm::radians(snapHandler.getRotational().getCurrentPreset().stepDeg);
+            float snapPreset = glm::radians(snapHandler.getRotational().getCurrentPreset().step);
             const auto signedStep = std::copysign(snapPreset, rotationAngle);
             for (int is = 0; is < static_cast<int>(std::abs(rotationAngle) / snapPreset); ++is) {
                 result.emplace_back(

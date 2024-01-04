@@ -3,7 +3,7 @@
 #include "spdlog/spdlog.h"
 #include <numeric>
 
-#include "../config.h"
+#include "../config/read.h"
 #include "../connection/engine.h"
 #include "../connection/visualization/connector_data_visualizer.h"
 #include "../controller.h"
@@ -24,7 +24,7 @@ namespace bricksim {
     }
 
     Editor::Editor() {
-        const auto newFileLocation = util::replaceSpecialPaths(config::get(config::NEW_FILE_LOCATION));
+        const auto newFileLocation = util::replaceSpecialPaths(config::get().editor.newFileLocation);
         const auto newName = getNameForNewLdrFile();
         filePath = newFileLocation / newName;
         fileNamespace = std::make_shared<ldr::FileNamespace>(newName, newFileLocation);
@@ -68,7 +68,7 @@ namespace bricksim {
             }
         }
 
-        if (config::get(config::DISPLAY_CONNECTOR_DATA_IN_3D_VIEW)) {
+        if (config::get().graphics.debug.displayConnectorDataIn3DView) {
             addConnectorDataVisualization(rootNode);
         }
     }

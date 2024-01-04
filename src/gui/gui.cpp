@@ -1,5 +1,5 @@
 #include "gui.h"
-#include "../config.h"
+#include "../config/read.h"
 #include "../constant_data/resources.h"
 #include "../controller.h"
 #include "../helpers/parts_library_downloader.h"
@@ -20,6 +20,8 @@
 #include <spdlog/spdlog.h>
 #include <stb_image.h>
 #include <tinyfiledialogs.h>
+#include "../config/read.h"
+#include "../config/write.h"
 
 namespace bricksim::gui {
     namespace {
@@ -88,6 +90,7 @@ namespace bricksim::gui {
                 }
             }
         }
+
         void addFontawesomeFont(float scaleFactor, ImGuiIO& io) {
             plFunction();
             static const std::array<ImWchar, 3> icons_ranges = {ICON_MIN_FA, ICON_MAX_FA, 0};
@@ -101,20 +104,18 @@ namespace bricksim::gui {
                                            &iconsConfig,
                                            icons_ranges.data());
         }
+
         ImFont* createBaseFont(float scaleFactor, ImGuiIO& io) {
             plFunction();
-            auto fontName = config::get(config::FONT);
             const unsigned char* fontData;
             std::size_t fontDataLength;
-            if (fontName == "Roboto") {
-                fontData = resources::fonts::Roboto_Regular_ttf.data();
-                fontDataLength = resources::fonts::Roboto_Regular_ttf.size();
-            } else {
-                if (fontName != "RobotoMono") {
-                    spdlog::warn("invalid font config: \"{}\"", fontName);
-                }
-                fontData = resources::fonts::RobotoMono_Regular_ttf.data();
-                fontDataLength = resources::fonts::RobotoMono_Regular_ttf.size();
+            switch (config::get().gui.font) {
+                case config::GuiFont::Roboto: fontData = resources::fonts::Roboto_Regular_ttf.data();
+                    fontDataLength = resources::fonts::Roboto_Regular_ttf.size();
+                    break;
+                case config::GuiFont::RobotoMono: fontData = resources::fonts::RobotoMono_Regular_ttf.data();
+                    fontDataLength = resources::fonts::RobotoMono_Regular_ttf.size();
+                    break;
             }
             ImFontConfig fontConfig;
             fontConfig.FontDataOwnedByAtlas = false;//otherwise ImGui tries to free() the data which causes a crash because the data is const
@@ -132,17 +133,19 @@ namespace bricksim::gui {
         }
 
         void setupStyle() {
-            auto guiStyle = config::get(config::GUI_STYLE);
-            if (guiStyle == "BrickSim") {
-                applyBrickSimImGuiStyle();
-            } else if (guiStyle == "ImGuiLight") {
-                ImGui::StyleColorsLight();
-            } else if (guiStyle == "ImGuiClassic") {
-                ImGui::StyleColorsClassic();
-            } else if (guiStyle == "ImGuiDark") {
-                ImGui::StyleColorsDark();
-            } else {
-                spdlog::warn("please set {} to BrickSim, ImGuiLight, ImGuiClassic or ImGuiDark (currently set to \"{}\"", config::GUI_STYLE.name, guiStyle);
+            switch (config::get().gui.style) {
+                case config::GuiStyle::BrickSim:
+                    applyBrickSimImGuiStyle();
+                    break;
+                case config::GuiStyle::ImGuiLight:
+                    ImGui::StyleColorsLight();
+                    break;
+                case config::GuiStyle::ImGuiClassic:
+                    ImGui::StyleColorsClassic();
+                    break;
+                case config::GuiStyle::ImGuiDark:
+                    ImGui::StyleColorsDark();
+                    break;
             }
         }
     }
@@ -160,7 +163,7 @@ namespace bricksim::gui {
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
-        auto scaleFactor = config::get(config::GUI_SCALE);
+        auto scaleFactor = config::get().gui.scale;
         if (xscale > 1 || yscale > 1) {
             scaleFactor *= (xscale + yscale) / 2.0f;
             ImGuiStyle& style = ImGui::GetStyle();
@@ -180,7 +183,7 @@ namespace bricksim::gui {
 
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-        if (config::get(config::ENABLE_VIEWPORTS)) {
+        if (config::get().gui.enableImGuiViewports) {
             io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
         }
 
@@ -298,11 +301,11 @@ namespace bricksim::gui {
         ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
         if (state == 'A') {
             if (ImGui::Begin(ICON_FA_TRIANGLE_EXCLAMATION " LDraw library not found.", nullptr, windowFlags)) {
-                auto parts_lib_raw = config::get(config::LDRAW_PARTS_LIBRARY);
-                auto parts_lib_extended = util::extendHomeDir(parts_lib_raw);
+                const auto partsLibRaw = config::get().ldraw.libraryLocation;
+                const auto partsLibExtended = util::extendHomeDir(partsLibRaw);
 
-                ImGui::Text("Currently, the path for the ldraw parts library is set to \"%s\"", parts_lib_raw.c_str());
-                if (parts_lib_extended != parts_lib_raw) {
+                ImGui::Text("Currently, the path for the ldraw parts library is set to \"%s\"", partsLibRaw.c_str());
+                if (partsLibExtended != partsLibRaw) {
                     ImGui::TextDisabled("'~' is the users home directory, which currently is : '%s'", util::extendHomeDir("~").c_str());
                 }
                 ImGui::Text(" ");
@@ -312,7 +315,7 @@ namespace bricksim::gui {
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_PEN " Change the path manually to point to your ldraw directory")) {
                     state = 'B';
-                    pathBuffer.assign(parts_lib_raw);
+                    pathBuffer.assign(partsLibRaw);
                 }
                 ImGui::BulletText("Move the ldraw parts directory to the path above");
                 ImGui::SameLine();
@@ -376,15 +379,15 @@ namespace bricksim::gui {
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_CIRCLE_CHECK " OK")) {
                     state = 'Z';
-                    config::set(config::LDRAW_PARTS_LIBRARY, util::replaceSpecialPaths(pathBuffer).string());
+                    config::getMutable().ldraw.libraryLocation = util::replaceSpecialPaths(pathBuffer).string();
+                    config::save();
                 }
             }
             ImGui::End();
         } else if (state == 'D') {
             if (ImGui::Begin(ICON_FA_DOWNLOAD " Downloading LDraw parts library", nullptr, windowFlags)) {
                 switch (parts_library_downloader::getStatus()) {
-                    case parts_library_downloader::Status::DOING_NOTHING:
-                        downloadThread = std::thread(parts_library_downloader::downloadPartsLibrary);
+                    case parts_library_downloader::Status::DOING_NOTHING: downloadThread = std::thread(parts_library_downloader::downloadPartsLibrary);
                         break;
                     case parts_library_downloader::Status::IN_PROGRESS: {
                         auto [downNow, downTotal] = parts_library_downloader::getProgress();
@@ -402,15 +405,13 @@ namespace bricksim::gui {
                         }
                         break;
                     }
-                    case parts_library_downloader::Status::FAILED:
-                        ImGui::TextColored(color::RED, ICON_FA_CIRCLE_XMARK " Download failed with error code %d", parts_library_downloader::getErrorCode());
+                    case parts_library_downloader::Status::FAILED: ImGui::TextColored(color::RED, ICON_FA_CIRCLE_XMARK " Download failed with error code %d", parts_library_downloader::getErrorCode());
                         if (ImGui::Button(ICON_FA_CHEVRON_LEFT " Back")) {
                             parts_library_downloader::reset();
                             state = 'Z';
                         }
                         break;
-                    case parts_library_downloader::Status::FINISHED:
-                        state = 'Z';
+                    case parts_library_downloader::Status::FINISHED: state = 'Z';
                         parts_library_downloader::reset();
                         break;
                 }
@@ -462,17 +463,21 @@ namespace bricksim::gui {
     bool areKeysCaptured() {
         return ImGui::GetIO().WantCaptureKeyboard;
     }
+
     const std::shared_ptr<graphics::Texture>& getLogoTexture() {
         return logoTexture;
     }
+
     void collectWindowInfo(windows::Id id) {
         if (ImGui::IsWindowFocused(ImGuiHoveredFlags_ChildWindows)) {
             currentlyFocusedWindow = id;
         }
     }
+
     std::optional<windows::Id> getCurrentlyFocusedWindow() {
         return currentlyFocusedWindow.has_value() ? currentlyFocusedWindow : lastFocusedWindow;
     }
+
     MouseCursorHandler& getCursorHandler() {
         return *cursorHandler;
     }

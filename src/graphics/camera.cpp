@@ -1,5 +1,5 @@
 #include "camera.h"
-#include "../config.h"
+#include "../config/read.h"
 #include "Seb.h"
 #include "mesh/mesh_collection.h"
 #include <glm/ext/matrix_transform.hpp>
@@ -17,9 +17,9 @@ namespace bricksim::graphics {
 
     CadCamera::CadCamera() {
         target = glm::vec3(0.0f, 0.0f, 0.0f);
-        mouseRotateSensitivity = config::get(config::MOUSE_3DVIEW_ROTATE_SENSITIVITY);
-        mousePanSensitivity = config::get(config::MOUSE_3DVIEW_PAN_SENSITIVITY);
-        mouseZoomSensitivity = config::get(config::MOUSE_3DVIEW_ZOOM_SENSITIVITY);
+        mouseRotateSensitivity = config::get().view3d.sensitivity.rotate;
+        mousePanSensitivity = config::get().view3d.sensitivity.pan;
+        mouseZoomSensitivity = config::get().view3d.sensitivity.zoom;
         updateVectors();
     }
 

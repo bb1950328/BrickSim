@@ -1,11 +1,6 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "cert-err58-cpp"
-
 #pragma once
 
 #include "editor/editor.h"
-#include <functional>
-#include <magic_enum.hpp>
 #include <string>
 
 namespace bricksim::user_actions {
@@ -59,6 +54,7 @@ namespace bricksim::user_actions {
         END_TRANSFORMATION,
         CANCEL_TRANSFORMATION,
     };
+
     enum class EnableCondition {
         ALWAYS,
         HAS_ACTIVE_EDITOR,
@@ -75,5 +71,3 @@ namespace bricksim::user_actions {
     std::string_view getName(const Action& action);
     void init();
 }
-
-#pragma clang diagnostic pop

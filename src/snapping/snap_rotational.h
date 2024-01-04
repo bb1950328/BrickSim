@@ -1,31 +1,23 @@
 #pragma once
-#include "snap_common.h"
-#include <string>
-#include <vector>
+#include "../config/data.h"
 
 namespace bricksim::snap {
-    struct RotationalSnapStepPreset : public SnapStepPreset {
-        float stepDeg;
-        RotationalSnapStepPreset(std::string name, float stepDeg);
-        std::optional<gui::icons::IconType> getIcon() const override;
-    };
 
     class RotationalHandler {
-        std::vector<RotationalSnapStepPreset> presets;
-        RotationalSnapStepPreset temporaryPreset = {"", 1.f};
+        config::SnappingRotationalStepPreset temporaryPreset = {"", 1.f};
         int currentPresetIndex = TEMPORARY_PRESET_INDEX;
 
     public:
-        static const int TEMPORARY_PRESET_INDEX = -1;
-        [[nodiscard]] const std::vector<RotationalSnapStepPreset>& getPresets() const;
-        [[nodiscard]] const RotationalSnapStepPreset& getTemporaryPreset() const;
-        void setTemporaryPreset(const RotationalSnapStepPreset& value);
+        static constexpr int TEMPORARY_PRESET_INDEX = -1;
+        static std::optional<gui::icons::IconType> getIcon(const config::SnappingRotationalStepPreset& preset);
+        [[nodiscard]] const config::SnappingRotationalStepPreset& getTemporaryPreset() const;
+        void setTemporaryPreset(const config::SnappingRotationalStepPreset& value);
         [[nodiscard]] int getCurrentPresetIndex() const;
         void setCurrentPresetIndex(int value);
-        [[nodiscard]] const RotationalSnapStepPreset& getCurrentPreset() const;
+        [[nodiscard]] const config::SnappingRotationalStepPreset& getCurrentPreset() const;
 
         void init();
-        void cleanup();
+        void cleanup() const;
 
         float getNearestValue(float initialValueDeg, float currentValueDeg) const;
     };

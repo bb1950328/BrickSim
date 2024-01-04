@@ -130,7 +130,7 @@ namespace bricksim::gui::windows::connection_visualization {
                 }
 
                 static connection::visualization::GraphVizParams params;
-                params.thumbnailDirectory = util::replaceSpecialPaths(config::get(config::RENDERING_TMP_DIRECTORY));
+                params.thumbnailDirectory = util::replaceSpecialPaths(config::get().system.renderingTmpDirectory);
                 std::filesystem::create_directories(params.thumbnailDirectory);
 
                 static Viewport viewport;

@@ -1,6 +1,6 @@
 #include "component_orientation_cube.h"
 
-#include "../../config.h"
+#include "../../config/read.h"
 #include "../../controller.h"
 #include "../../graphics/orientation_cube.h"
 #include "../gui_internal.h"
@@ -23,7 +23,7 @@ namespace bricksim::gui::components {
     void drawOrientationCube(const float displaySize) {
         const ImVec2& cursorPos = ImGui::GetCursorScreenPos();
         const auto renderedSize = getSize();
-        const auto textureId = config::get(config::DISPLAY_SELECTION_BUFFER) ? getSelectionImage() : getImage();
+        const auto textureId = config::get().graphics.debug.displaySelectionBuffer ? getSelectionImage() : getImage();
         ImGui::Image(gui_internal::convertTextureId(textureId), ImVec2(displaySize, displaySize), ImVec2(0, 0), ImVec2(1, 1));
 
         static bool lastFrameMouseDown = false;

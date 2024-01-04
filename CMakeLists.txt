@@ -278,6 +278,7 @@ target_sources(ImGuiColorTextEdit PRIVATE
         src/lib/ImGuiColorTextEdit/TextEditor.cpp
         src/lib/ImGuiColorTextEdit/TextEditor.h
 )
+target_compile_definitions(ImGuiColorTextEdit PRIVATE IMGUI_DISABLE_OBSOLETE_FUNCTIONS)
 target_include_directories(ImGuiColorTextEdit PRIVATE src/lib/imgui)
 target_include_directories(ImGuiColorTextEdit INTERFACE src/lib/ImGuiColorTextEdit)
 
@@ -292,6 +293,10 @@ endif()
 
 #miniball
 target_include_directories(BrickSimLib PUBLIC src/lib/miniball/cpp/main)
+
+#json_dto
+add_subdirectory(src/lib/json_dto/dev)
+target_link_libraries(BrickSimLib PUBLIC json-dto)
 
 add_subdirectory(src)
 

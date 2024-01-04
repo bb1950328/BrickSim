@@ -1,7 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "controller.h"
-#include "config.h"
+#include "config/read.h"
 #include "db.h"
 #include "graphics/connection_visualization.h"
 #include "graphics/opengl_native_or_replacement.h"
@@ -20,9 +20,13 @@
 #include "logging/latest_log_messages_tank.h"
 #include "logging/logger.h"
 #include "metrics.h"
+#include "persistent_state.h"
 #include "stb_image.h"
 #include "stb_image_write.h"
 #include "user_actions.h"
+#include "config/read.h"
+#include "config/write.h"
+
 #include <glad/glad.h>
 #include <palanteer.h>
 #include <spdlog/spdlog.h>
@@ -40,9 +44,6 @@ namespace bricksim::controller {
         std::shared_ptr<Editor> activeEditor = nullptr;
         snap::Handler snapHandler;
 
-        unsigned int windowWidth;
-        unsigned int windowHeight;
-
         bool openGlInitialized = false;
 
         bool userWantsToExit = false;
@@ -59,9 +60,9 @@ namespace bricksim::controller {
 
         std::shared_ptr<efsw::FileWatcher> fileWatcher;
 
-#ifdef BRICKSIM_USE_RENDERDOC
+        #ifdef BRICKSIM_USE_RENDERDOC
         RENDERDOC_API_1_1_2* rdoc_api = nullptr;
-#endif
+        #endif
 
         void APIENTRY openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, [[maybe_unused]] GLsizei length, const GLchar* message, [[maybe_unused]] const void* userParam) {
             if (id == 131185 || id == 131169) {
@@ -71,36 +72,55 @@ namespace bricksim::controller {
             }
             spdlog::level::level_enum level;
             switch (severity) {
-                case GL_DEBUG_SEVERITY_NOTIFICATION: level = spdlog::level::info; break;
-                case GL_DEBUG_SEVERITY_LOW: level = spdlog::level::debug; break;
-                case GL_DEBUG_SEVERITY_MEDIUM: level = spdlog::level::warn; break;
-                case GL_DEBUG_SEVERITY_HIGH: level = spdlog::level::err; break;
+                case GL_DEBUG_SEVERITY_NOTIFICATION: level = spdlog::level::info;
+                    break;
+                case GL_DEBUG_SEVERITY_LOW: level = spdlog::level::debug;
+                    break;
+                case GL_DEBUG_SEVERITY_MEDIUM: level = spdlog::level::warn;
+                    break;
+                case GL_DEBUG_SEVERITY_HIGH: level = spdlog::level::err;
+                    break;
                 default: level = spdlog::level::info;
             }
 
             const char* sourceStr;
             switch (source) {
-                case GL_DEBUG_SOURCE_API: sourceStr = "API"; break;
-                case GL_DEBUG_SOURCE_WINDOW_SYSTEM: sourceStr = "WINDOW_SYSTEM"; break;
-                case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "SHADER_COMPILER"; break;
-                case GL_DEBUG_SOURCE_THIRD_PARTY: sourceStr = "THIRD_PARTY"; break;
-                case GL_DEBUG_SOURCE_APPLICATION: sourceStr = "APPLICATION"; break;
+                case GL_DEBUG_SOURCE_API: sourceStr = "API";
+                    break;
+                case GL_DEBUG_SOURCE_WINDOW_SYSTEM: sourceStr = "WINDOW_SYSTEM";
+                    break;
+                case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "SHADER_COMPILER";
+                    break;
+                case GL_DEBUG_SOURCE_THIRD_PARTY: sourceStr = "THIRD_PARTY";
+                    break;
+                case GL_DEBUG_SOURCE_APPLICATION: sourceStr = "APPLICATION";
+                    break;
                 case GL_DEBUG_SOURCE_OTHER:
-                default: sourceStr = "OTHER"; break;
+                default: sourceStr = "OTHER";
+                    break;
             }
 
             const char* typeStr;
             switch (type) {
-                case GL_DEBUG_TYPE_ERROR: typeStr = "ERROR"; break;
-                case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "DEPRECATED_BEHAVIOR"; break;
-                case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: typeStr = "UNDEFINED_BEHAVIOR"; break;
-                case GL_DEBUG_TYPE_PORTABILITY: typeStr = "PORTABILITY"; break;
-                case GL_DEBUG_TYPE_PERFORMANCE: typeStr = "PERFORMANCE"; break;
-                case GL_DEBUG_TYPE_MARKER: typeStr = "MARKER"; break;
-                case GL_DEBUG_TYPE_PUSH_GROUP: typeStr = "PUSH_GROUP"; break;
-                case GL_DEBUG_TYPE_POP_GROUP: typeStr = "POP_GROUP"; break;
+                case GL_DEBUG_TYPE_ERROR: typeStr = "ERROR";
+                    break;
+                case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "DEPRECATED_BEHAVIOR";
+                    break;
+                case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: typeStr = "UNDEFINED_BEHAVIOR";
+                    break;
+                case GL_DEBUG_TYPE_PORTABILITY: typeStr = "PORTABILITY";
+                    break;
+                case GL_DEBUG_TYPE_PERFORMANCE: typeStr = "PERFORMANCE";
+                    break;
+                case GL_DEBUG_TYPE_MARKER: typeStr = "MARKER";
+                    break;
+                case GL_DEBUG_TYPE_PUSH_GROUP: typeStr = "PUSH_GROUP";
+                    break;
+                case GL_DEBUG_TYPE_POP_GROUP: typeStr = "POP_GROUP";
+                    break;
                 case GL_DEBUG_TYPE_OTHER:
-                default: typeStr = "OTHER"; break;
+                default: typeStr = "OTHER";
+                    break;
             }
 
             spdlog::log(level, "OpenGL debug message: source={}, type={}, id={}: {}", sourceStr, typeStr, id, message);
@@ -111,12 +131,12 @@ namespace bricksim::controller {
                 throw std::invalid_argument("attempting to initialize OpenGL twice");
             }
             plFunction();
-            const auto enableDebugOutput = config::get(config::ENABLE_GL_DEBUG_OUTPUT);
+            const auto enableDebugOutput = config::get().system.enableGlDebugOutput;
             glfwSetErrorCallback(glfwErrorCallback);
             glfwInit();
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-            glfwWindowHint(GLFW_SAMPLES, config::get(config::MSAA_SAMPLES));
+            glfwWindowHint(GLFW_SAMPLES, config::get().graphics.msaaSamples);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
             if (enableDebugOutput) {
@@ -124,14 +144,15 @@ namespace bricksim::controller {
                 glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
             }
 
-#ifdef __APPLE__
+            #ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+            #endif
 
-            windowWidth = std::max(25, config::get(config::SCREEN_WIDTH));
-            windowHeight = std::max(25, config::get(config::SCREEN_HEIGHT));
-
-            window = glfwCreateWindow(static_cast<int>(windowWidth), static_cast<int>(windowHeight), "BrickSim", nullptr, nullptr);
+            window = glfwCreateWindow(persisted_state::get().windowWidth,
+                                      persisted_state::get().windowHeight,
+                                      "BrickSim",
+                                      nullptr,
+                                      nullptr);
             if (window == nullptr) {
                 spdlog::critical("Failed to create GLFW window");
                 glfwTerminate();
@@ -143,7 +164,7 @@ namespace bricksim::controller {
                 glfwTerminate();
                 return false;
             }
-            if (!config::get(config::ENABLE_VSYNC)) {
+            if (!config::get().graphics.vsync) {
                 glfwSwapInterval(0);
             }
             glfwSetFramebufferSizeCallback(window, windowSizeCallback);
@@ -155,14 +176,14 @@ namespace bricksim::controller {
                 return false;
             }
 
-            const auto bgColor = config::get(config::BACKGROUND_COLOR).asGlmVector();
+            const auto bgColor = config::get().graphics.background.asGlmVector();
             glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.f);
             glClear(GL_COLOR_BUFFER_BIT);
             glfwSwapBuffers(window);
 
             glEnable(GL_DEPTH_TEST);
 
-            if (config::get(config::FACE_CULLING_ENABLED)) {
+            if (config::get().graphics.faceCulling) {
                 glEnable(GL_CULL_FACE);
                 glCullFace(GL_BACK);
             }
@@ -178,13 +199,13 @@ namespace bricksim::controller {
                 glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
             }
 
-#ifdef BRICKSIM_USE_RENDERDOC
+            #ifdef BRICKSIM_USE_RENDERDOC
             if (void* mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD)) {
                 auto RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
                 int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void**)&rdoc_api);
                 assert(ret == 1);
             }
-#endif
+            #endif
 
             graphics::opengl_native_or_replacement::initialize();
 
@@ -196,9 +217,9 @@ namespace bricksim::controller {
         }
 
         void windowSizeCallback([[maybe_unused]] GLFWwindow* _, int width, int height) {
-            if (windowWidth != static_cast<unsigned int>(width) || windowHeight != static_cast<unsigned int>(height)) {
-                windowWidth = width;
-                windowHeight = height;
+            if (persisted_state::get().windowWidth != static_cast<unsigned int>(width) || persisted_state::get().windowHeight != static_cast<unsigned int>(height)) {
+                persisted_state::get().windowWidth = width;
+                persisted_state::get().windowHeight = height;
                 controller::executeOpenGL([&]() {
                     glViewport(0, 0, width, height);
                 });
@@ -214,7 +235,7 @@ namespace bricksim::controller {
             }
         }
 
-        void keyCallback([[maybe_unused]] GLFWwindow* _, int key, [[maybe_unused]] int scancode, int action, int mods) {
+        void keyCallback([[maybe_unused]] GLFWwindow* _, const int key, [[maybe_unused]] int scancode, const int action, const int mods) {
             keyboard_shortcut_manager::shortcutPressed(key, action, static_cast<keyboard_shortcut_manager::modifier_t>(mods), gui::areKeysCaptured());
         }
 
@@ -270,6 +291,9 @@ namespace bricksim::controller {
 
             db::initialize();
 
+            config::initialize();
+            persisted_state::initialize();
+
             if (!initializeGL()) {
                 spdlog::critical("failed to initialize OpenGL / glfw, exiting");
                 return false;
@@ -290,19 +314,22 @@ namespace bricksim::controller {
                 }
             }
 
-            std::array<Task, 11> initSteps{{
-                    {"load color definitions", ldr::color_repo::initialize},
-                    {"initialize shadow file repo", ldr::file_repo::initializeShadowFileRepo},
-                    {"initialize file list", [](float* progress) { ldr::file_repo::get().initialize(progress); spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().string()); }},
-                    {"initialize price guide provider", info_providers::price_guide::initialize},
-                    {"initialize thumbnail generator", []() { thumbnailGenerator = std::make_shared<graphics::ThumbnailGenerator>(); }},
-                    {"initialize BrickLink constants", info_providers::bricklink_constants::initialize},
-                    {"initialize keyboard shortcuts", keyboard_shortcut_manager::initialize},
-                    {"initialize orientation cube generator", graphics::orientation_cube::initialize},
-                    {"initialize snap handler", []() { snapHandler.init(); }},
-                    {"initialize user actions", []() { user_actions::init(); }},
-                    {"initialize icons", []() { gui::icons::initialize(); }},
-            }};
+            std::array initSteps = {
+                    Task{"load color definitions", ldr::color_repo::initialize},
+                    Task{"initialize shadow file repo", ldr::file_repo::initializeShadowFileRepo},
+                    Task{"initialize file list", [](float* progress) {
+                        ldr::file_repo::get().initialize(progress);
+                        spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().string());
+                    }},
+                    Task{"initialize price guide provider", info_providers::price_guide::initialize},
+                    Task{"initialize thumbnail generator", []() { thumbnailGenerator = std::make_shared<graphics::ThumbnailGenerator>(); }},
+                    Task{"initialize BrickLink constants", info_providers::bricklink_constants::initialize},
+                    Task{"initialize keyboard shortcuts", keyboard_shortcut_manager::initialize},
+                    Task{"initialize orientation cube generator", graphics::orientation_cube::initialize},
+                    Task{"initialize snap handler", []() { snapHandler.init(); }},
+                    Task{"initialize user actions", []() { user_actions::init(); }},
+                    Task{"initialize icons", []() { gui::icons::initialize(); }},
+            };
 
             const auto drawWaitMessageInFrame = [](const std::string& message, float progress) {
                 gui::beginFrame();
@@ -370,12 +397,13 @@ namespace bricksim::controller {
             mesh::SceneMeshCollection::deleteAllMeshes();
             graphics::scenes::deleteAll();
             thumbnailGenerator = nullptr;
-            if (config::get(config::CLEAR_RENDERING_TMP_DIRECTORY_ON_EXIT)) {
-                const auto renderingTmpDirectory = util::replaceSpecialPaths(config::get(config::RENDERING_TMP_DIRECTORY));
+            if (config::get().system.clearRenderingTmpDirectoryOnExit) {
+                const auto renderingTmpDirectory = util::replaceSpecialPaths(config::get().system.renderingTmpDirectory);
                 if (std::filesystem::exists(renderingTmpDirectory)) {
                     std::filesystem::remove_all(renderingTmpDirectory);
                 }
             }
+            persisted_state::cleanup();
 
             glfwTerminate();
             openGlInitialized = false;
@@ -517,8 +545,6 @@ namespace bricksim::controller {
                 plEnd("glfwPollEvents");
             });
         }
-        config::set(config::SCREEN_WIDTH, windowWidth);
-        config::set(config::SCREEN_HEIGHT, windowHeight);
         cleanup();
         return 0;
     }
@@ -636,16 +662,18 @@ namespace bricksim::controller {
         }
         return {};
     }
+
     std::shared_ptr<efsw::FileWatcher> getFileWatcher() {
         return fileWatcher;
     }
+
     snap::Handler& getSnapHandler() {
         return snapHandler;
     }
 
-#ifdef BRICKSIM_USE_RENDERDOC
+    #ifdef BRICKSIM_USE_RENDERDOC
     RENDERDOC_API_1_1_2* getRenderdocAPI() {
         return rdoc_api;
     }
-#endif
+    #endif
 }

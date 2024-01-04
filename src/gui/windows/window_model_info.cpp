@@ -11,7 +11,6 @@
 #include <spdlog/stopwatch.h>
 
 namespace bricksim::gui::windows::model_info {
-
     namespace {
         void addTableLine(const char* const description) {
             ImGui::TableNextRow();
@@ -26,6 +25,7 @@ namespace bricksim::gui::windows::model_info {
             float totalAvgPrice = 0;
             std::set<std::size_t> differentParts;
             std::set<std::size_t> differentPartsAndColors;
+
             void reset() {
                 count = 0;
                 totalMinPrice = 0;
@@ -59,7 +59,6 @@ namespace bricksim::gui::windows::model_info {
             const auto nameHash = util::combinedHash(ldrNode->ldrFile->metaInfo.name);
             stats.differentParts.insert(nameHash);
             stats.differentPartsAndColors.insert(util::combinedHash(ldrNode->getDisplayColor(), nameHash));
-
         } else if (nodeType == etree::NodeType::TYPE_MODEL_INSTANCE) {
             fillPartStats(stats, std::dynamic_pointer_cast<etree::ModelInstanceNode>(node)->modelNode, true);
         } else if (countSubfile) {

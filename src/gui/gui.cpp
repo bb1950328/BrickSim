@@ -110,10 +110,12 @@ namespace bricksim::gui {
             const unsigned char* fontData;
             std::size_t fontDataLength;
             switch (config::get().gui.font) {
-                case config::GuiFont::Roboto: fontData = resources::fonts::Roboto_Regular_ttf.data();
+                case config::GuiFont::Roboto:
+                    fontData = resources::fonts::Roboto_Regular_ttf.data();
                     fontDataLength = resources::fonts::Roboto_Regular_ttf.size();
                     break;
-                case config::GuiFont::RobotoMono: fontData = resources::fonts::RobotoMono_Regular_ttf.data();
+                case config::GuiFont::RobotoMono:
+                    fontData = resources::fonts::RobotoMono_Regular_ttf.data();
                     fontDataLength = resources::fonts::RobotoMono_Regular_ttf.size();
                     break;
             }
@@ -387,9 +389,11 @@ namespace bricksim::gui {
         } else if (state == 'D') {
             if (ImGui::Begin(ICON_FA_DOWNLOAD " Downloading LDraw parts library", nullptr, windowFlags)) {
                 switch (parts_library_downloader::getStatus()) {
-                    case parts_library_downloader::Status::DOING_NOTHING: downloadThread = std::thread(parts_library_downloader::downloadPartsLibrary);
+                    case parts_library_downloader::Status::DOING_NOTHING:
+                        downloadThread = std::thread(parts_library_downloader::downloadPartsLibrary);
                         break;
-                    case parts_library_downloader::Status::IN_PROGRESS: {
+                    case parts_library_downloader::Status::IN_PROGRESS:
+                    {
                         auto [downNow, downTotal] = parts_library_downloader::getProgress();
                         ImGui::Text(ICON_FA_DOWNLOAD " Downloading ldraw parts library...");
 
@@ -405,13 +409,15 @@ namespace bricksim::gui {
                         }
                         break;
                     }
-                    case parts_library_downloader::Status::FAILED: ImGui::TextColored(color::RED, ICON_FA_CIRCLE_XMARK " Download failed with error code %d", parts_library_downloader::getErrorCode());
+                    case parts_library_downloader::Status::FAILED:
+                        ImGui::TextColored(color::RED, ICON_FA_CIRCLE_XMARK " Download failed with error code %d", parts_library_downloader::getErrorCode());
                         if (ImGui::Button(ICON_FA_CHEVRON_LEFT " Back")) {
                             parts_library_downloader::reset();
                             state = 'Z';
                         }
                         break;
-                    case parts_library_downloader::Status::FINISHED: state = 'Z';
+                    case parts_library_downloader::Status::FINISHED:
+                        state = 'Z';
                         parts_library_downloader::reset();
                         break;
                 }

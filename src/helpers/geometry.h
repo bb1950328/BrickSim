@@ -71,6 +71,7 @@ namespace bricksim::geometry {
 
         return result;
     }
+
     /**
      * find the point which is on the @p ray and is closest to @p point
      * @tparam N number of dimensions
@@ -95,6 +96,7 @@ namespace bricksim::geometry {
         float distanceToPointB;
         float distanceBetweenPoints;
     };
+
     ClosestLineBetweenTwoRaysResult closestLineBetweenTwoRays(const Ray3& a, const Ray3& b);
 
     std::optional<glm::vec3> rayPlaneIntersection(const Ray3& ray, const Ray3& planeNormal);

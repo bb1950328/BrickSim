@@ -15,24 +15,37 @@ namespace bricksim::gui::windows::log {
         ImVec4 levelToColor(const unsigned char level) {
             switch (level) {
                 case 0:
-                case 1: return ImVec4(0.5, 0.5, 0.5, 1.0);
-                case 2: return ImVec4(0.1, 0.0, 1.0, 1.0);
-                case 3: return ImVec4(1.0, 0.5, 0.05, 1.0);
-                case 4: return ImVec4(1.0, 0.0, 0.0, 1.0);
-                case 5: return ImVec4(1.0, 0.0, 1.0, 1.0);
-                default: return ImVec4(1.0, 1.0, 1.0, 1.0);
+                case 1:
+                    return ImVec4(0.5, 0.5, 0.5, 1.0);
+                case 2:
+                    return ImVec4(0.1, 0.0, 1.0, 1.0);
+                case 3:
+                    return ImVec4(1.0, 0.5, 0.05, 1.0);
+                case 4:
+                    return ImVec4(1.0, 0.0, 0.0, 1.0);
+                case 5:
+                    return ImVec4(1.0, 0.0, 1.0, 1.0);
+                default:
+                    return ImVec4(1.0, 1.0, 1.0, 1.0);
             }
         }
 
         const char* levelToText(const unsigned char level) {
             switch (level) {
-                case 0: return "TRACE";
-                case 1: return "DEBUG";
-                case 2: return "INFO";
-                case 3: return "WARN";
-                case 4: return "ERROR";
-                case 5: return "CRITICAL";
-                default: return "?";
+                case 0:
+                    return "TRACE";
+                case 1:
+                    return "DEBUG";
+                case 2:
+                    return "INFO";
+                case 3:
+                    return "WARN";
+                case 4:
+                    return "ERROR";
+                case 5:
+                    return "CRITICAL";
+                default:
+                    return "?";
             }
         }
     }

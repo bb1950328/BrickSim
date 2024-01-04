@@ -2,7 +2,6 @@
 #include <spdlog/spdlog.h>
 
 namespace bricksim::ldr::file_repo {
-
     bool RegularFileRepo::isValidBasePath(const std::filesystem::path& basePath) {
         if (!std::filesystem::exists(basePath)
             || !std::filesystem::is_directory(basePath)) {

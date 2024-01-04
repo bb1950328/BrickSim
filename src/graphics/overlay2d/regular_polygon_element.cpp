@@ -56,5 +56,4 @@ namespace bricksim::overlay2d {
         RegularPolygonElement::color = value;
         setVerticesHaveChanged(true);
     }
-
 }

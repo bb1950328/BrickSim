@@ -103,9 +103,11 @@ namespace bricksim::mesh {
 
     LineData::LineData(const unsigned int drawMode) :
         drawMode(drawMode) {}
+
     size_t LineData::getVertexCount() const {
         return dataAlreadyDeleted ? uploadedVertexCount : vertices.size();
     }
+
     size_t LineData::getIndexCount() const {
         return dataAlreadyDeleted ? uploadedIndexCount : indices.size();
     }

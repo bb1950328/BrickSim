@@ -14,14 +14,14 @@
 #include <palanteer.h>
 
 namespace bricksim::mesh {
-
     void Mesh::addLdrFile(ldr::ColorReference mainColor, const std::shared_ptr<ldr::File>& file, const glm::mat4& transformation, bool bfcInverted, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         for (const auto& element: file->elements) {
             if (element->hidden) {
                 continue;
             }
             switch (element->getType()) {
-                case 0: break;
+                case 0:
+                    break;
                 case 1:
                     addLdrSubfileReference(file, mainColor, std::dynamic_pointer_cast<ldr::SubfileReference>(element), transformation, bfcInverted, texmap);
                     break;
@@ -291,6 +291,7 @@ namespace bricksim::mesh {
             instancesHaveChanged = false;
         }
     }
+
     std::vector<glm::mat4> Mesh::getInstancesForLineData() {
         std::vector<glm::mat4> instancesArray;
         instancesArray.resize(instances.size());
@@ -482,6 +483,7 @@ namespace bricksim::mesh {
     LineData& Mesh::getOptionalLineData() {
         return optionalLineData;
     }
+
     uomap_t<ldr::ColorReference, TriangleData>& Mesh::getAllTriangleData() {
         return triangleData;
     }
@@ -493,12 +495,14 @@ namespace bricksim::mesh {
         }
         return it->second;
     }
+
     void Mesh::drawTriangleGraphics(scene_id_t sceneId, layer_t layer) {
         const std::optional<InstanceRange>& range = getSceneLayerInstanceRange(sceneId, layer);
         for (auto& item: triangleData) {
             item.second.draw(range);
         }
     }
+
     const OuterDimensions& Mesh::getOuterDimensions() {
         if (!outerDimensions.has_value()) {
             calculateOuterDimensions();
@@ -546,9 +550,11 @@ namespace bricksim::mesh {
             };
         }
     }
+
     uomap_t<texture_id_t, TexturedTriangleData>& Mesh::getAllTexturedTriangleData() {
         return texturedTriangleData;
     }
+
     TexturedTriangleData& Mesh::getTexturedTriangleData(std::shared_ptr<graphics::Texture>& texture) {
         auto it = texturedTriangleData.find(texture->getID());
         if (it == texturedTriangleData.end()) {

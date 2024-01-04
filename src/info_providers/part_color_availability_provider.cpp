@@ -5,7 +5,6 @@
 #include <spdlog/spdlog.h>
 
 namespace bricksim::info_providers::part_color_availability {
-
     namespace {
         uomap_t<std::string, ldr::ColorReference> colorsByName;
         uomap_t<std::string, uoset_t<ldr::ColorReference>> colorsAvailable{};
@@ -63,5 +62,4 @@ namespace bricksim::info_providers::part_color_availability {
             return it->second;
         }
     }
-
 }

@@ -10,7 +10,7 @@ namespace bricksim {
         std::string name;
         std::vector<uint8_t> data;
 
-        explicit BinaryFile(std::string  name);
+        explicit BinaryFile(std::string name);
         explicit BinaryFile(const std::filesystem::path& path);
     };
 }

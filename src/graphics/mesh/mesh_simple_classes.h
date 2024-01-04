@@ -60,7 +60,6 @@ namespace bricksim::mesh {
     };
 
 
-
     struct OuterDimensions {
         aabb::AABB aabb;
         glm::vec3 minEnclosingBallCenter;

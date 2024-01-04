@@ -16,8 +16,7 @@ namespace bricksim {
 
             *progress = 1.f;
             return std::chrono::duration_cast<std::chrono::microseconds>(after - before);
-        })) {
-    }
+        })) {}
 
     bool RunningTask::isDone() const {
         return future.wait_for(std::chrono::microseconds(0)) == std::future_status::ready;
@@ -96,5 +95,6 @@ namespace bricksim {
         progress = other.progress;
         return *this;
     }
+
     Task::~Task() = default;
 }

@@ -47,6 +47,7 @@ namespace bricksim::info_providers::price_guide {
         float qtyAvgPrice;
         float maxPrice;
     };
+
     bool initialize();
 
     PriceGuide getPriceGuide(const std::string& partCode, const std::string& currencyCode, const std::string& colorName, bool forceRefresh = false);

@@ -1,6 +1,7 @@
 #pragma once
 #include "../../helpers/color.h"
 #include "element.h"
+
 namespace bricksim::overlay2d {
     /*                        ▨       🡡
      *                        ▨▨      |
@@ -46,5 +47,4 @@ namespace bricksim::overlay2d {
         const color::RGB& getColor() const;
         void setColor(const color::RGB& value);
     };
-
 }

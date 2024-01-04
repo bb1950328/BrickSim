@@ -2,6 +2,7 @@
 
 #include "../gui/icons.h"
 #include "editor.h"
+
 namespace bricksim::tools {
     enum class Tool {
         SELECT,
@@ -33,5 +34,4 @@ namespace bricksim::tools {
     bool isActive(Tool tool);
     Tool getActiveTool();
     const ToolData& getActiveToolData();
-
 }

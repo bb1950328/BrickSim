@@ -3,8 +3,8 @@
 #include "data.h"
 #include <memory>
 #include <vector>
-namespace bricksim::overlay2d {
 
+namespace bricksim::overlay2d {
     class Element : private std::enable_shared_from_this<Element> {
     private:
         bool verticesHaveChanged = false;

@@ -23,6 +23,7 @@ namespace bricksim::color {
     public:
         constexpr RGB() :
             red(0), green(0), blue(0) {}
+
         constexpr ~RGB() = default;
 
         explicit RGB(const std::string& htmlCode);
@@ -30,8 +31,7 @@ namespace bricksim::color {
         explicit RGB(const HSV& hsv);
 
         constexpr RGB(color_component_t red, color_component_t green, color_component_t blue) :
-            red(red), green(green), blue(blue) {
-        }
+            red(red), green(green), blue(blue) {}
 
         color_component_t red;
         color_component_t green;
@@ -71,6 +71,7 @@ namespace bricksim::color {
             blue = clampResult(static_cast<T>(blue * value));
             return *this;
         }
+
         template<typename T>
             requires std::is_arithmetic_v<T>
         RGB& operator+=(T value) {
@@ -79,6 +80,7 @@ namespace bricksim::color {
             blue = clampResult(static_cast<T>(blue + value));
             return *this;
         }
+
         template<typename T>
             requires std::is_arithmetic_v<T>
         RGB& operator/=(T value) {
@@ -87,6 +89,7 @@ namespace bricksim::color {
             blue = clampResult(static_cast<T>(blue / value));
             return *this;
         }
+
         template<typename T>
             requires std::is_arithmetic_v<T>
         RGB& operator-=(T value) {

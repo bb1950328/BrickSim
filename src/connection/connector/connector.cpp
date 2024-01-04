@@ -17,20 +17,25 @@ namespace bricksim::connection {
     std::shared_ptr<Connector> Connector::clone() {
         return std::make_shared<Connector>(*this);
     }
+
     std::string Connector::infoStr() const {
         return fmt::format("connector[group={}, start={}, direction={}]", group, stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
+
     std::size_t Connector::hash() const {
         return util::combinedHash(group, stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
+
     bool Connector::operator==(const Connector& rhs) const {
         return group == rhs.group
                && glm::all(glm::epsilonEqual(start, rhs.start, .1f))
                && glm::all(glm::epsilonEqual(direction, rhs.direction, .1f));
     }
+
     bool Connector::operator!=(const Connector& rhs) const {
         return !(rhs == *this);
     }
+
     std::shared_ptr<Connector> Connector::transform(const glm::mat4& transformation) {
         return std::make_shared<Connector>(type,
                                            group,
@@ -38,6 +43,7 @@ namespace bricksim::connection {
                                            glm::vec4(direction, 0.f) * transformation,
                                            sourceTrace);
     }
+
     std::pair<float, float> Connector::getRadiusAndLengthFactorFromTransformation(const glm::mat4& transformation, const glm::vec3& direction) {
         if (std::abs(std::abs(transformation[0][0]) - 1.f) < .001f
             && std::abs(std::abs(transformation[1][1]) - 1.f) < .001f
@@ -54,6 +60,7 @@ namespace bricksim::connection {
         };
     }
 }
+
 namespace std {
     std::size_t hash<bricksim::connection::Connector>::operator()(const bricksim::connection::Connector& value) const {
         return value.hash();

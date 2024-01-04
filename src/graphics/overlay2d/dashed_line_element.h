@@ -1,6 +1,7 @@
 #pragma once
 #include "../../helpers/color.h"
 #include "element.h"
+
 namespace bricksim::overlay2d {
     class BaseDashedLineElement : public Element {
     protected:
@@ -18,6 +19,7 @@ namespace bricksim::overlay2d {
         void setColor(const color::RGB& newColor);
         ~BaseDashedLineElement() override;
     };
+
     class DashedLineElement : public BaseDashedLineElement {
     private:
         std::vector<coord_t> points;
@@ -32,5 +34,4 @@ namespace bricksim::overlay2d {
         void setPoints(const std::vector<coord_t>& newPoints);
         ~DashedLineElement() override;
     };
-
 }

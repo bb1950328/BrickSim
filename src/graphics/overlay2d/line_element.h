@@ -1,6 +1,7 @@
 #pragma once
 #include "../../helpers/color.h"
 #include "element.h"
+
 namespace bricksim::overlay2d {
     class LineElement : public Element {
     private:

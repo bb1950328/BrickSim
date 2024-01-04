@@ -46,6 +46,7 @@ namespace bricksim::connection {
 
     using connector_container_t = std::vector<std::shared_ptr<Connector>>;
 }
+
 namespace std {
     template<>
     struct hash<bricksim::connection::Connector> {

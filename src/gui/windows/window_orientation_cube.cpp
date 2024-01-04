@@ -3,7 +3,6 @@
 #include "../gui.h"
 
 namespace bricksim::gui::windows::orientation_cube {
-
     void draw(Data& data) {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
         if (ImGui::Begin(data.name, &data.visible)) {

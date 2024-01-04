@@ -14,7 +14,6 @@
 #include <magic_enum.hpp>
 
 namespace bricksim::helpers::system_info {
-
     std::vector<std::pair<std::string, std::string>> getSystemInfo() {
         std::vector<std::pair<std::string, std::string>> result;
         const GLubyte* vendor;
@@ -23,7 +22,7 @@ namespace bricksim::helpers::system_info {
             vendor = glGetString(GL_VENDOR);
             renderer = glGetString(GL_RENDERER);
         });
-        curl_version_info_data *curlVersionData = curl_version_info(CURLVERSION_NOW);
+        curl_version_info_data* curlVersionData = curl_version_info(CURLVERSION_NOW);
 
         result.emplace_back("GPU Vendor:", std::string(reinterpret_cast<const char*>(vendor)));
         result.emplace_back("GPU Renderer:", std::string(reinterpret_cast<const char*>(renderer)));

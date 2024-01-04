@@ -82,7 +82,8 @@ namespace bricksim::graphics {
                 yaw = 180.0f;
                 pitch = 0.0f;
                 break;//Left
-            default: throw std::invalid_argument("1...6 only");
+            default:
+                throw std::invalid_argument("1...6 only");
         }
         target = glm::vec3(0.0f, 0.0f, 0.0f);
         updateVectors();
@@ -96,6 +97,7 @@ namespace bricksim::graphics {
         distance = value;
         updateVectors();
     }
+
     void CadCamera::setTargetPos(const glm::vec3& pos) {
         target = pos;
         updateVectors();
@@ -201,5 +203,6 @@ namespace bricksim::graphics {
     const glm::vec3& FitContentCamera::getTargetPos() const {
         return target;
     }
+
     Camera::~Camera() = default;
 }

@@ -6,7 +6,6 @@
 #include <glm/gtx/normal.hpp>
 
 namespace bricksim::graphics::texmap_projection {
-
     glm::vec2 getPlanarUVCoord(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, glm::vec3 point) {
         const glm::vec3 p1(startCommand->x1(), startCommand->y1(), startCommand->z1());
         const glm::vec3 p2(startCommand->x2(), startCommand->y2(), startCommand->z2());

@@ -15,19 +15,21 @@ namespace bricksim::connection::visualization {
 
     VisualizationGenerator::VisualizationGenerator(const std::shared_ptr<ldr::FileNamespace>& nameSpace, const std::string& fileName) :
         root(std::make_shared<etree::RootNode>()), nameSpace(nameSpace), fileName(fileName) {}
+
     VisualizationGenerator::VisualizationGenerator(const std::shared_ptr<etree::Node>& container, const std::shared_ptr<ldr::FileNamespace>& nameSpace, const std::string& fileName) :
-        root(container), nameSpace(nameSpace), fileName(fileName) {
-    }
+        root(container), nameSpace(nameSpace), fileName(fileName) {}
 
     const std::shared_ptr<etree::Node>& VisualizationGenerator::getContainer() const {
         return root;
     }
+
     void VisualizationGenerator::addXYZLineNode() {
         const auto xyzLineNode = std::make_shared<mesh::generated::XYZLineNode>(root);
         xyzLineNode->setRelativeTransformation(glm::transpose(glm::scale(glm::mat4(1.f), glm::vec3(100.f))));
         root->addChild(xyzLineNode);
         root->incrementVersion();
     }
+
     void VisualizationGenerator::addFileNode() {
         const auto ldrFile = ldr::file_repo::get().getFile(nameSpace, fileName);
         if (ldrFile->metaInfo.type == ldr::FileType::MODEL || ldrFile->metaInfo.type == ldr::FileType::MPD_SUBFILE) {
@@ -40,22 +42,27 @@ namespace bricksim::connection::visualization {
         }
         root->incrementVersion();
     }
+
     void VisualizationGenerator::addConnectorNodes() {
         for (const auto& conn: *getConnectorsOfLdrFile(nameSpace, fileName)) {
             switch (conn->type) {
-                case Connector::Type::CYLINDRICAL: {
+                case Connector::Type::CYLINDRICAL:
+                {
                     generateCylindrical(std::dynamic_pointer_cast<CylindricalConnector>(conn));
                     break;
                 }
-                case Connector::Type::CLIP: {
+                case Connector::Type::CLIP:
+                {
                     generateClip(std::dynamic_pointer_cast<ClipConnector>(conn));
                     break;
                 }
-                case Connector::Type::FINGER: {
+                case Connector::Type::FINGER:
+                {
                     generateFinger(std::dynamic_pointer_cast<FingerConnector>(conn));
                     break;
                 }
-                case Connector::Type::GENERIC: {
+                case Connector::Type::GENERIC:
+                {
                     generateGeneric(std::dynamic_pointer_cast<GenericConnector>(conn));
                     break;
                 }
@@ -95,6 +102,7 @@ namespace bricksim::connection::visualization {
             currentOffset += part.length;
         }
     }
+
     void VisualizationGenerator::generateClip(std::shared_ptr<ClipConnector> connector) {
         const auto directionAsQuat = geometry::quaternionRotationFromOneVectorToAnother({0.f, 0.f, 1.f}, connector->direction);
         const glm::vec3 end = connector->start + connector->direction * connector->width;
@@ -112,6 +120,7 @@ namespace bricksim::connection::visualization {
             root->addChild(c1);
         }
     }
+
     void VisualizationGenerator::generateFinger(std::shared_ptr<FingerConnector> connector) {
         const auto directionAsQuat = geometry::quaternionRotationFromOneVectorToAnother({0.f, 0.f, 1.f}, connector->direction);
         const glm::vec3 end = connector->start + connector->direction * connector->totalWidth;
@@ -152,6 +161,7 @@ namespace bricksim::connection::visualization {
             }
         }
     }
+
     void VisualizationGenerator::generateGeneric(std::shared_ptr<GenericConnector> connector) {
         const auto directionAsQuat = geometry::quaternionRotationFromOneVectorToAnother({1.f, 0.f, 0.f}, connector->direction);
         auto transf = glm::mat4(1.f);

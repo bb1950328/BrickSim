@@ -8,7 +8,6 @@
 #include "efsw/efsw.hpp"
 
 namespace bricksim {
-
     //todo move this to separate file
     class SelectionVisualizationNode : public etree::MeshNode {
     public:

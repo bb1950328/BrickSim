@@ -27,5 +27,4 @@ namespace bricksim::connection::visualization {
         void addFileNode();
         void addXYZLineNode();
     };
-
 }

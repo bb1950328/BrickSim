@@ -18,6 +18,7 @@ namespace bricksim::gui::node_context_menu {
         virtual void endSubMenu() const = 0;
         virtual void endMenu() const = 0;
     };
+
     class ImGuiContextMenuDrawHandler : public ContextMenuDrawHandler {
     public:
         static const ImGuiID POPUP_ID_HASH = 0x283e48fd;

@@ -1,6 +1,7 @@
 #include "arrow_element.h"
 #include "../../helpers/geometry.h"
 #include "vertex_generator.h"
+
 namespace bricksim::overlay2d {
     ArrowElement::ArrowElement(const coord_t& start, const coord_t& anEnd, length_t lineWidth, const color::RGB& color, float tipLengthFactor,
                                float tipWidthFactor) :
@@ -120,5 +121,4 @@ namespace bricksim::overlay2d {
         ArrowElement::color = value;
         setVerticesHaveChanged(true);
     }
-
 }

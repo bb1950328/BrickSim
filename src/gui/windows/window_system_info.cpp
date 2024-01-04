@@ -8,6 +8,7 @@
 
 namespace bricksim::gui::windows::system_info {
     using namespace helpers::system_info;
+
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible, ImGuiWindowFlags_AlwaysAutoResize)) {
             collectWindowInfo(data.id);

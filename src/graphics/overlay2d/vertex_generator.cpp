@@ -1,5 +1,6 @@
 #include "vertex_generator.h"
 #include "../../helpers/geometry.h"
+
 namespace bricksim::overlay2d::vertex_generator {
     void generateVerticesForLine(std::vector<Vertex>::iterator& buffer, coord_t start, coord_t end, length_t width, color::RGB color, coord_t viewportSize) {
         // 1----------------------------------2
@@ -118,11 +119,11 @@ namespace bricksim::overlay2d::vertex_generator {
         std::pair<glm::vec2, glm::vec2> lastPoints{};
         for (size_t i = 0; i < points.size(); ++i) {
             const auto sToLast = i == 0
-                                         ? (points[0] - points[1])
-                                         : (points[i - 1] - points[i]);
+                                     ? (points[0] - points[1])
+                                     : (points[i - 1] - points[i]);
             const auto sToNext = i == points.size() - 1
-                                         ? (points[points.size() - 1] - points[points.size() - 2])
-                                         : (points[i + 1] - points[i]);
+                                     ? (points[points.size() - 1] - points[points.size() - 2])
+                                     : (points[i + 1] - points[i]);
             const auto fToLast = glm::normalize(glm::vec2(sToLast));
             const auto fToNext = glm::normalize(glm::vec2(sToNext));
             auto currentPoints = calculatePolyLineCornerPoints(width, points[i], fToLast, fToNext);

@@ -5,6 +5,7 @@
 #include "imgui.h"
 #include "spdlog/spdlog.h"
 #include "tinyfiledialogs.h"
+
 namespace bricksim::gui::dialogs {
     constexpr std::array<char const*, 4> LDRAW_FILE_FILTER_PATTERNS = {"*.ldr", "*.dat", "*.mpd", "*.io"};
     constexpr std::array<char const*, 4> IMAGE_FILE_FILTER_PATTERNS = {"*.png", "*.jpg", "*.bmp", "*.tga"};
@@ -39,6 +40,7 @@ namespace bricksim::gui::dialogs {
             spdlog::warn("gui::showSaveFileAsDialog() called, but there's no active editor");
         }
     }
+
     void showSaveFileAsDialog(const std::shared_ptr<Editor>& editor) {
         std::string title = fmt::format("Save \"{}\" as", editor->getFilename());
         char const* fileNameChars = tinyfd_saveFileDialog(
@@ -61,6 +63,7 @@ namespace bricksim::gui::dialogs {
             spdlog::warn("gui::showSaveCopyAsDialog() called, but there's no active editor");
         }
     }
+
     void showSaveCopyAsDialog(const std::shared_ptr<Editor>& editor) {
         std::string title = fmt::format("Save copy of \"{}\"", editor->getFilename());
         char const* fileNameChars = tinyfd_saveFileDialog(
@@ -83,6 +86,7 @@ namespace bricksim::gui::dialogs {
             spdlog::warn("gui::showScreenshotDialog() called, but there's no active editor");
         }
     }
+
     void showScreenshotDialog(const std::shared_ptr<Editor>& editor) {
         std::string title = fmt::format("Save Screenshot of \"{}\"", editor->getFilename());
         const auto path = showSaveImageDialog(title);
@@ -90,6 +94,7 @@ namespace bricksim::gui::dialogs {
             editor->getScene()->getImage().saveImage(*path);
         }
     }
+
     std::optional<std::filesystem::path> showSaveImageDialog(std::string title) {
         char const* fileNameChars = tinyfd_saveFileDialog(
                 title.c_str(),
@@ -98,8 +103,8 @@ namespace bricksim::gui::dialogs {
                 IMAGE_FILE_FILTER_PATTERNS.data(),
                 nullptr);
         return fileNameChars != nullptr
-                       ? std::make_optional<std::filesystem::path>(fileNameChars)
-                       : std::nullopt;
+                   ? std::make_optional<std::filesystem::path>(fileNameChars)
+                   : std::nullopt;
     }
 
     std::optional<std::filesystem::path> showSaveDotFileDialog(std::string title) {
@@ -110,8 +115,8 @@ namespace bricksim::gui::dialogs {
                 DOT_FILE_FILTER_PATTERNS.data(),
                 "GraphViz .dot Files");
         return fileNameChars != nullptr
-                       ? std::make_optional<std::filesystem::path>(fileNameChars)
-                       : std::nullopt;
+                   ? std::make_optional<std::filesystem::path>(fileNameChars)
+                   : std::nullopt;
     }
 
     void showExecuteActionByNameDialog() {
@@ -216,6 +221,7 @@ namespace bricksim::gui::dialogs {
             ImGui::EndPopup();
         }
     }
+
     void showError(const std::string& error) {
         errorText = error;
         needToOpenErrorPopup = true;

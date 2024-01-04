@@ -33,14 +33,17 @@ namespace bricksim::stringutil {
 
     template<glm::length_t L, typename T>
     std::string formatGLM(const glm::vec<L, T>& vec);
+
     template<typename T>
     std::string formatGLM(const glm::vec<2, T>& vec) {
         return fmt::format("vec2({:g}, {:g})", vec.x, vec.y);
     }
+
     template<typename T>
     std::string formatGLM(const glm::vec<3, T>& vec) {
         return fmt::format("vec3({:g}, {:g}, {:g})", vec.x, vec.y, vec.z);
     }
+
     template<typename T>
     std::string formatGLM(const glm::vec<4, T>& vec) {
         return fmt::format("vec4({:g}, {:g}, {:g}, {:g})", vec.x, vec.y, vec.z, vec.w);
@@ -48,12 +51,14 @@ namespace bricksim::stringutil {
 
     template<glm::length_t L, typename T>
     std::string formatGLM(const glm::mat<L, L, T>& mat);
+
     template<typename T>
     std::string formatGLM(const glm::mat<2, 2, T>& mat) {
         return fmt::format("mat2(({:g}, {:g}), ({:g}, {:g}))",
                            mat[0][0], mat[0][1],
                            mat[1][0], mat[1][1]);
     }
+
     template<typename T>
     std::string formatGLM(const glm::mat<3, 3, T>& mat) {
         return fmt::format("mat3(({:g}, {:g}, {:g}), ({:g}, {:g}, {:g}), ({:g}, {:g}, {:g}))",
@@ -61,6 +66,7 @@ namespace bricksim::stringutil {
                            mat[1][0], mat[1][1], mat[1][2],
                            mat[2][0], mat[2][1], mat[2][2]);
     }
+
     template<typename T>
     std::string formatGLM(const glm::mat<4, 4, T>& mat) {
         return fmt::format("mat4(({:g}, {:g}, {:g}, {:g}), ({:g}, {:g}, {:g}, {:g}), ({:g}, {:g}, {:g}, {:g}), ({:g}, {:g}, {:g}, {:g}))",

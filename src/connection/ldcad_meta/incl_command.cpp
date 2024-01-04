@@ -10,8 +10,8 @@ namespace bricksim::connection::ldcad_meta {
         ori(parse::optionalMat3Parameter(parameters, "ori")),
         scale(parse::optionalVec3Parameter(parameters, "scale")),
         ref(parse::optionalStringParameter(parameters, "ref").value()),
-        grid(parse::optionalGridParameter(parameters, "grid")) {
-    }
+        grid(parse::optionalGridParameter(parameters, "grid")) {}
+
     bool InclCommand::operator==(const InclCommand& rhs) const {
         return id == rhs.id
                && pos == rhs.pos

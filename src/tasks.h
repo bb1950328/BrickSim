@@ -8,11 +8,13 @@
 namespace bricksim {
     class RunningTask {
         std::future<std::chrono::microseconds> future;
+
     public:
         bool isDone() const;
         std::chrono::microseconds finish();
         RunningTask(const std::function<void(float*)>& func, float* progress, const std::string& name);
     };
+
     class Task {
     public:
         Task(std::string name, std::function<void(float*)> taskFunction, bool autostart = false);

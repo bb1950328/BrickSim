@@ -101,7 +101,7 @@ namespace bricksim::gui::windows::debug {
                     std::sort(sortedMeshes.begin(), sortedMeshes.end(), [&](const std::shared_ptr<mesh::Mesh>& a, const std::shared_ptr<mesh::Mesh>& b) {
                         for (int i = 0; i < sortSpecs->SpecsCount; ++i) {
                             const auto& spec = sortSpecs->Specs[i];
-#ifdef BRICKSIM_PLATFORM_MACOS
+                            #ifdef BRICKSIM_PLATFORM_MACOS
                             //for some reason, the GitHub Actions MacOS Compiler can't compile the spaceship operator code
                             //so here is a alternative.
                             //todo fix that so this alternative can be removed
@@ -125,24 +125,28 @@ namespace bricksim::gui::windows::debug {
                                     return true;
                                 }
                             }
-#else
+                            #else
 
                             std::strong_ordering cmp = std::strong_ordering::equal;
                             switch (spec.ColumnUserID) {
-                                case NAME: cmp = a->name <=> b->name;
+                                case NAME:
+                                    cmp = a->name <=> b->name;
                                     break;
-                                case INSTANCE_COUNT:cmp = a->instances.size() <=> b->instances.size();
+                                case INSTANCE_COUNT:
+                                    cmp = a->instances.size() <=> b->instances.size();
                                     break;
-                                case TRIANGLE_COUNT:cmp = a->getTriangleCount() <=> b->getTriangleCount();
+                                case TRIANGLE_COUNT:
+                                    cmp = a->getTriangleCount() <=> b->getTriangleCount();
                                     break;
-                                default:break;
+                                default:
+                                    break;
                             }
                             if (cmp == std::strong_ordering::less) {
                                 return spec.SortDirection == ImGuiSortDirection_Ascending;
                             } else if (cmp == std::strong_ordering::greater) {
                                 return spec.SortDirection == ImGuiSortDirection_Descending;
                             }
-#endif
+                            #endif
                         }
                         return false;
                     });
@@ -215,9 +219,9 @@ namespace bricksim::gui::windows::debug {
                 ImGui::Text("Memory saved by deleting vertex data from RAM: %s", stringutil::formatBytesValue(metrics::memorySavedByDeletingVertexData).c_str());
                 ImGui::Text(ICON_FA_ARROWS_ROTATE " Last element tree reread: %.2f ms", metrics::lastElementTreeRereadMs);
                 ImGui::Text(ICON_FA_IMAGES " Last thumbnail render time: %.2f ms", metrics::lastThumbnailRenderingTimeMs);
-#ifndef NDEBUG
+                #ifndef NDEBUG
                 ImGui::Text("ldr::FileElement instance count: %zu", metrics::ldrFileElementInstanceCount);
-#endif
+                #endif
 
                 constexpr auto performanceTableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_Hideable;
 
@@ -327,6 +331,7 @@ namespace bricksim::gui::windows::debug {
                 ++i;
             }
         }
+
         void drawConnectionTab() {
             if (ImGui::BeginTabItem("Connections")) {
                 const auto activeEditor = controller::getActiveEditor();

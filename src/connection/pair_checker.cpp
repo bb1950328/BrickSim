@@ -9,8 +9,8 @@ namespace bricksim::connection {
         parallel(geometry::isAlmostParallel(a.absDirection, b.absDirection)),
         sameDir(parallel && glm::dot(a.absDirection, b.absDirection) > 0),
         oppositeDir(!sameDir && parallel),
-        resultConsumer(resultConsumer) {
-    }
+        resultConsumer(resultConsumer) {}
+
     void PairChecker::findConnections() {
         using Type = Connector::Type;
         const auto bType = b.connector->type;
@@ -29,6 +29,7 @@ namespace bricksim::connection {
             findGenericGeneric();
         }
     }
+
     void PairChecker::findGenericGeneric() {
         if (a.generic->group == b.generic->group
             && a.generic->gender != b.generic->gender
@@ -40,6 +41,7 @@ namespace bricksim::connection {
             addConnection({}, {true, true});
         }
     }
+
     void PairChecker::findCylCyl() {
         if (!parallel || a.cyl->gender == b.cyl->gender) {
             return;
@@ -141,6 +143,7 @@ namespace bricksim::connection {
         }
         addConnection(dof, {completelyUsedA, completelyUsedB});
     }
+
     std::optional<float> PairChecker::projectConnectorsWithLength(float aLength, float bLength) {
         const auto startDiff = b.absStart - a.absStart;
         const auto projectionLength = glm::dot(startDiff, a.absDirection);
@@ -150,12 +153,14 @@ namespace bricksim::connection {
             || (sameDir && projectionLength < -bLength)             // Bbbbbb  Aaaaaa
             || (oppositeDir && projectionLength > aLength + bLength)// Aaaaaaa  bbbbbbbbB
             || (oppositeDir && projectionLength < 0)                // bbbbbbB   Aaaaaaaa
-            || distancePointToLine >= COLINEARITY_TOLERANCE_LDU) {  //a and b aren't colinear
+            || distancePointToLine >= COLINEARITY_TOLERANCE_LDU) {
+            //a and b aren't colinear
             return std::nullopt;
         } else {
             return {projectionLength};
         }
     }
+
     void PairChecker::findFingerFinger() {
         if (!parallel
             || a.finger->group != b.finger->group
@@ -222,6 +227,7 @@ namespace bricksim::connection {
         dof.rotationPossibilities.emplace_back(a.absStart, a.absDirection);
         addConnection(dof, {completelyUsedA, completelyUsedB});
     }
+
     void PairChecker::findClipCyl(const PairCheckData& clipData, const PairCheckData& cylData) {
         const auto clip = clipData.clip;
         const auto cyl = cylData.cyl;
@@ -303,15 +309,13 @@ namespace bricksim::connection {
 
     PairCheckData::PairCheckData(const std::shared_ptr<etree::MeshNode>& node,
                                  const std::shared_ptr<Connector>& connector) :
-        PairCheckData(glm::transpose(node->getAbsoluteTransformation()), connector) {
-    }
+        PairCheckData(glm::transpose(node->getAbsoluteTransformation()), connector) {}
 
     PairCheckData::PairCheckData(const glm::mat4& absTransformation, const std::shared_ptr<Connector>& connector) :
         PairCheckData(absTransformation,
                       connector,
                       absTransformation * glm::vec4(connector->start, 1.f),
-                      absTransformation * glm::vec4(connector->direction, 0.f)) {
-    }
+                      absTransformation * glm::vec4(connector->direction, 0.f)) {}
 
     void ConnectionGraphPairCheckResultConsumer::addConnection(const std::shared_ptr<Connector>& connectorA,
                                                                const std::shared_ptr<Connector>& connectorB,
@@ -332,6 +336,7 @@ namespace bricksim::connection {
                                                       const std::array<bool, 2>& completelyUsedConnector) {
         result.push_back({connectorA, connectorB, dof, completelyUsedConnector});
     }
+
     const std::vector<Connection>& VectorPairCheckResultConsumer::getResult() const {
         return result;
     }

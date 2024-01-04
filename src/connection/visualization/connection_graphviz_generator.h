@@ -15,6 +15,7 @@ namespace bricksim::connection::visualization {
         osage,
         patchwork,
     };
+
     struct GraphVizParams {
         struct NodeParams {
             bool showThumbnail = true;
@@ -23,11 +24,13 @@ namespace bricksim::connection::visualization {
             bool showTitle = true;
             bool colorBoxLikePart = true;
         };
+
         struct EdgeParams {
             bool colorLineByConnectorType = true;
             bool nonRigidConnectionsDashed = true;
             bool oneLineBetweenNode = false;
         };
+
         struct GeneralParams {
             LayoutEngine layout = LayoutEngine::dot;
             int dpi = 96;
@@ -54,5 +57,6 @@ namespace bricksim::connection::visualization {
         virtual ~GraphVizResult();
         bool renderToFile(const std::filesystem::path& outFile) const;
     };
+
     GraphVizResult generateGraphviz(const ConnectionGraph& graph, const GraphVizParams& params, const std::shared_ptr<etree::MeshNode>& parentNode);
 }

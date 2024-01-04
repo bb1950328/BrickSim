@@ -15,8 +15,8 @@ namespace bricksim::mesh {
                 node->getMeshIdentifier(),
                 windingOrderInverse,
                 texmap == nullptr
-                        ? 0
-                        : hash<ldr::TexmapStartCommand>()(*texmap),
+                    ? 0
+                    : hash<ldr::TexmapStartCommand>()(*texmap),
         };
     }
 
@@ -198,8 +198,8 @@ namespace bricksim::mesh {
         }
         bool isSubfileInstance = node->getType() == etree::NodeType::TYPE_MODEL_INSTANCE;
         const auto& children = isSubfileInstance
-                                       ? std::dynamic_pointer_cast<const etree::ModelInstanceNode>(node)->modelNode->getChildren()
-                                       : node->getChildren();
+                                   ? std::dynamic_pointer_cast<const etree::ModelInstanceNode>(node)->modelNode->getChildren()
+                                   : node->getChildren();
         for (const auto& child: children) {
             if (static_cast<uint32_t>(child->getType()) & static_cast<uint32_t>(etree::NodeType::TYPE_MESH)) {
                 auto childResult = getRelativeRotatedBBox(std::dynamic_pointer_cast<const etree::MeshNode>(child));
@@ -258,5 +258,4 @@ namespace bricksim::mesh {
     const uoset_t<std::shared_ptr<Mesh>>& SceneMeshCollection::getUsedMeshes() const {
         return usedMeshes;
     }
-
 }

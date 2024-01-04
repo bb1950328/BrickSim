@@ -129,10 +129,12 @@ namespace bricksim::etree {
 
     private:
         bool childNodesCreated = false;
+
         struct ChildNodeSaveInfo {
             uint64_t lastSaveToLdrFileVersion = 0;
             std::shared_ptr<ldr::FileElement> ldrElement;
         };
+
         uomap_t<std::shared_ptr<Node>, ChildNodeSaveInfo> subfileRefChildNodeSaveInfos;
         uint64_t lastSaveToLdrFileVersion = 0;
     };

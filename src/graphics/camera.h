@@ -5,7 +5,6 @@
 #include <memory>
 
 namespace bricksim::graphics {
-
     class Camera {
     public:
         [[nodiscard]] virtual const glm::mat4& getViewMatrix() const = 0;

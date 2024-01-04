@@ -1,6 +1,7 @@
 #pragma once
 #include "../bounding.h"
 #include "connector.h"
+
 namespace bricksim::connection {
     class GenericConnector : public Connector {
     public:

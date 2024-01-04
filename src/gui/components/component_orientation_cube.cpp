@@ -11,15 +11,23 @@ namespace bricksim::gui::components {
 
     int getStandardViewNum(CubeSide cubeSide) {
         switch (cubeSide) {
-            case CubeSide::RIGHT: return 3;
-            case CubeSide::BOTTOM: return 5;
-            case CubeSide::BACK: return 4;
-            case CubeSide::LEFT: return 6;
-            case CubeSide::TOP: return 2;
-            case CubeSide::FRONT: return 1;
-            default: return 0;
+            case CubeSide::RIGHT:
+                return 3;
+            case CubeSide::BOTTOM:
+                return 5;
+            case CubeSide::BACK:
+                return 4;
+            case CubeSide::LEFT:
+                return 6;
+            case CubeSide::TOP:
+                return 2;
+            case CubeSide::FRONT:
+                return 1;
+            default:
+                return 0;
         }
     }
+
     void drawOrientationCube(const float displaySize) {
         const ImVec2& cursorPos = ImGui::GetCursorScreenPos();
         const auto renderedSize = getSize();

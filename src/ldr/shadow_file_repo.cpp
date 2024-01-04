@@ -7,10 +7,12 @@ namespace bricksim::ldr::file_repo {
     namespace {
         std::unique_ptr<ShadowFileRepo> currentShadowRepo = nullptr;
     }
+
     ShadowFileRepo::ShadowFileRepo(const std::filesystem::path& basePath) :
-        basePath(basePath) {
-    }
+        basePath(basePath) {}
+
     ShadowFileRepo::~ShadowFileRepo() = default;
+
     void initializeShadowFileRepo() {
         std::filesystem::path path = util::replaceSpecialPaths(config::get().ldraw.shadowLibraryLocation);
         if (std::filesystem::is_regular_file(path) && ZipShadowFileRepo::isValidZip(path)) {
@@ -24,15 +26,17 @@ namespace bricksim::ldr::file_repo {
             currentShadowRepo = std::make_unique<EmptyShadowFileRepo>();
         }
     }
+
     ShadowFileRepo& getShadowFileRepo() {
         if (currentShadowRepo) {
             return *currentShadowRepo;
         }
         throw std::invalid_argument("shadow file repo is not initialized yet");
     }
+
     RegularShadowFileRepo::RegularShadowFileRepo(const std::filesystem::path& basePath) :
-        ShadowFileRepo(basePath) {
-    }
+        ShadowFileRepo(basePath) {}
+
     std::optional<std::string> RegularShadowFileRepo::getContent(const std::string& pathRelativeToBase) {
         const auto fullPath = basePath / pathRelativeToBase;
         if (std::filesystem::is_regular_file(fullPath)) {
@@ -40,18 +44,21 @@ namespace bricksim::ldr::file_repo {
         }
         return {};
     }
+
     ZipShadowFileRepo::ZipShadowFileRepo(const std::filesystem::path& basePath) :
         ShadowFileRepo(basePath) {
         int err;
         archive = zip_open(basePath.string().c_str(), ZIP_RDONLY, &err);
     }
+
     bool ZipShadowFileRepo::isValidZip(const std::filesystem::path& candidatePath) {
         int err;
         return zip_open(candidatePath.string().c_str(), ZIP_RDONLY, &err) != nullptr;
     }
+
     std::optional<std::string> ZipShadowFileRepo::getContent(const std::string& pathRelativeToBase) {
         std::scoped_lock<std::mutex> lg(libzipLock);
-        struct zip_stat stat {};
+        struct zip_stat stat{};
         auto found = zip_stat(archive, pathRelativeToBase.c_str(), 0, &stat);
         if (found == -1) {
             found = zip_stat(archive, pathRelativeToBase.c_str(), ZIP_FL_NOCASE, &stat);
@@ -74,6 +81,7 @@ namespace bricksim::ldr::file_repo {
 
     EmptyShadowFileRepo::EmptyShadowFileRepo() :
         ShadowFileRepo("") {}
+
     std::optional<std::string> EmptyShadowFileRepo::getContent(const std::string& pathRelativeToBase) {
         return {};
     }

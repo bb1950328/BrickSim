@@ -95,6 +95,7 @@ namespace bricksim::gui::icons {
     constexpr std::span<const uint8_t> getPNG(IconType icon, IconSize size) {
         return PNG_FILES[*magic_enum::enum_index(icon)][*magic_enum::enum_index(size)];
     }
+
     constexpr const char* getGlyph(IconType icon, IconSize size) {
         return glyphStrings[*magic_enum::enum_index(icon) + TYPE_COUNT * *magic_enum::enum_index(size)].data();
     }

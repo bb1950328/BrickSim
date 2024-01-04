@@ -66,9 +66,9 @@ namespace bricksim::controller {
 
     std::tuple<unsigned short, float*, unsigned short> getLastFrameTimes();
 
-#ifdef BRICKSIM_USE_RENDERDOC
+    #ifdef BRICKSIM_USE_RENDERDOC
     RENDERDOC_API_1_1_2* getRenderdocAPI();
-#endif
+    #endif
     std::optional<std::shared_ptr<Editor>> getEditorOfScene(scene_id_t sceneId);
     void setActiveEditor(const std::shared_ptr<Editor>& editor);
 

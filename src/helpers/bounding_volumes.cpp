@@ -5,12 +5,10 @@
 
 namespace bricksim::aabb {
     AABB::AABB() :
-        pMin(constants::pInf), pMax(constants::nInf) {
-    }
+        pMin(constants::pInf), pMax(constants::nInf) {}
 
     AABB::AABB(const glm::vec3& pMin, const glm::vec3& pMax) :
-        pMin(pMin), pMax(pMax) {
-    }
+        pMin(pMin), pMax(pMax) {}
 
     AABB AABB::transform(const glm::mat4& transformation) const {
         if (geometry::doesTransformationLeaveAxisParallels(transformation)) {
@@ -71,18 +69,21 @@ namespace bricksim::aabb {
             includePoint(oppositePtr);
         }
     }
+
     float AABB::getSurfaceArea() const {
         const glm::vec3 diff = pMax - pMin;
         return 2 * (diff.x * diff.y + diff.x * diff.z + diff.y * diff.z);
     }
+
     float AABB::getVolume() const {
         const glm::vec3 diff = pMax - pMin;
         return diff.x * diff.y * diff.z;
     }
+
     AABB::AABB(const AABB& a, const AABB& b) :
         pMin(util::cwiseMin(a.pMin, b.pMin)),
-        pMax(util::cwiseMax(a.pMax, b.pMax)) {
-    }
+        pMax(util::cwiseMax(a.pMax, b.pMax)) {}
+
     bool AABB::intersects(const AABB& other) const {
         bool result = true;
         for (int i = 0; i < 3; ++i) {
@@ -90,6 +91,7 @@ namespace bricksim::aabb {
         }
         return result;
     }
+
     glm::mat4 AABB::getUnitBoxTransformation() const {
         glm::mat4 transf = glm::scale(glm::mat4(1.f), getSize() / 2.f);
         transf[3] = glm::vec4(getCenter(), 1.f);
@@ -121,10 +123,8 @@ namespace bricksim::aabb {
     }
 
     OBB::OBB(const AABB& aabb) :
-        OBB(aabb, glm::vec3(0.f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f)) {
-    }
+        OBB(aabb, glm::vec3(0.f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f)) {}
 
     OBB::OBB() :
-        OBB(AABB()) {
-    }
+        OBB(AABB()) {}
 }

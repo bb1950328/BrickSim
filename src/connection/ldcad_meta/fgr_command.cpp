@@ -14,8 +14,8 @@ namespace bricksim::connection::ldcad_meta {
         radius(parse::floatParameter(parameters, "radius", 0.f)),
         center(parse::boolParameter(parameters, "center", true)),//todo per the documentation the default is false but when trying in LDCad, the default is true
         scale(parse::enumParameter(parameters, "scale", ScaleType::NONE)),
-        mirror(parse::enumParameter(parameters, "mirror", MirrorType ::NONE)) {
-    }
+        mirror(parse::enumParameter(parameters, "mirror", MirrorType::NONE)) {}
+
     bool FgrCommand::operator==(const FgrCommand& rhs) const {
         return id == rhs.id
                && group == rhs.group

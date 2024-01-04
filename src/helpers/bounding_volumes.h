@@ -43,8 +43,7 @@ namespace bricksim::aabb {
 
         AabbTreeNode(const UserData& userData, const AABB& aabb) :
             userData(userData),
-            aabb(aabb) {
-        }
+            aabb(aabb) {}
 
         [[nodiscard]] bool isLeaf() const {
             return children[0] != nullptr && children[1] != nullptr;
@@ -84,6 +83,7 @@ namespace bricksim::aabb {
                 root = std::make_unique<node_t>(userData, aabb);
             }
         }
+
         void insertNode(std::unique_ptr<node_t> node, node_t* parent) {
             if (parent->isLeaf()) {
                 auto newParent = std::make_unique<node_t>();
@@ -101,9 +101,9 @@ namespace bricksim::aabb {
 
         OBB();
         explicit OBB(const AABB& aabb);
+
         OBB(const AABB& aabb, glm::vec3 origin, glm::quat rotation) :
-            centerOffset(aabb.getCenter() - origin), origin(origin), size(aabb.getSize()), rotation(rotation) {
-        }
+            centerOffset(aabb.getCenter() - origin), origin(origin), size(aabb.getSize()), rotation(rotation) {}
 
         [[nodiscard]] glm::mat4 getUnitBoxTransformation() const;
         [[nodiscard]] OBB transform(const glm::mat4& transformation) const;

@@ -74,13 +74,20 @@ namespace bricksim::ldr {
                 } else {
                     return "Transparent";
                 }
-            case CHROME: return "Chrome";
-            case PEARLESCENT: return "Pearlescent";
-            case RUBBER: return "Rubber";
-            case MATTE_METALLIC: return "Matte-metallic";
-            case METAL: return "Metal";
-            case MATERIAL: return "Special Material";
-            default: return "Other";
+            case CHROME:
+                return "Chrome";
+            case PEARLESCENT:
+                return "Pearlescent";
+            case RUBBER:
+                return "Rubber";
+            case MATTE_METALLIC:
+                return "Matte-metallic";
+            case METAL:
+                return "Metal";
+            case MATERIAL:
+                return "Special Material";
+            default:
+                return "Other";
         }
     }
 

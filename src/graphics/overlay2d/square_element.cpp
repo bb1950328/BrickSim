@@ -1,5 +1,6 @@
 #include "square_element.h"
 #include "vertex_generator.h"
+
 namespace bricksim::overlay2d {
     SquareElement::SquareElement(const coord_t& center, length_t sideLength, const color::RGB& color) :
         center(center), sideLength(sideLength), color(color) {}
@@ -42,5 +43,4 @@ namespace bricksim::overlay2d {
         SquareElement::color = value;
         setVerticesHaveChanged(true);
     }
-
 }

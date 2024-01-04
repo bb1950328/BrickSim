@@ -3,6 +3,7 @@
 #include "../../types.h"
 #include "data.h"
 #include "element.h"
+
 namespace bricksim::overlay2d {
     class ElementCollection {
     private:

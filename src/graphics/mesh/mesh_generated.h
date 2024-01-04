@@ -7,7 +7,6 @@
 #include <memory>
 
 namespace bricksim::mesh::generated {
-
     enum class TriangleLineMode {
         TRIANGLES_AND_LINES,
         ONLY_TRIANGLES,
@@ -89,7 +88,6 @@ namespace bricksim::mesh::generated {
         void addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed,
                        const std::shared_ptr<ldr::TexmapStartCommand>& texmap) override;
     };
-
 
 
     class XYZLineNode : public GeneratedMeshNode {

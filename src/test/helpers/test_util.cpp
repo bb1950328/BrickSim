@@ -9,7 +9,6 @@
 #include <iostream>
 
 namespace bricksim {
-
     TEST_CASE("util::extendHomeDir and util::replaceSpecialPaths") {
         CHECK(util::extendHomeDir("~/abc") != "~/abc");
         CHECK(util::extendHomeDir("/abc/def") == "/abc/def");

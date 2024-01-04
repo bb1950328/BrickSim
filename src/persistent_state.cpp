@@ -5,7 +5,7 @@
 namespace bricksim::persisted_state {
     namespace {
         PersistedState state;
-        constexpr int64_t KEY=0;
+        constexpr int64_t KEY = 0;
     }
 
     void initialize() {

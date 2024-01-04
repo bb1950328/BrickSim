@@ -7,12 +7,12 @@
 
 #ifdef __SSE2__
 
-    #include <array>
-    #include <cstring>
-    #include <glm/gtx/matrix_decompose.hpp>
-    #include <immintrin.h>
-    #include <iomanip>
-    #include <sstream>
+#include <array>
+#include <cstring>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <immintrin.h>
+#include <iomanip>
+#include <sstream>
 
 #elif defined(__ARM_NEON) || defined(__ARM_NEON__)
     #include <arm_neon.h>
@@ -50,8 +50,8 @@ namespace bricksim::stringutil {
     }
 
     void asLower(const char* input, char* output, size_t length) {
-#ifdef BRICKSIM_USE_OPTIMIZED_VARIANTS
-    #ifdef __SSE2__
+        #ifdef BRICKSIM_USE_OPTIMIZED_VARIANTS
+        #ifdef __SSE2__
         const __m128i asciiA = _mm_set1_epi8('A' - 1);
         const __m128i asciiZ = _mm_set1_epi8('Z' + 1);
         const __m128i diff = _mm_set1_epi8('a' - 'A');
@@ -72,7 +72,7 @@ namespace bricksim::stringutil {
             input += 16;
             output += 16;
         }
-    #elif defined(__ARM_NEON) || defined(__ARM_NEON__)
+        #elif defined(__ARM_NEON) || defined(__ARM_NEON__)
         const uint8x16_t asciiA = vdupq_n_u8('A');
         const uint8x16_t asciiZ = vdupq_n_u8('Z' + 1);
         const uint8x16_t diff = vdupq_n_u8('a' - 'A');
@@ -88,8 +88,8 @@ namespace bricksim::stringutil {
             input += 16;
             output += 16;
         }
-    #endif
-#endif
+        #endif
+        #endif
         while (length-- > 0) {
             *output = tolower(*input);
             ++input;
@@ -103,6 +103,7 @@ namespace bricksim::stringutil {
         asLower(string.c_str(), result.data(), string.length());
         return result;
     }
+
     std::string asLower(std::string_view string) {
         std::string result;
         result.resize(string.length());
@@ -111,8 +112,8 @@ namespace bricksim::stringutil {
     }
 
     void asUpper(const char* input, char* output, size_t length) {
-#ifdef BRICKSIM_USE_OPTIMIZED_VARIANTS
-    #ifdef __SSE2__
+        #ifdef BRICKSIM_USE_OPTIMIZED_VARIANTS
+        #ifdef __SSE2__
         const __m128i asciia = _mm_set1_epi8('a' - 1);
         const __m128i asciiz = _mm_set1_epi8('z' + 1);
         const __m128i diff = _mm_set1_epi8('a' - 'A');
@@ -133,7 +134,7 @@ namespace bricksim::stringutil {
             input += 16;
             output += 16;
         }
-    #elif defined(__ARM_NEON) || defined(__ARM_NEON__)
+        #elif defined(__ARM_NEON) || defined(__ARM_NEON__)
         const uint8x16_t asciia = vdupq_n_u8('a' - 1);
         const uint8x16_t asciiz = vdupq_n_u8('z' + 1);
         const uint8x16_t diff = vdupq_n_u8('a' - 'A');
@@ -149,8 +150,8 @@ namespace bricksim::stringutil {
             input += 16;
             output += 16;
         }
-    #endif
-#endif
+        #endif
+        #endif
         while (length-- > 0) {
             *output = toupper(*input);
             ++input;
@@ -270,9 +271,11 @@ namespace bricksim::stringutil {
         }
         return words;
     }
+
     bool charEqualsIgnoreCase(char a, char b) {
         return std::tolower(a) == std::tolower(b);
     }
+
     bool stringEqualsIgnoreCase(std::string_view a, std::string_view b) {
         return std::equal(a.begin(), a.end(),
                           b.begin(), b.end(),
@@ -280,6 +283,7 @@ namespace bricksim::stringutil {
                               return tolower(a) == tolower(b);
                           });
     }
+
     std::string repeat(const std::string& str, unsigned int times) {
         std::string result;
         result.reserve(str.size() * times + 1);
@@ -288,6 +292,7 @@ namespace bricksim::stringutil {
         }
         return result;
     }
+
     std::string removeIcons(std::string_view withIcons) {
         //todo make this constexpr
         std::u16string u16with;
@@ -301,16 +306,29 @@ namespace bricksim::stringutil {
         utf8::utf16to8(u16without.begin(), u16without.end(), std::back_inserter(result));
         return result;
     }
+
     std::string escapeXml(const std::string& str) {
         std::string result;
         for (const auto& ch: str) {
             switch (ch) {
-                case '&': result += "&amp;"; break;
-                case '\'': result += "&apos;"; break;
-                case '"': result += "&quot;"; break;
-                case '<': result += "&lt;"; break;
-                case '>': result += "&gt;"; break;
-                default: result += ch; break;
+                case '&':
+                    result += "&amp;";
+                    break;
+                case '\'':
+                    result += "&apos;";
+                    break;
+                case '"':
+                    result += "&quot;";
+                    break;
+                case '<':
+                    result += "&lt;";
+                    break;
+                case '>':
+                    result += "&gt;";
+                    break;
+                default:
+                    result += ch;
+                    break;
             }
         }
         return result;

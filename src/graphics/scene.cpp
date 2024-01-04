@@ -15,7 +15,8 @@
 #endif
 namespace bricksim::graphics {
     CompleteFramebuffer::CompleteFramebuffer(glm::usvec2 size_) :
-        size(size_) {// NOLINT(cppcoreguidelines-pro-type-member-init)
+        size(size_) {
+        // NOLINT(cppcoreguidelines-pro-type-member-init)
         controller::executeOpenGL([this]() {
             allocate();
         });
@@ -144,12 +145,12 @@ namespace bricksim::graphics {
         } else {
             const glm::mat4 projectionView = projectionMatrix * camera->getViewMatrix();
             controller::executeOpenGL([this, &projectionView, &middlePixel, &x, &y]() {
-#ifdef BRICKSIM_USE_RENDERDOC
+                #ifdef BRICKSIM_USE_RENDERDOC
                 const auto* renderdocApi = controller::getRenderdocAPI();
                 if (renderdocApi) {
                     renderdocApi->StartFrameCapture(nullptr, nullptr);
                 }
-#endif
+                #endif
                 glBindFramebuffer(GL_FRAMEBUFFER, selection->getFBO());
                 glViewport(0, 0, imageSize.x, imageSize.y);
                 glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -172,11 +173,11 @@ namespace bricksim::graphics {
 
                 glReadPixels(x, (selection->getSize().y - y), 1, 1, GL_RGB, GL_UNSIGNED_BYTE, middlePixel.data());
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#ifdef BRICKSIM_USE_RENDERDOC
+                #ifdef BRICKSIM_USE_RENDERDOC
                 if (renderdocApi) {
                     renderdocApi->EndFrameCapture(nullptr, nullptr);
                 }
-#endif
+                #endif
             });
         }
         return color::getIntFromColor(middlePixel[0], middlePixel[1], middlePixel[2]);
@@ -244,12 +245,12 @@ namespace bricksim::graphics {
             auto before = std::chrono::high_resolution_clock::now();
             controller::executeOpenGL([this]() {
                 plScope("scene render");
-#ifdef BRICKSIM_USE_RENDERDOC
+                #ifdef BRICKSIM_USE_RENDERDOC
                 const auto* renderdocApi = controller::getRenderdocAPI();
                 if (renderdocApi) {
                     renderdocApi->StartFrameCapture(nullptr, nullptr);
                 }
-#endif
+                #endif
                 glBindFramebuffer(GL_FRAMEBUFFER, image.getFBO());
                 glViewport(0, 0, imageSize.x, imageSize.y);
                 glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, backgroundColor.w);
@@ -314,11 +315,11 @@ namespace bricksim::graphics {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 glUseProgram(0);
                 glFinish();
-#ifdef BRICKSIM_USE_RENDERDOC
+                #ifdef BRICKSIM_USE_RENDERDOC
                 if (renderdocApi) {
                     renderdocApi->EndFrameCapture(nullptr, nullptr);
                 }
-#endif
+                #endif
             });
 
             auto after = std::chrono::high_resolution_clock::now();
@@ -367,15 +368,19 @@ namespace bricksim::graphics {
     [[nodiscard]] bool* Scene::isDrawTriangles() {
         return &drawTriangles;
     }
+
     [[nodiscard]] bool* Scene::isDrawLines() {
         return &drawLines;
     }
+
     const glm::vec4& Scene::getBackgroundColor() const {
         return backgroundColor;
     }
+
     void Scene::setBackgroundColor(const color::RGB& rgbColor) {
         Scene::backgroundColor = {rgbColor.asGlmVector(), 1.f};
     }
+
     void Scene::setBackgroundColor(const glm::vec4& newColor) {
         Scene::backgroundColor = newColor;
     }

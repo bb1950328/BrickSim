@@ -29,8 +29,7 @@ namespace bricksim::connection::visualization {
     }
 
     LineSunNode::LineSunNode(const std::shared_ptr<Node>& parent, SimpleLineColor color, bool inverted, CylindricalShapeType shape) :
-        SimpleGeneratedLineNode(parent, color), inverted(inverted), shape(shape) {
-    }
+        SimpleGeneratedLineNode(parent, color), inverted(inverted), shape(shape) {}
 
     std::string LineSunNode::getDescription() {
         return fmt::format("{}LineSun {} {}", inverted ? "Inverted" : "", magic_enum::enum_name(lineColor), magic_enum::enum_name(shape));
@@ -55,6 +54,7 @@ namespace bricksim::connection::visualization {
             lineData.addVertex({{basePoints[i1].x * factor, basePoints[i1].y * factor, 0.f}, color});
         }
     }
+
     std::vector<glm::vec2> LineSunNode::generateShape() const {
         std::vector<glm::vec2> result;
         switch (shape) {
@@ -85,11 +85,14 @@ namespace bricksim::connection::visualization {
         }
         return result;
     }
+
     PointMarkerNode::PointMarkerNode(const std::shared_ptr<Node>& parent, const SimpleLineColor lineColor) :
         SimpleGeneratedLineNode(parent, lineColor) {}
+
     mesh_identifier_t PointMarkerNode::getMeshIdentifier() const {
         return util::combinedHash(constants::MESH_ID_POINT_MARKER, lineColor);
     }
+
     void PointMarkerNode::addToMesh(mesh::LineData& lineData, const glm::vec3& color) {
         for (int axis = 0; axis < 3; ++axis) {
             for (int step = 0; step < 10; ++step) {
@@ -104,17 +107,22 @@ namespace bricksim::connection::visualization {
             }
         }
     }
+
     std::string PointMarkerNode::getDescription() {
         return "Point Marker";
     }
+
     LineUVSphereNode::LineUVSphereNode(const std::shared_ptr<Node>& parent, const SimpleLineColor lineColor) :
         SimpleGeneratedLineNode(parent, lineColor) {}
+
     std::string LineUVSphereNode::getDescription() {
         return "Line UV Sphere";
     }
+
     mesh_identifier_t LineUVSphereNode::getMeshIdentifier() const {
         return util::combinedHash(constants::MESH_ID_LINE_UV_SPHERE, lineColor);
     }
+
     void LineUVSphereNode::addToMesh(mesh::LineData& lineData, const glm::vec3& color) {
         for (int iLat0 = 0; iLat0 < steps - 1; ++iLat0) {
             const int iLat1 = iLat0 + 1;
@@ -136,6 +144,7 @@ namespace bricksim::connection::visualization {
             }
         }
     }
+
     glm::vec3 LineUVSphereNode::getPointOnSphere(int iLat, int iLon) {
         constexpr float stepToAngle = 2 * M_PI / steps;
         return {
@@ -144,19 +153,25 @@ namespace bricksim::connection::visualization {
                 std::cos(iLat * stepToAngle),
         };
     }
+
     SimpleGeneratedLineNode::SimpleGeneratedLineNode(const std::shared_ptr<Node>& parent, const SimpleLineColor lineColor) :
         GeneratedMeshNode(ldr::color_repo::getInstanceDummyColor(), parent), lineColor(lineColor) {}
+
     void SimpleGeneratedLineNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         addToMesh(mesh->getLineData(), getRGBFromSimpleLineColor(lineColor).asGlmVector());
     }
+
     LineCylinderNode::LineCylinderNode(const std::shared_ptr<Node>& parent, const SimpleLineColor lineColor) :
         SimpleGeneratedLineNode(parent, lineColor) {}
+
     std::string LineCylinderNode::getDescription() {
         return "Line Cylinder";
     }
+
     mesh_identifier_t LineCylinderNode::getMeshIdentifier() const {
         return util::combinedHash(constants::MESH_ID_LINE_CYLINDER, lineColor);
     }
+
     void LineCylinderNode::addToMesh(mesh::LineData& lineData, const glm::vec3& color) {
         constexpr float radius = .5f;
         constexpr float halfLength = .5f;
@@ -184,14 +199,18 @@ namespace bricksim::connection::visualization {
             z0 = z1;
         }
     }
+
     LineBoxNode::LineBoxNode(const std::shared_ptr<Node>& parent, const SimpleLineColor lineColor) :
         SimpleGeneratedLineNode(parent, lineColor) {}
+
     std::string LineBoxNode::getDescription() {
         return "Line Box";
     }
+
     mesh_identifier_t LineBoxNode::getMeshIdentifier() const {
         return util::combinedHash(constants::MESH_ID_LINE_BOX, lineColor);
     }
+
     void LineBoxNode::addToMesh(mesh::LineData& lineData, const glm::vec3& color) {
         for (int mainAxis = 0; mainAxis < 3; ++mainAxis) {
             const int axis0 = mainAxis == 0 ? 1 : 0;

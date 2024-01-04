@@ -1,5 +1,6 @@
 #include "triangle_element.h"
 #include "vertex_generator.h"
+
 namespace bricksim::overlay2d {
     TriangleElement::TriangleElement(const coord_t& p0, const coord_t& p1, const coord_t& p2, const color::RGB& color) :
         p0(p0), p1(p1), p2(p2), color(color) {}

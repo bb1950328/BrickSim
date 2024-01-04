@@ -12,21 +12,24 @@ namespace bricksim::db {
 
         const char* getUpdateScript(const int newVersion) {
             switch (newVersion) {
-                case 2: return R"SQL(
+                case 2:
+                    return R"SQL(
                     create table "values"
                     (
                         key   TEXT PRIMARY KEY,
                         value TEXT NOT NULL
                     );
                     )SQL";
-                case 3: return R"SQL(
+                case 3:
+                    return R"SQL(
                     create table "state"
                     (
                         key   INTEGER PRIMARY KEY,
                         value TEXT NOT NULL
                     );
                     )SQL";
-                default: return "";
+                default:
+                    return "";
             }
         }
 
@@ -301,12 +304,14 @@ namespace bricksim::db {
             }
             return std::nullopt;
         }
+
         void set(const int64_t key, const std::string& value) {
             SQLite::Statement stmt(cacheDb.value(), R"SQL(INSERT OR REPLACE INTO "state" (key, value) VALUES (?, ?);)SQL");
             stmt.bind(1, key);
             stmt.bind(2, value);
             stmt.exec();
         }
+
         void clear(const int64_t key) {
             SQLite::Statement stmt(cacheDb.value(), R"SQL(DELETE FROM "state" WHERE key=?;)SQL");
             stmt.bind(1, key);

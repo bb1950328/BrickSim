@@ -75,7 +75,8 @@ namespace bricksim::overlay2d {
         }
     }
 
-    ElementCollection::ElementCollection() {// NOLINT(cppcoreguidelines-pro-type-member-init)
+    ElementCollection::ElementCollection() {
+        // NOLINT(cppcoreguidelines-pro-type-member-init)
         controller::executeOpenGL([this]() {
             glGenVertexArrays(1, &vao);
             glBindVertexArray(vao);
@@ -130,5 +131,4 @@ namespace bricksim::overlay2d {
         }
         return !changedElements.empty();
     }
-
 }

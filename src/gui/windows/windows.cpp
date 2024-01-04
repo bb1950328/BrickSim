@@ -31,9 +31,10 @@ namespace bricksim::gui::windows {
         void drawImGuiDemo(Data& data) {
             ImGui::ShowDemoWindow(&data.visible);
         }
-        void noCleanup() {
-        }
+
+        void noCleanup() {}
     }
+
     std::array<Data, magic_enum::enum_count<Id>()> data{
             {
                     {Id::VIEW_3D, ICON_FA_CUBES " 3D View", true, view3d::draw, noCleanup},
@@ -82,6 +83,7 @@ namespace bricksim::gui::windows {
     const std::array<Data, magic_enum::enum_count<Id>()>& getData() {
         return data;
     }
+
     const char* getName(Id id) {
         return data[magic_enum::enum_integer(id)].name;
     }

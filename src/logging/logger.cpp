@@ -3,7 +3,6 @@
 #include <memory>
 
 namespace bricksim::logging {
-
     void initialize() {
         spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e | %-8!l | T%t | %v");
         spdlog::set_level(spdlog::level::trace);

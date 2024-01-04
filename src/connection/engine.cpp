@@ -56,6 +56,7 @@ namespace bricksim::connection {
             }
         }
     }
+
     void Engine::updateNodeData(const std::shared_ptr<etree::Node>& node, decltype(nodeData)::iterator it) {
         //todo i think there has to be a separate fcl collision manager per rootNode (=ModelNode)
         auto& data = it->second;
@@ -94,6 +95,7 @@ namespace bricksim::connection {
             data.lastUpdatedVersion = node->getVersion();
         }
     }
+
     void Engine::removeNodeData(const std::shared_ptr<etree::Node>& node) {
         const auto it = nodeData.find(node);
         if (it != nodeData.end()) {
@@ -104,9 +106,10 @@ namespace bricksim::connection {
             nodeData.erase(it);
         }
     }
+
     void Engine::resetData() {
         manager.~DynamicAABBTreeCollisionManager();
-        new (&manager) fcl::DynamicAABBTreeCollisionManagerf();
+        new(&manager) fcl::DynamicAABBTreeCollisionManagerf();
         nodeData.clear();
     }
 
@@ -155,24 +158,24 @@ namespace bricksim::connection {
             std::vector<std::thread> threads;
             for (std::size_t i = 0; i < threadCount; ++i) {
                 threads.emplace_back([this,
-                                      &i,
-                                      &getNewWorkUnit,
-                                      &newIntersections]() {
-                    std::string threadName = fmt::format("Narrowphase collision checker #{}", i);
-                    util::setThreadName(threadName.c_str());
-                    while (true) {
-                        const auto [iStart, iEnd] = getNewWorkUnit();
-                        if (iStart == iEnd) {
-                            break;
-                        }
-                        auto it = newIntersections.begin() + iStart;
-                        const auto end = newIntersections.begin() + iEnd;
-                        while (it < end) {
-                            handleNewIntersection(*it);
-                            ++it;
-                        }
-                    }
-                });
+                            &i,
+                            &getNewWorkUnit,
+                            &newIntersections]() {
+                            std::string threadName = fmt::format("Narrowphase collision checker #{}", i);
+                            util::setThreadName(threadName.c_str());
+                            while (true) {
+                                const auto [iStart, iEnd] = getNewWorkUnit();
+                                if (iStart == iEnd) {
+                                    break;
+                                }
+                                auto it = newIntersections.begin() + iStart;
+                                const auto end = newIntersections.begin() + iEnd;
+                                while (it < end) {
+                                    handleNewIntersection(*it);
+                                    ++it;
+                                }
+                            }
+                        });
             }
 
             for (auto& t: threads) {
@@ -200,9 +203,11 @@ namespace bricksim::connection {
         connCheck.checkForConnected(nodeA, nodeB);
         intersections.addEdge(nodeA, nodeB);
     }
+
     const ConnectionGraph& Engine::getConnections() const {
         return connections;
     }
+
     void Engine::update(const std::shared_ptr<etree::Node>& rootNode, float* progress) {
         spdlog::stopwatch sw;
 
@@ -218,18 +223,22 @@ namespace bricksim::connection {
                      std::chrono::duration_cast<std::chrono::microseconds>(after - between).count() / 1000.f,
                      std::chrono::duration_cast<std::chrono::microseconds>(after).count() / 1000.f);
     }
+
     const std::shared_ptr<etree::Node>& Engine::convertRawNodePtr(void* rawPtr) const {
         auto* typedPtr = static_cast<etree::Node*>(rawPtr);
         std::shared_ptr<etree::Node> key0(typedPtr, [](auto*) {});
         return nodeData.find(key0)->first;
     }
+
     void Engine::update(const std::shared_ptr<etree::Node>& rootNode) {
         float ignoredProgress;
         update(rootNode, &ignoredProgress);
     }
+
     const IntersectionGraph& Engine::getIntersections() const {
         return intersections;
     }
+
     void Engine::setScene(const std::weak_ptr<graphics::Scene>& scene) {
         Engine::scene = scene;
     }
@@ -243,6 +252,7 @@ namespace bricksim::connection {
         }
         return false;
     }
+
     std::vector<std::pair<float, std::shared_ptr<etree::MeshNode>>> Engine::getNodesNearRay(Ray3 ray, float distanceLimit, float radiusLimit) {
         const auto cylinder = std::make_shared<fcl::Cylinderf>(radiusLimit, distanceLimit);
         ray.normalizeDirection();

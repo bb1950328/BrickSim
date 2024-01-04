@@ -6,7 +6,6 @@
 #include "mesh/mesh.h"
 
 namespace bricksim::graphics::orientation_cube {
-
     enum class CubeSide {
         RIGHT,
         BOTTOM,

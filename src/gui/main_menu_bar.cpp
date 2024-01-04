@@ -23,12 +23,14 @@ namespace bricksim::gui {
                 ImGui::EndMenu();
             }
         }
+
         void drawUtilitiesMenu() {
             if (ImGui::BeginMenu("Utilities")) {
                 ImGui::MenuItem(windows::getName(windows::Id::GEAR_RATIO_CALCULATOR), "", windows::isVisible(windows::Id::GEAR_RATIO_CALCULATOR));
                 ImGui::EndMenu();
             }
         }
+
         void draw3DMenu() {
             if (ImGui::BeginMenu("3D")) {
                 if (ImGui::BeginMenu("Tool")) {
@@ -67,6 +69,7 @@ namespace bricksim::gui {
                 ImGui::EndMenu();
             }
         }
+
         void drawSelectionMenu() {
             if (ImGui::BeginMenu("Selection")) {
                 gui_internal::actionMenuItem(user_actions::SELECT_ALL);
@@ -75,6 +78,7 @@ namespace bricksim::gui {
                 ImGui::EndMenu();
             }
         }
+
         void drawSnapMenu() {
             if (ImGui::BeginMenu("Snap")) {
                 auto& handler = controller::getSnapHandler();
@@ -154,6 +158,7 @@ namespace bricksim::gui {
                 ImGui::EndMenu();
             }
         }
+
         void drawViewMenu() {
             if (ImGui::BeginMenu("View")) {
                 gui_internal::windowMenuItem(windows::Id::VIEW_3D);
@@ -179,6 +184,7 @@ namespace bricksim::gui {
                 ImGui::EndMenu();
             }
         }
+
         void drawDocumentMenu() {
             auto& editors = controller::getEditors();
             if (editors.size() == 1) {
@@ -203,6 +209,7 @@ namespace bricksim::gui {
                 }
             }
         }
+
         void drawEditMenu() {
             if (ImGui::BeginMenu("Edit")) {
                 gui_internal::actionMenuItem(user_actions::UNDO);
@@ -216,6 +223,7 @@ namespace bricksim::gui {
                 ImGui::EndMenu();
             }
         }
+
         void drawFileMenu() {
             if (ImGui::BeginMenu("File")) {
                 gui_internal::actionMenuItem(user_actions::NEW_FILE);
@@ -234,6 +242,7 @@ namespace bricksim::gui {
             }
         }
     }
+
     void drawMainMenuBar() {
         if (ImGui::BeginMainMenuBar()) {
             drawFileMenu();

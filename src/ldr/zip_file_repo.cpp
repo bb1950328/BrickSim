@@ -40,7 +40,7 @@ namespace bricksim::ldr::file_repo {
     std::vector<std::string> ZipFileRepo::listAllFileNames(float* progress) {
         std::scoped_lock<std::mutex> lg(libzipLock);
         std::vector<std::string> result;
-        struct zip_stat fileStat {};
+        struct zip_stat fileStat{};
         int nameCutOff = rootFolderName.size();
         auto numEntries = zip_get_num_entries(zipArchive, 0);
         for (zip_int64_t i = 0; i < numEntries; ++i) {
@@ -103,7 +103,7 @@ namespace bricksim::ldr::file_repo {
     }
 
     std::pair<struct zip_stat, zip_file_t*> ZipFileRepo::openFileByName(const std::string& nameRelativeToRoot) {
-        struct zip_stat stat {};
+        struct zip_stat stat{};
         std::string entryName = rootFolderName + nameRelativeToRoot;
         //try to find it with case-sensitive first because it's faster
         auto found = zip_stat(zipArchive, entryName.c_str(), 0, &stat);

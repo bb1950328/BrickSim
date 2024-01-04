@@ -10,6 +10,7 @@
 namespace bricksim::gui::windows::element_tree {
     namespace {
         const node_context_menu::ImGuiContextMenuDrawHandler contextMenuDrawHandler{};
+
         void drawElementTreeNode(const std::shared_ptr<etree::Node>& node, const std::shared_ptr<Editor>& editor) {
             if (node->visibleInElementTree) {
                 color::RGB textColor = color::WHITE;

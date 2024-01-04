@@ -16,6 +16,7 @@ namespace bricksim::graphical_transform {
         scene->getOverlayCollection().addElement(currentLine);
         scene->getOverlayCollection().addElement(arc);
     }
+
     void Rotation::updateImpl() {
         const auto initialWorldRay = editor.getScene()->screenCoordinatesToWorldRay(initialCursorPos) * constants::OPENGL_TO_LDU;
         const auto axis = findRotationAxis(initialWorldRay.direction);
@@ -61,6 +62,7 @@ namespace bricksim::graphical_transform {
 
         lastRotationAngle = rotationAngle;
     }
+
     std::vector<std::pair<float, float>> Rotation::getArcAngles(float& rotationAngle) {
         std::vector<std::pair<float, float>> result;
         const auto& snapHandler = controller::getSnapHandler();
@@ -77,16 +79,20 @@ namespace bricksim::graphical_transform {
         }
         return result;
     }
+
     void Rotation::endImpl() {
         scene->getOverlayCollection().removeElement(startLine);
         scene->getOverlayCollection().removeElement(currentLine);
         scene->getOverlayCollection().removeElement(arc);
     }
+
     Rotation::Rotation(Editor& editor, const std::vector<std::shared_ptr<etree::Node>>& nodes) :
         BaseAction(editor, nodes) {}
+
     constexpr GraphicalTransformationType Rotation::getType() const {
         return GraphicalTransformationType::ROTATE;
     }
+
     uint8_t Rotation::findRotationAxis(glm::vec3 worldRayDirection) const {
         std::array<float, 3> scores{};
         for (int i = 0; i < 3; ++i) {
@@ -108,6 +114,7 @@ namespace bricksim::graphical_transform {
 
         return std::distance(scores.begin(), std::min_element(scores.begin(), scores.end()));
     }
+
     overlay2d::DashedPolyLineElement::points_t Rotation::getPointsForArc(const std::vector<std::pair<float, float>>& arcAngles, glm::vec3 axisVec, glm::vec3 relInitialPointScaled) const {
         std::vector<std::vector<overlay2d::coord_t>> coords2d;
         coords2d.reserve(arcAngles.size());
@@ -132,5 +139,6 @@ namespace bricksim::graphical_transform {
         }
         return coords2d;
     }
+
     Rotation::~Rotation() = default;
 }

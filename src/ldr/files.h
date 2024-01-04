@@ -285,6 +285,7 @@ namespace bricksim::ldr {
             CYLINDRICAL,
             SPHERICAL,
         };
+
         ProjectionMethod projectionMethod;
         std::array<float, 11> coords;//x1, y1, z1, x2, y2, z2, x3, y3, z3, a, b;//a and b may be not used depending on projectionMethod
         std::string textureFilename;

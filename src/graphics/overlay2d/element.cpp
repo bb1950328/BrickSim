@@ -10,5 +10,6 @@ namespace bricksim::overlay2d {
     bool Element::haveVerticesChanged() const {
         return verticesHaveChanged;
     }
+
     Element::~Element() = default;
 }

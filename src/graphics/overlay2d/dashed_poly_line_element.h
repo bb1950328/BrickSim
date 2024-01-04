@@ -1,6 +1,7 @@
 #pragma once
 #include "dashed_line_element.h"
 #include <optional>
+
 namespace bricksim::overlay2d {
     class DashedPolyLineElement : public BaseDashedLineElement {
     public:
@@ -17,5 +18,4 @@ namespace bricksim::overlay2d {
         points_t points;
         std::pair<size_t, std::optional<glm::vec2>> cutStartEnd(const std::vector<glm::vec2>& origLine, bool start);
     };
-
 }

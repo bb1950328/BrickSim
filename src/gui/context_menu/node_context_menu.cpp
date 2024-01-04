@@ -11,6 +11,7 @@ namespace bricksim::gui::node_context_menu {
         Context context;
         uint64_t contextUnusedFrames = 0;
         std::unique_ptr<ContextMenuDrawHandler> drawHandler = std::make_unique<ImGuiContextMenuDrawHandler>();
+
         struct NodeContextMenuItem {
             const char* const name;
             etree::NodeType requiredType;
@@ -133,7 +134,7 @@ namespace bricksim::gui::node_context_menu {
         spdlog::debug("Open context menu on {}{}",
                       context.nodes.empty() ? "nothing" : context.nodes[0].lock()->displayName,
                       context.nodes.size() > 1
-                              ? fmt::format(" and {} other nodes", context.nodes.size())
-                              : "");
+                          ? fmt::format(" and {} other nodes", context.nodes.size())
+                          : "");
     }
 }

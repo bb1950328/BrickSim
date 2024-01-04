@@ -34,7 +34,7 @@ namespace bricksim {
 #ifdef _MSC_VER
     #define BRICKSIM_GLM_USVEC_CONST const
 #else
-    #define BRICKSIM_GLM_USVEC_CONST constexpr
+#define BRICKSIM_GLM_USVEC_CONST constexpr
 #endif
 
 namespace glm {
@@ -50,14 +50,14 @@ namespace glm {
 
 
 namespace std {
-#ifdef BRICKSIM_PLATFORM_MACOS
+    #ifdef BRICKSIM_PLATFORM_MACOS
     template<>
     struct hash<filesystem::path> {
         size_t operator()(const filesystem::path& value) const noexcept {
             return filesystem::hash_value(value);
         }
     };
-#endif
+    #endif
     template<typename T>
     struct hash<vector<T>> {
         size_t operator()(const vector<T>& value) const noexcept {

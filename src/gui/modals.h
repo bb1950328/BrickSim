@@ -53,6 +53,7 @@ namespace bricksim::gui::modals {
 
     class WaitModal : public Modal {
         const float* const progress;
+
     public:
         WaitModal(std::string message, const float* progress);
         bool drawContent() override;
@@ -68,6 +69,7 @@ namespace bricksim::gui::modals {
         std::vector<Answer> answers;
         float totalButtonWidth;
         std::optional<size_t> chosenAnswer = std::nullopt;
+
     public:
         ClosedEndedQuestionModal(std::string question, std::vector<Answer> answers);
         ClosedEndedQuestionModal(std::string title, std::string question, std::vector<Answer> answers);

@@ -92,8 +92,8 @@ namespace bricksim::gui::windows::part_palette {
             for (const auto& set: {std::cref(editorNames), std::cref(partCategories)}) {
                 for (const auto& category: set.get()) {
                     int flags = selectedCategories.find(category) != selectedCategories.end()
-                                        ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected
-                                        : ImGuiTreeNodeFlags_Leaf;
+                                    ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected
+                                    : ImGuiTreeNodeFlags_Leaf;
                     if (ImGui::TreeNodeEx(category.c_str(), flags)) {
                         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
                             if (ImGui::GetIO().KeyCtrl) {
@@ -153,7 +153,7 @@ namespace bricksim::gui::windows::part_palette {
                                                      [&category](const std::shared_ptr<Editor>& editor) {
                                                          return editor->getFilename() == category;
                                                      })
-                                                ->get();
+                            ->get();
                     for (const auto& item: editor->getRootNode()->getChildren()) {
                         const auto modelNode = std::dynamic_pointer_cast<etree::ModelNode>(item);
                         if (modelNode != nullptr) {

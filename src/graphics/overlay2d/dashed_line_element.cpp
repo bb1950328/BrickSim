@@ -1,16 +1,20 @@
 #include "dashed_line_element.h"
 #include "vertex_generator.h"
+
 namespace bricksim::overlay2d {
     DashedLineElement::DashedLineElement(const std::vector<coord_t>& points, length_t spaceBetweenDashes, length_t width, const color::RGB& color) :
         BaseDashedLineElement(spaceBetweenDashes, width, color), points(points) {
         validatePoints();
     }
+
     bool DashedLineElement::isPointInside(coord_t point) {
         return false;//todo implement
     }
+
     unsigned int DashedLineElement::getVertexCount() {
         return points.empty() ? 0 : vertex_generator::getVertexCountForLine() * (points.size() - 1);
     }
+
     void DashedLineElement::writeVertices(std::vector<Vertex>::iterator& buffer, coord_t viewportSize) {
         if (points.empty()) {
             return;
@@ -25,37 +29,47 @@ namespace bricksim::overlay2d {
             vertex_generator::generateVerticesForLine(buffer, lineStart, lineEnd, width, color, viewportSize);
         }
     }
+
     const std::vector<coord_t>& DashedLineElement::getPoints() const {
         return points;
     }
+
     void DashedLineElement::setPoints(const std::vector<coord_t>& newPoints) {
         points = newPoints;
         validatePoints();
         setVerticesHaveChanged(true);
     }
+
     length_t BaseDashedLineElement::getSpaceBetweenDashes() const {
         return spaceBetweenDashes;
     }
+
     void BaseDashedLineElement::setSpaceBetweenDashes(length_t newSpaceBetweenDashes) {
         spaceBetweenDashes = newSpaceBetweenDashes;
         setVerticesHaveChanged(true);
     }
+
     length_t BaseDashedLineElement::getWidth() const {
         return width;
     }
+
     void BaseDashedLineElement::setWidth(length_t newWidth) {
         width = newWidth;
         setVerticesHaveChanged(true);
     }
+
     const color::RGB& BaseDashedLineElement::getColor() const {
         return color;
     }
+
     void BaseDashedLineElement::setColor(const color::RGB& newColor) {
         color = newColor;
         setVerticesHaveChanged(true);
     }
+
     BaseDashedLineElement::BaseDashedLineElement(length_t spaceBetweenDashes, length_t width, const color::RGB& color) :
         spaceBetweenDashes(spaceBetweenDashes), width(width), color(color) {}
+
     BaseDashedLineElement::~BaseDashedLineElement() = default;
 
     void DashedLineElement::validatePoints() {
@@ -63,5 +77,4 @@ namespace bricksim::overlay2d {
     }
 
     DashedLineElement::~DashedLineElement() = default;
-
 }

@@ -12,6 +12,7 @@ namespace mapbox::util {
             return t.x;
         };
     };
+
     template<>
     struct nth<1, glm::vec2> {
         inline static auto get(const glm::vec2& t) {

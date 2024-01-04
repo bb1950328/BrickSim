@@ -25,6 +25,7 @@ namespace bricksim::graphics {
 
     using thumbnail_file_key_t = ThumbnailRequest;
 }
+
 namespace std {
     template<>
     struct hash<bricksim::graphics::thumbnail_file_key_t> {

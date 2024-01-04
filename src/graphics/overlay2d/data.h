@@ -2,6 +2,7 @@
 
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
+
 namespace bricksim::overlay2d {
     typedef glm::vec2 coord_t;
 

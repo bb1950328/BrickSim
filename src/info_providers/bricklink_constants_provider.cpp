@@ -10,6 +10,7 @@ namespace bricksim::info_providers::bricklink_constants {
 
         constexpr long fileSizeEstimated = 1056551;
         float* initialisationProgress;
+
         int globalConstantsDownloadProgress([[maybe_unused]] void* ptr, [[maybe_unused]] long downTotal, long downNow, [[maybe_unused]] long upTotal, [[maybe_unused]] long upNow) {
             if (initialisationProgress != nullptr) {
                 *initialisationProgress = .99f * static_cast<float>(std::min(downNow, fileSizeEstimated)) / fileSizeEstimated;
@@ -40,7 +41,8 @@ namespace bricksim::info_providers::bricklink_constants {
 
         int startPos = 0;
 
-        if (content.starts_with("var _blvarGlobalConstantsNew = {")) {//todo make a better solution with regex
+        if (content.starts_with("var _blvarGlobalConstantsNew = {")) {
+            //todo make a better solution with regex
             startPos = 31;
         }
 

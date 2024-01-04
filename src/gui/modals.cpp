@@ -11,7 +11,6 @@
 #include <numeric>
 
 namespace bricksim::gui::modals {
-
     namespace {
         std::queue<std::shared_ptr<Modal>> waiting;
         std::shared_ptr<Modal> current;
@@ -57,18 +56,18 @@ namespace bricksim::gui::modals {
     void Modal::close() {
         state = State::AFTER_SHOW;
     }
+
     const std::string& Modal::getMessage() const {
         return message;
     }
+
     Modal::~Modal() = default;
 
     ErrorModal::ErrorModal(const std::string& errorMessage) :
-        Modal(ICON_FA_CIRCLE_EXCLAMATION " Error", errorMessage) {
-    }
+        Modal(ICON_FA_CIRCLE_EXCLAMATION " Error", errorMessage) {}
 
     ErrorModal::ErrorModal(std::string title, std::string errorMessage) :
-        Modal(std::move(title), std::move(errorMessage)) {
-    }
+        Modal(std::move(title), std::move(errorMessage)) {}
 
     bool ErrorModal::drawContent() {
         //todo draw a big error icon on the left side #50
@@ -103,8 +102,7 @@ namespace bricksim::gui::modals {
     }
 
     WaitModal::WaitModal(std::string message, const float* const progress) :
-        Modal(ICON_FA_HOURGLASS " Please wait", std::move(message)), progress(progress) {
-    }
+        Modal(ICON_FA_HOURGLASS " Please wait", std::move(message)), progress(progress) {}
 
     bool WaitModal::drawContent() {
         const auto& logoTexture = getLogoTexture();

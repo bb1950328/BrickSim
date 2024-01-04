@@ -14,6 +14,7 @@ namespace bricksim {
         }
         return result;
     }
+
     template<typename S, int size>
     Eigen::Matrix<S, size, 1> glm2eigen(glm::vec<size, S> value) {
         Eigen::Matrix<S, size, 1> result;

@@ -2,8 +2,6 @@
 #include "helpers/json_helper.h"
 
 namespace bricksim::persisted_state {
-    using namespace json_helper;
-
     struct SnappingState {
         bool enabled;
         uint64_t linearStepXZ;
@@ -11,7 +9,7 @@ namespace bricksim::persisted_state {
         float rotationalStep;
 
         SnappingState() {
-            defaultInit(this);
+            json_helper::defaultInit(this);
         }
 
         template<typename JsonIo>
@@ -22,6 +20,15 @@ namespace bricksim::persisted_state {
                     & json_dto::optional("linearStepY", linearStepY, 20)
                     & json_dto::optional("rotationalStep", rotationalStep, 90.f);
         }
+
+        friend bool operator==(const SnappingState& lhs, const SnappingState& rhs) {
+            return lhs.enabled == rhs.enabled
+                   && lhs.linearStepXZ == rhs.linearStepXZ
+                   && lhs.linearStepY == rhs.linearStepY
+                   && lhs.rotationalStep == rhs.rotationalStep;
+        }
+
+        friend bool operator!=(const SnappingState& lhs, const SnappingState& rhs) { return !(lhs == rhs); }
     };
 
     struct PersistedState {
@@ -30,7 +37,7 @@ namespace bricksim::persisted_state {
         SnappingState snapping;
 
         PersistedState() {
-            defaultInit(this);
+            json_helper::defaultInit(this);
         }
 
         template<typename JsonIo>
@@ -40,6 +47,14 @@ namespace bricksim::persisted_state {
                     & json_dto::optional("windowHeight", windowHeight, 720)
                     & json_dto::optional("snapping", snapping, SnappingState{});
         }
+
+        friend bool operator==(const PersistedState& lhs, const PersistedState& rhs) {
+            return lhs.windowWidth == rhs.windowWidth
+                   && lhs.windowHeight == rhs.windowHeight
+                   && lhs.snapping == rhs.snapping;
+        }
+
+        friend bool operator!=(const PersistedState& lhs, const PersistedState& rhs) { return !(lhs == rhs); }
     };
 
     void initialize();

@@ -28,6 +28,7 @@ namespace bricksim::db {
             std::string title;
             std::string category;
         };
+
         int getSize();
         void put(const std::string& name, const std::string& title, const std::string& category);
         void put(const std::vector<Entry>& entries);
@@ -60,5 +61,11 @@ namespace bricksim::db {
 
         template<>
         void set(const char* key, std::string value);
+    }
+
+    namespace state {
+        std::optional<std::string> get(int64_t key);
+        void set(int64_t key, const std::string& value);
+        void clear(int64_t key);
     }
 }

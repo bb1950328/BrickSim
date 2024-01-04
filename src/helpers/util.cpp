@@ -26,6 +26,7 @@
 #endif
 #elif defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)
 #include <pthread.h>
+#include <unistd.h>
 #endif
 
 namespace bricksim::util {
@@ -341,6 +342,14 @@ namespace bricksim::util {
                     0,
                     std::endian::native};
         }
+    }
+
+    int64_t getPID() {
+        #if defined(BRICKSIM_PLATFORM_WINDOWS)
+        return GetCurrentProcessId();
+        #else
+        return getpid();
+        #endif
     }
 
     bool isStbiFlipVertically() {

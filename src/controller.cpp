@@ -60,9 +60,9 @@ namespace bricksim::controller {
 
         std::shared_ptr<efsw::FileWatcher> fileWatcher;
 
-#ifdef BRICKSIM_USE_RENDERDOC
+        #ifdef BRICKSIM_USE_RENDERDOC
         RENDERDOC_API_1_1_2* rdoc_api = nullptr;
-#endif
+        #endif
 
         void APIENTRY openGlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, [[maybe_unused]] GLsizei length, const GLchar* message, [[maybe_unused]] const void* userParam) {
             if (id == 131185 || id == 131169) {
@@ -72,36 +72,55 @@ namespace bricksim::controller {
             }
             spdlog::level::level_enum level;
             switch (severity) {
-                case GL_DEBUG_SEVERITY_NOTIFICATION: level = spdlog::level::info; break;
-                case GL_DEBUG_SEVERITY_LOW: level = spdlog::level::debug; break;
-                case GL_DEBUG_SEVERITY_MEDIUM: level = spdlog::level::warn; break;
-                case GL_DEBUG_SEVERITY_HIGH: level = spdlog::level::err; break;
+                case GL_DEBUG_SEVERITY_NOTIFICATION: level = spdlog::level::info;
+                    break;
+                case GL_DEBUG_SEVERITY_LOW: level = spdlog::level::debug;
+                    break;
+                case GL_DEBUG_SEVERITY_MEDIUM: level = spdlog::level::warn;
+                    break;
+                case GL_DEBUG_SEVERITY_HIGH: level = spdlog::level::err;
+                    break;
                 default: level = spdlog::level::info;
             }
 
             const char* sourceStr;
             switch (source) {
-                case GL_DEBUG_SOURCE_API: sourceStr = "API"; break;
-                case GL_DEBUG_SOURCE_WINDOW_SYSTEM: sourceStr = "WINDOW_SYSTEM"; break;
-                case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "SHADER_COMPILER"; break;
-                case GL_DEBUG_SOURCE_THIRD_PARTY: sourceStr = "THIRD_PARTY"; break;
-                case GL_DEBUG_SOURCE_APPLICATION: sourceStr = "APPLICATION"; break;
+                case GL_DEBUG_SOURCE_API: sourceStr = "API";
+                    break;
+                case GL_DEBUG_SOURCE_WINDOW_SYSTEM: sourceStr = "WINDOW_SYSTEM";
+                    break;
+                case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "SHADER_COMPILER";
+                    break;
+                case GL_DEBUG_SOURCE_THIRD_PARTY: sourceStr = "THIRD_PARTY";
+                    break;
+                case GL_DEBUG_SOURCE_APPLICATION: sourceStr = "APPLICATION";
+                    break;
                 case GL_DEBUG_SOURCE_OTHER:
-                default: sourceStr = "OTHER"; break;
+                default: sourceStr = "OTHER";
+                    break;
             }
 
             const char* typeStr;
             switch (type) {
-                case GL_DEBUG_TYPE_ERROR: typeStr = "ERROR"; break;
-                case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "DEPRECATED_BEHAVIOR"; break;
-                case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: typeStr = "UNDEFINED_BEHAVIOR"; break;
-                case GL_DEBUG_TYPE_PORTABILITY: typeStr = "PORTABILITY"; break;
-                case GL_DEBUG_TYPE_PERFORMANCE: typeStr = "PERFORMANCE"; break;
-                case GL_DEBUG_TYPE_MARKER: typeStr = "MARKER"; break;
-                case GL_DEBUG_TYPE_PUSH_GROUP: typeStr = "PUSH_GROUP"; break;
-                case GL_DEBUG_TYPE_POP_GROUP: typeStr = "POP_GROUP"; break;
+                case GL_DEBUG_TYPE_ERROR: typeStr = "ERROR";
+                    break;
+                case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "DEPRECATED_BEHAVIOR";
+                    break;
+                case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: typeStr = "UNDEFINED_BEHAVIOR";
+                    break;
+                case GL_DEBUG_TYPE_PORTABILITY: typeStr = "PORTABILITY";
+                    break;
+                case GL_DEBUG_TYPE_PERFORMANCE: typeStr = "PERFORMANCE";
+                    break;
+                case GL_DEBUG_TYPE_MARKER: typeStr = "MARKER";
+                    break;
+                case GL_DEBUG_TYPE_PUSH_GROUP: typeStr = "PUSH_GROUP";
+                    break;
+                case GL_DEBUG_TYPE_POP_GROUP: typeStr = "POP_GROUP";
+                    break;
                 case GL_DEBUG_TYPE_OTHER:
-                default: typeStr = "OTHER"; break;
+                default: typeStr = "OTHER";
+                    break;
             }
 
             spdlog::log(level, "OpenGL debug message: source={}, type={}, id={}: {}", sourceStr, typeStr, id, message);
@@ -125,9 +144,9 @@ namespace bricksim::controller {
                 glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
             }
 
-#ifdef __APPLE__
+            #ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+            #endif
 
             window = glfwCreateWindow(persisted_state::get().windowWidth,
                                       persisted_state::get().windowHeight,
@@ -180,13 +199,13 @@ namespace bricksim::controller {
                 glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
             }
 
-#ifdef BRICKSIM_USE_RENDERDOC
+            #ifdef BRICKSIM_USE_RENDERDOC
             if (void* mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD)) {
                 auto RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
                 int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void**)&rdoc_api);
                 assert(ret == 1);
             }
-#endif
+            #endif
 
             graphics::opengl_native_or_replacement::initialize();
 
@@ -273,6 +292,7 @@ namespace bricksim::controller {
             db::initialize();
 
             config::initialize();
+            persisted_state::initialize();
 
             if (!initializeGL()) {
                 spdlog::critical("failed to initialize OpenGL / glfw, exiting");
@@ -294,19 +314,22 @@ namespace bricksim::controller {
                 }
             }
 
-            std::array<Task, 11> initSteps{{
-                    {"load color definitions", ldr::color_repo::initialize},
-                    {"initialize shadow file repo", ldr::file_repo::initializeShadowFileRepo},
-                    {"initialize file list", [](float* progress) { ldr::file_repo::get().initialize(progress); spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().string()); }},
-                    {"initialize price guide provider", info_providers::price_guide::initialize},
-                    {"initialize thumbnail generator", []() { thumbnailGenerator = std::make_shared<graphics::ThumbnailGenerator>(); }},
-                    {"initialize BrickLink constants", info_providers::bricklink_constants::initialize},
-                    {"initialize keyboard shortcuts", keyboard_shortcut_manager::initialize},
-                    {"initialize orientation cube generator", graphics::orientation_cube::initialize},
-                    {"initialize snap handler", []() { snapHandler.init(); }},
-                    {"initialize user actions", []() { user_actions::init(); }},
-                    {"initialize icons", []() { gui::icons::initialize(); }},
-            }};
+            std::array initSteps = {
+                    Task{"load color definitions", ldr::color_repo::initialize},
+                    Task{"initialize shadow file repo", ldr::file_repo::initializeShadowFileRepo},
+                    Task{"initialize file list", [](float* progress) {
+                        ldr::file_repo::get().initialize(progress);
+                        spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().string());
+                    }},
+                    Task{"initialize price guide provider", info_providers::price_guide::initialize},
+                    Task{"initialize thumbnail generator", []() { thumbnailGenerator = std::make_shared<graphics::ThumbnailGenerator>(); }},
+                    Task{"initialize BrickLink constants", info_providers::bricklink_constants::initialize},
+                    Task{"initialize keyboard shortcuts", keyboard_shortcut_manager::initialize},
+                    Task{"initialize orientation cube generator", graphics::orientation_cube::initialize},
+                    Task{"initialize snap handler", []() { snapHandler.init(); }},
+                    Task{"initialize user actions", []() { user_actions::init(); }},
+                    Task{"initialize icons", []() { gui::icons::initialize(); }},
+            };
 
             const auto drawWaitMessageInFrame = [](const std::string& message, float progress) {
                 gui::beginFrame();
@@ -380,6 +403,7 @@ namespace bricksim::controller {
                     std::filesystem::remove_all(renderingTmpDirectory);
                 }
             }
+            persisted_state::cleanup();
 
             glfwTerminate();
             openGlInitialized = false;
@@ -638,16 +662,18 @@ namespace bricksim::controller {
         }
         return {};
     }
+
     std::shared_ptr<efsw::FileWatcher> getFileWatcher() {
         return fileWatcher;
     }
+
     snap::Handler& getSnapHandler() {
         return snapHandler;
     }
 
-#ifdef BRICKSIM_USE_RENDERDOC
+    #ifdef BRICKSIM_USE_RENDERDOC
     RENDERDOC_API_1_1_2* getRenderdocAPI() {
         return rdoc_api;
     }
-#endif
+    #endif
 }

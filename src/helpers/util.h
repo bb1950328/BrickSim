@@ -272,4 +272,6 @@ namespace bricksim::util {
     };
 
     UtfType determineUtfTypeFromBom(const std::string_view text);
+
+    int64_t getPID();
 }

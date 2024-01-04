@@ -8,21 +8,34 @@ namespace bricksim::db {
     namespace {
         std::optional<SQLite::Database> cacheDb;
 
-        constexpr int NEWEST_CACHE_DB_VERSION = 2;
+        constexpr int NEWEST_CACHE_DB_VERSION = 3;
+
+        const char* getUpdateScript(const int newVersion) {
+            switch (newVersion) {
+                case 2: return R"SQL(
+                    create table "values"
+                    (
+                        key   TEXT PRIMARY KEY,
+                        value TEXT NOT NULL
+                    );
+                    )SQL";
+                case 3: return R"SQL(
+                    create table "state"
+                    (
+                        key   INTEGER PRIMARY KEY,
+                        value TEXT NOT NULL
+                    );
+                    )SQL";
+                default: return "";
+            }
+        }
 
         void upgradeCacheDbToVersion(int newVersion) {
             spdlog::info("Upgrading cache.db3 to version {}", newVersion);
-            switch (newVersion) {
-                case 2: {
-                    SQLite::Statement createSt(cacheDb.value(), "create table \"values\"\n"
-                                                                "(\n"
-                                                                "    key   TEXT PRIMARY KEY,\n"
-                                                                "    value TEXT NOT NULL\n"
-                                                                ");");
-                    createSt.exec();
-                }
-                default:
-                    break;
+            const char* updateScript = getUpdateScript(newVersion);
+            if (std::strlen(updateScript) > 0) {
+                SQLite::Statement updateStatement(cacheDb.value(), updateScript);
+                updateStatement.exec();
             }
             SQLite::Statement stmt(cacheDb.value(), "UPDATE meta SET version=?");
             stmt.bind(1, newVersion);
@@ -46,34 +59,34 @@ namespace bricksim::db {
         if (cacheDbNew) {
             // !! DO NOT EDIT THIS SCRIPT ANYMORE -> add it in upgradeCacheDbToVersion and increment NEWEST_CACHE_DB_VERSION by 1 !!
             cacheDb.value().exec("CREATE TABLE files ("
-                                 "   name TEXT PRIMARY KEY COLLATE NOCASE,"
-                                 "   title TEXT,"
-                                 "   category TEXT NOT NULL"
-                                 ");"
-                                 "CREATE UNIQUE INDEX idx_files ON files (name);"
+                    "   name TEXT PRIMARY KEY COLLATE NOCASE,"
+                    "   title TEXT,"
+                    "   category TEXT NOT NULL"
+                    ");"
+                    "CREATE UNIQUE INDEX idx_files ON files (name);"
 
-                                 "CREATE TABLE requestCache ("
-                                 "   url TEXT PRIMARY KEY COLLATE NOCASE,"
-                                 "   response TEXT"
-                                 ");"
-                                 "CREATE UNIQUE INDEX idx_requestCache ON requestCache (url);"
+                    "CREATE TABLE requestCache ("
+                    "   url TEXT PRIMARY KEY COLLATE NOCASE,"
+                    "   response TEXT"
+                    ");"
+                    "CREATE UNIQUE INDEX idx_requestCache ON requestCache (url);"
 
-                                 "CREATE TABLE priceGuideCache ("
-                                 "   partCode TEXT COLLATE NOCASE,"
-                                 "   currencyCode TEXT NOT NULL,"
-                                 "   colorName TEXT NOT NULL,"
-                                 "   available INTEGER,"
-                                 "   totalLots INTEGER NOT NULL,"
-                                 "   totalQty INTEGER NOT NULL,"
-                                 "   minPrice REAL NOT NULL,"
-                                 "   avgPrice REAL NOT NULL,"
-                                 "   qtyAvgPrice REAL NOT NULL,"
-                                 "   maxPrice REAL NOT NULL"
-                                 ");"
-                                 "CREATE UNIQUE INDEX idx_priceGuideCache ON priceGuideCache(partCode, currencyCode, colorName);"
+                    "CREATE TABLE priceGuideCache ("
+                    "   partCode TEXT COLLATE NOCASE,"
+                    "   currencyCode TEXT NOT NULL,"
+                    "   colorName TEXT NOT NULL,"
+                    "   available INTEGER,"
+                    "   totalLots INTEGER NOT NULL,"
+                    "   totalQty INTEGER NOT NULL,"
+                    "   minPrice REAL NOT NULL,"
+                    "   avgPrice REAL NOT NULL,"
+                    "   qtyAvgPrice REAL NOT NULL,"
+                    "   maxPrice REAL NOT NULL"
+                    ");"
+                    "CREATE UNIQUE INDEX idx_priceGuideCache ON priceGuideCache(partCode, currencyCode, colorName);"
 
-                                 "CREATE TABLE meta (version INTEGER);"
-                                 "INSERT INTO meta (version) VALUES (1);");
+                    "CREATE TABLE meta (version INTEGER);"
+                    "INSERT INTO meta (version) VALUES (1);");
         }
         while (true) {
             SQLite::Statement stmt(cacheDb.value(), "SELECT version FROM meta");
@@ -155,19 +168,21 @@ namespace bricksim::db {
             }
             return std::nullopt;
         }
+
         template<>
         std::optional<long long> get(const char* key) {
             const auto stringValue = get<std::string>(key);
             return stringValue.has_value()
-                           ? std::make_optional<long long>(std::stoll(*stringValue))
-                           : std::nullopt;
+                       ? std::make_optional<long long>(std::stoll(*stringValue))
+                       : std::nullopt;
         }
+
         template<>
         std::optional<double> get(const char* key) {
             const auto stringValue = get<std::string>(key);
             return stringValue.has_value()
-                           ? std::make_optional<double>(std::stod(*stringValue))
-                           : std::nullopt;
+                       ? std::make_optional<double>(std::stod(*stringValue))
+                       : std::nullopt;
         }
 
         template<>
@@ -180,7 +195,6 @@ namespace bricksim::db {
     }
 
     namespace fileList {
-
         int getSize() {
             SQLite::Statement stmt(cacheDb.value(), "SELECT COUNT(*) FROM files;");
             if (stmt.executeStep()) {
@@ -271,8 +285,31 @@ namespace bricksim::db {
             SQLite::Statement stmt(cacheDb.value(), command);
             stmt.exec();
         }
+
         void deleteAllEntries() {
             SQLite::Statement stmt(cacheDb.value(), "DELETE FROM files;");
+            stmt.exec();
+        }
+    }
+
+    namespace state {
+        std::optional<std::string> get(const int64_t key) {
+            SQLite::Statement query(cacheDb.value(), R"SQL(SELECT value from "state" WHERE key=?;)SQL");
+            query.bind(1, key);
+            if (query.executeStep()) {
+                return query.getColumn(0).getString();
+            }
+            return std::nullopt;
+        }
+        void set(const int64_t key, const std::string& value) {
+            SQLite::Statement stmt(cacheDb.value(), R"SQL(INSERT OR REPLACE INTO "state" (key, value) VALUES (?, ?);)SQL");
+            stmt.bind(1, key);
+            stmt.bind(2, value);
+            stmt.exec();
+        }
+        void clear(const int64_t key) {
+            SQLite::Statement stmt(cacheDb.value(), R"SQL(DELETE FROM "state" WHERE key=?;)SQL");
+            stmt.bind(1, key);
             stmt.exec();
         }
     }

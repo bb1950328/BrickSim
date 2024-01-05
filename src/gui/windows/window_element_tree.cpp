@@ -30,7 +30,7 @@ namespace bricksim::gui::windows::element_tree {
                     flags |= ImGuiTreeNodeFlags_Leaf;
                     flags |= ImGuiTreeNodeFlags_NoTreePushOnOpen;
                 }
-                const auto drawChildren = ImGui::TreeNodeEx(node->getDescription().c_str(), flags);
+                const auto drawChildren = ImGui::TreeNodeEx(node.get(), flags, "%s", node->getDescription().c_str());
                 const auto itemClicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
                 ImGui::PopStyleColor();
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {

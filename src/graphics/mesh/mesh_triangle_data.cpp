@@ -170,7 +170,7 @@ namespace bricksim::mesh {
         vertices.push_back(vertex);
     }
 
-    void TriangleData::addVerticesForOuterDimensions(std::vector<glm::vec3>& coords) const {
+    void TriangleData::addVerticesForOuterDimensions(std::vector<glm::dvec3>& coords) const {
         for (auto& item: vertices) {
             coords.push_back(item.position);
         }

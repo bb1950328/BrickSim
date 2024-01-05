@@ -519,7 +519,7 @@ namespace bricksim::mesh {
             vertexCount += item.second.getVertexCount();
         }
         if (vertexCount > 0) {
-            std::vector<glm::vec3> coords;
+            std::vector<glm::dvec3> coords;
             coords.reserve(vertexCount);
 
             for (const auto& item: triangleData) {
@@ -529,7 +529,7 @@ namespace bricksim::mesh {
                 item.second.addVerticesForOuterDimensions(coords);
             }
 
-            Seb::Smallest_enclosing_ball<float, glm::vec3> seb(3, coords);
+            Seb::Smallest_enclosing_ball<double, glm::dvec3> seb(3, coords);
 
             aabb::AABB aabb;
 
@@ -540,7 +540,7 @@ namespace bricksim::mesh {
             outerDimensions = OuterDimensions{
                     .aabb = aabb,
                     .minEnclosingBallCenter = {seb.center_begin()[0], seb.center_begin()[1], seb.center_begin()[2]},
-                    .minEnclosingBallRadius = seb.radius(),
+                    .minEnclosingBallRadius = static_cast<float>(seb.radius()),
             };
         } else {
             outerDimensions = OuterDimensions{

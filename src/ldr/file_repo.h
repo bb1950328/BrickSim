@@ -78,7 +78,7 @@ namespace bricksim::ldr::file_repo {
         static std::string getPathRelativeToBase(FileType type, const std::string& name);
 
         oset_t<std::shared_ptr<File>> getAllFilesOfCategory(const std::string& categoryName);
-        bool areAllPartsLoaded();
+        bool areAllPartsLoaded() const;
         void cleanup();
 
         /**

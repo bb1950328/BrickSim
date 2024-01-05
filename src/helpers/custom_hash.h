@@ -22,4 +22,11 @@ namespace std {
             return value.red * 961 + value.green * 31 + value.blue;
         }
     };
+
+    template<>
+    struct hash<pair<string, string>> {
+        std::size_t operator()(const pair<string, string>& value) const noexcept {
+            return hash<string>()(value.first) * 31 + hash<string>()(value.second);
+        }
+    };
 }

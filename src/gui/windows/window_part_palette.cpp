@@ -8,7 +8,163 @@
 
 #include "window_part_palette.h"
 
+#include "../../persistent_state.h"
+
 namespace bricksim::gui::windows::part_palette {
+    namespace {
+        bool nodeSelectReverseRecursively(oset_t<uint64_t>& set, const config::PartCategoryTreeNode& node) {
+            if (set.contains(node.id)) {
+                return true;
+            }
+            set.insert(node.id);
+            for (auto childIt = node.children.rbegin(); childIt != node.children.rend(); ++childIt) {
+                if (nodeSelectReverseRecursively(set, *childIt)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        ///iterates through the flattened tree in reverse, adds all ids to set, immediately returns true when it encounters a node which is already in set
+        bool nodeSelectReverse(oset_t<uint64_t>& set, const std::vector<config::PartCategoryTreeNode>& nodeStack, const std::size_t stackOffset = 0) {
+            const auto& node = nodeStack.back();
+            set.insert(node.id);
+            if (stackOffset - 1 > nodeStack.size()) {
+                const auto& parent = nodeStack[nodeStack.size() - 1 - stackOffset];
+                for (const auto& previousSibling: parent.children) {
+                    if (previousSibling.id == node.id) {
+                        break;
+                    }
+                    if (nodeSelectReverseRecursively(set, previousSibling)) {
+                        return true;
+                    }
+                }
+                if (nodeSelectReverse(set, nodeStack, stackOffset + 1)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        void drawCustomTreeNode(std::vector<config::PartCategoryTreeNode>& nodeStack, persisted_state::PartPalette& state);
+
+        void drawCustomTreeNodeChildren(std::vector<config::PartCategoryTreeNode>& nodeStack, persisted_state::PartPalette& state) {
+            for (const auto& child: nodeStack.back().children) {
+                nodeStack.push_back(child);
+                drawCustomTreeNode(nodeStack, state);
+                nodeStack.pop_back();
+            }
+        }
+
+        void drawCustomTreeNode(std::vector<config::PartCategoryTreeNode>& nodeStack, persisted_state::PartPalette& state) {
+            const auto& node = nodeStack.back();
+            int flags = ImGuiTreeNodeFlags_None;
+            const auto initiallySelected = state.selectedTreeElements.contains(node.id);
+            if (initiallySelected) {
+                flags |= ImGuiTreeNodeFlags_Selected;
+            }
+            if (node.children.empty()) {
+                flags |= ImGuiTreeNodeFlags_Leaf;
+            }
+            if (ImGui::TreeNodeEx(reinterpret_cast<void*>(node.id), flags, "%s", node.name.c_str())) {
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+                    if (ImGui::GetIO().KeyCtrl) {
+                        if (initiallySelected) {
+                            state.selectedTreeElements.erase(node.id);
+                        } else {
+                            state.selectedTreeElements.insert(node.id);
+                        }
+                    } else if (ImGui::GetIO().KeyShift) {
+                        nodeSelectReverse(state.selectedTreeElements, nodeStack);
+                    } else {
+                        state.selectedTreeElements = {node.id};
+                    }
+                }
+                drawCustomTreeNodeChildren(nodeStack, state);
+                ImGui::TreePop();
+            }
+        }
+
+        void drawDefaultCategoryTree(persisted_state::PartPalette& state) {
+            const auto& partCategories = ldr::file_repo::get().getAllCategories();
+            uint64_t i = 0;
+            auto it = partCategories.begin();
+            while (it != partCategories.end()) {
+                const auto initiallySelected = state.selectedTreeElements.contains(i);
+                if (ImGui::Selectable(it->c_str(), initiallySelected)) {
+                    if (initiallySelected) {
+                        if (state.selectedTreeElements.size() > 1) {
+                            state.selectedTreeElements = {i};
+                        } else {
+                            state.selectedTreeElements.clear();
+                        }
+                    } else {
+                        if (ImGui::GetIO().KeyCtrl) {
+                            state.selectedTreeElements.insert(i);
+                        } else if (ImGui::GetIO().KeyShift) {
+                            uint64_t x = i;
+                            while (x > 0 && !state.selectedTreeElements.contains(x)) {
+                                state.selectedTreeElements.insert(x);
+                                --x;
+                            }
+                        } else {
+                            state.selectedTreeElements = {i};
+                        }
+                    }
+                }
+                ++i;
+                ++it;
+            }
+        }
+
+        //todo these algorithms can be optimized from O(n) to O(log(N)) by using binary search while looking for the next child
+        std::optional<config::PartCategoryTreeNode> findNode(const config::PartCategoryTreeNode& root, const uint64_t id) {
+            if (root.id == id) {
+                return root;
+            }
+            if (!root.children.empty()) {
+                std::size_t childIdx = 0;
+                while (root.children.size() - 1 > childIdx && root.children[childIdx + 1].id < id) {
+                    ++childIdx;
+                }
+                while (childIdx < root.children.size()) {
+                    if (const auto res = findNode(root.children[childIdx], id)) {
+                        return res;
+                    }
+                    ++childIdx;
+                }
+            }
+            return std::nullopt;
+        }
+
+        std::optional<config::PartCategoryTreeNode> findNode(std::vector<config::PartCategoryTreeNode>& nodeStack, const uint64_t id) {
+            const auto& node = nodeStack.back();
+            if (node.id > id) {
+                return std::nullopt;
+            } else if (node.id == id) {
+                return node;
+            }
+            std::size_t childIdx = 0;
+            while (childIdx < node.children.size() - 1 && node.children[childIdx + 1].id < id) {
+                ++childIdx;
+            }
+            while (childIdx < node.children.size()) {
+                nodeStack.push_back(node.children[childIdx]);
+                if (const auto res = findNode(nodeStack, id)) {
+                    return res;
+                }
+                nodeStack.pop_back();
+                ++childIdx;
+            }
+            if (nodeStack.size() > 1) {
+                nodeStack.pop_back();
+                return findNode(nodeStack, id);
+            }
+            return std::nullopt;
+        }
+    }
+
+
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
             collectWindowInfo(data.id);
@@ -73,146 +229,156 @@ namespace bricksim::gui::windows::part_palette {
                 ImGui::EndPopup();
             }
 
-            static float categorySelectWidth = 250;//todo save
-            const auto totalWidth = ImGui::GetContentRegionAvail().x;
-            const auto itemSpacingX = ImGui::GetStyle().ItemSpacing.x;
-            float thumbnailContainerWidth = totalWidth - categorySelectWidth - itemSpacingX;
-            //static const auto partsGrouped = ldr::file_repo::getAllPartsGroupedByCategory();
-            static const auto partCategories = ldr::file_repo::get().getAllCategories();
-            static uoset_t<std::string> selectedCategories = {*partCategories.begin()};//first category preselected
-            std::set<std::string> editorNames;
-            std::transform(controller::getEditors().cbegin(),
-                           controller::getEditors().cend(),
-                           std::inserter(editorNames, editorNames.begin()),
-                           [](const std::shared_ptr<Editor>& editor) {
-                               return editor->getFilename();
-                           });
+            ImGui::BeginChild("##categorySelectTree", ImVec2(160.f * config::get().gui.scale, 0), ImGuiChildFlags_ResizeX);
 
-            ImGui::BeginChild("##categorySelectTree", ImVec2(categorySelectWidth, 0));
-            for (const auto& set: {std::cref(editorNames), std::cref(partCategories)}) {
-                for (const auto& category: set.get()) {
-                    int flags = selectedCategories.find(category) != selectedCategories.end()
-                                    ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Selected
-                                    : ImGuiTreeNodeFlags_Leaf;
-                    if (ImGui::TreeNodeEx(category.c_str(), flags)) {
-                        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-                            if (ImGui::GetIO().KeyCtrl) {
-                                if (selectedCategories.find(category) == selectedCategories.end()) {
-                                    selectedCategories.insert(category);
-                                } else {
-                                    selectedCategories.erase(category);
-                                }
-                            } else if (ImGui::GetIO().KeyShift) {
-                                auto groupIt = partCategories.find(category);
-                                while (groupIt != partCategories.begin() && selectedCategories.find(*groupIt) == selectedCategories.end()) {
-                                    selectedCategories.insert(*groupIt);
-                                    groupIt--;
-                                }
-                                selectedCategories.insert(*groupIt);
-                            } else {
-                                bool wasOnlySelectionBefore = selectedCategories.size() == 1 && *selectedCategories.begin() == category;
-                                selectedCategories.clear();
-                                if (!wasOnlySelectionBefore) {
-                                    selectedCategories.insert(category);
-                                }
-                            }
-                        }
-                        ImGui::TreePop();
+            auto& customTrees = config::get().partPalette.customTrees;
+            auto& state = persisted_state::get().partPalette;
+            if (!customTrees.empty()) {
+                if (state.selectedCustomTree < -1 || state.selectedCustomTree >= customTrees.size()) {
+                    state.selectedCustomTree = -1;
+                    state.selectedTreeElements.clear();
+                }
+                const char* currentTreeName = state.selectedCustomTree == -1 ? "Default" : customTrees[state.selectedCustomTree].name.c_str();
+                ImGui::SetNextItemWidth(-1.f);
+                if (ImGui::BeginCombo("##customTreeCombo", currentTreeName)) {
+                    if (ImGui::Selectable("Default", state.selectedCustomTree == -1)) {
+                        state.selectedCustomTree = -1;
+                        state.selectedTreeElements.clear();
                     }
+                    for (std::size_t i = 0; i < customTrees.size(); ++i) {
+                        if (ImGui::Selectable(customTrees[i].name.c_str(), state.selectedCustomTree == i)) {
+                            state.selectedCustomTree = i;
+                            state.selectedTreeElements.clear();
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+            }
+
+            static std::optional<std::shared_ptr<Editor>> selectedEditor;
+            for (const auto& editor: controller::getEditors()) {
+                const auto label = fmt::format(ICON_FA_FILE" {}", editor->getDisplayName());
+                if (ImGui::Selectable(label.c_str(), editor == selectedEditor)) {
+                    selectedEditor = editor;
+                    state.selectedTreeElements.clear();
+                }
+            }
+
+            if (state.selectedCustomTree == -1) {
+                drawDefaultCategoryTree(state);
+            } else {
+                std::vector nodeStack = {customTrees[state.selectedCustomTree]};
+                drawCustomTreeNodeChildren(nodeStack, state);
+                if (!state.selectedTreeElements.empty()) {
+                    selectedEditor = std::nullopt;
                 }
             }
             ImGui::EndChild();
+
             ImGui::SameLine();
-            ImGui::BeginChild("##thumbnailsContainer", ImVec2(thumbnailContainerWidth, 0), ImGuiChildFlags_None);
-            const static auto thumbnailSpacing = 4;
+
+            ImGui::BeginChild("##thumbnailsContainer", ImGui::GetContentRegionAvail(), ImGuiChildFlags_None);
+            static constexpr auto thumbnailSpacing = 4;
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(thumbnailSpacing, thumbnailSpacing));
-            auto actualThumbSize = std::floor(controller::getThumbnailGenerator()->size / 100.0 * thumbnailZoomPercent);
-            auto actualThumbSizeSquared = ImVec2(actualThumbSize, actualThumbSize);
-            int columns = std::max(1.0, std::floor((ImGui::GetContentRegionAvail().x + thumbnailSpacing) / (actualThumbSize + thumbnailSpacing)));
-            int currentCol = 0;
+            const auto actualThumbSize = std::floor(controller::getThumbnailGenerator()->size / 100.0 * thumbnailZoomPercent);
+            const auto actualThumbSizeSquared = ImVec2(actualThumbSize, actualThumbSize);
 
             const bool searchEmpty = searchTextBuffer[0] == '\0';
             const auto& searchPredicate = part_finder::getPredicate(searchTextBuffer);
 
-            const auto drawPart = [&actualThumbSizeSquared, &columns, &currentCol, &searchEmpty, &searchPredicate](const std::shared_ptr<ldr::File>& file) {
+            const auto drawPart = [&actualThumbSizeSquared, &searchEmpty, &searchPredicate](const std::shared_ptr<ldr::File>& file) {
                 if (searchEmpty || searchPredicate.matches(*file)) {
                     gui_internal::drawPartThumbnail(actualThumbSizeSquared, file, color->asReference());
-                    currentCol++;
-                    if (currentCol == columns) {
-                        currentCol = 0;
-                    } else {
-                        ImGui::SameLine();
-                    }
-                }
-            };
-
-            const auto drawCategory = [&editorNames, &drawPart](const std::string& category) {
-                if (editorNames.find(category) != editorNames.end()) {
-                    const auto editor = std::find_if(controller::getEditors().begin(),
-                                                     controller::getEditors().end(),
-                                                     [&category](const std::shared_ptr<Editor>& editor) {
-                                                         return editor->getFilename() == category;
-                                                     })
-                            ->get();
-                    for (const auto& item: editor->getRootNode()->getChildren()) {
-                        const auto modelNode = std::dynamic_pointer_cast<etree::ModelNode>(item);
-                        if (modelNode != nullptr) {
-                            drawPart(modelNode->ldrFile);
-                            if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-                                editor->openContextMenuNodeSelectedOrClicked(modelNode);
-                            }
-                        }
-                    }
-                } else {
-                    for (const auto& part: ldr::file_repo::get().getAllFilesOfCategory(category)) {
-                        drawPart(part);
-                    }
-                }
-            };
-
-            if (selectedCategories.size() > 1) {
-                for (const auto& category: selectedCategories) {
-                    ImGui::Text("%s", category.c_str());
-                    drawCategory(category);
-                    if (currentCol != 0) {
+                    ImGui::SameLine();
+                    if (ImGui::GetContentRegionAvail().x < actualThumbSizeSquared.x) {
                         ImGui::NewLine();
                     }
-                    currentCol = 0;
                 }
-            } else if (selectedCategories.size() == 1) {
-                drawCategory(*selectedCategories.begin());
-            } else {
-                if (ldr::file_repo::get().areAllPartsLoaded()) {
-                    for (const auto& category: editorNames) {
-                        ImGui::Text("%s", category.c_str());
-                        drawCategory(category);
+            };
+
+            const auto drawEditor = [&drawPart](const std::shared_ptr<Editor>& editor) {
+                for (const auto& item: editor->getRootNode()->getChildren()) {
+                    const auto modelNode = std::dynamic_pointer_cast<etree::ModelNode>(item);
+                    if (modelNode != nullptr) {
+                        drawPart(modelNode->ldrFile);
+                        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+                            editor->openContextMenuNodeSelectedOrClicked(modelNode);
+                        }
                     }
-                    for (const auto& category: ldr::file_repo::get().getAllPartsGroupedByCategory()) {
-                        bool textWritten = false;
-                        for (const auto& part: category.second) {
-                            if (!textWritten && (searchEmpty || searchPredicate.matches(*part))) {
-                                ImGui::Text("%s", category.first.c_str());
-                                textWritten = true;
-                            }
-                            drawPart(part);
+                }
+            };
+
+            const auto drawCategory = [&drawPart](const std::string& category) {
+                for (const auto& part: ldr::file_repo::get().getAllFilesOfCategory(category)) {
+                    drawPart(part);
+                }
+                ImGui::NewLine();
+            };
+
+            static uomap_t<std::pair<std::string, std::string>, oset_t<std::shared_ptr<ldr::File>>> customCategoryCache;
+            const auto getCustomPartList = [](const std::string& ldrawCategory, const std::string& nameFilter) {
+                if (nameFilter.empty()) {
+                    return ldr::file_repo::get().getAllFilesOfCategory(ldrawCategory);
+                } else {
+                    const auto key = std::make_pair(ldrawCategory, nameFilter);
+                    if (const auto it = customCategoryCache.find(key); it != customCategoryCache.end()) {
+                        return it->second;
+                    }
+                    const auto& matcher = part_finder::getPredicate(nameFilter);
+                    oset_t<std::shared_ptr<ldr::File>> result;
+                    for (const auto& file: ldr::file_repo::get().getAllFilesOfCategory(ldrawCategory)) {
+                        if (matcher.matches(*file)) {
+                            result.insert(file);
                         }
-                        if (currentCol != 0) {
-                            ImGui::NewLine();
+                    }
+                    return customCategoryCache.emplace(key, result).first->second;
+                }
+            };
+
+            const auto drawCustomCategory = [&drawPart, &getCustomPartList](const config::PartCategoryTreeNode& category) {
+                for (const auto& part: getCustomPartList(category.ldrawCategory, category.nameFilter)) {
+                    drawPart(part);
+                }
+                ImGui::NewLine();
+            };
+
+            if (selectedEditor.has_value()) {
+                drawEditor(*selectedEditor);
+            } else if (!state.selectedTreeElements.empty()) {
+                const bool drawHeaders = state.selectedTreeElements.size() != 1;
+                if (state.selectedCustomTree == -1) {
+                    static uomap_t<uint64_t, std::string> categoryNamesByIndex;
+                    if (categoryNamesByIndex.empty()) {
+                        const auto& partCategories = ldr::file_repo::get().getAllCategories();
+                        uint64_t i = 0;
+                        auto it = partCategories.begin();
+                        while (it != partCategories.end()) {
+                            categoryNamesByIndex.emplace(i, *it);
+                            ++i;
+                            ++it;
                         }
-                        currentCol = 0;
+                    }
+                    for (auto element: state.selectedTreeElements) {
+                        const auto& categoryName = categoryNamesByIndex.find(element)->second;
+                        if (drawHeaders) {
+                            ImGui::Text("%s", categoryName.c_str());
+                        }
+                        drawCategory(categoryName);
                     }
                 } else {
-                    static bool taskAdded = false;
-                    if (!taskAdded) {
-                        controller::addBackgroundTask("Load remaining Parts", []() {
-                            ldr::file_repo::get().getAllPartsGroupedByCategory();
-                        });
-                        taskAdded = true;
+                    const auto& root = customTrees[state.selectedCustomTree];
+                    if (state.selectedTreeElements.size() == 1) {
+                        drawCustomCategory(*findNode(root, *state.selectedTreeElements.begin()));
+                    } else {
+                        std::vector nodeStack = {root};
+                        for (const auto element: state.selectedTreeElements) {
+                            const auto category = *findNode(nodeStack, element);
+                            if (drawHeaders) {
+                                ImGui::Text("%s", category.name.c_str());
+                            }
+                            drawCustomCategory(category);
+                        }
                     }
-                    const auto loaded = ldr::file_repo::get().getLoadedPartsGroupedByCategory().size();
-                    const auto all = ldr::file_repo::get().getAllCategories().size();
-                    ImGui::ProgressBar(loaded * 1.0f / all);
-                    ImGui::Text("%c %lu of %lu categories loaded, please wait", gui_internal::getLoFiSpinner(), loaded, all);
                 }
             }
             ImGui::PopStyleVar();

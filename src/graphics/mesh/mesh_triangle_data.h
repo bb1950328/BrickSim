@@ -19,7 +19,7 @@ namespace bricksim::mesh {
         void rewriteInstanceBuffer(const std::vector<MeshInstance>& instances);
         [[nodiscard]] size_t getVertexCount() const;
         [[nodiscard]] size_t getIndexCount() const;
-        void addVerticesForOuterDimensions(std::vector<glm::vec3>& coords) const;
+        void addVerticesForOuterDimensions(std::vector<glm::dvec3>& coords) const;
 
         [[nodiscard]] bool isDataAlreadyDeleted() const;
         [[nodiscard]] const std::vector<TriangleVertex>& getVertices() const;

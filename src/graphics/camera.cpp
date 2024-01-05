@@ -171,16 +171,16 @@ namespace bricksim::graphics {
         collectPoints(points, node, glm::mat4(1.f));
         Seb::Smallest_enclosing_ball<float, glm::vec3> seb(3, points);
 
-        auto center = seb.center_begin();
+        const auto center = seb.center_begin();
         const auto sebCenter = glm::vec3(center[0], center[1], center[2]);
 
-        auto meshRadius = seb.radius() * constants::LDU_TO_OPENGL_SCALE;
+        const auto meshRadius = seb.radius() * constants::LDU_TO_OPENGL_SCALE;
         target = glm::vec4(sebCenter, 1.0f) * constants::LDU_TO_OPENGL;
 
         //todo calculate the distance from fov instead of this
-        auto distance = meshRadius * 2.45f;
-        auto s = glm::radians(45.0f);//todo make variable
-        auto t = glm::radians(45.0f);
+        const auto distance = meshRadius * 2.35f;
+        const auto s = glm::radians(45.0f);//todo make variable
+        const auto t = glm::radians(45.0f);
         cameraPos = glm::vec3(
                             distance * std::cos(s) * std::cos(t),
                             distance * std::sin(s) * std::cos(t),

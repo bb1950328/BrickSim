@@ -7,21 +7,25 @@
 
 namespace bricksim::gui_internal {
     bool drawPartThumbnail(const ImVec2& actualThumbSizeSquared, const std::shared_ptr<ldr::File>& part, const ldr::ColorReference color) {
-        bool realThumbnailAvailable = false;
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(config::get().graphics.background));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0});
+        bool realThumbnailDrawn = false;
         const bool visible = ImGui::IsRectVisible(actualThumbSizeSquared);
         if (visible) {
             auto optTexId = controller::getThumbnailGenerator()->getThumbnailNonBlocking({part, color});
             if (optTexId.has_value()) {
                 auto texId = convertTextureId(optTexId.value()->getID());
                 ImGui::ImageButton(part->metaInfo.name.c_str(), texId, actualThumbSizeSquared, ImVec2(0, 1), ImVec2(1, 0));
-                realThumbnailAvailable = true;
+                realThumbnailDrawn = true;
             }
         } else {
             controller::getThumbnailGenerator()->removeFromRenderQueue({part, color});
         }
-        if (!realThumbnailAvailable) {
+        if (!realThumbnailDrawn) {
             ImGui::Button(part->metaInfo.name.c_str(), actualThumbSizeSquared);
         }
+        ImGui::PopStyleVar();
+        ImGui::PopStyleColor();
         if (ImGui::IsItemHovered()) {
             auto availableColors = info_providers::part_color_availability::getAvailableColorsForPart(part);
             std::string availText;

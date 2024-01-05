@@ -486,7 +486,7 @@ namespace bricksim::ldr::file_repo {
         return it->second;
     }
 
-    bool FileRepo::areAllPartsLoaded() {
+    bool FileRepo::areAllPartsLoaded() const {
         return getAllCategories().size() == partsByCategory.size();
     }
 

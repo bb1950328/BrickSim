@@ -15,7 +15,7 @@ namespace bricksim::mesh {
         void freeBuffers() const;
         void draw(const InstanceRange& sceneLayerInstanceRange) const;
         [[nodiscard]] size_t getVertexCount() const;
-        void addVerticesForOuterDimensions(std::vector<glm::vec3>& coords) const;
+        void addVerticesForOuterDimensions(std::vector<glm::dvec3>& coords) const;
         void addVertex(const TexturedTriangleVertex& vertex);
 
     private:

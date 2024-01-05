@@ -151,6 +151,7 @@ namespace bricksim::gui::windows::settings {
         if (ImGui::InputInt("Thumbnail Image Size", &thumbnailSize, 16, 64)) {
             data.thumbnailSize = std::clamp(thumbnailSize, 4, 2048);
         }
+        //todo implement editor for custom category trees
     }
 
     template<>

@@ -189,8 +189,40 @@ namespace bricksim::config {
         friend bool operator!=(const ElementTree& lhs, const ElementTree& rhs) { return !(lhs == rhs); }
     };
 
+    struct PartCategoryTreeNode {
+        uint64_t id;
+        std::string name;
+        std::string ldrawCategory;
+        std::string nameFilter;
+        std::vector<PartCategoryTreeNode> children;
+
+        explicit PartCategoryTreeNode() {
+            json_helper::defaultInit(this);
+        }
+
+        template<typename JsonIo>
+        void json_io(JsonIo& io) {
+            io
+                    & json_dto::optional("id", id, 0)
+                    & json_dto::optional("name", name, "")
+                    & json_dto::optional("ldrawCategory", ldrawCategory, "")
+                    & json_dto::optional("nameFilter", nameFilter, "")
+                    & json_dto::optional("children", children, decltype(children)());
+        }
+
+        friend bool operator==(const PartCategoryTreeNode& lhs, const PartCategoryTreeNode& rhs) {
+            return lhs.id == rhs.id
+                   && lhs.name == rhs.name
+                   && lhs.ldrawCategory == rhs.ldrawCategory
+                   && lhs.nameFilter == rhs.nameFilter;
+        }
+
+        friend bool operator!=(const PartCategoryTreeNode& lhs, const PartCategoryTreeNode& rhs) { return !(lhs == rhs); }
+    };
+
     struct PartPalette {
         uint16_t thumbnailSize;
+        std::vector<PartCategoryTreeNode> customTrees;
 
         PartPalette() {
             defaultInit(this);
@@ -199,10 +231,15 @@ namespace bricksim::config {
         template<typename JsonIo>
         void json_io(JsonIo& io) {
             io
-                    & json_dto::optional("thumbnailSize", thumbnailSize, 256, json_dto::min_max_constraint(4, 2048));
+                    & json_dto::optional("thumbnailSize", thumbnailSize, 256, json_dto::min_max_constraint(4, 2048))
+                    & json_dto::optional("customTrees", customTrees, decltype(customTrees)());
         }
 
-        friend bool operator==(const PartPalette& lhs, const PartPalette& rhs) { return lhs.thumbnailSize == rhs.thumbnailSize; }
+        friend bool operator==(const PartPalette& lhs, const PartPalette& rhs) {
+            return lhs.thumbnailSize == rhs.thumbnailSize
+                   && lhs.customTrees == rhs.customTrees;
+        }
+
         friend bool operator!=(const PartPalette& lhs, const PartPalette& rhs) { return !(lhs == rhs); }
     };
 

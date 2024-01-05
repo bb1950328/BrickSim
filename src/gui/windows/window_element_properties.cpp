@@ -42,7 +42,8 @@ namespace bricksim::gui::windows::element_properties {
         static glm::vec3 inputQuatAxis;
         static float inputQuatAngleDeg;
         switch (useEulerAngles) {
-            case config::AngleMode::Euler: {
+            case config::AngleMode::Euler:
+            {
                 if (nodeHasChanged) {
                     inputEulerAnglesDeg = glm::degrees(glm::eulerAngles(decomposedTreeTransf.orientation));
                 }
@@ -52,7 +53,8 @@ namespace bricksim::gui::windows::element_properties {
                 rotationChanged = glm::any(glm::epsilonNotEqual(inputEulerAnglesDeg, lastValue, 0.0001f));
                 break;
             }
-            case config::AngleMode::Quaternion: {
+            case config::AngleMode::Quaternion:
+            {
                 if (nodeHasChanged) {
                     inputQuatAngleDeg = glm::angle(decomposedTreeTransf.orientation);
                     inputQuatAxis = glm::axis(decomposedTreeTransf.orientation);
@@ -80,9 +82,11 @@ namespace bricksim::gui::windows::element_properties {
         if (translationChanged || rotationChanged || scaleChanged) {
             glm::mat4 newRotation;
             switch (useEulerAngles) {
-                case config::AngleMode::Euler: newRotation = glm::eulerAngleXYZ(glm::radians(inputEulerAnglesDeg.x), glm::radians(inputEulerAnglesDeg.y), glm::radians(inputEulerAnglesDeg.z));
+                case config::AngleMode::Euler:
+                    newRotation = glm::eulerAngleXYZ(glm::radians(inputEulerAnglesDeg.x), glm::radians(inputEulerAnglesDeg.y), glm::radians(inputEulerAnglesDeg.z));
                     break;
-                case config::AngleMode::Quaternion: newRotation = glm::toMat4(glm::angleAxis(glm::radians(inputQuatAngleDeg), inputQuatAxis));
+                case config::AngleMode::Quaternion:
+                    newRotation = glm::toMat4(glm::angleAxis(glm::radians(inputQuatAngleDeg), inputQuatAxis));
                     break;
             }
             auto newTranslation = glm::translate(glm::mat4(1.0f), inputPosition);

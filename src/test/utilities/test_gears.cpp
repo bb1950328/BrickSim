@@ -14,7 +14,6 @@ namespace bricksim {
         CHECK(pair.getFollower() == gears::GEAR_8T);
         CHECK(pair.getRatio() == Fraction(1, 8));
     }
-
 }
 
 //todo more tests

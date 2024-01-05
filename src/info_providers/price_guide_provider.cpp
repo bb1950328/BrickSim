@@ -9,7 +9,6 @@
 
 namespace bricksim::info_providers::price_guide {
     namespace {
-
         std::optional<bricklink::Currency> getCurrencyByCode(std::string_view code) {
             for (const auto& currency: bricklink_constants::getCurrencies()) {
                 if (currency.second.codeCurrency == code) {

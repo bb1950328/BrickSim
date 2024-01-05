@@ -63,7 +63,7 @@ namespace bricksim::gui::windows::mesh_inspector {
                     if (currentMode == 0) {
                         ImGui::SameLine();
                         copyIndicesToClipboard = ImGui::Button(ICON_FA_CLIPBOARD
-                                                               " Copy Indices");
+                                " Copy Indices");
                     }
                     std::stringstream toClipboard;
 

@@ -72,54 +72,74 @@ namespace bricksim::controller {
             }
             spdlog::level::level_enum level;
             switch (severity) {
-                case GL_DEBUG_SEVERITY_NOTIFICATION: level = spdlog::level::info;
+                case GL_DEBUG_SEVERITY_NOTIFICATION:
+                    level = spdlog::level::info;
                     break;
-                case GL_DEBUG_SEVERITY_LOW: level = spdlog::level::debug;
+                case GL_DEBUG_SEVERITY_LOW:
+                    level = spdlog::level::debug;
                     break;
-                case GL_DEBUG_SEVERITY_MEDIUM: level = spdlog::level::warn;
+                case GL_DEBUG_SEVERITY_MEDIUM:
+                    level = spdlog::level::warn;
                     break;
-                case GL_DEBUG_SEVERITY_HIGH: level = spdlog::level::err;
+                case GL_DEBUG_SEVERITY_HIGH:
+                    level = spdlog::level::err;
                     break;
-                default: level = spdlog::level::info;
+                default:
+                    level = spdlog::level::info;
             }
 
             const char* sourceStr;
             switch (source) {
-                case GL_DEBUG_SOURCE_API: sourceStr = "API";
+                case GL_DEBUG_SOURCE_API:
+                    sourceStr = "API";
                     break;
-                case GL_DEBUG_SOURCE_WINDOW_SYSTEM: sourceStr = "WINDOW_SYSTEM";
+                case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+                    sourceStr = "WINDOW_SYSTEM";
                     break;
-                case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "SHADER_COMPILER";
+                case GL_DEBUG_SOURCE_SHADER_COMPILER:
+                    sourceStr = "SHADER_COMPILER";
                     break;
-                case GL_DEBUG_SOURCE_THIRD_PARTY: sourceStr = "THIRD_PARTY";
+                case GL_DEBUG_SOURCE_THIRD_PARTY:
+                    sourceStr = "THIRD_PARTY";
                     break;
-                case GL_DEBUG_SOURCE_APPLICATION: sourceStr = "APPLICATION";
+                case GL_DEBUG_SOURCE_APPLICATION:
+                    sourceStr = "APPLICATION";
                     break;
                 case GL_DEBUG_SOURCE_OTHER:
-                default: sourceStr = "OTHER";
+                default:
+                    sourceStr = "OTHER";
                     break;
             }
 
             const char* typeStr;
             switch (type) {
-                case GL_DEBUG_TYPE_ERROR: typeStr = "ERROR";
+                case GL_DEBUG_TYPE_ERROR:
+                    typeStr = "ERROR";
                     break;
-                case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "DEPRECATED_BEHAVIOR";
+                case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+                    typeStr = "DEPRECATED_BEHAVIOR";
                     break;
-                case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: typeStr = "UNDEFINED_BEHAVIOR";
+                case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+                    typeStr = "UNDEFINED_BEHAVIOR";
                     break;
-                case GL_DEBUG_TYPE_PORTABILITY: typeStr = "PORTABILITY";
+                case GL_DEBUG_TYPE_PORTABILITY:
+                    typeStr = "PORTABILITY";
                     break;
-                case GL_DEBUG_TYPE_PERFORMANCE: typeStr = "PERFORMANCE";
+                case GL_DEBUG_TYPE_PERFORMANCE:
+                    typeStr = "PERFORMANCE";
                     break;
-                case GL_DEBUG_TYPE_MARKER: typeStr = "MARKER";
+                case GL_DEBUG_TYPE_MARKER:
+                    typeStr = "MARKER";
                     break;
-                case GL_DEBUG_TYPE_PUSH_GROUP: typeStr = "PUSH_GROUP";
+                case GL_DEBUG_TYPE_PUSH_GROUP:
+                    typeStr = "PUSH_GROUP";
                     break;
-                case GL_DEBUG_TYPE_POP_GROUP: typeStr = "POP_GROUP";
+                case GL_DEBUG_TYPE_POP_GROUP:
+                    typeStr = "POP_GROUP";
                     break;
                 case GL_DEBUG_TYPE_OTHER:
-                default: typeStr = "OTHER";
+                default:
+                    typeStr = "OTHER";
                     break;
             }
 

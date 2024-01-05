@@ -12,6 +12,7 @@ namespace bricksim::ldr {
             GLITTER,
             SPECKLE
         };
+
         Type type;
         color::RGB value;
         unsigned char alpha;

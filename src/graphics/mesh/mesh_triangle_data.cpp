@@ -6,13 +6,14 @@
 #include "glm/gtx/rotate_vector.inl"
 
 namespace bricksim::mesh {
-
     void TriangleData::initBuffers(const std::vector<MeshInstance>& instances) {
         controller::executeOpenGL([&instances, this]() {
             initBuffersImpl(instances);
         });
     }
-    void TriangleData::initBuffersImpl(const std::vector<MeshInstance>& instances) {//VAO
+
+    void TriangleData::initBuffersImpl(const std::vector<MeshInstance>& instances) {
+        //VAO
         glGenVertexArrays(1, &VAO);
         glBindVertexArray(VAO);
 
@@ -102,6 +103,7 @@ namespace bricksim::mesh {
                                                                                       sizeof(TriangleInstance));
         }
     }
+
     void TriangleData::rewriteInstanceBuffer(const std::vector<MeshInstance>& instances) {
         instanceCount = instances.size();
         controller::executeOpenGL([this, &instances]() {
@@ -115,9 +117,9 @@ namespace bricksim::mesh {
             glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>((instances.size() * instance_size)), instancesArray.data(), GL_STATIC_DRAW);
         });
     }
+
     TriangleData::TriangleData(const ldr::ColorReference& color) :
-        color(color) {
-    }
+        color(color) {}
 
     std::vector<TriangleInstance> TriangleData::generateInstancesArray(const std::vector<MeshInstance>& instances) const {
         if (color.get()->code == ldr::color_repo::INSTANCE_DUMMY_COLOR_CODE) {
@@ -173,15 +175,19 @@ namespace bricksim::mesh {
             coords.push_back(item.position);
         }
     }
+
     const std::vector<TriangleVertex>& TriangleData::getVertices() const {
         return vertices;
     }
+
     const std::vector<unsigned int>& TriangleData::getIndices() const {
         return indices;
     }
+
     bool TriangleData::isDataAlreadyDeleted() const {
         return dataAlreadyDeleted;
     }
+
     TriangleData::TriangleData(TriangleData&& other) noexcept :
         color(other.color),
         vertices(std::move(other.vertices)),
@@ -194,8 +200,8 @@ namespace bricksim::mesh {
         lastInstanceBufferSize(other.lastInstanceBufferSize),
         dataAlreadyDeleted(other.dataAlreadyDeleted),
         uploadedVertexCount(other.uploadedVertexCount),
-        uploadedIndexCount(other.uploadedIndexCount) {
-    }
+        uploadedIndexCount(other.uploadedIndexCount) {}
+
     TriangleData& TriangleData::operator=(TriangleData&& other) noexcept {
         color = other.color;
         vertices = std::move(other.vertices);

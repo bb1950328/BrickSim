@@ -50,10 +50,11 @@ namespace bricksim::connection {
             }
         }
     }
+
     void ConnectorConversion::createConnectors(const std::shared_ptr<ldr::File>& file, const glm::mat4& transformation, std::string parentSourceTrace) {
         const auto sourceTrace = parentSourceTrace.empty()
-                                         ? file->metaInfo.name
-                                         : parentSourceTrace + "->" + file->metaInfo.name;
+                                     ? file->metaInfo.name
+                                     : parentSourceTrace + "->" + file->metaInfo.name;
         for (const auto& command: file->ldcadMetas) {
             switch (command->type) {
                 case ldcad_meta::CommandType::SNAP_CLEAR:
@@ -62,35 +63,40 @@ namespace bricksim::connection {
                 case ldcad_meta::CommandType::SNAP_INCL:
                     convertInclCommand(transformation, sourceTrace, std::dynamic_pointer_cast<ldcad_meta::InclCommand>(command));
                     break;
-                case ldcad_meta::CommandType::SNAP_CYL: {
+                case ldcad_meta::CommandType::SNAP_CYL:
+                {
                     const auto cylCommand = std::dynamic_pointer_cast<ldcad_meta::CylCommand>(command);
                     if (idNotCleared(cylCommand->id)) {
                         convertCylCommand(transformation, sourceTrace, cylCommand);
                     }
                     break;
                 }
-                case ldcad_meta::CommandType::SNAP_CLP: {
+                case ldcad_meta::CommandType::SNAP_CLP:
+                {
                     const auto clpCommand = std::dynamic_pointer_cast<ldcad_meta::ClpCommand>(command);
                     if (idNotCleared(clpCommand->id)) {
                         convertClpCommand(transformation, sourceTrace, clpCommand);
                     }
                     break;
                 }
-                case ldcad_meta::CommandType::SNAP_FGR: {
+                case ldcad_meta::CommandType::SNAP_FGR:
+                {
                     const auto fgrCommand = std::dynamic_pointer_cast<ldcad_meta::FgrCommand>(command);
                     if (idNotCleared(fgrCommand->id)) {
                         convertFgrCommand(transformation, sourceTrace, fgrCommand);
                     }
                     break;
                 }
-                case ldcad_meta::CommandType::SNAP_GEN: {
+                case ldcad_meta::CommandType::SNAP_GEN:
+                {
                     const auto genCommand = std::dynamic_pointer_cast<ldcad_meta::GenCommand>(command);
                     if (idNotCleared(genCommand->id)) {
                         convertGenCommand(transformation, sourceTrace, genCommand);
                     }
                     break;
                 }
-                default: break;
+                default:
+                    break;
             }
         }
 
@@ -102,6 +108,7 @@ namespace bricksim::connection {
             }
         }
     }
+
     void ConnectorConversion::convertInclCommand(const glm::mat4& transformation, const std::string& sourceTrace, const std::shared_ptr<ldcad_meta::InclCommand>& command) {
         glm::mat4 transf = combinePosOriScale(command);
 
@@ -115,6 +122,7 @@ namespace bricksim::connection {
             createConnectors(includedFile, transf * transformation, sourceTrace);
         }
     }
+
     void ConnectorConversion::handleClearCommand(const std::shared_ptr<ldcad_meta::ClearCommand>& command) {
         if (command->id.has_value()) {
             clearIDs.insert(*command->id);
@@ -123,6 +131,7 @@ namespace bricksim::connection {
             result->clear();
         }
     }
+
     void ConnectorConversion::convertCylCommand(const glm::mat4& transformation, const std::string& sourceTrace, const std::shared_ptr<ldcad_meta::CylCommand>& command) {
         //TODO check cylCommand->scale
         auto cylTransf = transformation * combinePosOri(command);
@@ -152,11 +161,11 @@ namespace bricksim::connection {
         auto connector = std::make_shared<CylindricalConnector>(
                 command->group.value_or(""),
                 cylTransf[3],
-                direction, /*cylCommand->ori.value_or(glm::mat3(1.f))*glm::vec3(0.f, -1.f, 0.f)*/
+                direction,/*cylCommand->ori.value_or(glm::mat3(1.f))*glm::vec3(0.f, -1.f, 0.f)*/
                 sourceTrace,
                 command->gender == ldcad_meta::Gender::M
-                        ? Gender::M
-                        : Gender::F,
+                    ? Gender::M
+                    : Gender::F,
                 shapeParts,
                 false,
                 false,
@@ -232,6 +241,7 @@ namespace bricksim::connection {
             this->result->push_back(connector);
         }
     }
+
     void ConnectorConversion::convertClpCommand(const glm::mat4& transformation, const std::string& sourceTrace, const std::shared_ptr<ldcad_meta::ClpCommand>& command) {
         const auto clpTransf = transformation * combinePosOri(command);
         const glm::vec3 direction = clpTransf * glm::vec4(0.f, -1.f, 0.f, 0.f);
@@ -251,6 +261,7 @@ namespace bricksim::connection {
                         command->slide,
                         openingDirection));
     }
+
     void ConnectorConversion::convertFgrCommand(const glm::mat4& transformation, const std::string& sourceTrace, const std::shared_ptr<ldcad_meta::FgrCommand>& command) {
         const auto fgrTransf = transformation * combinePosOri(command);
         const glm::vec3 direction = fgrTransf * glm::vec4(0.f, -1.f, 0.f, 0.f);
@@ -266,11 +277,12 @@ namespace bricksim::connection {
                         direction,
                         sourceTrace,
                         command->genderOfs == ldcad_meta::Gender::M
-                                ? Gender::M
-                                : Gender::F,
+                            ? Gender::M
+                            : Gender::F,
                         command->radius,
                         command->seq));
     }
+
     void ConnectorConversion::convertGenCommand(const glm::mat4& transformation, const std::string& sourceTrace, const std::shared_ptr<ldcad_meta::GenCommand>& command) {
         const auto genTransf = combinePosOri(command) * transformation;
         result->push_back(
@@ -280,10 +292,11 @@ namespace bricksim::connection {
                         genTransf * glm::vec4(1.f, 0.f, 0.f, 0.f),
                         sourceTrace,
                         command->gender == ldcad_meta::Gender::M
-                                ? Gender::M
-                                : Gender::F,
+                            ? Gender::M
+                            : Gender::F,
                         command->bounding));
     }
+
     void ConnectorConversion::convertSubfileReference(const glm::mat4& transformation, const std::string& sourceTrace, const std::shared_ptr<ldr::File>& file, const std::shared_ptr<ldr::SubfileReference>& sfReference) {
         const auto sfReferenceTransformation = sfReference->getTransformationMatrix();
         const auto referencedFile = sfReference->getFile(file);
@@ -300,14 +313,18 @@ namespace bricksim::connection {
                            referencedPartConversion.getResult()->cend());
         }
     }
+
     ConnectorConversion::ConnectorConversion() :
         result(std::make_shared<connector_container_t>()) {}
+
     const std::shared_ptr<connector_container_t>& ConnectorConversion::getResult() const {
         return result;
     }
+
     void ConnectorConversion::createConnectors(const std::shared_ptr<ldr::File>& file) {
         createConnectors(file, glm::mat4(1.f), "");
     }
+
     bool ConnectorConversion::idNotCleared(const std::optional<std::string>& id) const {
         return !id.has_value() || !clearIDs.contains(*id);
     }

@@ -4,6 +4,7 @@
 #include "../types.h"
 #include <filesystem>
 #include <glm/glm.hpp>
+
 namespace bricksim::graphics {
     class Texture {
     private:

@@ -1,6 +1,7 @@
 #include "line_element.h"
 #include "../../helpers/geometry.h"
 #include "vertex_generator.h"
+
 namespace bricksim::overlay2d {
     bool LineElement::isPointInside(coord_t point) {
         return geometry::calculateDistanceOfPointToLine(start, end, point) <= width / 2.f;
@@ -54,5 +55,4 @@ namespace bricksim::overlay2d {
         LineElement::color = value;
         setVerticesHaveChanged(true);
     }
-
 }

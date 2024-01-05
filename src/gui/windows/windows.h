@@ -23,6 +23,7 @@ namespace bricksim::gui::windows {
         TOOLBAR,
         CONNECTION_VISUALIZATION,
     };
+
     struct Data {
         const Id id;
         const char* const name;

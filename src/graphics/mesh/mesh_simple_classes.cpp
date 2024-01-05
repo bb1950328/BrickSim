@@ -2,10 +2,8 @@
 #include "../../helpers/geometry.h"
 
 namespace bricksim::mesh {
-
     TriangleVertex::TriangleVertex(const glm::vec3& position, const glm::vec3& normal) :
         position(position), normal(normal) {}
-
 
 
     void TriangleInstance::setColor(const ldr::ColorReference color) {

@@ -348,12 +348,17 @@ namespace bricksim::ldr::file_repo {
 
     std::string FileRepo::getPathRelativeToBase(ldr::FileType type, const std::string& name) {
         switch (type) {
-            case FileType::MODEL: return "models/" + name;
-            case FileType::MPD_SUBFILE: throw std::invalid_argument("mpd subfile usually not in ldraw directory");
+            case FileType::MODEL:
+                return "models/" + name;
+            case FileType::MPD_SUBFILE:
+                throw std::invalid_argument("mpd subfile usually not in ldraw directory");
             case FileType::PART:
-            case FileType::SUBPART: return "parts/" + name;
-            case FileType::PRIMITIVE: return "p/" + name;
-            default: return name;
+            case FileType::SUBPART:
+                return "parts/" + name;
+            case FileType::PRIMITIVE:
+                return "p/" + name;
+            default:
+                return name;
         }
     }
 

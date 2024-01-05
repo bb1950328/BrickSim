@@ -26,6 +26,7 @@ namespace bricksim::connection::ldcad_meta::write {
     void enumParameter(written_param_container& parameters, const char* const paramName, E value) {
         parameters.emplace(paramName, magic_enum::enum_name(value));
     }
+
     template<typename E>
     void optionalEnumParameter(written_param_container& parameters, const char* const paramName, std::optional<E> value) {
         if (value.has_value()) {

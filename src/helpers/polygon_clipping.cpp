@@ -407,6 +407,7 @@ namespace bricksim::polyclip {
 
         return results;
     }
+
     std::vector<std::vector<glm::vec2>> PolygonOperation::extractDifferentiateResults(Polygon& clipPoly) {
         std::vector<std::vector<glm::vec2>> results;
         for (auto ptr: getUnprocessedIntersectionPoints(clipPoly)) {
@@ -518,6 +519,7 @@ namespace bricksim::polyclip {
         }
         return c;
     }
+
     void PolygonOperation::print(Polygon& polygon) {
         for (const auto& iter: polygon) {
             std::cout << iter.x << " " << iter.y << "\n";

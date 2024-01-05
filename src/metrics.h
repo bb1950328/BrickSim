@@ -4,7 +4,7 @@
 #include <vector>
 
 #ifndef NDEBUG
-    #include <mutex>
+#include <mutex>
 #endif
 
 namespace bricksim::metrics {
@@ -16,8 +16,8 @@ namespace bricksim::metrics {
     extern std::vector<std::pair<std::string, float>> lastWindowDrawingTimesUs;
     extern float lastSceneRenderTimeMs;
     extern size_t memorySavedByDeletingVertexData;
-#ifndef NDEBUG
+    #ifndef NDEBUG
     inline std::mutex ldrFileElementInstanceCountMtx;
     extern size_t ldrFileElementInstanceCount;
-#endif
+    #endif
 }

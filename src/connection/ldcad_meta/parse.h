@@ -6,6 +6,7 @@
 #include <charconv>
 #include <optional>
 #include <vector>
+
 namespace bricksim::connection::ldcad_meta::parse {
     fast_float::from_chars_result floatFromString(std::string_view sv, float& value);
 

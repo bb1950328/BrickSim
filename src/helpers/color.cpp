@@ -8,6 +8,7 @@ namespace bricksim::color {
     RGB::RGB(const std::string& htmlCode) {
         std::sscanf(htmlCode.c_str(), "#%2hhx%2hhx%2hhx", &red, &green, &blue);
     }
+
     RGB::RGB(glm::vec3 vector) {
         red = static_cast<color_component_t>(std::clamp(vector.x, 0.f, 1.f) * 255 + .5f);
         green = static_cast<color_component_t>(std::clamp(vector.y, 0.f, 1.f) * 255 + .5f);
@@ -80,18 +81,23 @@ namespace bricksim::color {
     bool RGB::operator==(const RGB& rhs) const {
         return red == rhs.red && green == rhs.green && blue == rhs.blue;
     }
+
     bool RGB::operator!=(const RGB& rhs) const {
         return !(rhs == *this);
     }
+
     bool RGB::operator<(const RGB& rhs) const {
         return HSV(*this) < HSV(rhs);
     }
+
     bool RGB::operator>(const RGB& rhs) const {
         return rhs < *this;
     }
+
     bool RGB::operator<=(const RGB& rhs) const {
         return !(rhs < *this);
     }
+
     bool RGB::operator>=(const RGB& rhs) const {
         return !(*this < rhs);
     }
@@ -132,12 +138,15 @@ namespace bricksim::color {
 
     HSV::HSV(color_component_t hue, color_component_t saturation, color_component_t value) :
         hue(hue), saturation(saturation), value(value) {}
+
     bool HSV::operator==(const HSV& rhs) const {
         return hue == rhs.hue && saturation == rhs.saturation && value == rhs.value;
     }
+
     bool HSV::operator!=(const HSV& rhs) const {
         return !(rhs == *this);
     }
+
     bool HSV::operator<(const HSV& rhs) const {
         if (hue < rhs.hue)
             return true;
@@ -149,12 +158,15 @@ namespace bricksim::color {
             return false;
         return value < rhs.value;
     }
+
     bool HSV::operator>(const HSV& rhs) const {
         return rhs < *this;
     }
+
     bool HSV::operator<=(const HSV& rhs) const {
         return !(rhs < *this);
     }
+
     bool HSV::operator>=(const HSV& rhs) const {
         return !(*this < rhs);
     }

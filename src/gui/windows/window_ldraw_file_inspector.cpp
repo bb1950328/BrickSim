@@ -49,8 +49,8 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
         int partNameInputCallback(ImGuiInputTextCallbackData* data) {
             const auto& activeEditor = controller::getActiveEditor();
             const auto ns = activeEditor != nullptr
-                                    ? activeEditor->getFileNamespace()
-                                    : nullptr;
+                                ? activeEditor->getFileNamespace()
+                                : nullptr;
             auto& fileRepo = ldr::file_repo::get();
             if (fileRepo.hasFileCached(ns, data->Buf)) {
                 setCurrentFile(fileRepo.getFile(ns, data->Buf));
@@ -277,10 +277,10 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
                 rowStart("Source");
                 if (currentFile->source.path.empty()) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-zero-length"
+                    #pragma GCC diagnostic push
+                    #pragma GCC diagnostic ignored "-Wformat-zero-length"
                     ImGui::Text("");
-#pragma GCC diagnostic pop
+                    #pragma GCC diagnostic pop
                 } else {
                     ImGui::Text("%sfile of %s", currentFile->source.isMainFile ? "main " : "sub", currentFile->source.path.c_str());
                     ImGui::SameLine();
@@ -346,6 +346,7 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
         static const TextEditor::PaletteIndex PI_YVALUE = TextEditor::PaletteIndex::Identifier;
         static const TextEditor::PaletteIndex PI_ZVALUE = TextEditor::PaletteIndex::Punctuation;
         static const std::array<TextEditor::PaletteIndex, 3> PIS_AXISVALUE = {{PI_XVALUE, PI_YVALUE, PI_ZVALUE}};
+
         void showLDrawFileContent(LDrawFileContentType type, const std::string& fileContent) {
             static std::array<TextEditor, magic_enum::enum_count<LDrawFileContentType>()> allEditors;
             static std::array<std::string, magic_enum::enum_count<LDrawFileContentType>()> allLastTexts;
@@ -407,8 +408,8 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
                                 progress = 1;
                             } else if (lineType == 1 && progress == 13) {
                                 paletteIndex = ldr::file_repo::get().getFileOrNull(currentFile->nameSpace, std::string(currentWord)) != nullptr
-                                                       ? TextEditor::PaletteIndex::KnownIdentifier
-                                                       : TextEditor::PaletteIndex::ErrorMarker;
+                                                   ? TextEditor::PaletteIndex::KnownIdentifier
+                                                   : TextEditor::PaletteIndex::ErrorMarker;
                             } else {
                                 const auto axis = (progress - 1) % 3;
                                 paletteIndex = PIS_AXISVALUE[axis];
@@ -500,10 +501,10 @@ namespace bricksim::gui::windows::ldraw_file_inspector {
 
             if (ImGui::BeginTable("##File selector", 2, ImGuiTableFlags_None)) {
                 ImGui::TableSetupColumn("##filters", ImGuiTableColumnFlags_NoReorder
-                                                             | ImGuiTableColumnFlags_NoResize
-                                                             | ImGuiTableColumnFlags_WidthFixed);
+                                                     | ImGuiTableColumnFlags_NoResize
+                                                     | ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableSetupColumn("##listbox", ImGuiTableColumnFlags_NoReorder
-                                                             | ImGuiTableColumnFlags_NoResize);
+                                                     | ImGuiTableColumnFlags_NoResize);
                 ImGui::TableNextColumn();
                 for (size_t i = 0; i < magic_enum::enum_count<ldr::FileType>(); ++i) {
                     const auto type = static_cast<const ldr::FileType>(i);

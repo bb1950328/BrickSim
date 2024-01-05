@@ -12,11 +12,11 @@ namespace bricksim::etree {
         return "Point Debug Node";
     }
 
-    const glm::vec3 &PointDebugNode::getPosition() const {
+    const glm::vec3& PointDebugNode::getPosition() const {
         return position;
     }
 
-    void PointDebugNode::setPosition(const glm::vec3 &newPosition) {
+    void PointDebugNode::setPosition(const glm::vec3& newPosition) {
         setRelativeTransformation(glm::transpose(glm::scale(glm::translate(newPosition), {10, 10, 10})));
         position = newPosition;
     }

@@ -12,8 +12,8 @@ namespace bricksim::connection::ldcad_meta {
         gender(parse::enumParameter(parameters, "gender", Gender::M)),
         bounding(parse::boundingParameter(parameters, "bounding")),
         scale(parse::enumParameter(parameters, "scale", ScaleType::NONE)),
-        mirror(parse::enumParameter(parameters, "mirror", MirrorType::NONE)) {
-    }
+        mirror(parse::enumParameter(parameters, "mirror", MirrorType::NONE)) {}
+
     bool GenCommand::operator==(const GenCommand& rhs) const {
         return id == rhs.id
                && group == rhs.group

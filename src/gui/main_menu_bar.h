@@ -11,5 +11,6 @@ namespace bricksim::gui {
         void drawUtilitiesMenu();
         void drawHelpMenu();
     }
+
     void drawMainMenuBar();
 }

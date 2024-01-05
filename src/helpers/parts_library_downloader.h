@@ -9,6 +9,7 @@ namespace bricksim::parts_library_downloader {
         FAILED,
         FINISHED
     };
+
     namespace {
         long downTotal = 0;
         long downNow = 0;
@@ -20,6 +21,7 @@ namespace bricksim::parts_library_downloader {
         long lastSpeedCalcBytes;
         int errorCode = -1;
     }
+
     void downloadPartsLibrary();
     void reset();
     Status getStatus();

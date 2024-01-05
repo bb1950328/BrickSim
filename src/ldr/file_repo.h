@@ -9,7 +9,6 @@
 #include <vector>
 
 namespace bricksim::ldr::file_repo {
-
     enum class LibraryType {
         INVALID,
         DIRECTORY,

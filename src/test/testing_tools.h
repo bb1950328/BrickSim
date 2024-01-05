@@ -53,6 +53,7 @@ bool operator==(const ApproxVec<L, T, Q>& lhs, const glm::vec<L, T, Q>& rhs) {
     }
     return result;
 }
+
 template<glm::length_t L, typename T, glm::qualifier Q>
 bool operator==(const ApproxVec<L, T, Q>& lhs, const ApproxVec<L, T, Q>& rhs) {
     bool result = true;
@@ -99,6 +100,7 @@ public:
     template<glm::length_t Cx, glm::length_t Rx, typename Tx, glm::qualifier Qx>
     friend bool operator==(const ApproxMat<Cx, Rx, Tx, Qx>& lhs, const ApproxMat<Cx, Rx, Tx, Qx>& rhs);
 };
+
 template<glm::length_t C, glm::length_t R, typename T, glm::qualifier Q>
 bool operator==(const ApproxMat<C, R, T, Q>& lhs, const glm::mat<C, R, T, Q>& rhs) {
     bool result = true;
@@ -170,6 +172,7 @@ struct MagicEnumGenerator : public Catch::Generators::IGenerator<E> {
         i = magic_enum::enum_value<E>(index);
         return true;
     }
+
     [[nodiscard]] std::string stringifyImpl() const override {
         return std::string(magic_enum::enum_name(get()));
     }

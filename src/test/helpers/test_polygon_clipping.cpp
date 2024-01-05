@@ -6,7 +6,6 @@
 #include <array>
 
 namespace bricksim {
-
     //https://www.geogebra.org/calculator/eyrnn38k
     const std::vector<glm::vec2> POLYGON1 = consistentStartOfCircularList<2>({{0, -1}, {6, 2}, {-2, 5}});
     const std::vector<glm::vec2> POLYGON2 = consistentStartOfCircularList<2>({{3, 6}, {2, -3}, {10, -2}, {10, 5}});

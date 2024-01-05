@@ -11,6 +11,7 @@
 namespace bricksim {
     class Editor;
 }
+
 namespace bricksim::connection {
     using broadphase_collision_pair_t = std::array<fcl::CollisionObjectf*, 2>;
 

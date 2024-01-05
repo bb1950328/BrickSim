@@ -1,6 +1,7 @@
 #pragma once
 #include "connector.h"
 #include <vector>
+
 namespace bricksim::connection {
     class FingerConnector : public Connector {
     public:

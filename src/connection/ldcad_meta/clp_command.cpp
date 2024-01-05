@@ -13,8 +13,8 @@ namespace bricksim::connection::ldcad_meta {
         center(parse::boolParameter(parameters, "center", false)),
         slide(parse::boolParameter(parameters, "slide", false)),
         scale(parse::enumParameter(parameters, "scale", ScaleType::NONE)),
-        mirror(parse::enumParameter(parameters, "mirror", MirrorType::NONE)) {
-    }
+        mirror(parse::enumParameter(parameters, "mirror", MirrorType::NONE)) {}
+
     bool ClpCommand::operator==(const ClpCommand& rhs) const {
         return id == rhs.id
                && pos == rhs.pos
@@ -26,6 +26,7 @@ namespace bricksim::connection::ldcad_meta {
                && scale == rhs.scale
                && mirror == rhs.mirror;
     }
+
     written_param_container ClpCommand::getParameters() const {
         written_param_container result;
         write::optionalStringParameter(result, "id", id);

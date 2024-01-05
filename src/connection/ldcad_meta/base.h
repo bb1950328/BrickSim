@@ -35,14 +35,17 @@ namespace bricksim::connection::ldcad_meta {
         RONLY,
         YANDR,
     };
+
     enum class MirrorType {
         NONE,
         COR,
     };
+
     enum class Gender {
         M,
         F,
     };
+
     enum class CylShapeVariant {
         R,
         A,
@@ -50,12 +53,14 @@ namespace bricksim::connection::ldcad_meta {
         _L,
         L_,
     };
+
     struct CylShapeBlock {
         CylShapeVariant variant;
         float radius;
         float length;
         bool operator==(const CylShapeBlock& rhs) const = default;
     };
+
     enum class CylCaps {
         NONE,
         ONE,
@@ -63,6 +68,7 @@ namespace bricksim::connection::ldcad_meta {
         A,
         B,
     };
+
     enum class Axis {
         X,
         Y,

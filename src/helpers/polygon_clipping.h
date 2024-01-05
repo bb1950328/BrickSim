@@ -5,7 +5,6 @@
 #include <vector>
 
 namespace bricksim::polyclip {
-
     struct Vertex {
         float x;
         float y;
@@ -54,8 +53,7 @@ namespace bricksim::polyclip {
         int visitedCount;
     };
 
-    class utils {
-    };
+    class utils {};
 
     class Polygon {
         Vertex* startVertex;

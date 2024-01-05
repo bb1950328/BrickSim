@@ -60,5 +60,4 @@ namespace std {
     struct hash<bricksim::connection::CylindricalShapePart> {
         std::size_t operator()(const bricksim::connection::CylindricalShapePart& value) const;
     };
-
 }

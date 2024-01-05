@@ -5,8 +5,7 @@
 
 namespace bricksim {
     BinaryFile::BinaryFile(std::string name) :
-        name(std::move(name)) {
-    }
+        name(std::move(name)) {}
 
     BinaryFile::BinaryFile(const std::filesystem::path& path) :
         name(path.string()) {

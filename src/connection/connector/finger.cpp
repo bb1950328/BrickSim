@@ -4,10 +4,12 @@
 #include "magic_enum.hpp"
 #include <numeric>
 #include <spdlog/fmt/ranges.h>
+
 namespace bricksim::connection {
     std::shared_ptr<Connector> FingerConnector::clone() {
         return std::make_shared<FingerConnector>(*this);
     }
+
     FingerConnector::FingerConnector(const std::string& group,
                                      const glm::vec3& start,
                                      const glm::vec3& direction,
@@ -19,20 +21,23 @@ namespace bricksim::connection {
         firstFingerGender(firstFingerGender),
         radius(radius),
         fingerWidths(fingerWidths),
-        totalWidth(std::reduce(fingerWidths.begin(), fingerWidths.end())) {
-    }
+        totalWidth(std::reduce(fingerWidths.begin(), fingerWidths.end())) {}
+
     std::string FingerConnector::infoStr() const {
         return fmt::format("finger[group={}, firstFingerGender={}, radius={}, fingerWidths={}, start={}, direction={}]", group, magic_enum::enum_name(firstFingerGender), radius, fingerWidths, stringutil::formatGLM(start), stringutil::formatGLM(direction));
     }
+
     bool FingerConnector::operator==(const FingerConnector& rhs) const {
         return static_cast<const Connector&>(*this) == static_cast<const Connector&>(rhs)
                && firstFingerGender == rhs.firstFingerGender
                && std::fabs(radius - rhs.radius) < .1f
                && util::floatRangeEpsilonEqual(fingerWidths.cbegin(), fingerWidths.cend(), rhs.fingerWidths.cbegin(), rhs.fingerWidths.cend(), .1f);
     }
+
     bool FingerConnector::operator!=(const FingerConnector& rhs) const {
         return !(rhs == *this);
     }
+
     std::shared_ptr<Connector> FingerConnector::transform(const glm::mat4& transformation) {
         const auto [radiusFactor, lengthFactor] = getRadiusAndLengthFactorFromTransformation(transformation, direction);
         std::vector<float> resultFingerWidths;
@@ -48,5 +53,4 @@ namespace bricksim::connection {
                                                  radiusFactor * radius,
                                                  resultFingerWidths);
     }
-
 }

@@ -5,10 +5,9 @@
 #include "../opengl_native_or_replacement.h"
 
 namespace bricksim::mesh {
-
     TexturedTriangleData::TexturedTriangleData(std::shared_ptr<graphics::Texture> texture) :
-        texture(std::move(texture)) {
-    }
+        texture(std::move(texture)) {}
+
     void TexturedTriangleData::initBuffers(const std::vector<TexturedTriangleInstance>& instances) {
         if (!vertices.empty()) {
             controller::executeOpenGL([&instances, this]() {
@@ -16,6 +15,7 @@ namespace bricksim::mesh {
             });
         }
     }
+
     void TexturedTriangleData::initBuffersImpl(const std::vector<TexturedTriangleInstance>& instances) {
         //VAO
         glGenVertexArrays(1, &VAO);
@@ -79,6 +79,7 @@ namespace bricksim::mesh {
             uploadedInstanceCount = instances.size();
         });
     }
+
     void TexturedTriangleData::freeBuffers() const {
         controller::executeOpenGL([this]() {
             glDeleteVertexArrays(1, &VAO);
@@ -86,6 +87,7 @@ namespace bricksim::mesh {
             glDeleteBuffers(1, &instanceVBO);
         });
     }
+
     void TexturedTriangleData::draw(const InstanceRange& sceneLayerInstanceRange) const {
         size_t vertexCount = getVertexCount();
         if (vertexCount > 0) {
@@ -101,17 +103,21 @@ namespace bricksim::mesh {
                                                                                     sizeof(TexturedTriangleInstance));
         }
     }
+
     size_t TexturedTriangleData::getVertexCount() const {
         return verticesAlreadyDeleted ? uploadedVertexCount : vertices.size();
     }
+
     void TexturedTriangleData::addVerticesForOuterDimensions(std::vector<glm::vec3>& coords) const {
         for (auto& item: vertices) {
             coords.push_back(item.position);
         }
     }
+
     void TexturedTriangleData::addVertex(const TexturedTriangleVertex& vertex) {
         vertices.push_back(vertex);
     }
+
     TexturedTriangleData::TexturedTriangleData(TexturedTriangleData&& other) noexcept :
         texture(std::move(other.texture)),
         vertices(std::move(other.vertices)),
@@ -120,8 +126,8 @@ namespace bricksim::mesh {
         instanceVBO(other.instanceVBO),
         verticesAlreadyDeleted(other.verticesAlreadyDeleted),
         uploadedVertexCount(other.uploadedVertexCount),
-        uploadedInstanceCount(other.uploadedInstanceCount) {
-    }
+        uploadedInstanceCount(other.uploadedInstanceCount) {}
+
     TexturedTriangleData& TexturedTriangleData::operator=(TexturedTriangleData&& other) noexcept {
         texture = std::move(other.texture);
         vertices = std::move(other.vertices);

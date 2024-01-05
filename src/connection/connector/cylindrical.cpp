@@ -4,6 +4,7 @@
 #include "magic_enum.hpp"
 #include <numeric>
 #include <spdlog/fmt/fmt.h>
+
 namespace bricksim::connection {
     bool CylindricalShapePart::operator==(const CylindricalShapePart& rhs) const {
         return type == rhs.type
@@ -11,9 +12,11 @@ namespace bricksim::connection {
                && radius == rhs.radius
                && length == rhs.length;
     }
+
     bool CylindricalShapePart::operator!=(const CylindricalShapePart& rhs) const {
         return !(rhs == *this);
     }
+
     CylindricalShapePart::CylindricalShapePart(CylindricalShapeType type, bool flexibleRadius, float radius, float length) :
         type(type), flexibleRadius(flexibleRadius), radius(radius), length(length) {}
 
@@ -35,8 +38,7 @@ namespace bricksim::connection {
         totalLength(std::accumulate(this->parts.cbegin(), this->parts.cend(), 0.f,
                                     [](float x, const CylindricalShapePart& p) {
                                         return x + p.length;
-                                    })) {
-    }
+                                    })) {}
 
     std::shared_ptr<Connector> CylindricalConnector::clone() {
         return std::make_shared<CylindricalConnector>(*this);
@@ -51,6 +53,7 @@ namespace bricksim::connection {
         }
         return NAN;
     }
+
     const CylindricalShapePart& CylindricalConnector::getPartAt(float offsetFromStart) const {
         for (const auto& item: parts) {
             if (item.length < offsetFromStart) {
@@ -60,6 +63,7 @@ namespace bricksim::connection {
         }
         return parts.back();
     }
+
     std::string CylindricalConnector::infoStr() const {
         std::string pstr;
         for (const auto& p: parts) {
@@ -69,6 +73,7 @@ namespace bricksim::connection {
         pstr.pop_back();
         return fmt::format("cylindrical[gender={}, group={}, openStart={}, openEnd={}, slide={}, start={}, direction={}, parts=[{}]]", magic_enum::enum_name(gender), group, openStart, openEnd, slide, stringutil::formatGLM(start), stringutil::formatGLM(direction), pstr);
     }
+
     bool CylindricalConnector::operator==(const CylindricalConnector& rhs) const {
         return static_cast<const bricksim::connection::Connector&>(*this) == static_cast<const bricksim::connection::Connector&>(rhs)
                && gender == rhs.gender
@@ -77,12 +82,15 @@ namespace bricksim::connection {
                && openEnd == rhs.openEnd
                && slide == rhs.slide;
     }
+
     bool CylindricalConnector::operator!=(const CylindricalConnector& rhs) const {
         return !(rhs == *this);
     }
+
     size_t CylindricalConnector::hash() const {
         return util::combinedHash(Connector::hash(), gender, parts, openStart, openEnd, slide);
     }
+
     std::shared_ptr<Connector> CylindricalConnector::transform(const glm::mat4& transformation) {
         const auto [radiusFactor, lengthFactor] = getRadiusAndLengthFactorFromTransformation(transformation, direction);
 
@@ -104,6 +112,7 @@ namespace bricksim::connection {
                                                       slide);
     }
 }
+
 namespace std {
     std::size_t hash<bricksim::connection::CylindricalShapePart>::operator()(const bricksim::connection::CylindricalShapePart& value) const {
         return bricksim::util::combinedHash(value.type, value.length, value.radius, value.flexibleRadius);

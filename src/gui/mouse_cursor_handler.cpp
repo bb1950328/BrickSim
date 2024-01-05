@@ -35,8 +35,8 @@ namespace bricksim::gui {
 
     MouseCursor createStandard(StandardCursorType type) {
         auto* cursor = type == StandardCursorType::STANDARD
-                               ? nullptr
-                               : glfwCreateStandardCursor(static_cast<std::underlying_type_t<StandardCursorType>>(type));
+                           ? nullptr
+                           : glfwCreateStandardCursor(static_cast<std::underlying_type_t<StandardCursorType>>(type));
         spdlog::trace("created standard cursor {} StandardCursorType::{}", fmt::ptr(cursor), magic_enum::enum_name(type));
         return MouseCursor(cursor);
     }

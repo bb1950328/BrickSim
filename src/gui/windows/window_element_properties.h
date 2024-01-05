@@ -5,7 +5,6 @@
 #include "windows.h"
 
 namespace bricksim::gui::windows::element_properties {
-
     void drawTransformationEdit(const std::shared_ptr<etree::Node>& lastSelectedNode, const std::shared_ptr<etree::Node>& node);
     void drawDisplayNameEdit(std::shared_ptr<etree::Node>& lastSelectedNode, const std::shared_ptr<etree::Node>& node);
     void drawType(const std::shared_ptr<etree::Node>& node);

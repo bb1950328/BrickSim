@@ -103,18 +103,22 @@ namespace bricksim::gui_internal {
 
     const char* getAnimatedHourglassIcon() {
         switch ((int)(glfwGetTime() * 6) % 3) {
-            case 0: return ICON_FA_HOURGLASS_START;
-            case 1: return ICON_FA_HOURGLASS_HALF;
-            case 2: return ICON_FA_HOURGLASS_END;
-            default: return ICON_FA_HOURGLASS;//should never happen
+            case 0:
+                return ICON_FA_HOURGLASS_START;
+            case 1:
+                return ICON_FA_HOURGLASS_HALF;
+            case 2:
+                return ICON_FA_HOURGLASS_END;
+            default:
+                return ICON_FA_HOURGLASS;//should never happen
         }
     }
 
     ImTextureID convertTextureId(unsigned int textureId) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
         return (ImTextureID)textureId;
-#pragma GCC diagnostic pop
+        #pragma GCC diagnostic pop
     }
 
     const char* getShortcutText(const user_actions::Action& action) {

@@ -18,14 +18,20 @@ namespace bricksim::ldr {
     std::shared_ptr<FileElement> FileElement::parseLine(const std::string_view line, BfcState bfcState) {
         std::string_view lineContent = line.length() > 2 ? line.substr(2) : "";
         switch (line[0] - '0') {
-            case 0: return TexmapStartCommand::doesLineMatch(lineContent)
-                               ? std::make_shared<TexmapStartCommand>(lineContent)
-                               : std::make_shared<CommentOrMetaElement>(lineContent);
-            case 1: return std::make_shared<SubfileReference>(lineContent, bfcState.invertNext);
-            case 2: return std::make_shared<Line>(lineContent);
-            case 3: return std::make_shared<Triangle>(lineContent, bfcState.windingOrder);
-            case 4: return std::make_shared<Quadrilateral>(lineContent, bfcState.windingOrder);
-            case 5: return std::make_shared<OptionalLine>(lineContent);
+            case 0:
+                return TexmapStartCommand::doesLineMatch(lineContent)
+                           ? std::make_shared<TexmapStartCommand>(lineContent)
+                           : std::make_shared<CommentOrMetaElement>(lineContent);
+            case 1:
+                return std::make_shared<SubfileReference>(lineContent, bfcState.invertNext);
+            case 2:
+                return std::make_shared<Line>(lineContent);
+            case 3:
+                return std::make_shared<Triangle>(lineContent, bfcState.windingOrder);
+            case 4:
+                return std::make_shared<Quadrilateral>(lineContent, bfcState.windingOrder);
+            case 5:
+                return std::make_shared<OptionalLine>(lineContent);
             default: /*throw std::invalid_argument("The line is not valid: \"" + line + "\"");*/
                 spdlog::warn("invalid line: {}", line);
                 return nullptr;
@@ -467,12 +473,18 @@ namespace bricksim::ldr {
     namespace {
         const char* getFileTypeStr(const FileType type) {
             switch (type) {
-                case FileType::MODEL: return "Model";
-                case FileType::MPD_SUBFILE: return "Submodel";
-                case FileType::PART: return "Part";
-                case FileType::SUBPART: return "Subpart";
-                case FileType::PRIMITIVE: return "Primitive";
-                default: return "File";
+                case FileType::MODEL:
+                    return "Model";
+                case FileType::MPD_SUBFILE:
+                    return "Submodel";
+                case FileType::PART:
+                    return "Part";
+                case FileType::SUBPART:
+                    return "Subpart";
+                case FileType::PRIMITIVE:
+                    return "Primitive";
+                default:
+                    return "File";
             }
         }
     }

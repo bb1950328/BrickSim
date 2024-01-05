@@ -2,14 +2,13 @@
 
 
 namespace bricksim::connection {
-
     Connection::Connection(const std::shared_ptr<Connector>& connectorA,
                            const std::shared_ptr<Connector>& connectorB) :
         connectorA(connectorA),
         connectorB(connectorB),
         degreesOfFreedom(),
-        completelyUsedConnector({true, true}) {
-    }
+        completelyUsedConnector({true, true}) {}
+
     Connection::Connection(const std::shared_ptr<Connector>& connectorA,
                            const std::shared_ptr<Connector>& connectorB,
                            DegreesOfFreedom degreesOfFreedom,
@@ -17,14 +16,15 @@ namespace bricksim::connection {
         connectorA(connectorA),
         connectorB(connectorB),
         degreesOfFreedom(std::move(degreesOfFreedom)),
-        completelyUsedConnector(completelyUsedConnector) {
-    }
+        completelyUsedConnector(completelyUsedConnector) {}
+
     bool Connection::operator==(const Connection& rhs) const {
         return connectorA == rhs.connectorA
                && connectorB == rhs.connectorB
                && degreesOfFreedom == rhs.degreesOfFreedom
                && completelyUsedConnector == rhs.completelyUsedConnector;
     }
+
     bool Connection::operator!=(const Connection& rhs) const {
         return !(rhs == *this);
     }

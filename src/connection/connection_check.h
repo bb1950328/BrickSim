@@ -5,6 +5,7 @@
 #include "pair_checker.h"
 #include <array>
 #include <vector>
+
 namespace bricksim::connection {
     namespace {
         struct DirectionSet : std::vector<glm::vec3> {
@@ -46,6 +47,7 @@ namespace bricksim::connection {
             BaseConnectorGrouping b{directions};
         };
     }
+
     class ConnectionCheck {
     public:
         explicit ConnectionCheck(PairCheckResultConsumer& resultConsumer);

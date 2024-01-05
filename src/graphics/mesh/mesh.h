@@ -16,7 +16,6 @@
 #include <vector>
 
 namespace bricksim::mesh {
-
     class Mesh {
     public:
         /**

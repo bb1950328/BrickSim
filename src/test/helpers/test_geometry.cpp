@@ -233,17 +233,17 @@ namespace bricksim {
 
         const auto data = GENERATE(
                 Plane3dTo2dConverterData{
-                        {3, 7, 3},
-                        {3.4354838709677, 4.3870967741935, 0.8225806451613},
-                        {2.8867513459481, 0.9532062476388}},
+                {3, 7, 3},
+                {3.4354838709677, 4.3870967741935, 0.8225806451613},
+                {2.8867513459481, 0.9532062476388}},
                 Plane3dTo2dConverterData{
-                        {6, 0, 1},
-                        {5.5483870967742, 2.7096774193548, 3.258064516129},
-                        {1.7320508075689, 4.3994134506406}},
+                {6, 0, 1},
+                {5.5483870967742, 2.7096774193548, 3.258064516129},
+                {1.7320508075689, 4.3994134506406}},
                 Plane3dTo2dConverterData{
-                        {-4, 5, 6},
-                        {-3.4032258064516, 1.4193548387097, 3.0161290322581},
-                        {-4.0414518843274, -2.5663245128737}});
+                {-4, 5, 6},
+                {-3.4032258064516, 1.4193548387097, 3.0161290322581},
+                {-4.0414518843274, -2.5663245128737}});
 
         geometry::Plane3dTo2dConverter planeConverter(a, b, c);
         CHECK(planeConverter.convert3dTo2d(data.point3d) == ApproxVec(data.point2d));
@@ -338,6 +338,7 @@ namespace bricksim {
                                         glm::vec3(0.f, 0.f, 1.f));
         CHECK(geometry::doesTransformationLeaveAxisParallels(glm::rotate(glm::mat4(1.f), angle, axis)));
     }
+
     TEST_CASE("geometry::doesTransformationLeaveAxisParallels 1") {
         const float angle = GENERATE(1.f, 2.f, 3.f);
         const glm::vec3 axis = GENERATE(glm::vec3(1.f, 0.f, 0.f),

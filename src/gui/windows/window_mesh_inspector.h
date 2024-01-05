@@ -10,6 +10,7 @@ namespace bricksim::gui::windows::mesh_inspector {
         void drawInstancesTab(std::shared_ptr<mesh::Mesh>& mesh);
         void drawGeneralTab(std::shared_ptr<mesh::Mesh>& mesh);
     }
+
     void draw(Data& data);
     void setCurrentlyInspectingMesh(std::shared_ptr<mesh::Mesh> mesh);
 }

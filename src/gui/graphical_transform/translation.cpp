@@ -6,7 +6,6 @@
 #include <numeric>
 
 namespace bricksim::graphical_transform {
-
     Translation::Translation(Editor& editor, const std::vector<std::shared_ptr<etree::Node>>& nodes) :
         BaseAction(editor, nodes) {
         currentNodeCenter = initialNodeCenter;
@@ -60,6 +59,7 @@ namespace bricksim::graphical_transform {
             ++it;
         }
     }
+
     void Translation::removeAxisLines() {
         for (auto& axisLine: axisLines) {
             if (axisLine != nullptr) {
@@ -78,6 +78,7 @@ namespace bricksim::graphical_transform {
 
         addAxisLines();
     }
+
     void Translation::updateImpl() {
         const auto worldRay = editor.getScene()->screenCoordinatesToWorldRay(currentCursorPos) * constants::OPENGL_TO_LDU;
         const auto lockedAxesCount = std::accumulate(lockedAxes.cbegin(), lockedAxes.cend(), 0);
@@ -125,11 +126,14 @@ namespace bricksim::graphical_transform {
         });
         lastTranslation = translation;
     }
+
     void Translation::endImpl() {
         removeAxisLines();
     }
+
     constexpr GraphicalTransformationType Translation::getType() const {
         return GraphicalTransformationType::TRANSLATE;
     }
+
     Translation::~Translation() = default;
 }

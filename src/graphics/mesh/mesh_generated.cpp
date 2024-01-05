@@ -4,7 +4,6 @@
 #include <spdlog/spdlog.h>
 
 namespace bricksim::mesh::generated {
-
     mesh_identifier_t UVSphereNode::getMeshIdentifier() const {
         return constants::MESH_ID_UV_SPHERE;
     }
@@ -348,8 +347,7 @@ namespace bricksim::mesh::generated {
     }
 
     CylinderNode::CylinderNode(const ldr::ColorReference& triangleColor, const std::shared_ptr<Node>& parent) :
-        GeneratedMeshNode(triangleColor, parent) {
-    }
+        GeneratedMeshNode(triangleColor, parent) {}
 
     std::string CylinderNode::getDescription() {
         return "Cylinder";
@@ -420,14 +418,18 @@ namespace bricksim::mesh::generated {
             triangleData.addRawIndex(OFFSET_TOP_LATERAL + ROW_LENGTH * i1);   //C
         }
     }
+
     XYZLineNode::XYZLineNode(const std::shared_ptr<Node>& parent) :
         GeneratedMeshNode(ldr::color_repo::getInstanceDummyColor(), parent) {}
+
     std::string XYZLineNode::getDescription() {
         return "XYZ Lines";
     }
+
     mesh_identifier_t XYZLineNode::getMeshIdentifier() const {
         return constants::MESH_ID_XYZ_LINES;
     }
+
     void XYZLineNode::addToMesh(std::shared_ptr<mesh::Mesh> mesh, bool windingInversed, const std::shared_ptr<ldr::TexmapStartCommand>& texmap) {
         auto& lineData = mesh->getLineData();
         for (int i = 0; i < 3; ++i) {

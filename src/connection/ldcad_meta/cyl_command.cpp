@@ -16,8 +16,8 @@ namespace bricksim::connection::ldcad_meta {
         caps(parse::enumParameter(parameters, "caps", CylCaps::ONE)),
         grid(parse::optionalGridParameter(parameters, "grid")),
         center(parse::boolParameter(parameters, "center", false)),
-        slide(parse::boolParameter(parameters, "slide", false)) {
-    }
+        slide(parse::boolParameter(parameters, "slide", false)) {}
+
     bool CylCommand::operator==(const CylCommand& rhs) const {
         return id == rhs.id
                && group == rhs.group

@@ -1,4 +1,3 @@
 #include "bounding.h"
 
-namespace bricksim::connection {
-}
+namespace bricksim::connection {}

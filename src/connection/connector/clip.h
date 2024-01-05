@@ -1,5 +1,6 @@
 #pragma once
 #include "connector.h"
+
 namespace bricksim::connection {
     class ClipConnector : public Connector {
     public:

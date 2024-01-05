@@ -17,8 +17,8 @@ namespace bricksim::gui::windows::view3d {
     std::shared_ptr<etree::Node> getNodeUnderCursor(const std::shared_ptr<graphics::Scene>& mainScene, const glm::svec2& currentCursorPos) {
         const auto elementIdUnderCursor = mainScene->getSelectionPixel(currentCursorPos);
         auto nodeUnderCursor = elementIdUnderCursor != 0
-                                       ? mainScene->getMeshCollection().getElementById(elementIdUnderCursor)
-                                       : nullptr;
+                                   ? mainScene->getMeshCollection().getElementById(elementIdUnderCursor)
+                                   : nullptr;
         return nodeUnderCursor;
     }
 
@@ -162,7 +162,8 @@ namespace bricksim::gui::windows::view3d {
 
                     auto& camera = editor->getCamera();
                     switch (dragMode) {
-                        case NOT_DRAGGING: break;
+                        case NOT_DRAGGING:
+                            break;
                         case ROTATE_CAMERA:
                             camera->mouseRotate(deltaCursorPos);
                             break;

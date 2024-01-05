@@ -1,6 +1,7 @@
 #pragma once
 #include "../../helpers/color.h"
 #include "element.h"
+
 namespace bricksim::overlay2d {
     class TriangleElement : public Element {
     private:
@@ -23,5 +24,4 @@ namespace bricksim::overlay2d {
         const color::RGB& getColor() const;
         void setColor(const color::RGB& value);
     };
-
 }

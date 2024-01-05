@@ -22,6 +22,7 @@ namespace bricksim::graphical_transform {
         }
         initialNodeCenter = center / center.w;
     }
+
     BaseAction::~BaseAction() {
         if (state != State::FINISHED) {
             spdlog::error("graphical_transform::BaseAction destructed but not finished");
@@ -36,6 +37,7 @@ namespace bricksim::graphical_transform {
             lockedAxes = {x, y, z};
         }
     }
+
     void BaseAction::cancel() {
         auto nodeIt = nodes.begin();
         auto transfIt = initialRelativeTransformations.begin();
@@ -52,6 +54,7 @@ namespace bricksim::graphical_transform {
     BaseAction::State BaseAction::getState() const {
         return state;
     }
+
     void BaseAction::start(glm::svec2 initialCursorPos_) {
         if (state != State::READY) {
             throw std::invalid_argument("wrong state");
@@ -61,8 +64,9 @@ namespace bricksim::graphical_transform {
         startImpl();
         state = State::ACTIVE;
     }
-    void BaseAction::startImpl() {
-    }
+
+    void BaseAction::startImpl() {}
+
     void BaseAction::update(glm::svec2 currentCursorPos_) {
         if (state != State::ACTIVE) {
             throw std::invalid_argument("wrong state");
@@ -70,6 +74,7 @@ namespace bricksim::graphical_transform {
         this->currentCursorPos = currentCursorPos_;
         updateImpl();
     }
+
     void BaseAction::end() {
         if (state != State::ACTIVE) {
             throw std::invalid_argument("wrong state");
@@ -77,22 +82,26 @@ namespace bricksim::graphical_transform {
         endImpl();
         state = State::FINISHED;
     }
-    void BaseAction::updateImpl() {
-    }
-    void BaseAction::endImpl() {
-    }
+
+    void BaseAction::updateImpl() {}
+    void BaseAction::endImpl() {}
+
     const std::array<bool, 3>& BaseAction::getLockedAxes() const {
         return lockedAxes;
     }
+
     const glm::svec2& BaseAction::getInitialCursorPos() const {
         return initialCursorPos;
     }
+
     const glm::svec2& BaseAction::getCurrentCursorPos() const {
         return currentCursorPos;
     }
+
     overlay2d::coord_t BaseAction::worldToO2DCoords(glm::vec3 worldCoords) const {
         return scene->worldToScreenCoordinates(glm::vec4(worldCoords, 1.f) * constants::LDU_TO_OPENGL);
     }
+
     void BaseAction::setAllNodeTransformations(const std::function<glm::mat4(const glm::mat4&)>& transformationProvider) {
         auto nodeIt = nodes.begin();
         auto transfIt = initialRelativeTransformations.begin();

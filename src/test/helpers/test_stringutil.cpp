@@ -159,10 +159,10 @@ namespace bricksim {
     }
 
     //these are macros because when using lambdas the catch error output is less readable
-#define CHECK_EQUALS_ALPHANUM(a, b)          \
+    #define CHECK_EQUALS_ALPHANUM(a, b)          \
     CHECK(stringutil::equalsAlphanum(a, b)); \
     CHECK(stringutil::equalsAlphanum(b, a));
-#define CHECK_FALSE_EQUALS_ALPHANUM(a, b)          \
+    #define CHECK_FALSE_EQUALS_ALPHANUM(a, b)          \
     CHECK_FALSE(stringutil::equalsAlphanum(a, b)); \
     CHECK_FALSE(stringutil::equalsAlphanum(b, a));
 
@@ -190,6 +190,7 @@ namespace bricksim {
         CHECK_FALSE_EQUALS_ALPHANUM("*ab", "*bc");
         CHECK_FALSE_EQUALS_ALPHANUM("*ab*", "*b&c");
     }
+
     TEST_CASE("stringutil::containsIgnoreCase") {
         CHECK(stringutil::containsIgnoreCase("abcdefg", "cde"));
         CHECK(stringutil::containsIgnoreCase("abcdefg", "CdE"));
@@ -202,6 +203,7 @@ namespace bricksim {
         CHECK_FALSE(stringutil::containsIgnoreCase("aBcDeFg", "df"));
         CHECK_FALSE(stringutil::containsIgnoreCase("aBcDeFg", "aBcDeFgHiJ"));
     }
+
     TEST_CASE("stringutil::splitByChar") {
         CHECK(stringutil::splitByChar("hello", ' ') == std::vector<std::string_view>({"hello"}));
         CHECK(stringutil::splitByChar("hello world", ' ') == std::vector<std::string_view>({"hello", "world"}));

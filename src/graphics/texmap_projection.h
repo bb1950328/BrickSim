@@ -11,6 +11,7 @@ namespace bricksim::graphics::texmap_projection {
         std::vector<mesh::TriangleVertex> plainColorVertices;
         std::vector<mesh::TexturedTriangleVertex> texturedVertices;
     };
+
     glm::vec2 getPlanarUVCoord(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, glm::vec3 point);
     PolygonSplittingResult splitPolygonBiggerThanTexturePlanar(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, const std::vector<glm::vec3>& points);
 

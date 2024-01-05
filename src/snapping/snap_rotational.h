@@ -2,7 +2,6 @@
 #include "../config/data.h"
 
 namespace bricksim::snap {
-
     class RotationalHandler {
         config::SnappingRotationalStepPreset temporaryPreset = {"", 1.f};
         int currentPresetIndex = TEMPORARY_PRESET_INDEX;

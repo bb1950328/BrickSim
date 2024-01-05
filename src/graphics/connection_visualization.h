@@ -10,7 +10,7 @@ namespace bricksim::graphics::connection_visualization {
 
     unsigned int getImage();
 
-    const std::shared_ptr<CadCamera> &getCamera();
+    const std::shared_ptr<CadCamera>& getCamera();
 
     void cleanupIfNeeded();
 }

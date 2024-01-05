@@ -13,6 +13,7 @@ namespace bricksim {
 
         Ray(const glm::vec<N, float, glm::defaultp>& origin, const glm::vec<N, float, glm::defaultp>& direction) :
             origin(origin), direction(direction) {}
+
         Ray(const Ray& other) = default;
         Ray& operator=(const Ray& other) = default;
 

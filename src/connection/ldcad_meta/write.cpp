@@ -7,12 +7,14 @@ namespace bricksim::connection::ldcad_meta::write {
             parameters.insert({paramName, value.value()});
         }
     }
+
     void optionalVec3Parameter(written_param_container& parameters, const char* paramName, const std::optional<glm::vec3>& value) {
         if (value.has_value()) {
             const auto& vec = *value;
             parameters.insert({paramName, fmt::format("{:g} {:g} {:g}", vec.x, vec.y, vec.z)});
         }
     }
+
     void optionalMat3Parameter(written_param_container& parameters, const char* paramName, const std::optional<glm::mat3>& value) {
         if (value.has_value()) {
             const auto& m = *value;
@@ -22,9 +24,11 @@ namespace bricksim::connection::ldcad_meta::write {
                                                       m[2][0], m[2][1], m[2][2])});
         }
     }
+
     void stringParameter(written_param_container& parameters, const char* paramName, const std::string& value) {
         parameters.insert({paramName, value});
     }
+
     void optionalGridParameter(written_param_container& parameters, const char* paramName, const std::optional<Grid>& value) {
         if (value.has_value()) {
             const auto& grid = *value;
@@ -44,6 +48,7 @@ namespace bricksim::connection::ldcad_meta::write {
             parameters.insert({paramName, result});
         }
     }
+
     void cylShapeBlockParameter(written_param_container& parameters, const char* paramName, const std::vector<CylShapeBlock>& value) {
         if (!value.empty()) {
             std::string result;
@@ -57,14 +62,17 @@ namespace bricksim::connection::ldcad_meta::write {
             parameters.insert({paramName, result});
         }
     }
+
     void boolParameter(written_param_container& parameters, const char* paramName, bool value) {
         parameters.insert({paramName, value ? "true" : "false"});
     }
+
     void boolParameter(written_param_container& parameters, const char* paramName, bool value, bool defaultValue) {
         if (value != defaultValue) {
             boolParameter(parameters, paramName, value);
         }
     }
+
     void optionalBoolParameter(written_param_container& parameters, const char* paramName, std::optional<bool> value) {
         if (value.has_value()) {
             boolParameter(parameters, paramName, *value);
@@ -74,11 +82,13 @@ namespace bricksim::connection::ldcad_meta::write {
     void floatParameter(written_param_container& parameters, const char* const paramName, float value) {
         parameters.insert({paramName, fmt::format("{:g}", value)});
     }
+
     void floatParameter(written_param_container& parameters, const char* const paramName, float value, float defaultValue) {
         if (std::fabs(value - defaultValue) > .0001f) {
             parameters.insert({paramName, fmt::format("{:g}", value)});
         }
     }
+
     void floatVectorParameter(written_param_container& parameters, const char* const paramName, const std::vector<float>& value) {
         std::string result;
         for (const auto& item: value) {
@@ -89,6 +99,7 @@ namespace bricksim::connection::ldcad_meta::write {
         }
         parameters.insert({paramName, result});
     }
+
     std::string boundingToString(const bounding_variant_t& bounding) {
         if (std::holds_alternative<BoundingPnt>(bounding)) {
             return "pnt";
@@ -108,6 +119,7 @@ namespace bricksim::connection::ldcad_meta::write {
             throw std::invalid_argument("");
         }
     }
+
     void boundingParameter(written_param_container& parameters, const char* paramName, const bounding_variant_t& value) {
         parameters.insert({paramName, boundingToString(value)});
     }

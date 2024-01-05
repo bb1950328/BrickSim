@@ -237,6 +237,7 @@ namespace bricksim::gui::windows::connection_visualization {
         }
         ImGui::End();
     }
+
     void cleanup() {
         texture = nullptr;
         graphvizCode = {};

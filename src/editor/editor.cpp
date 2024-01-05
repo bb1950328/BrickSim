@@ -19,6 +19,7 @@ namespace bricksim {
     std::shared_ptr<Editor> Editor::createNew() {
         return std::make_shared<Editor>();
     }
+
     std::shared_ptr<Editor> Editor::openFile(const std::filesystem::path& path) {
         return std::make_shared<Editor>(path);
     }
@@ -72,6 +73,7 @@ namespace bricksim {
             addConnectorDataVisualization(rootNode);
         }
     }
+
     void Editor::addConnectorDataVisualization(const std::shared_ptr<etree::Node>& node) const {
         for (const auto& child: node->getChildren()) {
             if (child->type == etree::NodeType::TYPE_PART) {
@@ -119,6 +121,7 @@ namespace bricksim {
                                return isModified(std::dynamic_pointer_cast<etree::ModelNode>(item));
                            });
     }
+
     bool Editor::isModified(const std::shared_ptr<etree::ModelNode>& model) const {
         const auto it = lastSavedVersions.find(model);
         return it == lastSavedVersions.end() || it->second < model->getVersion();
@@ -127,6 +130,7 @@ namespace bricksim {
     std::shared_ptr<graphics::Scene>& Editor::getScene() {
         return scene;
     }
+
     std::unique_ptr<graphical_transform::BaseAction>& Editor::getCurrentTransformAction() {
         return currentTransformAction;
     }
@@ -170,8 +174,8 @@ namespace bricksim {
                                                        std::string(),
                                                        [](std::string result, const auto& file) {
                                                            return file->source.isMainFile
-                                                                          ? std::move(result)
-                                                                          : (std::move(result) += file->metaInfo.name + ", ");
+                                                                      ? std::move(result)
+                                                                      : (std::move(result) += file->metaInfo.name + ", ");
                                                        });
 
             std::filesystem::path physicalPath;
@@ -321,27 +325,35 @@ namespace bricksim {
     void Editor::rotateViewUp() {
         camera->mouseRotate(0, -1);
     }
+
     void Editor::rotateViewDown() {
         camera->mouseRotate(0, +1);
     }
+
     void Editor::rotateViewLeft() {
         camera->mouseRotate(-1, 0);
     }
+
     void Editor::rotateViewRight() {
         camera->mouseRotate(+1, 0);
     }
+
     void Editor::panViewUp() {
         camera->mousePan(0, -1);
     }
+
     void Editor::panViewDown() {
         camera->mousePan(0, +1);
     }
+
     void Editor::panViewLeft() {
         camera->mousePan(-1, 0);
     }
+
     void Editor::panViewRight() {
         camera->mousePan(+1, 0);
     }
+
     void Editor::centerElementIn3dView(const std::shared_ptr<etree::Node>& node) {
         const glm::mat4 transfT = glm::transpose(node->getAbsoluteTransformation());
         const glm::vec4 pos = transfT[3];
@@ -361,7 +373,8 @@ namespace bricksim {
                 break;
             case ldr::FileType::SUBPART:
             case ldr::FileType::PRIMITIVE:
-            default: break;
+            default:
+                break;
         }
     }
 
@@ -407,6 +420,7 @@ namespace bricksim {
             currentTransformAction = nullptr;
         }
     }
+
     void Editor::startTransformingSelectedNodes(graphical_transform::GraphicalTransformationType type) {
         std::optional<glm::svec2> realInitialCursorPos = std::nullopt;
         if (currentTransformAction != nullptr) {
@@ -429,6 +443,7 @@ namespace bricksim {
         }
         updateCursorPos(cursorPos);
     }
+
     void Editor::updateCursorPos(const std::optional<glm::svec2>& value) {
         cursorPos = value;
         if (currentTransformAction != nullptr && cursorPos.has_value()) {
@@ -443,6 +458,7 @@ namespace bricksim {
     const std::shared_ptr<graphics::CadCamera>& Editor::getCamera() const {
         return camera;
     }
+
     const uomap_t<std::shared_ptr<etree::Node>, uint64_t>& Editor::getSelectedNodes() const {
         return selectedNodes;
     }
@@ -489,8 +505,8 @@ namespace bricksim {
                     if (relativeAABB.isDefined()) {
                         const auto rotatedBBox = aabb::OBB(relativeAABB, glm::vec3(0.f, 0.f, 0.f),
                                                            glm::quat(1.f, 0.f, 0.f, 0.f))
-                                                         .transform(
-                                                                 glm::transpose(meshNode->getAbsoluteTransformation()));
+                                .transform(
+                                        glm::transpose(meshNode->getAbsoluteTransformation()));
                         selectionVisualizationNode->visible = true;
                         selectionVisualizationNode->setRelativeTransformation(
                                 glm::transpose(rotatedBBox.getUnitBoxTransformation()));
@@ -513,8 +529,7 @@ namespace bricksim {
                     transf = glm::translate(transf, aabb.getCenter());
                     transf = glm::scale(transf, aabb.getSize() / 2.f);
                     selectionVisualizationNode->setRelativeTransformation(glm::transpose(transf));
-                } else {
-                }
+                } else {}
             }
             selectionVisualizationNode->incrementVersion();
             for (auto& node: selectedNodes) {
@@ -531,9 +546,11 @@ namespace bricksim {
             }
         }
     }
+
     void Editor::inlineElement(const std::shared_ptr<etree::Node>& nodeToInline) {
         inlineElement(nodeToInline, true);
     }
+
     void Editor::inlineElement(const std::shared_ptr<etree::Node>& nodeToInline, bool updateSelectionVisualization) {
         auto parent = nodeToInline->parent.lock();
         const auto& siblings = parent->getChildren();
@@ -551,8 +568,8 @@ namespace bricksim {
                 const auto partItem = std::dynamic_pointer_cast<etree::PartNode>(item);
                 std::shared_ptr<etree::Node> newNode = nullptr;
                 const auto newColor = meshItem->getElementColor() == ldr::Color::MAIN_COLOR_CODE
-                                              ? modelInstNodeToInline->getElementColor()
-                                              : meshItem->getElementColor();
+                                          ? modelInstNodeToInline->getElementColor()
+                                          : meshItem->getElementColor();
                 if (partItem != nullptr) {
                     newNode = std::make_shared<etree::PartNode>(partItem->ldrFile,
                                                                 newColor,
@@ -605,12 +622,15 @@ namespace bricksim {
         }
         updateSelectionVisualization();
     }
+
     std::shared_ptr<ldr::FileNamespace>& Editor::getFileNamespace() {
         return fileNamespace;
     }
+
     bool Editor::isActive() const {
         return controller::getActiveEditor().get() == this;
     }
+
     void Editor::setEditingModel(const std::shared_ptr<etree::ModelNode>& newEditingModel, bool saveInHistory) {
         if (saveInHistory) {
             while (editingModelHistory.size() > 16) {
@@ -642,6 +662,7 @@ namespace bricksim {
     void Editor::setAsActiveEditor() {
         controller::setActiveEditor(shared_from_this());
     }
+
     void Editor::deleteModelInstances(const std::shared_ptr<etree::ModelNode>& modelToDelete, const std::shared_ptr<etree::Node>& currentNode) {
         currentNode->removeChildIf([&modelToDelete](auto item) {
             return item->getType() == etree::NodeType::TYPE_MODEL_INSTANCE && std::dynamic_pointer_cast<etree::ModelInstanceNode>(item)->modelNode == modelToDelete;
@@ -650,15 +671,18 @@ namespace bricksim {
             deleteModelInstances(modelToDelete, child);
         }
     }
+
     void Editor::cancelNodeTransformation() {
         if (currentTransformAction != nullptr) {
             currentTransformAction->cancel();
             currentTransformAction = nullptr;
         }
     }
+
     connection::Engine& Editor::getConnectionEngine() {
         return connectionEngine;
     }
+
     void Editor::openContextMenuNodeSelectedOrClicked(const std::shared_ptr<etree::Node>& clickedNode) {
         const auto& selectedNodesMap = getSelectedNodes();
         if (selectedNodesMap.contains(clickedNode)) {
@@ -672,9 +696,11 @@ namespace bricksim {
             gui::node_context_menu::openContextMenu({shared_from_this(), {clickedNode}});
         }
     }
+
     void Editor::openContextMenuNoNode() {
         gui::node_context_menu::openContextMenu({shared_from_this(), {}});
     }
+
     std::string Editor::getDisplayName() const {
         return getFilename();
     }

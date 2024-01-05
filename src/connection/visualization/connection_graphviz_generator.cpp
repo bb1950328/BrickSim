@@ -92,8 +92,8 @@ namespace bricksim::connection::visualization {
                 labelLines.push_back(std::string(nodeId));
             }
             const auto color = params.node.colorBoxLikePart
-                                       ? node->getDisplayColor().get()->value.asHtmlCode()
-                                       : fgColor;
+                                   ? node->getDisplayColor().get()->value.asHtmlCode()
+                                   : fgColor;
             dot += fmt::format("\t{} [label=<<table border=\"0\"><tr><td>{}</td></tr></table>> shape=box tooltip=\"{}\" color=\"{}\"]\n",
                                nodeId,
                                fmt::join(labelLines, "</td></tr><tr><td>"),
@@ -118,8 +118,8 @@ namespace bricksim::connection::visualization {
                         const auto dof = connection::DegreesOfFreedom::reduce(individualDOFs);
                         const auto style = !dof.empty() && params.edge.nonRigidConnectionsDashed ? "dashed" : "solid";
                         const auto* color = connections.size() == 1
-                                                    ? getConnectionTypeColor(connections[0]->connectorA->type, connections[0]->connectorB->type)
-                                                    : fgColor;
+                                                ? getConnectionTypeColor(connections[0]->connectorA->type, connections[0]->connectorB->type)
+                                                : fgColor;
                         dot += fmt::format("\t{} -- {} [style=\"{}\" color=\"{}\" penwidth=4]\n", id1, id2, style, color);
                     } else {
                         for (const auto& conn: connections) {
@@ -137,18 +137,22 @@ namespace bricksim::connection::visualization {
     }
 
     GraphVizResult::GraphVizResult() = default;
+
     GraphVizResult::~GraphVizResult() {
         if (deleteTmpFiles) {
             std::filesystem::remove_all(tmpDirectory);
         }
     }
+
     bool GraphVizResult::renderToFile(const std::filesystem::path& outFile) const {
         return graphviz_wrapper::renderDot(outFile, dotCode);
     }
+
     GraphVizResult::GraphVizResult(GraphVizResult&& other) :
         dotCode(other.dotCode), tmpDirectory(other.tmpDirectory), deleteTmpFiles(other.deleteTmpFiles) {
         other.deleteTmpFiles = false;
     }
+
     GraphVizResult& GraphVizResult::operator=(GraphVizResult&& other) {
         dotCode = other.dotCode;
         tmpDirectory = other.tmpDirectory;
@@ -156,9 +160,10 @@ namespace bricksim::connection::visualization {
         other.deleteTmpFiles = false;
         return *this;
     }
+
     GraphVizResult::GraphVizResult(const GraphVizResult& other) :
-        dotCode(other.dotCode), tmpDirectory(other.tmpDirectory), deleteTmpFiles(false) {
-    }
+        dotCode(other.dotCode), tmpDirectory(other.tmpDirectory), deleteTmpFiles(false) {}
+
     GraphVizResult& GraphVizResult::operator=(const GraphVizResult& other) {
         dotCode = other.dotCode;
         tmpDirectory = other.tmpDirectory;

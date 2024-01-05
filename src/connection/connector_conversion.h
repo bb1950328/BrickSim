@@ -7,6 +7,7 @@
 #include "ldcad_meta/fgr_command.h"
 #include "ldcad_meta/gen_command.h"
 #include "ldcad_meta/incl_command.h"
+
 namespace bricksim::connection {
     class ConnectorConversion {
     protected:

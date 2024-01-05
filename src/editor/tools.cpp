@@ -21,9 +21,10 @@ namespace bricksim::tools {
 
         struct SelectConnectedHandler : NodeClickHandler {
             const bool strongOnly;
+
             explicit SelectConnectedHandler(const bool strongOnly) :
-                strongOnly(strongOnly) {
-            }
+                strongOnly(strongOnly) {}
+
             void operator()(const std::shared_ptr<Editor>& editor, const std::shared_ptr<etree::Node>& node, bool ctrl, bool shift) override {
                 if (node == nullptr) {
                     editor->nodeSelectNone();
@@ -41,6 +42,7 @@ namespace bricksim::tools {
 
                 editor->nodeSelectSet(selected);
             }
+
             void addConnectionsOfNode(const connection::ConnectionGraph& graph, uoset_t<std::shared_ptr<etree::Node>>& selected, const std::shared_ptr<etree::MeshNode>& node, bool recursive) {
                 for (const auto& co: graph.getConnections(node)) {
                     if (strongOnly) {
@@ -93,28 +95,35 @@ namespace bricksim::tools {
         name(name),
         icon(icon),
         nameWithIcon(fmt::format("{}{}", gui::icons::getGlyph(icon, gui::icons::Icon36), name)),
-        handleNodeClicked(std::move(handleNodeClicked)) {
-    }
+        handleNodeClicked(std::move(handleNodeClicked)) {}
 
     const ToolData& getData(Tool tool) {
         switch (tool) {
-            case Tool::SELECT: return SELECT;
-            case Tool::SELECT_CONNECTED: return SELECT_CONNECTED;
-            case Tool::SELECT_STRONGLY_CONNECTED: return SELECT_STRONGLY_CONNECTED;
+            case Tool::SELECT:
+                return SELECT;
+            case Tool::SELECT_CONNECTED:
+                return SELECT_CONNECTED;
+            case Tool::SELECT_STRONGLY_CONNECTED:
+                return SELECT_STRONGLY_CONNECTED;
         }
         throw std::invalid_argument("no tool data defined");
     }
+
     void setActive(Tool tool) {
         activeTool = tool;
     }
+
     bool isActive(Tool tool) {
         return activeTool == tool;
     }
+
     Tool getActiveTool() {
         return activeTool;
     }
+
     const ToolData& getActiveToolData() {
         return getData(activeTool);
     }
+
     NodeClickHandler::~NodeClickHandler() = default;
 }

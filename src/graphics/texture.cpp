@@ -6,7 +6,6 @@
 #include <stb_image_write.h>
 
 namespace bricksim::graphics {
-
     uomap_t<std::string, std::shared_ptr<Texture>> Texture::texturesFromBinaryFiles;
 
     Texture::Texture(const std::filesystem::path& image) {
@@ -26,6 +25,7 @@ namespace bricksim::graphics {
         textureId = copyTextureToVram(width, height, nrChannels, data);
         stbi_image_free(data);
     }
+
     Texture::Texture(const unsigned char* data, int width, int height, int nrChannels) :
         width(width), height(height), nrChannels(nrChannels) {
         textureId = copyTextureToVram(width, height, nrChannels, data);
@@ -62,6 +62,7 @@ namespace bricksim::graphics {
         });
         return textureId;
     }
+
     GLint Texture::getGlFormatFromNrChannels(int nrChannels) {
         GLint format;
         if (nrChannels == 1) {
@@ -98,6 +99,7 @@ namespace bricksim::graphics {
             return texturesFromBinaryFiles.emplace(binaryFile->name, std::make_shared<Texture>(&binaryFile->data[0], binaryFile->data.size())).first->second;
         }
     }
+
     void Texture::deleteCached() {
         texturesFromBinaryFiles.clear();
     }
@@ -105,6 +107,7 @@ namespace bricksim::graphics {
     void Texture::unbind() const {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
+
     Texture::Texture(texture_id_t textureId, int width, int height, int nrChannels) :
         textureId(textureId), width(width), height(height), nrChannels(nrChannels) {}
 

@@ -1,11 +1,13 @@
 #include "parse.h"
 #include "glm/gtc/type_ptr.hpp"
+
 namespace bricksim::connection::ldcad_meta::parse {
     fast_float::from_chars_result floatFromString(std::string_view sv, float& value) {
         const char* begin = &sv.front();
         const char* end = &sv.back() + 1;
         return fast_float::from_chars(begin, end, value);
     }
+
     std::vector<float> stringViewsToFloatVector(const std::vector<std::string_view>& strings) {
         std::vector<float> result(strings.size());
         for (size_t i = 0; i < strings.size(); ++i) {
@@ -13,6 +15,7 @@ namespace bricksim::connection::ldcad_meta::parse {
         }
         return result;
     }
+
     std::optional<std::string> optionalStringParameter(const parsed_param_container& parameters, const char* paramName) {
         const auto it = parameters.find(paramName);
         if (it != parameters.end()) {
@@ -21,6 +24,7 @@ namespace bricksim::connection::ldcad_meta::parse {
             return {};
         }
     }
+
     bool boolParameter(const parsed_param_container& parameters, const char* paramName, bool defaultValue) {
         const auto it = parameters.find(paramName);
         if (it != parameters.end()) {
@@ -29,6 +33,7 @@ namespace bricksim::connection::ldcad_meta::parse {
             return defaultValue;
         }
     }
+
     std::optional<bool> optionalBoolParameter(const parsed_param_container& parameters, const char* paramName) {
         const auto it = parameters.find(paramName);
         if (it != parameters.end()) {
@@ -37,6 +42,7 @@ namespace bricksim::connection::ldcad_meta::parse {
             return {};
         }
     }
+
     float floatParameter(const parsed_param_container& parameters, const char* paramName, float defaultValue) {
         float result = defaultValue;
         const auto it = parameters.find(paramName);
@@ -45,6 +51,7 @@ namespace bricksim::connection::ldcad_meta::parse {
         }
         return result;
     }
+
     std::optional<glm::vec3> optionalVec3Parameter(const parsed_param_container& parameters, const char* paramName) {
         const auto it = parameters.find(paramName);
         if (it != parameters.end()) {
@@ -54,6 +61,7 @@ namespace bricksim::connection::ldcad_meta::parse {
             return {};
         }
     }
+
     std::optional<glm::mat3> optionalMat3Parameter(const parsed_param_container& parameters, const char* paramName) {
         const auto it = parameters.find(paramName);
         if (it != parameters.end()) {
@@ -63,6 +71,7 @@ namespace bricksim::connection::ldcad_meta::parse {
             return {};
         }
     }
+
     std::vector<float> floatVectorParameter(const parsed_param_container& parameters, const char* paramName) {
         const auto it = parameters.find(paramName);
         if (it != parameters.end()) {
@@ -71,6 +80,7 @@ namespace bricksim::connection::ldcad_meta::parse {
             return {};
         }
     }
+
     std::optional<Grid> optionalGridParameter(const parsed_param_container& parameters, const char* paramName) {
         const auto it = parameters.find(paramName);
         if (it != parameters.end()) {
@@ -79,6 +89,7 @@ namespace bricksim::connection::ldcad_meta::parse {
             return {};
         }
     }
+
     std::vector<CylShapeBlock> cylShapeBlockParameter(const parsed_param_container& parameters, const char* paramName) {
         const auto it = parameters.find(paramName);
         if (it != parameters.end()) {
@@ -96,6 +107,7 @@ namespace bricksim::connection::ldcad_meta::parse {
             return {};
         }
     }
+
     bounding_variant_t boundingParameter(const parsed_param_container& parameters, const char* paramName) {
         const auto it = parameters.find(paramName);
         if (it != parameters.end()) {

@@ -1,5 +1,6 @@
 #pragma once
 #include "../element_tree.h"
+
 namespace bricksim::connection {
     class IntersectionGraph {
     public:

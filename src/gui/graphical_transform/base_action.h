@@ -2,12 +2,15 @@
 
 #include "../../graphics/overlay2d/data.h"
 #include "../../helpers/util.h"
+
 namespace bricksim {
     class Editor;
 }
+
 namespace bricksim::etree {
     class Node;
 }
+
 namespace bricksim::graphics {
     class Scene;
 }
@@ -18,6 +21,7 @@ namespace bricksim::graphical_transform {
         ROTATE,
         MOVE,
     };
+
     class BaseAction : public util::NoCopyNoMove {
     public:
         enum class State {

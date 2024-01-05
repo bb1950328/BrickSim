@@ -249,8 +249,7 @@ namespace bricksim::geometry {
         origin(a),
         planeNormal(glm::triangleNormal(a, b, c)),
         xDir(glm::normalize(b - a)),
-        yDir(glm::rotate(glm::mat4(1.f), static_cast<float>(M_PI_2), planeNormal) * glm::vec4(xDir, 0.f)) {
-    }
+        yDir(glm::rotate(glm::mat4(1.f), static_cast<float>(M_PI_2), planeNormal) * glm::vec4(xDir, 0.f)) {}
 
     glm::vec2 Plane3dTo2dConverter::convert3dTo2d(const glm::vec3& pointOnPlane) const {
         const auto& r_P = pointOnPlane;
@@ -359,6 +358,7 @@ namespace bricksim::geometry {
         }
         return res;
     }
+
     std::vector<glm::vec2> convertPolygonWithHoleToC(const std::vector<glm::vec2>& outerPoly, const std::vector<glm::vec2>& holePoly) {
         size_t maxXinHoleIndex = 0;
         for (size_t i = 1; i < holePoly.size(); ++i) {
@@ -380,9 +380,11 @@ namespace bricksim::geometry {
         result.insert(result.end(), outerPoly.begin() + nextLargerXinOuter, outerPoly.end());
         return result;
     }
+
     bool is2dTriangleClockwise(const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2) {
         return ((p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y)) < 0;
     }
+
     bool isAlmostParallel(const glm::vec3& a, const glm::vec3& b) {
         return glm::length2(glm::cross(a, b)) < (.018 * .018);
     }

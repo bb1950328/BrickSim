@@ -6,16 +6,15 @@
 #ifdef BRICKSIM_PLATFORM_WINDOWS
     #include <windows.h>
     #include <processthreadsapi.h>
-    #ifdef min
+#ifdef min
         #undef min
-    #endif
-    #ifdef max
+#endif
+#ifdef max
         #undef max
-    #endif
+#endif
 #endif
 
 namespace bricksim::graphviz_wrapper {
-
     bool renderDot(const std::filesystem::path& outputPath, std::string_view dot) {
         std::string format = "png";
         const auto outputExtension = outputPath.extension().string();
@@ -27,12 +26,12 @@ namespace bricksim::graphviz_wrapper {
             format = "bmp";
         }
 
-#ifdef BRICKSIM_PLATFORM_WINDOWS
+        #ifdef BRICKSIM_PLATFORM_WINDOWS
         const auto tmpDotFile = std::filesystem::temp_directory_path() / fmt::format("input.{}.dot", GetCurrentProcessId());
         const auto options = fmt::format("-T{} {} -o {}", format, tmpDotFile.string(), outputPath.string());
         ShellExecute(nullptr, "dot", options.c_str(), nullptr, nullptr, SW_SHOWNORMAL);//todo testing
         std::filesystem::remove(tmpDotFile);
-#elif defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)
+        #elif defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)
         std::string command = fmt::format("dot -T{} -o {}", format, outputPath.string());
         auto* pipe = popen(command.c_str(), "w");
         if (pipe == nullptr) {
@@ -44,20 +43,21 @@ namespace bricksim::graphviz_wrapper {
         }
 
         pclose(pipe);
-#else
+        #else
     #warning "openDefaultProwser not supported on this platform"
-#endif
+        #endif
         return std::filesystem::exists(outputPath);
     }
+
     bool isAvailable() {
         static bool checked = false;
         static bool result;
         if (!checked) {
-#ifdef BRICKSIM_PLATFORM_WINDOWS
+            #ifdef BRICKSIM_PLATFORM_WINDOWS
             result = true;//todo implement
-#elif defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)
+            #elif defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)
             result = system("which dot > /dev/null 2>&1") == 0;
-#endif
+            #endif
         }
         return result;
     }

@@ -1,6 +1,7 @@
 #include "dashed_poly_line_element.h"
 #include "vertex_generator.h"
 #include <numeric>
+
 namespace bricksim::overlay2d {
     DashedPolyLineElement::DashedPolyLineElement(length_t spaceBetweenDashes, length_t width, const color::RGB& color) :
         BaseDashedLineElement(spaceBetweenDashes, width, color) {}
@@ -8,6 +9,7 @@ namespace bricksim::overlay2d {
     bool DashedPolyLineElement::isPointInside(coord_t point) {
         return false;
     }
+
     unsigned int DashedPolyLineElement::getVertexCount() {
         return std::transform_reduce(points.cbegin(),
                                      points.cend(),
@@ -17,11 +19,13 @@ namespace bricksim::overlay2d {
                                          return vertex_generator::getVertexCountForPolyLine(line.size());
                                      });
     }
+
     void DashedPolyLineElement::writeVertices(std::vector<Vertex>::iterator& buffer, coord_t viewportSize) {
         for (const auto& item: points) {
             vertex_generator::generateVerticesForPolyLine(buffer, item, width, color, viewportSize);
         }
     }
+
     DashedPolyLineElement::~DashedPolyLineElement() = default;
 
     std::pair<size_t, std::optional<glm::vec2>> DashedPolyLineElement::cutStartEnd(const std::vector<glm::vec2>& origLine, bool start) {
@@ -47,11 +51,11 @@ namespace bricksim::overlay2d {
         for (size_t i = 0; i < origPoints.size(); ++i) {
             const auto& origLine = origPoints[i];
             const auto [iFirstToCopy, firstPoint] = i > 0
-                                                            ? cutStartEnd(origLine, true)
-                                                            : std::make_pair(0, std::nullopt);
+                                                        ? cutStartEnd(origLine, true)
+                                                        : std::make_pair(0, std::nullopt);
             const auto [iLastToCopy, lastPoint] = i < origPoints.size() - 1
-                                                          ? cutStartEnd(origLine, false)
-                                                          : std::make_pair(origLine.size() - 1, std::nullopt);
+                                                      ? cutStartEnd(origLine, false)
+                                                      : std::make_pair(origLine.size() - 1, std::nullopt);
 
             std::vector<coord_t> newLine;
             newLine.reserve(origLine.size());

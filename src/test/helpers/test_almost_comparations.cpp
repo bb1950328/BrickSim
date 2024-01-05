@@ -9,6 +9,7 @@ namespace bricksim {
         CHECK(almostGreater(8.01, 8.0, 0.1));
         CHECK_FALSE(almostGreater(8.01, 9.0, 0.1));
     }
+
     TEST_CASE("almostLess") {
         CHECK(almostLess(7, 8));
         CHECK_FALSE(almostLess(7, 6));
@@ -16,6 +17,7 @@ namespace bricksim {
         CHECK(almostLess(8.0, 8.01, 0.1));
         CHECK_FALSE(almostLess(9.0, 8.01, 0.1));
     }
+
     TEST_CASE("almostEqual") {
         CHECK_FALSE(almostEqual(7, 8));
         CHECK_FALSE(almostEqual(7, 6));

@@ -2,8 +2,10 @@
 
 #include "../element_tree.h"
 #include "connection.h"
+
 namespace bricksim::connection {
-    class ConnectionGraph {//todo extract undirected cyclic multigraph base class with two template params
+    class ConnectionGraph {
+        //todo extract undirected cyclic multigraph base class with two template params
     public:
         using node_t = std::shared_ptr<etree::MeshNode>;
         using edge_t = std::shared_ptr<Connection>;

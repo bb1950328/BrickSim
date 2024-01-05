@@ -6,8 +6,8 @@
 #include "connector/cylindrical.h"
 #include "connector/finger.h"
 #include "connector/generic.h"
-namespace bricksim::connection {
 
+namespace bricksim::connection {
     struct PairCheckData {
         glm::mat4 absTransformation;
         glm::vec3 absStart;

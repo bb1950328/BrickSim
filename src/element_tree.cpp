@@ -121,21 +121,27 @@ namespace bricksim::etree {
                 continue;
             }
             switch (element->getType()) {
-                case 0: break;
-                case 1: {
+                case 0:
+                    break;
+                case 1:
+                {
                     auto sfElement = std::dynamic_pointer_cast<ldr::SubfileReference>(element);
                     if (childrenWithOwnNode.find(sfElement) == childrenWithOwnNode.end()) {
                         mesh->addLdrSubfileReference(ldrFile, dummyColor, sfElement, glm::mat4(1.0f), windingInversed, texmap);
                     }
                 }
                 break;
-                case 2: mesh->addLdrLine(dummyColor, std::dynamic_pointer_cast<ldr::Line>(element), glm::mat4(1.0f));
+                case 2:
+                    mesh->addLdrLine(dummyColor, std::dynamic_pointer_cast<ldr::Line>(element), glm::mat4(1.0f));
                     break;
-                case 3: mesh->addLdrTriangle(dummyColor, std::dynamic_pointer_cast<ldr::Triangle>(element), glm::mat4(1.0f), windingInversed, texmap);
+                case 3:
+                    mesh->addLdrTriangle(dummyColor, std::dynamic_pointer_cast<ldr::Triangle>(element), glm::mat4(1.0f), windingInversed, texmap);
                     break;
-                case 4: mesh->addLdrQuadrilateral(dummyColor, std::dynamic_pointer_cast<ldr::Quadrilateral>(element), glm::mat4(1.0f), windingInversed, texmap);
+                case 4:
+                    mesh->addLdrQuadrilateral(dummyColor, std::dynamic_pointer_cast<ldr::Quadrilateral>(element), glm::mat4(1.0f), windingInversed, texmap);
                     break;
-                case 5: mesh->addLdrOptionalLine(dummyColor, std::dynamic_pointer_cast<ldr::OptionalLine>(element), glm::mat4(1.0f));
+                case 5:
+                    mesh->addLdrOptionalLine(dummyColor, std::dynamic_pointer_cast<ldr::OptionalLine>(element), glm::mat4(1.0f));
                     break;
             }
         }
@@ -160,8 +166,10 @@ namespace bricksim::etree {
     bool LdrNode::isDisplayNameUserEditable() const {
         switch (ldrFile->metaInfo.type) {
             case ldr::FileType::MODEL:
-            case ldr::FileType::MPD_SUBFILE: return true;
-            default: return false;
+            case ldr::FileType::MPD_SUBFILE:
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -384,27 +392,38 @@ namespace bricksim::etree {
 
     const char* getDisplayNameOfType(const NodeType& type) {
         switch (type) {
-            case NodeType::TYPE_ROOT: return "Root";
-            case NodeType::TYPE_MESH: return "Mesh";
-            case NodeType::TYPE_MODEL_INSTANCE: return "Model Instance";
-            case NodeType::TYPE_LDRFILE: return "LDraw file";
-            case NodeType::TYPE_MODEL: return "Model";
-            case NodeType::TYPE_PART: return "Part";
+            case NodeType::TYPE_ROOT:
+                return "Root";
+            case NodeType::TYPE_MESH:
+                return "Mesh";
+            case NodeType::TYPE_MODEL_INSTANCE:
+                return "Model Instance";
+            case NodeType::TYPE_LDRFILE:
+                return "LDraw file";
+            case NodeType::TYPE_MODEL:
+                return "Model";
+            case NodeType::TYPE_PART:
+                return "Part";
             case NodeType::TYPE_OTHER:
-            default: return "Other";
+            default:
+                return "Other";
         }
     }
 
     color::RGB getColorOfType(const NodeType& type) {
         switch (type) {
-            case NodeType::TYPE_MODEL_INSTANCE: return config::get().elementTree.nodeColors.modelInstance;
-            case NodeType::TYPE_PART: return config::get().elementTree.nodeColors.part;
-            case NodeType::TYPE_MODEL: return config::get().elementTree.nodeColors.model;
+            case NodeType::TYPE_MODEL_INSTANCE:
+                return config::get().elementTree.nodeColors.modelInstance;
+            case NodeType::TYPE_PART:
+                return config::get().elementTree.nodeColors.part;
+            case NodeType::TYPE_MODEL:
+                return config::get().elementTree.nodeColors.model;
             case NodeType::TYPE_OTHER:
             case NodeType::TYPE_ROOT:
             case NodeType::TYPE_MESH:
             case NodeType::TYPE_LDRFILE:
-            default: return color::WHITE;
+            default:
+                return color::WHITE;
         }
     }
 

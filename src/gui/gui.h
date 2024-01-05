@@ -47,8 +47,10 @@ namespace bricksim::gui {
     void cleanup();
 
     enum class PartsLibrarySetupResponse {
-        RUNNING,    //the function should be called again next time
-        FINISHED,   //installation is finsi
+        RUNNING,
+        //the function should be called again next time
+        FINISHED,
+        //installation is finsi
         REQUEST_EXIT//the user wants to exit the application
     };
 

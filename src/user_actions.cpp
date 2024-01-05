@@ -22,20 +22,21 @@ namespace bricksim::user_actions {
             return controller::getActiveEditor() != nullptr;
         }
 
-#if NDEBUG
+        #if NDEBUG
         using ActionName = std::string_view;
         constexpr ActionName actionName(Action ignored, std::string_view name) {
             return name;
         }
-#else
+        #else
         struct ActionName {
             Action action;
             std::string_view name;
         };
+
         constexpr ActionName actionName(Action action, std::string_view name) {
             return {action, name};
         }
-#endif
+        #endif
 
         constexpr auto actionsCount = magic_enum::enum_count<Action>();
 
@@ -102,9 +103,11 @@ namespace bricksim::user_actions {
     bool hasSelectedNodes() {
         return hasActiveEditor() && !controller::getActiveEditor()->getSelectedNodes().empty();
     }
+
     bool hasTransformInProgress() {
         return hasActiveEditor() && controller::getActiveEditor()->getCurrentTransformAction() != nullptr;
     }
+
     bool isEnabled(Action action) {
         switch (action) {
             case SAVE_FILE:
@@ -324,6 +327,7 @@ namespace bricksim::user_actions {
         }
         return results;
     }
+
     constexpr size_t getCount() {
         return actionsCount;
     }
@@ -334,13 +338,14 @@ namespace bricksim::user_actions {
     }
 
     std::string_view getName(const Action& action) {
-#ifdef NDEBUG
+        #ifdef NDEBUG
         return names[action];
-#else
+        #else
         assert(names[action].action == action);
         return names[action].name;
-#endif
+        #endif
     }
+
     void init() {
         ALL_ACTIONS.reserve(getCount());
         magic_enum::enum_for_each<Action>([](const auto& a) { ALL_ACTIONS.push_back(a); });

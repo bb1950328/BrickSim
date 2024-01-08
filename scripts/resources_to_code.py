@@ -84,6 +84,7 @@ if __name__ == '__main__':
         cpp_file.write("#include \"resources.h\"\n")
         cpp_file.write("//@formatter:off\n")
         cpp_file.write("// clang-format off\n")
+        h_file.write("#pragma once\n")
         h_file.write("#include <array>\n#include <cstdint>\n")
         h_file.write("namespace bricksim::resources {\n")
         cpp_file.write("namespace bricksim::resources {\n")

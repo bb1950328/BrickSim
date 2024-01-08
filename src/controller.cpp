@@ -469,7 +469,7 @@ namespace bricksim::controller {
             return 1;
         }
 
-        openFile("test_files/bricks_test.ldr");
+        //openFile("test_files/bricks_test.ldr");
         //openFile("test_files/connections.ldr");
         //openFile("test_files/triangle_test.ldr");
         //openFile("test_files/mpd_test.mpd");
@@ -484,10 +484,10 @@ namespace bricksim::controller {
         //openFile("test_files/subfile_ref.ldr");
         //openFile("3001.dat");
         //openFile("car.ldr");
-        //openFile("~/ldraw/models/car_fixed.ldr");
+        //openFile(util::replaceSpecialPaths("~/ldraw/models/car_fixed.ldr"));
         //openFile("10197.dat");
-        //openFile("~/Downloads/datsville.ldr");
-        //openFile("~/Downloads/42131_Bulldozer.mpd");
+        openFile(util::replaceSpecialPaths("~/Downloads/datsville.ldr"));
+        //openFile(util::replaceSpecialPaths("~/Downloads/42131_Bulldozer.mpd"));
 
         std::vector<uint64_t> lastEditorRootNodeVersions;
 

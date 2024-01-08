@@ -184,6 +184,12 @@ namespace bricksim::ldr {
     CommentOrMetaElement::CommentOrMetaElement(const std::string_view line) :
         content(line) {}
 
+    inline void parseNextInt(const std::string_view line, size_t& start, size_t& end, int& result) {
+        start = line.find_first_not_of(LDR_WHITESPACE, end);
+        end = std::min(line.size(), line.find_first_of(LDR_WHITESPACE, start));
+        fast_float::from_chars(line.data() + start, line.data() + end, result);
+    }
+
     inline void parseNextFloat(const std::string_view line, size_t& start, size_t& end, float& result) {
         start = line.find_first_not_of(LDR_WHITESPACE, end);
         end = std::min(line.size(), line.find_first_of(LDR_WHITESPACE, start));
@@ -198,9 +204,9 @@ namespace bricksim::ldr {
 
     SubfileReference::SubfileReference(const std::string_view line, const bool bfcInverted) :
         bfcInverted(bfcInverted) {
-        size_t start = line.find_first_not_of(LDR_WHITESPACE);
-        size_t end = line.find_first_of(LDR_WHITESPACE, start);
-        std::from_chars(&line[start], &line[end], color.code);
+        std::size_t start;
+        std::size_t end = 0;
+        parseNextInt(line, start, end, color.code);
         for (size_t n = 0; n < std::size(numbers); ++n) {
             parseNextFloat(line, start, end, numbers[n]);
         }
@@ -208,18 +214,18 @@ namespace bricksim::ldr {
     }
 
     Line::Line(const std::string_view line) {
-        size_t start = line.find_first_not_of(LDR_WHITESPACE);
-        size_t end = line.find_first_of(LDR_WHITESPACE, start);
-        std::from_chars(&line[start], &line[end], color.code);
+        std::size_t start;
+        std::size_t end = 0;
+        parseNextInt(line, start, end, color.code);
         for (size_t n = 0; n < std::size(coords); ++n) {
             parseNextFloat(line, start, end, coords[n]);
         }
     }
 
     Triangle::Triangle(const std::string_view line, const WindingOrder order) {
-        size_t start = line.find_first_not_of(LDR_WHITESPACE);
-        size_t end = line.find_first_of(LDR_WHITESPACE, start);
-        std::from_chars(&line[start], &line[end], color.code);
+        std::size_t start;
+        std::size_t end = 0;
+        parseNextInt(line, start, end, color.code);
 
         parseNextThreeFloats(line, start, end, &coords[0]);//p1
 
@@ -233,9 +239,9 @@ namespace bricksim::ldr {
     }
 
     Quadrilateral::Quadrilateral(const std::string_view line, const WindingOrder order) {
-        size_t start = line.find_first_not_of(LDR_WHITESPACE);
-        size_t end = line.find_first_of(LDR_WHITESPACE, start);
-        std::from_chars(&line[start], &line[end], color.code);
+        std::size_t start;
+        std::size_t end = 0;
+        parseNextInt(line, start, end, color.code);
 
         parseNextThreeFloats(line, start, end, &coords[0]);//p1
 
@@ -251,9 +257,9 @@ namespace bricksim::ldr {
     }
 
     OptionalLine::OptionalLine(const std::string_view line) {
-        size_t start = line.find_first_not_of(LDR_WHITESPACE);
-        size_t end = line.find_first_of(LDR_WHITESPACE, start);
-        std::from_chars(&line[start], &line[end], color.code);
+        std::size_t start;
+        std::size_t end = 0;
+        parseNextInt(line, start, end, color.code);
 
         for (size_t i = 0; i < std::size(coords); ++i) {
             parseNextFloat(line, start, end, coords[i]);

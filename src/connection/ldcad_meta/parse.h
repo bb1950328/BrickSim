@@ -3,7 +3,6 @@
 #include "magic_enum.hpp"
 #include "base.h"
 #include <array>
-#include <charconv>
 #include <optional>
 #include <vector>
 
@@ -21,10 +20,8 @@ namespace bricksim::connection::ldcad_meta::parse {
                          || std::is_same_v<uint64_t, T>;
 
     template<anyIntType T>
-    std::from_chars_result intFromString(std::string_view sv, T& value) {
-        const char* begin = &sv.front();
-        const char* end = &sv.back() + 1;
-        return std::from_chars(begin, end, value);
+    void intFromString(std::string_view sv, T& value) {
+        fast_float::from_chars(sv.front(), sv.back() - 1, value);
     }
 
     template<std::size_t N>

@@ -26,6 +26,7 @@
 #include "user_actions.h"
 #include "config/read.h"
 #include "config/write.h"
+#include "graphics/hardware_properties.h"
 
 #include <glad/glad.h>
 #include <palanteer.h>
@@ -195,6 +196,8 @@ namespace bricksim::controller {
                 spdlog::error("Failed to initialize GLAD");
                 return false;
             }
+
+            graphics::initializeHardwareProperties();
 
             const auto bgColor = config::get().graphics.background.asGlmVector();
             glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.f);
@@ -476,17 +479,19 @@ namespace bricksim::controller {
         //openFile("test_files/texmap_planar.ldr");
         //openFile("test_files/texmap_planar3.ldr");
         //openFile("test_files/texmap_planar_perpendicular.ldr");
-        //openFile("test_files/omr/arocs.mpd");
+        openFile("test_files/omr/arocs.mpd");
         //openFile("test_files/omr/911.mpd");
         //openFile("test_files/omr/chiron.mpd");
         //openFile("test_files/connection_info_problem_parts.ldr");
         //openFile("test_files/two_bricks_stacked.ldr");
         //openFile("test_files/subfile_ref.ldr");
         //openFile("3001.dat");
-        //openFile("car.ldr");
+        //openFile(util::replaceSpecialPaths("test_files/texmap_problem_parts.ldr"));
+        //openFile(util::replaceSpecialPaths("~/ldraw/parts/54696p02c01.dat"));
+        //openFile(util::replaceSpecialPaths("~/ldraw/models/car.ldr"));
         //openFile(util::replaceSpecialPaths("~/ldraw/models/car_fixed.ldr"));
         //openFile("10197.dat");
-        openFile(util::replaceSpecialPaths("~/Downloads/datsville.ldr"));
+        //openFile(util::replaceSpecialPaths("~/Downloads/datsville.ldr"));
         //openFile(util::replaceSpecialPaths("~/Downloads/42131_Bulldozer.mpd"));
 
         std::vector<uint64_t> lastEditorRootNodeVersions;

@@ -3,7 +3,6 @@
 #include <array>
 #include <functional>
 
-//todo move other custom hash functions scattered throughout the codebase
 namespace std {
     template<typename T, std::size_t N>
     struct hash<std::array<T*, N>> {
@@ -13,13 +12,6 @@ namespace std {
                 result = result * 31 + hash<T*>()(item);
             }
             return result;
-        }
-    };
-
-    template<>
-    struct hash<bricksim::color::RGB> {
-        std::size_t operator()(const bricksim::color::RGB& value) const noexcept {
-            return value.red * 961 + value.green * 31 + value.blue;
         }
     };
 

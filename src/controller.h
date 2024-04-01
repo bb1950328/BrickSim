@@ -2,7 +2,7 @@
 
 #include "editor/editor.h"
 #include "element_tree.h"
-#include "graphics/thumbnail_generator.h"
+#include "graphics/thumbnail/thumbnail_generator.h"
 #include "ldr/files.h"
 #include "snapping/snap_handler.h"
 #include "tasks.h"

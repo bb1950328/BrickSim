@@ -1,4 +1,6 @@
 #include "texture.h"
+
+#include "hardware_properties.h"
 #include "../controller.h"
 #include <glad/glad.h>
 #include <spdlog/spdlog.h>
@@ -26,9 +28,14 @@ namespace bricksim::graphics {
         stbi_image_free(data);
     }
 
-    Texture::Texture(const unsigned char* data, int width, int height, int nrChannels) :
+    Texture::Texture(const unsigned char *data, const int width, const int height, const int nrChannels) :
         width(width), height(height), nrChannels(nrChannels) {
         textureId = copyTextureToVram(width, height, nrChannels, data);
+    }
+
+    Texture::Texture(const int width, const int height, const int nrChannels) :
+            width(width), height(height), nrChannels(nrChannels) {
+        textureId = createEmptyTexture(width, height, nrChannels);
     }
 
     Texture::~Texture() {
@@ -38,18 +45,13 @@ namespace bricksim::graphics {
     }
 
     unsigned int Texture::copyTextureToVram(int imgWidth, int imgHeight, int nrChannels, const unsigned char* data) {
+        checkTextureSize(imgWidth, imgHeight);
         unsigned int textureId;
         controller::executeOpenGL([&textureId, &nrChannels, &imgWidth, &imgHeight, &data]() {
-            int maxTextureSize;
-            glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-            if (maxTextureSize < imgWidth || maxTextureSize < imgHeight) {
-                throw std::invalid_argument(fmt::format("GPU max texture size is {}x{}, but image is {}x{}", maxTextureSize, maxTextureSize, imgWidth, imgHeight));
-            }
-
             glGenTextures(1, &textureId);
             glBindTexture(GL_TEXTURE_2D, textureId);
 
-            GLint format = getGlFormatFromNrChannels(nrChannels);
+            const GLint format = getGlFormatFromNrChannels(nrChannels);
             glBindTexture(GL_TEXTURE_2D, textureId);
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             glTexImage2D(GL_TEXTURE_2D, 0, format, imgWidth, imgHeight, 0, format, GL_UNSIGNED_BYTE, data);
@@ -61,6 +63,34 @@ namespace bricksim::graphics {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         });
         return textureId;
+    }
+
+    unsigned Texture::createEmptyTexture(int imgWidth, int imgHeight, int nrChannels) {
+        checkTextureSize(imgWidth, imgHeight);
+        unsigned int textureId;
+        controller::executeOpenGL([&textureId, &nrChannels, &imgWidth, &imgHeight]() {
+            glGenTextures(1, &textureId);
+            glBindTexture(GL_TEXTURE_2D, textureId);
+
+            const GLint format = getGlFormatFromNrChannels(nrChannels);
+            glBindTexture(GL_TEXTURE_2D, textureId);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        });
+        return textureId;
+    }
+
+    void Texture::checkTextureSize(int imgWidth, int imgHeight) {
+        const auto &maxTextureSize = getHardwareProperties().maxTextureSize;
+        if (maxTextureSize < imgWidth || maxTextureSize < imgHeight) {
+            throw std::invalid_argument(
+                    fmt::format("GPU max texture size is {}x{}, but image is {}x{}", maxTextureSize, maxTextureSize,
+                                imgWidth, imgHeight));
+        }
     }
 
     GLint Texture::getGlFormatFromNrChannels(int nrChannels) {

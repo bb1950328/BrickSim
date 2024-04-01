@@ -3,6 +3,8 @@ target_sources(BrickSimLib PRIVATE
         camera.h
         connection_visualization.cpp
         connection_visualization.h
+        hardware_properties.cpp
+        hardware_properties.h
         opengl_native_or_replacement.cpp
         opengl_native_or_replacement.h
         orientation_cube.cpp
@@ -15,9 +17,8 @@ target_sources(BrickSimLib PRIVATE
         texmap_projection.h
         texture.cpp
         texture.h
-        thumbnail_generator.cpp
-        thumbnail_generator.h
         )
 
 add_subdirectory(mesh)
 add_subdirectory(overlay2d)
+add_subdirectory(thumbnail)

@@ -3,9 +3,33 @@
 #include "../helpers/geometry.h"
 #include "../helpers/polygon_clipping.h"
 #include "../ldr/file_repo.h"
+#include "clipper2/clipper.h"
+
 #include <glm/gtx/normal.hpp>
 
 namespace bricksim::graphics::texmap_projection {
+    namespace clipper2 = Clipper2Lib;
+
+    template<typename T>
+    clipper2::PathD convertPath(const std::vector<glm::vec<2, T>> &value) {
+        clipper2::PathD result;
+        result.reserve(value.size());
+        for (const auto &vec: value) {
+            result.emplace_back(vec.x, vec.y);
+        }
+        return result;
+    }
+
+    template<typename T>
+    std::vector<glm::vec<2, T>> convertPath(const clipper2::PathD &value) {
+        std::vector<glm::vec<2, T>> result;
+        result.reserve(value.size());
+        for (const auto &point: value) {
+            result.emplace_back(point.x, point.y);
+        }
+        return result;
+    }
+
     glm::vec2 getPlanarUVCoord(const std::shared_ptr<ldr::TexmapStartCommand>& startCommand, glm::vec3 point) {
         const glm::vec3 p1(startCommand->x1(), startCommand->y1(), startCommand->z1());
         const glm::vec3 p2(startCommand->x2(), startCommand->y2(), startCommand->z2());
@@ -149,45 +173,42 @@ namespace bricksim::graphics::texmap_projection {
             }
 
             {
-                std::vector<std::vector<glm::vec2>> texturedPolygons;
-                polyclip::Polygon triangleIn2dPolygon(trianglePointsIn2D);
-                polyclip::Polygon texEndPointsPolygon(texEndPointsIn2D);
+                clipper2::PathD triangleIn2dPolygon = convertPath(trianglePointsIn2D);
+                clipper2::PathD texEndPointsPolygon = convertPath(texEndPointsIn2D);
+                const auto texturedPolygons = clipper2::Intersect({texEndPointsPolygon}, {triangleIn2dPolygon},
+                                                                  clipper2::FillRule::NonZero);
 
-                polyclip::PolygonOperation::detectIntersection(triangleIn2dPolygon, texEndPointsPolygon);
-                auto [normalIntersection, possibleResult] = polyclip::PolygonOperation::mark(triangleIn2dPolygon, texEndPointsPolygon, polyclip::MARK_INTERSECTION);
-                if (normalIntersection) {
-                    texturedPolygons = polyclip::PolygonOperation::extractIntersectionResults(triangleIn2dPolygon);
+                const auto p1to2 = texP2 - texP1;
+                const auto p1to3 = texP3 - texP1;
+                Ray3 plane1Ray(texP1, p1to2);
+                Ray3 plane2Ray(texP1, p1to3);
+                const auto texWidth = glm::length(p1to2);
+                const auto texHeight = glm::length(p1to3);
 
-                    const auto p1to2 = texP2 - texP1;
-                    const auto p1to3 = texP3 - texP1;
-                    Ray3 plane1Ray(texP1, p1to2);
-                    Ray3 plane2Ray(texP1, p1to3);
-                    const auto texWidth = glm::length(p1to2);
-                    const auto texHeight = glm::length(p1to3);
-
-                    for (const auto& item: texturedPolygons) {
-                        std::vector<std::vector<glm::vec2>> poly;
-                        poly.push_back(item);
-                        const auto triangleIndices = mapbox::earcut(poly);
-                        res.texturedVertices.reserve(triangleIndices.size());
-                        for (unsigned int triangleIndex: triangleIndices) {
-                            const auto coord3d = planeConverter.convert2dTo3d(item[triangleIndex]);
-                            const auto distToP1 = geometry::getDistanceBetweenPointAndPlane(plane1Ray, coord3d);
-                            const auto distToP2 = geometry::getDistanceBetweenPointAndPlane(plane2Ray, coord3d);
-                            glm::vec2 uv = {distToP1 / texWidth, distToP2 / texHeight};
-                            res.texturedVertices.emplace_back(coord3d, uv);//todo add plainColor here as blendColor
-                        }
+                for (const auto &item: texturedPolygons) {
+                    std::vector<std::vector<glm::vec2>> poly;
+                    poly.push_back(convertPath<float>(item));
+                    const auto triangleIndices = mapbox::earcut(poly);
+                    res.texturedVertices.reserve(triangleIndices.size());
+                    for (unsigned int triangleIndex: triangleIndices) {
+                        const auto &point = item[triangleIndex];
+                        const auto coord3d = planeConverter.convert2dTo3d({point.x, point.y});
+                        const auto distToP1 = geometry::getDistanceBetweenPointAndPlane(plane1Ray, coord3d);
+                        const auto distToP2 = geometry::getDistanceBetweenPointAndPlane(plane2Ray, coord3d);
+                        glm::vec2 uv = {distToP1 / texWidth, distToP2 / texHeight};
+                        res.texturedVertices.emplace_back(coord3d, uv);//todo add plainColor here as blendColor
                     }
                 }
             }
 
             {
-                std::vector<std::vector<glm::vec2>> plainColoredPolygons;
-                polyclip::Polygon triangleIn2dPolygon(trianglePointsIn2D);
-                polyclip::Polygon texEndPointsPolygon(texEndPointsIn2D);
+                clipper2::PathD triangleIn2dPolygon = convertPath(trianglePointsIn2D);
+                clipper2::PathD texEndPointsPolygon = convertPath(texEndPointsIn2D);
 
-                polyclip::PolygonOperation::detectIntersection(triangleIn2dPolygon, texEndPointsPolygon);
-                auto [normalIntersection, possibleResult] = polyclip::PolygonOperation::mark(triangleIn2dPolygon, texEndPointsPolygon, polyclip::MARK_DIFFERENTIATE);
+                const auto plainColoredPolygons = clipper2::Difference({texEndPointsPolygon}, {triangleIn2dPolygon},
+                                                                       clipper2::FillRule::NonZero);
+
+                /*auto [normalIntersection, possibleResult] = polyclip::PolygonOperation::mark(triangleIn2dPolygon, texEndPointsPolygon, polyclip::MARK_DIFFERENTIATE);
                 if (normalIntersection) {
                     plainColoredPolygons = polyclip::PolygonOperation::extractDifferentiateResults(triangleIn2dPolygon);
                 } else {
@@ -197,18 +218,18 @@ namespace bricksim::graphics::texmap_projection {
                     } else {
                         plainColoredPolygons.push_back(possibleResult[0]);
                     }
-                }
-                for (const auto& poly: plainColoredPolygons) {
+                }*/
+                for (const auto &poly: plainColoredPolygons) {
                     std::vector<std::vector<glm::vec2>> polyWrapper;
-                    polyWrapper.push_back(poly);
+                    polyWrapper.push_back(convertPath<float>(poly));
                     const auto triangleIndices = mapbox::earcut(polyWrapper);
 
                     size_t baseIndex = res.plainColorVertices.size();
-                    for (auto coord2d: poly) {
-                        const glm::vec3 coord3d = planeConverter.convert2dTo3d(coord2d);
+                    for (auto point: poly) {
+                        const glm::vec3 coord3d = planeConverter.convert2dTo3d({point.x, point.y});
                         res.plainColorVertices.emplace_back(coord3d, polygonPlaneRay.direction);
                     }
-                    for (const auto& idx: triangleIndices) {
+                    for (const auto &idx: triangleIndices) {
                         res.plainColorIndices.push_back(static_cast<unsigned int>((baseIndex + idx)));
                     }
                 }

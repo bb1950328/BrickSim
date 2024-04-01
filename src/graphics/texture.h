@@ -15,6 +15,10 @@ namespace bricksim::graphics {
 
         static unsigned int copyTextureToVram(int imgWidth, int imgHeight, int nrChannels, const unsigned char* data);
 
+        static unsigned int createEmptyTexture(int imgWidth, int imgHeight, int nrChannels);
+
+        static void checkTextureSize(int imgWidth, int imgHeight);
+
         static uomap_t<std::string, std::shared_ptr<Texture>> texturesFromBinaryFiles;
 
     public:
@@ -22,6 +26,8 @@ namespace bricksim::graphics {
         Texture(const unsigned char* fileData, unsigned int dataSize);
         Texture(texture_id_t textureId, int width, int height, int nrChannels);
         Texture(const unsigned char* data, int width, int height, int nrChannels);
+
+        Texture(int width, int height, int nrChannels);
         Texture& operator=(const Texture&) = delete;
         Texture(const Texture&) = delete;
         ~Texture();

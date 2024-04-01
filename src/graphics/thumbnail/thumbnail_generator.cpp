@@ -1,7 +1,7 @@
 #include "thumbnail_generator.h"
-#include "../config/read.h"
-#include "../controller.h"
-#include "../metrics.h"
+#include "../../config/read.h"
+#include "../../controller.h"
+#include "../../metrics.h"
 #include <glad/glad.h>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <palanteer.h>
@@ -16,7 +16,8 @@ namespace bricksim::graphics {
         }
         auto imgIt = images.find(request);
         if (imgIt == images.end()) {
-            spdlog::debug("rendering thumbnail {} in {}", request.ldrFile->getDescription(), request.color.get()->name);
+            spdlog::debug("rendering thumbnail {} {} in {}", request.ldrFile->metaInfo.name,
+                          request.ldrFile->getDescription(), request.color.get()->name);
             auto before = std::chrono::high_resolution_clock::now();
             scene->setImageSize({size, size});
 
@@ -146,11 +147,15 @@ namespace bricksim::graphics {
         return renderRequests.empty();
     }
 
-    bool ThumbnailGenerator::isThumbnailAvailable(ThumbnailRequest request) {
+    bool ThumbnailGenerator::isThumbnailAvailable(const ThumbnailRequest &request) {
         return images.find(request) != images.end();
     }
 
-    void ThumbnailGenerator::removeFromRenderQueue(ThumbnailRequest request) {
+    std::size_t ThumbnailGenerator::getNumCachedThumbnails() const {
+        return images.size();
+    }
+
+    void ThumbnailGenerator::removeFromRenderQueue(const ThumbnailRequest &request) {
         auto it = std::find(renderRequests.begin(), renderRequests.end(), request);
         if (it != renderRequests.end()) {
             renderRequests.erase(it);
@@ -158,7 +163,7 @@ namespace bricksim::graphics {
     }
 
     ThumbnailGenerator::ThumbnailGenerator() {
-        maxCachedThumbnails = (1 << 30) / 3 / size / size;
+        maxCachedThumbnails = 8UL * (1 << 30) / 3 / size / size;
         scene = scenes::create(scenes::THUMBNAIL_SCENE_ID);
         scene->setCamera(camera);
     }

@@ -1,39 +1,12 @@
 #pragma once
 
-#include "../config/read.h"
-#include "../helpers/custom_hash.h"
-#include "../helpers/util.h"
-#include "../ldr/colors.h"
-#include "../ldr/files.h"
-#include "scene.h"
+#include "thumbnail.h"
+#include "../../config/read.h"
+#include "../scene.h"
 #include <list>
 #include <memory>
 
-namespace bricksim::graphics {
-    struct ThumbnailRequest {
-        std::shared_ptr<ldr::File> ldrFile;
-        ldr::ColorReference color;
-        std::optional<color::RGB> backgroundColor;
-        bool operator==(const ThumbnailRequest& rhs) const;
-        bool operator!=(const ThumbnailRequest& rhs) const;
-        bool operator<(const ThumbnailRequest& rhs) const;
-        bool operator>(const ThumbnailRequest& rhs) const;
-        bool operator<=(const ThumbnailRequest& rhs) const;
-        bool operator>=(const ThumbnailRequest& rhs) const;
-        [[nodiscard]] std::string getFilename();
-    };
 
-    using thumbnail_file_key_t = ThumbnailRequest;
-}
-
-namespace std {
-    template<>
-    struct hash<bricksim::graphics::thumbnail_file_key_t> {
-        std::size_t operator()(const bricksim::graphics::thumbnail_file_key_t& value) const {
-            return bricksim::util::combinedHash(value.ldrFile, value.color, value.backgroundColor.value_or(bricksim::color::BLACK));
-        }
-    };
-}
 
 namespace bricksim::graphics {
     class ThumbnailGenerator {
@@ -55,13 +28,17 @@ namespace bricksim::graphics {
         ThumbnailGenerator();
         std::shared_ptr<Texture> getThumbnail(ThumbnailRequest request);
         std::optional<std::shared_ptr<Texture>> getThumbnailNonBlocking(ThumbnailRequest request);
-        bool isThumbnailAvailable(ThumbnailRequest request);
+
+        bool isThumbnailAvailable(const ThumbnailRequest &request);
+
+        std::size_t getNumCachedThumbnails() const;
 
         void discardOldestImages(size_t reserve_space_for = 1);
         void discardAllImages();
 
         bool workOnRenderQueue();
         [[nodiscard]] bool renderQueueEmpty() const;
-        void removeFromRenderQueue(ThumbnailRequest request);
+
+        void removeFromRenderQueue(const ThumbnailRequest &request);
     };
 }

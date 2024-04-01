@@ -298,6 +298,13 @@ target_include_directories(BrickSimLib PUBLIC src/lib/miniball/cpp/main)
 add_subdirectory(src/lib/json_dto/dev)
 target_link_libraries(BrickSimLib PUBLIC json-dto)
 
+#Clipper2
+option(CLIPPER2_UTILS "Build utilities" OFF)
+option(CLIPPER2_EXAMPLES "Build examples" OFF)
+option(CLIPPER2_TESTS "Build tests" OFF)
+add_subdirectory(src/lib/Clipper2/CPP)
+target_link_libraries(BrickSimLib PUBLIC Clipper2)
+
 add_subdirectory(src)
 
 if (WIN32)

@@ -71,3 +71,6 @@
 [submodule "src/lib/json_dto"]
 	path = src/lib/json_dto
 	url = https://github.com/Stiffstream/json_dto
+[submodule "src/lib/Clipper2"]
+	path = src/lib/Clipper2
+	url = https://github.com/AngusJohnson/Clipper2

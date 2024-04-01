@@ -583,7 +583,7 @@ namespace bricksim::ldr::file_repo {
         std::scoped_lock<std::mutex> lg(ldrFilesMtx);
         plLockScopeState("FileRepo::ldrFilesMtx", true);
         for (const auto& [key, map]: ldrFiles) {
-            if (key->name == name) {
+            if (key != nullptr && key->name == name) {
                 return key;
             }
         }

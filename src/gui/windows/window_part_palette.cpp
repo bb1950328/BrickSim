@@ -9,6 +9,7 @@
 #include "window_part_palette.h"
 
 #include "../../persistent_state.h"
+#include "../../helpers/custom_hash.h"
 
 namespace bricksim::gui::windows::part_palette {
     namespace {
@@ -234,7 +235,8 @@ namespace bricksim::gui::windows::part_palette {
             auto& customTrees = config::get().partPalette.customTrees;
             auto& state = persisted_state::get().partPalette;
             if (!customTrees.empty()) {
-                if (state.selectedCustomTree < -1 || state.selectedCustomTree >= customTrees.size()) {
+                if (state.selectedCustomTree < -1 ||
+                    state.selectedCustomTree >= static_cast<int64_t>(customTrees.size())) {
                     state.selectedCustomTree = -1;
                     state.selectedTreeElements.clear();
                 }

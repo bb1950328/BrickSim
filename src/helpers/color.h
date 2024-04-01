@@ -178,3 +178,11 @@ namespace bricksim::color {
     constexpr RGB TEAL = {0, 128, 128};
     constexpr RGB NAVY = {0, 0, 128};
 }
+
+template<>
+struct std::hash<bricksim::color::RGB> {
+    std::size_t operator()(const bricksim::color::RGB &value) const noexcept {
+        constexpr size_t componentBits = sizeof(bricksim::color_component_t) * 8;
+        return value.red << componentBits * 2 | value.green << componentBits | value.blue;
+    }
+};

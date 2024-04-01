@@ -5,6 +5,7 @@
 #include <array>
 #include <optional>
 #include <vector>
+#include <charconv>
 
 namespace bricksim::connection::ldcad_meta::parse {
     fast_float::from_chars_result floatFromString(std::string_view sv, float& value);
@@ -20,8 +21,10 @@ namespace bricksim::connection::ldcad_meta::parse {
                          || std::is_same_v<uint64_t, T>;
 
     template<anyIntType T>
-    void intFromString(std::string_view sv, T& value) {
-        fast_float::from_chars(sv.front(), sv.back() - 1, value);
+    std::from_chars_result intFromString(std::string_view sv, T &value) {
+        const char *begin = &sv.front();
+        const char *end = &sv.back() + 1;
+        return std::from_chars(begin, end, value);
     }
 
     template<std::size_t N>

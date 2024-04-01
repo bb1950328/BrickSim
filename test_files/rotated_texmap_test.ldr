@@ -1,0 +1,17 @@
+0 FILE "rotated_texmap_test.ldr"
+0 just a plane with a texture 2
+0 Name: rotated_texmap_test.ldr
+0 Author: bb1950328
+0 !LDRAW_ORG Model
+0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
+0 !THEME Technic
+
+0 box size is (480, 100, 320)
+0 1 4 0 0 0 240 0 0 0 50 0 0 0 160 box0.dat
+0 !TEXMAP START PLANAR -25 70 16 25 70 16 -25 70 -16  test_files/uv_map_grid.png 
+0  4 1 200 0 150     -300 0 250    -200 0 -250      -100 0 0
+0  1 16  0 0 0  50 0 0   0 1 0   0 0 20  rect.dat
+1 5 0 0 0 0.770494 0.530345 -0.353657 -0.348531 0.815024 0.462884 0.533727 -0.233389 0.812813 3001.dat
+0      6  0 0 25   1 0 0   0 1 0   0 0 1  3001.dat
+0 !TEXMAP FALLBACK
+0 !TEXMAP END

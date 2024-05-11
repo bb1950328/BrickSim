@@ -163,6 +163,7 @@ set(ENABLE_BZIP2 OFF CACHE BOOL "Enable use of BZip2" FORCE)
 set(ENABLE_LZMA OFF CACHE BOOL "Enable use of LZMA" FORCE)
 set(ENABLE_ZSTD OFF CACHE BOOL "Enable use of Zstandard" FORCE)
 set(BUILD_REGRESS OFF CACHE BOOL "Build regression tests" FORCE)
+set(BUILD_DOC OFF CACHE BOOL "Build documentation" FORCE)
 add_subdirectory(src/lib/libzip)
 target_link_libraries(BrickSimLib PUBLIC libzip::zip)
 if (NOT MSVC)
@@ -211,6 +212,7 @@ target_link_libraries(BrickSimBenchmarks PRIVATE Catch2::Catch2)
 #GLM
 add_subdirectory(src/lib/glm)
 target_link_libraries(BrickSimLib PUBLIC glm::glm)
+target_compile_definitions(BrickSimLib PUBLIC GLM_ENABLE_EXPERIMENTAL)
 
 #tinyfiledialogs
 target_include_directories(BrickSimLib PUBLIC src/lib/tinyfiledialogs)

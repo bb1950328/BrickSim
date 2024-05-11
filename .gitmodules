@@ -61,7 +61,7 @@
 	url = https://github.com/martinus/unordered_dense.git
 [submodule "src/lib/ImGuiColorTextEdit"]
 	path = src/lib/ImGuiColorTextEdit
-	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git
+	url = https://github.com/bb1950328/ImGuiColorTextEdit.git
 [submodule "src/lib/utfcpp"]
 	path = src/lib/utfcpp
 	url = https://github.com/nemtrif/utfcpp.git

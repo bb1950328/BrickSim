@@ -159,4 +159,40 @@ namespace bricksim::gui::modals {
 
         windowFlags |= ImGuiWindowFlags_AlwaysAutoResize;
     }
+
+    ExceptionModal::ExceptionModal(const errors::BaseException& exception) :
+        ExceptionModal(exception, "") {
+    }
+    bool ExceptionModal::drawContent() {
+        //todo draw a big error icon on the left side #50
+        ImGui::TextColored(color::RED, "%s", message.c_str());
+        if (!additionalInformation.empty()) {
+            ImGui::Text("%s", additionalInformation.c_str());
+        }
+
+        if (showDetails) {
+            ImGui::Text("Location: %s:%d", location.file_name(), location.line());
+            ImGui::Text("Function: %s", location.function_name());
+        }
+
+        ImGui::PushItemWidth(-1);
+        if (ImGui::Button("OK")) {
+            return false;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(showDetails?"Hide Details":"Show Details")) {
+            showDetails = !showDetails;
+        }
+        //todo button to copy error message to clipboard
+        return true;
+    }
+    ExceptionModal::ExceptionModal(const errors::BaseException& exception, const std::string& additionalInformation) :
+        Modal("Error", exception.what()),
+        location(exception.getLocation()),
+        showDetails(false),
+        additionalInformation(additionalInformation) {
+#ifndef NDEBUG
+        showDetails = true;
+#endif
+    }
 }

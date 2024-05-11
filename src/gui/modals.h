@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../errors/exceptions.h"
 #include <imgui.h>
 #include <memory>
 #include <optional>
@@ -44,10 +45,19 @@ namespace bricksim::gui::modals {
     };
 
     class ErrorModal : public Modal {
+    public:
         explicit ErrorModal(const std::string& errorMessage);
         ErrorModal(std::string title, std::string errorMessage);
+        bool drawContent() override;
+    };
 
+    class ExceptionModal : public Modal {
+        std::source_location location;
+        std::string additionalInformation;
+        bool showDetails;
     public:
+        explicit ExceptionModal(const errors::BaseException& exception);
+        ExceptionModal(const errors::BaseException& exception, const std::string& additionalInformation);
         bool drawContent() override;
     };
 

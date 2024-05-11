@@ -2,8 +2,11 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "controller.h"
 #include "config/read.h"
+#include "config/write.h"
 #include "db.h"
+#include "errors/exceptions.h"
 #include "graphics/connection_visualization.h"
+#include "graphics/hardware_properties.h"
 #include "graphics/opengl_native_or_replacement.h"
 #include "graphics/orientation_cube.h"
 #include "graphics/shaders.h"
@@ -24,9 +27,6 @@
 #include "stb_image.h"
 #include "stb_image_write.h"
 #include "user_actions.h"
-#include "config/read.h"
-#include "config/write.h"
-#include "graphics/hardware_properties.h"
 
 #include <glad/glad.h>
 #include <palanteer.h>
@@ -270,13 +270,25 @@ namespace bricksim::controller {
             }
         }
 
+        void joinTaskWithErrorHandling(Task& task) {
+            try {
+                task.joinThread();
+            } catch (errors::TaskFailedException tfe) {
+                gui::modals::addToQueue(std::make_shared<gui::modals::ExceptionModal>(tfe));
+            } catch (errors::CriticalException ce) {
+                gui::modals::addToQueue(std::make_shared<gui::modals::ExceptionModal>(ce,  fmt::format("Critical error happened in task \"{}\". The application will exit now.", task.getName())));
+                cleanup();
+                exit(1);
+            }
+        }
         void checkForFinishedBackgroundTasks() {
             static double lastCheck = 0;
-            auto now = glfwGetTime();
+            const auto now = glfwGetTime();
             if (now - lastCheck > 0.5) {
                 for (auto iter = backgroundTasks.begin(); iter != backgroundTasks.end();) {
-                    if (iter->second.isDone()) {
-                        iter->second.joinThread();
+                    auto& task = iter->second;
+                    if (task.isDone()) {
+                        joinTaskWithErrorHandling(task);
                         iter = backgroundTasks.erase(iter);
                     } else {
                         ++iter;
@@ -377,7 +389,7 @@ namespace bricksim::controller {
                         std::this_thread::sleep_for(sleepTime);
                     }
                 }
-                currentStep.joinThread();
+                joinTaskWithErrorHandling(currentStep);
             }
 
             drawWaitMessageInFrame("initialisation finished", 1.f);
@@ -445,7 +457,7 @@ namespace bricksim::controller {
                     gui::modals::addToQueue(foregroundTaskWaitModal);
                 }
                 if (frontTask.isDone()) {
-                    frontTask.joinThread();
+                    joinTaskWithErrorHandling(frontTask);
                     foregroundTasks.pop();
                     foregroundTaskWaitModal->close();
                     foregroundTaskWaitModal = nullptr;

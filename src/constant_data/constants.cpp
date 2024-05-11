@@ -66,5 +66,5 @@ namespace bricksim::constants {
     ;
     const char* versionString = NUM(BRICKSIM_VERSION_MAJOR) "." NUM(BRICKSIM_VERSION_MINOR) "." NUM(BRICKSIM_VERSION_PATCH);
 
-    const char* LDRAW_LIBRARY_DOWNLOAD_URL = "https://www.ldraw.org/library/updates/complete.zip";
+    const char* LDRAW_LIBRARY_DOWNLOAD_URL = "https://library.ldraw.org/library/updates/complete.zip";
 }

@@ -19,10 +19,8 @@ namespace bricksim::helpers::system_info {
         std::vector<std::pair<std::string, std::string>> result;
         curl_version_info_data* curlVersionData = curl_version_info(CURLVERSION_NOW);
 
-        result.emplace_back("GPU Vendor:",
-                            std::string(reinterpret_cast<const char *>(graphics::getHardwareProperties().vendor)));
-        result.emplace_back("GPU Renderer:",
-                            std::string(reinterpret_cast<const char *>(graphics::getHardwareProperties().renderer)));
+        result.emplace_back("GPU Vendor:",std::string(reinterpret_cast<const char *>(graphics::getHardwareProperties().vendor)));
+        result.emplace_back("GPU Renderer:",std::string(reinterpret_cast<const char *>(graphics::getHardwareProperties().renderer)));
         result.emplace_back("BrickSim Version:", constants::versionString);
         result.emplace_back("Git Commit Hash:", constants::gitCommitHash);
         result.emplace_back("Dear ImGui Version:", ImGui::GetVersion());

@@ -32,6 +32,7 @@ namespace bricksim::controller {
         void cleanup();
         bool loopPartsLibrarySetupPrompt();
         void handleForegroundTasks();
+        void joinTaskWithErrorHandling(Task& task);
     }
 
     int run();

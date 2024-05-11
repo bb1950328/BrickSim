@@ -3,6 +3,7 @@
 #include "../config/write.h"
 #include "../constant_data/constants.h"
 #include "../db.h"
+#include "../errors/exceptions.h"
 #include "../helpers/stringutil.h"
 #include "../helpers/util.h"
 #include "file_reader.h"
@@ -204,7 +205,7 @@ namespace bricksim::ldr::file_repo {
                     return addLdrFileWithContent(nullptr, entryOpt->name, "", type, realFileContent, shadowContent);
                 }
             }
-            throw std::invalid_argument(fmt::format("no file named \"{}\" in the library namespace", name));
+            throw errors::TaskFailedException(fmt::format("no file named \"{}\" in the library namespace", name));
         }
         const auto extendedPath = util::replaceSpecialPaths(name);
         if (extendedPath.is_absolute() && std::filesystem::exists(extendedPath)) {
@@ -221,7 +222,7 @@ namespace bricksim::ldr::file_repo {
         try {
             return getFile(std::shared_ptr<FileNamespace>(), name);
         } catch (const std::invalid_argument& e) {
-            throw std::invalid_argument(fmt::format(R"(no file named "{}", neither in the namespace "{}" ({}) nor the library namespace)", name, fileNamespace->name, fileNamespace->searchPath.string()));
+            throw errors::TaskFailedException(fmt::format(R"(no file named "{}", neither in the namespace "{}" ({}) nor the library namespace)", name, fileNamespace->name, fileNamespace->searchPath.string()));
         }
     }
 
@@ -286,7 +287,7 @@ namespace bricksim::ldr::file_repo {
         try {
             return getBinaryFile(nullptr, name);
         } catch (const std::invalid_argument& e) {
-            throw std::invalid_argument(fmt::format(R"(no file named "{}", neither in the namespace "{}" ({}) nor the library namespace)", name, fileNamespace->name, fileNamespace->searchPath.string()));
+            throw errors::TaskFailedException(fmt::format(R"(no file named "{}", neither in the namespace "{}" ({}) nor the library namespace)", name, fileNamespace->name, fileNamespace->searchPath.string()));
         }
     }
 

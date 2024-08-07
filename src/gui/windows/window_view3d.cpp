@@ -11,6 +11,7 @@
 #include "../context_menu/node_context_menu.h"
 #include "../gui.h"
 #include "spdlog/fmt/bundled/format.h"
+#include "spdlog/spdlog.h"
 #include "window_view3d.h"
 
 namespace bricksim::gui::windows::view3d {
@@ -58,20 +59,14 @@ namespace bricksim::gui::windows::view3d {
                     windowInfoCollected = true;
                 }
                 ImGui::BeginChild("3DRender");
-                const ImVec2& regionAvail = ImGui::GetContentRegionAvail();
+                const glm::svec2 regionAvail = glm::vec2(ImGui::GetContentRegionAvail());
                 const auto& scene = editor->getScene();
                 scene->setImageSize({regionAvail.x, regionAvail.y});
                 const ImVec2& windowPos = ImGui::GetWindowPos();
-                const ImVec2& regionMin = ImGui::GetWindowContentRegionMin();
                 const ImVec2& mousePos = ImGui::GetMousePos();
-                const ImVec2& regionMax = ImGui::GetWindowContentRegionMax();
-                const glm::svec2 relCursorPos = {
-                        mousePos.x - windowPos.x - regionMin.x,
-                        mousePos.y - windowPos.y - regionMin.y};
-                bool isInWindow = (windowPos.x + regionMin.x <= mousePos.x
-                                   && mousePos.x <= windowPos.x + regionMax.x
-                                   && windowPos.y + regionMin.y <= mousePos.y
-                                   && mousePos.y <= windowPos.y + regionMax.y);
+                const glm::svec2 relMousePos = glm::vec2(ImGui::GetMousePos())-glm::vec2(ImGui::GetCursorStartPos())-glm::vec2(ImGui::GetWindowPos());
+                bool isInWindow = 0 <= relMousePos.x && relMousePos.x <= regionAvail.x
+                                  && 0 <= relMousePos.y && relMousePos.y <= regionAvail.y;
                 if (ImGui::IsWindowHovered(ImGuiHoveredFlags_None)) {
                     setCursor(editor);
                     cursorSet = true;
@@ -96,20 +91,20 @@ namespace bricksim::gui::windows::view3d {
                     static bool lastLeftMouseDown = currentLeftMouseDown;
                     static bool lastMiddleMouseDown = currentMiddleMouseDown;
                     static bool lastRightMouseDown = currentRightMouseDown;
-                    static glm::svec2 lastRelCursorPos = relCursorPos;
+                    static glm::svec2 lastRelMousePos = relMousePos;
                     static glm::svec2 totalDragDelta = {0, 0};
 
                     static DragMode dragMode = NOT_DRAGGING;
 
                     if (!lastIsWindowFocused) {
-                        lastRelCursorPos = relCursorPos;
+                        lastRelMousePos = relMousePos;
                     }
 
-                    const glm::svec2 deltaCursorPos = relCursorPos - lastRelCursorPos;
+                    const glm::svec2 deltaCursorPos = relMousePos - lastRelMousePos;
                     const bool currentlyAnyMouseDown = currentLeftMouseDown || currentMiddleMouseDown || currentRightMouseDown;
                     static bool lastAnyMouseDown = currentlyAnyMouseDown;
 
-                    editor->updateCursorPos(relCursorPos);
+                    editor->updateCursorPos(relMousePos);
 
                     if (currentlyAnyMouseDown && dragMode == NOT_DRAGGING && (deltaCursorPos.x != 0 || deltaCursorPos.y != 0)) {
                         //drag just started
@@ -120,7 +115,7 @@ namespace bricksim::gui::windows::view3d {
                             //todo find something else that makes sense to drag with the middle mouse button
                             dragMode = ROTATE_CAMERA;
                         } else {
-                            std::shared_ptr<etree::Node> nodeUnderCursor = getNodeUnderCursor(scene, relCursorPos);
+                            std::shared_ptr<etree::Node> nodeUnderCursor = getNodeUnderCursor(scene, relMousePos);
                             if (nodeUnderCursor && editor->getSelectedNodes().contains(nodeUnderCursor)) {
                                 dragMode = DRAG_ELEMENT;
                                 editor->startTransformingSelectedNodes(graphical_transform::GraphicalTransformationType::TRANSLATE);
@@ -134,7 +129,7 @@ namespace bricksim::gui::windows::view3d {
                     if (lastAnyMouseDown && !currentlyAnyMouseDown && dragMode == NOT_DRAGGING) {
                         editor->endNodeTransformation();
                         //user just ended click without dragging
-                        auto nodeUnderCursor = getNodeUnderCursor(scene, relCursorPos);
+                        auto nodeUnderCursor = getNodeUnderCursor(scene, relMousePos);
                         if (nodeUnderCursor) {
                             if (lastLeftMouseDown || lastRightMouseDown) {
                                 tools::getActiveToolData().handleNodeClicked->operator()(editor, nodeUnderCursor, imGuiIo.KeyCtrl, imGuiIo.KeyShift);
@@ -182,7 +177,7 @@ namespace bricksim::gui::windows::view3d {
                     lastLeftMouseDown = currentLeftMouseDown;
                     lastMiddleMouseDown = currentMiddleMouseDown;
                     lastRightMouseDown = currentRightMouseDown;
-                    lastRelCursorPos = relCursorPos;
+                    lastRelMousePos = relMousePos;
                     lastAnyMouseDown = currentlyAnyMouseDown;
                 } else {
                     editor->updateCursorPos(std::nullopt);

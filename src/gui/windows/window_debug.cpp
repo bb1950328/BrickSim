@@ -12,6 +12,7 @@
 #include "../../connection/connection_check.h"
 #include "../../connection/visualization/connection_graphviz_generator.h"
 #include "../../helpers/graphviz_wrapper.h"
+#include "../../ldr/shadow_file_repo.h"
 #include "imgui_internal.h"
 #include "spdlog/spdlog.h"
 #include "window_debug.h"
@@ -336,6 +337,9 @@ namespace bricksim::gui::windows::debug {
 
         void drawConnectionTab() {
             if (ImGui::BeginTabItem("Connections")) {
+                if (dynamic_cast<ldr::file_repo::EmptyShadowFileRepo*>(&ldr::file_repo::getShadowFileRepo()) != nullptr) {
+                    ImGui::TextColored(ImVec4(color::RED), ICON_FA_CIRCLE_EXCLAMATION" Shadow Library Path not valid");
+                }
                 const auto activeEditor = controller::getActiveEditor();
                 if (activeEditor == nullptr) {
                     ImGui::Text("Make an editor active and select a part to see its connections");

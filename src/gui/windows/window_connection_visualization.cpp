@@ -21,10 +21,10 @@ namespace bricksim::gui::windows::connection_visualization {
         void drawImageCanvas(const graphics::Texture& texture, Viewport& viewport) {
             const glm::vec2 availableSpace = ImGui::GetContentRegionAvail();
             const glm::vec2 windowPos = ImGui::GetWindowPos();
-            const glm::vec2 regionMin = ImGui::GetWindowContentRegionMin();
+            const glm::vec2 cursorScreenPos = ImGui::GetCursorScreenPos();
             const glm::vec2 mousePos = ImGui::GetMousePos();
-            const glm::vec2 regionMax = ImGui::GetWindowContentRegionMax();
-            glm::vec2 relCursorPos = glm::clamp(mousePos - windowPos - regionMin, {0, 0}, availableSpace);
+            //const glm::vec2 regionMax = ImGui::GetWindowContentRegionMax();
+            glm::vec2 relMousePos = glm::clamp(mousePos - cursorScreenPos, {0, 0}, availableSpace);
 
             const glm::vec2 imgSize = texture.getSize();
 
@@ -39,7 +39,7 @@ namespace bricksim::gui::windows::connection_visualization {
             const auto effTopLeftPx = glm::clamp(topLeftPx, {0, 0}, imgSize);
             const auto effBottomRightPx = glm::clamp(bottomRightPx, {0, 0}, imgSize);
 
-            ImGui::SetCursorPos(regionMin + (effTopLeftPx - topLeftPx) * viewport.zoom);
+            ImGui::SetCursorPos(glm::vec2(ImGui::GetCursorStartPos()) + (effTopLeftPx - topLeftPx) * viewport.zoom);
 
             const auto yFlip = [](const glm::vec2& uv) {
                 return glm::vec2(uv.x, 1 - uv.y);
@@ -59,7 +59,7 @@ namespace bricksim::gui::windows::connection_visualization {
 
                 const auto uv0 = topLeftPx / imgSize;
                 const auto uv1 = bottomRightPx / imgSize;
-                glm::vec2 cursorUv = uv1 + (uv0 - uv1) * (relCursorPos / availableSpace);
+                glm::vec2 cursorUv = uv1 + (uv0 - uv1) * (relMousePos / availableSpace);
                 if (std::abs(realFactor - 1.f) > .01f) {
                     glm::vec2 newUv0 = cursorUv - (cursorUv - uv0) * realFactor;
                     glm::vec2 newUv1 = cursorUv + (uv1 - cursorUv) * realFactor;
@@ -141,7 +141,7 @@ namespace bricksim::gui::windows::connection_visualization {
 
                 ImVec2 buttonSize(ImGui::GetFontSize() * 2, ImGui::GetFontSize() * 2);
 
-                ImGui::SetCursorPos(ImGui::GetWindowContentRegionMin());
+                ImGui::SetCursorPos(ImGui::GetCursorStartPos());
                 if (ImGui::Button(ICON_FA_SLIDERS, buttonSize)) {
                     ImGui::OpenPopup(POPUP_ID);
                 }

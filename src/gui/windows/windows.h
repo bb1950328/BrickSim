@@ -22,6 +22,7 @@ namespace bricksim::gui::windows {
         LDRAW_FILE_INSPECTOR,
         TOOLBAR,
         CONNECTION_VISUALIZATION,
+        LDRAW_LIBRARY_UPDATER,
     };
 
     struct Data {

@@ -38,6 +38,7 @@
     <mapping directory="$PROJECT_DIR$/src/lib/magic_enum" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/miniball" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/palanteer" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/pugixml" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/rapidjson" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/rapidjson/thirdparty/gtest" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/spdlog" vcs="Git" />

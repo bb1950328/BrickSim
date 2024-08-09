@@ -23,6 +23,7 @@ namespace bricksim::ldr::file_repo {
     const char* PSEUDO_CATEGORY_MODEL = "__MODEL";
     const char* PSEUDO_CATEGORY_HIDDEN_PART = "__HIDDEN_PART";
     const char* PSEUDO_CATEGORY_BINARY_FILE = "__BINARY_FILE";
+    const char* PSEUDO_CATEGORY_OTHER = "__OTHER";
     const char* const PSEUDO_CATEGORIES[] = {PSEUDO_CATEGORY_SUBPART, PSEUDO_CATEGORY_PRIMITIVE, PSEUDO_CATEGORY_MODEL, PSEUDO_CATEGORY_HIDDEN_PART, PSEUDO_CATEGORY_BINARY_FILE};
 
     const char* const PART_SEARCH_PREFIXES[] = {"parts/", "p/", "models/", ""};
@@ -197,6 +198,8 @@ namespace bricksim::ldr::file_repo {
                         type = FileType::PRIMITIVE;
                     } else if (entryOpt->category == PSEUDO_CATEGORY_MODEL) {
                         type = FileType::MODEL;
+                    } else if (entryOpt->category == PSEUDO_CATEGORY_OTHER) {
+                        type = FileType::OTHER;
                     } else {
                         type = FileType::PART;
                     }
@@ -333,7 +336,8 @@ namespace bricksim::ldr::file_repo {
         return (isLdrFilename(filename) || isBinaryFilename(filename))
                && (filename.starts_with("parts/")
                    || filename.starts_with("p/")
-                   || filename.starts_with("models/"));
+                   || filename.starts_with("models/")
+                   || filename==constants::LDRAW_CONFIG_FILE_NAME);
     }
 
     bool FileRepo::isLdrFilename(const std::string& filename) {
@@ -358,6 +362,7 @@ namespace bricksim::ldr::file_repo {
                 return "parts/" + name;
             case FileType::PRIMITIVE:
                 return "p/" + name;
+            case FileType::OTHER:
             default:
                 return name;
         }
@@ -373,19 +378,17 @@ namespace bricksim::ldr::file_repo {
         } else if (pathRelativeToBase.starts_with("models/")) {
             return {ldr::FileType::MODEL, pathRelativeToBase.substr(7)};
         }
-        return {ldr::FileType::MODEL, pathRelativeToBase};
+        return {ldr::FileType::OTHER, pathRelativeToBase};
     }
 
-    constexpr const auto LDCONFIG_FILE_NAME = "LDConfig.ldr";
-
     void FileRepo::initialize(float* progress) {
-        auto currentLDConfigContent = getLibraryLdrFileContent(LDCONFIG_FILE_NAME);
+        auto currentLDConfigContent = getLibraryLdrFileContent(constants::LDRAW_CONFIG_FILE_NAME);
         const auto currentHash = fmt::format("{:x}", adler32(1, reinterpret_cast<unsigned char*>(currentLDConfigContent.data()), currentLDConfigContent.size()));
         const auto lastIndexHash = db::valueCache::get<std::string>(db::valueCache::LAST_INDEX_LDCONFIG_HASH);
         bool needFill = false;
         if (currentHash != lastIndexHash) {
             needFill = true;
-            spdlog::info("FileRepo: Hash of {} changed ({}!={}), going to refill file list", LDCONFIG_FILE_NAME, lastIndexHash.value_or("?"), currentHash);
+            spdlog::info("FileRepo: Hash of {} changed ({}!={}), going to refill file list", constants::LDRAW_CONFIG_FILE_NAME, lastIndexHash.value_or("?"), currentHash);
             db::fileList::deleteAllEntries();
         } else if (db::fileList::getSize() == 0) {
             needFill = true;
@@ -419,19 +422,21 @@ namespace bricksim::ldr::file_repo {
                                     auto ldrFile = addLdrFileWithContent(nullptr, name, "", type, getLibraryLdrFileContent(*fileName));
 
                                     std::string category;
-                                    if (type == ldr::FileType::PART) {
+                                    if (type == FileType::PART) {
                                         const char& firstChar = ldrFile->metaInfo.title[0];
                                         if ((firstChar == '~' && ldrFile->metaInfo.title[1] != '|') || firstChar == '=' || firstChar == '_') {
                                             category = PSEUDO_CATEGORY_HIDDEN_PART;
                                         } else {
                                             category = ldrFile->metaInfo.getCategory();
                                         }
-                                    } else if (type == ldr::FileType::SUBPART) {
+                                    } else if (type == FileType::SUBPART) {
                                         category = PSEUDO_CATEGORY_SUBPART;
-                                    } else if (type == ldr::FileType::PRIMITIVE) {
+                                    } else if (type == FileType::PRIMITIVE) {
                                         category = PSEUDO_CATEGORY_PRIMITIVE;
-                                    } else if (type == ldr::FileType::MODEL) {
+                                    } else if (type == FileType::MODEL) {
                                         category = PSEUDO_CATEGORY_MODEL;
+                                    } else if (type == FileType::OTHER) {
+                                        category = PSEUDO_CATEGORY_OTHER;
                                     }
                                     entries.push_back({name, ldrFile->metaInfo.title, category});
                                 }

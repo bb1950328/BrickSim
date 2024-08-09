@@ -27,6 +27,7 @@ namespace bricksim::gui {
         void drawUtilitiesMenu() {
             if (ImGui::BeginMenu("Utilities")) {
                 ImGui::MenuItem(windows::getName(windows::Id::GEAR_RATIO_CALCULATOR), "", windows::isVisible(windows::Id::GEAR_RATIO_CALCULATOR));
+                ImGui::MenuItem(windows::getName(windows::Id::LDRAW_LIBRARY_UPDATER), "", windows::isVisible(windows::Id::LDRAW_LIBRARY_UPDATER));
                 ImGui::EndMenu();
             }
         }

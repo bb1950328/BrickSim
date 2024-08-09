@@ -37,7 +37,10 @@ namespace bricksim::constants {
     extern const uint16_t gitCommitCount;
     extern const char* gitCommitHash;
 
-    extern const char* LDRAW_LIBRARY_DOWNLOAD_URL;
+    static constexpr auto LDRAW_LIBRARY_DOWNLOAD_URL = "https://library.ldraw.org/library/updates/complete.zip";
+    static constexpr auto LDRAW_LIBRARY_UPDATES_XML_URL = "https://library.ldraw.org/updates?output=XML";
+
+    static constexpr auto LDRAW_CONFIG_FILE_NAME = "LDConfig.ldr";
 
     constexpr float pInf = std::numeric_limits<float>::infinity();
     constexpr float nInf = -pInf;

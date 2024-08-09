@@ -26,7 +26,8 @@ namespace bricksim::ldr {
         MPD_SUBFILE,
         PART,
         SUBPART,
-        PRIMITIVE
+        PRIMITIVE,
+        OTHER,
     };
 
     enum class WindingOrder {

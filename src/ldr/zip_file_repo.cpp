@@ -21,9 +21,9 @@ namespace bricksim::ldr::file_repo {
             valid = false;
         } else if (zip_get_num_entries(za, 0) > 0) {
             const std::string rootFolder = getZipRootFolder(za);
-            const auto ldConfigPath = rootFolder + "LDConfig.ldr";
+            const auto ldConfigPath = rootFolder + constants::LDRAW_CONFIG_FILE_NAME;
             if (zip_name_locate(za, ldConfigPath.c_str(), ZIP_FL_ENC_GUESS) == -1) {
-                spdlog::warn("LDConfig.ldr not in {}", basePath.string());
+                spdlog::warn("{} not in {}", constants::LDRAW_CONFIG_FILE_NAME, basePath.string());
                 valid = false;
             } else {
                 spdlog::debug("{} is a valid zip library.", basePath.string());

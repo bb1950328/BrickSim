@@ -350,12 +350,12 @@ namespace bricksim::controller {
             }
 
             std::array initSteps = {
-                    Task{"load color definitions", ldr::color_repo::initialize},
                     Task{"initialize shadow file repo", ldr::file_repo::initializeShadowFileRepo},
                     Task{"initialize file list", [](float* progress) {
                         ldr::file_repo::get().initialize(progress);
                         spdlog::info("File Repo base path is {}", ldr::file_repo::get().getBasePath().string());
                     }},
+                    Task{"load color definitions", ldr::color_repo::initialize},
                     Task{"initialize price guide provider", info_providers::price_guide::initialize},
                     Task{"initialize thumbnail generator", []() { thumbnailGenerator = std::make_shared<graphics::ThumbnailGenerator>(); }},
                     Task{"initialize BrickLink constants", info_providers::bricklink_constants::initialize},

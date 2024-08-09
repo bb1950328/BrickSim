@@ -8,8 +8,8 @@ namespace bricksim::ldr::file_repo {
             spdlog::warn("{} not found or not a directory", basePath.string());
             return false;
         }
-        if (!std::filesystem::exists(basePath / "LDConfig.ldr")) {
-            spdlog::warn("LDConfig.ldr not found in {}, therefore it's not a valid ldraw library directory", basePath.string());
+        if (!std::filesystem::exists(basePath / constants::LDRAW_CONFIG_FILE_NAME)) {
+            spdlog::warn("{} not found in {}, therefore it's not a valid ldraw library directory", constants::LDRAW_CONFIG_FILE_NAME, basePath.string());
             return false;
         }
         return true;

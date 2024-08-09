@@ -1,4 +1,5 @@
 #include "stringutil.h"
+#include "fast_float/fast_float.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -332,5 +333,26 @@ namespace bricksim::stringutil {
             }
         }
         return result;
+    }
+    std::size_t findClosingQuote(std::string_view str, std::size_t start) {
+        std::size_t end = start;
+        do {
+            end = str.find('"', end);
+        } while (end!=std::string_view::npos && (end==0 || str[end-1]=='\\'));
+        return end;
+    }
+    std::chrono::year_month_day parseYYYY_MM_DD(std::string_view str) {
+        if (str.length() != std::strlen("0000-00-00")) {
+            throw std::invalid_argument("invalid size");
+        }
+        int year;
+        int month;
+        int day;
+        fast_float::from_chars(str.data()+0, str.data()+4, year);
+        fast_float::from_chars(str.data()+5, str.data()+7, month);
+        fast_float::from_chars(str.data()+8, str.data()+10, day);
+        return std::chrono::year_month_day(std::chrono::year(year),
+                                           std::chrono::month(month),
+                                           std::chrono::day(day));
     }
 }

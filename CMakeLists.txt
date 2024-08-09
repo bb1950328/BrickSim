@@ -307,6 +307,10 @@ option(CLIPPER2_TESTS "Build tests" OFF)
 add_subdirectory(src/lib/Clipper2/CPP)
 target_link_libraries(BrickSimLib PUBLIC Clipper2)
 
+#pugixml
+add_subdirectory(src/lib/pugixml)
+target_link_libraries(BrickSimLib PUBLIC pugixml-static)
+
 add_subdirectory(src)
 
 if (WIN32)

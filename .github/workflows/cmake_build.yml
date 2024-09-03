@@ -132,7 +132,7 @@ jobs:
 
     steps:
       - name: Download test artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: BrickSimTests_Linux64
 
@@ -203,7 +203,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: BrickSimRawBinary_Linux${{ matrix.bits }}
           path: ${{ runner.workspace }}/artifacts
@@ -330,7 +330,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: BrickSimRawBinary_Windows64
           path: ${{ runner.workspace }}/artifacts
@@ -385,7 +385,7 @@ jobs:
 
     steps:
       - name: Download test artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: BrickSimTests_Windows64
 
@@ -568,7 +568,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: BrickSimRawBinary_Mac${{ matrix.name }}
           path: ${{ runner.workspace }}/artifacts
@@ -622,7 +622,7 @@ jobs:
         run: ./setup_workspace.sh
 
       - name: Download test artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: BrickSimTests_Mac${{ matrix.name }}
 
@@ -662,27 +662,27 @@ jobs:
     steps:
       - if: needs.testLinux.result == 'success'
         name: Download UnitTestReport_Linux64
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: UnitTestReport_Linux64
           path: artifacts
 
       - if: needs.testWindows.result == 'success'
         name: Download UnitTestReport_Windows64
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: UnitTestReport_Windows64
           path: artifacts
 
       - if: needs.testMac.result == 'success'
         name: Download UnitTestReport_Mac64
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: UnitTestReport_Mac64
           path: artifacts
 
       # - name: Download UnitTestReport_MacARM
-      #   uses: actions/download-artifact@v3
+      #   uses: actions/download-artifact@v4.1.7
       #   with:
       #     name: UnitTestReport_MacARM
       #     path: artifacts

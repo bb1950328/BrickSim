@@ -33,10 +33,15 @@ namespace bricksim::ldraw_library_updater {
         Step step;
 
         float initializingProgress = 0.f;
+
         std::string currentReleaseId;
         std::chrono::year_month_day currentReleaseDate;
-        std::optional<Distribution> completeDistribution;
+
         std::vector<Distribution> incrementalUpdates;
+        std::vector<float> incrementalUpdateProgress;
+
+        std::optional<Distribution> completeDistribution;
+        std::optional<float> completeUpdateProgress;
 
         std::size_t getIncrementalUpdateTotalSize() const;
 

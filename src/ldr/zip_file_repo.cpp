@@ -11,7 +11,7 @@ namespace bricksim::ldr::file_repo {
             return false;
         }
         int err;
-        zip_t* za = zip_open(basePath.string().c_str(), 0, &err);
+        zip_t* za = zip_open(basePath.string().c_str(), ZIP_RDONLY, &err);
         bool valid;
         if (za == nullptr) {
             zip_error_t zipError;
@@ -60,7 +60,7 @@ namespace bricksim::ldr::file_repo {
             throw std::invalid_argument("invalid basePath: " + basePath.string());
         }
         int errorCode;
-        zipArchive = zip_open(basePath.string().c_str(), 0, &errorCode);
+        zipArchive = zip_open(basePath.string().c_str(), ZIP_RDONLY, &errorCode);
 
         rootFolderName = getZipRootFolder(zipArchive);
 

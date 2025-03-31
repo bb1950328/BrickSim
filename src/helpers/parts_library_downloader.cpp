@@ -8,8 +8,12 @@
 #include "../config/write.h"
 
 namespace bricksim::parts_library_downloader {
-    namespace {
-        int progressFunc([[maybe_unused]] void* clientp, long downloadTotal, long downloadNow, [[maybe_unused]] long uploadTotal, [[maybe_unused]] long uploadNow) {
+
+    void downloadPartsLibrary() {
+        status = Status::IN_PROGRESS;
+        spdlog::info("starting parts library download");
+        auto filePath = util::extendHomeDir("~/ldraw.zip");
+        auto [statusCode, content] = util::downloadFile(constants::LDRAW_LIBRARY_DOWNLOAD_URL, filePath, [](long downloadTotal, long downloadNow, [[maybe_unused]] long uploadTotal, [[maybe_unused]] long uploadNow) {
             const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             const auto msDiff = now - lastSpeedCalcTimestampMs;
             if (msDiff > 1000) {
@@ -22,14 +26,7 @@ namespace bricksim::parts_library_downloader {
             downNow = downloadNow;
             downTotal = downloadTotal;
             return shouldStop ? 1 : 0;
-        }
-    }
-
-    void downloadPartsLibrary() {
-        status = Status::IN_PROGRESS;
-        spdlog::info("starting parts library download");
-        auto filePath = util::extendHomeDir("~/ldraw.zip");
-        auto [statusCode, content] = util::downloadFile(constants::LDRAW_LIBRARY_DOWNLOAD_URL, filePath, progressFunc);
+        });
         if (statusCode < 200 || statusCode >= 300) {
             spdlog::error("parts library download failed. Error code: {}", statusCode);
             errorCode = statusCode;

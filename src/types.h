@@ -50,14 +50,6 @@ namespace glm {
 
 
 namespace std {
-    #ifdef BRICKSIM_PLATFORM_MACOS
-    template<>
-    struct hash<filesystem::path> {
-        size_t operator()(const filesystem::path& value) const noexcept {
-            return filesystem::hash_value(value);
-        }
-    };
-    #endif
     template<typename T>
     struct hash<vector<T>> {
         size_t operator()(const vector<T>& value) const noexcept {

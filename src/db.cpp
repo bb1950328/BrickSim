@@ -264,6 +264,9 @@ namespace bricksim::db {
         }
 
         void put(const std::vector<Entry>& entries) {
+            if (entries.empty()) {
+                return;
+            }
             std::string command = "INSERT INTO files (name, title, category) VALUES ";
             std::string name;
             std::string title;

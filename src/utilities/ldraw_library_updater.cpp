@@ -237,6 +237,9 @@ namespace bricksim::ldraw_library_updater {
                     if (zip_stat_index(archive.get(), j, ZIP_FL_UNCHANGED, &stat) != 0) {
                         throw UpdateFailedException(fmt::format("Cannot stat {}-th file in .zip (downloaded from {})", j, completeDistribution->url));
                     }
+                    if (stat.size<=0) {
+                        continue;
+                    }
                     auto entryPath = extractionDirectory / stat.name;
                     auto zfile = std::unique_ptr<zip_file_t, decltype(&zip_fclose)>(zip_fopen_index(archive.get(), j, ZIP_FL_UNCHANGED), zip_fclose);
                     if (zfile == nullptr) {

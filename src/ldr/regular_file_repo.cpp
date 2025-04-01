@@ -50,7 +50,7 @@ namespace bricksim::ldr::file_repo {
         return std::make_shared<BinaryFile>(basePath / nameRelativeToRoot);
     }
     void RegularFileRepo::updateLibraryFilesImpl(const std::filesystem::path& updatedFileDirectory, std::function<void(int)> progress) {
-        std::filesystem::copy(updatedFileDirectory, basePath);
+        std::filesystem::copy(updatedFileDirectory, basePath, std::filesystem::copy_options::update_existing|std::filesystem::copy_options::recursive);
     }
     bool RegularFileRepo::replaceLibraryFilesDirectlyFromZip() {
         return false;
@@ -61,7 +61,7 @@ namespace bricksim::ldr::file_repo {
         }
         std::filesystem::path tmpPath = basePath.string()+"_old";
         std::filesystem::rename(basePath, tmpPath);
-        std::filesystem::copy(replacementFileOrDirectory, basePath, std::filesystem::copy_options::overwrite_existing);
+        std::filesystem::copy(replacementFileOrDirectory, basePath, std::filesystem::copy_options::recursive);
         std::filesystem::remove_all(tmpPath);
     }
 }

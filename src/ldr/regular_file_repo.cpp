@@ -52,4 +52,16 @@ namespace bricksim::ldr::file_repo {
     void RegularFileRepo::updateLibraryFilesImpl(const std::filesystem::path& updatedFileDirectory, std::function<void(int)> progress) {
         std::filesystem::copy(updatedFileDirectory, basePath);
     }
+    bool RegularFileRepo::replaceLibraryFilesDirectlyFromZip() {
+        return false;
+    }
+    void RegularFileRepo::replaceLibraryFilesImpl(const std::filesystem::path& replacementFileOrDirectory, std::function<void(int)> progress) {
+        if (!std::filesystem::is_directory(replacementFileOrDirectory)) {
+            throw std::invalid_argument("expected a directory as replacement path");
+        }
+        std::filesystem::path tmpPath = basePath.string()+"_old";
+        std::filesystem::rename(basePath, tmpPath);
+        std::filesystem::copy(replacementFileOrDirectory, basePath, std::filesystem::copy_options::overwrite_existing);
+        std::filesystem::remove_all(tmpPath);
+    }
 }

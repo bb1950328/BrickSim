@@ -60,22 +60,31 @@ namespace bricksim::ldr::file_repo {
         if (!isValidBasePath(basePath)) {
             throw std::invalid_argument("invalid basePath: " + basePath.string());
         }
-        int errorCode;
-        zipArchive = zip_open(basePath.string().c_str(), 0, &errorCode);
+        openZipArchive();
+
+        if (zipArchive== nullptr) {
+            return;
+        }
 
         rootFolderName = getZipRootFolder(zipArchive);
+    }
+    void ZipFileRepo::openZipArchive() {
+        int errorCode;
+        zipArchive = zip_open(basePath.string().c_str(), 0, &errorCode);
 
         if (zipArchive == nullptr) {
             zip_error_t zipError;
             zip_error_init_with_code(&zipError, errorCode);
             spdlog::error("can't open zip library with path {}: {} {}", basePath.string(), errorCode, zip_error_strerror(&zipError));
             zip_error_fini(&zipError);
-            return;
         }
     }
 
-    ZipFileRepo::~ZipFileRepo() {
+    void ZipFileRepo::closeZipArchive() const {
         zip_close(zipArchive);
+    }
+    ZipFileRepo::~ZipFileRepo() {
+        closeZipArchive();
     }
 
     std::string ZipFileRepo::getLibraryLdrFileContent(ldr::FileType type, const std::string& name) {
@@ -178,8 +187,18 @@ namespace bricksim::ldr::file_repo {
 
             progress(currentFileNr++);
         }
-        zip_close(zipArchive);
-        int errorCode;
-        zipArchive = zip_open(basePath.string().c_str(), 0, &errorCode);
+        closeZipArchive();
+        openZipArchive();
+    }
+    bool ZipFileRepo::replaceLibraryFilesDirectlyFromZip() {
+        return true;
+    }
+    void ZipFileRepo::replaceLibraryFilesImpl(const std::filesystem::path& replacementFileOrDirectory, std::function<void(int)> progress) {
+        if (!std::filesystem::is_regular_file(replacementFileOrDirectory)) {
+            throw std::invalid_argument("replacement file is not a regular file");
+        }
+        closeZipArchive();
+        std::filesystem::copy(replacementFileOrDirectory, basePath, std::filesystem::copy_options::overwrite_existing);
+        openZipArchive();
     }
 }

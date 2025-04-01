@@ -205,6 +205,66 @@ namespace bricksim::ldraw_library_updater {
         step = Step::FINISHED;
     }
     void UpdateState::doCompleteUpdate() {
-        //todo implement
+        step = Step::UPDATE_COMPLETE;
+        const auto tmpDirectory = std::filesystem::temp_directory_path() / "BrickSimCompleteUpdate";
+        std::filesystem::create_directory(tmpDirectory);
+        const auto tmpFile = tmpDirectory / "complete.zip";
+        util::downloadFile(completeDistribution->url, tmpFile, [this](std::size_t dlTotal, std::size_t dlNow, std::size_t ulTotal, std::size_t ulNow) {
+            completeUpdateProgress = dlTotal > 0 ? .5f * dlNow / dlTotal : 0.f;
+            return 0;
+        });
+
+        const auto needsExtract = !ldr::file_repo::get().replaceLibraryFilesDirectlyFromZip();
+
+        uint64_t numEntries;
+        std::filesystem::path fileOrDirectoryForReplacement;
+        {
+            int err;
+            const auto archive = std::unique_ptr<zip_t, decltype(&zip_close)>(zip_open(tmpFile.string().c_str(), ZIP_RDONLY, &err), zip_close);
+            if (archive == nullptr) {
+                zip_error_t zipError;
+                zip_error_init_with_code(&zipError, err);
+                auto msg = fmt::format("Cannot open .zip file: {} (downloaded from {})", zip_error_strerror(&zipError), completeDistribution->url);
+                zip_error_fini(&zipError);
+                throw UpdateFailedException(msg);
+            }
+            numEntries = zip_get_num_entries(archive.get(), 0);
+
+            if (needsExtract) {
+                const auto extractionDirectory = tmpDirectory / "extracted";
+                for (zip_int64_t j = 0; j < numEntries; ++j) {
+                    struct zip_stat stat;
+                    if (zip_stat_index(archive.get(), j, ZIP_FL_UNCHANGED, &stat) != 0) {
+                        throw UpdateFailedException(fmt::format("Cannot stat {}-th file in .zip (downloaded from {})", j, completeDistribution->url));
+                    }
+                    auto entryPath = extractionDirectory / stat.name;
+                    auto zfile = std::unique_ptr<zip_file_t, decltype(&zip_fclose)>(zip_fopen_index(archive.get(), j, ZIP_FL_UNCHANGED), zip_fclose);
+                    if (zfile == nullptr) {
+                        throw UpdateFailedException(fmt::format("cannot open file {} inside .zip (downloaded from {})", stat.name, completeDistribution->url));
+                    }
+                    std::filesystem::create_directories(entryPath.parent_path());
+                    std::ofstream outfile(entryPath, std::ios::binary);
+                    if (!outfile) {
+                        throw UpdateFailedException(fmt::format("cannot create temporary file {}", entryPath.string()));
+                    }
+
+                    std::array<char, 4096> buf;
+                    zip_int64_t bytesRead;
+                    while ((bytesRead = zip_fread(zfile.get(), buf.data(), buf.size())) > 0) {
+                        outfile.write(buf.data(), bytesRead);
+                    }
+                }
+                fileOrDirectoryForReplacement = std::filesystem::is_directory(extractionDirectory / "ldraw")
+                                                        ? extractionDirectory / "ldraw"
+                                                        : extractionDirectory;
+            } else {
+                fileOrDirectoryForReplacement = tmpFile;
+            }
+        }
+
+        ldr::file_repo::get().replaceLibraryFiles(fileOrDirectoryForReplacement, [this](float progress){completeUpdateProgress = .5+.5*progress;}, numEntries);
+
+        std::filesystem::remove_all(tmpDirectory);
+        step = Step::FINISHED;
     }
 }

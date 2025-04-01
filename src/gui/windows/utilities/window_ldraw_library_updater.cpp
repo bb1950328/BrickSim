@@ -79,6 +79,9 @@ namespace bricksim::gui::windows::utilities::ldraw_library_updater {
                             controller::addBackgroundTask("Update LDraw Library", []() { getState().doCompleteUpdate(); });
                         }
                         ImGui::EndDisabled();
+                        if (state.step == Step::UPDATE_COMPLETE && state.completeUpdateProgress.has_value()) {
+                            ImGui::ProgressBar(*state.completeUpdateProgress);
+                        }
                     } else {
                         ImGui::Text("Complete distribution is not available");
                     }
@@ -90,7 +93,7 @@ namespace bricksim::gui::windows::utilities::ldraw_library_updater {
                     break;
             }
         }
-        if(lastVisible && !data.visible) {
+        if (lastVisible && !data.visible) {
             resetState();
         }
         ImGui::End();

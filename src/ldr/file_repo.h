@@ -100,6 +100,8 @@ namespace bricksim::ldr::file_repo {
                             const std::string& newName);
 
         void updateLibraryFiles(const std::filesystem::path& updatedFileDirectory, std::function<void(float)> progress, uint64_t estimatedFileCount);
+        virtual bool replaceLibraryFilesDirectlyFromZip() = 0;
+        void replaceLibraryFiles(const std::filesystem::path& replacementFileOrDirectory, std::function<void(float)> progress, uint64_t estimatedFileCount);
 
     protected:
         static bool shouldFileBeSavedInList(const std::string& filename);
@@ -110,6 +112,7 @@ namespace bricksim::ldr::file_repo {
          */
         static std::pair<FileType, std::string> getTypeAndNameFromPathRelativeToBase(const std::string& pathRelativeToBase);
         virtual void updateLibraryFilesImpl(const std::filesystem::path& updatedFileDirectory, std::function<void(int)> progress) = 0;
+        virtual void replaceLibraryFilesImpl(const std::filesystem::path& replacementFileOrDirectory, std::function<void(int)> progress) = 0;
         std::filesystem::path basePath;
 
         void fillFileList(std::function<void(float)> progress);
@@ -125,6 +128,7 @@ namespace bricksim::ldr::file_repo {
         static bool isLdrFilename(const std::string& filename);
         static bool isBinaryFilename(const std::string& filename);
         std::string getLDConfigContentHash();
+        void refreshAfterUpdateOrReplaceLibrary(const std::function<void(float)>& progress);
     };
 
     FileRepo& get();

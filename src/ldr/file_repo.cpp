@@ -622,6 +622,16 @@ namespace bricksim::ldr::file_repo {
         updateLibraryFilesImpl(updatedFileDirectory, [&progress, estimatedFileCount](int fileNo) {
             progress(std::min(.5f, .5f * fileNo / estimatedFileCount));
         });
+        refreshAfterUpdateOrReplaceLibrary(progress);
+    }
+
+    void FileRepo::replaceLibraryFiles(const std::filesystem::path& replacementFileOrDirectory, std::function<void(float)> progress, uint64_t estimatedFileCount) {
+        replaceLibraryFilesImpl(replacementFileOrDirectory, [&progress, estimatedFileCount](int fileNo) {
+            progress(std::min(.5f, .5f * fileNo / estimatedFileCount));
+        });
+        refreshAfterUpdateOrReplaceLibrary(progress);
+    }
+    void FileRepo::refreshAfterUpdateOrReplaceLibrary(const std::function<void(float)>& progress) {
         {
             plLockWait("FileRepo::ldrFilesMtx");
             std::scoped_lock<std::mutex> lg(ldrFilesMtx);
@@ -639,9 +649,11 @@ namespace bricksim::ldr::file_repo {
             progress(.5f + fillFraction * .5f);
         });
     }
+
     std::string FileRepo::getVersion() const {
         return db::valueCache::get<std::string>(db::valueCache::CURRENT_PARTS_LIBRARY_VERSION).value_or("");
     }
+
 
     FileRepo::~FileRepo() = default;
 }

@@ -12,7 +12,10 @@ namespace bricksim::ldr::file_repo {
         std::string getLibraryLdrFileContent(ldr::FileType type, const std::string& name) override;
         std::string getLibraryLdrFileContent(const std::string& nameRelativeToRoot) override;
         std::shared_ptr<BinaryFile> getLibraryBinaryFileContent(const std::string& nameRelativeToRoot) override;
+        bool replaceLibraryFilesDirectlyFromZip() override;
+
     protected:
         void updateLibraryFilesImpl(const std::filesystem::path& updatedFileDirectory, std::function<void(int)> progress) override;
+        void replaceLibraryFilesImpl(const std::filesystem::path& replacementFileOrDirectory, std::function<void(int)> progress) override;
     };
 }

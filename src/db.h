@@ -42,6 +42,7 @@ namespace bricksim::db {
 
     namespace valueCache {
         constexpr auto LAST_INDEX_LDCONFIG_HASH = "LAST_INDEX_LDCONFIG_HASH";
+        constexpr auto CURRENT_PARTS_LIBRARY_VERSION = "CURRENT_PARTS_LIBRARY_VERSION";
         template<typename T>
         std::optional<T> get(const char* key);
 

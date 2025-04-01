@@ -2,6 +2,7 @@
 #include "../helpers/util.h"
 #include "../ldr/config.h"
 #include "../ldr/file_repo.h"
+#include "../ldr/zip_file_repo.h"
 #include "pugixml.hpp"
 #include <fstream>
 #include <spdlog/fmt/fmt.h>
@@ -48,6 +49,9 @@ namespace bricksim::ldraw_library_updater {
         }
         return *state;
     }
+    void resetState() {
+        state = nullptr;
+    }
 
     UpdateFailedException::UpdateFailedException(const std::string& message, const std::source_location location) :
         TaskFailedException(message, location) {}
@@ -66,6 +70,7 @@ namespace bricksim::ldraw_library_updater {
     }
     void UpdateState::findCurrentRelease() {
         currentReleaseDate = stringutil::parseYYYY_MM_DD(ldr::getConfig().getUpdateDate());
+        currentReleaseId = ldr::file_repo::get().getVersion();
     }
     void UpdateState::readUpdatesList() {
         const auto [statusCode, xmlContent] = util::requestGET(constants::LDRAW_LIBRARY_UPDATES_XML_URL, false, 0, updatesListDownloadProgress);
@@ -84,7 +89,7 @@ namespace bricksim::ldraw_library_updater {
                 const auto distribution = parseDistribution(distNode);
 
                 if (std::strcmp(releaseType, "UPDATE") == 0) {
-                    if (distribution.date > currentReleaseDate) {
+                    if (distribution.id > currentReleaseId) {
                         incrementalUpdates.push_back(distribution);
                     }
                 } else if (std::strcmp(releaseType, "COMPLETE") == 0) {
@@ -100,6 +105,7 @@ namespace bricksim::ldraw_library_updater {
                                [](std::size_t x, const Distribution& dist) { return x + dist.size; });
     }
     void UpdateState::doIncrementalUpdate() {
+        step = Step::UPDATE_INCREMENTAL;
         spdlog::info("starting incremental LDraw library update");
         const auto tmpDirectory = std::filesystem::temp_directory_path() / "BrickSimIncrementalUpdate";
         std::filesystem::create_directory(tmpDirectory);
@@ -180,7 +186,23 @@ namespace bricksim::ldraw_library_updater {
             spdlog::debug("extracted {} entries from {}", numEntries, tmpZipPath.string());
         }
 
+        std::filesystem::path sourceDir;
+        if (std::filesystem::is_regular_file(mergedDirectory / "ldraw" / constants::LDRAW_CONFIG_FILE_NAME)) {
+            sourceDir = mergedDirectory / "ldraw";
+        } else if (std::filesystem::is_regular_file(mergedDirectory / constants::LDRAW_CONFIG_FILE_NAME)) {
+            sourceDir = mergedDirectory;
+        } else {
+            throw UpdateFailedException(fmt::format("cannot find {} in {} or {}", constants::LDRAW_CONFIG_FILE_NAME, (mergedDirectory / "ldraw").string(), mergedDirectory.string()));
+        }
+
+        auto progressFunc = [this](float progress) {
+            const auto fraction = .5f * progress + .5f;
+            std::fill(incrementalUpdateProgress.begin(), incrementalUpdateProgress.end(), fraction);
+        };
+        ldr::file_repo::get().updateLibraryFiles(sourceDir, progressFunc, extractedFiles.size());
+
         std::filesystem::remove_all(tmpDirectory);
+        step = Step::FINISHED;
     }
     void UpdateState::doCompleteUpdate() {
         //todo implement

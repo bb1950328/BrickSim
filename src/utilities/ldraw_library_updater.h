@@ -57,4 +57,5 @@ namespace bricksim::ldraw_library_updater {
     };
 
     UpdateState& getState();
+    void resetState();
 }

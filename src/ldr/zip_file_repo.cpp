@@ -1,4 +1,5 @@
 #include "zip_file_repo.h"
+#include <fstream>
 #include <spdlog/spdlog.h>
 #include <zipint.h>
 
@@ -37,7 +38,7 @@ namespace bricksim::ldr::file_repo {
         return valid;
     }
 
-    std::vector<std::string> ZipFileRepo::listAllFileNames(float* progress) {
+    std::vector<std::string> ZipFileRepo::listAllFileNames(std::function<void(float)> progress) {
         std::scoped_lock<std::mutex> lg(libzipLock);
         std::vector<std::string> result;
         struct zip_stat fileStat{};
@@ -48,7 +49,7 @@ namespace bricksim::ldr::file_repo {
             const std::string nameString(fileStat.name + nameCutOff);
             if (shouldFileBeSavedInList(nameString)) {
                 result.emplace_back(nameString);
-                *progress = std::min(1.0f, 0.5f * i / numEntries);
+                progress(std::min(1.0f, 0.5f * i / numEntries));
             }
         }
         return result;
@@ -60,7 +61,7 @@ namespace bricksim::ldr::file_repo {
             throw std::invalid_argument("invalid basePath: " + basePath.string());
         }
         int errorCode;
-        zipArchive = zip_open(basePath.string().c_str(), ZIP_RDONLY, &errorCode);
+        zipArchive = zip_open(basePath.string().c_str(), 0, &errorCode);
 
         rootFolderName = getZipRootFolder(zipArchive);
 
@@ -146,5 +147,39 @@ namespace bricksim::ldr::file_repo {
         zip_fclose(file);
 
         return result;
+    }
+
+    void ZipFileRepo::updateLibraryFilesImpl(const std::filesystem::path& updatedFileDirectory, std::function<void(int)> progress) {
+        std::scoped_lock<std::mutex> lg(libzipLock);
+        int currentFileNr = 0;
+        for (const auto& entry: std::filesystem::recursive_directory_iterator(updatedFileDirectory)) {
+            if (!entry.is_regular_file()) {
+                continue;
+            }
+            const auto relativePath = std::filesystem::relative(entry.path(), updatedFileDirectory).string();
+            const auto zipFileName = rootFolderName + relativePath;
+            zip_int64_t existingFileIndex = zip_name_locate(zipArchive, zipFileName.c_str(), ZIP_FL_NOCASE);
+            if (existingFileIndex >= 0) {
+                if (zip_delete(zipArchive, existingFileIndex) != 0) {
+                    throw std::invalid_argument("cannot delete existing file from zip");
+                }
+            }
+
+            auto* file = std::fopen(entry.path().c_str(), "rb");
+            if (!file) {
+                throw std::invalid_argument(fmt::format("cannot read {} from file system", entry.path().string()));
+            }
+
+            zip_error_t err;
+            auto* sourceFile = zip_source_filep_create(file, 0, ZIP_LENGTH_TO_END, &err);
+            if (sourceFile == nullptr || zip_file_add(zipArchive, zipFileName.c_str(), sourceFile, ZIP_FL_OVERWRITE | ZIP_FL_ENC_UTF_8) < 0) {
+                throw std::invalid_argument(fmt::format("cannot copy {} into zip file", entry.path().string()));
+            }
+
+            progress(currentFileNr++);
+        }
+        zip_close(zipArchive);
+        int errorCode;
+        zipArchive = zip_open(basePath.string().c_str(), 0, &errorCode);
     }
 }

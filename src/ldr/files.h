@@ -61,6 +61,7 @@ namespace bricksim::ldr {
         bool addLine(const std::string& line);
 
         [[nodiscard]] const std::string& getCategory();
+        [[nodiscard]] const std::string_view getUpdateId() const;
 
     private:
         bool firstLine = true;

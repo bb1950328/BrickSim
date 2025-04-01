@@ -355,4 +355,16 @@ namespace bricksim::stringutil {
                                            std::chrono::month(month),
                                            std::chrono::day(day));
     }
+    std::chrono::year_month_day parseYYYY_MM(std::string_view str, int day) {
+        if (str.length() != std::strlen("0000-00")) {
+            throw std::invalid_argument("invalid size");
+        }
+        int year;
+        int month;
+        fast_float::from_chars(str.data()+0, str.data()+4, year);
+        fast_float::from_chars(str.data()+5, str.data()+7, month);
+        return std::chrono::year_month_day(std::chrono::year(year),
+                                           std::chrono::month(month),
+                                           std::chrono::day(day));
+    }
 }

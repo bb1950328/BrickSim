@@ -475,6 +475,20 @@ namespace bricksim::ldr {
         }
         return headerCategory.value();
     }
+    const std::string_view FileMetaInfo::getUpdateId() const{
+        auto pos = fileTypeLine.find("UPDATE");
+        if (pos != std::string::npos) {
+            pos += strlen("UPDATE");
+            pos = fileTypeLine.find_first_not_of(LDR_WHITESPACE, pos);
+            auto pos2 = fileTypeLine.find_first_of(LDR_WHITESPACE, pos+1);
+            if (pos2==std::string::npos) {
+                pos2 = fileTypeLine.length();
+            }
+            return std::string_view(fileTypeLine).substr(pos, pos2);
+        } else {
+            return {};
+        }
+    }
 
     namespace {
         const char* getFileTypeStr(const FileType type) {

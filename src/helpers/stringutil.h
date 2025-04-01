@@ -85,4 +85,5 @@ namespace bricksim::stringutil {
     std::size_t findClosingQuote(std::string_view str, std::size_t start = 0);
 
     std::chrono::year_month_day parseYYYY_MM_DD(std::string_view str);
+    std::chrono::year_month_day parseYYYY_MM(std::string_view str, int day=1);
 }

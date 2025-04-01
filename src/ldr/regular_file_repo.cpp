@@ -15,7 +15,7 @@ namespace bricksim::ldr::file_repo {
         return true;
     }
 
-    std::vector<std::string> RegularFileRepo::listAllFileNames(float* progress) {
+    std::vector<std::string> RegularFileRepo::listAllFileNames(std::function<void(float)> progress) {
         std::vector<std::string> files;
         for (const auto& entry: std::filesystem::recursive_directory_iterator(basePath)) {
             auto path = util::withoutBasePath(entry.path(), basePath).string();
@@ -23,7 +23,7 @@ namespace bricksim::ldr::file_repo {
 
             if (shouldFileBeSavedInList(pathWithForwardSlash)) {
                 files.push_back(pathWithForwardSlash);
-                *progress = std::min(1.f, .5f * static_cast<float>(files.size()) / ESTIMATE_PART_LIBRARY_FILE_COUNT);
+                progress(std::min(1.f, .5f * static_cast<float>(files.size()) / ESTIMATE_PART_LIBRARY_FILE_COUNT));
             }
         }
         return files;
@@ -48,5 +48,8 @@ namespace bricksim::ldr::file_repo {
 
     std::shared_ptr<BinaryFile> RegularFileRepo::getLibraryBinaryFileContent(const std::string& nameRelativeToRoot) {
         return std::make_shared<BinaryFile>(basePath / nameRelativeToRoot);
+    }
+    void RegularFileRepo::updateLibraryFilesImpl(const std::filesystem::path& updatedFileDirectory, std::function<void(int)> progress) {
+        std::filesystem::copy(updatedFileDirectory, basePath);
     }
 }

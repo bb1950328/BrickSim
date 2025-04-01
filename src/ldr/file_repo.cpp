@@ -97,8 +97,8 @@ namespace bricksim::ldr::file_repo {
 
         std::string getContentOfLdrFile(const std::filesystem::path& path) {
             return path.extension() == ".io"
-                       ? getContentOfIoFile(path)
-                       : util::readFileToString(path);
+                           ? getContentOfIoFile(path)
+                           : util::readFileToString(path);
         }
     }
 
@@ -216,8 +216,8 @@ namespace bricksim::ldr::file_repo {
         }
 
         const auto finalPath = contextRelativePath.has_value()
-                                   ? fileNamespace->searchPath / *contextRelativePath / name
-                                   : fileNamespace->searchPath / name;
+                                       ? fileNamespace->searchPath / *contextRelativePath / name
+                                       : fileNamespace->searchPath / name;
         if (std::filesystem::exists(finalPath)) {
             return addLdrFileWithContent(fileNamespace, name, finalPath, FileType::MODEL, getContentOfLdrFile(finalPath));
         }
@@ -253,8 +253,8 @@ namespace bricksim::ldr::file_repo {
             auto filenameWithForwardSlash = stringutil::replaceChar(name, '\\', '/');
             std::string nameInLibrary;
             const auto prePrefixes = searchPath == BinaryFileSearchPath::TEXMAP
-                                         ? std::vector<std::string>({"textures/", ""})
-                                         : std::vector<std::string>({""});
+                                             ? std::vector<std::string>({"textures/", ""})
+                                             : std::vector<std::string>({""});
             for (const auto& prePrefix: prePrefixes) {
                 for (const auto& prefix: PART_SEARCH_PREFIXES) {
                     auto fullName = prefix + prePrefix;
@@ -337,7 +337,7 @@ namespace bricksim::ldr::file_repo {
                && (filename.starts_with("parts/")
                    || filename.starts_with("p/")
                    || filename.starts_with("models/")
-                   || filename==constants::LDRAW_CONFIG_FILE_NAME);
+                   || filename == constants::LDRAW_CONFIG_FILE_NAME);
     }
 
     bool FileRepo::isLdrFilename(const std::string& filename) {
@@ -382,89 +382,112 @@ namespace bricksim::ldr::file_repo {
     }
 
     void FileRepo::initialize(float* progress) {
-        auto currentLDConfigContent = getLibraryLdrFileContent(constants::LDRAW_CONFIG_FILE_NAME);
-        const auto currentHash = fmt::format("{:x}", adler32(1, reinterpret_cast<unsigned char*>(currentLDConfigContent.data()), currentLDConfigContent.size()));
+        std::string currentHash = getLDConfigContentHash();
         const auto lastIndexHash = db::valueCache::get<std::string>(db::valueCache::LAST_INDEX_LDCONFIG_HASH);
         bool needFill = false;
         if (currentHash != lastIndexHash) {
             needFill = true;
             spdlog::info("FileRepo: Hash of {} changed ({}!={}), going to refill file list", constants::LDRAW_CONFIG_FILE_NAME, lastIndexHash.value_or("?"), currentHash);
-            db::fileList::deleteAllEntries();
         } else if (db::fileList::getSize() == 0) {
             needFill = true;
             spdlog::info("FileRepo: file list in db is empty, going to fill it");
         }
         if (needFill) {
-            auto before = std::chrono::high_resolution_clock::now();
-
-            auto fileNames = listAllFileNames(progress);
-            const auto numFiles = fileNames.size();
-            const auto numCores = std::thread::hardware_concurrency();
-            const auto filesPerThread = numFiles / numCores;
-            std::vector<std::thread> threads;
-            for (size_t threadNum = 0; threadNum < numCores; ++threadNum) {
-                const size_t iStart = threadNum * filesPerThread;                                    //inclusive
-                const size_t iEnd = (threadNum == numCores - 1) ? numFiles : iStart + filesPerThread;//exclusive
-                threads.emplace_back([this,
-                            iStart,
-                            iEnd,
-                            &threadNum,
-                            &fileNames,
-                            progress]() {
-                            std::string threadName = fmt::format("FileList filler #", threadNum);
-                            util::setThreadName(threadName.c_str());
-                            std::vector<db::fileList::Entry> entries;
-                            for (auto fileName = fileNames.cbegin() + iStart; fileName < fileNames.cbegin() + iEnd; ++fileName) {
-                                auto [type, name] = getTypeAndNameFromPathRelativeToBase(*fileName);
-                                if (isBinaryFilename(name)) {
-                                    entries.push_back({*fileName, name, PSEUDO_CATEGORY_BINARY_FILE});
-                                } else {
-                                    auto ldrFile = addLdrFileWithContent(nullptr, name, "", type, getLibraryLdrFileContent(*fileName));
-
-                                    std::string category;
-                                    if (type == FileType::PART) {
-                                        const char& firstChar = ldrFile->metaInfo.title[0];
-                                        if ((firstChar == '~' && ldrFile->metaInfo.title[1] != '|') || firstChar == '=' || firstChar == '_') {
-                                            category = PSEUDO_CATEGORY_HIDDEN_PART;
-                                        } else {
-                                            category = ldrFile->metaInfo.getCategory();
-                                        }
-                                    } else if (type == FileType::SUBPART) {
-                                        category = PSEUDO_CATEGORY_SUBPART;
-                                    } else if (type == FileType::PRIMITIVE) {
-                                        category = PSEUDO_CATEGORY_PRIMITIVE;
-                                    } else if (type == FileType::MODEL) {
-                                        category = PSEUDO_CATEGORY_MODEL;
-                                    } else if (type == FileType::OTHER) {
-                                        category = PSEUDO_CATEGORY_OTHER;
-                                    }
-                                    entries.push_back({name, ldrFile->metaInfo.title, category});
-                                }
-                                if (iStart == 0) {
-                                    *progress = .4f * static_cast<float>(entries.size()) / static_cast<float>(iEnd) + .5f;
-                                }
-                            }
-                            db::fileList::put(entries);
-                            if (iStart == 0) {
-                                *progress = 1.0f;
-                            }
-                        });
-            }
-
-            for (auto& t: threads) {
-                t.join();
-            }
-
-            db::valueCache::set<std::string>(db::valueCache::LAST_INDEX_LDCONFIG_HASH, currentHash);
-
-            auto after = std::chrono::high_resolution_clock::now();
-            auto durationMs = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.0;
-
-            if (numFiles != static_cast<size_t>(db::fileList::getSize())) {
-                spdlog::error("had {} fileNames, but only {} are in db", numFiles, db::fileList::getSize());
-            }
-            spdlog::info("filled fileList in {} ms using {} threads. Size: {}", durationMs, numCores, numFiles);
+            fillFileList([progress](float p) { *progress = p; }, currentHash);
         }
+    }
+    std::string FileRepo::getLDConfigContentHash() {
+        auto currentLDConfigContent = getLibraryLdrFileContent(constants::LDRAW_CONFIG_FILE_NAME);
+        const auto currentHash = fmt::format("{:x}", adler32(1, reinterpret_cast<unsigned char*>(currentLDConfigContent.data()), currentLDConfigContent.size()));
+        return currentHash;
+    }
+    void FileRepo::fillFileList(std::function<void(float)> progress) {
+        fillFileList(progress, getLDConfigContentHash());
+    }
+    void FileRepo::fillFileList(std::function<void(float)> progress, const std::string& currentLDConfigHash) {
+        auto before = std::chrono::high_resolution_clock::now();
+
+        db::fileList::deleteAllEntries();
+
+        auto fileNames = listAllFileNames(progress);
+        const auto numFiles = fileNames.size();
+        const auto numCores = std::thread::hardware_concurrency();
+        const auto filesPerThread = numFiles / numCores;
+        std::vector<std::thread> threads;
+        std::vector<std::string> latestUpdates;
+        latestUpdates.resize(numCores);
+        for (size_t threadNum = 0; threadNum < numCores; ++threadNum) {
+            const size_t iStart = threadNum * filesPerThread;                                    //inclusive
+            const size_t iEnd = (threadNum == numCores - 1) ? numFiles : iStart + filesPerThread;//exclusive
+            threads.emplace_back([this,
+                                  iStart,
+                                  iEnd,
+                                  threadNum,
+                                  &fileNames,
+                                  progress,
+                                  &latestUpdates]() {
+                std::string threadName = fmt::format("FileList filler #{}", threadNum);
+                util::setThreadName(threadName.c_str());
+                std::vector<db::fileList::Entry> entries;
+                std::string latestUpdate;
+                for (auto fileName = fileNames.cbegin() + iStart; fileName < fileNames.cbegin() + iEnd; ++fileName) {
+                    auto [type, name] = getTypeAndNameFromPathRelativeToBase(*fileName);
+                    if (isBinaryFilename(name)) {
+                        entries.push_back({*fileName, name, PSEUDO_CATEGORY_BINARY_FILE});
+                    } else {
+                        auto ldrFile = addLdrFileWithContent(nullptr, name, "", type, getLibraryLdrFileContent(*fileName));
+
+                        std::string category;
+                        if (type == FileType::PART) {
+                            const char& firstChar = ldrFile->metaInfo.title[0];
+                            if ((firstChar == '~' && ldrFile->metaInfo.title[1] != '|') || firstChar == '=' || firstChar == '_') {
+                                category = PSEUDO_CATEGORY_HIDDEN_PART;
+                            } else {
+                                category = ldrFile->metaInfo.getCategory();
+                            }
+                        } else if (type == FileType::SUBPART) {
+                            category = PSEUDO_CATEGORY_SUBPART;
+                        } else if (type == FileType::PRIMITIVE) {
+                            category = PSEUDO_CATEGORY_PRIMITIVE;
+                        } else if (type == FileType::MODEL) {
+                            category = PSEUDO_CATEGORY_MODEL;
+                        } else if (type == FileType::OTHER) {
+                            category = PSEUDO_CATEGORY_OTHER;
+                        }
+                        entries.push_back({name, ldrFile->metaInfo.title, category});
+                        if (*fileName != constants::LDRAW_CONFIG_FILE_NAME) {
+                            const auto update = ldrFile->metaInfo.getUpdateId();
+                            if (update > latestUpdate) {
+                                latestUpdate = update;
+                            }
+                        }
+                    }
+                    if (iStart == 0) {
+                        progress(.4f * static_cast<float>(entries.size()) / static_cast<float>(iEnd) + .5f);
+                    }
+                }
+                db::fileList::put(entries);
+                if (iStart == 0) {
+                    progress(1.f);
+                }
+                latestUpdates[threadNum] = latestUpdate;
+            });
+        }
+
+        for (auto& t: threads) {
+            t.join();
+        }
+
+        db::valueCache::set<std::string>(db::valueCache::LAST_INDEX_LDCONFIG_HASH, currentLDConfigHash);
+        db::valueCache::set<std::string>(db::valueCache::CURRENT_PARTS_LIBRARY_VERSION, *std::max_element(latestUpdates.cbegin(), latestUpdates.cend()));
+
+        auto after = std::chrono::high_resolution_clock::now();
+        auto durationMs = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(after - before).count()) / 1000.0;
+
+        if (numFiles != static_cast<size_t>(db::fileList::getSize())) {
+            spdlog::error("had {} fileNames, but only {} are in db", numFiles, db::fileList::getSize());
+        }
+        spdlog::info("filled fileList in {} ms using {} threads. Size: {}", durationMs, numCores, numFiles);
     }
 
     oset_t<std::string> FileRepo::getAllCategories() {
@@ -594,6 +617,30 @@ namespace bricksim::ldr::file_repo {
             }
         }
         return nullptr;
+    }
+    void FileRepo::updateLibraryFiles(const std::filesystem::path& updatedFileDirectory, std::function<void(float)> progress, uint64_t estimatedFileCount) {
+        updateLibraryFilesImpl(updatedFileDirectory, [&progress, estimatedFileCount](int fileNo) {
+            progress(std::min(.5f, .5f * fileNo / estimatedFileCount));
+        });
+        {
+            plLockWait("FileRepo::ldrFilesMtx");
+            std::scoped_lock<std::mutex> lg(ldrFilesMtx);
+            plLockScopeState("FileRepo::ldrFilesMtx", true);
+            ldrFiles.clear();
+        }
+        {
+            plLockWait("FileRepo::binaryFilesMtx");
+            std::scoped_lock<std::mutex> lg(binaryFilesMtx);
+            plLockScopeState("FileRepo::binaryFilesMtx", true);
+            binaryFiles.clear();
+        }
+        progress(.5f);
+        fillFileList([&progress](float fillFraction) {
+            progress(.5f + fillFraction * .5f);
+        });
+    }
+    std::string FileRepo::getVersion() const {
+        return db::valueCache::get<std::string>(db::valueCache::CURRENT_PARTS_LIBRARY_VERSION).value_or("");
     }
 
     FileRepo::~FileRepo() = default;

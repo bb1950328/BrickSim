@@ -38,12 +38,12 @@ if [[ "$OS" == "linux" ]]; then
   sudo apt-get install -y build-essential gcc-12 g++-12 gcc-multilib g++-multilib gcc-12-multilib g++-12-multilib \
                           cmake mesa-utils libxinerama-dev libxrandr-dev libxcursor-dev libxi-dev ninja-build \
                           freeglut3-dev libcurl4-openssl-dev libtbb-dev libssl-dev libeigen3-dev libccd-dev \
-                          zlib1g-dev libwayland-dev libxkbcommon-dev
+                          zlib1g-dev libwayland-dev libxkbcommon-dev libpsl-dev
 
   if $install_32bit_packages; then
     sudo apt-get install -y libgl1-mesa-dev:i386 libglu1-mesa-dev:i386 freeglut3-dev:i386 libzstd-dev:i386  \
                             zlib1g-dev:i386 libssl-dev:i386 libcurl4-openssl-dev:i386 libtbb-dev:i386 \
-                            libbz2-dev:i386 liblzma-dev:i386 mesa-common-dev:i386
+                            libbz2-dev:i386 liblzma-dev:i386 mesa-common-dev:i386 libpsl-dev:i386
   fi
   echo "packages installed."
 fi

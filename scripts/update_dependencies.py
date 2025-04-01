@@ -22,6 +22,7 @@ def update_to_latest_release(directory, repo_name):
     release = get_latest_release(repo_name)
     run_in_dir(directory, "git fetch --tags")
     run_in_dir(directory, f"git checkout {release}")
+    run_in_dir(directory, f"git submodule update --recursive")
 
 
 def pull_branch(directory: str, branch: str):

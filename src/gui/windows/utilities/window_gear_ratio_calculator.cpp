@@ -5,7 +5,7 @@
 
 #include "window_gear_ratio_calculator.h"
 
-namespace bricksim::gui::windows::tools::gear_ratio_calculator {
+namespace bricksim::gui::windows::utilities::gear_ratio_calculator {
     void draw(Data& data) {
         if (ImGui::Begin(data.name, &data.visible)) {
             collectWindowInfo(data.id);
@@ -91,7 +91,7 @@ namespace bricksim::gui::windows::tools::gear_ratio_calculator {
             ImGui::Separator();
             ImGui::Text("Gear Ratio: %ld:%ld", totalRatio.getA(), totalRatio.getB());
 
-            ImGui::End();
         }
+        ImGui::End();
     }
 }

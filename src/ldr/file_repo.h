@@ -69,6 +69,7 @@ namespace bricksim::ldr::file_repo {
         std::filesystem::path& getBasePath();
         static oset_t<std::string> getAllCategories();
         std::shared_ptr<FileNamespace> getNamespace(const std::string& name);
+        std::string getVersion() const;
 
         /**
          * @param type
@@ -85,7 +86,7 @@ namespace bricksim::ldr::file_repo {
          * @param progress range from 0.0f to 0.5f
          * @return vector of file names relative to root of library
          */
-        virtual std::vector<std::string> listAllFileNames(float* progress) = 0;
+        virtual std::vector<std::string> listAllFileNames(std::function<void(float)> progress) = 0;
         virtual std::string getLibraryLdrFileContent(FileType type, const std::string& name) = 0;
         virtual std::string getLibraryLdrFileContent(const std::string& nameRelativeToRoot) = 0;
         virtual std::shared_ptr<BinaryFile> getLibraryBinaryFileContent(const std::string& nameRelativeToRoot) = 0;
@@ -98,6 +99,10 @@ namespace bricksim::ldr::file_repo {
                             const std::shared_ptr<FileNamespace>& newNamespace,
                             const std::string& newName);
 
+        void updateLibraryFiles(const std::filesystem::path& updatedFileDirectory, std::function<void(float)> progress, uint64_t estimatedFileCount);
+        virtual bool replaceLibraryFilesDirectlyFromZip() = 0;
+        void replaceLibraryFiles(const std::filesystem::path& replacementFileOrDirectory, std::function<void(float)> progress, uint64_t estimatedFileCount);
+
     protected:
         static bool shouldFileBeSavedInList(const std::string& filename);
         /**
@@ -106,8 +111,12 @@ namespace bricksim::ldr::file_repo {
          * @return
          */
         static std::pair<FileType, std::string> getTypeAndNameFromPathRelativeToBase(const std::string& pathRelativeToBase);
+        virtual void updateLibraryFilesImpl(const std::filesystem::path& updatedFileDirectory, std::function<void(int)> progress) = 0;
+        virtual void replaceLibraryFilesImpl(const std::filesystem::path& replacementFileOrDirectory, std::function<void(int)> progress) = 0;
         std::filesystem::path basePath;
 
+        void fillFileList(std::function<void(float)> progress);
+        void fillFileList(std::function<void(float)> progress, const std::string& currentLDConfigHash);
     private:
         uomap_t<std::shared_ptr<FileNamespace>, uomap_t<std::string, std::pair<FileType, std::shared_ptr<File>>>> ldrFiles;
         std::mutex ldrFilesMtx;
@@ -118,6 +127,8 @@ namespace bricksim::ldr::file_repo {
         omap_t<std::string, oset_t<std::shared_ptr<File>>> partsByCategory;
         static bool isLdrFilename(const std::string& filename);
         static bool isBinaryFilename(const std::string& filename);
+        std::string getLDConfigContentHash();
+        void refreshAfterUpdateOrReplaceLibrary(const std::function<void(float)>& progress);
     };
 
     FileRepo& get();

@@ -45,7 +45,7 @@ namespace bricksim::ldr {
 
         Color() = default;
 
-        explicit Color(const std::string& line);
+        explicit Color(const std::string_view line);
         std::string name;
         code_t code;
         color::RGB value;

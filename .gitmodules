@@ -74,3 +74,6 @@
 [submodule "src/lib/Clipper2"]
 	path = src/lib/Clipper2
 	url = https://github.com/AngusJohnson/Clipper2
+[submodule "src/lib/pugixml"]
+	path = src/lib/pugixml
+	url = https://github.com/zeux/pugixml.git

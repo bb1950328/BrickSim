@@ -1,12 +1,13 @@
 #include "colors.h"
 #include "../helpers/stringutil.h"
 #include "../helpers/util.h"
+#include "config.h"
 #include "file_repo.h"
 #include <sstream>
 
 namespace bricksim::ldr {
-    Color::Color(const std::string& line) {
-        std::stringstream linestream(line);//todo optimize this one day (using strtok instead of stringstream)
+    Color::Color(const std::string_view line) {
+        std::stringstream linestream((std::string(line)));//todo optimize this one day (using strtok instead of stringstream)
         linestream >> name;
         while (linestream.rdbuf()->in_avail() != 0) {
             std::string keyword;
@@ -121,16 +122,9 @@ namespace bricksim::ldr {
         void initialize() {
             static bool initialized = false;
             if (!initialized) {
-                std::stringstream inpStream;
-                std::string contentString = ldr::file_repo::get().getLibraryLdrFileContent("LDConfig.ldr");
-                inpStream << contentString;
-                for (std::string line; getline(inpStream, line);) {
-                    auto trimmed = stringutil::trim(line);
-                    if (!trimmed.empty() && trimmed.rfind("0 !COLOUR", 0) == 0) {
-                        auto col = std::make_shared<Color>(line.substr(10));
-                        colors[col->code] = col;
-                        hueSortedCodes.push_back({color::HSV(col->value).hue, col->code});
-                    }
+                for (const auto& col: getConfig().getColors()) {
+                    colors[col->code] = col;
+                    hueSortedCodes.push_back({color::HSV(col->value).hue, col->code});
                 }
                 instDummyColor = std::make_shared<LdrInstanceDummyColor>();
                 colors[INSTANCE_DUMMY_COLOR_CODE] = instDummyColor;

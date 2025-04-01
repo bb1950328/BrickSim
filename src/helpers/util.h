@@ -154,13 +154,17 @@ namespace bricksim::util {
      */
     std::pair<int, std::string> requestGET(const std::string& url, bool useCache = true, size_t sizeLimit = 0, int (*progressFunc)(void*, long, long, long, long) = nullptr);
 
+    struct FileDownloadResult {
+        int httpCode;
+        std::size_t contentLength;
+    };
     /**
      * @param url
      * @param targetFile where the file should be saved
      * @param progressFunc int(void* clientp, long downloadTotal, long downloadNow, long uploadTotal, long uploadNow) // if return value is != 0, transfer stops
      * @return (responseCode, responseString)
      */
-    std::pair<int, std::string> downloadFile(const std::string& url, std::filesystem::path targetFile, int (*progressFunc)(void*, long, long, long, long) = nullptr);
+    FileDownloadResult downloadFile(const std::string& url, std::filesystem::path targetFile, const std::optional<std::function<int(std::size_t, std::size_t, std::size_t, std::size_t)>> progressFunc = std::nullopt);
 
     std::string readFileToString(const std::filesystem::path& path);
 
@@ -274,4 +278,6 @@ namespace bricksim::util {
     UtfType determineUtfTypeFromBom(const std::string_view text);
 
     int64_t getPID();
+
+    std::array<std::byte, 16> md5(const std::filesystem::path& filePath);
 }

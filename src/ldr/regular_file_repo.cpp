@@ -8,14 +8,14 @@ namespace bricksim::ldr::file_repo {
             spdlog::warn("{} not found or not a directory", basePath.string());
             return false;
         }
-        if (!std::filesystem::exists(basePath / "LDConfig.ldr")) {
-            spdlog::warn("LDConfig.ldr not found in {}, therefore it's not a valid ldraw library directory", basePath.string());
+        if (!std::filesystem::exists(basePath / constants::LDRAW_CONFIG_FILE_NAME)) {
+            spdlog::warn("{} not found in {}, therefore it's not a valid ldraw library directory", constants::LDRAW_CONFIG_FILE_NAME, basePath.string());
             return false;
         }
         return true;
     }
 
-    std::vector<std::string> RegularFileRepo::listAllFileNames(float* progress) {
+    std::vector<std::string> RegularFileRepo::listAllFileNames(std::function<void(float)> progress) {
         std::vector<std::string> files;
         for (const auto& entry: std::filesystem::recursive_directory_iterator(basePath)) {
             auto path = util::withoutBasePath(entry.path(), basePath).string();
@@ -23,7 +23,7 @@ namespace bricksim::ldr::file_repo {
 
             if (shouldFileBeSavedInList(pathWithForwardSlash)) {
                 files.push_back(pathWithForwardSlash);
-                *progress = std::min(1.f, .5f * static_cast<float>(files.size()) / ESTIMATE_PART_LIBRARY_FILE_COUNT);
+                progress(std::min(1.f, .5f * static_cast<float>(files.size()) / ESTIMATE_PART_LIBRARY_FILE_COUNT));
             }
         }
         return files;
@@ -48,5 +48,20 @@ namespace bricksim::ldr::file_repo {
 
     std::shared_ptr<BinaryFile> RegularFileRepo::getLibraryBinaryFileContent(const std::string& nameRelativeToRoot) {
         return std::make_shared<BinaryFile>(basePath / nameRelativeToRoot);
+    }
+    void RegularFileRepo::updateLibraryFilesImpl(const std::filesystem::path& updatedFileDirectory, std::function<void(int)> progress) {
+        std::filesystem::copy(updatedFileDirectory, basePath, std::filesystem::copy_options::update_existing|std::filesystem::copy_options::recursive);
+    }
+    bool RegularFileRepo::replaceLibraryFilesDirectlyFromZip() {
+        return false;
+    }
+    void RegularFileRepo::replaceLibraryFilesImpl(const std::filesystem::path& replacementFileOrDirectory, std::function<void(int)> progress) {
+        if (!std::filesystem::is_directory(replacementFileOrDirectory)) {
+            throw std::invalid_argument("expected a directory as replacement path");
+        }
+        std::filesystem::path tmpPath = basePath.string()+"_old";
+        std::filesystem::rename(basePath, tmpPath);
+        std::filesystem::copy(replacementFileOrDirectory, basePath, std::filesystem::copy_options::recursive);
+        std::filesystem::remove_all(tmpPath);
     }
 }

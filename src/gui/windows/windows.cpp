@@ -8,6 +8,7 @@
 
 #include "../../metrics.h"
 #include "utilities/window_gear_ratio_calculator.h"
+#include "utilities/window_ldraw_library_updater.h"
 #include "window_about.h"
 #include "window_connection_visualization.h"
 #include "window_debug.h"
@@ -49,12 +50,13 @@ namespace bricksim::gui::windows {
                     {Id::IMGUI_DEMO, ICON_FA_IMAGE " ImGui Demo", false, drawImGuiDemo, noCleanup},
                     {Id::ORIENTATION_CUBE, ICON_FA_CUBE " Orientation Cube", true, orientation_cube::draw, noCleanup},
                     {Id::LOG, ICON_FA_LIST " Log", false, log::draw, noCleanup},
-                    {Id::GEAR_RATIO_CALCULATOR, ICON_FA_GEARS " Gear Ratio Calculator", false, tools::gear_ratio_calculator::draw, noCleanup},
+                    {Id::GEAR_RATIO_CALCULATOR, ICON_FA_GEARS " Gear Ratio Calculator", false, utilities::gear_ratio_calculator::draw, noCleanup},
                     {Id::MODEL_INFO, ICON_FA_INFO " Model Info", false, model_info::draw, noCleanup},
                     {Id::EDITOR_META_INFO, ICON_FA_RECEIPT " Meta-Info", false, editor_meta_info::draw, noCleanup},
                     {Id::LDRAW_FILE_INSPECTOR, ICON_FA_EYE " LDraw File Inspector", false, ldraw_file_inspector::draw, noCleanup},
                     {Id::TOOLBAR, ICON_FA_SCREWDRIVER_WRENCH " Toolbar", true, toolbar::draw, noCleanup},
                     {Id::CONNECTION_VISUALIZATION, ICON_FA_SHARE_NODES " Connection visualization", false, connection_visualization::draw, connection_visualization::cleanup},
+                    {Id::LDRAW_LIBRARY_UPDATER, ICON_FA_DOWNLOAD " LDraw Library Updater", false, utilities::ldraw_library_updater::draw, noCleanup},
             }};
 
     void drawAll() {

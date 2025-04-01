@@ -15,18 +15,20 @@
 #include <sstream>
 #include <stb_image.h>
 #include <stb_image_write.h>
+#include <openssl/evp.h>
 
 #ifdef BRICKSIM_PLATFORM_WINDOWS
     #include <windows.h>
-#ifdef min
+    #ifdef min
         #undef min
-#endif
-#ifdef max
+    #endif
+    #ifdef max
         #undef max
-#endif
+    #endif
 #elif defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)
-#include <pthread.h>
-#include <unistd.h>
+    #include <fstream>
+    #include <pthread.h>
+    #include <unistd.h>
 #endif
 
 namespace bricksim::util {
@@ -70,21 +72,21 @@ namespace bricksim::util {
 
     void openDefaultBrowser(const std::string& link) {
         spdlog::info("openDefaultBrowser(\"{}\")", link);
-        #ifdef BRICKSIM_PLATFORM_WINDOWS
+#ifdef BRICKSIM_PLATFORM_WINDOWS
         ShellExecute(nullptr, "open", link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);//todo testing
-        #elif defined(BRICKSIM_PLATFORM_MACOS)
+#elif defined(BRICKSIM_PLATFORM_MACOS)
         std::string command = std::string("open ") + link;
-        #elif defined(BRICKSIM_PLATFORM_LINUX)
+#elif defined(BRICKSIM_PLATFORM_LINUX)
         std::string command = std::string("xdg-open ") + link;
-        #else
+#else
     #warning "openDefaultProwser not supported on this platform"
-        #endif
-        #if defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)
+#endif
+#if defined(BRICKSIM_PLATFORM_LINUX) || defined(BRICKSIM_PLATFORM_MACOS)
         int exitCode = system(command.c_str());
         if (exitCode != 0) {
             spdlog::warn("command \"{}\" exited with code {}", command, exitCode);
         }
-        #endif
+#endif
     }
 
     bool memeqzero(const void* data, size_t length) {
@@ -226,27 +228,47 @@ namespace bricksim::util {
         return written;
     }
 
-    std::pair<int, std::string> downloadFile(const std::string& url, const std::filesystem::path targetFile, int (*progressFunc)(void*, long, long, long, long)) {
-        CURL* curl = curl_easy_init();
+    struct CurlActionData {
+        std::string url;
+        std::function<int(std::size_t, std::size_t, std::size_t, std::size_t)> progressCallback;
+    };
+
+    int curl_xferinfo_callback_func(void* clientp, curl_off_t dlTotal, curl_off_t dlNow, curl_off_t ulTotal, curl_off_t ulNow) {
+        const auto actionData = (CurlActionData*)clientp;
+        return actionData->progressCallback(dlTotal, dlNow, ulTotal, ulNow);
+    }
+
+    FileDownloadResult downloadFile(const std::string& url, const std::filesystem::path targetFile, const std::optional<std::function<int(std::size_t, std::size_t, std::size_t, std::size_t)>> progressFunc) {
+        auto curl = std::unique_ptr<CURL, decltype(&curl_easy_cleanup)>(curl_easy_init(), curl_easy_cleanup);
         if (curl) {
             FILE* fp = fopen(targetFile.string().c_str(), "wb");
-            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunctionToFile);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+            curl_easy_setopt(curl.get(), CURLOPT_URL, url.c_str());
+            curl_easy_setopt(curl.get(), CURLOPT_FOLLOWLOCATION, 1L);
+            curl_easy_setopt(curl.get(), CURLOPT_WRITEFUNCTION, writeFunctionToFile);
+            curl_easy_setopt(curl.get(), CURLOPT_WRITEDATA, fp);
 
+            std::unique_ptr<CurlActionData> actionData;
             if (progressFunc != nullptr) {
-                curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-                curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progressFunc);
+                actionData = std::make_unique<CurlActionData>(url, *progressFunc);
+                curl_easy_setopt(curl.get(), CURLOPT_NOPROGRESS, 0L);
+                curl_easy_setopt(curl.get(), CURLOPT_XFERINFOFUNCTION, curl_xferinfo_callback_func);
+                curl_easy_setopt(curl.get(), CURLOPT_XFERINFODATA, actionData.get());
             } else {
-                curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+                actionData = nullptr;
+                curl_easy_setopt(curl.get(), CURLOPT_NOPROGRESS, 1L);
             }
 
-            CURLcode res = curl_easy_perform(curl);
+            CURLcode res = curl_easy_perform(curl.get());
+            long httpCode;
+            curl_easy_getinfo(curl.get(), CURLINFO_RESPONSE_CODE, &httpCode);
+            curl_off_t contentSize;
+            curl_easy_getinfo(curl.get(), CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &contentSize);
 
-            curl_easy_cleanup(curl);
             fclose(fp);
+
+            return {static_cast<int>(httpCode), static_cast<std::size_t>(contentSize)};
         }
-        return {234, "TODO"};
+        return {-1, 0};
     }
 
     std::string readFileToString(const std::filesystem::path& path) {
@@ -306,14 +328,14 @@ namespace bricksim::util {
     }
 
     void setThreadName(const char* threadName) {
-        #ifdef BRICKSIM_PLATFORM_LINUX
+#ifdef BRICKSIM_PLATFORM_LINUX
         pthread_setname_np(pthread_self(), threadName);
-        #elif defined(BRICKSIM_PLATFORM_MACOS)
+#elif defined(BRICKSIM_PLATFORM_MACOS)
         pthread_setname_np(threadName);
-        #endif
-        #ifdef USE_PL
+#endif
+#ifdef USE_PL
         plDeclareThreadDyn(threadName);
-        #endif
+#endif
     }
 
     UtfType determineUtfTypeFromBom(const std::string_view text) {
@@ -345,11 +367,11 @@ namespace bricksim::util {
     }
 
     int64_t getPID() {
-        #if defined(BRICKSIM_PLATFORM_WINDOWS)
+#if defined(BRICKSIM_PLATFORM_WINDOWS)
         return GetCurrentProcessId();
-        #else
+#else
         return getpid();
-        #endif
+#endif
     }
 
     bool isStbiFlipVertically() {
@@ -409,5 +431,37 @@ namespace bricksim::util {
 
     glm::mat4 DecomposedTransformation::scaleAsMat4() const {
         return glm::scale(glm::mat4(1.0f), scale);
+    }
+
+    std::array<std::byte, 16> md5(const std::filesystem::path& filePath) {
+        auto context = std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)>(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+        if (!context) {
+            throw std::runtime_error("Cannot calculate MD5: failed to create OpenSSL EVP MD context");
+        }
+
+        const EVP_MD *md = EVP_md5();
+        if (!EVP_DigestInit_ex2(context.get(), md, nullptr)) {
+            throw std::runtime_error("Cannot calculate MD5: failed to initialize digest");
+        }
+
+        std::ifstream file(filePath, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Cannot calculate MD5: failed to open file " + filePath.string());
+        }
+
+        std::vector<char> buffer(4096);
+        while (file.read(buffer.data(), buffer.size()) || file.gcount() > 0) {
+            if (!EVP_DigestUpdate(context.get(), buffer.data(), file.gcount())) {
+                throw std::runtime_error("Cannot calculate MD5: failed to update digest");
+            }
+        }
+
+        std::array<std::byte, 16> md5Hash;
+        unsigned int mdLen;
+        if (!EVP_DigestFinal_ex(context.get(), reinterpret_cast<unsigned char*>(md5Hash.data()), &mdLen) || mdLen != 16) {
+            throw std::runtime_error("Cannot calculate MD5: failed to finalize digest");
+        }
+
+        return md5Hash;
     }
 }

@@ -2,6 +2,7 @@
 #include "../gui/icons.h"
 #include "../lib/IconFontCppHeaders/IconsFontAwesome6.h"
 #include <algorithm>
+#include <chrono>
 #include <glm/glm.hpp>
 #include <spdlog/fmt/fmt.h>
 #include <string>
@@ -77,4 +78,12 @@ namespace bricksim::stringutil {
     }
 
     std::string removeIcons(std::string_view withIcons);
+
+    /**
+     * @return the index of the first occurrence of " that is >= start and not preceded by a backslash
+     */
+    std::size_t findClosingQuote(std::string_view str, std::size_t start = 0);
+
+    std::chrono::year_month_day parseYYYY_MM_DD(std::string_view str);
+    std::chrono::year_month_day parseYYYY_MM(std::string_view str, int day=1);
 }

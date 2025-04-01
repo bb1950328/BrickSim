@@ -10,12 +10,12 @@
 #include <curl/curl.h>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <magic_enum.hpp>
+#include <openssl/evp.h>
 #include <palanteer.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
 #include <stb_image.h>
 #include <stb_image_write.h>
-#include <openssl/evp.h>
 
 #ifdef BRICKSIM_PLATFORM_WINDOWS
     #include <windows.h>
@@ -249,8 +249,9 @@ namespace bricksim::util {
 
             std::unique_ptr<CurlActionData> actionData;
             if (progressFunc != nullptr) {
-                const std::function<int(std::size_t, std::size_t, std::size_t, std::size_t)> progressFuncValue = *progressFunc;
-                actionData = std::make_unique<CurlActionData>(url, progressFuncValue);
+                actionData = std::make_unique<CurlActionData>();
+                actionData->url = url;
+                actionData->progressCallback = *progressFunc;
                 curl_easy_setopt(curl.get(), CURLOPT_NOPROGRESS, 0L);
                 curl_easy_setopt(curl.get(), CURLOPT_XFERINFOFUNCTION, curl_xferinfo_callback_func);
                 curl_easy_setopt(curl.get(), CURLOPT_XFERINFODATA, actionData.get());
@@ -440,7 +441,7 @@ namespace bricksim::util {
             throw std::runtime_error("Cannot calculate MD5: failed to create OpenSSL EVP MD context");
         }
 
-        const EVP_MD *md = EVP_md5();
+        const EVP_MD* md = EVP_md5();
         if (!EVP_DigestInit_ex2(context.get(), md, nullptr)) {
             throw std::runtime_error("Cannot calculate MD5: failed to initialize digest");
         }

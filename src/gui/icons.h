@@ -2,7 +2,7 @@
 #include "../constant_data/resources.h"
 #include "../helpers/util.h"
 #include "imgui.h"
-#include "magic_enum.hpp"
+#include <magic_enum/magic_enum.hpp>
 #include <span>
 
 namespace bricksim::gui::icons {

@@ -12,7 +12,7 @@
 
 #include <cpuinfo.h>
 #include <curl/curl.h>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 
 namespace bricksim::helpers::system_info {
     std::vector<std::pair<std::string, std::string>> getSystemInfo() {

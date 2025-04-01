@@ -1,7 +1,7 @@
 #include "finger.h"
 #include "../../helpers/stringutil.h"
 #include "../../helpers/util.h"
-#include "magic_enum.hpp"
+#include <magic_enum/magic_enum.hpp>
 #include <numeric>
 #include <spdlog/fmt/ranges.h>
 

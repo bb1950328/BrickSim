@@ -1,5 +1,5 @@
 #include "mesh_generated.h"
-#include "magic_enum.hpp"
+#include <magic_enum/magic_enum.hpp>
 #include <glm/gtx/transform.hpp>
 #include <spdlog/spdlog.h>
 

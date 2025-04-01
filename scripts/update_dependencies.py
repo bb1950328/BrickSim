@@ -46,7 +46,7 @@ if __name__ == '__main__':
         "ImGuiColorTextEdit": lambda: pull_branch("src/lib/ImGuiColorTextEdit", "dev"),
         "libzip": lambda: update_to_latest_release("src/lib/libzip", "nih-at/libzip"),
         "magic_enum": lambda: pull_branch("src/lib/magic_enum", "master"),
-        "miniball": lambda: pull_branch("src/lib/miniball", "fix-msvc"),
+        "miniball": lambda: pull_branch("src/lib/miniball", "master"),
         "palanteer": lambda: update_to_latest_release("src/lib/palanteer", "dfeneyrou/palanteer"),
         "rapidjson": lambda: pull_branch("src/lib/rapidjson", "master"),
         "spdlog": lambda: pull_branch("src/lib/spdlog", "v1.x"),

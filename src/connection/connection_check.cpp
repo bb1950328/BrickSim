@@ -1,7 +1,7 @@
 #include "connection_check.h"
 #include "../helpers/geometry.h"
 #include "connector_data_provider.h"
-#include "magic_enum.hpp"
+#include <magic_enum/magic_enum.hpp>
 #include "pair_checker.h"
 #include <spdlog/spdlog.h>
 

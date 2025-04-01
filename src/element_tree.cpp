@@ -4,7 +4,7 @@
 #include "config/read.h"
 #include "ldr/file_repo.h"
 #include <glm/gtx/normal.hpp>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <palanteer.h>
 #include <spdlog/spdlog.h>
 #include <utility>

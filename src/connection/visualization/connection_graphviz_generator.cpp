@@ -3,6 +3,7 @@
 #include "../../helpers/graphviz_wrapper.h"
 #include "../connector_data_provider.h"
 #include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ranges.h>
 
 namespace bricksim::connection::visualization {
     //todo add option to export whole thing to a directory and render image for each node (https://stackoverflow.com/a/8077158/8733066)

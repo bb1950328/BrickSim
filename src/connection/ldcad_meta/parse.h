@@ -1,6 +1,6 @@
 #pragma once
 #include "fast_float/fast_float.h"
-#include "magic_enum.hpp"
+#include <magic_enum/magic_enum.hpp>
 #include "base.h"
 #include <array>
 #include <optional>

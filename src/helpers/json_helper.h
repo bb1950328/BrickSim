@@ -1,5 +1,5 @@
 #pragma once
-#include "magic_enum.hpp"
+#include <magic_enum/magic_enum.hpp>
 #include "../types.h"
 #include "json_dto/pub.hpp"
 #include "spdlog/fmt/fmt.h"

@@ -1,5 +1,5 @@
 #include "meshes.h"
-#include "magic_enum.hpp"
+#include <magic_enum/magic_enum.hpp>
 #include "spdlog/fmt/fmt.h"
 #include <cmath>
 

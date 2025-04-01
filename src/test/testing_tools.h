@@ -3,7 +3,7 @@
 #include "catch2/catch_approx.hpp"
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/generators/catch_generators.hpp"
-#include "magic_enum.hpp"
+#include <magic_enum/magic_enum.hpp>
 #include <glm/gtx/io.hpp>
 
 constexpr auto FLOAT_EPSILON = std::numeric_limits<float>::epsilon() * 100;

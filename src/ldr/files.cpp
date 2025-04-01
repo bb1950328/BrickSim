@@ -7,7 +7,7 @@
 #include <charconv>
 #include <fast_float/fast_float.h>
 #include <iostream>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
 
 namespace bricksim::ldr {

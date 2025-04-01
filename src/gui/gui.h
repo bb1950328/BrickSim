@@ -5,7 +5,7 @@
 #include "windows/windows.h"
 #include <GLFW/glfw3.h>
 #include <imgui.h>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <string>
 
 namespace bricksim {

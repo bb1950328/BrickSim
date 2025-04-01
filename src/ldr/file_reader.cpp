@@ -1,5 +1,5 @@
 #include "file_reader.h"
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <palanteer.h>
 #include <spdlog/spdlog.h>
 

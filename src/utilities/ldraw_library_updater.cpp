@@ -6,6 +6,7 @@
 #include "pugixml.hpp"
 #include <fstream>
 #include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ranges.h>
 #include <spdlog/spdlog.h>
 #include <zip.h>
 

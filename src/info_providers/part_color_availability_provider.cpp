@@ -3,6 +3,7 @@
 #include "../helpers/util.h"
 #include <fstream>
 #include <spdlog/spdlog.h>
+#include <spdlog/fmt/ranges.h>
 
 namespace bricksim::info_providers::part_color_availability {
     namespace {

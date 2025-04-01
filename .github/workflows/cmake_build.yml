@@ -106,14 +106,14 @@ jobs:
         run: find ${{runner.workspace}} -type f -executable
 
       - name: BrickSimRawBinary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: BrickSimRawBinary_Linux${{ matrix.bits }}
           path: |
             ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSim
 
       - name: Upload BrickSimTests
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: BrickSimTests_Linux${{ matrix.bits }}
           path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.bits }}/BrickSimTests
@@ -160,7 +160,7 @@ jobs:
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: UnitTestReport_Linux64
           path: ${{runner.workspace}}/*TestReport*.xml
@@ -227,7 +227,7 @@ jobs:
         run: rm ${{ runner.workspace }}/license.xml
 
       - name: Upload BrickSimInstaller
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: BrickSimInstaller_Linux${{ matrix.bits }}
           path: ${{runner.workspace}}/installbuilder/output/*.run
@@ -285,7 +285,7 @@ jobs:
           cmake --build . --target BrickSim BrickSimTests --config Release  -j 2
 
       - name: Upload BrickSimRawBinary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: BrickSimRawBinary_Windows64
           path: |
@@ -293,7 +293,7 @@ jobs:
             ${{runner.workspace}}\BrickSim\cmake-build\release64\zlib1.dll
 
       - name: Upload BrickSimTests
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: BrickSimTests_Windows64
           path: ${{runner.workspace}}\BrickSim\cmake-build\release64\BrickSimTests.exe
@@ -363,7 +363,7 @@ jobs:
           Remove-Item -Path "${{ runner.workspace }}/license.xml"
 
       - name: Upload BrickSimInstaller
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: BrickSimInstaller_Windows64
           path: ${{runner.workspace}}\installbuilder\output\*.exe
@@ -429,7 +429,7 @@ jobs:
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: UnitTestReport_Windows64
           path: ${{runner.workspace}}/*TestReport*.xml
@@ -511,13 +511,13 @@ jobs:
           CCACHE_MAXSIZE: 500M
 
       - name: Upload Application Binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: BrickSimRawBinary_Mac${{ matrix.name }}
           path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.name }}/BrickSim
 
       - name: Upload Tests Binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: BrickSimTests_Mac${{ matrix.name }}
           path: ${{runner.workspace}}/BrickSim/cmake-build/release${{ matrix.name }}/BrickSimTests
@@ -592,7 +592,7 @@ jobs:
         run: rm ${{ runner.workspace }}/license.xml
 
       - name: Upload BrickSimInstaller
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: BrickSimInstaller_Mac${{ matrix.name }}
           path: ${{runner.workspace}}/installbuilder/output/*.dmg
@@ -646,7 +646,7 @@ jobs:
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: UnitTestReport_Mac${{ matrix.name }}
           path: ${{runner.workspace}}/*TestReport*.xml

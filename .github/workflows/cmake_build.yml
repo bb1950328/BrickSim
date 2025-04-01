@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 env:
   BUILD_TYPE: Release
-  INSTALLBUILDER_VERSION: 23.4.0
+  INSTALLBUILDER_VERSION: 25.3.1
 jobs:
   buildLinux:
     if: "!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip linux ci')"

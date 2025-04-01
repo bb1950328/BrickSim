@@ -249,7 +249,8 @@ namespace bricksim::util {
 
             std::unique_ptr<CurlActionData> actionData;
             if (progressFunc != nullptr) {
-                actionData = std::make_unique<CurlActionData>(url, *progressFunc);
+                const std::function<int(std::size_t, std::size_t, std::size_t, std::size_t)> progressFuncValue = *progressFunc;
+                actionData = std::make_unique<CurlActionData>(url, progressFuncValue);
                 curl_easy_setopt(curl.get(), CURLOPT_NOPROGRESS, 0L);
                 curl_easy_setopt(curl.get(), CURLOPT_XFERINFOFUNCTION, curl_xferinfo_callback_func);
                 curl_easy_setopt(curl.get(), CURLOPT_XFERINFODATA, actionData.get());

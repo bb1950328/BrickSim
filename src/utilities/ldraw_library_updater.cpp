@@ -188,12 +188,12 @@ namespace bricksim::ldraw_library_updater {
         }
 
         std::filesystem::path sourceDir;
-        if (std::filesystem::is_regular_file(mergedDirectory / "ldraw" / constants::LDRAW_CONFIG_FILE_NAME)) {
+        if (std::filesystem::is_directory(mergedDirectory / "ldraw" / constants::LDRAW_PARTS_DIRECTORY_NAME)) {
             sourceDir = mergedDirectory / "ldraw";
-        } else if (std::filesystem::is_regular_file(mergedDirectory / constants::LDRAW_CONFIG_FILE_NAME)) {
+        } else if (std::filesystem::is_directory(mergedDirectory / constants::LDRAW_PARTS_DIRECTORY_NAME)) {
             sourceDir = mergedDirectory;
         } else {
-            throw UpdateFailedException(fmt::format("cannot find {} in {} or {}", constants::LDRAW_CONFIG_FILE_NAME, (mergedDirectory / "ldraw").string(), mergedDirectory.string()));
+            throw UpdateFailedException(fmt::format("cannot find {} in {} or {}", constants::LDRAW_PARTS_DIRECTORY_NAME, (mergedDirectory / "ldraw").string(), mergedDirectory.string()));
         }
 
         auto progressFunc = [this](float progress) {

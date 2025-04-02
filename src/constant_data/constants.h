@@ -41,6 +41,7 @@ namespace bricksim::constants {
     static constexpr auto LDRAW_LIBRARY_UPDATES_XML_URL = "https://library.ldraw.org/updates?output=XML";
 
     static constexpr auto LDRAW_CONFIG_FILE_NAME = "LDConfig.ldr";
+    static constexpr auto LDRAW_PARTS_DIRECTORY_NAME = "parts";
 
     constexpr float pInf = std::numeric_limits<float>::infinity();
     constexpr float nInf = -pInf;
